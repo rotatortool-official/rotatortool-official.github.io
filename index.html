@@ -3,6 +3,9 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta http-equiv="X-Content-Type-Options" content="nosniff">
+<meta http-equiv="X-Frame-Options" content="SAMEORIGIN">
+<meta name="referrer" content="no-referrer-when-downgrade">
 <meta name="description" content="Rotation Screener — Find the best crypto, forex and stock rotation opportunities. Free top 30 coins, Pro top 50 + 90D data.">
 <title>⬡ ROTATOR — Binance Rotation Screener</title>
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>⬡</text></svg>">
@@ -123,15 +126,15 @@ body::before{content:'';position:fixed;inset:0;background:repeating-linear-gradi
 ══════════════════════════════ */
 .sidebar{background:var(--bg2);border-right:1px solid var(--bdr);display:flex;flex-direction:column;overflow:hidden;}
 .phead{padding:5px 10px;border-bottom:1px solid var(--bdr);background:var(--bg3);display:flex;align-items:center;justify-content:space-between;flex-shrink:0;}
-.ptitle{font-size:9px;font-weight:600;letter-spacing:.16em;text-transform:uppercase;color:var(--muted);}
+.ptitle{font-size:9px;font-weight:600;letter-spacing:.16em;text-transform:uppercase;color:rgba(180,195,215,.8);}
 .ptitle em{color:var(--bnb);font-style:normal;}
 .add-form{padding:7px 10px;border-bottom:1px solid var(--bdr);background:var(--bg3);flex-shrink:0;}
 .frow{display:flex;gap:5px;align-items:center;margin-bottom:4px;}
 .frow:last-of-type{margin-bottom:0;}
-.flbl{font-size:9px;color:var(--muted);letter-spacing:.08em;text-transform:uppercase;width:36px;flex-shrink:0;}
+.flbl{font-size:9px;color:rgba(180,195,215,.7);letter-spacing:.08em;text-transform:uppercase;width:36px;flex-shrink:0;}
 .frow select,.frow input{flex:1;background:var(--bg4);border:1px solid var(--bdr2);color:var(--text);font-family:inherit;font-size:11px;padding:4px 7px;border-radius:2px;outline:none;}
 .frow select:focus,.frow input:focus{border-color:var(--bnb);}
-.frow input::placeholder{color:var(--muted);}
+.frow input::placeholder{color:rgba(100,120,145,.8);}
 .add-btn{width:100%;padding:5px;background:var(--bnbd);border:1px solid rgba(243,186,47,.22);color:var(--bnb);font-family:inherit;font-size:10px;letter-spacing:.1em;cursor:pointer;border-radius:2px;transition:all .15s;margin-top:5px;}
 .add-btn:hover{background:rgba(243,186,47,.16);border-color:var(--bnb);}
 .tiles-scroll{overflow-y:auto;overflow-x:hidden;padding:8px;min-height:110px;max-height:210px;flex-shrink:0;}
@@ -384,16 +387,16 @@ tbody tr:hover{background:var(--bg4) !important;cursor:pointer;}
 .forex-chg.fl{color:var(--muted);}
 
 /* ── TUTORIAL CARD — white + yellow only ── */
-.tut-desc{font-size:13px;color:#ffffff;line-height:1.9;margin-bottom:14px;}
+.tut-desc{font-size:14px;color:#ffffff;line-height:1.9;margin-bottom:14px;}
 .tut-desc strong{color:#ffffff;font-weight:700;}
 .tut-desc em{color:var(--bnb);font-style:normal;}
 .tut-disclaimer{background:rgba(243,186,47,.07);border:1px solid rgba(243,186,47,.3);border-radius:4px;padding:12px 14px;margin-bottom:8px;font-size:14px;color:#ffffff;line-height:1.9;}
 .tut-disclaimer strong{color:var(--bnb);font-weight:700;}
-.tut-agree{display:flex;align-items:flex-start;gap:8px;margin-bottom:14px;cursor:pointer;justify-content:flex-end;}
-.tut-agree input{margin-top:3px;accent-color:var(--bnb);width:14px;height:14px;flex-shrink:0;cursor:pointer;order:2;}
-.tut-agree-label{font-size:13px;color:#ffffff;line-height:1.7;cursor:pointer;order:1;}
-.tut-step-label{font-size:10px;letter-spacing:.18em;color:rgba(255,255,255,.4);margin-bottom:6px;text-transform:uppercase;}
-.tut-title{font-size:16px;font-weight:600;color:var(--bnb);margin-bottom:8px;letter-spacing:.06em;}
+.tut-agree{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:14px;cursor:pointer;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.15);border-radius:4px;padding:10px 12px;}
+.tut-agree input{accent-color:var(--bnb);width:16px;height:16px;flex-shrink:0;cursor:pointer;}
+.tut-agree-label{font-size:13px;font-weight:500;color:#ffffff;line-height:1.7;cursor:pointer;}
+.tut-step-label{font-size:10px;letter-spacing:.18em;color:rgba(255,255,255,.85);margin-bottom:6px;text-transform:uppercase;}
+.tut-title{font-size:17px;font-weight:600;color:#ffffff;margin-bottom:10px;letter-spacing:.02em;}
 #logo-c{image-rendering:crisp-edges;}
 tbody td{padding:5px 5px;font-size:13px;border-bottom:1px solid var(--bdr);white-space:nowrap;}
 td.r{text-align:right;font-variant-numeric:tabular-nums;}
@@ -546,13 +549,13 @@ td.pc{text-align:right;padding-left:2px;padding-right:2px;}
 .tut-box{
   position:fixed;
   background:var(--bg2);
-  border:1px solid rgba(243,186,47,.4);
+  border:1px solid rgba(255,255,255,.15);
   border-radius:6px;
   padding:18px 20px 16px;
-  width:300px;
+  width:340px;
   z-index:802;
-  box-shadow:0 8px 40px rgba(0,0,0,.6),0 0 20px rgba(243,186,47,.1);
-  transition:all .3s cubic-bezier(.4,0,.2,1);
+  box-shadow:0 8px 40px rgba(0,0,0,.7);
+  transition:all .25s ease;
 }
 .tut-box::before{
   content:'';position:absolute;width:10px;height:10px;
@@ -564,7 +567,7 @@ td.pc{text-align:right;padding-left:2px;padding-right:2px;}
 .tut-box.arrow-left::before{left:-6px;top:20px;border-right:none;border-bottom:none;}
 .tut-box.arrow-right::before{right:-6px;top:20px;border-left:none;border-top:none;}
 .tut-step-label{font-size:10px;letter-spacing:.18em;color:var(--muted);margin-bottom:6px;text-transform:uppercase;}
-.tut-title{font-size:16px;font-weight:600;color:var(--bnb);margin-bottom:8px;letter-spacing:.06em;}
+.tut-title{font-size:17px;font-weight:600;color:#ffffff;margin-bottom:10px;letter-spacing:.02em;}
 .tut-desc{font-size:13px;color:var(--text);line-height:1.9;margin-bottom:14px;}
 .tut-desc strong{color:var(--bnb);}
 .tut-desc em{color:var(--green);font-style:normal;}
@@ -743,7 +746,7 @@ td.pc{text-align:right;padding-left:2px;padding-right:2px;}
 <div class="tut-backdrop" id="tut-backdrop"></div>
 <div class="tut-hole" id="tut-hole" style="display:none;"></div>
 <div class="tut-box" id="tut-box" style="display:none;">
-  <div class="tut-step-label" id="tut-step-label">STEP 1 OF 7</div>
+  <div class="tut-step-label" id="tut-step-label">STEP 1 OF 5</div>
   <div class="tut-title" id="tut-title"></div>
   <div class="tut-desc" id="tut-desc"></div>
   <div class="tut-disclaimer" id="tut-disclaimer" style="display:none;">
@@ -751,8 +754,8 @@ td.pc{text-align:right;padding-left:2px;padding-right:2px;}
     Rotator is an informational tool only. Scores and signals are based on historical price data and do not predict future performance. Nothing on this platform constitutes financial, investment, or trading advice. Always do your own research and consult a qualified financial advisor before making any investment decisions.
   </div>
   <label class="tut-agree" id="tut-agree" style="display:none;">
-    <input type="checkbox" id="tut-agree-chk" onchange="tutCheckAgree()">
     <span class="tut-agree-label" id="tut-agree-lbl">I understand that Rotator is <strong>not financial advice</strong> and I am solely responsible for my own investment decisions.</span>
+    <input type="checkbox" id="tut-agree-chk" onchange="tutCheckAgree()" style="flex-shrink:0;">
   </label>
   <div class="tut-footer">
     <div class="tut-dots" id="tut-dots"></div>
@@ -976,16 +979,8 @@ td.pc{text-align:right;padding-left:2px;padding-right:2px;}
       </div>
     </div>
     <div class="tbl-head">
-      <div style="display:flex;align-items:center;gap:10px;">
-        <div class="ptitle" id="tbl-title">PERFORMANCE LEADERBOARD</div>
-      </div>
-      <div class="tf-tabs" id="sort-tabs">
-        <button class="tf-tab active" id="st-7"     onclick="setSort(7)">7D</button>
-        <button class="tf-tab"        id="st-14"    onclick="setSort(14)">14D</button>
-        <button class="tf-tab"        id="st-30"    onclick="setSort(30)">30D</button>
-        <button class="tf-tab"        id="st-90"    onclick="setSort(90)">90D</button>
-        <button class="tf-tab"        id="st-score" onclick="setSort(0)">SCORE</button>
-      </div>
+      <div class="ptitle" id="tbl-title">PERFORMANCE LEADERBOARD</div>
+      <div style="font-size:9px;color:var(--muted);letter-spacing:.08em;">CLICK COLUMN HEADERS TO SORT</div>
     </div>
     <div class="leaderboard" id="crypto-panel">
       <table>
@@ -998,7 +993,7 @@ td.pc{text-align:right;padding-left:2px;padding-right:2px;}
             <th class="r sorted" id="th-7" onclick="setSort(7)" data-tip="Price change over 7 days. Click to sort.">7D%</th>
             <th class="r" id="th-14" onclick="setSort(14)" data-tip="Price change over 14 days. Click to sort.">14D%</th>
             <th class="r" id="th-30" onclick="setSort(30)" data-tip="Price change over 30 days. Click to sort.">30D%</th>
-            <th class="r th-pro" id="th-90" onclick="isPro?setSort(90):openPro()" data-tip="90-day performance. Powered by CoinMarketCap + CoinGecko.">90D% ⚡</th>
+            <th class="r" id="th-90" onclick="setSort(90)" data-tip="90-day performance. Powered by CoinMarketCap + CoinGecko." style="min-width:52px;">90D%</th>
             <th class="r" id="th-score" onclick="setSort(0)" data-tip="Composite score 0–100 combining 7D, 14D and 30D ranks. Higher = stronger momentum.">SCORE</th>
           </tr>
         </thead>
@@ -1387,8 +1382,8 @@ var CACHE_RULES=[
   {match:/market_chart\?.*days=90/,                    ttl:60*60*1000,  label:'CHART-90D'},
   // 30d chart data — cache 30 minutes
   {match:/market_chart\?.*days=30/,                    ttl:30*60*1000,  label:'CHART-30D'},
-  // Coins market list — cache 5 minutes (core screener data)
-  {match:/coins\/markets/,                             ttl: 5*60*1000,  label:'COINS-MKT'},
+  // Coins market list — cache 15 minutes (90D data also refreshes this infrequently)
+  {match:/coins\/markets/,                             ttl:15*60*1000,  label:'COINS-MKT'},
   // Stocks (Yahoo Finance) — cache 30 minutes (slow refresh)
   {match:/finance\.yahoo\.com/,                        ttl:30*60*1000,  label:'STOCKS'},
   // Forex (AlphaVantage or Frankfurter) — cache 15 minutes
@@ -1514,128 +1509,125 @@ var sleep=ms=>new Promise(r=>setTimeout(r,ms));
 ══════════════════════════════ */
 function prog(p,m){var el=document.getElementById('lmsg');if(el)el.textContent=m;}
 
+/* ══════════════════════════════════════════════════════════════════
+   CMC FETCH — dedicated function for CoinMarketCap API
+   Tries multiple proxy strategies to get the X-CMC_PRO_API_KEY
+   header through to the CMC server.
+══════════════════════════════════════════════════════════════════ */
+async function cmcFetch(endpoint){
+  var baseUrl='https://pro-api.coinmarketcap.com'+endpoint;
+  var urlWithKey=baseUrl+(baseUrl.includes('?')?'&':'?')+'CMC_PRO_API_KEY='+CMC_KEY;
+
+  /* Check cache first */
+  var now=Date.now(), ttl=60*60*1000;
+  if(_memCache[urlWithKey]&&now-_memCache[urlWithKey].time<ttl)
+    return _memCache[urlWithKey].data;
+  try{
+    var raw=localStorage.getItem('rc:'+urlWithKey);
+    if(raw){var s=JSON.parse(raw);if(s&&now-s.time<ttl)return s.data;}
+  }catch(e){}
+
+  /* Manual timeout helper — AbortSignal.timeout() cannot be cloned by proxies */
+  function fetchWithTimeout(url, ms){
+    return new Promise(function(resolve, reject){
+      var done=false;
+      var timer=setTimeout(function(){
+        if(!done){done=true;reject(new Error('timeout'));}
+      }, ms);
+      fetch(url).then(function(r){
+        if(!done){done=true;clearTimeout(timer);resolve(r);}
+      }).catch(function(e){
+        if(!done){done=true;clearTimeout(timer);reject(e);}
+      });
+    });
+  }
+
+  var proxies=[
+    urlWithKey,
+    'https://corsproxy.io/?'+encodeURIComponent(urlWithKey),
+    'https://api.allorigins.win/get?url='+encodeURIComponent(urlWithKey),
+    'https://api.codetabs.com/v1/proxy?quest='+encodeURIComponent(urlWithKey)
+  ];
+
+  var errs=[];
+  for(var i=0;i<proxies.length;i++){
+    try{
+      var r=await fetchWithTimeout(proxies[i], 12000);
+      if(!r.ok) throw new Error('HTTP '+r.status);
+      var j=await r.json();
+      var data=unwrap(j);
+      if(data&&data.status&&data.status.error_code&&data.status.error_code!==0)
+        throw new Error('CMC error '+data.status.error_code+': '+data.status.error_message);
+      var entry={data:data,time:Date.now()};
+      _memCache[urlWithKey]=entry;
+      try{localStorage.setItem('rc:'+urlWithKey,JSON.stringify(entry));}catch(e){}
+      return data;
+    }catch(e){errs.push('proxy '+(i+1)+': '+(e.message||String(e)));}
+  }
+  throw new Error('cmcFetch failed — '+errs.join(' | '));
+}
+
+
 async function loadCoins(){
   prog(10,'FETCHING COINS…');
   var ids=getActiveCoins().join(',');
   var url='https://api.coingecko.com/api/v3/coins/markets'
     +'?vs_currency=usd&ids='+ids
     +'&order=market_cap_desc&per_page=50&page=1'
-    +'&sparkline=false&price_change_percentage=7d,14d,30d,90d&include_24hr_vol=true';
+    +'&sparkline=false'
+    +'&price_change_percentage=7d,14d,30d'
+    +'&include_24hr_vol=true';
   var data=await apiFetch(url);
-  if(!Array.isArray(data)) throw new Error('Invalid data');
+  if(!Array.isArray(data)) throw new Error('CoinGecko data invalid');
   coins=data.map(function(c){
     return{
-      id:c.id,sym:c.symbol.toUpperCase(),name:c.name,
-      price:c.current_price,image:c.image,mcap:c.market_cap,rank:0,
+      id:c.id, sym:c.symbol.toUpperCase(), name:c.name,
+      price:c.current_price, image:c.image, mcap:c.market_cap, rank:0,
       p24:c.price_change_percentage_24h||0,
       p7: c.price_change_percentage_7d_in_currency||0,
       p14:c.price_change_percentage_14d_in_currency||0,
       p30:c.price_change_percentage_30d_in_currency||0,
-      p90:c.price_change_percentage_90d_in_currency||null,
+      p90:null, /* filled by load90dCMC via CoinPaprika */
       volume24:c.total_volume||0,
       circulating_supply:c.circulating_supply||0,
       max_supply:c.max_supply||null,
       ath:c.ath||0, ath_change_pct:c.ath_change_percentage||0,
-      score:0,r7:0,r14:0,r30:0,r90:0,isPro:PRO_EXTRA_COINS.indexOf(c.id)>=0
+      score:0, r7:0, r14:0, r30:0, r90:0, isPro:false
     };
   });
   coins.sort(function(a,b){return b.mcap-a.mcap;});
   coins.forEach(function(c,i){c.rank=i+1;});
   computeScores();
-  // Fetch 90d data from CMC for Pro users if not already available
-  load90dCMC(); /* 90D available for all users */
 }
 
-/* ══════════════════════════════════════════════════════════════════
-   90D DATA — API POOL WITH FALLBACKS
-   Priority:
-   1. CoinGecko (already in main fetch — price_change_percentage=90d)
-   2. CoinMarketCap (quotes/latest — percent_change_90d)
-   3. CoinPaprika (free, no key, CORS ok — /tickers?quotes=USD)
-   4. Mark remaining as null (shows "–" in table)
-══════════════════════════════════════════════════════════════════ */
 async function load90dCMC(){
-  /* Step 1 — CoinGecko already fills p90 in loadCoins().
-     Only proceed for coins still missing it. */
-  var missing=coins.filter(function(c){return c.p90==null;});
-  if(!missing.length){
-    computeScores();
-    if(currentMode==='crypto') renderTable();
-    return;
-  }
-
+  /* CoinPaprika has open CORS — fetch directly, no proxy needed */
   var filled=0;
-
-  /* ── Source 2: CoinMarketCap ─────────────────────────────────── */
   try{
-    var slugMap={
-      'bitcoin':'bitcoin','ethereum':'ethereum','binancecoin':'bnb',
-      'solana':'solana','ripple':'xrp','dogecoin':'dogecoin',
-      'cardano':'cardano','avalanche-2':'avalanche','shiba-inu':'shiba-inu',
-      'chainlink':'chainlink','polkadot':'polkadot','bitcoin-cash':'bitcoin-cash',
-      'near':'near-protocol','litecoin':'litecoin','uniswap':'uniswap',
-      'internet-computer':'internet-computer','ethereum-classic':'ethereum-classic',
-      'stellar':'stellar','monero':'monero','okb':'okb',
-      'hedera-hashgraph':'hedera','filecoin':'filecoin','cosmos':'cosmos',
-      'vechain':'vechain','tron':'tron','sui':'sui','aptos':'aptos',
-      'sei-network':'sei','render-token':'render',
-      'jupiter-exchange-solana':'jupiter','aave':'aave','the-graph':'the-graph',
-      'curve-dao-token':'curve-dao-token','maker':'maker','lido-dao':'lido-dao',
-      'arbitrum':'arbitrum','optimism':'optimism','stacks':'stacks',
-      'immutable-x':'immutable','injective-protocol':'injective',
-      'blur':'blur','bonk':'bonk','dogwifcoin':'dogwifhat',
-      'book-of-meme':'book-of-meme','pepe':'pepe','ondo-finance':'ondo',
-      'worldcoin-wld':'worldcoin','pyth-network':'pyth-network',
-      'jito-governance-token':'jito','ethena':'ethena'
-    };
-    var slugs=coins.map(function(c){return slugMap[c.id]||c.id;}).join(',');
-    var cmcUrl='https://pro-api.coinmarketcap.com/v1/cryptocurrency/quotes/latest'
-      +'?slug='+encodeURIComponent(slugs)+'&convert=USD&CMC_PRO_API_KEY='+CMC_KEY;
-    var json=await apiFetch(cmcUrl);
-    if(json&&json.data){
-      Object.keys(json.data).forEach(function(key){
-        var item=json.data[key];
-        if(!item||!item.quote||!item.quote.USD) return;
+    var controller=new AbortController();
+    var tid=setTimeout(function(){controller.abort();},15000);
+    var r=await fetch('https://api.coinpaprika.com/v1/tickers?quotes=USD&limit=250',
+      {signal:controller.signal});
+    clearTimeout(tid);
+    if(!r.ok) throw new Error('HTTP '+r.status);
+    var data=await r.json();
+    if(Array.isArray(data)){
+      data.forEach(function(item){
+        if(!item||!item.quotes||!item.quotes.USD) return;
         var sym=(item.symbol||'').toUpperCase();
         var coin=coins.find(function(c){return c.sym===sym;});
-        if(coin&&coin.p90==null&&json.data[key].quote.USD.percent_change_90d!=null){
-          coin.p90=parseFloat(json.data[key].quote.USD.percent_change_90d);
-          filled++;
+        if(coin){
+          var v=item.quotes.USD.percent_change_90d;
+          if(v!=null){coin.p90=parseFloat(v);filled++;}
         }
       });
     }
-    console.log('CMC 90d: filled',filled,'coins');
-  }catch(e){ console.warn('CMC 90d failed:',e.message); }
-
-  /* ── Source 3: CoinPaprika fallback ─────────────────────────── */
-  var stillMissing=coins.filter(function(c){return c.p90==null;});
-  if(stillMissing.length){
-    try{
-      /* CoinPaprika /v1/tickers returns 90d percent change — free, no key */
-      var ppUrl='https://api.coinpaprika.com/v1/tickers?quotes=USD&limit=200';
-      var ppData=await apiFetch(ppUrl);
-      if(Array.isArray(ppData)){
-        ppData.forEach(function(item){
-          if(!item||!item.quotes||!item.quotes.USD) return;
-          var sym=(item.symbol||'').toUpperCase();
-          var coin=coins.find(function(c){return c.sym===sym&&c.p90==null;});
-          if(coin){
-            var pct90=item.quotes.USD.percent_change_90d;
-            if(pct90!=null){ coin.p90=parseFloat(pct90); filled++; }
-          }
-        });
-        console.log('CoinPaprika 90d: filled additional coins, total:',filled);
-      }
-    }catch(e2){ console.warn('CoinPaprika 90d failed:',e2.message); }
+    console.log('90D: CoinPaprika filled',filled,'coins');
+  }catch(e){
+    console.warn('90D CoinPaprika failed:',e.message);
   }
-
-  /* ── Finalise ─────────────────────────────────────────────────── */
-  if(filled>0){
-    computeScores();
-    if(currentMode==='crypto') renderTable();
-  }
-  console.log('90D pool complete. Filled:',filled,'| Missing:',
-    coins.filter(function(c){return c.p90==null;}).length);
+  computeScores();
+  renderTable();
 }
 
 async function loadBTC(){
@@ -2074,12 +2066,7 @@ function setSort(tf){
     var th=document.getElementById('th-'+k);
     if(th) th.classList.toggle('sorted',(tf===0&&k==='score')||(tf>0&&String(tf)===k));
   });
-  /* Highlight sort tab buttons */
-  [24,7,14,30,90,0].forEach(function(t){
-    var key=t===0?'score':String(t);
-    var btn=document.getElementById('st-'+key);
-    if(btn) btn.classList.toggle('active',t===tf);
-  });
+  /* Sort tab buttons removed — column headers handle sort indication */
   renderTable();
 }
 
@@ -2120,7 +2107,7 @@ function startAutoRefresh(){
   if(_autoRefreshTimer) clearInterval(_autoRefreshTimer);
   _autoRefreshTimer=setInterval(function(){
     if(!busy&&currentMode==='crypto') doRefresh();
-  },5*60*1000);
+  },15*60*1000);
 }
 
 async function doLoad(){
@@ -2130,7 +2117,8 @@ async function doLoad(){
   busy=true;
   try{
     await loadCoins();prog(50,'SCORING…');renderCoinSel();
-    await loadMacroData();prog(60,'MACRO…');
+    await loadMacroData();prog(58,'MACRO…');
+    await load90dCMC();prog(66,'90D DATA…');
     await loadBTC();prog(92,'RENDERING…');
     applyModePrefs();
     renderAll();prog(100,'READY');
@@ -2167,7 +2155,7 @@ async function doRefresh(){
   var CW=canvas.width,CH=canvas.height;
   var FS=52,FONT='bold '+FS+'px "IBM Plex Mono"';
   var BASE=112,GOLD='#f3ba2f',RED='#ff4560',GREEN='#00c896';
-  var fc=0,phase='pause1',pf=0,PAUSE=180,TRAVEL=110;
+  var fc=0,phase='pause1',pf=0,PAUSE=220,TRAVEL=180;
   var ra=Math.PI,ga=0;
   var xR1,xO1,xT1,xA,xT2,xO2,xR2,s1x,s2x,sY,oCX,oCY,oRX,oRY,rdy=false;
   function measure(){
@@ -2179,17 +2167,17 @@ async function doRefresh(){
     oCX=(s1x+s2x)/2;oCY=sY;oRX=(s2x-s1x)/2;oRY=52;rdy=true;
   }
   function ease(t){return t<0.5?2*t*t:-1+(4-2*t)*t;}
-  function rpos(a){return{x:oCX+oRX*Math.cos(a),y:oCY-oRY*Math.abs(Math.sin(a))};}
-  function gpos(a){return{x:oCX+oRX*Math.cos(a),y:oCY+oRY*Math.abs(Math.sin(a))};}
+  function rpos(a){return{x:oCX+oRX*Math.cos(a),y:oCY-oRY*Math.sin(a)};}
+  function gpos(a){return{x:oCX+oRX*Math.cos(a),y:oCY+oRY*Math.sin(a)};}
   function frame(){
     if(!document.getElementById('loader')||document.getElementById('loader').classList.contains('gone')) return;
     if(!rdy){requestAnimationFrame(frame);return;}
     ctx.clearRect(0,0,CW,CH);
     var fi=Math.min(1,fc/30);fc++;pf++;
     if(phase==='pause1'){ra=Math.PI;ga=0;if(pf>=PAUSE){phase='travel1';pf=0;}}
-    else if(phase==='travel1'){var p=ease(Math.min(pf/TRAVEL,1));ra=Math.PI-Math.PI*p;ga=Math.PI*p;if(pf>=TRAVEL){ra=0;ga=Math.PI;phase='pause2';pf=0;}}
+    else if(phase==='travel1'){var p=ease(Math.min(pf/TRAVEL,1));ra=Math.PI-Math.PI*2*p;ga=Math.PI*2*p;if(pf>=TRAVEL){ra=-Math.PI;ga=Math.PI*2;phase='pause2';pf=0;}}
     else if(phase==='pause2'){ra=0;ga=Math.PI;if(pf>=PAUSE){phase='travel2';pf=0;}}
-    else if(phase==='travel2'){var p=ease(Math.min(pf/TRAVEL,1));ra=Math.PI*p;ga=Math.PI-Math.PI*p;if(pf>=TRAVEL){ra=Math.PI;ga=0;phase='pause1';pf=0;}}
+    else if(phase==='travel2'){var p=ease(Math.min(pf/TRAVEL,1));ra=-Math.PI+Math.PI*2*p;ga=Math.PI*2-Math.PI*2*p;if(pf>=TRAVEL){ra=Math.PI;ga=0;phase='pause1';pf=0;}}
     var R=rpos(ra),G=gpos(ga),mov=(phase==='travel1'||phase==='travel2');
     ctx.globalAlpha=fi;
     ctx.font=FONT;ctx.textBaseline='alphabetic';ctx.textAlign='left';ctx.fillStyle=GOLD;ctx.shadowBlur=0;
@@ -2214,7 +2202,7 @@ async function doRefresh(){
     var CW=canvas.width,CH=canvas.height;
     var FS=18,FONT='bold '+FS+'px "IBM Plex Mono"';
     var BASE=22,GOLD='#f3ba2f',RED='#ff4560',GREEN='#00c896';
-    var fc=0,phase='pause1',pf=0,PAUSE=150,TRAVEL=90;
+    var fc=0,phase='pause1',pf=0,PAUSE=200,TRAVEL=160;
     var ra=Math.PI,ga=0;
     var xR1,xO1,xT1,xA,xT2,xO2,xR2,s1x,s2x,sY,oCX,oCY,oRX,oRY,rdy=false;
     function measure(){
@@ -2226,16 +2214,16 @@ async function doRefresh(){
       oCX=(s1x+s2x)/2;oCY=sY;oRX=(s2x-s1x)/2;oRY=FS*0.52;rdy=true;
     }
     function ease(t){return t<0.5?2*t*t:-1+(4-2*t)*t;}
-    function rpos(a){return{x:oCX+oRX*Math.cos(a),y:oCY-oRY*Math.abs(Math.sin(a))};}
-    function gpos(a){return{x:oCX+oRX*Math.cos(a),y:oCY+oRY*Math.abs(Math.sin(a))};}
+    function rpos(a){return{x:oCX+oRX*Math.cos(a),y:oCY-oRY*Math.sin(a)};}
+    function gpos(a){return{x:oCX+oRX*Math.cos(a),y:oCY+oRY*Math.sin(a)};}
     function frame(){
       if(!rdy){requestAnimationFrame(frame);return;}
       ctx.clearRect(0,0,CW,CH);
       var fi=Math.min(1,fc/20);fc++;pf++;
       if(phase==='pause1'){ra=Math.PI;ga=0;if(pf>=PAUSE){phase='travel1';pf=0;}}
-      else if(phase==='travel1'){var p=ease(Math.min(pf/TRAVEL,1));ra=Math.PI-Math.PI*p;ga=Math.PI*p;if(pf>=TRAVEL){ra=0;ga=Math.PI;phase='pause2';pf=0;}}
+      else if(phase==='travel1'){var p=ease(Math.min(pf/TRAVEL,1));ra=Math.PI*(1-2*p);ga=Math.PI*2*p;if(pf>=TRAVEL){ra=-Math.PI;ga=Math.PI*2;phase='pause2';pf=0;}}
       else if(phase==='pause2'){ra=0;ga=Math.PI;if(pf>=PAUSE){phase='travel2';pf=0;}}
-      else if(phase==='travel2'){var p=ease(Math.min(pf/TRAVEL,1));ra=Math.PI*p;ga=Math.PI-Math.PI*p;if(pf>=TRAVEL){ra=Math.PI;ga=0;phase='pause1';pf=0;}}
+      else if(phase==='travel2'){var p=ease(Math.min(pf/TRAVEL,1));ra=-Math.PI+Math.PI*2*p;ga=Math.PI*2*(1-p);if(pf>=TRAVEL){ra=Math.PI;ga=0;phase='pause1';pf=0;}}
       var R=rpos(ra),G=gpos(ga),mov=(phase==='travel1'||phase==='travel2');
       ctx.globalAlpha=fi;
       ctx.font=FONT;ctx.textBaseline='alphabetic';ctx.textAlign='left';ctx.fillStyle=GOLD;ctx.shadowBlur=0;
@@ -2818,7 +2806,6 @@ function renderStocksTable(){
     var badgeCls=s.type==='index'?'idx':'stk';
     var badgeTxt=s.type==='index'?'INDEX':'STOCK';
     var glowCls=s.score>=65?'score-hi':s.score<=35?'score-lo':'';
-    return '<div class="asset-tile type-'+(s.type||'stock')+' '+glowCls+(isHeld?' held':'')
     return '<div class="asset-tile type-'+(s.type||'stock')+' '+glowCls+(isHeld?' held':'')+' '
       +'" data-assettype="stock" data-assetid="'+s.sym+'" title="Click for details">'
         +'<div style="min-width:0;flex:1;">'
@@ -2923,48 +2910,66 @@ var tutStep_=0;
 var tutActive=false;
 
 var TUT_STEPS=[
+  /* ── STEP 1: Welcome + what rotation means ── */
   {
     target:'.logo',
-    title:'Welcome to ROTATOR ⬡',
-    desc:'<strong>Rotator</strong> is a free Binance crypto screener. It tracks the top 30 coins and helps you spot <em>rotation opportunities</em> — when to move funds from overperforming coins into lagging ones before they bounce.',
-    arrow:'bottom',pos:'below'
+    title:'Welcome to ROTATOR',
+    desc:'<strong>Rotator</strong> is a daily performance tracker for crypto, forex and stocks. It measures price momentum across 24H, 7D, 14D, 30D and 90D and surfaces <strong>rotation opportunities</strong> \u2014 moments where shifting value between assets makes strategic sense.<br><br>'
+      +'<strong>What is rotation?</strong> If you hold two assets and one has fallen 17% while the other only fell 5%, rotating part of the weaker position into the stronger one recovers value without adding capital. Over time, compounding these adjustments improves portfolio performance.<br><br>'
+      +'<strong>90-day data</strong> reveals sustained trends, not just recent noise. A coin up 40% over 90 days but down 3% this week is very different from one that has been falling for 3 months.',
+    arrow:'bottom', pos:'below', wide:true
   },
+  /* ── STEP 2: Holdings panel (bottom-left) ── */
   {
     target:'.add-form',
-    title:'My Holdings',
-    desc:'This is your <strong>personal portfolio panel</strong>. Select a coin, enter your quantity and average buy price, then click <strong style="color:var(--bnb);background:rgba(243,186,47,.1);padding:1px 6px;border-radius:2px;border:1px solid rgba(243,186,47,.3);">+ ADD TO HOLDINGS</strong>. Your holdings are saved in your browser — no account needed.<br><br>Want <strong style="color:var(--pro);">⚡ sparkle animations</strong> on your best-performing tiles? That\'s a <strong style="color:var(--pro);">Pro</strong> feature — unlock it free by sharing with 3 friends.',
-    arrow:'left',pos:'right'
+    title:'Your Holdings Panel',
+    desc:'<div style="font-size:15px;line-height:1.9;">This panel in the bottom-left is your portfolio tracker. Add any coin with quantity and average buy price \u2014 data is saved in your browser, no account needed.<br><br>'
+      +'Once you add holdings, the <strong>Portfolio Signal</strong> box at the bottom of this panel scores your overall portfolio and flags which assets are lagging or outperforming.<br><br>'
+      +'<span style="font-size:12px;color:rgba(255,255,255,.7);">Free tier: 2 crypto \xb7 1 forex \xb7 1 stock \u2014 upgrade to Pro for 10 \xb7 5 \xb7 5 by sharing with 3 friends.</span>',
+    arrow:'left', pos:'right'
   },
+  /* ── STEP 3: Signal center ── */
   {
     target:'.neon-section',
-    title:'Rotation Signals',
-    desc:'This is the <strong>brain of the tool</strong>. <strong style="color:var(--green);">↑ Rotation Opportunities</strong> shows pairs where you could rotate — sell an outperformer and buy a laggard. <strong style="color:var(--red);">↓ Worst 30d Performers</strong> shows coins that have dropped most recently.',
-    arrow:'top',pos:'below'
+    title:'Signal Center',
+    desc:'<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;font-size:16px;line-height:1.8;">'
+      +'<div><div style="font-size:10px;letter-spacing:.12em;color:rgba(255,255,255,.5);margin-bottom:5px;">ROTATION OPPS \u2191</div>'
+      +'<div style="color:#4ade80;font-size:17px;font-weight:600;margin-bottom:5px;">\u2191 Rotate</div>'
+      +'Pairs from your holdings where rotating makes sense. The score gap shows how much one coin is outpacing another.</div>'
+      +'<div><div style="font-size:10px;letter-spacing:.12em;color:rgba(255,255,255,.5);margin-bottom:5px;">HIGH MOMENTUM \u26a1</div>'
+      +'<div style="color:#f3ba2f;font-size:17px;font-weight:600;margin-bottom:5px;">\u26a1 Leading</div>'
+      +'Top 6 coins by composite score across all timeframes. Sustained strength, not single-week spikes.</div>'
+      +'<div><div style="font-size:10px;letter-spacing:.12em;color:rgba(255,255,255,.5);margin-bottom:5px;">WORST 30D \u2193</div>'
+      +'<div style="color:#ff4560;font-size:17px;font-weight:600;margin-bottom:5px;">\u2193 Lagging</div>'
+      +'Biggest 30-day losers. Potential bounce candidates \u2014 or assets to exit. Click any tile for the full breakdown.</div>'
+      +'</div>',
+    arrow:'top', pos:'below', wide:true
   },
-  {
-    target:'.sig-box',
-    title:'Portfolio Signal',
-    desc:'Once you add holdings, this panel shows your <strong>overall portfolio score</strong> and tells you which of your coins are <em>overperforming</em> (consider rotating out) or <strong style="color:var(--red)">lagging</strong> (watch closely).',
-    arrow:'bottom',pos:'above-left'
-  },
+  /* ── STEP 4: Leaderboard + disclaimer ── */
   {
     target:'.leaderboard',
-    title:'Performance Leaderboard',
-    desc:'Every coin ranked by performance. Switch between <strong>7D, 14D, 30D</strong> and <em>SCORE</em> tabs. The <strong>Score</strong> (0–100) combines all timeframes — higher = stronger momentum. Coins you hold are highlighted.<br><br><span style="color:var(--bnb);font-size:13px;">⚡ 90D column is a <strong style="color:var(--pro)">Pro feature</strong> — unlock free by sharing with 3 friends.</span><br><br><span style="color:var(--red);font-size:13px;">⚠ DYOR: Past performance does not guarantee future results. Always research before making any investment decisions. Rotator is not responsible for your choices.</span>',
-    arrow:'bottom',pos:'above',wide:true,agree:true,agreeText:'I understand that past performance is not a guarantee of future results and I accept full responsibility for my own trading decisions.'
+    title:'Leaderboard \u2014 Scores \u2014 Disclaimer',
+    desc:'<div style="font-size:14px;line-height:1.9;">'
+      +'Every coin ranked across <strong style="color:#ffffff;">24H &middot; 7D &middot; 14D &middot; 30D &middot; 90D</strong>. Click any column header to sort. Click any row for a full score breakdown.<br><br>'
+      +'The <strong>Score</strong> combines three layers:<br>'
+      +'<strong>L1</strong> Momentum rank vs all 50 coins \u00a0\u00b7\u00a0 <strong>L2</strong> Relative strength vs BTC, Gold, Silver, Oil \u00a0\u00b7\u00a0 <strong>L3</strong> Tokenomics quality<br><br>'
+      +'<div style="background:rgba(255,69,96,.07);border:1px solid rgba(255,69,96,.3);border-radius:4px;padding:10px 12px;">'
+      +'<strong style="color:#ff4560;">\u26a0 NOT FINANCIAL ADVICE</strong><br>'
+      +'Rotator tracks historical price data. Scores do not predict future performance. A coin that has fallen for months will not automatically recover. Nothing here constitutes investment advice. Always research before trading. <strong>Never risk money you cannot afford to lose.</strong>'
+      +'</div></div>',
+    arrow:'bottom', pos:'above', wide:true, agree:true,
+    agreeText:'I understand that Rotator is not financial advice and I am solely responsible for my own investment decisions.'
   },
-  {
-    target:'.topbar',
-    title:'⚠ Important Disclaimer',
-    desc:'Before you start using Rotator, please read and acknowledge the following:',
-    arrow:'bottom',pos:'center',
-    disclaimer:true
-  },
+  /* ── STEP 5: All set ── */
   {
     target:'.settings-btn',
-    title:'You\'re all set! 🚀',
-    desc:'Hit <strong style="color:var(--bnb);">↻ REFRESH</strong> anytime to get the latest data. Use <strong style="color:var(--pro);">⚡ UNLOCK PRO</strong> to access 50 coins free by sharing with 3 friends. Need a reminder? Click the <strong style="color:var(--bnb);">⚙ gear icon</strong> (highlighted here) → <em>Replay Tutorial</em> to walk through this guide again anytime.',
-    arrow:'right',pos:'gear'
+    title:"You're all set.",
+    desc:'<div style="font-size:14px;line-height:1.9;">'
+      +'Data refreshes every 15 minutes automatically. Hit <strong>\u21bb REFRESH</strong> to force a fresh fetch at any time.<br><br>'
+      +'<strong style="color:var(--pro);">\u26a1 Unlock Pro free</strong> by sharing Rotator with 3 friends \u2014 or support the project with a donation for an instant unlock code.<br><br>'
+      +'Click the <strong>\u2699 gear icon</strong> (highlighted) to change language, toggle asset modes, or replay this tutorial.'
+      +'</div>',
+    arrow:'right', pos:'gear'
   }
 ];
 
@@ -3462,7 +3467,7 @@ window.addEventListener('resize',function(){if(tutActive) tutPosition();});
     var CW=canvas.width,CH=canvas.height;
     var FS=28,FONT='bold '+FS+'px "IBM Plex Mono"';
     var BASE=62,GOLD='#f3ba2f',RED='#ff4560',GREEN='#00c896';
-    var fc=0,phase='pause1',pf=0,PAUSE=140,TRAVEL=90;
+    var fc=0,phase='pause1',pf=0,PAUSE=220,TRAVEL=180;
     var ra=Math.PI,ga=0;
     var xR1,xO1,xT1,xA,xT2,xO2,xR2,s1x,s2x,sY,oCX,oCY,oRX,oRY,rdy=false;
     function measure(){
@@ -3474,16 +3479,16 @@ window.addEventListener('resize',function(){if(tutActive) tutPosition();});
       oCX=(s1x+s2x)/2;oCY=sY;oRX=(s2x-s1x)/2;oRY=28;rdy=true;
     }
     function ease(t){return t<0.5?2*t*t:-1+(4-2*t)*t;}
-    function rpos(a){return{x:oCX+oRX*Math.cos(a),y:oCY-oRY*Math.abs(Math.sin(a))};}
-    function gpos(a){return{x:oCX+oRX*Math.cos(a),y:oCY+oRY*Math.abs(Math.sin(a))};}
+    function rpos(a){return{x:oCX+oRX*Math.cos(a),y:oCY-oRY*Math.sin(a)};}
+    function gpos(a){return{x:oCX+oRX*Math.cos(a),y:oCY+oRY*Math.sin(a)};}
     function frame(){
       if(!rdy){requestAnimationFrame(frame);return;}
       ctx.clearRect(0,0,CW,CH);
       var fi=Math.min(1,fc/20);fc++;pf++;
       if(phase==='pause1'){ra=Math.PI;ga=0;if(pf>=PAUSE){phase='travel1';pf=0;}}
-      else if(phase==='travel1'){var p=ease(Math.min(pf/TRAVEL,1));ra=Math.PI-Math.PI*p;ga=Math.PI*p;if(pf>=TRAVEL){ra=0;ga=Math.PI;phase='pause2';pf=0;}}
+      else if(phase==='travel1'){var p=ease(Math.min(pf/TRAVEL,1));ra=Math.PI*(1-2*p);ga=Math.PI*2*p;if(pf>=TRAVEL){ra=-Math.PI;ga=Math.PI*2;phase='pause2';pf=0;}}
       else if(phase==='pause2'){ra=0;ga=Math.PI;if(pf>=PAUSE){phase='travel2';pf=0;}}
-      else if(phase==='travel2'){var p=ease(Math.min(pf/TRAVEL,1));ra=Math.PI*p;ga=Math.PI-Math.PI*p;if(pf>=TRAVEL){ra=Math.PI;ga=0;phase='pause1';pf=0;}}
+      else if(phase==='travel2'){var p=ease(Math.min(pf/TRAVEL,1));ra=-Math.PI+Math.PI*2*p;ga=Math.PI*2*(1-p);if(pf>=TRAVEL){ra=Math.PI;ga=0;phase='pause1';pf=0;}}
       var R=rpos(ra),G=gpos(ga),mov=(phase==='travel1'||phase==='travel2');
       ctx.globalAlpha=fi;
       ctx.font=FONT;ctx.textBaseline='alphabetic';ctx.textAlign='left';ctx.fillStyle=GOLD;ctx.shadowBlur=0;
