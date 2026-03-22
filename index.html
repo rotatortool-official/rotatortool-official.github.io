@@ -993,7 +993,6 @@ td.pc{text-align:right;padding-left:2px;padding-right:2px;}
             <th class="r sorted" id="th-7" onclick="setSort(7)" data-tip="Price change over 7 days. Click to sort.">7D%</th>
             <th class="r" id="th-14" onclick="setSort(14)" data-tip="Price change over 14 days. Click to sort.">14D%</th>
             <th class="r" id="th-30" onclick="setSort(30)" data-tip="Price change over 30 days. Click to sort.">30D%</th>
-            <th class="r" id="th-90" onclick="setSort(90)" data-tip="90-day performance. Powered by CoinMarketCap + CoinGecko." style="min-width:52px;">90D%</th>
             <th class="r" id="th-score" onclick="setSort(0)" data-tip="Composite score 0–100 combining 7D, 14D and 30D ranks. Higher = stronger momentum.">SCORE</th>
           </tr>
         </thead>
@@ -1378,8 +1377,6 @@ function unwrap(r){
 var CACHE_RULES=[
   // BTC 200-day history — very slow moving, cache 1 hour
   {match:/coins\/bitcoin\/market_chart\?.*days=200/,   ttl:60*60*1000,  label:'BTC-MA200'},
-  // 90d chart data — cache 4 hours (changes slowly)
-  {match:/market_chart\?.*days=91/,                    ttl:4*60*60*1000,  label:'CHART-90D'},
   // 30d chart data — cache 30 minutes
   {match:/market_chart\?.*days=30/,                    ttl:30*60*1000,  label:'CHART-30D'},
   // Coins market list — cache 15 minutes (90D data also refreshes this infrequently)
@@ -1389,9 +1386,7 @@ var CACHE_RULES=[
   // Forex (AlphaVantage or Frankfurter) — cache 15 minutes
   {match:/alphavantage\.co/,                           ttl:15*60*1000,  label:'FOREX-AV'},
   {match:/frankfurter\.app/,                            ttl:15*60*1000,  label:'FOREX-FK'},
-  {match:/coinpaprika\.com/,                            ttl:60*60*1000,  label:'PAPRIKA-90D'},
   // CoinMarketCap — cache 1 hour (90d + historical)
-  {match:/coinmarketcap\.com/,                         ttl:60*60*1000,  label:'CMC-90D'},
   // Default fallback — 5 minutes
   {match:/./,                                          ttl: 5*60*1000,  label:'DEFAULT'}
 ];
@@ -1514,69 +1509,13 @@ function prog(p,m){var el=document.getElementById('lmsg');if(el)el.textContent=m
    Tries multiple proxy strategies to get the X-CMC_PRO_API_KEY
    header through to the CMC server.
 ══════════════════════════════════════════════════════════════════ */
-async function cmcFetch(endpoint){
-  var baseUrl='https://pro-api.coinmarketcap.com'+endpoint;
-  var urlWithKey=baseUrl+(baseUrl.includes('?')?'&':'?')+'CMC_PRO_API_KEY='+CMC_KEY;
-
-  /* Check cache first */
-  var now=Date.now(), ttl=60*60*1000;
-  if(_memCache[urlWithKey]&&now-_memCache[urlWithKey].time<ttl)
-    return _memCache[urlWithKey].data;
-  try{
-    var raw=localStorage.getItem('rc:'+urlWithKey);
-    if(raw){var s=JSON.parse(raw);if(s&&now-s.time<ttl)return s.data;}
-  }catch(e){}
-
-  /* Manual timeout helper — AbortSignal.timeout() cannot be cloned by proxies */
-  function fetchWithTimeout(url, ms){
-    return new Promise(function(resolve, reject){
-      var done=false;
-      var timer=setTimeout(function(){
-        if(!done){done=true;reject(new Error('timeout'));}
-      }, ms);
-      fetch(url).then(function(r){
-        if(!done){done=true;clearTimeout(timer);resolve(r);}
-      }).catch(function(e){
-        if(!done){done=true;clearTimeout(timer);reject(e);}
-      });
-    });
-  }
-
-  var proxies=[
-    urlWithKey,
-    'https://corsproxy.io/?'+encodeURIComponent(urlWithKey),
-    'https://api.allorigins.win/get?url='+encodeURIComponent(urlWithKey),
-    'https://api.codetabs.com/v1/proxy?quest='+encodeURIComponent(urlWithKey)
-  ];
-
-  var errs=[];
-  for(var i=0;i<proxies.length;i++){
-    try{
-      var r=await fetchWithTimeout(proxies[i], 12000);
-      if(!r.ok) throw new Error('HTTP '+r.status);
-      var j=await r.json();
-      var data=unwrap(j);
-      if(data&&data.status&&data.status.error_code&&data.status.error_code!==0)
-        throw new Error('CMC error '+data.status.error_code+': '+data.status.error_message);
-      var entry={data:data,time:Date.now()};
-      _memCache[urlWithKey]=entry;
-      try{localStorage.setItem('rc:'+urlWithKey,JSON.stringify(entry));}catch(e){}
-      return data;
-    }catch(e){errs.push('proxy '+(i+1)+': '+(e.message||String(e)));}
-  }
-  throw new Error('cmcFetch failed — '+errs.join(' | '));
-}
-
-
 async function loadCoins(){
   prog(10,'FETCHING COINS…');
   var ids=getActiveCoins().join(',');
   var url='https://api.coingecko.com/api/v3/coins/markets'
     +'?vs_currency=usd&ids='+ids
     +'&order=market_cap_desc&per_page=50&page=1'
-    +'&sparkline=false'
-    +'&price_change_percentage=7d,14d,30d'
-    +'&include_24hr_vol=true';
+    +'&sparkline=false&price_change_percentage=7d,14d,30d&include_24hr_vol=true';
   var data=await apiFetch(url);
   if(!Array.isArray(data)) throw new Error('CoinGecko data invalid');
   coins=data.map(function(c){
@@ -1587,12 +1526,11 @@ async function loadCoins(){
       p7: c.price_change_percentage_7d_in_currency||0,
       p14:c.price_change_percentage_14d_in_currency||0,
       p30:c.price_change_percentage_30d_in_currency||0,
-      p90:null, /* filled by load90dCMC via CoinPaprika */
       volume24:c.total_volume||0,
       circulating_supply:c.circulating_supply||0,
       max_supply:c.max_supply||null,
       ath:c.ath||0, ath_change_pct:c.ath_change_percentage||0,
-      score:0, r7:0, r14:0, r30:0, r90:0, isPro:false
+      score:0, r7:0, r14:0, r30:0, isPro:false
     };
   });
   coins.sort(function(a,b){return b.mcap-a.mcap;});
@@ -1600,84 +1538,6 @@ async function loadCoins(){
   computeScores();
 }
 
-async function load90dCMC(){
-  if(!coins||!coins.length){console.warn('90D: no coins');return;}
-
-  var filled=0;
-
-  /* ── PRIMARY: CoinMarketCap quotes/latest ────────────────────────
-     Returns percent_change_90d natively for all coins in one call.
-     Key passed as query param so proxies don't need to forward headers. */
-  try{
-    var slugMap={
-      'bitcoin':'bitcoin','ethereum':'ethereum','binancecoin':'bnb',
-      'solana':'solana','ripple':'xrp','dogecoin':'dogecoin',
-      'cardano':'cardano','avalanche-2':'avalanche','shiba-inu':'shiba-inu',
-      'chainlink':'chainlink','polkadot':'polkadot','bitcoin-cash':'bitcoin-cash',
-      'near':'near-protocol','litecoin':'litecoin','uniswap':'uniswap',
-      'internet-computer':'internet-computer','ethereum-classic':'ethereum-classic',
-      'stellar':'stellar','monero':'monero','okb':'okb',
-      'hedera-hashgraph':'hedera','filecoin':'filecoin','cosmos':'cosmos',
-      'vechain':'vechain','tron':'tron','sui':'sui','aptos':'aptos',
-      'sei-network':'sei','render-token':'render',
-      'jupiter-exchange-solana':'jupiter','aave':'aave','the-graph':'the-graph',
-      'curve-dao-token':'curve-dao-token','maker':'maker','lido-dao':'lido-dao',
-      'arbitrum':'arbitrum','optimism':'optimism','stacks':'stacks',
-      'immutable-x':'immutable','injective-protocol':'injective',
-      'blur':'blur','bonk':'bonk','dogwifcoin':'dogwifhat',
-      'book-of-meme':'book-of-meme','pepe':'pepe','ondo-finance':'ondo',
-      'worldcoin-wld':'worldcoin','pyth-network':'pyth-network',
-      'jito-governance-token':'jito','ethena':'ethena'
-    };
-    var slugs=coins.map(function(c){return slugMap[c.id]||c.id;}).join(',');
-    var json=await cmcFetch('/v1/cryptocurrency/quotes/latest?slug='
-      +encodeURIComponent(slugs)+'&convert=USD');
-
-    if(json&&json.data){
-      Object.keys(json.data).forEach(function(key){
-        var item=json.data[key];
-        if(!item||!item.quote||!item.quote.USD) return;
-        var sym=(item.symbol||'').toUpperCase();
-        var coin=coins.find(function(c){return c.sym===sym;});
-        if(coin){
-          var v=item.quote.USD.percent_change_90d;
-          if(v!=null){coin.p90=parseFloat(v);filled++;}
-        }
-      });
-      console.log('90D: CMC filled',filled,'/',coins.length,'coins');
-    }
-  }catch(e){
-    console.warn('90D CMC failed:',e.message,'— trying market_chart fallback');
-  }
-
-  /* ── FALLBACK: CoinGecko market_chart (if CMC failed) ────────────
-     Fetches 91-day price history per coin and calculates 90d change.
-     Only runs if CMC got 0 coins. Cached 4 hours. */
-  if(filled===0){
-    var PARALLEL=5;
-    for(var i=0;i<coins.length;i+=PARALLEL){
-      var batch=coins.slice(i,i+PARALLEL);
-      await Promise.all(batch.map(async function(coin){
-        try{
-          var url='https://api.coingecko.com/api/v3/coins/'+coin.id
-            +'/market_chart?vs_currency=usd&days=91&interval=daily';
-          var data=await apiFetch(url);
-          if(data&&Array.isArray(data.prices)&&data.prices.length>=2){
-            var first=data.prices[0][1];
-            var last=data.prices[data.prices.length-1][1];
-            if(first>0){coin.p90=parseFloat(((last-first)/first*100).toFixed(2));filled++;}
-          }
-        }catch(e){}
-      }));
-      computeScores();renderTable();
-      if(i+PARALLEL<coins.length) await sleep(300);
-    }
-    console.log('90D: market_chart fallback filled',filled,'/',coins.length,'coins');
-  }
-
-  computeScores();
-  renderTable();
-}
 
 async function loadBTC(){
   var btcUrl='https://api.coingecko.com/api/v3/coins/bitcoin/market_chart?vs_currency=usd&days=200';
@@ -1778,17 +1638,10 @@ function computeScores(){
     var sorted=coins.slice().sort(function(a,b){return b[k]-a[k];});
     sorted.forEach(function(c,i){c['r'+k.slice(1)]=i+1;});
   });
-  var has90=coins.filter(function(c){return c.p90!=null;});
-  if(has90.length>1){
-    var s90=has90.slice().sort(function(a,b){return b.p90-a.p90;});
-    s90.forEach(function(c,i){c.r90=i+1;});
-  }
+
 
   coins.forEach(function(c){
-    var has90d=c.p90!=null&&c.r90>0;
-    var wAvg=has90d
-      ?(c.r7*0.20+c.r14*0.25+c.r30*0.35+c.r90*0.20)
-      :(c.r7*0.25+c.r14*0.30+c.r30*0.45);
+    var wAvg=c.r7*0.25+c.r14*0.30+c.r30*0.45;
     var layer1=Math.round((1-(wAvg-1)/n)*40);
 
     /* LAYER 2: Macro relative strength vs BTC/Gold/Silver/Oil (0-30 pts) */
@@ -2034,7 +1887,6 @@ function renderTable(){
     if(sortTF===24) return b.p24-a.p24;
     if(sortTF===7) return b.p7-a.p7;
     if(sortTF===14) return b.p14-a.p14;
-    if(sortTF===90) return b.p90-a.p90;
     return b.p30-a.p30;
   });
   var hSyms=holdings.map(function(h){return h.sym;});
@@ -2048,12 +1900,7 @@ function renderTable(){
     var scC=sc>=65?'var(--green)':sc<0?'var(--red)':sc>=40?'var(--amber)':'var(--muted)';
     var mcapStr=c.mcap?'$'+(c.mcap/1e9>=1?(c.mcap/1e9).toFixed(2)+'B':(c.mcap/1e6).toFixed(0)+'M'):'—';
     var tipData='data-sym="'+c.sym+'" data-name="'+c.name+'" data-mcap="'+mcapStr+'" data-score="'+sc+'" data-p24="'+c.p24.toFixed(2)+'" data-p7="'+c.p7.toFixed(2)+'" data-p30="'+c.p30.toFixed(2)+'" data-held="'+(isH?'1':'0')+'"';
-    var col90;
-    if(c.p90!=null){
-      col90='<td class="pc">'+pctSpan(c.p90)+'</td>';
-    } else {
-      col90='<td class="pc" style="color:rgba(62,77,96,.4);text-align:center;font-size:11px;">–</td>';
-    }
+
     return '<tr class="'+(isH?'held':'')+'" '+tipData+' onmouseenter="showRowTip(this,event)" onmouseleave="hideTip()">'
       +'<td style="color:var(--muted);font-size:10px;">'+(i+1)+'</td>'
       +'<td><div class="cc"><div class="ti"><img src="'+c.image+'" alt="" onerror="this.style.display=\'none\'"></div><div><div style="display:flex;align-items:center;"><span class="tsym">'+c.sym+'</span>'+(isH?'<span class="htag">HELD</span>':'')+'</div><div class="tname">'+c.name+'</div></div></div></td>'
@@ -2062,7 +1909,6 @@ function renderTable(){
       +'<td class="pc">'+pctSpan(c.p7)+'</td>'
       +'<td class="pc">'+pctSpan(c.p14)+'</td>'
       +'<td class="pc">'+pctSpan(c.p30)+'</td>'
-      +col90
       +'<td class="r"><div class="sw"><span class="sv" style="color:'+scC+';">'+sc+'</span><div class="sb"><div class="sbf" style="width:'+Math.max(2,sc)+'%;background:'+scC+';"></div></div></div></td>'
     +'</tr>';
   }).join('');
@@ -2111,7 +1957,7 @@ function renderAll(){
 function setSort(tf){
   sortTF=tf;
   /* Highlight table header columns */
-  ['24','7','14','30','90','score'].forEach(function(k){
+  ['24','7','14','30','score'].forEach(function(k){
     var th=document.getElementById('th-'+k);
     if(th) th.classList.toggle('sorted',(tf===0&&k==='score')||(tf>0&&String(tf)===k));
   });
@@ -2167,15 +2013,18 @@ async function doLoad(){
   try{
     await loadCoins();prog(50,'SCORING…');renderCoinSel();
     await loadMacroData();prog(58,'MACRO…');
-    await load90dCMC();prog(66,'90D DATA…');
     await loadBTC();prog(92,'RENDERING…');
     applyModePrefs();
     renderAll();prog(100,'READY');
     await sleep(320);document.getElementById('loader').classList.add('gone');
     startAutoRefresh();
   }catch(e){
-    document.getElementById('lmsg').textContent='ERROR: '+e.message;
-    document.getElementById('lbf').style.background='var(--red)';
+    var msg=e.message||'';
+    var isRL=msg.indexOf('403')>=0||msg.indexOf('429')>=0||msg.indexOf('rate')>=0;
+    document.getElementById('lmsg').textContent=isRL
+      ?'API rate limit reached — please wait a few minutes and refresh.'
+      :'Failed to load data: '+msg;
+    document.getElementById('lbf').style.background=isRL?'var(--amber)':'var(--red)';
   }
   busy=false;
 }
@@ -2295,7 +2144,6 @@ var currentMode='crypto';
 var forexLoaded=false;
 var stocksLoaded=false;
 var AV_KEY='R9V24J5V7LCQYZMF';
-var CMC_KEY='9878b9ace0ce4384ab3d9396ea64aa74';
 
 var FOREX_PAIRS=[
   {from:'EUR',to:'USD',name:'Euro / US Dollar',pro:false},
@@ -2963,7 +2811,7 @@ var TUT_STEPS=[
   {
     target:'.logo',
     title:'Welcome to ROTATOR',
-    desc:'<strong>Rotator</strong> is a daily performance tracker for crypto, forex and stocks. It measures price momentum across 24H, 7D, 14D, 30D and 90D and surfaces <strong>rotation opportunities</strong> \u2014 moments where shifting value between assets makes strategic sense.<br><br>'
+    desc:'<strong>Rotator</strong> is a daily performance tracker for crypto, forex and stocks. It measures price momentum across 24H, 7D, 14D and 30D and surfaces <strong>rotation opportunities</strong> \u2014 moments where shifting value between assets makes strategic sense.<br><br>'
       +'<strong>What is rotation?</strong> If you hold two assets and one has fallen 17% while the other only fell 5%, rotating part of the weaker position into the stronger one recovers value without adding capital. Over time, compounding these adjustments improves portfolio performance.<br><br>'
       +'<strong>90-day data</strong> reveals sustained trends, not just recent noise. A coin up 40% over 90 days but down 3% this week is very different from one that has been falling for 3 months.',
     arrow:'bottom', pos:'below', wide:true
@@ -2999,7 +2847,7 @@ var TUT_STEPS=[
     target:'.leaderboard',
     title:'Leaderboard \u2014 Scores \u2014 Disclaimer',
     desc:'<div style="font-size:14px;line-height:1.9;">'
-      +'Every coin ranked across <strong style="color:#ffffff;">24H &middot; 7D &middot; 14D &middot; 30D &middot; 90D</strong>. Click any column header to sort. Click any row for a full score breakdown.<br><br>'
+      +'Every coin ranked across <strong style="color:#ffffff;">24H &middot; 7D &middot; 14D &middot; 30D</strong>. Click any column header to sort. Click any row for a full score breakdown.<br><br>'
       +'The <strong>Score</strong> combines three layers:<br>'
       +'<strong>L1</strong> Momentum rank vs all 50 coins \u00a0\u00b7\u00a0 <strong>L2</strong> Relative strength vs BTC, Gold, Silver, Oil \u00a0\u00b7\u00a0 <strong>L3</strong> Tokenomics quality<br><br>'
       +'<div style="background:rgba(255,69,96,.07);border:1px solid rgba(255,69,96,.3);border-radius:4px;padding:10px 12px;">'
@@ -3208,7 +3056,6 @@ function openTileDetail(coinId, evt){
     {l:'24H',  v:c.p24,  pct:true},
     {l:'7D',   v:c.p7,   pct:true},
     {l:'30D',  v:c.p30,  pct:true},
-    {l:'90D',  v:c.p90,  pct:true}
   ];
   document.getElementById('td-perf').innerHTML=perfs.map(function(p){
     if(p.v==null) return '<div class="td-cell"><div class="td-cell-l">'+p.l+'</div><div class="td-cell-v" style="color:var(--muted);">—</div></div>';
@@ -3224,7 +3071,6 @@ function openTileDetail(coinId, evt){
     {l:'14D rank',v:c.r14, max:coins.length, invert:true},
     {l:'30D rank',v:c.r30, max:coins.length, invert:true}
   ];
-  if(c.r90&&c.r90>0) bars.push({l:'90D rank',v:c.r90,max:coins.length,invert:true});
 
   document.getElementById('td-score-bars').innerHTML=
     '<div style="display:flex;align-items:baseline;gap:6px;margin-bottom:8px;">'
