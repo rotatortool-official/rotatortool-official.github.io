@@ -1378,8 +1378,8 @@ function unwrap(r){
 var CACHE_RULES=[
   // BTC 200-day history — very slow moving, cache 1 hour
   {match:/coins\/bitcoin\/market_chart\?.*days=200/,   ttl:60*60*1000,  label:'BTC-MA200'},
-  // 90d chart data — cache 1 hour
-  {match:/market_chart\?.*days=90/,                    ttl:60*60*1000,  label:'CHART-90D'},
+  // 90d chart data — cache 4 hours (changes slowly)
+  {match:/market_chart\?.*days=91/,                    ttl:4*60*60*1000,  label:'CHART-90D'},
   // 30d chart data — cache 30 minutes
   {match:/market_chart\?.*days=30/,                    ttl:30*60*1000,  label:'CHART-30D'},
   // Coins market list — cache 15 minutes (90D data also refreshes this infrequently)
@@ -1601,31 +1601,80 @@ async function loadCoins(){
 }
 
 async function load90dCMC(){
-  /* CoinPaprika has open CORS — fetch directly, no proxy needed */
+  if(!coins||!coins.length){console.warn('90D: no coins');return;}
+
   var filled=0;
+
+  /* ── PRIMARY: CoinMarketCap quotes/latest ────────────────────────
+     Returns percent_change_90d natively for all coins in one call.
+     Key passed as query param so proxies don't need to forward headers. */
   try{
-    var controller=new AbortController();
-    var tid=setTimeout(function(){controller.abort();},15000);
-    var r=await fetch('https://api.coinpaprika.com/v1/tickers?quotes=USD&limit=250',
-      {signal:controller.signal});
-    clearTimeout(tid);
-    if(!r.ok) throw new Error('HTTP '+r.status);
-    var data=await r.json();
-    if(Array.isArray(data)){
-      data.forEach(function(item){
-        if(!item||!item.quotes||!item.quotes.USD) return;
+    var slugMap={
+      'bitcoin':'bitcoin','ethereum':'ethereum','binancecoin':'bnb',
+      'solana':'solana','ripple':'xrp','dogecoin':'dogecoin',
+      'cardano':'cardano','avalanche-2':'avalanche','shiba-inu':'shiba-inu',
+      'chainlink':'chainlink','polkadot':'polkadot','bitcoin-cash':'bitcoin-cash',
+      'near':'near-protocol','litecoin':'litecoin','uniswap':'uniswap',
+      'internet-computer':'internet-computer','ethereum-classic':'ethereum-classic',
+      'stellar':'stellar','monero':'monero','okb':'okb',
+      'hedera-hashgraph':'hedera','filecoin':'filecoin','cosmos':'cosmos',
+      'vechain':'vechain','tron':'tron','sui':'sui','aptos':'aptos',
+      'sei-network':'sei','render-token':'render',
+      'jupiter-exchange-solana':'jupiter','aave':'aave','the-graph':'the-graph',
+      'curve-dao-token':'curve-dao-token','maker':'maker','lido-dao':'lido-dao',
+      'arbitrum':'arbitrum','optimism':'optimism','stacks':'stacks',
+      'immutable-x':'immutable','injective-protocol':'injective',
+      'blur':'blur','bonk':'bonk','dogwifcoin':'dogwifhat',
+      'book-of-meme':'book-of-meme','pepe':'pepe','ondo-finance':'ondo',
+      'worldcoin-wld':'worldcoin','pyth-network':'pyth-network',
+      'jito-governance-token':'jito','ethena':'ethena'
+    };
+    var slugs=coins.map(function(c){return slugMap[c.id]||c.id;}).join(',');
+    var json=await cmcFetch('/v1/cryptocurrency/quotes/latest?slug='
+      +encodeURIComponent(slugs)+'&convert=USD');
+
+    if(json&&json.data){
+      Object.keys(json.data).forEach(function(key){
+        var item=json.data[key];
+        if(!item||!item.quote||!item.quote.USD) return;
         var sym=(item.symbol||'').toUpperCase();
         var coin=coins.find(function(c){return c.sym===sym;});
         if(coin){
-          var v=item.quotes.USD.percent_change_90d;
+          var v=item.quote.USD.percent_change_90d;
           if(v!=null){coin.p90=parseFloat(v);filled++;}
         }
       });
+      console.log('90D: CMC filled',filled,'/',coins.length,'coins');
     }
-    console.log('90D: CoinPaprika filled',filled,'coins');
   }catch(e){
-    console.warn('90D CoinPaprika failed:',e.message);
+    console.warn('90D CMC failed:',e.message,'— trying market_chart fallback');
   }
+
+  /* ── FALLBACK: CoinGecko market_chart (if CMC failed) ────────────
+     Fetches 91-day price history per coin and calculates 90d change.
+     Only runs if CMC got 0 coins. Cached 4 hours. */
+  if(filled===0){
+    var PARALLEL=5;
+    for(var i=0;i<coins.length;i+=PARALLEL){
+      var batch=coins.slice(i,i+PARALLEL);
+      await Promise.all(batch.map(async function(coin){
+        try{
+          var url='https://api.coingecko.com/api/v3/coins/'+coin.id
+            +'/market_chart?vs_currency=usd&days=91&interval=daily';
+          var data=await apiFetch(url);
+          if(data&&Array.isArray(data.prices)&&data.prices.length>=2){
+            var first=data.prices[0][1];
+            var last=data.prices[data.prices.length-1][1];
+            if(first>0){coin.p90=parseFloat(((last-first)/first*100).toFixed(2));filled++;}
+          }
+        }catch(e){}
+      }));
+      computeScores();renderTable();
+      if(i+PARALLEL<coins.length) await sleep(300);
+    }
+    console.log('90D: market_chart fallback filled',filled,'/',coins.length,'coins');
+  }
+
   computeScores();
   renderTable();
 }
