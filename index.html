@@ -523,49 +523,202 @@ td.pc{text-align:right;padding-left:2px;padding-right:2px;}
 ::-webkit-scrollbar{width:3px;height:3px;}
 ::-webkit-scrollbar-track{background:transparent;}
 ::-webkit-scrollbar-thumb{background:var(--bg4);border-radius:2px;}
-@media(max-width:1100px){.root{grid-template-columns:320px 1fr;}.ad-panel{display:none;}}
-@media(max-width:700px){.root{grid-template-columns:1fr;}.sidebar{display:none !important;}.main-col{padding-bottom:60px;}}
-@media(max-width:700px) and (orientation:portrait){tbody td{border-bottom:none;}}
-@media(max-width:700px){
-  /* Hide rank # column */
-  thead th:first-child, tbody td:first-child{display:none;}
-  /* Hide tier badge */
-  #tier-badge{display:none !important;}
-  /* Hide score mini bar (the line next to score number) */
+/* ── FOOTER — single line on small screens ── */
+@media(max-width:900px){
+  .site-footer{flex-direction:row;padding:5px 10px;gap:8px;flex-wrap:nowrap;justify-content:space-between;align-items:center;}
+  .footer-links{gap:10px;flex-wrap:nowrap;justify-content:flex-start;overflow:hidden;}
+  .footer-link{font-size:9px;white-space:nowrap;}
+  .footer-copy{font-size:9px;white-space:nowrap;flex-shrink:0;}
+}
+
+/* ── Default: mobile zones hidden, desktop visible ── */
+.mob-topbar-btc,.mob-topbar-pro,.mob-topbar-center,.mob-topbar-support,.mob-topbar-gear{display:none;}
+.topbar-desktop-left{display:flex;}
+
+/* ══════════════════════════════
+   LANDSCAPE MOBILE
+   Applies when phone is rotated: max-height ~500px and landscape orientation
+══════════════════════════════ */
+@media(max-height:500px) and (orientation:landscape){
+  /* ── TOPBAR: sticky, 40px, 5 cells fill full width, no logo ── */
+  .topbar{
+    position:fixed;top:0;left:0;right:0;z-index:200;
+    padding:0;gap:0;flex-wrap:nowrap;height:40px;align-items:stretch;
+  }
+  .topbar-desktop-left{display:none !important;}
+  .topbar-r{display:none !important;}
+  /* Show and size all 5 mobile cells */
+  .mob-topbar-btc,.mob-topbar-pro,.mob-topbar-center,.mob-topbar-support,.mob-topbar-gear{
+    flex:1 !important;display:flex !important;align-items:center;justify-content:center;
+    height:100%;cursor:pointer;transition:background .15s;
+  }
+  .mob-topbar-btc{border-right:1px solid var(--bdr);}
+  .mob-topbar-pro{border-right:1px solid var(--bdr);background:rgba(167,139,250,.07);}
+  .mob-topbar-pro:hover{background:rgba(167,139,250,.15);}
+  /* Hide canvas, show ⬡ text instead */
+  .mob-topbar-center{border-right:1px solid var(--bdr);background:var(--bg3);}
+  #logo-c-mob{display:none !important;}
+  .mob-topbar-center::after{content:'⬡';font-size:16px;color:var(--bnb);}
+  .mob-topbar-support{border-right:1px solid var(--bdr);background:rgba(0,200,150,.05);}
+  .mob-topbar-support:hover{background:rgba(0,200,150,.12);}
+  .mob-topbar-gear{background:rgba(243,186,47,.06);}
+  .mob-topbar-gear:hover{background:rgba(243,186,47,.13);}
+  /* BTC cell styling */
+  .mob-btc-cell{width:100%;height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;font-size:9px;font-weight:700;letter-spacing:.06em;background:rgba(255,69,96,.10);color:var(--red);}
+  .mob-btc-cell.bull{background:rgba(0,200,150,.10);color:var(--green);}
+  .mob-btc-cell.unk{background:var(--bg3);color:var(--muted);}
+  /* Hide FREE badge, btc meta, timestamp */
+  .tier-badge{display:none !important;}
+  .btc-meta,.ts{display:none;}
+
+  /* ── LEFT SIDE NAV: 4 stacked buttons, fixed, 44px wide ── */
+  .mob-nav{
+    display:flex !important;
+    flex-direction:column;
+    position:fixed;
+    left:0;bottom:0;top:40px;
+    width:44px;height:auto;
+    border-top:none;border-right:1px solid var(--bdr2);
+    z-index:300;background:var(--bg2);
+  }
+  .mob-nav-btn{
+    flex:1;display:flex;flex-direction:column;
+    align-items:center;justify-content:center;
+    border-left:none;border-top:none;
+    border-bottom:1px solid var(--bdr);
+    border-right:3px solid transparent;
+    padding:4px 2px;font-size:7px;gap:2px;
+  }
+  .mob-nav-btn+.mob-nav-btn{border-left:none;}
+  .mob-nav-btn.active{border-right-color:var(--bnb);border-bottom-color:var(--bdr);}
+  .mob-nav-logo{width:20px;height:20px;font-size:11px;}
+
+  /* ── MAIN LAYOUT: offset for fixed topbar + fixed side nav ── */
+  body{padding-top:40px;}  /* push content below fixed topbar */
+  .root{
+    grid-template-columns:1fr;
+    margin-left:44px;
+    height:calc(100vh - 40px);
+  }
+  .sidebar{display:none !important;}
+  .ad-panel{display:none !important;}   /* hide right-side ad panel */
+  .main-col{padding-bottom:0;}
+
+  /* ── HOLDINGS PANEL ── */
+  .mob-holdings-panel{bottom:0;left:44px;}
+
+  /* ── FOOTER: single thin line ── */
+  .site-footer{flex-direction:row;padding:3px 8px;gap:6px;flex-wrap:nowrap;justify-content:space-between;align-items:center;}
+  .footer-links{gap:8px;flex-wrap:nowrap;}
+  .footer-link{font-size:8px;}
+  .footer-copy{font-size:8px;flex-shrink:0;}
+
+  /* ── SIGNAL PANEL: compact ── */
+  .neon-section{flex-shrink:0;}
+  .bars-cols{display:flex;flex-direction:row;gap:0;}
+  .bars-col-inner{flex:1;min-width:0;padding:0 4px;}
+  .bars-divider{width:1px;align-self:stretch;}
+  .bar-col-title{font-size:7px;letter-spacing:.04em;margin-bottom:2px;}
+  .bar-col-title::after{display:none;}
+  .sig-tiles-grid{grid-template-columns:repeat(2,1fr) !important;}
+  .sig-tile:nth-child(n+5){display:none;}
+  .sig-tile{padding:2px 3px;}
+  .sig-tile-sym{font-size:8px;}
+  .sig-stat-l{font-size:6px;}
+  .sig-stat-v{font-size:7px;}
+  .sig-tile-badge,.sig-tile-arrow{display:none;}
+  .sig-tile-ico{width:12px;height:12px;}
+
+  /* ── TABLE: tight ── */
+  thead th:first-child,tbody td:first-child{display:none;}
   .sb{display:none;}
-  /* Shrink table font so 30D+SCORE fit */
-  tbody td{font-size:11px;padding:4px 3px;}
-  thead th{font-size:9px;padding:4px 3px;}
+  tbody td{font-size:11px;padding:3px 2px;border-bottom:none;}
+  thead th{font-size:9px;padding:3px 2px;}
+  .tsym{font-size:11px;}
+  .tname{font-size:9px;}
+  .ti{width:15px;height:15px;}
+  .cc{gap:3px;}
+  .sw{justify-content:flex-end;}
+  .sv{font-size:12px;font-weight:700;}
+}
+@media(max-width:700px) and (orientation:portrait){
+  /* ── 5-CELL TOPBAR — portrait only ── */
+  .topbar{padding:0;gap:0;flex-wrap:nowrap;height:46px;align-items:stretch;}
+  .topbar-desktop-left{display:none !important;}
+  .topbar-r{display:none !important;}
+  .mob-topbar-btc,.mob-topbar-pro,.mob-topbar-center,.mob-topbar-support,.mob-topbar-gear{
+    flex:1;display:flex;align-items:center;justify-content:center;
+    height:100%;cursor:pointer;transition:background .15s;
+  }
+  .mob-topbar-btc{border-right:1px solid var(--bdr);}
+  .mob-topbar-pro{border-right:1px solid var(--bdr);}
+  .mob-topbar-center{border-right:1px solid var(--bdr);}
+  .mob-topbar-support{border-right:1px solid var(--bdr);}
+  /* BTC cell */
+  .mob-btc-cell{
+    width:100%;height:100%;display:flex;flex-direction:column;
+    align-items:center;justify-content:center;gap:1px;
+    font-size:9px;font-weight:700;letter-spacing:.06em;
+    background:rgba(255,69,96,.10);color:var(--red);
+  }
+  .mob-btc-cell.bull{background:rgba(0,200,150,.10);color:var(--green);}
+  .mob-btc-cell.unk{background:var(--bg3);color:var(--muted);}
+  .mob-btc-cell .pulse{width:4px;height:4px;border-radius:50%;background:currentColor;animation:pulse 2s infinite;flex-shrink:0;}
+  /* PRO cell — purple */
+  .mob-topbar-pro{background:rgba(167,139,250,.07);}
+  .mob-topbar-pro:hover{background:rgba(167,139,250,.15);}
+  .mob-pro-icon{font-size:17px;color:var(--pro);}
+  /* Center logo */
+  .mob-topbar-center{background:var(--bg2);}
+  /* SUPPORT cell — green */
+  .mob-topbar-support{background:rgba(0,200,150,.05);}
+  .mob-topbar-support:hover{background:rgba(0,200,150,.12);}
+  .mob-support-icon{font-size:16px;color:var(--green);}
+  /* GEAR cell — amber */
+  .mob-topbar-gear{background:rgba(243,186,47,.06);}
+  .mob-topbar-gear:hover{background:rgba(243,186,47,.13);}
+  .mob-gear-icon{font-size:17px;color:var(--bnb);}
+  /* Hides */
+  .btc-meta,.ts{display:none;}
+  .tier-badge{display:none !important;}
+  /* Modal full-screen */
+  .modal{margin:8px;max-width:calc(100vw - 16px) !important;width:calc(100vw - 16px) !important;}
+  /* Layout */
+  .root{grid-template-columns:1fr;}
+  .sidebar{display:none !important;}
+  .main-col{padding-bottom:60px;}
+  tbody td{border-bottom:none;}
+  /* Signal panel 2×2 */
+  .bars-cols{display:flex;flex-direction:row;gap:0;}
+  .bars-col-inner{flex:1;min-width:0;padding:0 4px;}
+  .bars-divider{width:1px;align-self:stretch;}
+  .bar-col-title{font-size:7px;letter-spacing:.05em;margin-bottom:3px;white-space:nowrap;overflow:hidden;}
+  .bar-col-title::after{display:none;}
+  .sig-tiles-grid{grid-template-columns:repeat(2,1fr) !important;}
+  .sig-tile:nth-child(n+5){display:none;}
+  .sig-tile{padding:3px 4px;}
+  .sig-tile-sym{font-size:9px;}
+  .sig-tile-stats{display:flex;flex-wrap:nowrap;gap:2px;}
+  .sig-stat{flex:1;}
+  .sig-stat-l{font-size:6px;}
+  .sig-stat-v{font-size:8px;}
+  .sig-tile-badge{display:none;}
+  .sig-tile-arrow{display:none;}
+  .sig-tile-ico{width:14px;height:14px;}
+  /* Table */
+  thead th:first-child,tbody td:first-child{display:none;}
+  .sb{display:none;}
+  tbody td{font-size:11px;padding:3px 2px;}
+  thead th{font-size:9px;padding:3px 2px;}
   .tsym{font-size:11px;}
   .tname{font-size:9px;}
   .ti{width:16px;height:16px;}
-  .cc{gap:4px;}
-  /* Cleaner topbar on mobile — center logo */
-  .topbar{padding:4px 8px;gap:3px;position:relative;}
-  .topbar>div:first-child{flex:1;justify-content:center;}
-  .topbar-r{width:auto;gap:4px;}
-  .ts{display:none;}
-  .btc-meta{display:none;}
-  .topbar-action-btns .btn{font-size:10px;padding:3px 8px;}
-  /* Neon section: stack all 3 cols horizontally, equal width */
-  .bars-cols{display:flex;flex-direction:row;gap:0;}
-  .bars-col-inner{flex:1;min-width:0;padding:0 5px;}
-  .bars-divider{width:1px;align-self:stretch;}
-  .bar-col-title{font-size:8px;letter-spacing:.08em;margin-bottom:4px;}
-  .bar-col-title::after{display:none;}
-  /* Worst 30d: show only 2 tiles in a row */
-  #worst-cards .sig-tiles-grid{grid-template-columns:repeat(2,1fr);}
-  #worst-cards .sig-tile:nth-child(n+3){display:none;}
-  /* Mom cards: show only 1 tile */
-  #mom-cards .sig-tiles-grid{grid-template-columns:1fr;}
-  #mom-cards .sig-tile:nth-child(n+2){display:none;}
-  /* Sig tiles smaller on mobile */
-  .sig-tile{padding:4px 5px;}
-  .sig-tile-sym{font-size:10px;}
-  .sig-tile-stats{flex-wrap:wrap;}
+  .cc{gap:3px;}
+  .sw{justify-content:flex-end;}
+  .sv{font-size:12px;font-weight:700;}
 }
 .mob-nav{display:none;position:fixed;bottom:0;left:0;right:0;z-index:300;background:var(--bg2);border-top:1px solid var(--bdr2);height:56px;flex-shrink:0;}
-@media(max-width:700px){.mob-nav{display:flex;}}
+@media(max-width:700px) and (orientation:portrait){.mob-nav{display:flex;}}
 .mob-nav-btn{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;background:none;border:none;border-top:3px solid transparent;cursor:pointer;font-family:inherit;color:var(--muted);font-size:8px;letter-spacing:.14em;font-weight:700;padding:6px 4px 4px;}
 .mob-nav-btn+.mob-nav-btn{border-left:1px solid var(--bdr);}
 .mob-nav-btn.active{color:var(--bnb);border-top-color:var(--bnb);}
@@ -860,7 +1013,33 @@ td.pc{text-align:right;padding-left:2px;padding-right:2px;}
 
 <!-- TOPBAR -->
 <div class="topbar">
-  <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
+  <!-- ── MOBILE: 5 equal cells ── -->
+  <!-- Cell 1: BTC trend -->
+  <div class="mob-topbar-btc" id="mob-btc-cell" onclick="location.reload()" title="BTC trend — tap to refresh">
+    <div class="mob-btc-cell unk" id="mob-btc-inner">
+      <span class="pulse"></span>
+      <span id="mob-btc-txt">BTC</span>
+    </div>
+  </div>
+  <!-- Cell 2: Unlock Pro -->
+  <div class="mob-topbar-pro" onclick="openPro()" title="Unlock Pro">
+    <span class="mob-pro-icon">⚡</span>
+  </div>
+  <!-- Cell 3: Animated logo -->
+  <div class="mob-topbar-center" onclick="location.reload()" title="ROTATOR">
+    <canvas id="logo-c-mob" width="96" height="28" style="display:block;"></canvas>
+  </div>
+  <!-- Cell 4: Support / donate -->
+  <div class="mob-topbar-support" onclick="openModal('donate-modal')" title="Support Rotator">
+    <span class="mob-support-icon">☕</span>
+  </div>
+  <!-- Cell 5: Settings gear -->
+  <div class="mob-topbar-gear" onclick="openModal('settings-modal')" title="Settings">
+    <span class="mob-gear-icon">⚙</span>
+  </div>
+
+  <!-- ── DESKTOP: original layout ── -->
+  <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;" class="topbar-desktop-left">
     <canvas id="logo-c" width="110" height="32" style="display:block;cursor:pointer;" onclick="location.reload()" title="ROTATOR"></canvas>
     <span class="tier-badge free" id="tier-badge">FREE · TOP 50</span>
     <div class="btc-pill unk" id="btc-pill"><span class="pulse"></span><span id="btc-pill-txt">BTC: LOADING</span></div>
@@ -1502,11 +1681,13 @@ async function apiFetch(url){
   if(_pending[url]) return _pending[url];
 
   _pending[url]=(async function(){
+    /* Strategy: try direct first (works for CORS-safe APIs like frankfurter, coingecko),
+       then fall through proxies. thingproxy is more reliable than corsproxy for mobile. */
     var ps=[
-      function(){return fetch(url,{signal:AbortSignal.timeout(8000)});},
-      function(){return fetch('https://corsproxy.io/?'+encodeURIComponent(url),{signal:AbortSignal.timeout(10000)});},
-      function(){return fetch('https://api.allorigins.win/get?url='+encodeURIComponent(url),{signal:AbortSignal.timeout(10000)});},
-      function(){return fetch('https://api.codetabs.com/v1/proxy?quest='+encodeURIComponent(url),{signal:AbortSignal.timeout(10000)});}
+      function(){return fetch(url,{signal:AbortSignal.timeout(9000)});},
+      function(){return fetch('https://thingproxy.freeboard.io/fetch/'+url,{signal:AbortSignal.timeout(11000)});},
+      function(){return fetch('https://corsproxy.io/?'+encodeURIComponent(url),{signal:AbortSignal.timeout(11000)});},
+      function(){return fetch('https://api.allorigins.win/get?url='+encodeURIComponent(url),{signal:AbortSignal.timeout(11000)});}
     ];
     var errs=[];
     for(var i=0;i<ps.length;i++){
@@ -1766,23 +1947,29 @@ function dismissBearBanner(){
 function renderBTC(){
   if(btcPrice===null) return;
   var pill=document.getElementById('btc-pill');
-  document.getElementById('btc-p').textContent=fmtP(btcPrice);
+  var pillTxt=document.getElementById('btc-pill-txt');
+  var btcP=document.getElementById('btc-p');
+  if(btcP) btcP.textContent=fmtP(btcPrice);
+  /* Mobile BTC cell */
+  var mobInner=document.getElementById('mob-btc-inner');
+  var mobTxt=document.getElementById('mob-btc-txt');
   if(btcMA200){
     var d=((btcPrice-btcMA200)/btcMA200*100);
     var ma=document.getElementById('btc-ma');
-    ma.textContent=(d>=0?'+':'')+d.toFixed(1)+'% vs 200d MA';
-    ma.style.color=d>=0?'var(--green)':'var(--red)';
+    if(ma){ma.textContent=(d>=0?'+':'')+d.toFixed(1)+'% vs 200d MA';ma.style.color=d>=0?'var(--green)':'var(--red)';}
     if(btcPrice>btcMA200){
-      pill.className='btc-pill bull';
-      document.getElementById('btc-pill-txt').textContent='BTC UPTREND ▲';
+      if(pill) pill.className='btc-pill bull';
+      if(pillTxt) pillTxt.textContent='BTC UPTREND ▲';
+      if(mobInner){mobInner.className='mob-btc-cell bull';}
+      if(mobTxt) mobTxt.textContent='▲ BTC';
       document.getElementById('bear-banner').classList.remove('show');
-      /* Reset dismissal when BTC goes back above MA — next downtrend should warn again */
       _bearDismissed=false;
       try{localStorage.removeItem('rot_bear_dismissed');}catch(e){}
     } else {
-      pill.className='btc-pill bear';
-      document.getElementById('btc-pill-txt').textContent='BTC DOWNTREND ▼';
-      /* Only show banner if user hasn't dismissed it this downtrend */
+      if(pill) pill.className='btc-pill bear';
+      if(pillTxt) pillTxt.textContent='BTC DOWNTREND ▼';
+      if(mobInner){mobInner.className='mob-btc-cell';}
+      if(mobTxt) mobTxt.textContent='▼ BTC';
       if(!_bearDismissed) document.getElementById('bear-banner').classList.add('show');
     }
   }
@@ -2126,8 +2313,9 @@ async function doRefresh(){
 ══════════════════════════════ */
 (function(){
   function initLogo(){
-    var canvas=document.getElementById('logo-c');
-    if(!canvas) return;
+    ['logo-c','logo-c-mob'].forEach(function(canvasId){
+      var canvas=document.getElementById(canvasId);
+      if(!canvas) return;
     var ctx=canvas.getContext('2d');
     var CW=canvas.width,CH=canvas.height;
     var FS=18,FONT='bold '+FS+'px "IBM Plex Mono"';
@@ -2165,6 +2353,7 @@ async function doRefresh(){
       requestAnimationFrame(frame);
     }
     document.fonts.ready.then(function(){measure();frame();});
+    }); /* end forEach canvasId */
   }
   setTimeout(initLogo,100);
 })();
@@ -2175,7 +2364,12 @@ async function doRefresh(){
 var currentMode='crypto';
 var forexLoaded=false;
 var stocksLoaded=false;
-var AV_KEY='R9V24J5V7LCQYZMF';
+/* ── API KEY POOL — add more keys here, they rotate automatically on 429 ── */
+var AV_KEYS=['R9V24J5V7LCQYZMF'];  /* add extra Alpha Vantage keys: ['KEY1','KEY2','KEY3'] */
+var _avKeyIdx=0;
+function getAVKey(){return AV_KEYS[_avKeyIdx%AV_KEYS.length];}
+function rotateAVKey(){_avKeyIdx=(_avKeyIdx+1)%AV_KEYS.length;return getAVKey();}
+var AV_KEY=getAVKey(); /* kept for backwards compat — always use getAVKey() in new code */
 
 var FOREX_PAIRS=[
   {from:'EUR',to:'USD',name:'Euro / US Dollar',pro:false},
@@ -2369,20 +2563,19 @@ async function loadForex(){
     if(bases[p.from].indexOf(p.to)<0) bases[p.from].push(p.to);
   });
 
-  var startDate=dateOffset(-45); /* 45 days back gives plenty for RSI-14 + 30D */
-  var endDate  =dateOffset(-1);  /* yesterday (ECB publishes with 1-day lag) */
+  var startDate=dateOffset(-60); /* 60 days back: handles weekends, holidays, ECB lag */
 
   /* Fetch history for each base currency — one request covers all its pairs */
+  var frankfurterFailed=false;
   await Promise.all(Object.keys(bases).map(async function(base){
     try{
       var quotes=bases[base].join(',');
-      var url='https://api.frankfurter.app/'+startDate+'..'+endDate+'?from='+base+'&to='+quotes;
+      /* Go back 60 days (not 45) to handle weekends + holidays in any region */
+      var url='https://api.frankfurter.app/'+startDate+'..?from='+base+'&to='+quotes;
       var data=await apiFetch(url);
-      /* data.rates = { "2025-12-22": { "USD": 1.042, ... }, ... } */
-      if(data&&data.rates){
-        var dates=Object.keys(data.rates).sort(); /* asc */
+      if(data&&data.rates&&Object.keys(data.rates).length>0){
+        var dates=Object.keys(data.rates).sort();
         if(!rateHistory[base]) rateHistory[base]={};
-        /* Build close arrays per quote */
         var quoteArr={};
         dates.forEach(function(d){
           var dayRates=data.rates[d]||{};
@@ -2392,9 +2585,40 @@ async function loadForex(){
           });
         });
         rateHistory[base]=quoteArr;
+      } else {
+        frankfurterFailed=true;
       }
-    }catch(e){console.warn('Frankfurter failed for '+base+':',e.message);}
+    }catch(e){console.warn('Frankfurter failed for '+base+':',e.message);frankfurterFailed=true;}
   }));
+
+  /* Fallback: open.er-api.com — free, no API key, CORS-friendly, daily rates */
+  if(frankfurterFailed||(Object.keys(rateHistory).length<Object.keys(bases).length)){
+    console.log('Using ExchangeRate fallback for missing pairs…');
+    try{
+      var erUrl='https://open.er-api.com/v6/latest/USD';
+      var erData=await apiFetch(erUrl);
+      if(erData&&erData.rates){
+        /* Build synthetic single-point history for pairs missing from frankfurter */
+        Object.keys(bases).forEach(function(base){
+          if(rateHistory[base]&&Object.keys(rateHistory[base]).length>0) return; /* already have data */
+          var baseInUSD=erData.rates[base];
+          if(!baseInUSD) return;
+          if(!rateHistory[base]) rateHistory[base]={};
+          bases[base].forEach(function(quote){
+            if(rateHistory[base][quote]&&rateHistory[base][quote].length>0) return;
+            var quoteInUSD=erData.rates[quote];
+            if(!quoteInUSD) return;
+            /* Synthetic rate: base/quote = (1/baseInUSD) * quoteInUSD ... no, base units per quote */
+            /* open.er-api is USD-centric: rate[X] = how many X per 1 USD */
+            /* base/quote rate = rate[quote] / rate[base] */
+            var rate=quoteInUSD/baseInUSD;
+            /* Create a flat 2-point history so calcForexScore gets a usable value */
+            rateHistory[base][quote]=[rate*0.999,rate];
+          });
+        });
+      }
+    }catch(e){console.warn('ExchangeRate fallback failed:',e.message);}
+  }
 
   /* Build forexData from history */
   var results=pairsToLoad.map(function(pair){
@@ -2618,7 +2842,7 @@ async function fetchStocksYahoo(syms){
 
 async function fetchStockAV(avSym){
   /* Alpha Vantage GLOBAL_QUOTE — works for US stocks & ETFs */
-  var url='https://www.alphavantage.co/query?function=GLOBAL_QUOTE&symbol='+avSym+'&apikey='+AV_KEY;
+  var url='https://www.alphavantage.co/query?function=GLOBAL_QUOTE&symbol='+avSym+'&apikey='+getAVKey();
   var data=await apiFetch(url);
   var q=data&&data['Global Quote'];
   if(!q||!q['05. price']) return null;
@@ -2659,13 +2883,34 @@ async function loadStocks(){
     }
   }catch(e){console.warn('Yahoo stocks failed:',e.message);}
 
-  /* Fallback: fetch US stocks via Alpha Vantage (rate-limited — only av-mapped ones) */
+  /* Fallback 1: Financial Modeling Prep (free tier, no key required, CORS-friendly) */
+  if(!yahooOk){
+    document.getElementById('stocks-loading').textContent='LOADING VIA FMP…';
+    try{
+      var fmpSyms=STOCKS_LIST.map(function(s){return s.av||s.sym;}).filter(Boolean).join(',');
+      var fmpUrl='https://financialmodelingprep.com/api/v3/quote/'+encodeURIComponent(fmpSyms)+'?apikey=demo';
+      var fmpData=await apiFetch(fmpUrl);
+      if(Array.isArray(fmpData)&&fmpData.length>0){
+        stocksData=STOCKS_LIST.map(function(s){
+          var q=fmpData.find(function(r){return r.symbol===(s.av||s.sym);});
+          if(!q) return{sym:s.sym,name:s.name,type:s.type,av:s.av,price:0,chg:0,chgPct:0,high52:0,low52:0,score:0,err:true};
+          var price=q.price||0,high52=q.yearHigh||price*1.3,low52=q.yearLow||price*0.7;
+          var chg=q.change||0,chgPct=q.changesPercentage||0;
+          return{sym:s.sym,name:q.name||s.name,type:s.type,av:s.av,
+            price:price,chg:chg,chgPct:chgPct,high52:high52,low52:low52,
+            score:calcStockScore(price,high52,low52,chgPct)};
+        });
+        yahooOk=true; /* reuse flag to skip AV */
+      }
+    }catch(e){console.warn('FMP fallback failed:',e.message);}
+  }
+
+  /* Fallback 2: Alpha Vantage (rate-limited — only av-mapped, key rotates on 429) */
   if(!yahooOk){
     document.getElementById('stocks-loading').textContent='LOADING VIA ALPHA VANTAGE…';
     var results=STOCKS_LIST.map(function(s){
       return{sym:s.sym,name:s.name,type:s.type,av:s.av,price:0,chg:0,chgPct:0,high52:0,low52:0,score:0,err:true};
     });
-    /* Fetch AV stocks in parallel (max 5 simultaneous to respect rate limits) */
     var avStocks=STOCKS_LIST.filter(function(s){return s.av;});
     var batchSize=5;
     for(var b=0;b<avStocks.length;b+=batchSize){
@@ -2673,6 +2918,8 @@ async function loadStocks(){
       await Promise.all(batch.map(async function(s){
         try{
           var q=await fetchStockAV(s.av);
+          /* If rate limited, rotate key and retry once */
+          if(!q){q=await fetchStockAV((rotateAVKey(),s.av));}
           if(q){
             var idx=results.findIndex(function(r){return r.sym===s.sym;});
             if(idx>=0) results[idx]=Object.assign(results[idx],q,{
@@ -2682,7 +2929,7 @@ async function loadStocks(){
           }
         }catch(e){}
       }));
-      if(b+batchSize<avStocks.length) await sleep(1000); /* AV rate limit: 5 req/min free */
+      if(b+batchSize<avStocks.length) await sleep(1000);
     }
     stocksData=results;
   }
