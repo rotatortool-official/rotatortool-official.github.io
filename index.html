@@ -6,7 +6,7 @@
 <meta http-equiv="X-Content-Type-Options" content="nosniff">
 <meta http-equiv="X-Frame-Options" content="SAMEORIGIN">
 <meta name="referrer" content="no-referrer-when-downgrade">
-<meta name="description" content="Rotation Screener — Find the best crypto, forex and stock rotation opportunities. Free top 30 coins, Pro top 50 + 90D data.">
+<meta name="description" content="Rotation Screener — Find the best crypto, forex and stock rotation opportunities. Free top 30 coins, Pro top 50 coins.">
 <title>⬡ ROTATOR — Binance Rotation Screener</title>
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>⬡</text></svg>">
 <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@300;400;500;600&display=swap" rel="stylesheet">
@@ -478,11 +478,6 @@ td.pc{text-align:right;padding-left:2px;padding-right:2px;}
 .lang-btn-modal:hover{border-color:var(--bnb);color:var(--text);}
 .lang-btn-modal.active{background:var(--bnbd);border-color:rgba(243,186,47,.5);color:var(--bnb);}
 
-/* ── 90D PRO COLUMN ── */
-.th-pro{color:var(--pro) !important;letter-spacing:.06em;cursor:pointer;}
-.th-pro:hover{color:var(--pro) !important;opacity:.8;}
-.td-pro-locked{text-align:center;color:var(--pro);font-size:10px;letter-spacing:.04em;opacity:.5;}
-.td-pro-locked:hover{opacity:1;}
 
 /* ── HOVER TOOLTIP SYSTEM ── */
 .rt-tip{
@@ -529,7 +524,55 @@ td.pc{text-align:right;padding-left:2px;padding-right:2px;}
 ::-webkit-scrollbar-track{background:transparent;}
 ::-webkit-scrollbar-thumb{background:var(--bg4);border-radius:2px;}
 @media(max-width:1100px){.root{grid-template-columns:320px 1fr;}.ad-panel{display:none;}}
-@media(max-width:700px){.root{grid-template-columns:1fr;}.sidebar{max-height:55vh;}}
+@media(max-width:700px){.root{grid-template-columns:1fr;}.sidebar{display:none !important;}.main-col{padding-bottom:60px;}}
+@media(max-width:700px) and (orientation:portrait){tbody td{border-bottom:none;}}
+@media(max-width:700px){
+  /* Hide rank # column */
+  thead th:first-child, tbody td:first-child{display:none;}
+  /* Hide tier badge */
+  #tier-badge{display:none !important;}
+  /* Hide score mini bar (the line next to score number) */
+  .sb{display:none;}
+  /* Shrink table font so 30D+SCORE fit */
+  tbody td{font-size:11px;padding:4px 3px;}
+  thead th{font-size:9px;padding:4px 3px;}
+  .tsym{font-size:11px;}
+  .tname{font-size:9px;}
+  .ti{width:16px;height:16px;}
+  .cc{gap:4px;}
+  /* Cleaner topbar on mobile — center logo */
+  .topbar{padding:4px 8px;gap:3px;position:relative;}
+  .topbar>div:first-child{flex:1;justify-content:center;}
+  .topbar-r{width:auto;gap:4px;}
+  .ts{display:none;}
+  .btc-meta{display:none;}
+  .topbar-action-btns .btn{font-size:10px;padding:3px 8px;}
+  /* Neon section: stack all 3 cols horizontally, equal width */
+  .bars-cols{display:flex;flex-direction:row;gap:0;}
+  .bars-col-inner{flex:1;min-width:0;padding:0 5px;}
+  .bars-divider{width:1px;align-self:stretch;}
+  .bar-col-title{font-size:8px;letter-spacing:.08em;margin-bottom:4px;}
+  .bar-col-title::after{display:none;}
+  /* Worst 30d: show only 2 tiles in a row */
+  #worst-cards .sig-tiles-grid{grid-template-columns:repeat(2,1fr);}
+  #worst-cards .sig-tile:nth-child(n+3){display:none;}
+  /* Mom cards: show only 1 tile */
+  #mom-cards .sig-tiles-grid{grid-template-columns:1fr;}
+  #mom-cards .sig-tile:nth-child(n+2){display:none;}
+  /* Sig tiles smaller on mobile */
+  .sig-tile{padding:4px 5px;}
+  .sig-tile-sym{font-size:10px;}
+  .sig-tile-stats{flex-wrap:wrap;}
+}
+.mob-nav{display:none;position:fixed;bottom:0;left:0;right:0;z-index:300;background:var(--bg2);border-top:1px solid var(--bdr2);height:56px;flex-shrink:0;}
+@media(max-width:700px){.mob-nav{display:flex;}}
+.mob-nav-btn{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;background:none;border:none;border-top:3px solid transparent;cursor:pointer;font-family:inherit;color:var(--muted);font-size:8px;letter-spacing:.14em;font-weight:700;padding:6px 4px 4px;}
+.mob-nav-btn+.mob-nav-btn{border-left:1px solid var(--bdr);}
+.mob-nav-btn.active{color:var(--bnb);border-top-color:var(--bnb);}
+.mob-nav-logo{width:24px;height:24px;border-radius:50%;overflow:hidden;background:var(--bg4);display:flex;align-items:center;justify-content:center;font-size:13px;}
+.mob-nav-logo img{width:100%;height:100%;object-fit:cover;}
+.mob-holdings-panel{display:none;position:fixed;bottom:56px;left:0;right:0;z-index:250;background:var(--bg2);border-top:1px solid var(--bdr2);max-height:72vh;overflow-y:auto;flex-direction:column;}
+.mob-holdings-panel.open{display:flex;}
 
 /* ══════════════════════════════
    TUTORIAL
@@ -779,7 +822,7 @@ td.pc{text-align:right;padding-left:2px;padding-right:2px;}
       <div style="font-size:10px;letter-spacing:.14em;color:var(--muted);margin-bottom:10px;text-transform:uppercase;">Your donation helps build:</div>
       <div style="display:flex;flex-direction:column;gap:7px;">
         <div style="display:flex;align-items:center;gap:8px;font-size:11px;color:var(--text);">
-          <span style="color:var(--green);font-size:13px;">✓</span><span><strong style="color:var(--green)">Live now:</strong> 50 coins · Forex pairs · Stocks screener · 90D data · 3-layer scoring</span>
+          <span style="color:var(--green);font-size:13px;">✓</span><span><strong style="color:var(--green)">Live now:</strong> 50 coins · Forex pairs · Stocks screener · 3-layer scoring</span>
         </div>
         <div style="display:flex;align-items:center;gap:8px;font-size:11px;color:var(--text);">
           <span style="color:var(--bnb);font-size:13px;">◈</span><span><strong style="color:var(--bnb)">Coming next:</strong> Rotation alerts · Advanced scoring breakdown · Mobile view</span>
@@ -957,7 +1000,7 @@ td.pc{text-align:right;padding-left:2px;padding-right:2px;}
   </div>
 
   <!-- CENTER -->
-  <div class="content">
+  <div class="content main-col">
     <div class="neon-section">
       <div class="neon-inner">
         <div class="bars-cols">
@@ -1177,7 +1220,7 @@ function openPro(){
       +'</div>'
       +'<div style="background:var(--gd);border:1px solid rgba(0,200,150,.2);border-radius:4px;padding:10px 14px;margin-bottom:14px;font-size:11px;line-height:1.8;">'
         +'<span style="color:var(--green);font-weight:600;">✓ Already free for everyone:</span><br>'
-        +'<span style="color:var(--muted);">Top 50 coins · Forex pairs · Stock screener · 90D data · 3-layer scoring · Rotation signals</span>'
+        +'<span style="color:var(--muted);">Top 50 coins · Forex pairs · Stock screener · 3-layer scoring · Rotation signals</span>'
       +'</div>'
       +'<div class="pro-steps" id="ref-steps">'
         +'<div class="pro-step"><div class="step-num">1</div><div class="step-txt">Copy your referral link below</div></div>'
@@ -1379,14 +1422,13 @@ var CACHE_RULES=[
   {match:/coins\/bitcoin\/market_chart\?.*days=200/,   ttl:60*60*1000,  label:'BTC-MA200'},
   // 30d chart data — cache 30 minutes
   {match:/market_chart\?.*days=30/,                    ttl:30*60*1000,  label:'CHART-30D'},
-  // Coins market list — cache 15 minutes (90D data also refreshes this infrequently)
+  // Coins market list — cache 15 minutes
   {match:/coins\/markets/,                             ttl:15*60*1000,  label:'COINS-MKT'},
   // Stocks (Yahoo Finance) — cache 30 minutes (slow refresh)
   {match:/finance\.yahoo\.com/,                        ttl:30*60*1000,  label:'STOCKS'},
   // Forex (AlphaVantage or Frankfurter) — cache 15 minutes
   {match:/alphavantage\.co/,                           ttl:15*60*1000,  label:'FOREX-AV'},
   {match:/frankfurter\.app/,                            ttl:15*60*1000,  label:'FOREX-FK'},
-  // CoinMarketCap — cache 1 hour (90d + historical)
   // Default fallback — 5 minutes
   {match:/./,                                          ttl: 5*60*1000,  label:'DEFAULT'}
 ];
@@ -1504,18 +1546,15 @@ var sleep=ms=>new Promise(r=>setTimeout(r,ms));
 ══════════════════════════════ */
 function prog(p,m){var el=document.getElementById('lmsg');if(el)el.textContent=m;}
 
-/* ══════════════════════════════════════════════════════════════════
-   CMC FETCH — dedicated function for CoinMarketCap API
-   Tries multiple proxy strategies to get the X-CMC_PRO_API_KEY
-   header through to the CMC server.
-══════════════════════════════════════════════════════════════════ */
 async function loadCoins(){
   prog(10,'FETCHING COINS…');
   var ids=getActiveCoins().join(',');
   var url='https://api.coingecko.com/api/v3/coins/markets'
     +'?vs_currency=usd&ids='+ids
     +'&order=market_cap_desc&per_page=50&page=1'
-    +'&sparkline=false&price_change_percentage=7d,14d,30d&include_24hr_vol=true';
+    +'&sparkline=false'
+    +'&price_change_percentage=7d,14d,30d'
+    +'&include_24hr_vol=true';
   var data=await apiFetch(url);
   if(!Array.isArray(data)) throw new Error('CoinGecko data invalid');
   coins=data.map(function(c){
@@ -1537,7 +1576,6 @@ async function loadCoins(){
   coins.forEach(function(c,i){c.rank=i+1;});
   computeScores();
 }
-
 
 async function loadBTC(){
   var btcUrl='https://api.coingecko.com/api/v3/coins/bitcoin/market_chart?vs_currency=usd&days=200';
@@ -1638,10 +1676,9 @@ function computeScores(){
     var sorted=coins.slice().sort(function(a,b){return b[k]-a[k];});
     sorted.forEach(function(c,i){c['r'+k.slice(1)]=i+1;});
   });
-
-
+  var has90=coins.filter(function(c){return c.p90!=null;});
   coins.forEach(function(c){
-    var wAvg=c.r7*0.25+c.r14*0.30+c.r30*0.45;
+    var wAvg=(c.r7*0.25+c.r14*0.30+c.r30*0.45);
     var layer1=Math.round((1-(wAvg-1)/n)*40);
 
     /* LAYER 2: Macro relative strength vs BTC/Gold/Silver/Oil (0-30 pts) */
@@ -1900,7 +1937,6 @@ function renderTable(){
     var scC=sc>=65?'var(--green)':sc<0?'var(--red)':sc>=40?'var(--amber)':'var(--muted)';
     var mcapStr=c.mcap?'$'+(c.mcap/1e9>=1?(c.mcap/1e9).toFixed(2)+'B':(c.mcap/1e6).toFixed(0)+'M'):'—';
     var tipData='data-sym="'+c.sym+'" data-name="'+c.name+'" data-mcap="'+mcapStr+'" data-score="'+sc+'" data-p24="'+c.p24.toFixed(2)+'" data-p7="'+c.p7.toFixed(2)+'" data-p30="'+c.p30.toFixed(2)+'" data-held="'+(isH?'1':'0')+'"';
-
     return '<tr class="'+(isH?'held':'')+'" '+tipData+' onmouseenter="showRowTip(this,event)" onmouseleave="hideTip()">'
       +'<td style="color:var(--muted);font-size:10px;">'+(i+1)+'</td>'
       +'<td><div class="cc"><div class="ti"><img src="'+c.image+'" alt="" onerror="this.style.display=\'none\'"></div><div><div style="display:flex;align-items:center;"><span class="tsym">'+c.sym+'</span>'+(isH?'<span class="htag">HELD</span>':'')+'</div><div class="tname">'+c.name+'</div></div></div></td>'
@@ -1915,7 +1951,7 @@ function renderTable(){
 
   /* show upsell banner if free user */
   if(!isPro&&proCoins.length){
-    html+='<tr class="pro-upsell-row"><td colspan="9"><div class="pro-upsell-banner">'
+    html+='<tr class="pro-upsell-row"><td colspan="8"><div class="pro-upsell-banner">'
       +'<div class="pub-left"><span class="pub-icon">⚡</span><div><div class="pub-txt">+'+proCoins.length+' more coins available in Pro</div><div class="pub-sub">Share your link with 3 friends to unlock — completely free</div></div></div>'
       +'<button class="pub-btn" onclick="openPro()">UNLOCK PRO →</button>'
     +'</div></td></tr>';
@@ -2019,12 +2055,8 @@ async function doLoad(){
     await sleep(320);document.getElementById('loader').classList.add('gone');
     startAutoRefresh();
   }catch(e){
-    var msg=e.message||'';
-    var isRL=msg.indexOf('403')>=0||msg.indexOf('429')>=0||msg.indexOf('rate')>=0;
-    document.getElementById('lmsg').textContent=isRL
-      ?'API rate limit reached — please wait a few minutes and refresh.'
-      :'Failed to load data: '+msg;
-    document.getElementById('lbf').style.background=isRL?'var(--amber)':'var(--red)';
+    document.getElementById('lmsg').textContent='ERROR: '+e.message;
+    document.getElementById('lbf').style.background='var(--red)';
   }
   busy=false;
 }
@@ -3410,6 +3442,61 @@ document.addEventListener('click',function(e){
 });
 
 doLoad().then(function(){initTutorial();});
+</script>
+
+<!-- MOBILE BOTTOM NAV -->
+<nav class="mob-nav" id="mob-nav">
+  <button class="mob-nav-btn active" id="mn-crypto" onclick="mobNav('crypto')">
+    <div class="mob-nav-logo"><img src="https://assets.coingecko.com/coins/images/1/thumb/bitcoin.png" alt="₿" onerror="this.style.display='none'"></div>
+    <span>CRYPTO</span>
+  </button>
+  <button class="mob-nav-btn" id="mn-forex" onclick="mobNav('forex')">
+    <div class="mob-nav-logo">💱</div>
+    <span>FOREX</span>
+  </button>
+  <button class="mob-nav-btn" id="mn-stocks" onclick="mobNav('stocks')">
+    <div class="mob-nav-logo" style="background:#c41e3a;color:#fff;font-size:7px;font-weight:900;font-family:Arial,sans-serif;">S&P</div>
+    <span>STOCKS</span>
+  </button>
+  <button class="mob-nav-btn" id="mn-holdings" onclick="mobNavHoldings()">
+    <div class="mob-nav-logo" style="font-size:14px;">💼</div>
+    <span>HOLDINGS</span>
+  </button>
+</nav>
+
+<!-- MOBILE HOLDINGS PANEL -->
+<div class="mob-holdings-panel" id="mob-holdings-panel"></div>
+
+<script>
+var _mobHoldingsOpen=false;
+function mobNav(mode){
+  _mobHoldingsOpen=false;
+  document.getElementById('mob-holdings-panel').classList.remove('open');
+  ['crypto','forex','stocks','holdings'].forEach(function(m){
+    var b=document.getElementById('mn-'+m);
+    if(b) b.classList.toggle('active',m===mode);
+  });
+  setMode(mode);
+}
+function mobNavHoldings(){
+  _mobHoldingsOpen=!_mobHoldingsOpen;
+  var panel=document.getElementById('mob-holdings-panel');
+  var btn=document.getElementById('mn-holdings');
+  panel.classList.toggle('open',_mobHoldingsOpen);
+  if(btn) btn.classList.toggle('active',_mobHoldingsOpen);
+  if(_mobHoldingsOpen){
+    // Clone current holdings panel content into mobile panel
+    var mode=currentMode||'crypto';
+    var src=document.getElementById('holdings-'+mode);
+    if(src){
+      panel.innerHTML='';
+      var clone=src.cloneNode(true);
+      clone.style.display='flex';
+      clone.style.flexDirection='column';
+      panel.appendChild(clone);
+    }
+  }
+}
 </script>
 </body>
 </html>
