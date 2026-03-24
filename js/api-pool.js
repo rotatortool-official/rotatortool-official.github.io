@@ -24,9 +24,49 @@
 var AV_KEYS = ['R9V24J5V7LCQYZMF'];
 /* To add more keys:  var AV_KEYS = ['KEY1', 'KEY2', 'KEY3']; */
 
-var _avKeyIdx = 0;
-function getAVKey()    { return AV_KEYS[_avKeyIdx % AV_KEYS.length]; }
-function rotateAVKey() { _avKeyIdx = (_avKeyIdx + 1) % AV_KEYS.length; return getAVKey(); }
+/* ── Smart AV key manager — tracks per-key cooldowns ────────────────
+   When a key hits 429 it gets a cooldown (default 65s for free tier).
+   getAVKey() always returns the first key that is NOT in cooldown.
+   If ALL keys are cooling down, it returns the least-recently-hit one
+   (best of bad options) rather than crashing.
+────────────────────────────────────────────────────────────────── */
+var _avCooldowns = {};   /* key → timestamp when cooldown expires */
+var _avCooldownMs = 65 * 1000;  /* 65 seconds — AV free tier resets per minute */
+
+function getAVKey() {
+  var now = Date.now();
+  /* First: find a key with no active cooldown */
+  for (var i = 0; i < AV_KEYS.length; i++) {
+    var k = AV_KEYS[i];
+    if (!_avCooldowns[k] || now >= _avCooldowns[k]) return k;
+  }
+  /* All keys cooling — return the one whose cooldown expires soonest */
+  var best = AV_KEYS[0];
+  for (var j = 1; j < AV_KEYS.length; j++) {
+    if (_avCooldowns[AV_KEYS[j]] < _avCooldowns[best]) best = AV_KEYS[j];
+  }
+  return best;
+}
+
+function rotateAVKey() {
+  /* Mark current key as rate-limited and return next available */
+  var cur = getAVKey();
+  _avCooldowns[cur] = Date.now() + _avCooldownMs;
+  console.warn('[AV] Key rate-limited, cooling for 65s:', cur.slice(0,6) + '…');
+  return getAVKey();
+}
+
+/* How long until next AV key is available (ms), 0 if one is ready now */
+function avKeyWaitMs() {
+  var now = Date.now();
+  for (var i = 0; i < AV_KEYS.length; i++) {
+    if (!_avCooldowns[AV_KEYS[i]] || now >= _avCooldowns[AV_KEYS[i]]) return 0;
+  }
+  var min = Infinity;
+  AV_KEYS.forEach(function(k) { if (_avCooldowns[k] < min) min = _avCooldowns[k]; });
+  return Math.max(0, min - now);
+}
+
 var AV_KEY = getAVKey(); /* kept for backwards compat — always use getAVKey() in new code */
 
 /* ── Cache TTL Rules ─────────────────────────────────────────────────
@@ -157,19 +197,7 @@ async function apiFetch(url) {
       function(){ return fetch('https://api.allorigins.win/get?url=' + encodeURIComponent(url), {signal: AbortSignal.timeout(11000)}); }
     ];
 
-    var errs = [];
-    for (var i = 0; i < ps.length; i++) {
-      try {
-        var r = await ps[i]();
-        if (!r.ok) throw new Error('HTTP ' + r.status);
-        var j = await r.json();
-        var u = unwrap(j);
-        if (u && u.status && u.status.error_code === 429) throw new Error('rate_limited');
-        _cacheSet(url, u);
-        delete _pending[url];
-        return u;
-      } catch(e) { errs.push(e.message || String(e)); }
-    }
+    var errs = [];\n    for (var i = 0; i < ps.length; i++) {\n      try {\n        var r = await ps[i]();\n        if (!r.ok) {\n          /* Alpha Vantage returns 200 with error in body — handled below */\n          if (r.status === 429) {\n            if (url.indexOf('alphavantage') >= 0) rotateAVKey();\n            throw new Error('HTTP 429');\n          }\n          throw new Error('HTTP ' + r.status);\n        }\n        var j = await r.json();\n        var u = unwrap(j);\n        /* AV rate-limit comes as 200 with Note or Information field */\n        if (u && (u.Note || u.Information) && url.indexOf('alphavantage') >= 0) {\n          var msg = u.Note || u.Information;\n          if (msg.indexOf('API call frequency') >= 0 || msg.indexOf('rate limit') >= 0 || msg.indexOf('premium') >= 0) {\n            rotateAVKey();\n            throw new Error('AV rate_limited: ' + msg.slice(0, 60));\n          }\n        }\n        if (u && u.status && u.status.error_code === 429) throw new Error('rate_limited');\n        _cacheSet(url, u);\n        delete _pending[url];\n        return u;\n      } catch(e) { errs.push(e.message || String(e)); }\n    }
     delete _pending[url];
     throw new Error(errs.join(' | '));
   })();

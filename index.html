@@ -685,6 +685,7 @@ td.pc{text-align:right;padding-left:2px;padding-right:2px;}
   /* Layout */
   .root{grid-template-columns:1fr;}
   .sidebar{display:none !important;}
+  .ad-panel{display:none !important;}  /* hide sponsored panel — already shown in topbar */
   .main-col{padding-bottom:60px;}
   tbody td{border-bottom:none;}
   /* Signal panel 2×2 */
@@ -1317,6 +1318,99 @@ td.pc{text-align:right;padding-left:2px;padding-right:2px;}
 <script src="js/holdings.js"></script>
 <script src="js/tutorial.js"></script>
 <script src="js/data-loaders.js"></script>
+
+<script>
+/* ══════════════════════════════════════════════════════════════
+   LOGO RENDERER — draws animated ⬡ ROTATOR text on canvas
+══════════════════════════════════════════════════════════════ */
+(function drawLogos() {
+  function drawLogo(canvas) {
+    if (!canvas) return;
+    var ctx = canvas.getContext('2d');
+    var W = canvas.width, H = canvas.height;
+    ctx.clearRect(0, 0, W, H);
+
+    /* Hex symbol */
+    ctx.font = 'bold ' + Math.round(H * 0.75) + 'px "IBM Plex Mono", monospace';
+    ctx.fillStyle = '#F3BA2F';
+    ctx.shadowColor = 'rgba(243,186,47,0.55)';
+    ctx.shadowBlur = 8;
+    ctx.fillText('⬡', 0, H * 0.82);
+    ctx.shadowBlur = 0;
+
+    /* ROTATOR text */
+    ctx.font = '600 ' + Math.round(H * 0.48) + 'px "IBM Plex Mono", monospace';
+    ctx.fillStyle = '#F3BA2F';
+    ctx.letterSpacing = '0.18em';
+    ctx.fillText('ROTATOR', Math.round(H * 0.88), H * 0.54);
+
+    /* sub-label */
+    ctx.font = '300 ' + Math.round(H * 0.3) + 'px "IBM Plex Mono", monospace';
+    ctx.fillStyle = 'rgba(140,160,180,0.85)';
+    ctx.fillText('SCREENER', Math.round(H * 0.88), H * 0.9);
+  }
+
+  /* Draw after fonts are likely loaded */
+  function init() {
+    drawLogo(document.getElementById('logo-c'));
+    drawLogo(document.getElementById('logo-c-mob'));
+  }
+  if (document.fonts && document.fonts.ready) {
+    document.fonts.ready.then(init);
+  } else {
+    setTimeout(init, 400);
+  }
+})();
+
+/* ══════════════════════════════════════════════════════════════
+   MOBILE HOLDINGS FIX — re-wire add button after panel clone
+══════════════════════════════════════════════════════════════ */
+(function patchMobHoldings() {
+  var _origMobNavHoldings = window.mobNavHoldings;
+  window.mobNavHoldings = function() {
+    _origMobNavHoldings();
+    var panel = document.getElementById('mob-holdings-panel');
+    if (!panel || !panel.classList.contains('open')) return;
+
+    /* Re-wire ADD button to read from cloned inputs inside the panel */
+    var addBtn = panel.querySelector('.add-btn');
+    if (addBtn) {
+      addBtn.onclick = function() {
+        var selEl  = panel.querySelector('select');
+        var qtyEl  = panel.querySelector('#inp-qty, [id$="-qty"], input[placeholder="amount"]');
+        var avgEl  = panel.querySelector('#inp-avg, [id$="-avg"], input[placeholder="avg buy price"]');
+        var sym = selEl  ? selEl.value : '';
+        var qty = qtyEl  ? parseFloat(qtyEl.value) || null : null;
+        var avg = avgEl  ? parseFloat(avgEl.value) || null : null;
+        if (!sym) return;
+
+        /* Sync values into the original (desktop) inputs so addHolding() works */
+        var dSel = document.getElementById('coin-sel');
+        var dQty = document.getElementById('inp-qty');
+        var dAvg = document.getElementById('inp-avg');
+        if (dSel) dSel.value = sym;
+        if (dQty) dQty.value = qty !== null ? qty : '';
+        if (dAvg) dAvg.value = avg !== null ? avg : '';
+
+        addHolding();
+
+        /* Clear mobile inputs */
+        if (selEl) selEl.value = '';
+        if (qtyEl) qtyEl.value = '';
+        if (avgEl) avgEl.value = '';
+      };
+    }
+
+    /* Also wire Enter key on mobile inputs */
+    var inputs = panel.querySelectorAll('input[type="number"]');
+    inputs.forEach(function(inp) {
+      inp.addEventListener('keydown', function(e) {
+        if (e.key === 'Enter') { if (addBtn) addBtn.click(); }
+      });
+    });
+  };
+})();
+</script>
 
 </body>
 </html>
