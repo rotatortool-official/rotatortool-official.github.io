@@ -684,6 +684,16 @@ function mobNavHoldings() {
             if (dQty) dQty.value = qtyEl ? (parseFloat(qtyEl.value) || '') : '';
             if (dAvg) dAvg.value = avgEl ? (parseFloat(avgEl.value) || '') : '';
             addHolding();
+            /* Refresh mobile panel so new holding shows immediately */
+            setTimeout(function() {
+              var src2 = document.getElementById('holdings-crypto');
+              if (src2 && panel.classList.contains('open')) {
+                panel.innerHTML = '';
+                var clone2 = src2.cloneNode(true);
+                clone2.style.display = 'flex'; clone2.style.flexDirection = 'column';
+                panel.appendChild(clone2);
+              }
+            }, 100);
             if (selEl) selEl.value = '';
             if (qtyEl) qtyEl.value = '';
             if (avgEl) avgEl.value = '';
@@ -809,6 +819,254 @@ document.addEventListener('click', function(e) {
 
 /* ── Entry point ─────────────────────────────────────────────── */
 doLoad().then(function() { initTutorial(); });
+
+/* ══════════════════════════════════════════════════════════════
+   TILE DETAIL PANEL — openTileDetail / openAssetDetail
+══════════════════════════════════════════════════════════════ */
+var _tdCoin = null;
+
+function fmtMcap(n) {
+  if (!n) return '—';
+  if (n >= 1e12) return '$' + (n/1e12).toFixed(2) + 'T';
+  if (n >= 1e9)  return '$' + (n/1e9).toFixed(2)  + 'B';
+  if (n >= 1e6)  return '$' + (n/1e6).toFixed(1)  + 'M';
+  return '$' + n.toLocaleString();
+}
+function fmtVol(n) { return fmtMcap(n); }
+
+function _positionPanel(panel, evt) {
+  var pw = 310, ph = 400;
+  var cx = evt ? evt.clientX : window.innerWidth  / 2;
+  var cy = evt ? evt.clientY : window.innerHeight / 2;
+  var left = cx + 16, top = cy - 60;
+  if (left + pw > window.innerWidth  - 12) left = cx - pw - 16;
+  if (top  + ph > window.innerHeight - 12) top  = window.innerHeight - ph - 12;
+  if (top < 8) top = 8;
+  panel.style.left = left + 'px';
+  panel.style.top  = top  + 'px';
+  panel.style.display = 'block';
+  document.getElementById('td-overlay').classList.add('show');
+}
+
+function openTileDetail(coinId, evt) {
+  if (evt) evt.stopPropagation();
+  var c = coins.find(function(x) { return x.id === coinId || x.sym === coinId; });
+  if (!c) return;
+  _tdCoin = c;
+  var panel = document.getElementById('td-panel');
+  var icoEl = document.getElementById('td-ico');
+  icoEl.src = c.image || ''; icoEl.style.display = '';
+  document.getElementById('td-sym').textContent   = c.sym;
+  document.getElementById('td-name').textContent  = c.name;
+  document.getElementById('td-price').textContent = fmtP(c.price);
+
+  document.getElementById('td-perf').innerHTML = [
+    {l:'24H', v:c.p24}, {l:'7D', v:c.p7}, {l:'30D', v:c.p30}
+  ].map(function(p) {
+    var cls = p.v >= 0 ? 'up' : 'dn';
+    return '<div class="td-cell"><div class="td-cell-l">' + p.l + '</div>'
+      + '<div class="td-cell-v ' + cls + '">' + (p.v>=0?'+':'') + p.v.toFixed(1) + '%</div></div>';
+  }).join('');
+
+  var scC = c.score >= 65 ? 'var(--green)' : c.score <= 35 ? 'var(--red)' : 'var(--amber)';
+  document.getElementById('td-score-bars').innerHTML =
+    '<div style="display:flex;align-items:baseline;gap:6px;margin-bottom:8px;">'
+    + '<span style="font-size:26px;font-weight:700;color:' + scC + ';">' + c.score + '</span>'
+    + '<span style="font-size:10px;color:var(--muted);">/ 100 composite score</span></div>'
+    + [{l:'7D rank',v:c.r7},{l:'14D rank',v:c.r14},{l:'30D rank',v:c.r30}].map(function(b) {
+      var pct = Math.round((1 - (b.v-1) / Math.max(coins.length-1,1)) * 100);
+      var col = pct>=65?'var(--green)':pct>=40?'var(--amber)':'var(--red)';
+      return '<div class="td-bar-row"><span class="td-bar-lbl">' + b.l + '</span>'
+        + '<div class="td-bar-wrap"><div class="td-bar-fill" style="width:'+pct+'%;background:'+col+';"></div></div>'
+        + '<span class="td-bar-val" style="color:'+col+';">#'+b.v+'</span></div>';
+    }).join('');
+
+  var vol24 = c.volume24 || c.total_volume || null;
+  document.getElementById('td-market').innerHTML = [
+    {l:'MKT CAP', v:fmtMcap(c.mcap)},
+    {l:'24H VOL',  v:fmtVol(vol24)},
+    {l:'RANK',     v:c.rank ? '#'+c.rank : '—'}
+  ].map(function(m) {
+    return '<div class="td-cell"><div class="td-cell-l">'+m.l+'</div><div class="td-cell-v bnb">'+m.v+'</div></div>';
+  }).join('');
+
+  var badges = [];
+  if (c.score >= 70)      badges.push({t:'STRONG MOM', cls:'bull'});
+  else if (c.score >= 55) badges.push({t:'MOMENTUM',   cls:'bull'});
+  else if (c.score <= 30) badges.push({t:'LAGGING',    cls:'bear'});
+  else                    badges.push({t:'NEUTRAL',    cls:'neu'});
+  if (c.p24 >=  3) badges.push({t:'24H SURGE',    cls:'bull'});
+  if (c.p24 <= -3) badges.push({t:'24H DIP',      cls:'bear'});
+  if (c.p7  >= 10) badges.push({t:'7D BREAKOUT',  cls:'bull'});
+  if (c.p7  <=-10) badges.push({t:'7D BREAKDOWN', cls:'bear'});
+  if (c.p30 >= 20) badges.push({t:'30D UPTREND',  cls:'bull'});
+  if (c.p30 <=-20) badges.push({t:'30D DOWNTREND',cls:'bear'});
+  document.getElementById('td-badges').innerHTML = badges.map(function(b) {
+    return '<span class="td-badge ' + b.cls + '">' + b.t + '</span>';
+  }).join('');
+
+  _positionPanel(panel, evt);
+}
+
+function openAssetDetail(assetType, id, evt) {
+  if (evt) evt.stopPropagation();
+  var panel = document.getElementById('td-panel');
+  if (!panel) return;
+  var icoEl = document.getElementById('td-ico');
+
+  if (assetType === 'stock') {
+    var data = stocksData.find(function(s) { return s.sym === id; });
+    if (!data) return;
+    icoEl.src = ''; icoEl.style.display = 'none';
+    document.getElementById('td-sym').textContent   = data.sym;
+    document.getElementById('td-name').textContent  = data.name;
+    document.getElementById('td-price').textContent = data.price >= 1000
+      ? '$' + data.price.toLocaleString('en-US', {maximumFractionDigits:0})
+      : '$' + data.price.toFixed(2);
+
+    var dayC = data.chgPct >= 0 ? 'up' : 'dn';
+    document.getElementById('td-perf').innerHTML =
+      '<div class="td-cell"><div class="td-cell-l">TODAY</div><div class="td-cell-v '+dayC+'">'+(data.chgPct>=0?'+':'')+data.chgPct.toFixed(2)+'%</div></div>'
+      +'<div class="td-cell"><div class="td-cell-l">CHANGE</div><div class="td-cell-v '+dayC+'">'+(data.chg>=0?'+$':'−$')+Math.abs(data.chg).toFixed(2)+'</div></div>'
+      +'<div class="td-cell"><div class="td-cell-l">52W HIGH</div><div class="td-cell-v bnb">$'+data.high52.toFixed(2)+'</div></div>'
+      +'<div class="td-cell"><div class="td-cell-l">52W LOW</div><div class="td-cell-v bnb">$'+data.low52.toFixed(2)+'</div></div>';
+
+    var range = data.high52 - data.low52;
+    var pos52 = range > 0 ? Math.round(((data.price - data.low52) / range) * 100) : 50;
+    var pos52C = pos52>=65?'var(--green)':pos52>=40?'var(--amber)':'var(--red)';
+    var scC    = data.score>=65?'var(--green)':data.score<=35?'var(--red)':'var(--amber)';
+    document.getElementById('td-score-bars').innerHTML =
+      '<div style="display:flex;align-items:baseline;gap:8px;margin-bottom:8px;">'
+      +'<span style="font-size:28px;font-weight:700;color:'+scC+';">'+data.score+'</span>'
+      +'<span style="font-size:10px;color:var(--muted);">/ 100 momentum score</span></div>'
+      +'<div class="td-bar-row"><span class="td-bar-lbl">52W pos</span>'
+      +'<div class="td-bar-wrap"><div class="td-bar-fill" style="width:'+pos52+'%;background:'+pos52C+';"></div></div>'
+      +'<span class="td-bar-val" style="color:'+pos52C+';">'+pos52+'%</span></div>'
+      +'<div class="td-bar-row"><span class="td-bar-lbl">Momentum</span>'
+      +'<div class="td-bar-wrap"><div class="td-bar-fill" style="width:'+Math.max(2,data.score)+'%;background:'+scC+';"></div></div>'
+      +'<span class="td-bar-val" style="color:'+scC+';">'+data.score+'</span></div>';
+
+    document.getElementById('td-market').innerHTML =
+      '<div class="td-cell"><div class="td-cell-l">TYPE</div><div class="td-cell-v bnb">'+(data.type==='index'?'INDEX':'STOCK')+'</div></div>'
+      +'<div class="td-cell"><div class="td-cell-l">TICKER</div><div class="td-cell-v bnb">'+data.sym+'</div></div>'
+      +'<div class="td-cell"><div class="td-cell-l">FROM 52W L</div><div class="td-cell-v '+(data.price>data.low52?'up':'dn')+'">'
+      +(range>0?((data.price-data.low52)/data.low52*100).toFixed(1):0)+'%</div></div>';
+
+    var badges = [];
+    if (data.score >= 65)   badges.push({t:'STRONG MOM', c:'bull'});
+    else if (data.score<=35) badges.push({t:'WEAK MOM',  c:'bear'});
+    else                    badges.push({t:'NEUTRAL',    c:'neu'});
+    if (data.chgPct >=  2) badges.push({t:'DAY SURGE', c:'bull'});
+    if (data.chgPct <= -2) badges.push({t:'DAY DROP',  c:'bear'});
+    if (pos52 >= 85) badges.push({t:'NEAR 52W HIGH', c:'bull'});
+    if (pos52 <= 15) badges.push({t:'NEAR 52W LOW',  c:'bear'});
+    if (data.type === 'index') badges.push({t:'INDEX', c:'neu'});
+    document.getElementById('td-badges').innerHTML = badges.map(function(b) {
+      return '<span class="td-badge '+b.c+'">'+b.t+'</span>';
+    }).join('');
+
+  } else if (assetType === 'forex') {
+    var parts = id.split('/');
+    var data = forexData.find(function(f) { return f.from===parts[0] && f.to===parts[1]; });
+    if (!data || data.locked) return;
+    var isJPY = data.to==='JPY' || data.to==='MXN';
+    var dec = isJPY ? 3 : 5;
+    icoEl.style.display = 'none';
+    document.getElementById('td-sym').textContent   = data.from + '/' + data.to;
+    document.getElementById('td-name').textContent  = data.name;
+    document.getElementById('td-price').textContent = data.rate ? data.rate.toFixed(dec) : '—';
+
+    var dayC = data.chgPct>0.001?'up':data.chgPct<-0.001?'dn':'fl';
+    var p7C  = data.p7>0.001?'up':data.p7<-0.001?'dn':'fl';
+    var p30C = data.p30>0.001?'up':data.p30<-0.001?'dn':'fl';
+    document.getElementById('td-perf').innerHTML =
+      '<div class="td-cell"><div class="td-cell-l">DAY%</div><div class="td-cell-v '+dayC+'">'+(data.chgPct>=0?'+':'')+data.chgPct.toFixed(3)+'%</div></div>'
+      +'<div class="td-cell"><div class="td-cell-l">7D%</div><div class="td-cell-v '+p7C+'">'+(data.p7>=0?'+':'')+data.p7.toFixed(2)+'%</div></div>'
+      +'<div class="td-cell"><div class="td-cell-l">30D%</div><div class="td-cell-v '+p30C+'">'+(data.p30>=0?'+':'')+data.p30.toFixed(2)+'%</div></div>'
+      +'<div class="td-cell"><div class="td-cell-l">RSI-14</div><div class="td-cell-v '+(data.rsi>=70?'dn':data.rsi<=30?'up':'fl')+'">'+data.rsi+'</div></div>';
+
+    var scC = data.score>=65?'var(--green)':data.score<=35?'var(--red)':'var(--amber)';
+    var p7col  = data.p7>=0?'var(--green)':'var(--red)';
+    var p30col = data.p30>=0?'var(--green)':'var(--red)';
+    document.getElementById('td-score-bars').innerHTML =
+      '<div style="display:flex;align-items:baseline;gap:8px;margin-bottom:8px;">'
+      +'<span style="font-size:28px;font-weight:700;color:'+scC+';">'+data.score+'</span>'
+      +'<span style="font-size:10px;color:var(--muted);">/ 100 &nbsp;·&nbsp; RSI '+data.rsi+'</span></div>'
+      +'<div class="td-bar-row"><span class="td-bar-lbl">7D mom</span>'
+      +'<div class="td-bar-wrap"><div class="td-bar-fill" style="width:'+Math.round(50+Math.min(Math.max(data.p7*12,-48),48))+'%;background:'+p7col+'"></div></div>'
+      +'<span class="td-bar-val" style="color:'+p7col+';">'+(data.p7>=0?'+':'')+data.p7.toFixed(2)+'%</span></div>'
+      +'<div class="td-bar-row"><span class="td-bar-lbl">30D trend</span>'
+      +'<div class="td-bar-wrap"><div class="td-bar-fill" style="width:'+Math.round(50+Math.min(Math.max(data.p30*7,-48),48))+'%;background:'+p30col+'"></div></div>'
+      +'<span class="td-bar-val" style="color:'+p30col+';">'+(data.p30>=0?'+':'')+data.p30.toFixed(2)+'%</span></div>'
+      +'<div class="td-bar-row"><span class="td-bar-lbl">Score</span>'
+      +'<div class="td-bar-wrap"><div class="td-bar-fill" style="width:'+data.score+'%;background:'+scC+'"></div></div>'
+      +'<span class="td-bar-val" style="color:'+scC+';">'+data.score+'</span></div>';
+
+    document.getElementById('td-market').innerHTML =
+      '<div class="td-cell"><div class="td-cell-l">BASE</div><div class="td-cell-v bnb">'+data.from+'</div></div>'
+      +'<div class="td-cell"><div class="td-cell-l">QUOTE</div><div class="td-cell-v bnb">'+data.to+'</div></div>'
+      +'<div class="td-cell"><div class="td-cell-l">SIGNAL</div><div class="td-cell-v" style="color:'+data.sigC+';">'+data.signal+'</div></div>';
+
+    var badges = [];
+    if (data.signal==='BULLISH')     badges.push({t:'BULLISH',    c:'bull'});
+    else if (data.signal==='BEARISH') badges.push({t:'BEARISH',   c:'bear'});
+    else if (data.signal==='OVERBOUGHT') badges.push({t:'OVERBOUGHT',c:'ob'});
+    else if (data.signal==='OVERSOLD')   badges.push({t:'OVERSOLD',  c:'os'});
+    else badges.push({t:'NEUTRAL', c:'neu'});
+    if (data.rsi >= 70) badges.push({t:'RSI HIGH',   c:'bear'});
+    if (data.rsi <= 30) badges.push({t:'RSI LOW',    c:'bull'});
+    if (data.p7 >=  1) badges.push({t:'7D RISING',  c:'bull'});
+    if (data.p7 <= -1) badges.push({t:'7D FALLING', c:'bear'});
+    document.getElementById('td-badges').innerHTML = badges.map(function(b) {
+      return '<span class="td-badge '+b.c+'">'+b.t+'</span>';
+    }).join('');
+  }
+  _positionPanel(panel, evt);
+}
+
+function closeTileDetail() {
+  var p = document.getElementById('td-panel');
+  var o = document.getElementById('td-overlay');
+  if (p) p.style.display = 'none';
+  if (o) o.classList.remove('show');
+  _tdCoin = null;
+}
+
+/* ══════════════════════════════
+   TOOLTIP SYSTEM
+══════════════════════════════ */
+var tipEl = null;
+function getTip() { if (!tipEl) tipEl = document.getElementById('rt-tip'); return tipEl; }
+function showTip(title, body, x, y) {
+  var t = getTip(); if (!t) return;
+  document.getElementById('rt-tip-title').textContent = title;
+  document.getElementById('rt-tip-body').innerHTML    = body;
+  t.classList.add('show');
+  var tw=220, lx=x+14, ly=y+14;
+  if (lx+tw > window.innerWidth-10)  lx = x-tw-8;
+  if (ly+100 > window.innerHeight-10) ly = y-100-8;
+  t.style.left = lx+'px'; t.style.top = ly+'px';
+}
+function hideTip() { var t = getTip(); if (t) t.classList.remove('show'); }
+function showRowTip(row, e) {
+  var sym   = row.getAttribute('data-sym');
+  var name  = row.getAttribute('data-name');
+  var mcap  = row.getAttribute('data-mcap');
+  var score = row.getAttribute('data-score');
+  var p24   = row.getAttribute('data-p24');
+  var p7    = row.getAttribute('data-p7');
+  var p30   = row.getAttribute('data-p30');
+  var held  = row.getAttribute('data-held') === '1';
+  var scN   = parseInt(score);
+  var signal = scN>=65 ? '⬆ Strong momentum' : scN>=45 ? '→ Neutral' : '⬇ Lagging — watch closely';
+  var body = 'Market Cap: <strong style="color:var(--bnb)">'+mcap+'</strong><br>'
+    +'24H: <strong>'+(parseFloat(p24)>=0?'+':'')+p24+'%</strong> &nbsp; '
+    +'7D: <strong>'+(parseFloat(p7)>=0?'+':'')+p7+'%</strong> &nbsp; '
+    +'30D: <strong>'+(parseFloat(p30)>=0?'+':'')+p30+'%</strong><br>'
+    +'Signal: <strong>'+signal+'</strong>'
+    +(held ? '<br><span style="color:var(--bnb)">✓ In your holdings</span>' : '');
+  showTip(sym + ' — ' + name, body, e.clientX, e.clientY);
+}
 
 /* ══════════════════════════════
    SPLASH SCREEN LOGO ANIMATION
