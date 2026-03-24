@@ -197,7 +197,29 @@ async function apiFetch(url) {
       function(){ return fetch('https://api.allorigins.win/get?url=' + encodeURIComponent(url), {signal: AbortSignal.timeout(11000)}); }
     ];
 
-    var errs = [];\n    for (var i = 0; i < ps.length; i++) {\n      try {\n        var r = await ps[i]();\n        if (!r.ok) {\n          /* Alpha Vantage returns 200 with error in body — handled below */\n          if (r.status === 429) {\n            if (url.indexOf('alphavantage') >= 0) rotateAVKey();\n            throw new Error('HTTP 429');\n          }\n          throw new Error('HTTP ' + r.status);\n        }\n        var j = await r.json();\n        var u = unwrap(j);\n        /* AV rate-limit comes as 200 with Note or Information field */\n        if (u && (u.Note || u.Information) && url.indexOf('alphavantage') >= 0) {\n          var msg = u.Note || u.Information;\n          if (msg.indexOf('API call frequency') >= 0 || msg.indexOf('rate limit') >= 0 || msg.indexOf('premium') >= 0) {\n            rotateAVKey();\n            throw new Error('AV rate_limited: ' + msg.slice(0, 60));\n          }\n        }\n        if (u && u.status && u.status.error_code === 429) throw new Error('rate_limited');\n        _cacheSet(url, u);\n        delete _pending[url];\n        return u;\n      } catch(e) { errs.push(e.message || String(e)); }\n    }
+    var errs = [];
+    for (var i = 0; i < ps.length; i++) {
+      try {
+        var r = await ps[i]();
+        if (!r.ok) {
+          if (r.status === 429 && url.indexOf('alphavantage') >= 0) rotateAVKey();
+          throw new Error('HTTP ' + r.status);
+        }
+        var j = await r.json();
+        var u = unwrap(j);
+        if (u && (u.Note || u.Information) && url.indexOf('alphavantage') >= 0) {
+          var msg = u.Note || u.Information;
+          if (msg.indexOf('API call frequency') >= 0 || msg.indexOf('rate limit') >= 0 || msg.indexOf('premium') >= 0) {
+            rotateAVKey();
+            throw new Error('AV rate_limited: ' + msg.slice(0, 60));
+          }
+        }
+        if (u && u.status && u.status.error_code === 429) throw new Error('rate_limited');
+        _cacheSet(url, u);
+        delete _pending[url];
+        return u;
+      } catch(e) { errs.push(e.message || String(e)); }
+    }
     delete _pending[url];
     throw new Error(errs.join(' | '));
   })();
