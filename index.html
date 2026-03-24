@@ -708,14 +708,20 @@ td.pc{text-align:right;padding-left:2px;padding-right:2px;}
   /* Table */
   thead th:first-child,tbody td:first-child{display:none;}
   .sb{display:none;}
-  tbody td{font-size:11px;padding:3px 2px;}
-  thead th{font-size:9px;padding:3px 2px;}
-  .tsym{font-size:11px;}
-  .tname{font-size:9px;}
+  table{table-layout:fixed;width:100%;}
+  thead th:nth-child(2){width:34%;}   /* COIN */
+  thead th:nth-child(3){width:13%;}   /* PRICE */
+  thead th:nth-child(4),thead th:nth-child(5),thead th:nth-child(6),thead th:nth-child(7){width:11%;}
+  thead th:nth-child(8){width:10%;}   /* SCORE */
+  tbody td{font-size:10px;padding:3px 1px;}
+  thead th{font-size:8px;padding:3px 1px;}
+  .tsym{font-size:10px;}
+  .tname{font-size:8px;}
   .ti{width:16px;height:16px;}
   .cc{gap:3px;}
   .sw{justify-content:flex-end;}
-  .sv{font-size:12px;font-weight:700;}
+  .sv{font-size:11px;font-weight:700;}
+  .pct{font-size:10px;}
 }
 .mob-nav{display:none;position:fixed;bottom:0;left:0;right:0;z-index:300;background:var(--bg2);border-top:1px solid var(--bdr2);height:56px;flex-shrink:0;}
 @media(max-width:700px) and (orientation:portrait){.mob-nav{display:flex;}}

@@ -526,7 +526,8 @@ function setMode(mode) {
   document.getElementById('crypto-panel').style.display = mode === 'crypto' ? '' : 'none';
   document.getElementById('forex-panel').style.display  = mode === 'forex'  ? '' : 'none';
   document.getElementById('stocks-panel').style.display = mode === 'stocks' ? '' : 'none';
-  document.getElementById('sort-tabs').style.display    = mode === 'crypto' ? '' : 'none';
+  var sortTabs = document.getElementById('sort-tabs');
+  if (sortTabs) sortTabs.style.display = mode === 'crypto' ? '' : 'none';
   var titles = {crypto:'PERFORMANCE LEADERBOARD', forex:'FOREX PAIRS', stocks:'MARKET SCREENER'};
   document.getElementById('tbl-title').textContent = titles[mode];
   if (mode === 'forex'  && !forexLoaded)  loadForex();

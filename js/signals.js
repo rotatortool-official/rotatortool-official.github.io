@@ -89,7 +89,7 @@ function fmtP(p) {
   return '$' + p.toFixed(6);
 }
 function pctSpan(v) {
-  var c = v >= 0 ? 'pc up' : 'pc dn';
+  var c = v >= 0 ? 'pct up' : 'pct dn';
   return '<span class="' + c + '">' + (v >= 0 ? '+' : '') + v.toFixed(2) + '%</span>';
 }
 function dateOffset(days) {
