@@ -1,6 +1,6 @@
 /* ══════════════════════════════════════════════════════════════════
-   data-loaders.js  —  OPTIMIZED PARALLEL LOADING + BETTER UX
-   Faster tiles, skeletons, background loading for forex/stocks
+   data-loaders.js  —  OPTIMIZED PARALLEL LOADING + CLEAN CODE
+   Fixed syntax, fast loading, background forex/stocks
 ══════════════════════════════════════════════════════════════════ */
 
 var forexData    = [];
@@ -10,7 +10,6 @@ var stocksLoaded = false;
 var currentMode  = 'crypto';
 var busy         = false;
 
-/* Which modes are enabled (persisted) */
 var _modeEnabled = {crypto:true, forex:true, stocks:true};
 (function() {
   try {
@@ -50,17 +49,14 @@ async function doLoad() {
   prog(10, 'Fetching top 50 coins...');
 
   try {
-    /* Load critical data in parallel for fast tile population */
     await Promise.all([
       loadBTC(),
       loadCoins(),
       loadMacroData()
     ]);
 
-    /* Render the main view immediately */
     renderAll();
 
-    /* Load slower sections in background */
     if (_modeEnabled.forex)  setTimeout(() => loadForex(),  800);
     if (_modeEnabled.stocks) setTimeout(() => loadStocks(), 1200);
 
@@ -79,7 +75,6 @@ async function doLoad() {
 async function loadCoins() {
   prog(20, 'Building leaderboard...');
 
-  /* Show skeleton rows */
   var tbody = document.getElementById('tbody');
   if (tbody) {
     var skRows = '';
@@ -145,7 +140,6 @@ async function loadBTC() {
   btcPrice = p[p.length - 1][1];
 }
 
-/* Macro data */
 var _macroData = {btcP7: null, goldP7: null, silverP7: null, oilP7: null};
 
 async function loadMacroData() {
@@ -172,7 +166,6 @@ async function loadMacroData() {
   }
 }
 
-/* Score engine */
 function computeScores() {
   var n = Math.max(coins.length - 1, 1);
 
@@ -207,37 +200,25 @@ function computeScores() {
     var layer3    = Math.min(30, Math.max(-50, supplyPts + deflPts + unlockPts));
 
     c.score = Math.min(100, Math.max(-50, Math.round(layer1 + layer2 + layer3)));
-    c.scoreBreakdown = {layer1, layer2, layer3, supplyPts, deflPts, unlockPts};
   });
 }
 
 /* ====================== FOREX ====================== */
-function calcRSI(closes, period) { /* your original calcRSI */ }
-function calcForexScore(closes) { /* your original calcForexScore */ }
-
-async function loadForex() {
-  /* your original loadForex function - unchanged */
-  /* (paste the entire original loadForex here) */
+function calcRSI(closes, period) {
+  if (!closes || closes.length < period + 1) return 50;
+  var gains = 0, losses = 0;
+  for (var i = closes.length - period; i < closes.length; i++) {
+    var d = closes[i] - closes[i-1];
+    if (d >= 0) gains += d; else losses -= d;
+  }
+  var avgG = gains / period, avgL = losses / period;
+  if (avgL === 0) return 100;
+  return Math.round(100 - (100 / (1 + avgG / avgL)));
 }
 
-function renderForexTable() {
-  /* your original renderForexTable - unchanged */
-}
-
-/* ====================== STOCKS ====================== */
-function calcStockScore(price, high52, low52, chgPct) { /* your original */ }
-
-async function fetchStocksYahoo(syms) { /* your original */ }
-async function fetchStockAV(avSym) { /* your original */ }
-
-async function loadStocks() {
-  /* your original loadStocks function - unchanged */
-}
-
-function renderStocksTable() {
-  /* your original renderStocksTable - unchanged */
-}
-
-/* ====================== MODE SWITCHING ====================== */
-function toggleModeVisibility(mode, on) { /* your original */ }
-function setMode(mode) { /*
+function calcForexScore(closes) {
+  if (!closes || closes.length < 2) return {score:50, rsi:50, signal:'NO DATA', sigC:'var(--muted)', p7:0, p30:0};
+  var latest  = closes[closes.length - 1];
+  var p7base  = closes.length >= 8  ? closes[closes.length - 8]  : closes[0];
+  var p30base = closes.length >= 22 ? closes[closes.length - 22] : closes[0];
+  var chg7  = p7base 
