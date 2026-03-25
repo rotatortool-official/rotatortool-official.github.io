@@ -1279,8 +1279,8 @@ function showRowTip(row, e) {
   }
   setTimeout(initAdAnim, 200);
 })();
-function openTileDetail(id, evt) {
-  // ... all the existing code ...
-
-  fixTileDetailMobile();   // ← add this one line
+  _positionPanel(panel, evt);
+  fixTileDetailMobile();    // ← this line only
 }
+
+function openAssetDetail(assetType, id, evt) {
