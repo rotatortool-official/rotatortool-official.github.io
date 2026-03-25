@@ -1327,14 +1327,7 @@ td.pc{text-align:right;padding-left:2px;padding-right:2px;}
 <div class="mob-holdings-panel" id="mob-holdings-panel"></div>
 
 <!-- ══════════════════════════════════════════════════════════════
-     JAVASCRIPT MODULES — Correct & Optimized Load Order
-     1. config.js
-     2. api-pool.js
-     3. pro-system.js
-     4. signals.js
-     5. holdings.js
-     6. tutorial.js
-     7. data-loaders.js   ← Must be last
+     JAVASCRIPT MODULES — Correct Load Order (v4)
 ══════════════════════════════════════════════════════════════ -->
 
 <script src="js/config.js?v=4"></script>
@@ -1343,51 +1336,47 @@ td.pc{text-align:right;padding-left:2px;padding-right:2px;}
 <script src="js/signals.js?v=4"></script>
 <script src="js/holdings.js?v=4"></script>
 <script src="js/tutorial.js?v=4"></script>
-<script src="js/data-loaders.js?v=old"></script>
+<script src="js/data-loaders.js?v=4"></script>
 
 <script>
-/* ── Final Initialization & Logo Renderer ─────────────────────── */
 function drawLogos() {
   function draw(canvas) {
     if (!canvas) return;
-    var ctx = canvas.getContext('2d');
-    var W = canvas.width, H = canvas.height;
+    var ctx = canvas.getContext("2d");
+    var W = canvas.width;
+    var H = canvas.height;
     ctx.clearRect(0, 0, W, H);
 
-    /* Hex symbol */
-    ctx.font = 'bold ' + Math.round(H * 0.75) + 'px "IBM Plex Mono", monospace';
-    ctx.fillStyle = '#F3BA2F';
-    ctx.shadowColor = 'rgba(243,186,47,0.55)';
+    ctx.font = "bold " + Math.round(H * 0.75) + "px 'IBM Plex Mono', monospace";
+    ctx.fillStyle = "#F3BA2F";
+    ctx.shadowColor = "rgba(243,186,47,0.55)";
     ctx.shadowBlur = 8;
-    ctx.fillText('⬡', 0, H * 0.82);
+    ctx.fillText("⬡", 0, H * 0.82);
     ctx.shadowBlur = 0;
 
-    /* ROTATOR text */
-    ctx.font = '600 ' + Math.round(H * 0.48) + 'px "IBM Plex Mono", monospace';
-    ctx.fillStyle = '#F3BA2F';
-    ctx.fillText('ROTATOR', Math.round(H * 0.88), H * 0.54);
+    ctx.font = "600 " + Math.round(H * 0.48) + "px 'IBM Plex Mono', monospace";
+    ctx.fillStyle = "#F3BA2F";
+    ctx.fillText("ROTATOR", Math.round(H * 0.88), H * 0.54);
 
-    /* Sub-label */
-    ctx.font = '300 ' + Math.round(H * 0.3) + 'px "IBM Plex Mono", monospace';
-    ctx.fillStyle = 'rgba(140,160,180,0.85)';
-    ctx.fillText('SCREENER', Math.round(H * 0.88), H * 0.9);
+    ctx.font = "300 " + Math.round(H * 0.3) + "px 'IBM Plex Mono', monospace";
+    ctx.fillStyle = "rgba(140,160,180,0.85)";
+    ctx.fillText("SCREENER", Math.round(H * 0.88), H * 0.9);
   }
 
-  draw(document.getElementById('logo-c'));
-  draw(document.getElementById('logo-c-mob'));
+  draw(document.getElementById("logo-c"));
+  draw(document.getElementById("logo-c-mob"));
 }
 
-/* Start the app when everything is loaded */
-window.addEventListener('load', function() {
+window.addEventListener("load", function() {
   drawLogos();
 
-  if (typeof doLoad === 'function') {
+  if (typeof doLoad === "function") {
     doLoad().then(function() {
-      if (typeof initTutorial === 'function') initTutorial();
+      if (typeof initTutorial === "function") initTutorial();
     }).catch(function(err) {
       console.error("App failed to start:", err);
-      var msg = document.getElementById('lmsg');
-      if (msg) msg.textContent = 'Failed to load — please refresh';
+      var msg = document.getElementById("lmsg");
+      if (msg) msg.textContent = "Failed to load — please refresh";
     });
   }
 });
