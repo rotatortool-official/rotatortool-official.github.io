@@ -1327,30 +1327,28 @@ td.pc{text-align:right;padding-left:2px;padding-right:2px;}
 <div class="mob-holdings-panel" id="mob-holdings-panel"></div>
 
 <!-- ══════════════════════════════════════════════════════════════
-     JAVASCRIPT MODULES  —  load order matters
-     ══════════════════════════════════════════════════════════════
-     1. config.js       — coin lists, pairs, codes, donation goal
-     2. api-pool.js     — fetch, cache, proxy rotation, AV keys
-     3. pro-system.js   — referral, Pro codes, tier badge, donation
-     4. signals.js      — score engine, rotation tiles, leaderboard
-     5. holdings.js     — holdings panels + portfolio signals
-     6. tutorial.js     — onboarding tutorial
-     7. data-loaders.js — actual data fetching + app boot
-     ══════════════════════════════════════════════════════════════ -->
-<script src="js/config.js?v=2"></script>
-<script src="js/api-pool.js?v=2"></script>
-<script src="js/pro-system.js?v=2"></script>
-<script src="js/signals.js?v=2"></script>
-<script src="js/holdings.js?v=2"></script>
-<script src="js/tutorial.js?v=2"></script>
-<script src="js/data-loaders.js?v=2"></script>
+     JAVASCRIPT MODULES — Correct & Optimized Load Order
+     1. config.js
+     2. api-pool.js
+     3. pro-system.js
+     4. signals.js
+     5. holdings.js
+     6. tutorial.js
+     7. data-loaders.js   ← Must be last
+══════════════════════════════════════════════════════════════ -->
+
+<script src="js/config.js?v=4"></script>
+<script src="js/api-pool.js?v=4"></script>
+<script src="js/pro-system.js?v=4"></script>
+<script src="js/signals.js?v=4"></script>
+<script src="js/holdings.js?v=4"></script>
+<script src="js/tutorial.js?v=4"></script>
+<script src="js/data-loaders.js?v=4"></script>
 
 <script>
-/* ══════════════════════════════════════════════════════════════
-   LOGO RENDERER — draws animated ⬡ ROTATOR text on canvas
-══════════════════════════════════════════════════════════════ */
-(function drawLogos() {
-  function drawLogo(canvas) {
+/* ── Final Initialization & Logo Renderer ─────────────────────── */
+function drawLogos() {
+  function draw(canvas) {
     if (!canvas) return;
     var ctx = canvas.getContext('2d');
     var W = canvas.width, H = canvas.height;
@@ -1367,76 +1365,30 @@ td.pc{text-align:right;padding-left:2px;padding-right:2px;}
     /* ROTATOR text */
     ctx.font = '600 ' + Math.round(H * 0.48) + 'px "IBM Plex Mono", monospace';
     ctx.fillStyle = '#F3BA2F';
-    ctx.letterSpacing = '0.18em';
     ctx.fillText('ROTATOR', Math.round(H * 0.88), H * 0.54);
 
-    /* sub-label */
+    /* Sub-label */
     ctx.font = '300 ' + Math.round(H * 0.3) + 'px "IBM Plex Mono", monospace';
     ctx.fillStyle = 'rgba(140,160,180,0.85)';
     ctx.fillText('SCREENER', Math.round(H * 0.88), H * 0.9);
   }
 
-  /* Draw after fonts are likely loaded */
-  function init() {
-    drawLogo(document.getElementById('logo-c'));
-    drawLogo(document.getElementById('logo-c-mob'));
-  }
-  if (document.fonts && document.fonts.ready) {
-    document.fonts.ready.then(init);
-  } else {
-    setTimeout(init, 400);
-  }
-})();
+  draw(document.getElementById('logo-c'));
+  draw(document.getElementById('logo-c-mob'));
+}
 
-/* ══════════════════════════════════════════════════════════════
-   MOBILE HOLDINGS FIX — re-wire add button after panel clone
-══════════════════════════════════════════════════════════════ */
-(function patchMobHoldings() {
-  var _origMobNavHoldings = window.mobNavHoldings;
-  window.mobNavHoldings = function() {
-    _origMobNavHoldings();
-    var panel = document.getElementById('mob-holdings-panel');
-    if (!panel || !panel.classList.contains('open')) return;
+/* Start the app when everything is loaded */
+window.addEventListener('load', function() {
+  drawLogos();
 
-    /* Re-wire ADD button to read from cloned inputs inside the panel */
-    var addBtn = panel.querySelector('.add-btn');
-    if (addBtn) {
-      addBtn.onclick = function() {
-        var selEl  = panel.querySelector('select');
-        var qtyEl  = panel.querySelector('#inp-qty, [id$="-qty"], input[placeholder="amount"]');
-        var avgEl  = panel.querySelector('#inp-avg, [id$="-avg"], input[placeholder="avg buy price"]');
-        var sym = selEl  ? selEl.value : '';
-        var qty = qtyEl  ? parseFloat(qtyEl.value) || null : null;
-        var avg = avgEl  ? parseFloat(avgEl.value) || null : null;
-        if (!sym) return;
-
-        /* Sync values into the original (desktop) inputs so addHolding() works */
-        var dSel = document.getElementById('coin-sel');
-        var dQty = document.getElementById('inp-qty');
-        var dAvg = document.getElementById('inp-avg');
-        if (dSel) dSel.value = sym;
-        if (dQty) dQty.value = qty !== null ? qty : '';
-        if (dAvg) dAvg.value = avg !== null ? avg : '';
-
-        addHolding();
-
-        /* Clear mobile inputs */
-        if (selEl) selEl.value = '';
-        if (qtyEl) qtyEl.value = '';
-        if (avgEl) avgEl.value = '';
-      };
-    }
-
-    /* Also wire Enter key on mobile inputs */
-    var inputs = panel.querySelectorAll('input[type="number"]');
-    inputs.forEach(function(inp) {
-      inp.addEventListener('keydown', function(e) {
-        if (e.key === 'Enter') { if (addBtn) addBtn.click(); }
-      });
+  if (typeof doLoad === 'function') {
+    doLoad().then(function() {
+      if (typeof initTutorial === 'function') initTutorial();
+    }).catch(function(err) {
+      console.error("App failed to start:", err);
+      var msg = document.getElementById('lmsg');
+      if (msg) msg.textContent = 'Failed to load — please refresh';
     });
-  };
-})();
+  }
+});
 </script>
-
-</body>
-</html>
