@@ -21,23 +21,23 @@ var tutActive  = false;
 
 /* ── Tutorial steps ──────────────────────────────────────────── */
 var TUT_STEPS = [
-  /* Step 1: Welcome */
+  /* Step 1: Welcome — centered on screen like a welcome splash */
   {
-    target: '#logo-c,canvas,#splash-c,.topbar',
+    target: '.topbar',
     title: 'Welcome to ROTATOR',
     desc: '<strong>Rotator</strong> is a daily performance tracker for crypto, forex and stocks. It measures price momentum across 24H, 7D, 14D and 30D and surfaces <strong>rotation opportunities</strong> — moments where shifting value between assets makes strategic sense.<br><br>'
       + '<strong>What is rotation?</strong> If you hold two assets and one has fallen 17% while the other only fell 5%, rotating part of the weaker position into the stronger one recovers value without adding capital. Over time, compounding these adjustments improves portfolio performance.<br><br>'
       + '<strong>90-day data</strong> reveals sustained trends, not just recent noise. A coin up 40% over 90 days but down 3% this week is very different from one that has been falling for 3 months.',
-    arrow: 'bottom', pos: 'below', wide: true
+    arrow: 'top', pos: 'center', wide: true
   },
-  /* Step 2: Holdings panel */
+  /* Step 2: Holdings panel — box appears to the right of the panel, anchored near the top */
   {
     target: '.add-form',
     title: 'Your Holdings Panel',
     desc: '<div style="font-size:15px;line-height:1.9;">This panel in the bottom-left is your portfolio tracker. Add any coin with quantity and average buy price — data is saved in your browser, no account needed.<br><br>'
       + 'Once you add holdings, the <strong>Portfolio Signal</strong> box at the bottom of this panel scores your overall portfolio and flags which assets are lagging or outperforming.<br><br>'
       + '<span style="font-size:12px;color:rgba(255,255,255,.7);">Free tier: 2 crypto · 1 forex · 1 stock — upgrade to Pro for 10 · 5 · 5 by sharing with 3 friends.</span>',
-    arrow: 'left', pos: 'right'
+    arrow: 'left', pos: 'right-high'
   },
   /* Step 3: Signal center */
   {
@@ -115,7 +115,9 @@ function tutPosition() {
   hole.style.height = (r.height + pad*2) + 'px';
 
   if (step.pos === 'center') {
-    var bw = 360, bx = (window.innerWidth - bw) / 2, by = Math.max(50, window.innerHeight * 0.12);
+    hole.style.display = 'none'; /* no highlight needed for welcome step */
+    var bw = step.wide ? Math.min(window.innerWidth - 40, 620) : 380;
+    var bx = (window.innerWidth - bw) / 2, by = Math.max(60, window.innerHeight * 0.18);
     box.style.left = bx + 'px'; box.style.top = by + 'px'; box.style.width = bw + 'px';
     box.className = 'tut-box'; return;
   }
@@ -132,7 +134,7 @@ function tutPosition() {
   else if (step.pos === 'above')      { bx = r.left; by = r.top - pad - margin - bh; }
   else if (step.pos === 'above-left') { bx = r.left; by = r.top - pad - margin - bh - 60; }
   else if (step.pos === 'right')      { bx = r.right + pad + margin; by = r.top; }
-  else if (step.pos === 'right-high') { bx = r.right + pad + margin; by = Math.max(60, r.top - 120); }
+  else if (step.pos === 'right-high') { bx = r.right + pad + margin; by = Math.max(50, r.top); }
   else                                { bx = r.left - bw - pad - margin; by = r.top; }
   bx = Math.max(10, Math.min(bx, window.innerWidth  - bw - 10));
   by = Math.max(10, Math.min(by, window.innerHeight - bh - 10));
