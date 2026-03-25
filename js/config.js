@@ -174,3 +174,25 @@ var VALID_CODES = [
 var DONATION_GOAL    = 50;   /* $ monthly target  — update as needed */
 var DONATION_CURRENT = 0;    /* $ received so far — UPDATE MANUALLY  */
 var DONATION_LABEL   = 'monthly server costs';
+/* Scoring Weights — Adjust these to change how the algorithm ranks coins */
+var SCORING_WEIGHTS = /* Updated SCORING_WEIGHTS in config.js */
+var SCORING_WEIGHTS = {
+  L1_MOMENTUM: { w24h: 0.25, w7d: 0.30, w30d: 0.45 },
+  L2_MACRO:    { btc: 0.40, gold: 0.30, silver: 0.15, oil: 0.15 },
+  
+  // ── ADD THIS NEW SECTION ──────────────────────────
+  FOREX: {
+    w24h: 0.40,  // Forex responds faster to news
+    w7d:  0.40,  // Weekly trend
+    w30d: 0.20   // Monthly baseline
+  }
+};
+
+/* Secret Salt — Change this to any random string to protect your Pro system */
+var ROT_SALT = "BLUE_ORBIT_2026";
+var SCORING_WEIGHTS = {
+  L1_MOMENTUM: { w24h: 0.25, w7d: 0.30, w30d: 0.45 },
+  L2_MACRO:    { btc: 0.40, gold: 0.30, silver: 0.15, oil: 0.15 },
+  FOREX:       { w24h: 0.40, w7d: 0.40, w30d: 0.20 }
+};
+var ROT_SALT = "BLUE_ORBIT_2026";

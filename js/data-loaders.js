@@ -287,7 +287,17 @@ async function loadForex() {
     });
   }
 
+  forexLoaded = true; async function loadForex() {
+  // ... existing fetch logic ...
+  
+  forexData = results; // your data is saved
   forexLoaded = true;
+  
+  // ── ADD THIS LINE ──────────────────────────────
+  computeForexScores(); 
+  
+  if (currentMode === 'forex') renderFxTiles();
+}
   loading.style.display = 'none';
   var fxTiles = document.getElementById('forex-tiles');
   if (fxTiles) fxTiles.style.display = '';
@@ -1211,3 +1221,37 @@ function showRowTip(row, e) {
   }
   setTimeout(initAdAnim, 200);
 })();
+/* ── Mode Switcher ───────────────────────────────────────────── 
+   This handles switching between Crypto, Forex, and Stocks
+──────────────────────────────────────────────────────────────── */
+function switchMode(m) {
+  currentMode = m;
+
+  // 1. Update the UI buttons to show which one is 'active'
+  document.querySelectorAll('.mode-btn').forEach(function(btn) {
+    btn.classList.toggle('active', btn.dataset.mode === m);
+  });
+
+  // 2. Refresh the display based on the selected mode
+  if (m === 'crypto') {
+    renderAll(); // Calls the 'Brain' in signals.js
+  } else if (m === 'forex') {
+    if (forexLoaded) {
+      computeForexScores(); // Our new engine!
+      renderFxTiles(); 
+    } else {
+      loadForex(); // Fetch if not loaded yet
+    }
+  } else if (m === 'stocks') {
+    if (stocksLoaded) {
+      // If you decide to build a stock engine later, it goes here
+      renderStHoldings();
+    } else {
+      loadStocks();
+    }
+  }
+  
+  // 3. Close mobile menu if it's open
+  var nav = document.getElementById('mobile-nav');
+  if (nav) nav.classList.remove('active');
+}
