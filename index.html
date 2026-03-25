@@ -11,11 +11,11 @@
 <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@300;400;500;600&display=swap" rel="stylesheet">
 <style>
 :root{
-  --bg:#090c0f;--bg2:#0d1117;--bg3:#121820;--bg4:#181f28;--bgz:#0b0e13;
+  --bg:#0b0e13;--bg2:#0f1318;--bg3:#141920;--bg4:#1a2030;--bgz:#0d1016;
   --bdr:rgba(255,255,255,0.055);--bdr2:rgba(255,255,255,0.11);
-  --text:#d8e0ec;--muted:#3e4d60;
-  --green:#00c896;--gd:rgba(0,200,150,0.13);
-  --red:#ff4560;--rd:rgba(255,69,96,0.13);
+  --text:#dce4f0;--muted:#5a6e85;
+  --green:#00bd8e;--gd:rgba(0,189,142,0.12);
+  --red:#f03e58;--rd:rgba(240,62,88,0.12);
   --amber:#f0a030;--ad:rgba(240,160,48,0.13);
   --bnb:#f3ba2f;--bnbd:rgba(243,186,47,0.09);
   --pro:#a78bfa;--prod:rgba(167,139,250,0.12);
@@ -124,11 +124,11 @@ body::before{content:'';position:fixed;inset:0;background:repeating-linear-gradi
    LEFT SIDEBAR
 ══════════════════════════════ */
 .sidebar{background:var(--bg2);border-right:1px solid var(--bdr);display:flex;flex-direction:column;overflow:hidden;}
-.phead{padding:5px 10px;border-bottom:1px solid var(--bdr);background:var(--bg3);display:flex;align-items:center;justify-content:space-between;flex-shrink:0;}
+.phead{padding:6px 14px;border-bottom:1px solid var(--bdr);background:var(--bg3);display:flex;align-items:center;justify-content:space-between;flex-shrink:0;}
 .ptitle{font-size:9px;font-weight:600;letter-spacing:.16em;text-transform:uppercase;color:rgba(180,195,215,.8);}
 .ptitle em{color:var(--bnb);font-style:normal;}
-.add-form{padding:7px 10px;border-bottom:1px solid var(--bdr);background:var(--bg3);flex-shrink:0;}
-.frow{display:flex;gap:5px;align-items:center;margin-bottom:4px;}
+.add-form{padding:10px 14px;border-bottom:1px solid var(--bdr);background:var(--bg3);flex-shrink:0;}
+.frow{display:flex;gap:6px;align-items:center;margin-bottom:6px;}
 .frow:last-of-type{margin-bottom:0;}
 .flbl{font-size:9px;color:rgba(180,195,215,.7);letter-spacing:.08em;text-transform:uppercase;width:36px;flex-shrink:0;}
 .frow select,.frow input{flex:1;background:var(--bg4);border:1px solid var(--bdr2);color:var(--text);font-family:inherit;font-size:11px;padding:4px 7px;border-radius:2px;outline:none;}
@@ -136,7 +136,7 @@ body::before{content:'';position:fixed;inset:0;background:repeating-linear-gradi
 .frow input::placeholder{color:rgba(100,120,145,.8);}
 .add-btn{width:100%;padding:5px;background:var(--bnbd);border:1px solid rgba(243,186,47,.22);color:var(--bnb);font-family:inherit;font-size:10px;letter-spacing:.1em;cursor:pointer;border-radius:2px;transition:all .15s;margin-top:5px;}
 .add-btn:hover{background:rgba(243,186,47,.16);border-color:var(--bnb);}
-.tiles-scroll{overflow-y:auto;overflow-x:hidden;padding:8px;min-height:110px;max-height:210px;flex-shrink:0;}
+.tiles-scroll{overflow-y:auto;overflow-x:hidden;padding:10px 12px;min-height:110px;max-height:210px;flex-shrink:0;}
 .holdings-section-label{padding:4px 10px 3px;font-size:8px;letter-spacing:.16em;text-transform:uppercase;color:var(--muted);font-weight:600;border-bottom:1px solid var(--bdr);background:var(--bg2);display:flex;align-items:center;justify-content:space-between;flex-shrink:0;}
 .tiles-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:5px;width:100%;}
 .empty-t{grid-column:1/-1;padding:14px 10px;text-align:center;color:var(--muted);font-size:10px;line-height:2;border:1px dashed rgba(255,255,255,.07);border-radius:3px;letter-spacing:.06em;}
@@ -166,7 +166,7 @@ body::before{content:'';position:fixed;inset:0;background:repeating-linear-gradi
 .tile-scr.hi{background:var(--gd);color:var(--green);}
 .tile-scr.md{background:var(--ad);color:var(--amber);}
 .tile-scr.lo{background:var(--rd);color:var(--red);}
-.sig-box{padding:8px 12px;border-top:1px solid rgba(243,186,47,.25);background:var(--bg3);flex-shrink:0;margin-top:auto;}
+.sig-box{padding:10px 14px;border-top:1px solid rgba(243,186,47,.25);background:var(--bg3);flex-shrink:0;margin-top:auto;}
 .sig-title{font-size:9px;font-weight:600;letter-spacing:.18em;text-transform:uppercase;color:var(--bnb);margin-bottom:6px;text-shadow:0 0 8px rgba(243,186,47,.4);display:flex;align-items:center;gap:5px;}
 .sig-title::before{content:'◈';}
 .sig-avg{font-size:18px;font-weight:600;margin-bottom:6px;display:flex;align-items:baseline;gap:5px;}
@@ -231,7 +231,8 @@ body::before{content:'';position:fixed;inset:0;background:repeating-linear-gradi
 .sig-stat-v.up{color:var(--green);}
 .sig-stat-v.dn{color:var(--red);}
 .sig-stat-v.am{color:var(--amber);}
-.no-sug{font-size:10px;color:var(--muted);font-style:italic;padding:4px 0;line-height:1.7;}
+.no-sug{font-size:11px;color:var(--muted);font-style:italic;padding:6px 2px;line-height:1.8;display:flex;align-items:center;gap:6px;}
+  .no-sug::before{content:"";width:5px;height:5px;border-radius:50%;background:var(--muted);animation:pulse 2s infinite;flex-shrink:0;}
 /* ── ASSET TILE GRID (Stocks + Forex panels) ── */
 .asset-tiles-wrap{padding:10px 12px;display:grid;gap:7px;}
 .asset-tiles-wrap.stocks-grid{grid-template-columns:repeat(auto-fill,minmax(140px,1fr));}
@@ -357,7 +358,7 @@ tbody tr:nth-child(odd){background:var(--bg);}
 tbody tr:nth-child(even){background:var(--bgz);}
 tbody tr.held:nth-child(odd){background:rgba(243,186,47,.035);}
 tbody tr.held:nth-child(even){background:rgba(243,186,47,.055);}
-tbody tr:hover{background:var(--bg4) !important;cursor:pointer;}
+tbody tr:hover{background:rgba(243,186,47,0.07) !important;cursor:pointer;transition:background .1s;}
 
 /* ── ASSET MODE BAR ── */
 .asset-mode-bar{display:flex;border-bottom:2px solid var(--bdr);flex-shrink:0;background:var(--bg2);}
@@ -1221,7 +1222,7 @@ td.pc{text-align:right;padding-left:2px;padding-right:2px;}
             <th class="r sorted" id="th-7" onclick="setSort(7)" data-tip="Price change over 7 days. Click to sort.">7D%</th>
             <th class="r" id="th-14" onclick="setSort(14)" data-tip="Price change over 14 days. Click to sort.">14D%</th>
             <th class="r" id="th-30" onclick="setSort(30)" data-tip="Price change over 30 days. Click to sort.">30D%</th>
-            <th class="r" id="th-score" onclick="setSort(0)" data-tip="Composite score 0–100 combining 7D, 14D and 30D ranks. Higher = stronger momentum.">SCORE</th>
+            <th class="r" id="th-score" onclick="setSort(0)" data-tip="Composite score 0–100 combining 7D, 14D and 30D ranks. Higher = stronger momentum.">SCORE <span style="color:var(--muted);font-size:9px;cursor:help;" title="Score = 40% 7D rank + 35% 14D rank + 25% 30D rank. Adjusted for macro & tokenomics.">ⓘ</span></th>
           </tr>
         </thead>
         <tbody id="tbody"></tbody>
