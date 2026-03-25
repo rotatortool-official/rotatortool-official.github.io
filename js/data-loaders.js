@@ -141,3 +141,107 @@ async function loadMacroData() {
   try {
     var goldUrl = 'https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&ids=tether-gold&price_change_percentage=7d&per_page=1';
     var goldData =
+/* ====================== MISSING FUNCTIONS (FIX FOR TILE CLICKS) ====================== */
+
+function openTileDetail(coinId, evt) {
+  if (evt) evt.stopPropagation();
+  var c = coins.find(function(x) { return x.id === coinId || x.sym === coinId; });
+  if (!c) return;
+
+  var panel = document.getElementById('td-panel');
+  var icoEl = document.getElementById('td-ico');
+  icoEl.src = c.image || ''; 
+  icoEl.style.display = '';
+
+  document.getElementById('td-sym').textContent = c.sym;
+  document.getElementById('td-name').textContent = c.name;
+  document.getElementById('td-price').textContent = fmtP(c.price);
+
+  // Performance
+  document.getElementById('td-perf').innerHTML = [
+    {l:'24H', v:c.p24}, {l:'7D', v:c.p7}, {l:'30D', v:c.p30}
+  ].map(function(p) {
+    var cls = p.v >= 0 ? 'up' : 'dn';
+    return '<div class="td-cell"><div class="td-cell-l">' + p.l + '</div>'
+      + '<div class="td-cell-v ' + cls + '">' + (p.v>=0?'+':'') + p.v.toFixed(1) + '%</div></div>';
+  }).join('');
+
+  // Score bars
+  var scC = c.score >= 65 ? 'var(--green)' : c.score <= 35 ? 'var(--red)' : 'var(--amber)';
+  document.getElementById('td-score-bars').innerHTML =
+    '<div style="display:flex;align-items:baseline;gap:6px;margin-bottom:8px;">'
+    + '<span style="font-size:26px;font-weight:700;color:' + scC + ';">' + c.score + '</span>'
+    + '<span style="font-size:10px;color:var(--muted);">/ 100 composite score</span></div>'
+    + [{l:'7D rank',v:c.r7},{l:'14D rank',v:c.r14},{l:'30D rank',v:c.r30}].map(function(b) {
+      var pct = Math.round((1 - (b.v-1) / Math.max(coins.length-1,1)) * 100);
+      var col = pct>=65?'var(--green)':pct>=40?'var(--amber)':'var(--red)';
+      return '<div class="td-bar-row"><span class="td-bar-lbl">' + b.l + '</span>'
+        + '<div class="td-bar-wrap"><div class="td-bar-fill" style="width:'+pct+'%;background:'+col+';"></div></div>'
+        + '<span class="td-bar-val" style="color:'+col+';">#'+b.v+'</span></div>';
+    }).join('');
+
+  // Market data
+  var vol24 = c.volume24 || 0;
+  document.getElementById('td-market').innerHTML = [
+    {l:'MKT CAP', v:fmtMcap(c.mcap)},
+    {l:'24H VOL', v:fmtVol(vol24)},
+    {l:'RANK', v:c.rank ? '#'+c.rank : '—'}
+  ].map(function(m) {
+    return '<div class="td-cell"><div class="td-cell-l">'+m.l+'</div><div class="td-cell-v bnb">'+m.v+'</div></div>';
+  }).join('');
+
+  _positionPanel(panel, evt);
+}
+
+function openAssetDetail(assetType, id, evt) {
+  console.log("Asset detail clicked:", assetType, id); // placeholder for now
+}
+
+function closeTileDetail() {
+  var p = document.getElementById('td-panel');
+  var o = document.getElementById('td-overlay');
+  if (p) p.style.display = 'none';
+  if (o) o.classList.remove('show');
+}
+
+function _positionPanel(panel, evt) {
+  var pw = 310, ph = 400;
+  var cx = evt ? evt.clientX : window.innerWidth / 2;
+  var cy = evt ? evt.clientY : window.innerHeight / 2;
+  var left = cx + 16, top = cy - 60;
+  if (left + pw > window.innerWidth - 12) left = cx - pw - 16;
+  if (top + ph > window.innerHeight - 12) top = window.innerHeight - ph - 12;
+  if (top < 8) top = 8;
+  panel.style.left = left + 'px';
+  panel.style.top  = top  + 'px';
+  panel.style.display = 'block';
+  document.getElementById('td-overlay').classList.add('show');
+}
+
+/* Tooltip helpers */
+function showRowTip(row, e) {
+  console.log("Row tip:", row);
+}
+
+function hideTip() {
+  // placeholder
+}
+
+/* Format helpers (needed for detail panel) */
+function fmtP(p) {
+  if (p === null || p === undefined) return '—';
+  if (p >= 1000) return '$' + p.toLocaleString('en-US', {maximumFractionDigits: 0});
+  if (p >= 1)    return '$' + p.toFixed(2);
+  if (p >= 0.01) return '$' + p.toFixed(4);
+  return '$' + p.toFixed(6);
+}
+
+function fmtMcap(n) {
+  if (!n) return '—';
+  if (n >= 1e12) return '$' + (n/1e12).toFixed(2) + 'T';
+  if (n >= 1e9)  return '$' + (n/1e9).toFixed(2)  + 'B';
+  if (n >= 1e6)  return '$' + (n/1e6).toFixed(1)  + 'M';
+  return '$' + n.toLocaleString();
+}
+
+function fmtVol(n) { return fmtMcap(n); }
