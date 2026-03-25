@@ -1279,8 +1279,3 @@ function showRowTip(row, e) {
   }
   setTimeout(initAdAnim, 200);
 })();
-  _positionPanel(panel, evt);
-  fixTileDetailMobile();    // ← this line only
-}
-
-function openAssetDetail(assetType, id, evt) {
