@@ -21,8 +21,23 @@ function genId()      { return Math.random().toString(36).slice(2, 9); }
 function getMyId()    { var id = localStorage.getItem('rot_uid'); if (!id) { id = genId(); localStorage.setItem('rot_uid', id); } return id; }
 function getMyReferralLink() { return window.location.origin + window.location.pathname + '?ref=' + getMyId(); }
 
-function getRefData()    { try { return JSON.parse(localStorage.getItem('rot_refs') || '{"refs":[],"pro":false}'); } catch(e) { return {refs:[], pro:false}; } }
-function saveRefData(d)  { try { localStorage.setItem('rot_refs', JSON.stringify(d)); } catch(e) {} }
+function getRefData(){
+  try {
+    var raw = localStorage.getItem('rot_refs');
+    var sig = localStorage.getItem('rot_sig');
+    if (!raw || !sig) return {refs:[], pro:false};
+    
+    var data = JSON.parse(raw);
+    // Check if the fingerprint matches the data
+    if (generateSig(data){
+  return btoa(JSON.stringify(data) + ROT_SALT).slice(0, 16);
+}
+function saveRefData(d) {
+  try {
+    localStorage.setItem('rot_refs', JSON.stringify(d));
+    localStorage.setItem('rot_sig', generateSig(d)); // Save the signature
+  } catch(e) {}
+}
 
 function processIncomingRef() {
   var p = new URLSearchParams(window.location.search), refId = p.get('ref');

@@ -186,17 +186,17 @@ function renderTopBars() {
   if (momCoins.length) {
     momEl.innerHTML = '<div class="sig-tiles-grid">' + momCoins.map(function(c) { return sigTile(c, 'mom'); }).join('') + '</div>';
   } else {
-    momEl.innerHTML = '<div class="no-sug">No high-momentum coins right now.</div>';
+    momEl.innerHTML = '<div class="no-sug">Scanning — no coins above momentum threshold right now.</div>';
   }
 
   /* ── Column 1: Rotation opportunities (from held coins to laggards) ── */
   var sugEl = document.getElementById('sug-cards');
-  if (!holdings.length) { sugEl.innerHTML = '<div class="no-sug">Add holdings to see rotation signals.</div>'; return; }
+  if (!holdings.length) { sugEl.innerHTML = '<div class="no-sug">Add holdings above to see rotation signals.</div>'; return; }
   var held  = coins.filter(function(c) { return hSyms.indexOf(c.sym) >= 0; });
   var sells = held.filter(function(c)  { return c.score >= 62; }).sort(function(a, b) { return b.score - a.score; });
   var buys  = coins.filter(function(c) { return hSyms.indexOf(c.sym) < 0 && c.score <= 38; }).sort(function(a, b) { return a.score - b.score; });
-  if (!sells.length) { sugEl.innerHTML = '<div class="no-sug">No holdings strongly outperforming yet.</div>'; return; }
-  if (!buys.length)  { sugEl.innerHTML = '<div class="no-sug">No clear laggards in the screener right now.</div>'; return; }
+  if (!sells.length) { sugEl.innerHTML = '<div class="no-sug">Monitoring — no holdings strongly outperforming yet.</div>'; return; }
+  if (!buys.length)  { sugEl.innerHTML = '<div class="no-sug">Scanning — no clear rotation targets right now.</div>'; return; }
   var pairs = [];
   for (var i = 0; i < Math.min(6, sells.length); i++) pairs.push({sell: sells[i], buy: buys[i % buys.length]});
   sugEl.innerHTML = '<div class="sig-tiles-grid">' + pairs.map(function(p) { return sigRotTile(p.sell, p.buy); }).join('') + '</div>';
