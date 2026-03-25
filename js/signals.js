@@ -26,60 +26,6 @@ var btcMA200 = null;
 var btcPrice = null;
 var sortTF   = 7;   /* default sort column: 7-day */
 
-/* ── Score engine ────────────────────────────────────────────── */
-function computeScores() {
-  var n = coins.length;
-  if (!n) return;
-
-  /* L1 — rank-based score for each timeframe */
-  function rankField(field) {
-    var sorted = coins.slice().sort(function(a, b) { return b[field] - a[field]; });
-    sorted.forEach(function(c, i) { c['r_' + field] = Math.round(((n - i - 1) / (n - 1)) * 100); });
-  }
-  rankField('p7'); rankField('p14'); rankField('p30');
-
-  coins.forEach(function(c) {
-    /* L1 composite: 40% 7D + 35% 14D + 25% 30D */
-    var l1 = Math.round(c.r_p7 * 0.40 + c.r_p14 * 0.35 + c.r_p30 * 0.25);
-
-    /* L2 — macro adjustment: compare coin vs BTC, Gold, Silver, Oil */
-    var l2adj = 0;
-    var macro = _macroData || {};
-    if (macro.btcP7 !== null && macro.btcP7 !== undefined) {
-      var vsBtc = c.p7 - (macro.btcP7 || 0);
-      l2adj += vsBtc > 5 ? 4 : vsBtc < -5 ? -4 : 0;
-    }
-    if (macro.goldP7 !== null && macro.goldP7 !== undefined) {
-      var vsGold = c.p7 - (macro.goldP7 || 0);
-      l2adj += vsGold > 3 ? 2 : vsGold < -3 ? -2 : 0;
-    }
-
-    /* L3 — tokenomics quality bonus/penalty */
-    var tok = TOKENOMICS_DB[c.id] || {};
-    var l3adj = 0;
-    if (tok.deflation === 'full')    l3adj += 3;
-    if (tok.deflation === 'partial') l3adj += 1;
-    if (tok.deflation === 'fixed')   l3adj += 2;
-    if (tok.unlockRisk === 'high')   l3adj -= 4;
-    if (tok.unlockRisk === 'medium') l3adj -= 1;
-
-    c.score = Math.min(100, Math.max(0, l1 + l2adj + l3adj));
-  });
-}
-
-/* ── Macro data store ────────────────────────────────────────── */
-var _macroData = {btcP7: null, goldP7: null, silverP7: null, oilP7: null};
-
-async function loadMacroData() {
-  /* Gold 7D via frankfurter (XAU not supported — use ETF proxy via AV if available) */
-  try {
-    var start = dateOffset(-14);
-    var url   = 'https://api.frankfurter.app/' + start + '..?from=USD&to=EUR,GBP'; /* just to check API is alive */
-    await apiFetch(url); /* fire & forget — we only need the BTCvsGold signal */
-  } catch(e) {}
-  /* BTC 7D change used later after loadBTC() fills btcPrice */
-}
-
 /* ── Format helpers ──────────────────────────────────────────── */
 function fmtP(p) {
   if (p === null || p === undefined) return '—';

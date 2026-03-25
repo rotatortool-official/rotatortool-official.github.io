@@ -55,8 +55,9 @@ body::before{content:'';position:fixed;inset:0;background:repeating-linear-gradi
 .spinning{display:inline-block;animation:spin .7s linear infinite;}
 
 /* ── BEAR BANNER ── */
-.bear-banner{display:none;align-items:center;gap:8px;padding:4px 12px;background:rgba(255,69,96,.05);border-bottom:1px solid rgba(255,69,96,.2);font-size:10px;color:var(--red);line-height:1.5;}
+.bear-banner{display:none;align-items:center;gap:6px;padding:3px 10px;background:rgba(255,69,96,.07);border:1px solid rgba(255,69,96,.25);border-radius:3px;font-size:10px;color:var(--red);line-height:1.5;flex:1;min-width:0;margin:0 8px;}
 .bear-banner.show{display:flex;}
+.bear-banner span:nth-child(2){overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
 .bear-close{background:none;border:none;color:rgba(255,69,96,.5);cursor:pointer;font-size:16px;line-height:1;padding:0 0 0 4px;margin-left:auto;flex-shrink:0;font-family:inherit;transition:color .15s;}
 .bear-close:hover{color:var(--red);}
 
@@ -116,6 +117,24 @@ body::before{content:'';position:fixed;inset:0;background:repeating-linear-gradi
 }
 .pro-locked-row:hover{opacity:.75 !important;background:rgba(167,139,250,.08) !important;}
 .pro-lock-cell{text-align:center;color:var(--pro);font-size:10px;letter-spacing:.06em;}
+
+
+/* ── SKELETON LOADERS ── */
+@keyframes shimmer {
+  0%   { background-position: -600px 0; }
+  100% { background-position:  600px 0; }
+}
+.skel {
+  background: linear-gradient(90deg, var(--bg3) 25%, var(--bg4) 50%, var(--bg3) 75%);
+  background-size: 600px 100%;
+  animation: shimmer 1.4s infinite linear;
+  border-radius: 3px;
+}
+.skel-row { display:flex; align-items:center; gap:8px; padding:6px 5px; border-bottom:1px solid var(--bdr); }
+.skel-ico  { width:22px; height:22px; border-radius:50%; flex-shrink:0; }
+.skel-name { height:10px; flex:1; }
+.skel-val  { height:10px; width:52px; }
+.skel-tile { height:88px; border-radius:4px; }
 
 /* ── ROOT LAYOUT ── */
 .root{display:grid;grid-template-columns:310px 1fr 320px;height:calc(100vh - 33px);}
@@ -515,7 +534,7 @@ td.pc{text-align:right;padding-left:2px;padding-right:2px;}
 .loader{position:fixed;inset:0;background:var(--bg);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;z-index:600;transition:opacity .35s;}
 .loader.gone{opacity:0;pointer-events:none;}
 .llogo{font-size:16px;font-weight:600;letter-spacing:.22em;color:var(--bnb);}
-.lmsg{font-size:11px;color:var(--muted);letter-spacing:.1em;}
+.lmsg{font-size:11px;color:var(--muted);letter-spacing:.1em;min-height:16px;}
 .lbar{width:160px;height:2px;background:var(--bg4);border-radius:1px;overflow:hidden;}
 .lbf{height:100%;background:var(--bnb);border-radius:1px;transition:width .4s;}
 
@@ -1052,6 +1071,12 @@ td.pc{text-align:right;padding-left:2px;padding-right:2px;}
     <div class="btc-pill unk" id="btc-pill"><span class="pulse"></span><span id="btc-pill-txt">BTC: LOADING</span></div>
     <div class="btc-meta"><span id="btc-p">—</span><span style="margin-left:8px;" id="btc-ma"></span></div>
   </div>
+  <!-- Bear market inline banner -->
+  <div class="bear-banner" id="bear-banner">
+    <span>⚠</span>
+    <span><strong>BEAR MARKET CAUTION:</strong> BTC is below its 200-day moving average. Rotation strategies carry higher risk in downtrends.</span>
+    <button class="bear-close" onclick="dismissBearBanner()" title="Dismiss">×</button>
+  </div>
   <div class="topbar-r">
     <span class="ts" id="ts">—</span>
     <button class="settings-btn" onclick="openModal('settings-modal')" title="Settings">⚙ <span id="lang-flag">🇬🇧</span></button>
@@ -1062,12 +1087,6 @@ td.pc{text-align:right;padding-left:2px;padding-right:2px;}
   </div>
 </div>
 
-<!-- BEAR BANNER -->
-<div class="bear-banner" id="bear-banner">
-  <span>⚠</span>
-  <span><strong>BEAR MARKET CAUTION:</strong> BTC is below its 200-day moving average. Rotation strategies carry higher risk in downtrends.</span>
-  <button class="bear-close" onclick="dismissBearBanner()" title="Dismiss">×</button>
-</div>
 
 <div class="root">
 

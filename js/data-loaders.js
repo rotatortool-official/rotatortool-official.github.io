@@ -42,10 +42,39 @@ function saveModePrefs() { try { localStorage.setItem('rot_modes', JSON.stringif
 /* ══════════════════════════════════════════════════════════════
    CRYPTO — loadCoins + BTC MA200
 ══════════════════════════════════════════════════════════════ */
-function prog(p, m) { var el = document.getElementById('lmsg'); if (el) el.textContent = m; }
+/* Typewriter loading message */
+var _twTimer = null;
+function prog(p, m) {
+  var el = document.getElementById('lmsg');
+  if (!el) return;
+  if (_twTimer) clearTimeout(_twTimer);
+  el.textContent = '';
+  var i = 0;
+  function type() {
+    if (i < m.length) { el.textContent += m[i++]; _twTimer = setTimeout(type, 28); }
+  }
+  type();
+}
 
 async function loadCoins() {
-  prog(10, 'FETCHING COINS…');
+  prog(10, 'Fetching market data for 50 coins…');
+  /* Show skeleton rows immediately */
+  var tbody = document.getElementById('tbody');
+  if (tbody && !tbody.querySelector('tr:not(.skel-tr)')) {
+    var skRows = '';
+    for (var s = 0; s < 15; s++) {
+      skRows += '<tr class="skel-tr"><td></td>'
+        + '<td><div class="skel-row"><div class="skel skel-ico"></div><div class="skel skel-name"></div></div></td>'
+        + '<td><div class="skel skel-val" style="margin:auto"></div></td>'
+        + '<td><div class="skel skel-val" style="margin:auto"></div></td>'
+        + '<td><div class="skel skel-val" style="margin:auto"></div></td>'
+        + '<td><div class="skel skel-val" style="margin:auto"></div></td>'
+        + '<td><div class="skel skel-val" style="margin:auto"></div></td>'
+        + '<td><div class="skel skel-val" style="margin:auto"></div></td>'
+        + '</tr>';
+    }
+    tbody.innerHTML = skRows;
+  }
   var ids = getActiveCoins().join(',');
   var url = 'https://api.coingecko.com/api/v3/coins/markets'
     + '?vs_currency=usd&ids=' + ids
@@ -89,6 +118,8 @@ async function loadBTC() {
 }
 
 /* ── Macro data (Gold, Silver, Oil, BTC 7D) ──────────────────── */
+var _macroData = {btcP7: null, goldP7: null, silverP7: null, oilP7: null};
+
 async function loadMacroData() {
   try {
     var goldUrl  = 'https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&ids=tether-gold&price_change_percentage=7d&per_page=1';
@@ -287,17 +318,7 @@ async function loadForex() {
     });
   }
 
-  forexLoaded = true; async function loadForex() {
-  // ... existing fetch logic ...
-  
-  forexData = results; // your data is saved
   forexLoaded = true;
-  
-  // ── ADD THIS LINE ──────────────────────────────
-  computeForexScores(); 
-  
-  if (currentMode === 'forex') renderFxTiles();
-}
   loading.style.display = 'none';
   var fxTiles = document.getElementById('forex-tiles');
   if (fxTiles) fxTiles.style.display = '';
@@ -569,12 +590,22 @@ async function doLoad() {
   var _d = checkMyReferrals();
   isPro  = _d.pro || loadPro();
   busy   = true;
+  /* Inject skeleton signal tiles immediately */
+  ['sug-cards','mom-cards','worst-cards'].forEach(function(id) {
+    var el = document.getElementById(id);
+    if (el) {
+      var skTiles = '<div class="sig-tiles-grid">';
+      for (var s = 0; s < 3; s++) skTiles += '<div class="skel skel-tile"></div>';
+      skTiles += '</div>';
+      el.innerHTML = skTiles;
+    }
+  });
   try {
-    await loadCoins();   prog(50, 'SCORING…');  renderCoinSel();
-    await loadMacroData(); prog(58, 'MACRO…');
-    await loadBTC();     prog(92, 'RENDERING…');
+    await loadCoins();   prog(50, 'Scoring and ranking all assets…');  renderCoinSel();
+    await loadMacroData(); prog(58, 'Loading macro data — BTC, Gold, Oil…');
+    await loadBTC();     prog(92, 'Almost ready — building your dashboard…');
     applyModePrefs();
-    renderAll();         prog(100, 'READY');
+    renderAll();         prog(100, 'All done! This free tool is built by one person — thanks for your patience ♥');
     await sleep(320);
     document.getElementById('loader').classList.add('gone');
     startAutoRefresh();
@@ -767,46 +798,6 @@ function setLang(lang) {
   try { localStorage.setItem('rot_lang', lang); } catch(e) {}
 }
 (function() { try { var l = localStorage.getItem('rot_lang'); if (l) setTimeout(function() { setLang(l); }, 50); } catch(e) {} })();
-
-/* ── Tooltip system ──────────────────────────────────────────── */
-var tipEl = null;
-function getTip() { if (!tipEl) tipEl = document.getElementById('rt-tip'); return tipEl; }
-function showTip(title, body, x, y) {
-  var t = getTip();
-  document.getElementById('rt-tip-title').textContent = title;
-  document.getElementById('rt-tip-body').innerHTML    = body;
-  t.classList.add('show');
-  var tw = 220, lx = x+14, ly = y+14;
-  if (lx+tw > window.innerWidth-10)  lx = x-tw-8;
-  if (ly+100 > window.innerHeight-10) ly = y-100-8;
-  t.style.left = lx + 'px'; t.style.top = ly + 'px';
-}
-function hideTip() { var t = getTip(); if (t) t.classList.remove('show'); }
-function showRowTip(row, e) {
-  var sym   = row.getAttribute('data-sym');
-  var name  = row.getAttribute('data-name');
-  var mcap  = row.getAttribute('data-mcap');
-  var score = row.getAttribute('data-score');
-  var p24   = row.getAttribute('data-p24');
-  var p7    = row.getAttribute('data-p7');
-  var p30   = row.getAttribute('data-p30');
-  var held  = row.getAttribute('data-held') === '1';
-  var scN   = parseInt(score);
-  var signal = scN >= 65 ? '⬆ Strong momentum' : scN >= 45 ? '→ Neutral' : '⬇ Lagging — watch closely';
-  var body  = 'Market Cap: <strong style="color:var(--bnb)">' + mcap + '</strong><br>'
-    + '24H: <strong>' + (parseFloat(p24)>=0?'+':'') + p24 + '%</strong> &nbsp; '
-    + '7D: <strong>'  + (parseFloat(p7)>=0?'+':'')  + p7  + '%</strong> &nbsp; '
-    + '30D: <strong>' + (parseFloat(p30)>=0?'+':'') + p30 + '%</strong><br>'
-    + 'Signal: <strong>' + signal + '</strong>'
-    + (held ? '<br><span style="color:var(--bnb)">✓ In your holdings</span>' : '');
-  showTip(sym + ' — ' + name, body, e.clientX, e.clientY);
-}
-document.addEventListener('DOMContentLoaded', function() {
-  document.querySelectorAll('th[data-tip]').forEach(function(th) {
-    th.addEventListener('mouseenter', function(e) { showTip(th.textContent.replace('⚡','').trim(), th.getAttribute('data-tip'), e.clientX, e.clientY); });
-    th.addEventListener('mouseleave', hideTip);
-  });
-});
 
 /* ── Modal helpers ───────────────────────────────────────────── */
 function openModal(id) {
@@ -1221,37 +1212,3 @@ function showRowTip(row, e) {
   }
   setTimeout(initAdAnim, 200);
 })();
-/* ── Mode Switcher ───────────────────────────────────────────── 
-   This handles switching between Crypto, Forex, and Stocks
-──────────────────────────────────────────────────────────────── */
-function switchMode(m) {
-  currentMode = m;
-
-  // 1. Update the UI buttons to show which one is 'active'
-  document.querySelectorAll('.mode-btn').forEach(function(btn) {
-    btn.classList.toggle('active', btn.dataset.mode === m);
-  });
-
-  // 2. Refresh the display based on the selected mode
-  if (m === 'crypto') {
-    renderAll(); // Calls the 'Brain' in signals.js
-  } else if (m === 'forex') {
-    if (forexLoaded) {
-      computeForexScores(); // Our new engine!
-      renderFxTiles(); 
-    } else {
-      loadForex(); // Fetch if not loaded yet
-    }
-  } else if (m === 'stocks') {
-    if (stocksLoaded) {
-      // If you decide to build a stock engine later, it goes here
-      renderStHoldings();
-    } else {
-      loadStocks();
-    }
-  }
-  
-  // 3. Close mobile menu if it's open
-  var nav = document.getElementById('mobile-nav');
-  if (nav) nav.classList.remove('active');
-}
