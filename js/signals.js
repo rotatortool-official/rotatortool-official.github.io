@@ -52,24 +52,24 @@ var _bearDismissed = false;
 try { _bearDismissed = localStorage.getItem(‘rot_bear_dismissed’) === ‘1’; } catch(e) {}
 
 function renderBTC() {
-var pill    = document.getElementById(‘btc-pill’);
-var pillTxt = document.getElementById(‘btc-pill-txt’);
+var pill     = document.getElementById(‘btc-pill’);
+var pillTxt  = document.getElementById(‘btc-pill-txt’);
 var mobInner = document.getElementById(‘mob-btc-inner’);
-var mobTxt  = document.getElementById(‘mob-btc-txt’);
+var mobTxt   = document.getElementById(‘mob-btc-txt’);
 if (!btcMA200 || !btcPrice) return;
 if (btcPrice > btcMA200) {
-if (pill)    pill.className    = ‘btc-pill bull’;
-if (pillTxt) pillTxt.textContent = ‘BTC UPTREND ▲’;
-if (mobInner) mobInner.className = ‘mob-btc-cell bull’;
-if (mobTxt)  mobTxt.textContent = ‘▲ BTC’;
+if (pill)     pill.className      = ‘btc-pill bull’;
+if (pillTxt)  pillTxt.textContent = ‘BTC UPTREND ▲’;
+if (mobInner) mobInner.className  = ‘mob-btc-cell bull’;
+if (mobTxt)   mobTxt.textContent  = ‘▲ BTC’;
 document.getElementById(‘bear-banner’).classList.remove(‘show’);
 _bearDismissed = false;
 try { localStorage.removeItem(‘rot_bear_dismissed’); } catch(e) {}
 } else {
-if (pill)    pill.className    = ‘btc-pill bear’;
-if (pillTxt) pillTxt.textContent = ‘BTC DOWNTREND ▼’;
-if (mobInner) mobInner.className = ‘mob-btc-cell’;
-if (mobTxt)  mobTxt.textContent = ‘▼ BTC’;
+if (pill)     pill.className      = ‘btc-pill bear’;
+if (pillTxt)  pillTxt.textContent = ‘BTC DOWNTREND ▼’;
+if (mobInner) mobInner.className  = ‘mob-btc-cell’;
+if (mobTxt)   mobTxt.textContent  = ‘▼ BTC’;
 if (!_bearDismissed) document.getElementById(‘bear-banner’).classList.add(‘show’);
 }
 }
@@ -156,54 +156,36 @@ sugEl.innerHTML = ‘<div class="sig-tiles-grid">’ + pairs.map(function(p) { r
 }
 
 /* ══════════════════════════════════════════════════════════════
-MOBILE TILE DETAIL POSITIONING
-Fixes card being clipped off-screen on portrait mobile.
-Called after the panel is shown & positioned by data-loaders.js
+MOBILE TILE DETAIL FIX
+Centres the detail card on portrait mobile so it is never clipped.
+
+HOW TO ACTIVATE:
+Open data-loaders.js, find openTileDetail(), and add this one
+line at the very end of that function (just before the closing }):
+
+```
+   fixTileDetailMobile();
+```
+
 ══════════════════════════════════════════════════════════════ */
 function fixTileDetailMobile() {
-var isMobile = window.innerWidth <= 700 ||
-(window.innerWidth <= 900 && window.matchMedia(’(orientation: portrait)’).matches);
-if (!isMobile) return;
+if (window.innerWidth > 700) return;   /* desktop — do nothing */
 
 var panel = document.getElementById(‘td-panel’);
 if (!panel || panel.style.display === ‘none’) return;
 
-/* Centre the card in the viewport and constrain its size */
-panel.style.position   = ‘fixed’;
-panel.style.top        = ‘50%’;
-panel.style.left       = ‘50%’;
-panel.style.transform  = ‘translate(-50%, -50%)’;
-panel.style.width      = ‘min(92vw, 340px)’;
-panel.style.maxHeight  = ‘82vh’;
-panel.style.overflowY  = ‘auto’;
-panel.style.zIndex     = ‘1000’;
-/* Make sure the dimmed overlay is also visible */
+panel.style.position  = ‘fixed’;
+panel.style.top       = ‘50%’;
+panel.style.left      = ‘50%’;
+panel.style.transform = ‘translate(-50%, -50%)’;
+panel.style.width     = ‘min(92vw, 340px)’;
+panel.style.maxHeight = ‘82vh’;
+panel.style.overflowY = ‘auto’;
+panel.style.zIndex    = ‘1000’;
+
 var overlay = document.getElementById(‘td-overlay’);
 if (overlay) overlay.style.display = ‘block’;
 }
-
-/* Patch openTileDetail to run the mobile fix after the panel appears.
-This wraps whatever openTileDetail is defined in data-loaders.js
-without replacing it — safe to call multiple times. */
-(function() {
-/* Wait until DOM + other scripts are ready */
-function patchOpenTileDetail() {
-var original = window.openTileDetail;
-if (typeof original !== ‘function’) return; /* not ready yet, retry */
-window.openTileDetail = function(id, evt) {
-original(id, evt);          /* run the real function first */
-fixTileDetailMobile();      /* then correct position on mobile */
-};
-}
-/* Try immediately, then retry after scripts load */
-if (document.readyState === ‘loading’) {
-document.addEventListener(‘DOMContentLoaded’, function() {
-setTimeout(patchOpenTileDetail, 0);
-});
-} else {
-setTimeout(patchOpenTileDetail, 0);
-}
-})();
 
 /* ══════════════════════════════════════════════════════════════
 LEADERBOARD TABLE
@@ -220,7 +202,7 @@ if (sortTF === 14) return b.p14 - a.p14;
 return b.p30 - a.p30;
 });
 
-var hSyms    = holdings.map(function(h) { return h.sym; });
+var hSyms     = holdings.map(function(h) { return h.sym; });
 var freeCoins = sorted.filter(function(c) { return !c.isPro; });
 var proCoins  = sorted.filter(function(c) { return  c.isPro; });
 var toRender  = isPro ? sorted : freeCoins;
@@ -230,8 +212,8 @@ var isH = hSyms.indexOf(c.sym) >= 0;
 var sc  = c.score;
 var scC = sc >= 65 ? ‘var(–green)’ : sc < 0 ? ‘var(–red)’ : sc >= 40 ? ‘var(–amber)’ : ‘var(–muted)’;
 var mcapStr = c.mcap ? ‘$’ + (c.mcap/1e9 >= 1 ? (c.mcap/1e9).toFixed(2) + ‘B’ : (c.mcap/1e6).toFixed(0) + ‘M’) : ‘—’;
-var tipData = ‘data-sym=”’  + c.sym  + ‘” data-name=”’ + c.name + ‘” data-mcap=”’ + mcapStr
-+ ‘” data-score=”’ + sc  + ‘” data-p24=”’  + c.p24.toFixed(2)
+var tipData = ‘data-sym=”’   + c.sym  + ‘” data-name=”’  + c.name + ‘” data-mcap=”’ + mcapStr
++ ‘” data-score=”’ + sc   + ‘” data-p24=”’   + c.p24.toFixed(2)
 + ‘” data-p7=”’   + c.p7.toFixed(2) + ‘” data-p30=”’ + c.p30.toFixed(2)
 + ‘” data-held=”’ + (isH ? ‘1’ : ‘0’) + ‘”’;
 return ‘<tr class=”’ + (isH ? ‘held’ : ‘’) + ‘” ’ + tipData
@@ -289,10 +271,10 @@ renderTable();
 /* Master render — call this after any data change */
 function renderAll() {
 renderBTC(); renderTiles(); renderTopBars(); renderTable(); renderCoinSel(); updateTierBadge();
-var now     = new Date();
+var now      = new Date();
 var coinsUrl = ‘https://api.coingecko.com/api/v3/coins/markets’;
-var info    = getCacheInfo(coinsUrl);
-var suffix  = ‘’;
+var info     = getCacheInfo(coinsUrl);
+var suffix   = ‘’;
 if (info && info.fresh && info.age > 30000) {
 var ageMins = Math.floor(info.age / 60000);
 var ageSecs = Math.floor((info.age % 60000) / 1000);
