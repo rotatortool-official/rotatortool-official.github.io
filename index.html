@@ -135,6 +135,14 @@ body::before{content:'';position:fixed;inset:0;background:repeating-linear-gradi
 .skel-name { height:10px; flex:1; }
 .skel-val  { height:10px; width:52px; }
 .skel-tile { height:88px; border-radius:4px; }
+.skel-asset-tile{background:var(--bg3);border:1px solid var(--bdr);border-radius:4px;padding:12px 14px;display:flex;flex-direction:column;gap:8px;animation:skel-pulse 1.5s ease-in-out infinite;}
+.skel-asset-head{display:flex;align-items:center;gap:8px;}
+.skel-asset-sym{height:12px;width:48px;border-radius:2px;}
+.skel-asset-name{height:9px;width:90px;border-radius:2px;}
+.skel-asset-price{height:14px;width:70px;border-radius:2px;}
+.skel-asset-stats{display:flex;gap:10px;}
+.skel-asset-stat{height:9px;width:38px;border-radius:2px;}
+.loading-source-msg{text-align:center;padding:10px 16px 6px;font-size:10px;letter-spacing:.08em;color:var(--muted);opacity:.75;line-height:1.7;}
 
 /* ── ROOT LAYOUT ── */
 .root{display:grid;grid-template-columns:310px 1fr 320px;height:calc(100vh - 33px);}
@@ -892,45 +900,45 @@ td.pc{text-align:right;padding-left:2px;padding-right:2px;}
 </div>
 
 <!-- SETTINGS MODAL -->
-<div class="overlay" id="settings-modal" onclick="if(event.target===this)closeModal('settings-modal')">
-  <div class="modal">
-    <button class="modal-x" onclick="closeModal('settings-modal')">×</button>
-    <div class="modal-title">⚙ Settings</div>
-    <div class="modal-sub">Customize your Rotator experience.</div>
-    <div class="setting-row">
-      <div><div class="setting-label">Language</div><div class="setting-sub">Choose your preferred language</div></div>
-      <div class="lang-sel-modal">
-        <button class="lang-btn-modal active" id="lbtn-en" onclick="setLang('en')" title="English">🇬🇧 EN</button>
-        <button class="lang-btn-modal" id="lbtn-zh" onclick="setLang('zh')" title="中文">🇨🇳 ZH</button>
-        <button class="lang-btn-modal" id="lbtn-ar" onclick="setLang('ar')" title="عربي">🇸🇦 AR</button>
-        <button class="lang-btn-modal" id="lbtn-es" onclick="setLang('es')" title="Español">🇪🇸 ES</button>
-        <button class="lang-btn-modal" id="lbtn-fr" onclick="setLang('fr')" title="Français">🇫🇷 FR</button>
-        <button class="lang-btn-modal" id="lbtn-de" onclick="setLang('de')" title="Deutsch">🇩🇪 DE</button>
-        <button class="lang-btn-modal" id="lbtn-mk" onclick="setLang('mk')" title="Македонски">🇲🇰 MK</button>
-      </div>
+<!-- SETTINGS PANEL (positioned near gear button, like tutorial end step) -->
+<div id="settings-backdrop" style="display:none;position:fixed;inset:0;z-index:498;" onclick="closeSettingsPanel()"></div>
+<div id="settings-panel" class="tut-box arrow-right" style="display:none;width:330px;z-index:499;max-height:calc(100vh - 40px);overflow-y:auto;">
+  <button class="modal-x" onclick="closeSettingsPanel()" style="position:absolute;top:10px;right:12px;">×</button>
+  <div style="font-size:15px;font-weight:700;letter-spacing:.08em;margin-bottom:4px;padding-right:20px;">⚙ Settings</div>
+  <div style="font-size:11px;color:var(--muted);margin-bottom:14px;font-family:var(--mono);">Customize your Rotator experience.</div>
+  <div class="setting-row">
+    <div><div class="setting-label">Language</div><div class="setting-sub">Choose your preferred language</div></div>
+    <div class="lang-sel-modal">
+      <button class="lang-btn-modal active" id="lbtn-en" onclick="setLang('en')" title="English">🇬🇧 EN</button>
+      <button class="lang-btn-modal" id="lbtn-zh" onclick="setLang('zh')" title="中文">🇨🇳 ZH</button>
+      <button class="lang-btn-modal" id="lbtn-ar" onclick="setLang('ar')" title="عربي">🇸🇦 AR</button>
+      <button class="lang-btn-modal" id="lbtn-es" onclick="setLang('es')" title="Español">🇪🇸 ES</button>
+      <button class="lang-btn-modal" id="lbtn-fr" onclick="setLang('fr')" title="Français">🇫🇷 FR</button>
+      <button class="lang-btn-modal" id="lbtn-de" onclick="setLang('de')" title="Deutsch">🇩🇪 DE</button>
+      <button class="lang-btn-modal" id="lbtn-mk" onclick="setLang('mk')" title="Македонски">🇲🇰 MK</button>
     </div>
-    <div class="setting-row">
-      <div><div class="setting-label">Show Tutorial</div><div class="setting-sub">Step-by-step guide for first-time users</div></div>
-      <label class="toggle"><input type="checkbox" id="tut-toggle" onchange="toggleTutSetting(this.checked)"><span class="toggle-slider"></span></label>
-    </div>
-    <div class="setting-row">
-      <div><div class="setting-label">Replay Tutorial Now</div><div class="setting-sub">Walk through the guide again</div></div>
-      <button class="tut-btn primary" onclick="closeModal('settings-modal');startTutorial()">START →</button>
-    </div>
-    <hr style="border:none;border-top:1px solid var(--bdr);margin:14px 0 10px;">
-    <div style="font-size:10px;letter-spacing:.14em;color:var(--muted);text-transform:uppercase;margin-bottom:8px;">Active Asset Modes</div>
-    <div class="setting-row" style="padding:7px 0;">
-      <div><div class="setting-label">⧡ Crypto Screener</div><div class="setting-sub">Top 30–50 coins, live Binance data</div></div>
-      <label class="toggle"><input type="checkbox" id="mode-crypto-toggle" checked onchange="toggleModeVisibility('crypto',this.checked)"><span class="toggle-slider"></span></label>
-    </div>
-    <div class="setting-row" style="padding:7px 0;">
-      <div><div class="setting-label">💱 Forex Pairs</div><div class="setting-sub">Major pairs, Gold, WTI Oil</div></div>
-      <label class="toggle"><input type="checkbox" id="mode-forex-toggle" checked onchange="toggleModeVisibility('forex',this.checked)"><span class="toggle-slider"></span></label>
-    </div>
-    <div class="setting-row" style="padding:7px 0;">
-      <div><div class="setting-label">📈 Stocks &amp; Indices</div><div class="setting-sub">S&amp;P 500, NASDAQ, large caps</div></div>
-      <label class="toggle"><input type="checkbox" id="mode-stocks-toggle" checked onchange="toggleModeVisibility('stocks',this.checked)"><span class="toggle-slider"></span></label>
-    </div>
+  </div>
+  <div class="setting-row">
+    <div><div class="setting-label">Show Tutorial</div><div class="setting-sub">Step-by-step guide for first-time users</div></div>
+    <label class="toggle"><input type="checkbox" id="tut-toggle" onchange="toggleTutSetting(this.checked)"><span class="toggle-slider"></span></label>
+  </div>
+  <div class="setting-row">
+    <div><div class="setting-label">Replay Tutorial Now</div><div class="setting-sub">Walk through the guide again</div></div>
+    <button class="tut-btn primary" onclick="closeSettingsPanel();startTutorial()">START →</button>
+  </div>
+  <hr style="border:none;border-top:1px solid var(--bdr);margin:14px 0 10px;">
+  <div style="font-size:10px;letter-spacing:.14em;color:var(--muted);text-transform:uppercase;margin-bottom:8px;">Active Asset Modes</div>
+  <div class="setting-row" style="padding:7px 0;">
+    <div><div class="setting-label">⧡ Crypto Screener</div><div class="setting-sub">Top 30–50 coins, live Binance data</div></div>
+    <label class="toggle"><input type="checkbox" id="mode-crypto-toggle" checked onchange="toggleModeVisibility('crypto',this.checked)"><span class="toggle-slider"></span></label>
+  </div>
+  <div class="setting-row" style="padding:7px 0;">
+    <div><div class="setting-label">💱 Forex Pairs</div><div class="setting-sub">Major pairs, Gold, WTI Oil</div></div>
+    <label class="toggle"><input type="checkbox" id="mode-forex-toggle" checked onchange="toggleModeVisibility('forex',this.checked)"><span class="toggle-slider"></span></label>
+  </div>
+  <div class="setting-row" style="padding:7px 0;">
+    <div><div class="setting-label">📈 Stocks &amp; Indices</div><div class="setting-sub">S&amp;P 500, NASDAQ, large caps</div></div>
+    <label class="toggle"><input type="checkbox" id="mode-stocks-toggle" checked onchange="toggleModeVisibility('stocks',this.checked)"><span class="toggle-slider"></span></label>
   </div>
 </div>
 
@@ -1060,7 +1068,7 @@ td.pc{text-align:right;padding-left:2px;padding-right:2px;}
     <span class="mob-support-icon">☕</span>
   </div>
   <!-- Cell 5: Settings gear -->
-  <div class="mob-topbar-gear" onclick="openModal('settings-modal')" title="Settings">
+  <div class="mob-topbar-gear" onclick="openSettingsPanel(this)" title="Settings">
     <span class="mob-gear-icon">⚙</span>
   </div>
 
@@ -1079,7 +1087,7 @@ td.pc{text-align:right;padding-left:2px;padding-right:2px;}
   </div>
   <div class="topbar-r">
     <span class="ts" id="ts">—</span>
-    <button class="settings-btn" onclick="openModal('settings-modal')" title="Settings">⚙ <span id="lang-flag">🇬🇧</span></button>
+    <button class="settings-btn" onclick="openSettingsPanel(this)" title="Settings">⚙ <span id="lang-flag">🇬🇧</span></button>
     <div class="topbar-action-btns">
       <button class="btn pro-btn" onclick="openPro()">⚡ UNLOCK PRO</button>
       <button class="btn donate" onclick="openModal('donate-modal')">☕ SUPPORT</button>
@@ -1248,11 +1256,17 @@ td.pc{text-align:right;padding-left:2px;padding-right:2px;}
       </table>
     </div>
     <div class="leaderboard" id="forex-panel" style="display:none;">
-      <div id="forex-loading" style="padding:16px;text-align:center;color:var(--muted);font-size:11px;letter-spacing:.1em;">LOADING FOREX DATA…</div>
+      <div id="forex-loading">
+        <div class="loading-source-msg" id="forex-source-msg">⟳ Pulling live rates from Frankfurter (ECB) &amp; ExchangeRate-API — aggregating multiple sources for accuracy…</div>
+        <div class="asset-tiles-wrap forex-grid" id="forex-skel-grid"></div>
+      </div>
       <div id="forex-tiles" class="asset-tiles-wrap forex-grid"></div>
     </div>
     <div class="leaderboard" id="stocks-panel" style="display:none;">
-      <div id="stocks-loading" style="padding:20px;text-align:center;color:var(--muted);font-size:12px;letter-spacing:.1em;">LOADING MARKET DATA…</div>
+      <div id="stocks-loading">
+        <div class="loading-source-msg" id="stocks-source-msg">⟳ Pulling data from Yahoo Finance → Financial Modeling Prep → Alpha Vantage — trying multiple sources for best coverage…</div>
+        <div class="asset-tiles-wrap stocks-grid" id="stocks-skel-grid"></div>
+      </div>
       <div id="stocks-tiles" class="asset-tiles-wrap stocks-grid" style="display:none;"></div>
     </div>
   </div>

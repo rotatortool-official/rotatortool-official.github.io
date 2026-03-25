@@ -225,6 +225,19 @@ async function loadForex() {
   loading.style.display = 'block';
   forexData = [];
 
+  /* Inject skeleton tiles immediately */
+  var skelGrid = document.getElementById('forex-skel-grid');
+  if (skelGrid) {
+    var pairCount = isPro ? FOREX_PAIRS.length : FOREX_PAIRS.filter(function(p){return !p.pro;}).length;
+    skelGrid.innerHTML = Array(Math.max(pairCount, 6)).fill(0).map(function() {
+      return '<div class="asset-tile skel-asset-tile">'
+        + '<div class="skel-asset-head"><div class="skel skel-asset-sym"></div><div class="skel skel-asset-name"></div></div>'
+        + '<div class="skel skel-asset-price"></div>'
+        + '<div class="skel-asset-stats"><div class="skel skel-asset-stat"></div><div class="skel skel-asset-stat"></div><div class="skel skel-asset-stat"></div></div>'
+        + '</div>';
+    }).join('');
+  }
+
   var pairsToLoad = isPro ? FOREX_PAIRS : FOREX_PAIRS.filter(function(p) { return !p.pro; });
   var rateHistory = {};
 
@@ -362,6 +375,18 @@ async function loadStocks() {
   stocksData = [];
   var yahooOk = false;
 
+  /* Inject skeleton tiles immediately */
+  var skelGrid = document.getElementById('stocks-skel-grid');
+  if (skelGrid) {
+    skelGrid.innerHTML = Array(STOCKS_LIST.length).fill(0).map(function() {
+      return '<div class="asset-tile skel-asset-tile">'
+        + '<div class="skel-asset-head"><div class="skel skel-asset-sym"></div><div class="skel skel-asset-name"></div></div>'
+        + '<div class="skel skel-asset-price"></div>'
+        + '<div class="skel-asset-stats"><div class="skel skel-asset-stat"></div><div class="skel skel-asset-stat"></div><div class="skel skel-asset-stat"></div></div>'
+        + '</div>';
+    }).join('');
+  }
+
   /* ── Primary: Yahoo Finance (all symbols in one request) ── */
   try {
     var allSyms = STOCKS_LIST.map(function(s) { return s.sym; });
@@ -383,6 +408,8 @@ async function loadStocks() {
 
   /* ── Fallback 1: Financial Modeling Prep (free, no key, CORS-friendly) ── */
   if (!yahooOk) {
+    var sMsg = document.getElementById('stocks-source-msg');
+    if (sMsg) sMsg.textContent = '⟳ Yahoo Finance unavailable — pulling from Financial Modeling Prep…';
     loading.textContent = 'LOADING VIA FMP…';
     try {
       var fmpSyms = STOCKS_LIST.map(function(s) { return s.av || s.sym; }).filter(Boolean).join(',');
@@ -403,6 +430,8 @@ async function loadStocks() {
 
   /* ── Fallback 2: Alpha Vantage (rate-limited — rotates keys on 429) ── */
   if (!yahooOk) {
+    var sMsg2 = document.getElementById('stocks-source-msg');
+    if (sMsg2) sMsg2.textContent = '⟳ Fetching from Alpha Vantage — this may take a moment due to rate limits…';
     loading.textContent = 'LOADING VIA ALPHA VANTAGE…';
     var results = STOCKS_LIST.map(function(s) {
       return {sym:s.sym, name:s.name, type:s.type, av:s.av, price:0, chg:0, chgPct:0, high52:0, low52:0, score:0, err:true};
@@ -801,12 +830,50 @@ function setLang(lang) {
 
 /* ── Modal helpers ───────────────────────────────────────────── */
 function openModal(id) {
+  if (id === 'settings-modal') { openSettingsPanel(document.querySelector('.settings-btn')); return; }
   document.getElementById(id).classList.add('show');
   if (id === 'donate-modal') renderDonationBar('donate-modal-goal');
 }
-function closeModal(id) { document.getElementById(id).classList.remove('show'); }
+function closeModal(id) {
+  if (id === 'settings-modal') { closeSettingsPanel(); return; }
+  document.getElementById(id).classList.remove('show');
+}
+
+/* ── Settings panel (positioned near gear button) ─────────────── */
+function openSettingsPanel(triggerEl) {
+  var panel    = document.getElementById('settings-panel');
+  var backdrop = document.getElementById('settings-backdrop');
+  if (!panel) return;
+
+  /* Position it: to the left of the gear button, like tutorial step 5 */
+  var btn = triggerEl instanceof Element ? triggerEl : (document.querySelector('.settings-btn') || triggerEl);
+  if (btn && btn.getBoundingClientRect) {
+    var r   = btn.getBoundingClientRect();
+    var pw  = 330;
+    var bx  = r.left - pw - 12;
+    var by  = r.bottom + 8;
+    /* Keep within viewport */
+    bx = Math.max(10, Math.min(bx, window.innerWidth - pw - 10));
+    by = Math.max(10, by);
+    var maxH = window.innerHeight - by - 10;
+    panel.style.left      = bx + 'px';
+    panel.style.top       = by + 'px';
+    panel.style.maxHeight = Math.max(200, maxH) + 'px';
+  }
+
+  panel.style.display    = 'block';
+  backdrop.style.display = 'block';
+}
+
+function closeSettingsPanel() {
+  var panel    = document.getElementById('settings-panel');
+  var backdrop = document.getElementById('settings-backdrop');
+  if (panel)    panel.style.display    = 'none';
+  if (backdrop) backdrop.style.display = 'none';
+}
+
 document.addEventListener('keydown', function(e) {
-  if (e.key === 'Escape') { closeModal('donate-modal'); closeModal('pro-modal'); }
+  if (e.key === 'Escape') { closeModal('donate-modal'); closeModal('pro-modal'); closeSettingsPanel(); }
 });
 
 /* ── Asset tile click delegation ─────────────────────────────── */

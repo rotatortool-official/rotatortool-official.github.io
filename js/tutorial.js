@@ -23,7 +23,7 @@ var tutActive  = false;
 var TUT_STEPS = [
   /* Step 1: Welcome */
   {
-    target: '.logo',
+    target: '#logo-c,canvas,#splash-c,.topbar',
     title: 'Welcome to ROTATOR',
     desc: '<strong>Rotator</strong> is a daily performance tracker for crypto, forex and stocks. It measures price momentum across 24H, 7D, 14D and 30D and surfaces <strong>rotation opportunities</strong> — moments where shifting value between assets makes strategic sense.<br><br>'
       + '<strong>What is rotation?</strong> If you hold two assets and one has fallen 17% while the other only fell 5%, rotating part of the weaker position into the stronger one recovers value without adding capital. Over time, compounding these adjustments improves portfolio performance.<br><br>'
@@ -99,6 +99,15 @@ function tutPosition() {
   var box  = document.getElementById('tut-box');
   if (!el) { tutGoNext(); return; }
   var r = el.getBoundingClientRect();
+  /* If element has no size (hidden/off-screen), center the box */
+  if (r.width === 0 && r.height === 0) {
+    hole.style.display = 'none';
+    var bw = step.wide ? Math.min(window.innerWidth - 40, 620) : 360;
+    var bx = (window.innerWidth - bw) / 2, by = Math.max(60, window.innerHeight * 0.12);
+    box.style.left = bx + 'px'; box.style.top = by + 'px'; box.style.width = bw + 'px';
+    box.className = 'tut-box'; return;
+  }
+  hole.style.display = 'block';
   var pad = 8;
   hole.style.left   = (r.left - pad) + 'px';
   hole.style.top    = (r.top  - pad) + 'px';
