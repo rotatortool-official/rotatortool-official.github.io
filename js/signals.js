@@ -121,54 +121,89 @@ function sigRotTile(sell, buy) {
 function renderTopBars() {
   var hSyms = holdings.map(function(h) { return h.sym; });
 
-  /* ── Column 3: Worst 30D performers — 6 tiles ── */
-  var worst = coins.slice().sort(function(a, b) { return a.p30 - b.p30; }).slice(0, 6);
-  document.getElementById('worst-cards').innerHTML =
-    '<div class="sig-tiles-grid">' + worst.map(function(c) { return sigTile(c, 'wrst'); }).join('') + '</div>';
-
-  /* ── Column 2: High momentum — top scoring coins, 6 tiles ── */
-  var momCoins = coins.slice().filter(function(c) { return c.score >= 60; }).sort(function(a, b) { return b.score - a.score; }).slice(0, 6);
-  var momEl    = document.getElementById('mom-cards');
-  if (momCoins.length) {
-    momEl.innerHTML = '<div class="sig-tiles-grid">' + momCoins.map(function(c) { return sigTile(c, 'mom'); }).join('') + '</div>';
-  } else {
-    momEl.innerHTML = '<div class="no-sug">Scanning — no coins above momentum threshold right now.</div>';
-  }
-
-  /* ── Column 1: Rotation opportunities — Pro only ── */
-  var sugEl = document.getElementById('sug-cards');
-  if (!isPro) {
-    /* Show 1 real tile blurred + 2 locked placeholders to show value */
-    var held  = coins.filter(function(c) { return hSyms.indexOf(c.sym) >= 0; });
-    var sells = held.filter(function(c)  { return c.score >= 62; }).sort(function(a, b) { return b.score - a.score; });
-    var buys  = coins.filter(function(c) { return hSyms.indexOf(c.sym) < 0 && c.score <= 38; }).sort(function(a, b) { return a.score - b.score; });
-    var previewHtml = '';
-    if (sells.length && buys.length) {
-      previewHtml = '<div class="sig-tile rot" style="filter:blur(4px);pointer-events:none;user-select:none;">'
-        + sigRotTile(sells[0], buys[0]).replace('<div class="sig-tile rot"', '<div')
-        + '</div>';
-    }
-    sugEl.innerHTML = '<div class="sig-tiles-grid">'
-      + (previewHtml || '')
-      + '<div class="sig-tile rot pro-locked-tile" onclick="openPro()" style="cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;min-height:100px;">'
-        + '<span style="font-size:18px;">⚡</span>'
-        + '<span style="font-size:11px;font-weight:700;letter-spacing:.08em;color:var(--pro);">PRO FEATURE</span>'
-        + '<span style="font-size:10px;color:var(--muted);text-align:center;line-height:1.5;">Rotation signals require<br>at least 2 portfolio holdings<br>and a Pro account.</span>'
-        + '<button class="pub-btn" style="margin-top:4px;" onclick="event.stopPropagation();openPro()">UNLOCK FREE →</button>'
-      + '</div>'
-      + '<div class="sig-tile rot pro-locked-tile" onclick="openPro()" style="cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;min-height:100px;opacity:.6;">'
-        + '<span style="font-size:14px;letter-spacing:.1em;color:var(--muted);">— — —</span>'
-        + '<span style="font-size:9px;color:var(--muted);">Signal hidden</span>'
-      + '</div>'
+  /* Helper: build a locked-Pro placeholder tile */
+  function proLockedTile(msg) {
+    return '<div class="sig-tile pro-locked" onclick="openPro()" style="cursor:pointer;'
+      + 'display:flex;flex-direction:column;align-items:center;justify-content:center;'
+      + 'gap:6px;min-height:88px;opacity:.7;">'
+      + '<span style="font-size:15px;">⚡</span>'
+      + '<span style="font-size:9px;font-weight:700;letter-spacing:.1em;color:var(--pro);">PRO</span>'
+      + '<span style="font-size:9px;color:var(--muted);text-align:center;line-height:1.4;">' + msg + '</span>'
       + '</div>';
-    return;
   }
-  if (!holdings.length) { sugEl.innerHTML = '<div class="no-sug">Add holdings above to see rotation signals.</div>'; return; }
+
+  /* ── Column 3: Worst 30D — 3 free / 6 Pro ── */
+  var worstAll = coins.slice().sort(function(a, b) { return a.p30 - b.p30; });
+  var worstEl  = document.getElementById('worst-cards');
+  if (isPro) {
+    worstEl.innerHTML = '<div class="sig-tiles-grid">'
+      + worstAll.slice(0, 6).map(function(c) { return sigTile(c, 'wrst'); }).join('') + '</div>';
+  } else {
+    var w3 = worstAll.slice(0, 3).map(function(c) { return sigTile(c, 'wrst'); }).join('');
+    var wLocked = proLockedTile('3 more in Pro') + proLockedTile('') + proLockedTile('');
+    worstEl.innerHTML = '<div class="sig-tiles-grid">' + w3 + wLocked + '</div>';
+  }
+
+  /* ── Column 2: High Momentum — 1 free / 6 Pro ── */
+  var momAll  = coins.slice().filter(function(c) { return c.score >= 60; })
+                             .sort(function(a, b) { return b.score - a.score; });
+  var momEl   = document.getElementById('mom-cards');
+  if (isPro) {
+    if (momAll.length) {
+      momEl.innerHTML = '<div class="sig-tiles-grid">'
+        + momAll.slice(0, 6).map(function(c) { return sigTile(c, 'mom'); }).join('') + '</div>';
+    } else {
+      momEl.innerHTML = '<div class="no-sug">Scanning \u2014 no coins above momentum threshold right now.</div>';
+    }
+  } else {
+    if (momAll.length) {
+      var m1 = sigTile(momAll[0], 'mom');
+      var mLocked = proLockedTile('unlock 5 more') + proLockedTile('') + proLockedTile('')
+                  + proLockedTile('') + proLockedTile('');
+      momEl.innerHTML = '<div class="sig-tiles-grid">' + m1 + mLocked + '</div>';
+    } else {
+      momEl.innerHTML = '<div class="no-sug">Scanning \u2014 no coins above momentum threshold right now.</div>';
+    }
+  }
+
+  /* ── Column 1: Rotation Opportunities — 1 free (blurred) / full Pro ── */
+  var sugEl = document.getElementById('sug-cards');
+
+  /* Compute real rotation pairs regardless of tier */
   var held  = coins.filter(function(c) { return hSyms.indexOf(c.sym) >= 0; });
   var sells = held.filter(function(c)  { return c.score >= 62; }).sort(function(a, b) { return b.score - a.score; });
   var buys  = coins.filter(function(c) { return hSyms.indexOf(c.sym) < 0 && c.score <= 38; }).sort(function(a, b) { return a.score - b.score; });
-  if (!sells.length) { sugEl.innerHTML = '<div class="no-sug">Monitoring — no holdings strongly outperforming yet.</div>'; return; }
-  if (!buys.length)  { sugEl.innerHTML = '<div class="no-sug">Scanning — no clear rotation targets right now.</div>'; return; }
+
+  if (!isPro) {
+    /* Show 1 blurred real tile (if data exists) + Pro CTA + 1 faded placeholder */
+    var previewHtml = '';
+    if (sells.length && buys.length) {
+      previewHtml = '<div style="position:relative;display:inline-block;width:100%;">'
+        + '<div style="filter:blur(3px);pointer-events:none;user-select:none;">'
+        + sigRotTile(sells[0], buys[0])
+        + '</div></div>';
+    } else {
+      /* no holdings or no signals yet — still show the CTA */
+    }
+    var ctaTile = '<div class="sig-tile rot" onclick="openPro()" style="cursor:pointer;'
+      + 'display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;min-height:100px;">'
+      + '<span style="font-size:17px;">⚡</span>'
+      + '<span style="font-size:11px;font-weight:700;letter-spacing:.08em;color:var(--pro);">PRO FEATURE</span>'
+      + '<span style="font-size:9px;color:var(--muted);text-align:center;line-height:1.5;">'
+      + (!holdings.length ? 'Add 2+ holdings then<br>upgrade to see signals.' : 'Rotation signals<br>require Pro.')
+      + '</span>'
+      + '<button class="pub-btn" style="margin-top:2px;font-size:9px;padding:4px 10px;" onclick="event.stopPropagation();openPro()">UNLOCK FREE \u2192</button>'
+      + '</div>';
+    var fadedTile = '<div class="sig-tile rot" style="opacity:.35;pointer-events:none;'
+      + 'display:flex;align-items:center;justify-content:center;font-size:10px;color:var(--muted);">— hidden —</div>';
+    sugEl.innerHTML = '<div class="sig-tiles-grid">' + previewHtml + ctaTile + fadedTile + '</div>';
+    return;
+  }
+
+  /* Pro: full rotation signals */
+  if (!holdings.length) { sugEl.innerHTML = '<div class="no-sug">Add holdings above to see rotation signals.</div>'; return; }
+  if (!sells.length) { sugEl.innerHTML = '<div class="no-sug">Monitoring \u2014 no holdings strongly outperforming yet.</div>'; return; }
+  if (!buys.length)  { sugEl.innerHTML = '<div class="no-sug">Scanning \u2014 no clear rotation targets right now.</div>'; return; }
   var pairs = [];
   for (var i = 0; i < Math.min(6, sells.length); i++) pairs.push({sell: sells[i], buy: buys[i % buys.length]});
   sugEl.innerHTML = '<div class="sig-tiles-grid">' + pairs.map(function(p) { return sigRotTile(p.sell, p.buy); }).join('') + '</div>';

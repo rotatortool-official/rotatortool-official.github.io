@@ -107,48 +107,42 @@ function tutPosition() {
   var el   = tutGetEl(step.target);
   var hole = document.getElementById('tut-hole');
   var box  = document.getElementById('tut-box');
+  var vw   = window.innerWidth;
+  var vh   = window.innerHeight;
 
-  var vw = window.innerWidth;
-  var vh = window.innerHeight;
-  var isMobile = vw < 600;
-
-  /* Mobile: always center the box and skip the highlight hole */
-  if (isMobile) {
-    hole.style.display = 'none';
-    var margin = 16;
-    var bw = vw - margin * 2;
-    /* Keep box within top 85% of screen so buttons are reachable */
-    var maxH = vh * 0.82;
-    box.style.left      = margin + 'px';
+  /* Mobile: always center, fill width, scroll internally */
+  if (vw < 600) {
+    hole.style.display  = 'none';
+    var mg = 16;
+    box.style.left      = mg + 'px';
     box.style.top       = Math.round(vh * 0.06) + 'px';
-    box.style.width     = bw + 'px';
-    box.style.maxHeight = maxH + 'px';
+    box.style.width     = (vw - mg * 2) + 'px';
+    box.style.maxHeight = (vh * 0.82) + 'px';
     box.style.overflowY = 'auto';
-    box.className = 'tut-box';
+    box.className       = 'tut-box';
     return;
   }
 
-  /* Desktop path — same logic as before, with overflow guards ── */
-  if (!el) { tutGoNext(); return; }
+  /* Desktop — two-pass: set position estimate, then correct after paint */
+  box.style.maxHeight = '';
+  box.style.overflowY = '';
 
+  if (!el) { tutGoNext(); return; }
   var r = el.getBoundingClientRect();
 
-  /* Element hidden/off-screen → center box */
+  /* Element hidden/off-screen → center */
   if (r.width === 0 && r.height === 0) {
     hole.style.display = 'none';
     var bw = step.wide ? Math.min(vw - 40, 620) : 360;
-    var bx = (vw - bw) / 2;
-    var by = Math.max(60, vh * 0.12);
-    box.style.left      = bx + 'px';
-    box.style.top       = by + 'px';
-    box.style.width     = bw + 'px';
-    box.style.maxHeight = '';
-    box.style.overflowY = '';
-    box.className = 'tut-box';
+    box.style.width = bw + 'px';
+    box.style.left  = ((vw - bw) / 2) + 'px';
+    box.style.top   = Math.max(60, vh * 0.12) + 'px';
+    box.className   = 'tut-box';
     return;
   }
 
-  hole.style.display = 'block';
+  /* Highlight hole */
+  hole.style.display  = 'block';
   var pad = 8;
   hole.style.left   = (r.left - pad) + 'px';
   hole.style.top    = (r.top  - pad) + 'px';
@@ -158,54 +152,48 @@ function tutPosition() {
   if (step.pos === 'center') {
     hole.style.display = 'none';
     var bw = step.wide ? Math.min(vw - 40, 620) : 380;
-    var bx = (vw - bw) / 2;
-    var by = Math.max(60, vh * 0.18);
-    box.style.left      = bx + 'px';
-    box.style.top       = by + 'px';
-    box.style.width     = bw + 'px';
-    box.style.maxHeight = '';
-    box.style.overflowY = '';
-    box.className = 'tut-box';
+    box.style.width = bw + 'px';
+    box.style.left  = ((vw - bw) / 2) + 'px';
+    box.style.top   = Math.max(60, vh * 0.18) + 'px';
+    box.className   = 'tut-box';
     return;
   }
 
   if (step.pos === 'gear') {
     var bw = 320;
-    var bx = r.left - bw - 12;
-    var by = r.bottom + 10;
-    bx = Math.max(10, bx);
-    by = Math.max(10, Math.min(by, vh - 280));
-    box.style.left      = bx + 'px';
-    box.style.top       = by + 'px';
-    box.style.width     = bw + 'px';
-    box.style.maxHeight = '';
-    box.style.overflowY = '';
-    box.className = 'tut-box arrow-right';
+    var bx = Math.max(10, r.left - bw - 12);
+    var by = Math.max(10, Math.min(r.bottom + 10, vh - 280));
+    box.style.width = bw + 'px';
+    box.style.left  = bx + 'px';
+    box.style.top   = by + 'px';
+    box.className   = 'tut-box arrow-right';
     return;
   }
 
-  box.style.width = '';
-  var bw     = step.wide ? Math.min(vw - 40, Math.max(600, r.width)) : 320;
-  var bh     = 240;
-  var margin = 14;
-  var bx, by;
+  /* General positioning — set width first, then use rAF to read real height */
+  var bw = step.wide ? Math.min(vw - 40, Math.max(600, r.width)) : 320;
+  box.style.width = bw + 'px';
+  box.className   = 'tut-box arrow-' + step.arrow;
 
-  if      (step.pos === 'below')      { bx = r.left; by = r.bottom + pad + margin; }
-  else if (step.pos === 'above')      { bx = r.left; by = r.top - pad - margin - bh; }
-  else if (step.pos === 'above-left') { bx = r.left; by = r.top - pad - margin - bh - 60; }
-  else if (step.pos === 'right')      { bx = r.right + pad + margin; by = r.top; }
-  else if (step.pos === 'right-high') { bx = r.right + pad + margin; by = Math.max(50, r.top); }
-  else                                { bx = r.left - bw - pad - margin; by = r.top; }
+  /* Use requestAnimationFrame so box.offsetHeight reflects real rendered height */
+  requestAnimationFrame(function() {
+    var bh = box.offsetHeight || 260;
+    var margin = 14;
+    var bx, by;
 
-  bx = Math.max(10, Math.min(bx, vw - bw - 10));
-  by = Math.max(10, Math.min(by, vh - bh - 10));
+    if      (step.pos === 'below')      { bx = r.left; by = r.bottom + pad + margin; }
+    else if (step.pos === 'above')      { bx = r.left; by = r.top - pad - margin - bh; }
+    else if (step.pos === 'above-left') { bx = r.left; by = r.top - pad - margin - bh - 60; }
+    else if (step.pos === 'right')      { bx = r.right + pad + margin; by = r.top; }
+    else if (step.pos === 'right-high') { bx = r.right + pad + margin; by = Math.max(50, r.top); }
+    else                                { bx = r.left - bw - pad - margin; by = r.top; }
 
-  box.style.left      = bx + 'px';
-  box.style.top       = by + 'px';
-  box.style.width     = bw + 'px';
-  box.style.maxHeight = '';
-  box.style.overflowY = '';
-  box.className = 'tut-box arrow-' + step.arrow;
+    bx = Math.max(10, Math.min(bx, vw - bw - 10));
+    by = Math.max(10, Math.min(by, vh - bh - 10));
+
+    box.style.left = bx + 'px';
+    box.style.top  = by + 'px';
+  });
 }
 
 function tutRender() {

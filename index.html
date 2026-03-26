@@ -7,6 +7,9 @@
 <meta name="referrer" content="no-referrer-when-downgrade">
 <meta name="description" content="Rotation Screener — Find the best crypto, forex and stock rotation opportunities. Free top 30 coins, Pro top 50 coins.">
 <title>⬡ ROTATOR — Binance Rotation Screener</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet">
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>⬡</text></svg>">
 <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@300;400;500;600&display=swap" rel="stylesheet">
 <style>
@@ -233,8 +236,9 @@ body::before{content:'';position:fixed;inset:0;background:repeating-linear-gradi
 .bars-cols{display:grid;grid-template-columns:1fr 1px 1fr 1px 1fr;gap:0;align-items:stretch;}
 .bars-divider{width:1px;align-self:stretch;margin:6px 0;background:linear-gradient(to bottom,transparent 0%,rgba(243,186,47,.12) 15%,rgba(243,186,47,.35) 40%,rgba(243,186,47,.45) 50%,rgba(243,186,47,.35) 60%,rgba(243,186,47,.12) 85%,transparent 100%);}
 .bars-col-inner{padding:0 9px;min-width:0;}
-.sig-tiles-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:5px;}
+.sig-tiles-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,120px),1fr));gap:5px;align-items:stretch;}
 .sig-tile{background:var(--bg4);border:1px solid var(--bdr);border-radius:3px;padding:6px 7px;position:relative;overflow:hidden;cursor:pointer;transition:transform .18s cubic-bezier(.22,.68,0,1.4),box-shadow .18s ease,border-color .18s ease;will-change:transform;}
+.sig-tile.pro-locked{border-style:dashed;border-color:rgba(243,186,47,.2);background:rgba(243,186,47,.03);transition:border-color .2s,background .2s;}.sig-tile.pro-locked:hover{border-color:rgba(243,186,47,.5);background:rgba(243,186,47,.07);}
 .sig-tile:hover{transform:translateY(-3px) scale(1.025);border-color:rgba(243,186,47,.4);box-shadow:0 8px 24px rgba(0,0,0,.45),0 0 12px rgba(243,186,47,.1);z-index:2;}
 .sig-tile:active{transform:translateY(-1px) scale(1.01);}
 .sig-tile.rot::before{content:'';position:absolute;left:0;top:0;bottom:0;width:2px;background:var(--green);}
@@ -423,7 +427,7 @@ tbody tr:hover{background:rgba(243,186,47,0.07) !important;cursor:pointer;transi
 .tut-agree input{accent-color:var(--bnb);width:16px;height:16px;flex-shrink:0;cursor:pointer;}
 .tut-agree-label{font-size:13px;font-weight:500;color:#ffffff;line-height:1.7;cursor:pointer;}
 .tut-step-label{font-size:10px;letter-spacing:.18em;color:rgba(255,255,255,.85);margin-bottom:6px;text-transform:uppercase;}
-.tut-title{font-size:17px;font-weight:600;color:#ffffff;margin-bottom:10px;letter-spacing:.02em;}
+.tut-title{font-size:18px;font-weight:400;color:#ffffff;margin-bottom:10px;letter-spacing:.01em;font-family:'DM Serif Display',Georgia,serif;}
 #logo-c{image-rendering:crisp-edges;}
 tbody td{padding:5px 5px;font-size:13px;border-bottom:1px solid var(--bdr);white-space:nowrap;}
 td.r{text-align:right;font-variant-numeric:tabular-nums;}
@@ -786,6 +790,7 @@ td.pc{text-align:right;padding-left:2px;padding-right:2px;}
   z-index:802;
   box-shadow:0 8px 40px rgba(0,0,0,.7);
   transition:all .25s ease;
+  font-family:'DM Sans',sans-serif;
 }
 .tut-box::before{
   content:'';position:absolute;width:10px;height:10px;
@@ -796,9 +801,9 @@ td.pc{text-align:right;padding-left:2px;padding-right:2px;}
 .tut-box.arrow-bottom::before{bottom:-6px;left:24px;border-top:none;border-left:none;}
 .tut-box.arrow-left::before{left:-6px;top:20px;border-right:none;border-bottom:none;}
 .tut-box.arrow-right::before{right:-6px;top:20px;border-left:none;border-top:none;}
-.tut-step-label{font-size:10px;letter-spacing:.18em;color:var(--muted);margin-bottom:6px;text-transform:uppercase;}
-.tut-title{font-size:17px;font-weight:600;color:#ffffff;margin-bottom:10px;letter-spacing:.02em;}
-.tut-desc{font-size:13px;color:var(--text);line-height:1.9;margin-bottom:14px;}
+.tut-step-label{font-size:10px;letter-spacing:.18em;color:var(--muted);margin-bottom:6px;text-transform:uppercase;font-family:'DM Sans',sans-serif;}
+.tut-title{font-size:18px;font-weight:400;color:#ffffff;margin-bottom:10px;letter-spacing:.01em;font-family:'DM Serif Display',Georgia,serif;}
+.tut-desc{font-size:13px;color:var(--text);line-height:1.9;margin-bottom:14px;font-family:'DM Sans',sans-serif;}
 .tut-desc strong{color:var(--bnb);}
 .tut-desc em{color:var(--green);font-style:normal;}
 .tut-disclaimer{background:rgba(255,69,96,.07);border:1px solid rgba(255,69,96,.3);border-radius:4px;padding:12px 14px;margin-bottom:12px;font-size:14px;color:var(--red);line-height:1.9;}
