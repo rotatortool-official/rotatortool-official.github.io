@@ -33,6 +33,10 @@ function saveStH() { try { localStorage.setItem('rot_st_h', JSON.stringify(stHol
 /* ════════════════════════════════
    CRYPTO HOLDINGS
 ════════════════════════════════ */
+/* ── Holdings limits: 2 free / 10 Pro ── */
+var FREE_HOLDINGS_LIMIT = 2;
+var PRO_HOLDINGS_LIMIT  = 10;
+
 function addHolding() {
   var sym = document.getElementById('coin-sel').value;
   var qty = parseFloat(document.getElementById('inp-qty').value) || null;
@@ -40,6 +44,18 @@ function addHolding() {
   if (!sym) return;
   var isFirst = holdings.length === 0;
   var idx = holdings.findIndex(function(h) { return h.sym === sym; });
+  /* Check limit only for new entries (not updates to existing) */
+  if (idx < 0) {
+    var limit = isPro ? PRO_HOLDINGS_LIMIT : FREE_HOLDINGS_LIMIT;
+    if (holdings.length >= limit) {
+      if (!isPro) {
+        openPro();  /* show Pro modal */
+      } else {
+        alert('Portfolio limit reached (' + PRO_HOLDINGS_LIMIT + ' assets).');
+      }
+      return;
+    }
+  }
   if (idx >= 0) holdings[idx] = {sym, qty, avg};
   else holdings.push({sym, qty, avg});
   saveH();
@@ -66,7 +82,10 @@ function renderTiles() {
   Object.keys(sparkStop).forEach(function(k) { sparkStop[k](); delete sparkStop[k]; });
   var grid  = document.getElementById('tiles-grid');
   var hcEl  = document.getElementById('hcount');
-  if (hcEl) hcEl.textContent = holdings.length ? holdings.length + (holdings.length === 1 ? ' asset' : ' assets') : '';
+  if (hcEl) {
+    var limit = isPro ? PRO_HOLDINGS_LIMIT : FREE_HOLDINGS_LIMIT;
+    hcEl.textContent = holdings.length ? holdings.length + '/' + limit + ' assets' : '';
+  }
 
   if (!holdings.length) {
     grid.innerHTML = '<div class="empty-t">No holdings yet.<br>Add a coin above.</div>';

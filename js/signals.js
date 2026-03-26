@@ -135,8 +135,34 @@ function renderTopBars() {
     momEl.innerHTML = '<div class="no-sug">Scanning — no coins above momentum threshold right now.</div>';
   }
 
-  /* ── Column 1: Rotation opportunities (from held coins to laggards) ── */
+  /* ── Column 1: Rotation opportunities — Pro only ── */
   var sugEl = document.getElementById('sug-cards');
+  if (!isPro) {
+    /* Show 1 real tile blurred + 2 locked placeholders to show value */
+    var held  = coins.filter(function(c) { return hSyms.indexOf(c.sym) >= 0; });
+    var sells = held.filter(function(c)  { return c.score >= 62; }).sort(function(a, b) { return b.score - a.score; });
+    var buys  = coins.filter(function(c) { return hSyms.indexOf(c.sym) < 0 && c.score <= 38; }).sort(function(a, b) { return a.score - b.score; });
+    var previewHtml = '';
+    if (sells.length && buys.length) {
+      previewHtml = '<div class="sig-tile rot" style="filter:blur(4px);pointer-events:none;user-select:none;">'
+        + sigRotTile(sells[0], buys[0]).replace('<div class="sig-tile rot"', '<div')
+        + '</div>';
+    }
+    sugEl.innerHTML = '<div class="sig-tiles-grid">'
+      + (previewHtml || '')
+      + '<div class="sig-tile rot pro-locked-tile" onclick="openPro()" style="cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;min-height:100px;">'
+        + '<span style="font-size:18px;">⚡</span>'
+        + '<span style="font-size:11px;font-weight:700;letter-spacing:.08em;color:var(--pro);">PRO FEATURE</span>'
+        + '<span style="font-size:10px;color:var(--muted);text-align:center;line-height:1.5;">Rotation signals require<br>at least 2 portfolio holdings<br>and a Pro account.</span>'
+        + '<button class="pub-btn" style="margin-top:4px;" onclick="event.stopPropagation();openPro()">UNLOCK FREE →</button>'
+      + '</div>'
+      + '<div class="sig-tile rot pro-locked-tile" onclick="openPro()" style="cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;min-height:100px;opacity:.6;">'
+        + '<span style="font-size:14px;letter-spacing:.1em;color:var(--muted);">— — —</span>'
+        + '<span style="font-size:9px;color:var(--muted);">Signal hidden</span>'
+      + '</div>'
+      + '</div>';
+    return;
+  }
   if (!holdings.length) { sugEl.innerHTML = '<div class="no-sug">Add holdings above to see rotation signals.</div>'; return; }
   var held  = coins.filter(function(c) { return hSyms.indexOf(c.sym) >= 0; });
   var sells = held.filter(function(c)  { return c.score >= 62; }).sort(function(a, b) { return b.score - a.score; });

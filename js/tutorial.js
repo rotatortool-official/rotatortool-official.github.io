@@ -29,9 +29,9 @@ var TUT_STEPS = [
   {
     target: '.topbar',
     title: 'Welcome to ROTATOR',
-    desc: '<strong>Rotator</strong> is a daily performance tracker for crypto, forex and stocks. It measures price momentum across 24H, 7D, 14D and 30D and surfaces <strong>rotation opportunities</strong> — moments where shifting value between assets makes strategic sense.<br><br>'
-        + '<strong>What is rotation?</strong> If you hold two assets and one has fallen 17% while the other only fell 5%, rotating part of the weaker position into the stronger one recovers value without adding capital. Over time, compounding these adjustments improves portfolio performance.<br><br>'
-        + '<strong>90-day data</strong> reveals sustained trends, not just recent noise. A coin up 40% over 90 days but down 3% this week is very different from one that has been falling for 3 months.',
+    desc: '<strong>Rotator</strong> is a daily performance tracker for crypto, forex and stocks. It measures price momentum across <strong>24H, 7D, 14D and 30D</strong> and surfaces opportunities to improve portfolio performance over time.<br><br>'
+        + '<strong>What is rotation?</strong> If you hold two assets and one has fallen 17% while the other only fell 5%, rotating part of the weaker position into the stronger one recovers value without adding capital. Over time, compounding these small adjustments significantly improves performance.<br><br>'
+        + '<strong>Multi-timeframe scoring</strong> surfaces sustained trends, not just recent noise. A coin ranked highly across 7D, 14D <em>and</em> 30D is behaving very differently from one that just had a single good week.',
     arrow: 'top', pos: 'center', wide: true
   },
 
@@ -39,9 +39,9 @@ var TUT_STEPS = [
   {
     target: '.add-form',
     title: 'Your Holdings Panel',
-    desc: '<div style="font-size:15px;line-height:1.9;">This panel in the bottom-left is your portfolio tracker. Add any coin with quantity and average buy price — data is saved in your browser, no account needed.<br><br>'
-        + 'Once you add holdings, the <strong>Portfolio Signal</strong> box at the bottom of this panel scores your overall portfolio and flags which assets are lagging or outperforming.<br><br>'
-        + '<span style="font-size:12px;color:rgba(255,255,255,.7);">Free tier: 2 crypto · 1 forex · 1 stock — upgrade to Pro for 10 · 5 · 5 by sharing with 3 friends.</span>',
+    desc: '<div style="font-size:15px;line-height:1.9;">This panel is your portfolio tracker. Add any coin with quantity and average buy price — data is saved in your browser, no account needed.<br><br>'
+        + 'Once you add holdings, the <strong>Portfolio Signal</strong> box scores your overall portfolio and flags which assets are lagging or outperforming.<br><br>'
+        + '<span style="font-size:12px;color:rgba(255,255,255,.7);">Free tier: up to <strong>2 crypto</strong> holdings · upgrade to Pro for up to 10, plus Rotation Signals, by sharing with 3 friends.</span>',
     arrow: 'left', pos: 'right-high'
   },
 
@@ -50,9 +50,9 @@ var TUT_STEPS = [
     target: '.neon-section',
     title: 'Signal Center',
     desc: '<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;font-size:16px;line-height:1.8;">'
-        + '<div><div style="font-size:10px;letter-spacing:.12em;color:rgba(255,255,255,.5);margin-bottom:5px;">ROTATION OPPS ↑</div>'
+        + '<div><div style="font-size:10px;letter-spacing:.12em;color:rgba(255,255,255,.5);margin-bottom:5px;">ROTATION OPPS ↑ ⚡</div>'
         + '<div style="color:#4ade80;font-size:17px;font-weight:600;margin-bottom:5px;">↑ Rotate</div>'
-        + 'Pairs from your holdings where rotating makes sense. The score gap shows how much one coin is outpacing another.</div>'
+        + 'Pairs from your holdings where rotating makes sense. The score gap shows how much one coin is outpacing another. <strong style="color:var(--pro);">Pro feature</strong> — unlock free by sharing with 3 friends.</div>'
         + '<div><div style="font-size:10px;letter-spacing:.12em;color:rgba(255,255,255,.5);margin-bottom:5px;">HIGH MOMENTUM ⚡</div>'
         + '<div style="color:#f3ba2f;font-size:17px;font-weight:600;margin-bottom:5px;">⚡ Leading</div>'
         + 'Top 6 coins by composite score across all timeframes. Sustained strength, not single-week spikes.</div>'
@@ -68,7 +68,7 @@ var TUT_STEPS = [
     target: '.leaderboard',
     title: 'Leaderboard — Scores — Disclaimer',
     desc: '<div style="font-size:14px;line-height:1.9;">'
-        + 'Every coin ranked across <strong style="color:#ffffff;">24H · 7D · 14D · 30D</strong>. Click any column header to sort. Click any row for a full score breakdown.<br><br>'
+        + '<strong>100 coins</strong> ranked across <strong style="color:#ffffff;">24H · 7D · 14D · 30D</strong>. Click any column header to sort. Click any row for a full score breakdown.<br><br>'
         + 'The <strong>Score</strong> combines three layers:<br>'
         + '<strong>L1</strong> Momentum rank vs all 50 coins &nbsp;·&nbsp; <strong>L2</strong> Relative strength vs BTC, Gold, Silver, Oil &nbsp;·&nbsp; <strong>L3</strong> Tokenomics quality<br><br>'
         + '<div style="background:rgba(255,69,96,.07);border:1px solid rgba(255,69,96,.3);border-radius:4px;padding:10px 12px;">'
@@ -85,7 +85,7 @@ var TUT_STEPS = [
     title: "You're all set.",
     desc: '<div style="font-size:14px;line-height:1.9;">'
         + 'Data refreshes every 15 minutes automatically. Hit <strong>↻ REFRESH</strong> to force a fresh fetch at any time.<br><br>'
-        + '<strong style="color:var(--pro);">⚡ Unlock Pro free</strong> by sharing Rotator with 3 friends — or support the project with a donation for an instant unlock code.<br><br>'
+        + '<strong style="color:var(--pro);">⚡ Unlock Pro free</strong> by sharing Rotator with 3 friends — this gives you up to 10 portfolio holdings and full Rotation Signals. Or support the project with a donation for an instant unlock code.<br><br>'
         + 'Click the <strong>⚙ gear icon</strong> (highlighted) to change language, toggle asset modes, or replay this tutorial.'
         + '</div>',
     arrow: 'right', pos: 'gear'

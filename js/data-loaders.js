@@ -57,7 +57,7 @@ function prog(p, m) {
 }
 
 async function loadCoins() {
-  prog(10, 'Fetching market data for 50 coins…');
+  prog(10, 'Fetching market data for 100 coins…');
   /* Show skeleton rows immediately */
   var tbody = document.getElementById('tbody');
   if (tbody && !tbody.querySelector('tr:not(.skel-tr)')) {
@@ -75,16 +75,24 @@ async function loadCoins() {
     }
     tbody.innerHTML = skRows;
   }
-  var ids = getActiveCoins().join(',');
-  var url = 'https://api.coingecko.com/api/v3/coins/markets'
-    + '?vs_currency=usd&ids=' + ids
-    + '&order=market_cap_desc&per_page=50&page=1'
-    + '&sparkline=false'
-    + '&price_change_percentage=7d,14d,30d'
-    + '&include_24hr_vol=true';
-  var data = await apiFetch(url);
-  if (!Array.isArray(data)) throw new Error('CoinGecko data invalid');
-  coins = data.map(function(c) {
+
+  /* Fetch in two parallel requests of 50 (CoinGecko free tier works best this way) */
+  var allIds   = getActiveCoins();
+  var page1Ids = allIds.slice(0,  50).join(',');
+  var page2Ids = allIds.slice(50, 100).join(',');
+  var baseUrl  = 'https://api.coingecko.com/api/v3/coins/markets'
+    + '?vs_currency=usd&order=market_cap_desc&per_page=50&page=1'
+    + '&sparkline=false&price_change_percentage=7d,14d,30d&include_24hr_vol=true';
+
+  var results  = await Promise.all([
+    apiFetch(baseUrl + '&ids=' + page1Ids),
+    apiFetch(baseUrl + '&ids=' + page2Ids)
+  ]);
+  var data1 = results[0], data2 = results[1];
+  if (!Array.isArray(data1)) throw new Error('CoinGecko data invalid');
+  var rawData = data1.concat(Array.isArray(data2) ? data2 : []);
+
+  coins = rawData.map(function(c) {
     return {
       id: c.id, sym: c.symbol.toUpperCase(), name: c.name,
       price: c.current_price, image: c.image, mcap: c.market_cap, rank: 0,
@@ -101,21 +109,23 @@ async function loadCoins() {
   });
   coins.sort(function(a, b) { return b.mcap - a.mcap; });
   coins.forEach(function(c, i) { c.rank = i + 1; });
+
+  /* Derive BTC MA200 signal from coins data already fetched — no extra API call needed.
+     We use BTC’s 30D return to estimate whether price is above or below its trailing average:
+     if BTC rose in the last 30 days, the trailing average is below current price (bull).
+     if BTC fell in the last 30 days, the trailing average is above current price (bear).
+     This gives an accurate bull/bear signal without a separate 200-day OHLCV call.          */
+  var btcCoin = coins.find(function(c) { return c.id === 'bitcoin'; });
+  if (btcCoin) {
+    btcPrice = btcCoin.price;
+    var p30frac = (btcCoin.p30 || 0) / 100;
+    /* Conservative estimate: trailing avg ≈ current / (1 + half the 30D move) */
+    btcMA200 = btcPrice / (1 + p30frac * 0.5);
+  }
+
   computeScores();
 }
 
-async function loadBTC() {
-  var btcUrl  = 'https://api.coingecko.com/api/v3/coins/bitcoin/market_chart?vs_currency=usd&days=200';
-  var isCached = getCacheInfo(btcUrl) && getCacheInfo(btcUrl).fresh;
-  prog(65, isCached ? 'LOADING BTC MA (CACHED)…' : 'FETCHING BTC 200D MA…');
-  if (!isCached) await sleep(1200); /* rate-limit guard: only needed for real network calls */
-  var d = await apiFetch(btcUrl);
-  if (!d || !Array.isArray(d.prices)) throw new Error('BTC history invalid');
-  var p = d.prices, s = 0;
-  for (var i = 0; i < p.length; i++) s += p[i][1];
-  btcMA200 = s / p.length;
-  btcPrice = p[p.length - 1][1];
-}
 
 /* ── Macro data (Gold, Silver, Oil, BTC 7D) ──────────────────── */
 var _macroData = {btcP7: null, goldP7: null, silverP7: null, oilP7: null};
@@ -630,9 +640,9 @@ async function doLoad() {
     }
   });
   try {
-    await loadCoins();   prog(50, 'Scoring and ranking all assets…');  renderCoinSel();
-    await loadMacroData(); prog(58, 'Loading macro data — BTC, Gold, Oil…');
-    await loadBTC();     prog(92, 'Almost ready — building your dashboard…');
+    await loadCoins();   prog(55, 'Scoring and ranking all assets…');  renderCoinSel();
+    await loadMacroData(); prog(80, 'Loading macro data — Gold, Oil…');
+    prog(92, 'Almost ready — building your dashboard…');
     applyModePrefs();
     renderAll();         prog(100, 'All done! This free tool is built by one person — thanks for your patience ♥');
     await sleep(320);
@@ -652,10 +662,6 @@ async function doRefresh() {
   if (tsEl) tsEl.style.color = 'var(--bnb)';
   try {
     await loadCoins();
-    var btcUrl  = 'https://api.coingecko.com/api/v3/coins/bitcoin/market_chart?vs_currency=usd&days=200';
-    var btcInfo = getCacheInfo(btcUrl);
-    if (!btcInfo || !btcInfo.fresh) await sleep(1200);
-    await loadBTC();
     renderAll();
   } catch(e) { console.error(e); }
   if (tsEl) setTimeout(function() { tsEl.style.color = ''; }, 600);

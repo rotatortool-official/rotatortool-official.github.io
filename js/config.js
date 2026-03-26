@@ -29,12 +29,23 @@ var FREE_COINS = [
   /* Meme & Emerging */
   'blur','bonk','dogwifcoin','book-of-meme','pepe',
   /* RWA & New */
-  'ondo-finance','worldcoin-wld','pyth-network','jito-governance-token','ethena'
+  'ondo-finance','worldcoin-wld','pyth-network','jito-governance-token','ethena',
+  /* Additional 50 — always free */
+  'hyperliquid','toncoin','the-sandbox','decentraland','axie-infinity',
+  'gala','illuvium','stepn','flow','wax',
+  'ocean-protocol','fetch-ai','singularitynet','numeraire','bittensor',
+  'zetachain','celestia','dymension','altlayer','omni-network',
+  'saga-2','manta-network','portal','tensor','parcl',
+  'jito-governance-token','kamino','meteora','drift-protocol','marginfi',
+  'raydium','orca','lifinity','saber','serum',
+  'wormhole','layerzero','across-protocol','synapse-2','stargate-finance',
+  'gmx','gains-network','kwenta','polynomial-protocol','vertex-protocol',
+  'pendle','spectra-finance','time-wonderland','convex-finance','frax-share'
 ];
 
-var PRO_EXTRA_COINS = []; /* All 50 in free tier — Pro reserved for future expansion */
+var PRO_EXTRA_COINS = []; /* All 100 in free tier — Pro reserved for future expansion */
 
-function getActiveCoins() { return FREE_COINS; } /* All 50 always available */
+function getActiveCoins() { return FREE_COINS; } /* All 100 always available */
 
 /* ── Forex pairs ─────────────────────────────────────────────────── */
 /* Set pro:true to lock a pair behind Pro tier                        */
