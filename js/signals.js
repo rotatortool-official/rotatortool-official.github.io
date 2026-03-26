@@ -166,7 +166,7 @@ function renderTopBars() {
     }
   }
 
-  /* ── Column 1: Rotation Opportunities — 1 free (blurred) / full Pro ── */
+  /* ── Column 1: Rotation Opportunities — 1 free (real, unblurred) / 5 blurred+locked Pro ── */
   var sugEl = document.getElementById('sug-cards');
 
   /* Compute real rotation pairs regardless of tier */
@@ -174,29 +174,47 @@ function renderTopBars() {
   var sells = held.filter(function(c)  { return c.score >= 62; }).sort(function(a, b) { return b.score - a.score; });
   var buys  = coins.filter(function(c) { return hSyms.indexOf(c.sym) < 0 && c.score <= 38; }).sort(function(a, b) { return a.score - b.score; });
 
+  /* Fallback pairs from all coins when no holdings exist (free preview) */
+  var allSells = coins.slice().sort(function(a, b) { return b.score - a.score; });
+  var allBuys  = coins.slice().sort(function(a, b) { return a.score - b.score; });
+
   if (!isPro) {
-    /* Show 1 blurred real tile (if data exists) + Pro CTA + 1 faded placeholder */
-    var previewHtml = '';
-    if (sells.length && buys.length) {
-      previewHtml = '<div style="position:relative;display:inline-block;width:100%;">'
-        + '<div style="filter:blur(3px);pointer-events:none;user-select:none;">'
-        + sigRotTile(sells[0], buys[0])
-        + '</div></div>';
-    } else {
-      /* no holdings or no signals yet — still show the CTA */
+    /* Build up to 6 real pairs — from holdings if available, else from all coins */
+    var previewSells = (sells.length && buys.length) ? sells : allSells;
+    var previewBuys  = (sells.length && buys.length) ? buys  : allBuys;
+    var previewPairs = [];
+    for (var pi = 0; pi < Math.min(6, previewSells.length); pi++) {
+      previewPairs.push({ sell: previewSells[pi], buy: previewBuys[pi % previewBuys.length] });
     }
-    var ctaTile = '<div class="sig-tile rot" onclick="openPro()" style="cursor:pointer;'
-      + 'display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;min-height:100px;">'
-      + '<span style="font-size:17px;">⚡</span>'
-      + '<span style="font-size:11px;font-weight:700;letter-spacing:.08em;color:var(--pro);">PRO FEATURE</span>'
-      + '<span style="font-size:9px;color:var(--muted);text-align:center;line-height:1.5;">'
-      + (!holdings.length ? 'Add 2+ holdings then<br>upgrade to see signals.' : 'Rotation signals<br>require Pro.')
-      + '</span>'
-      + '<button class="pub-btn" style="margin-top:2px;font-size:9px;padding:4px 10px;" onclick="event.stopPropagation();openPro()">UNLOCK FREE \u2192</button>'
-      + '</div>';
-    var fadedTile = '<div class="sig-tile rot" style="opacity:.35;pointer-events:none;'
-      + 'display:flex;align-items:center;justify-content:center;font-size:10px;color:var(--muted);">— hidden —</div>';
-    sugEl.innerHTML = '<div class="sig-tiles-grid">' + previewHtml + ctaTile + fadedTile + '</div>';
+
+    /* Helper: blurred tile with a centred lock overlay, clicking opens Pro modal */
+    function blurLockedTile(sell, buy) {
+      return '<div class="sig-rot-locked" onclick="openPro()" title="Unlock with Pro">'
+        + '<div class="sig-rot-blur">' + sigRotTile(sell, buy) + '</div>'
+        + '<div class="sig-rot-lock-overlay">'
+        + '<span style="font-size:14px;">⚡</span>'
+        + '<span style="font-size:9px;font-weight:700;letter-spacing:.09em;color:var(--pro);">PRO</span>'
+        + '</div>'
+        + '</div>';
+    }
+
+    var gridHtml = '';
+    previewPairs.forEach(function(p, idx) {
+      if (idx === 0) {
+        /* First tile: real, fully visible, clickable for detail */
+        gridHtml += sigRotTile(p.sell, p.buy);
+      } else {
+        /* Tiles 2-6: blurred with Pro lock overlay */
+        gridHtml += blurLockedTile(p.sell, p.buy);
+      }
+    });
+
+    /* Pad to 6 slots if we don't have enough pairs */
+    while (previewPairs.length < 6 && gridHtml.split('sig-tile').length - 1 < 6) {
+      gridHtml += proLockedTile('');
+    }
+
+    sugEl.innerHTML = '<div class="sig-tiles-grid">' + gridHtml + '</div>';
     return;
   }
 
