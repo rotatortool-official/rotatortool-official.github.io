@@ -384,6 +384,7 @@ body::before{content:'';position:fixed;inset:0;background:repeating-linear-gradi
 .td-badge.pro-b{background:rgba(167,139,250,.1);border-color:rgba(167,139,250,.3);color:var(--pro);}
 
 .tbl-head{padding:5px 12px;border-bottom:1px solid var(--bdr);background:var(--bg2);display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:4px;flex-shrink:0;}
+.last-upd-ts{font-size:9px;color:var(--muted);letter-spacing:.06em;font-family:var(--font-ui);}
 .tf-tabs{display:flex;gap:3px;}
 .tf-tab{background:none;border:1px solid var(--bdr);color:var(--muted);font-family:inherit;font-size:9px;padding:2px 8px;cursor:pointer;border-radius:2px;letter-spacing:.08em;transition:all .15s;}
 .tf-tab.active{border-color:var(--bnb);color:var(--bnb);background:var(--bnbd);}
@@ -1251,7 +1252,12 @@ td.pc{text-align:right;padding-left:2px;padding-right:2px;}
     </div>
     <div class="tbl-head">
       <div class="ptitle" id="tbl-title">PERFORMANCE LEADERBOARD</div>
-      <div style="font-size:9px;color:var(--muted);letter-spacing:.08em;">CLICK COLUMN HEADERS TO SORT</div>
+      <div style="display:flex;align-items:center;gap:10px;">
+        <span id="last-updated-crypto"  class="last-upd-ts" style="display:none;"></span>
+        <span id="last-updated-forex"   class="last-upd-ts" style="display:none;"></span>
+        <span id="last-updated-stocks"  class="last-upd-ts" style="display:none;"></span>
+        <div style="font-size:9px;color:var(--muted);letter-spacing:.08em;">CLICK COLUMN HEADERS TO SORT</div>
+      </div>
     </div>
     <div class="leaderboard" id="crypto-panel">
       <table>
@@ -1272,14 +1278,14 @@ td.pc{text-align:right;padding-left:2px;padding-right:2px;}
     </div>
     <div class="leaderboard" id="forex-panel" style="display:none;">
       <div id="forex-loading">
-        <div class="loading-source-msg" id="forex-source-msg">⟳ Pulling live rates from Frankfurter (ECB) &amp; ExchangeRate-API — aggregating multiple sources for accuracy…</div>
+        <div class="loading-source-msg" id="forex-source-msg">⟳ Pulling live rates from Frankfurter (ECB) → ExchangeRate.host (30-day history) → ER-API — aggregating for accurate 7D/30D scoring…</div>
         <div class="asset-tiles-wrap forex-grid" id="forex-skel-grid"></div>
       </div>
       <div id="forex-tiles" class="asset-tiles-wrap forex-grid"></div>
     </div>
     <div class="leaderboard" id="stocks-panel" style="display:none;">
       <div id="stocks-loading">
-        <div class="loading-source-msg" id="stocks-source-msg">⟳ Pulling data from Yahoo Finance → Financial Modeling Prep → Alpha Vantage — trying multiple sources for best coverage…</div>
+        <div class="loading-source-msg" id="stocks-source-msg">⟳ Pulling data from Yahoo Finance → Financial Modeling Prep → Alpha Vantage → Twelve Data — trying multiple sources for best coverage…</div>
         <div class="asset-tiles-wrap stocks-grid" id="stocks-skel-grid"></div>
       </div>
       <div id="stocks-tiles" class="asset-tiles-wrap stocks-grid" style="display:none;"></div>
