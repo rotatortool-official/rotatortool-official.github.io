@@ -997,8 +997,8 @@ function mobNavHoldings() {
       if (!hasHoldings) {
         var phWrap = document.createElement('div');
         phWrap.style.cssText = 'display:grid;grid-template-columns:1fr 1fr;gap:6px;padding:10px 12px 4px;flex-shrink:0;';
-        phWrap.innerHTML = '<div class="mob-placeholder-tile" onclick="mobNavHoldings();setTimeout(function(){var s=document.querySelector('.mob-holdings-panel .add-form select');if(s)s.focus();},200);">+ Add Coin</div>'
-          + '<div class="mob-placeholder-tile" onclick="mobNavHoldings();setTimeout(function(){var s=document.querySelector('.mob-holdings-panel .add-form select');if(s)s.focus();},200);">+ Add Coin</div>';
+        phWrap.innerHTML = '<div class="mob-placeholder-tile" onclick="var el=document.querySelector(\".mob-holdings-panel .add-form select\");if(el)el.focus();">+ Add Coin</div>'
+          + '<div class="mob-placeholder-tile" onclick="var el=document.querySelector(\".mob-holdings-panel .add-form select\");if(el)el.focus();">+ Add Coin</div>';
         panel.appendChild(phWrap);
       }
 
