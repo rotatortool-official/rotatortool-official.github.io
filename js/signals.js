@@ -241,6 +241,35 @@ function renderTopBars() {
   sugEl.innerHTML = '<div class="sig-tiles-grid">' + pairs.map(function(p) { return sigRotTile(p.sell, p.buy); }).join('') + '</div>';
 }
 
+/* ── Quick-add a coin from the leaderboard ─────────────────── */
+function quickAddCoin(sym, price, btn) {
+  /* Check if already held */
+  if (holdings.findIndex(function(h) { return h.sym === sym; }) >= 0) return;
+
+  /* Check limits */
+  var limit = isPro ? PRO_HOLDINGS_LIMIT : FREE_HOLDINGS_LIMIT;
+  if (holdings.length >= limit) {
+    if (!isPro) { openPro(); } else { alert('Portfolio limit reached (' + PRO_HOLDINGS_LIMIT + ' assets).'); }
+    return;
+  }
+
+  /* Add with qty=1 and avg=current price */
+  var isFirst = holdings.length === 0;
+  holdings.push({ sym: sym, qty: 1, avg: price || null });
+  saveH();
+  if (isFirst) creditReferrer();
+
+  /* Update just this button immediately for snappy feedback */
+  if (btn) {
+    btn.textContent = '✓';
+    btn.classList.add('held');
+    btn.title = 'In holdings';
+    btn.onclick = null;
+  }
+
+  renderAll();
+}
+
 /* ══════════════════════════════════════════════════════════════
    LEADERBOARD TABLE
 ══════════════════════════════════════════════════════════════ */
@@ -265,9 +294,13 @@ function renderTable() {
     var scC    = sc >= 65 ? 'var(--green)' : sc < 0 ? 'var(--red)' : sc >= 40 ? 'var(--amber)' : 'var(--muted)';
     var mcapStr = c.mcap ? '$' + (c.mcap/1e9 >= 1 ? (c.mcap/1e9).toFixed(2) + 'B' : (c.mcap/1e6).toFixed(0) + 'M') : '—';
     var tipData = 'data-sym="' + c.sym + '" data-name="' + c.name + '" data-mcap="' + mcapStr + '" data-score="' + sc + '" data-p24="' + c.p24.toFixed(2) + '" data-p7="' + c.p7.toFixed(2) + '" data-p30="' + c.p30.toFixed(2) + '" data-held="' + (isH ? '1' : '0') + '"';
-    return '<tr class="' + (isH ? 'held' : '') + '" ' + tipData + ' onmouseenter="showRowTip(this,event)" onmouseleave="hideTip()">'
+    var qaBtnHtml = isH
+      ? '<button class="qa-btn held" title="In holdings" onclick="event.stopPropagation()">✓</button>'
+      : '<button class="qa-btn" title="Add to holdings" onclick="event.stopPropagation();quickAddCoin(\'' + c.sym + '\',' + (c.price || 0) + ',this)">+</button>';
+    return '<tr class="' + (isH ? 'held' : '') + '" ' + tipData + ' onmouseenter="showRowTip(this,event)" onmouseleave="hideTip()" onclick="openTileDetail(\'' + c.id + '\',event)">'
       + '<td style="color:var(--muted);font-size:10px;">' + (i+1) + '</td>'
       + '<td><div class="cc"><div class="ti"><img src="' + c.image + '" alt="" onerror="this.style.display=\'none\'"></div><div><div style="display:flex;align-items:center;"><span class="tsym">' + c.sym + '</span>' + (isH ? '<span class="htag">HELD</span>' : '') + '</div><div class="tname">' + c.name + '</div></div></div></td>'
+      + '<td class="qa-cell">' + qaBtnHtml + '</td>'
       + '<td class="r" style="padding-right:8px;">' + fmtP(c.price) + '</td>'
       + '<td class="pc">' + pctSpan(c.p24) + '</td>'
       + '<td class="pc">' + pctSpan(c.p7)  + '</td>'
@@ -278,7 +311,7 @@ function renderTable() {
   }).join('');
 
   if (!isPro && proCoins.length) {
-    html += '<tr class="pro-upsell-row"><td colspan="8"><div class="pro-upsell-banner">'
+    html += '<tr class="pro-upsell-row"><td colspan="9"><div class="pro-upsell-banner">'
       + '<div class="pub-left"><span class="pub-icon">⚡</span><div><div class="pub-txt">+' + proCoins.length + ' more coins available in Pro</div><div class="pub-sub">Share your link with 3 friends to unlock — completely free</div></div></div>'
       + '<button class="pub-btn" onclick="openPro()">UNLOCK PRO →</button>'
       + '</div></td></tr>';
