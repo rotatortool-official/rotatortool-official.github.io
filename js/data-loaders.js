@@ -76,7 +76,30 @@ async function loadCoins() {
     tbody.innerHTML = skRows;
   }
 
-  /* Fetch in two parallel requests of 50 (CoinGecko free tier works best this way) */
+  /* ── Item 4: Try Binance 24hr ticker first — free, no key, very reliable ──
+     Binance returns p24 and volume in a single fast call. We merge this with
+     CoinGecko's 7D/14D/30D data (which Binance doesn't provide per-coin).
+     If Binance is available we use it for price + p24 accuracy; CoinGecko
+     for the multi-timeframe changes needed by the scorer.
+  ──────────────────────────────────────────────────────────────────────── */
+  var _binancePrices = {}; /* sym → {price, p24, volume} */
+  try {
+    var bnbTicker = await apiFetch('https://api.binance.com/api/v3/ticker/24hr');
+    if (Array.isArray(bnbTicker)) {
+      bnbTicker.forEach(function(t) {
+        if (!t.symbol.endsWith('USDT')) return;
+        var sym = t.symbol.slice(0, -4); /* strip USDT */
+        _binancePrices[sym] = {
+          price:  parseFloat(t.lastPrice)  || 0,
+          p24:    parseFloat(t.priceChangePercent) || 0,
+          volume: parseFloat(t.quoteVolume) || 0
+        };
+      });
+      prog(25, 'Binance prices loaded — fetching historical data…');
+    }
+  } catch(e) { console.warn('[Binance] 24hr ticker failed — using CoinGecko prices:', e.message); }
+
+  /* Fetch CoinGecko for 7D/14D/30D data (always needed for scoring) */
   var allIds   = getActiveCoins();
   var page1Ids = allIds.slice(0,  50).join(',');
   var page2Ids = allIds.slice(50, 100).join(',');
@@ -93,14 +116,17 @@ async function loadCoins() {
   var rawData = data1.concat(Array.isArray(data2) ? data2 : []);
 
   coins = rawData.map(function(c) {
+    /* Prefer Binance for real-time price + 24H — it updates every second vs CoinGecko's 60s */
+    var bnb = _binancePrices[c.symbol.toUpperCase()];
     return {
       id: c.id, sym: c.symbol.toUpperCase(), name: c.name,
-      price: c.current_price, image: c.image, mcap: c.market_cap, rank: 0,
-      p24: c.price_change_percentage_24h || 0,
-      p7:  c.price_change_percentage_7d_in_currency  || 0,
-      p14: c.price_change_percentage_14d_in_currency || 0,
-      p30: c.price_change_percentage_30d_in_currency || 0,
-      volume24: c.total_volume || 0,
+      price:  bnb ? bnb.price  : c.current_price,
+      image:  c.image, mcap: c.market_cap, rank: 0,
+      p24:    bnb ? bnb.p24    : (c.price_change_percentage_24h || 0),
+      p7:     c.price_change_percentage_7d_in_currency  || 0,
+      p14:    c.price_change_percentage_14d_in_currency || 0,
+      p30:    c.price_change_percentage_30d_in_currency || 0,
+      volume24: bnb ? bnb.volume : (c.total_volume || 0),
       circulating_supply: c.circulating_supply || 0,
       max_supply: c.max_supply || null,
       ath: c.ath || 0, ath_change_pct: c.ath_change_percentage || 0,
@@ -282,8 +308,35 @@ async function loadForex() {
     } catch(e) { console.warn('Frankfurter failed for ' + base + ':', e.message); frankfurterFailed = true; }
   }));
 
-  /* ── Fallback: open.er-api.com (free, CORS-friendly, daily rates) ── */
+  /* ── Fallback: exchangerate.host — real 30-day timeseries, free, no key ── */
   if (frankfurterFailed || Object.keys(rateHistory).length < Object.keys(bases).length) {
+    var endDate   = new Date().toISOString().slice(0, 10);
+    var startDate30 = dateOffset(-35); /* 35 days covers weekends + holidays */
+    await Promise.all(Object.keys(bases).map(async function(base) {
+      if (rateHistory[base] && Object.keys(rateHistory[base]).length > 0) return; /* already have it */
+      try {
+        /* exchangerate.host timeseries: free, CORS-safe, real ECB/market data */
+        var url  = 'https://api.exchangerate.host/timeseries?start_date=' + startDate30
+          + '&end_date=' + endDate + '&base=' + base + '&symbols=' + bases[base].join(',');
+        var data = await apiFetch(url);
+        if (data && data.success && data.rates && Object.keys(data.rates).length > 0) {
+          var dates    = Object.keys(data.rates).sort();
+          var quoteArr = {};
+          dates.forEach(function(d) {
+            var dayRates = data.rates[d] || {};
+            Object.keys(dayRates).forEach(function(q) {
+              if (!quoteArr[q]) quoteArr[q] = [];
+              quoteArr[q].push(dayRates[q]);
+            });
+          });
+          rateHistory[base] = quoteArr;
+        }
+      } catch(e) { console.warn('exchangerate.host failed for ' + base + ':', e.message); }
+    }));
+  }
+
+  /* ── Last resort: open.er-api.com (single spot rate only — minimal history) ── */
+  if (Object.keys(rateHistory).length < Object.keys(bases).length) {
     try {
       var erData = await apiFetch('https://open.er-api.com/v6/latest/USD');
       if (erData && erData.rates) {
@@ -297,11 +350,12 @@ async function loadForex() {
             var quoteInUSD = erData.rates[quote];
             if (!quoteInUSD) return;
             var rate = quoteInUSD / baseInUSD;
-            rateHistory[base][quote] = [rate * 0.999, rate]; /* synthetic 2-point history */
+            /* Build a minimal 2-point array — scores will be low-confidence but not crash */
+            rateHistory[base][quote] = [rate * 0.999, rate];
           });
         });
       }
-    } catch(e) { console.warn('ExchangeRate fallback failed:', e.message); }
+    } catch(e) { console.warn('ER-API last-resort failed:', e.message); }
   }
 
   /* ── Build forexData from history ── */
@@ -342,6 +396,7 @@ async function loadForex() {
   }
 
   forexLoaded = true;
+  _setLastUpdated('forex');
   loading.style.display = 'none';
   var fxTiles = document.getElementById('forex-tiles');
   if (fxTiles) fxTiles.style.display = '';
@@ -352,11 +407,49 @@ async function loadForex() {
 /* ══════════════════════════════════════════════════════════════
    STOCKS — loadStocks
 ══════════════════════════════════════════════════════════════ */
-function calcStockScore(price, high52, low52, chgPct) {
-  var range = high52 - low52;
-  var pos   = range > 0 ? Math.round(((price - low52) / range) * 100) : 50;
-  var mom   = 50 + Math.min(Math.max(chgPct * 5, -40), 40);
-  return Math.min(100, Math.max(0, Math.round(pos * 0.6 + mom * 0.4)));
+/* ── Item 8: Enhanced stock scorer — uses 7D + 30D when available ──
+   The original scorer only used 52-week range position + today's %chg.
+   We now add 7D and 30D momentum when history data is available,
+   matching the quality of the crypto scorer.
+──────────────────────────────────────────────────────────────── */
+function calcStockScore(price, high52, low52, chgPct, p7, p30) {
+  var range  = high52 - low52;
+  /* 52-week position (0–100): where in the yearly range the price sits */
+  var pos    = range > 0 ? Math.round(((price - low52) / range) * 100) : 50;
+  /* Today's momentum (-40 to +40) */
+  var mom1d  = Math.min(Math.max(chgPct * 5, -40), 40);
+
+  if (p7 !== undefined && p30 !== undefined) {
+    /* Full 3-timeframe scorer (matches crypto scorer quality) */
+    var mom7d  = Math.min(Math.max((p7  || 0) * 3, -40), 40);
+    var mom30d = Math.min(Math.max((p30 || 0) * 1.5, -40), 40);
+    /* Weights: range 35% + 7D 30% + 30D 25% + 1D 10% */
+    return Math.min(100, Math.max(0, Math.round(
+      pos * 0.35 + (50 + mom7d) * 0.30 + (50 + mom30d) * 0.25 + (50 + mom1d) * 0.10
+    )));
+  }
+  /* Fallback: original 2-factor scorer when history unavailable */
+  return Math.min(100, Math.max(0, Math.round(pos * 0.6 + (50 + mom1d) * 0.4)));
+}
+
+/* Fetch Yahoo Finance chart for a single symbol — used to get 7D/30D history */
+async function fetchStockHistory(sym) {
+  try {
+    var url  = 'https://query1.finance.yahoo.com/v8/finance/chart/' + encodeURIComponent(sym)
+      + '?interval=1d&range=35d';
+    var data = await apiFetch(url);
+    var closes = data && data.chart && data.chart.result && data.chart.result[0]
+      && data.chart.result[0].indicators && data.chart.result[0].indicators.quote
+      && data.chart.result[0].indicators.quote[0] && data.chart.result[0].indicators.quote[0].close;
+    if (!closes || closes.length < 8) return null;
+    var latest = closes[closes.length - 1];
+    var w1     = closes[closes.length - 6]  || closes[0];
+    var m1     = closes[closes.length - 22] || closes[0];
+    return {
+      p7:  w1  ? ((latest - w1)  / w1  * 100) : 0,
+      p30: m1  ? ((latest - m1)  / m1  * 100) : 0
+    };
+  } catch(e) { return null; }
 }
 
 async function fetchStocksYahoo(syms) {
@@ -408,11 +501,35 @@ async function loadStocks() {
         var price  = q.regularMarketPrice || 0;
         var high52 = q.fiftyTwoWeekHigh   || price * 1.3;
         var low52  = q.fiftyTwoWeekLow    || price * 0.7;
+        /* Item 8: include 7D/30D from Yahoo's own quote fields when available */
+        var p7  = q.regularMarketChangePercentWeekly  || undefined;
+        var p30 = q.regularMarketChangePercentMonthly || undefined;
         return {sym:s.sym, name:q.shortName||s.name, type:s.type, av:s.av,
           price, chg:q.regularMarketChange||0, chgPct:q.regularMarketChangePercent||0,
-          high52, low52, score:calcStockScore(price, high52, low52, q.regularMarketChangePercent||0)};
+          high52, low52, p7, p30,
+          score:calcStockScore(price, high52, low52, q.regularMarketChangePercent||0, p7, p30)};
       });
       yahooOk = true;
+
+      /* Item 8: Fetch 35-day history for top 8 stocks to get real 7D/30D data.
+         We limit to 8 to stay inside free-tier rate limits. Runs in background. */
+      var need7d = stocksData.filter(function(s) { return !s.err && s.p7 === undefined; }).slice(0, 8);
+      if (need7d.length) {
+        Promise.all(need7d.map(async function(s) {
+          var hist = await fetchStockHistory(s.sym);
+          if (hist) {
+            var idx = stocksData.findIndex(function(r) { return r.sym === s.sym; });
+            if (idx >= 0) {
+              stocksData[idx].p7    = hist.p7;
+              stocksData[idx].p30   = hist.p30;
+              stocksData[idx].score = calcStockScore(
+                stocksData[idx].price, stocksData[idx].high52, stocksData[idx].low52,
+                stocksData[idx].chgPct, hist.p7, hist.p30
+              );
+            }
+          }
+        })).then(function() { renderStocksTable(); }); /* re-render when history arrives */
+      }
     }
   } catch(e) { console.warn('Yahoo stocks failed:', e.message); }
 
@@ -457,7 +574,7 @@ async function loadStocks() {
           if (q) {
             var idx = results.findIndex(function(r) { return r.sym === s.sym; });
             if (idx >= 0) results[idx] = Object.assign(results[idx], q, {
-              name: s.name, err: false, score: calcStockScore(q.price, q.high52, q.low52, q.chgPct)
+              name: s.name, err: false, score: calcStockScore(q.price, q.high52, q.low52, q.chgPct, undefined, undefined)
             });
           }
         } catch(e) {}
@@ -467,7 +584,48 @@ async function loadStocks() {
     stocksData = results;
   }
 
+  /* ── Fallback 3: Twelve Data — free tier, bulk quote endpoint ── */
+  if (!yahooOk) {
+    var sMsg3 = document.getElementById('stocks-source-msg');
+    if (sMsg3) sMsg3.textContent = '⟳ Trying Twelve Data bulk quotes…';
+    loading.textContent = 'LOADING VIA TWELVE DATA…';
+    try {
+      /* Free tier: 800 credits/day, bulk quote = 1 credit per symbol */
+      var tdSyms = STOCKS_LIST.map(function(s) {
+        /* Twelve Data uses clean symbols — strip ^ from indices */
+        return (s.av || s.sym).replace('^', '');
+      }).join(',');
+      var tdUrl  = 'https://api.twelvedata.com/quote?symbol=' + encodeURIComponent(tdSyms)
+        + '&apikey=demo'; /* 'demo' key works for up to ~8 symbols; swap for real key when available */
+      var tdData = await apiFetch(tdUrl);
+      if (tdData && typeof tdData === 'object' && !tdData.message) {
+        /* Twelve Data returns { AAPL: {...}, MSFT: {...} } for multi-symbol requests */
+        var tdResults = STOCKS_LIST.map(function(s) {
+          var key = (s.av || s.sym).replace('^', '');
+          var q   = tdData[key] || tdData;
+          if (!q || q.status === 'error' || !q.close) {
+            return {sym:s.sym, name:s.name, type:s.type, av:s.av,
+              price:0, chg:0, chgPct:0, high52:0, low52:0, score:0, err:true};
+          }
+          var price  = parseFloat(q.close)               || 0;
+          var chgPct = parseFloat(q.percent_change)       || 0;
+          var chg    = parseFloat(q.change)               || 0;
+          var high52 = parseFloat(q.fifty_two_week && q.fifty_two_week.high) || price * 1.3;
+          var low52  = parseFloat(q.fifty_two_week && q.fifty_two_week.low)  || price * 0.7;
+          return {sym:s.sym, name:q.name||s.name, type:s.type, av:s.av,
+            price, chg, chgPct, high52, low52,
+            score: calcStockScore(price, high52, low52, chgPct)};
+        });
+        if (tdResults.some(function(r) { return !r.err; })) {
+          stocksData = tdResults;
+          yahooOk    = true;
+        }
+      }
+    } catch(e) { console.warn('Twelve Data fallback failed:', e.message); }
+  }
+
   stocksLoaded = true;
+  _setLastUpdated('stocks');
   loading.style.display = 'none';
   var stTiles = document.getElementById('stocks-tiles');
   if (stTiles) stTiles.style.display = '';
@@ -592,6 +750,9 @@ function setMode(mode) {
     if (b) b.classList.toggle('active', m === mode);
     var h = document.getElementById('holdings-' + m);
     if (h) h.style.display = m === mode ? (m === 'crypto' ? '' : 'flex') : 'none';
+    /* Item 9: show only the active mode's last-updated stamp */
+    var ts = document.getElementById('last-updated-' + m);
+    if (ts) ts.style.display = m === mode && _lastUpdated[m] ? '' : 'none';
   });
   document.getElementById('crypto-panel').style.display = mode === 'crypto' ? '' : 'none';
   document.getElementById('forex-panel').style.display  = mode === 'forex'  ? '' : 'none';
@@ -615,13 +776,78 @@ function applyModePrefs() {
 
 /* ══════════════════════════════════════════════════════════════
    LOAD / REFRESH / AUTO-REFRESH
+   • Refreshes ALL active tabs (crypto + forex if loaded + stocks if loaded)
+   • Pauses automatically while the browser tab is hidden (Tab Visibility API)
+   • Per-mode last-updated timestamps shown in each panel header
 ══════════════════════════════════════════════════════════════ */
+
+/* Per-mode last-updated timestamps (ms epoch) */
+var _lastUpdated = {crypto: 0, forex: 0, stocks: 0};
+
+function _setLastUpdated(mode) {
+  _lastUpdated[mode] = Date.now();
+  _renderLastUpdated(mode);
+}
+
+function _renderLastUpdated(mode) {
+  var el = document.getElementById('last-updated-' + mode);
+  if (!el) return;
+  var t = _lastUpdated[mode];
+  if (!t) { el.style.display = 'none'; el.textContent = ''; return; }
+  var mins = Math.floor((Date.now() - t) / 60000);
+  el.textContent = mins < 1 ? 'updated just now' : 'updated ' + mins + 'm ago';
+  /* Only show if this mode is currently active */
+  el.style.display = (currentMode === mode) ? '' : 'none';
+}
+
+/* Tick the "X mins ago" labels every minute */
+setInterval(function() {
+  ['crypto','forex','stocks'].forEach(_renderLastUpdated);
+}, 60000);
+
 var _autoRefreshTimer = null;
+var _tabHidden = false;
+
+/* Tab Visibility API — pause refresh when tab is hidden */
+document.addEventListener('visibilitychange', function() {
+  _tabHidden = document.hidden;
+  if (!_tabHidden) {
+    /* Tab just became visible — refresh immediately if stale (>14 min) */
+    var stale = Date.now() - (_lastUpdated.crypto || 0) > 14 * 60 * 1000;
+    if (!busy && stale) doRefresh();
+  }
+});
+
+/* ── Item 7: Market hours awareness ─────────────────────────────
+   Returns true when refreshing would be pointless:
+   • Forex: weekends UTC (Sat 22:00 → Sun 22:00 approx)
+   • Stocks: weekends + outside 13:30–20:00 UTC (NYSE hours)
+   Crypto never closes.
+──────────────────────────────────────────────────────────────── */
+function isMarketClosed(mode) {
+  if (mode === 'crypto') return false;
+  var now = new Date();
+  var day = now.getUTCDay();   /* 0=Sun … 6=Sat */
+  var hm  = now.getUTCHours() * 60 + now.getUTCMinutes();
+  if (mode === 'forex') {
+    if (day === 6 && hm >= 22 * 60) return true;
+    if (day === 0 && hm <  22 * 60) return true;
+    return false;
+  }
+  if (mode === 'stocks') {
+    if (day === 0 || day === 6) return true;
+    if (hm < 13 * 60 + 30 || hm > 20 * 60) return true;
+    return false;
+  }
+  return false;
+}
+
 function startAutoRefresh() {
   if (_autoRefreshTimer) clearInterval(_autoRefreshTimer);
   _autoRefreshTimer = setInterval(function() {
-    if (!busy && currentMode === 'crypto') doRefresh();
-  }, 15*60*1000); /* 15 minutes — change here */
+    if (busy || _tabHidden) return; /* skip when busy or tab hidden */
+    doRefresh();
+  }, 15 * 60 * 1000); /* 15 minutes */
 }
 
 async function doLoad() {
@@ -645,6 +871,9 @@ async function doLoad() {
     prog(92, 'Almost ready — building your dashboard…');
     applyModePrefs();
     renderAll();         prog(100, 'All done! This free tool is built by one person — thanks for your patience ♥');
+    _setLastUpdated('crypto');
+    var tsEl = document.getElementById('last-updated-crypto');
+    if (tsEl) tsEl.style.display = '';
     await sleep(320);
     document.getElementById('loader').classList.add('gone');
     startAutoRefresh();
@@ -661,8 +890,22 @@ async function doRefresh() {
   var tsEl = document.getElementById('ts');
   if (tsEl) tsEl.style.color = 'var(--bnb)';
   try {
+    /* Always refresh crypto */
     await loadCoins();
     renderAll();
+    _setLastUpdated('crypto');
+
+    /* Refresh forex if it has already been loaded (user visited tab) */
+    if (forexLoaded && !isMarketClosed('forex')) {
+      await loadForex();
+      _setLastUpdated('forex');
+    }
+
+    /* Refresh stocks if already loaded and market may be open */
+    if (stocksLoaded && !isMarketClosed('stocks')) {
+      await loadStocks();
+      _setLastUpdated('stocks');
+    }
   } catch(e) { console.error(e); }
   if (tsEl) setTimeout(function() { tsEl.style.color = ''; }, 600);
   busy = false;
@@ -896,6 +1139,7 @@ doLoad().then(function() { initTutorial(); });
 
 /* ══════════════════════════════════════════════════════════════
    TILE DETAIL PANEL — openTileDetail / openAssetDetail
+   Shared redesigned card for crypto, forex and stocks.
 ══════════════════════════════════════════════════════════════ */
 var _tdCoin = null;
 
@@ -908,13 +1152,60 @@ function fmtMcap(n) {
 }
 function fmtVol(n) { return fmtMcap(n); }
 
+/* ── Shared card builders ────────────────────────────────────── */
+function _tdPerfPill(label, value, cls, decimals, suffix) {
+  suffix = suffix || '%';
+  decimals = decimals !== undefined ? decimals : 1;
+  return '<div class="td-perf-pill">'
+    + '<div class="td-perf-pill-l">' + label + '</div>'
+    + '<div class="td-perf-pill-v ' + cls + '">'
+    + (cls === 'up' && value >= 0 ? '+' : '') + (+value).toFixed(decimals) + suffix
+    + '</div></div>';
+}
+
+function _tdBar(label, pct, color, rightLabel) {
+  return '<div class="td-bar-row">'
+    + '<span class="td-bar-lbl">' + label + '</span>'
+    + '<div class="td-bar-wrap"><div class="td-bar-fill" style="width:' + Math.max(2, Math.min(100, pct)) + '%;background:' + color + ';"></div></div>'
+    + '<span class="td-bar-val" style="color:' + color + ';">' + rightLabel + '</span>'
+    + '</div>';
+}
+
+function _tdMktCell(label, value) {
+  return '<div class="td-mkt-cell"><div class="td-mkt-cell-l">' + label + '</div><div class="td-mkt-cell-v">' + value + '</div></div>';
+}
+
+function _tdSetAccent(score) {
+  var bar   = document.getElementById('td-accent-bar');
+  if (!bar) return;
+  var color = score >= 65 ? 'var(--green)' : score <= 35 ? 'var(--red)' : 'var(--amber)';
+  bar.style.background = color;
+  bar.style.boxShadow  = '0 0 10px ' + color;
+}
+
+function _tdSetScore(score) {
+  var color = score >= 65 ? 'var(--green)' : score <= 35 ? 'var(--red)' : 'var(--amber)';
+  var numEl = document.getElementById('td-score-num');
+  if (numEl) numEl.innerHTML =
+    '<div class="td-score-num-val" style="color:' + color + ';">' + score + '</div>'
+    + '<div class="td-score-num-lbl">/ 100</div>';
+}
+
 function _positionPanel(panel, evt) {
-  var pw = 310, ph = 400;
+  var isMobile = window.innerWidth <= 700;
+  if (isMobile) {
+    /* Mobile: CSS handles centering via fixed+transform */
+    panel.style.left = ''; panel.style.top = '';
+    panel.style.display = 'block';
+    document.getElementById('td-overlay').classList.add('show');
+    return;
+  }
+  var pw = 340, ph = 460;
   var cx = evt ? evt.clientX : window.innerWidth  / 2;
   var cy = evt ? evt.clientY : window.innerHeight / 2;
-  var left = cx + 16, top = cy - 60;
-  if (left + pw > window.innerWidth  - 12) left = cx - pw - 16;
-  if (top  + ph > window.innerHeight - 12) top  = window.innerHeight - ph - 12;
+  var left = cx + 18, top = cy - 80;
+  if (left + pw > window.innerWidth  - 16) left = cx - pw - 18;
+  if (top  + ph > window.innerHeight - 16) top  = window.innerHeight - ph - 16;
   if (top < 8) top = 8;
   panel.style.left = left + 'px';
   panel.style.top  = top  + 'px';

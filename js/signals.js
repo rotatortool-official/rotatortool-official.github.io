@@ -209,8 +209,9 @@ function renderTopBars() {
       }
     });
 
-    /* Pad to 6 slots if we don't have enough pairs */
-    while (previewPairs.length < 6 && gridHtml.split('sig-tile').length - 1 < 6) {
+    /* Always pad to exactly 6 slots with plain pro-locked placeholders */
+    var filledCount = previewPairs.length;
+    for (var pad = filledCount; pad < 6; pad++) {
       gridHtml += proLockedTile('');
     }
 

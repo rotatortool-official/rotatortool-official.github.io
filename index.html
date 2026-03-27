@@ -334,56 +334,86 @@ body::before{content:'';position:fixed;inset:0;background:repeating-linear-gradi
 .at-held-tag{font-size:7px;padding:1px 4px;border-radius:2px;background:var(--bnbd);color:var(--bnb);border:1px solid rgba(243,186,47,.2);letter-spacing:.04em;}
 
 /* ── TILE DETAIL FLOATING PANEL ── */
-.tile-detail-overlay{display:none;position:fixed;inset:0;z-index:600;background:rgba(0,0,0,.25);}
+.tile-detail-overlay{display:none;position:fixed;inset:0;z-index:600;background:rgba(0,0,0,.45);backdrop-filter:blur(2px);}
 .tile-detail-overlay.show{display:block;}
 .tile-detail{
   position:fixed;z-index:601;
   background:var(--bg2);
-  border:1px solid rgba(243,186,47,.28);
-  border-radius:6px;
-  padding:18px 20px;
-  width:310px;
-  box-shadow:0 20px 60px rgba(0,0,0,.7),0 0 30px rgba(243,186,47,.07);
+  border:1px solid rgba(243,186,47,.22);
+  border-radius:8px;
+  padding:18px 20px 20px;
+  width:330px;
+  box-shadow:0 24px 64px rgba(0,0,0,.75),0 0 0 1px rgba(255,255,255,.04),0 0 40px rgba(243,186,47,.06);
   animation:tileDetailIn .18s cubic-bezier(.22,.68,0,1.4) both;
   pointer-events:all;
+  overflow:hidden;
 }
 @keyframes tileDetailIn{
-  from{opacity:0;transform:translateY(8px) scale(.96);}
+  from{opacity:0;transform:translateY(10px) scale(.95);}
   to{opacity:1;transform:translateY(0) scale(1);}
 }
-.tdh{display:flex;align-items:center;gap:10px;margin-bottom:14px;padding-bottom:12px;border-bottom:1px solid var(--bdr);}
-.tdh-ico{width:32px;height:32px;border-radius:50%;overflow:hidden;background:var(--bg4);flex-shrink:0;}
-.tdh-ico img{width:100%;height:100%;}
+
+/* Header */
+.tdh{display:flex;align-items:center;gap:12px;margin-bottom:14px;}
+.tdh-ico-wrap{width:36px;height:36px;border-radius:50%;overflow:hidden;background:var(--bg4);flex-shrink:0;border:1px solid var(--bdr2);}
 .tdh-info{flex:1;min-width:0;}
-.tdh-sym{font-size:16px;font-weight:400;letter-spacing:.02em;font-family:var(--font-display);}
-.tdh-name{font-size:10px;color:var(--muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-family:var(--font-ui);}
-.tdh-price{font-size:15px;font-weight:600;color:var(--bnb);text-align:right;flex-shrink:0;}
-.td-close{position:absolute;top:10px;right:12px;background:none;border:none;color:var(--muted);font-size:18px;cursor:pointer;line-height:1;padding:2px 4px;transition:color .15s;}
-.td-close:hover{color:var(--text);}
-.td-section{margin-bottom:12px;}
-.td-section-title{font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin-bottom:6px;font-weight:400;font-family:var(--font-display);}
-.td-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:5px;}
-.td-grid-4{display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:5px;}
-.td-cell{background:var(--bg3);border-radius:3px;padding:5px 6px;text-align:center;}
-.td-cell-l{font-size:7px;color:var(--muted);letter-spacing:.06em;margin-bottom:2px;}
-.td-cell-v{font-size:11px;font-weight:600;}
-.td-cell-v.up{color:var(--green);}
-.td-cell-v.dn{color:var(--red);}
-.td-cell-v.am{color:var(--amber);}
-.td-cell-v.bnb{color:var(--bnb);}
-.td-bar-row{display:flex;align-items:center;gap:8px;margin-bottom:5px;}
-.td-bar-lbl{font-size:10px;color:var(--muted);width:36px;flex-shrink:0;}
-.td-bar-wrap{flex:1;height:4px;background:var(--bg4);border-radius:2px;overflow:hidden;}
-.td-bar-fill{height:100%;border-radius:2px;transition:width .4s ease;}
-.td-bar-val{font-size:10px;font-weight:600;width:38px;text-align:right;flex-shrink:0;}
+.tdh-sym{font-size:17px;font-weight:600;letter-spacing:.02em;font-family:var(--font-mono);}
+.tdh-name{font-size:10px;color:var(--muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-family:var(--font-ui);margin-top:1px;}
+.tdh-price{font-size:16px;font-weight:700;color:var(--text);font-family:var(--font-mono);letter-spacing:.02em;}
+.td-type-badge{font-size:7px;font-weight:700;padding:2px 6px;border-radius:2px;letter-spacing:.08em;flex-shrink:0;}
+.td-type-badge.crypto{background:rgba(243,186,47,.12);color:var(--bnb);border:1px solid rgba(243,186,47,.25);}
+.td-type-badge.forex{background:rgba(0,200,150,.1);color:var(--green);border:1px solid rgba(0,200,150,.25);}
+.td-type-badge.stock{background:rgba(167,139,250,.1);color:var(--pro);border:1px solid rgba(167,139,250,.25);}
+.td-type-badge.index{background:rgba(240,160,48,.1);color:var(--amber);border:1px solid rgba(240,160,48,.25);}
+
+/* Section */
+.td-section{margin-bottom:14px;}
+.td-section:last-child{margin-bottom:0;}
+.td-section-title{font-size:9px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);margin-bottom:7px;display:flex;align-items:center;gap:6px;}
+.td-section-title::after{content:'';flex:1;height:1px;background:var(--bdr);}
+
+/* Performance pills row */
+.td-perf-row{display:flex;gap:5px;}
+.td-perf-pill{flex:1;background:var(--bg3);border:1px solid var(--bdr);border-radius:5px;padding:6px 4px;text-align:center;}
+.td-perf-pill-l{font-size:7px;color:var(--muted);letter-spacing:.06em;margin-bottom:3px;}
+.td-perf-pill-v{font-size:12px;font-weight:700;font-family:var(--font-mono);}
+.td-perf-pill-v.up{color:var(--green);}
+.td-perf-pill-v.dn{color:var(--red);}
+.td-perf-pill-v.fl{color:var(--muted);}
+
+/* Score section — big number left, bars right */
+.td-score-wrap{display:flex;align-items:flex-start;gap:12px;}
+.td-score-big{flex-shrink:0;width:56px;text-align:center;}
+.td-score-num-val{font-size:38px;font-weight:700;line-height:1;font-family:var(--font-mono);}
+.td-score-num-lbl{font-size:8px;color:var(--muted);letter-spacing:.06em;margin-top:2px;}
+.td-score-bars-col{flex:1;display:flex;flex-direction:column;gap:5px;padding-top:4px;}
+
+/* Bar rows */
+.td-bar-row{display:flex;align-items:center;gap:7px;}
+.td-bar-lbl{font-size:9px;color:var(--muted);width:52px;flex-shrink:0;letter-spacing:.04em;}
+.td-bar-wrap{flex:1;height:5px;background:var(--bg4);border-radius:3px;overflow:hidden;}
+.td-bar-fill{height:100%;border-radius:3px;transition:width .5s ease;}
+.td-bar-val{font-size:9px;font-weight:700;width:38px;text-align:right;flex-shrink:0;font-family:var(--font-mono);}
+
+/* Market data grid */
+.td-mkt-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:5px;}
+.td-mkt-cell{background:var(--bg3);border:1px solid var(--bdr);border-radius:5px;padding:6px 5px;text-align:center;}
+.td-mkt-cell-l{font-size:7px;color:var(--muted);letter-spacing:.06em;margin-bottom:3px;}
+.td-mkt-cell-v{font-size:11px;font-weight:600;color:var(--bnb);font-family:var(--font-mono);}
+
+/* Badges */
 .td-badge-row{display:flex;gap:5px;flex-wrap:wrap;}
-.td-badge{font-size:9px;padding:2px 7px;border-radius:2px;border:1px solid;letter-spacing:.06em;font-weight:600;}
+.td-badge{font-size:9px;padding:3px 8px;border-radius:3px;border:1px solid;letter-spacing:.06em;font-weight:700;}
 .td-badge.bull{background:rgba(0,200,150,.1);border-color:rgba(0,200,150,.3);color:var(--green);}
 .td-badge.bear{background:rgba(255,69,96,.1);border-color:rgba(255,69,96,.3);color:var(--red);}
 .td-badge.neu{background:var(--bg3);border-color:var(--bdr2);color:var(--muted);}
 .td-badge.pro-b{background:rgba(167,139,250,.1);border-color:rgba(167,139,250,.3);color:var(--pro);}
+.td-badge.ob{background:rgba(255,69,96,.1);border-color:rgba(255,69,96,.3);color:var(--red);}
+.td-badge.os{background:rgba(0,200,150,.1);border-color:rgba(0,200,150,.25);color:var(--green);}
 
-.tbl-head{padding:5px 12px;border-bottom:1px solid var(--bdr);background:var(--bg2);display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:4px;flex-shrink:0;}
+/* Close button */
+.td-close{position:absolute;top:12px;right:14px;background:rgba(255,255,255,.05);border:1px solid var(--bdr);color:var(--muted);font-size:16px;cursor:pointer;line-height:1;padding:3px 7px;transition:all .15s;border-radius:3px;}
+.td-close:hover{color:var(--text);background:rgba(255,255,255,.1);border-color:var(--bdr2);}.tbl-head{padding:5px 12px;border-bottom:1px solid var(--bdr);background:var(--bg2);display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:4px;flex-shrink:0;}
 .last-upd-ts{font-size:9px;color:var(--muted);letter-spacing:.06em;font-family:var(--font-ui);}
 .tf-tabs{display:flex;gap:3px;}
 .tf-tab{background:none;border:1px solid var(--bdr);color:var(--muted);font-family:inherit;font-size:9px;padding:2px 8px;cursor:pointer;border-radius:2px;letter-spacing:.08em;transition:all .15s;}
@@ -662,8 +692,8 @@ td.pc{text-align:right;padding-left:2px;padding-right:2px;}
   .bars-divider{width:1px;align-self:stretch;}
   .bar-col-title{font-size:7px;letter-spacing:.04em;margin-bottom:2px;}
   .bar-col-title::after{display:none;}
-  .sig-tiles-grid{grid-template-columns:repeat(2,1fr) !important;}
-  .sig-tile:nth-child(n+5){display:none;}
+  .sig-tiles-grid{grid-template-columns:repeat(2,1fr) !important;grid-auto-rows:auto !important;}
+  .sig-tile:nth-child(n+9){display:none;}
   .sig-tile{padding:2px 3px;}
   .sig-tile-sym{font-size:8px;}
   .sig-stat-l{font-size:6px;}
@@ -731,16 +761,17 @@ td.pc{text-align:right;padding-left:2px;padding-right:2px;}
   .ad-panel{display:none !important;}  /* hide sponsored panel — already shown in topbar */
   .main-col{padding-bottom:60px;}
   tbody td{border-bottom:none;}
-  /* Signal panel 2×2 */
+  /* Signal panel — 2 rows × 4 tiles in portrait */
   .bars-cols{display:flex;flex-direction:row;gap:0;}
   .bars-col-inner{flex:1;min-width:0;padding:0 4px;}
   .bars-divider{width:1px;align-self:stretch;}
   .bar-col-title{font-size:7px;letter-spacing:.05em;margin-bottom:3px;white-space:nowrap;overflow:hidden;}
   .bar-col-title::after{display:none;}
-  .sig-tiles-grid{grid-template-columns:repeat(2,1fr) !important;}
-  .sig-tile:nth-child(n+5){display:none;}
+  .sig-tiles-grid{grid-template-columns:repeat(2,1fr) !important;grid-auto-rows:auto !important;}
+  .sig-tile:nth-child(n+9){display:none;}  /* show max 8 = 2 rows × 4 tiles */
   .sig-tile{padding:3px 4px;}
   .sig-tile-sym{font-size:9px;}
+  .sig-tiles-grid{display:grid !important;}
   .sig-tile-stats{display:flex;flex-wrap:nowrap;gap:2px;}
   .sig-stat{flex:1;}
   .sig-stat-l{font-size:6px;}
@@ -962,23 +993,51 @@ td.pc{text-align:right;padding-left:2px;padding-right:2px;}
 <div class="tile-detail-overlay" id="td-overlay" onclick="closeTileDetail()"></div>
 <div class="tile-detail" id="td-panel" style="display:none;">
   <button class="td-close" onclick="closeTileDetail()">×</button>
+
+  <!-- Header: icon + name + price -->
   <div class="tdh">
-    <div class="tdh-ico"><img id="td-ico" src="" alt=""></div>
-    <div class="tdh-info"><div class="tdh-sym" id="td-sym"></div><div class="tdh-name" id="td-name"></div></div>
-    <div class="tdh-price" id="td-price"></div>
+    <div class="tdh-ico-wrap">
+      <img id="td-ico" src="" alt="" style="width:100%;height:100%;border-radius:50%;display:block;">
+      <div id="td-ico-fallback" style="display:none;width:100%;height:100%;border-radius:50%;background:var(--bg4);display:flex;align-items:center;justify-content:center;font-size:16px;font-weight:700;color:var(--bnb);font-family:var(--font-mono);" id="td-ico-letters"></div>
+    </div>
+    <div class="tdh-info">
+      <div style="display:flex;align-items:center;gap:6px;">
+        <div class="tdh-sym" id="td-sym"></div>
+        <div id="td-type-badge" class="td-type-badge"></div>
+      </div>
+      <div class="tdh-name" id="td-name"></div>
+    </div>
+    <div style="text-align:right;flex-shrink:0;">
+      <div class="tdh-price" id="td-price"></div>
+      <div id="td-price-chg" style="font-size:11px;font-weight:600;margin-top:2px;"></div>
+    </div>
   </div>
+
+  <!-- Accent bar that changes color by score -->
+  <div id="td-accent-bar" style="height:2px;margin:-2px -2px 14px -2px;border-radius:0;transition:background .3s;"></div>
+
+  <!-- Performance row -->
   <div class="td-section">
     <div class="td-section-title">Performance</div>
-    <div class="td-grid-4" id="td-perf"></div>
+    <div class="td-perf-row" id="td-perf"></div>
   </div>
+
+  <!-- Score + breakdown bars -->
   <div class="td-section">
-    <div class="td-section-title">Momentum Score Breakdown</div>
-    <div id="td-score-bars"></div>
+    <div class="td-section-title">Score Breakdown</div>
+    <div class="td-score-wrap">
+      <div class="td-score-big" id="td-score-num"></div>
+      <div class="td-score-bars-col" id="td-score-bars"></div>
+    </div>
   </div>
+
+  <!-- Market data -->
   <div class="td-section">
     <div class="td-section-title">Market Data</div>
-    <div class="td-grid" id="td-market"></div>
+    <div class="td-mkt-grid" id="td-market"></div>
   </div>
+
+  <!-- Signal badges -->
   <div class="td-section" id="td-signals-sec">
     <div class="td-section-title">Signals</div>
     <div class="td-badge-row" id="td-badges"></div>
@@ -1474,7 +1533,19 @@ td.pc{text-align:right;padding-left:2px;padding-right:2px;}
 </script>
 <style>
 @media(max-width:700px){
-.tile-detail{position:fixed !important;top:50% !important;left:50% !important;transform:translate(-50%,-50%) !important;width:min(92vw,340px) !important;max-height:82vh !important;overflow-y:auto !important;z-index:1000 !important;}
+.tile-detail{
+  position:fixed !important;
+  top:50% !important;left:50% !important;
+  transform:translate(-50%,-50%) !important;
+  width:min(94vw,360px) !important;
+  max-height:88vh !important;
+  overflow-y:auto !important;
+  z-index:1000 !important;
+  padding:16px !important;
+}
+.td-score-wrap{flex-direction:column;gap:8px;}
+.td-score-big{width:100%;display:flex;align-items:center;gap:10px;}
+.td-score-num-val{font-size:32px;}
 }
 </style>
 

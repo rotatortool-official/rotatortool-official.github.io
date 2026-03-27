@@ -205,8 +205,8 @@ function renderFxTiles() {
     var scC = score >= 65 ? 'hi' : score >= 45 ? 'md' : 'lo';
     var glw = score >= 65 ? 'glow-g' : score >= 45 ? 'glow-a' : 'glow-r';
     var p7d = d ? d.p7 : 0, p30d = d ? d.p30 : 0;
-    return '<div class="tile ' + glw + '">'
-      + '<div class="tile-top"><span class="tile-sym" style="color:var(--bnb);">' + h.pair + '</span><button class="tile-rm" onclick="removeFxHolding(\'' + h.pair + '\')">×</button></div>'
+    return '<div class="tile ' + glw + '" onclick="openAssetDetail(\'forex\',\'' + h.pair + '\',event)" style="cursor:pointer;" title="Click for details">'
+      + '<div class="tile-top"><span class="tile-sym" style="color:var(--bnb);">' + h.pair + '</span><button class="tile-rm" onclick="event.stopPropagation();removeFxHolding(\'' + h.pair + '\')">×</button></div>'
       + '<div class="tile-price">' + (rate ? rate.toFixed(5) : '—') + '</div>'
       + '<div class="tile-perfs">'
         + '<div class="tpf"><span class="tpf-l">DAY%</span><span class="tpf-v ' + (chgPct>=0?'up':'dn') + '">' + (chgPct>=0?'+':'') + chgPct.toFixed(3) + '%</span></div>'
@@ -274,8 +274,8 @@ function renderStHoldings() {
     if (h.qty && h.avg && price) { var profit = (price - h.avg) * h.qty; var plC = profit >= 0 ? 'up' : 'dn'; pl = '<div class="tile-pl ' + plC + '">' + (profit >= 0 ? '+' : '-') + '$' + Math.abs(profit).toLocaleString('en-US', {maximumFractionDigits:0}) + '</div>'; }
     var scC = score >= 65 ? 'hi' : score >= 45 ? 'md' : 'lo';
     var glw = score >= 65 ? 'glow-g' : score >= 45 ? 'glow-a' : 'glow-r';
-    return '<div class="tile ' + glw + '">'
-      + '<div class="tile-top"><span class="tile-sym">' + h.sym + '</span><button class="tile-rm" onclick="removeStHolding(\'' + h.sym + '\')">×</button></div>'
+    return '<div class="tile ' + glw + '" onclick="openAssetDetail(\'stock\',\'' + h.sym + '\',event)" style="cursor:pointer;" title="Click for details">'
+      + '<div class="tile-top"><span class="tile-sym">' + h.sym + '</span><button class="tile-rm" onclick="event.stopPropagation();removeStHolding(\'' + h.sym + '\')">×</button></div>'
       + '<div class="tile-price">' + (price ? '$' + price.toFixed(2) : '—') + '</div>'
       + '<div class="tile-perfs">'
         + '<div class="tpf"><span class="tpf-l">TODAY</span><span class="tpf-v ' + (chgPct>=0?'up':'dn') + '">' + (chgPct>=0?'+':'') + chgPct.toFixed(2) + '%</span></div>'
