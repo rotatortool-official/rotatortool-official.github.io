@@ -981,7 +981,31 @@ function mobNavHoldings() {
     var src = document.getElementById('holdings-' + (currentMode || 'crypto'));
     if (src) {
       panel.innerHTML = '';
+
+      /* ── Portfolio Signal at top of mobile holdings ── */
+      var sigSrc = src.querySelector('.sig-box');
+      if (sigSrc) {
+        var sigWrap = document.createElement('div');
+        sigWrap.className = 'mob-portfolio-sig';
+        sigWrap.innerHTML = sigSrc.outerHTML;
+        panel.appendChild(sigWrap);
+      }
+
+      /* ── 2 placeholder tiles if no holdings yet ── */
+      var tilesGrid = src.querySelector('.tiles-grid');
+      var hasHoldings = tilesGrid && tilesGrid.children.length > 0;
+      if (!hasHoldings) {
+        var phWrap = document.createElement('div');
+        phWrap.style.cssText = 'display:grid;grid-template-columns:1fr 1fr;gap:6px;padding:10px 12px 4px;flex-shrink:0;';
+        phWrap.innerHTML = '<div class="mob-placeholder-tile" onclick="mobNavHoldings();setTimeout(function(){var s=document.querySelector('.mob-holdings-panel .add-form select');if(s)s.focus();},200);">+ Add Coin</div>'
+          + '<div class="mob-placeholder-tile" onclick="mobNavHoldings();setTimeout(function(){var s=document.querySelector('.mob-holdings-panel .add-form select');if(s)s.focus();},200);">+ Add Coin</div>';
+        panel.appendChild(phWrap);
+      }
+
       var clone = src.cloneNode(true);
+      /* Hide sig-box inside clone (already shown above) */
+      var clonedSig = clone.querySelector('.sig-box');
+      if (clonedSig) clonedSig.style.display = 'none';
       clone.style.display = 'flex'; clone.style.flexDirection = 'column';
       panel.appendChild(clone);
 

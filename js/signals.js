@@ -121,15 +121,20 @@ function sigRotTile(sell, buy) {
 function renderTopBars() {
   var hSyms = holdings.map(function(h) { return h.sym; });
 
-  /* Helper: build a locked-Pro placeholder tile */
-  function proLockedTile(msg) {
+  /* Helper: single ⚡ Pro unlock tile (one per column only) */
+  function proUnlockTile(msg) {
     return '<div class="sig-tile pro-locked" onclick="openPro()" style="cursor:pointer;'
       + 'display:flex;flex-direction:column;align-items:center;justify-content:center;'
-      + 'gap:6px;min-height:88px;opacity:.7;">'
-      + '<span style="font-size:15px;">⚡</span>'
+      + 'gap:6px;min-height:88px;opacity:.85;">'
+      + '<span style="font-size:18px;">⚡</span>'
       + '<span style="font-size:9px;font-weight:700;letter-spacing:.1em;color:var(--pro);">PRO</span>'
       + '<span style="font-size:9px;color:var(--muted);text-align:center;line-height:1.4;">' + msg + '</span>'
       + '</div>';
+  }
+
+  /* Helper: plain empty placeholder tile */
+  function emptyPlaceholderTile() {
+    return '<div class="sig-tile" style="min-height:88px;opacity:.2;cursor:default;border-style:dashed;"></div>';
   }
 
   /* ── Column 3: Worst 30D — 3 free / 6 Pro ── */
@@ -140,7 +145,7 @@ function renderTopBars() {
       + worstAll.slice(0, 6).map(function(c) { return sigTile(c, 'wrst'); }).join('') + '</div>';
   } else {
     var w3 = worstAll.slice(0, 3).map(function(c) { return sigTile(c, 'wrst'); }).join('');
-    var wLocked = proLockedTile('3 more in Pro') + proLockedTile('') + proLockedTile('');
+    var wLocked = proUnlockTile('3 more in Pro') + emptyPlaceholderTile() + emptyPlaceholderTile();
     worstEl.innerHTML = '<div class="sig-tiles-grid">' + w3 + wLocked + '</div>';
   }
 
@@ -158,8 +163,8 @@ function renderTopBars() {
   } else {
     if (momAll.length) {
       var m1 = sigTile(momAll[0], 'mom');
-      var mLocked = proLockedTile('unlock 5 more') + proLockedTile('') + proLockedTile('')
-                  + proLockedTile('') + proLockedTile('');
+      var mLocked = proUnlockTile('unlock 5 more') + emptyPlaceholderTile() + emptyPlaceholderTile()
+                  + emptyPlaceholderTile() + emptyPlaceholderTile();
       momEl.innerHTML = '<div class="sig-tiles-grid">' + m1 + mLocked + '</div>';
     } else {
       momEl.innerHTML = '<div class="no-sug">Scanning \u2014 no coins above momentum threshold right now.</div>';
@@ -203,16 +208,20 @@ function renderTopBars() {
       if (idx === 0) {
         /* First tile: real, fully visible, clickable for detail */
         gridHtml += sigRotTile(p.sell, p.buy);
+      } else if (idx === 1) {
+        /* Second tile: single Pro unlock tile */
+        gridHtml += proUnlockTile('unlock pairs');
       } else {
-        /* Tiles 2-6: blurred with Pro lock overlay */
-        gridHtml += blurLockedTile(p.sell, p.buy);
+        /* Remaining tiles: plain placeholders */
+        gridHtml += emptyPlaceholderTile();
       }
     });
 
-    /* Always pad to exactly 6 slots with plain pro-locked placeholders */
+    /* Always pad to exactly 6 slots with plain placeholders */
     var filledCount = previewPairs.length;
-    for (var pad = filledCount; pad < 6; pad++) {
-      gridHtml += proLockedTile('');
+    if (filledCount === 1) gridHtml += proUnlockTile('unlock pairs');
+    for (var pad = Math.max(filledCount, 2); pad < 6; pad++) {
+      gridHtml += emptyPlaceholderTile();
     }
 
     sugEl.innerHTML = '<div class="sig-tiles-grid">' + gridHtml + '</div>';
