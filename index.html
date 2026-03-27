@@ -46,17 +46,17 @@ body::before{content:'';position:fixed;inset:0;background:repeating-linear-gradi
 .btc-meta{font-size:11px;color:var(--muted);display:flex;align-items:center;gap:6px;}
 .topbar-r{display:flex;align-items:center;gap:5px;width:320px;justify-content:flex-end;flex-shrink:0;}
 .ts{font-size:10px;color:var(--text);letter-spacing:.04em;opacity:.7;}
-.btn{background:none;border:1px solid var(--bdr2);color:var(--text);padding:4px 11px;font-family:inherit;font-size:11px;cursor:pointer;letter-spacing:.07em;border-radius:2px;transition:all .15s;}
+.btn{background:none;border:1px solid var(--bdr2);color:var(--muted);padding:3px 10px;font-family:inherit;font-size:10px;cursor:pointer;letter-spacing:.07em;border-radius:2px;transition:all .15s;}
 .btn:hover{border-color:var(--bnb);color:var(--bnb);}
 .btn:disabled{opacity:.35;cursor:default;}
 .btn.acc{border-color:var(--bnb);color:var(--bnb);}
 .btn.acc:hover{background:var(--bnbd);}
-.btn.donate{border-color:rgba(0,200,150,.4);color:var(--green);min-width:90px;text-align:center;}
-.btn.donate:hover{background:var(--gd);}
-.btn.pro-btn{border-color:rgba(167,139,250,.4);color:var(--pro);position:relative;overflow:hidden;min-width:110px;text-align:center;}
+.btn.donate{border-color:rgba(0,200,150,.3);color:var(--muted);min-width:80px;text-align:center;}
+.btn.donate:hover{background:var(--gd);color:var(--green);border-color:rgba(0,200,150,.5);}
+.btn.pro-btn{border-color:rgba(167,139,250,.3);color:var(--muted);position:relative;overflow:hidden;min-width:100px;text-align:center;}
 .btn.pro-btn::before{content:'';position:absolute;inset:0;background:linear-gradient(90deg,transparent,rgba(167,139,250,.08),transparent);animation:proShimmer 2.5s linear infinite;}
 @keyframes proShimmer{0%{transform:translateX(-100%);}100%{transform:translateX(100%);}}
-.btn.pro-btn:hover{background:var(--prod);border-color:var(--pro);}
+.btn.pro-btn:hover{background:var(--prod);border-color:var(--pro);color:var(--pro);}
 @keyframes spin{to{transform:rotate(360deg);}}
 .spinning{display:inline-block;animation:spin .7s linear infinite;}
 
@@ -157,8 +157,8 @@ body::before{content:'';position:fixed;inset:0;background:repeating-linear-gradi
    LEFT SIDEBAR
 ══════════════════════════════ */
 .sidebar{background:var(--bg2);border-right:1px solid var(--bdr);display:flex;flex-direction:column;overflow:hidden;}
-.phead{padding:6px 14px;border-bottom:1px solid var(--bdr);background:var(--bg3);display:flex;align-items:center;justify-content:space-between;flex-shrink:0;}
-.ptitle{font-size:11px;font-weight:400;letter-spacing:.08em;text-transform:uppercase;color:rgba(180,195,215,.8);font-family:var(--font-display);}
+.phead{padding:5px 14px;border-bottom:1px solid var(--bdr);border-top:1px solid var(--bdr);background:var(--bg2);display:flex;align-items:center;justify-content:space-between;flex-shrink:0;}
+.ptitle{font-size:10px;font-weight:400;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);font-family:var(--font-display);}
 .ptitle em{color:var(--bnb);font-style:normal;}
 .add-form{padding:10px 14px;border-bottom:1px solid var(--bdr);background:var(--bg3);flex-shrink:0;}
 .frow{display:flex;gap:6px;align-items:center;margin-bottom:6px;}
@@ -170,13 +170,17 @@ body::before{content:'';position:fixed;inset:0;background:repeating-linear-gradi
 .add-btn{width:100%;padding:5px;background:var(--bnbd);border:1px solid rgba(243,186,47,.22);color:var(--bnb);font-family:inherit;font-size:10px;letter-spacing:.1em;cursor:pointer;border-radius:2px;transition:all .15s;margin-top:5px;}
 .add-btn:hover{background:rgba(243,186,47,.16);border-color:var(--bnb);}
 .tiles-scroll{overflow-y:auto;overflow-x:hidden;padding:10px 12px;min-height:110px;max-height:210px;flex-shrink:0;}
-.holdings-section-label{padding:4px 10px 3px;font-size:8px;letter-spacing:.16em;text-transform:uppercase;color:var(--muted);font-weight:600;border-bottom:1px solid var(--bdr);background:var(--bg2);display:flex;align-items:center;justify-content:space-between;flex-shrink:0;}
+.holdings-section-label{padding:5px 12px 4px;font-size:9px;letter-spacing:.14em;text-transform:uppercase;color:rgba(180,195,215,.7);font-weight:500;border-bottom:1px solid var(--bdr);background:var(--bg3);display:flex;align-items:center;justify-content:space-between;flex-shrink:0;font-family:var(--font-ui);}
 .tiles-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:5px;width:100%;}
 .empty-t{grid-column:1/-1;padding:14px 10px;text-align:center;color:var(--muted);font-size:10px;line-height:2;border:1px dashed rgba(255,255,255,.07);border-radius:3px;letter-spacing:.06em;}
-.tile{position:relative;overflow:hidden;border-radius:3px;padding:7px 8px;border:1px solid var(--bdr);background:var(--bg3);min-width:0;}
-.tile.glow-g{border-color:rgba(0,200,150,.45);box-shadow:0 0 12px rgba(0,200,150,.18);}
-.tile.glow-a{border-color:rgba(240,160,48,.45);box-shadow:0 0 12px rgba(240,160,48,.18);}
-.tile.glow-r{border-color:rgba(255,69,96,.38);box-shadow:0 0 10px rgba(255,69,96,.12);}
+.tile{position:relative;overflow:hidden;border-radius:3px;padding:7px 8px 7px 11px;border:1px solid var(--bdr);background:var(--bg3);min-width:0;}
+.tile::before{content:'';position:absolute;left:0;top:0;bottom:0;width:3px;border-radius:3px 0 0 3px;}
+.tile.glow-g{border-color:rgba(0,200,150,.35);box-shadow:0 0 10px rgba(0,200,150,.12);}
+.tile.glow-g::before{background:var(--green);}
+.tile.glow-a{border-color:rgba(240,160,48,.35);box-shadow:0 0 10px rgba(240,160,48,.12);}
+.tile.glow-a::before{background:var(--amber);}
+.tile.glow-r{border-color:rgba(255,69,96,.28);box-shadow:0 0 8px rgba(255,69,96,.1);}
+.tile.glow-r::before{background:var(--red);}
 .tile canvas.sp{position:absolute;inset:0;pointer-events:none;width:100%;height:100%;}
 .tile-top{display:flex;align-items:center;gap:6px;margin-bottom:5px;}
 .tile-ico{width:22px;height:22px;border-radius:50%;overflow:hidden;background:var(--bg4);flex-shrink:0;}
@@ -199,9 +203,8 @@ body::before{content:'';position:fixed;inset:0;background:repeating-linear-gradi
 .tile-scr.hi{background:var(--gd);color:var(--green);}
 .tile-scr.md{background:var(--ad);color:var(--amber);}
 .tile-scr.lo{background:var(--rd);color:var(--red);}
-.sig-box{padding:10px 14px;border-top:1px solid rgba(243,186,47,.25);background:var(--bg3);flex-shrink:0;margin-top:auto;}
-.sig-title{font-size:9px;font-weight:600;letter-spacing:.18em;text-transform:uppercase;color:var(--bnb);margin-bottom:6px;text-shadow:0 0 8px rgba(243,186,47,.4);display:flex;align-items:center;gap:5px;}
-.sig-title::before{content:'◈';}
+.sig-box{padding:10px 14px;border-bottom:1px solid rgba(243,186,47,.2);background:linear-gradient(135deg,rgba(243,186,47,.06),rgba(243,186,47,.02));flex-shrink:0;}
+.sig-title{font-size:10px;font-weight:400;letter-spacing:.12em;text-transform:uppercase;color:var(--bnb);margin-bottom:8px;text-shadow:0 0 8px rgba(243,186,47,.4);font-family:var(--font-display);}
 .sig-avg{font-size:18px;font-weight:600;margin-bottom:6px;display:flex;align-items:baseline;gap:5px;}
 .sig-avg-lbl{font-size:10px;color:var(--muted);font-weight:400;}
 .sig-row-head{font-size:10px;letter-spacing:.1em;text-transform:uppercase;margin-bottom:2px;margin-top:6px;}
@@ -238,7 +241,10 @@ body::before{content:'';position:fixed;inset:0;background:repeating-linear-gradi
 /* ── SIGNAL TILE GRID (Rotation / Momentum / Worst) ── */
 .bars-cols{display:grid;grid-template-columns:1fr 1px 1fr 1px 1fr;gap:0;align-items:stretch;}
 .bars-divider{width:1px;align-self:stretch;margin:6px 0;background:linear-gradient(to bottom,transparent 0%,rgba(243,186,47,.12) 15%,rgba(243,186,47,.35) 40%,rgba(243,186,47,.45) 50%,rgba(243,186,47,.35) 60%,rgba(243,186,47,.12) 85%,transparent 100%);}
-.bars-col-inner{padding:0 9px;min-width:0;}
+.bars-col-inner{padding:6px 9px 0;min-width:0;border-top:2px solid transparent;}
+.bars-col-inner:nth-child(1){border-top-color:rgba(0,200,150,.5);}
+.bars-col-inner:nth-child(3){border-top-color:rgba(240,160,48,.5);}
+.bars-col-inner:nth-child(5){border-top-color:rgba(255,69,96,.5);}
 .sig-tiles-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,120px),1fr));gap:5px;align-items:stretch;grid-auto-rows:1fr;}
 /* ── Rotation blur+lock tile wrapper ── */
 .sig-rot-locked{position:relative;cursor:pointer;border-radius:3px;overflow:hidden;}
@@ -413,15 +419,16 @@ body::before{content:'';position:fixed;inset:0;background:repeating-linear-gradi
 
 /* Close button */
 .td-close{position:absolute;top:12px;right:14px;background:rgba(255,255,255,.05);border:1px solid var(--bdr);color:var(--muted);font-size:16px;cursor:pointer;line-height:1;padding:3px 7px;transition:all .15s;border-radius:3px;}
-.td-close:hover{color:var(--text);background:rgba(255,255,255,.1);border-color:var(--bdr2);}.tbl-head{padding:5px 12px;border-bottom:1px solid var(--bdr);background:var(--bg2);display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:4px;flex-shrink:0;}
+.td-close:hover{color:var(--text);background:rgba(255,255,255,.1);border-color:var(--bdr2);}
+.tbl-head{padding:7px 12px;border-bottom:1px solid var(--bdr2);background:var(--bg3);display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:4px;flex-shrink:0;}
 .last-upd-ts{font-size:9px;color:var(--muted);letter-spacing:.06em;font-family:var(--font-ui);}
 .tf-tabs{display:flex;gap:3px;}
 .tf-tab{background:none;border:1px solid var(--bdr);color:var(--muted);font-family:inherit;font-size:9px;padding:2px 8px;cursor:pointer;border-radius:2px;letter-spacing:.08em;transition:all .15s;}
 .tf-tab.active{border-color:var(--bnb);color:var(--bnb);background:var(--bnbd);}
 .leaderboard{flex:1;overflow-y:auto;min-height:0;}
 table{width:100%;border-collapse:collapse;}
-thead tr{background:var(--bg3);position:sticky;top:0;z-index:10;}
-thead th{padding:5px 5px;text-align:left;font-size:10px;font-weight:600;letter-spacing:.10em;text-transform:uppercase;color:var(--muted);border-bottom:1px solid var(--bdr);white-space:nowrap;cursor:pointer;user-select:none;}
+thead tr{background:var(--bg4);position:sticky;top:0;z-index:10;box-shadow:0 1px 0 var(--bdr2);}
+thead th{padding:7px 5px;text-align:left;font-size:9px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);border-bottom:2px solid var(--bdr2);white-space:nowrap;cursor:pointer;user-select:none;}
 thead th:hover{color:var(--text);}
 thead th.sorted{color:var(--bnb);}
 thead th.sorted::after{content:' ▾';}
@@ -511,10 +518,9 @@ td.pc{text-align:right;padding-left:2px;padding-right:2px;}
 }
 .pub-btn:hover{background:rgba(167,139,250,.2);border-color:var(--pro);}
 
-/* ── RIGHT AD PANEL ── */
+/* ── RIGHT PANEL ── */
 .ad-panel{background:var(--bg2);border-left:1px solid var(--bdr);display:flex;flex-direction:column;overflow:hidden;}
-.ad-head{padding:7px 12px;border-bottom:1px solid var(--bdr);background:var(--bg3);flex-shrink:0;}
-.ad-body{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;padding:12px 14px;gap:12px;overflow-y:auto;}
+.ad-body{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;padding:16px 14px 12px;gap:14px;overflow-y:auto;}
 .ad-promo{width:100%;background:linear-gradient(135deg,rgba(167,139,250,.1),rgba(167,139,250,.04));border:1px solid rgba(167,139,250,.28);border-radius:5px;padding:14px 14px;text-align:center;}
 .ad-promo-icon{font-size:22px;margin-bottom:6px;}
 .ad-promo-title{font-size:14px;font-weight:400;color:var(--pro);letter-spacing:.02em;margin-bottom:5px;font-family:var(--font-display);}
@@ -579,11 +585,12 @@ td.pc{text-align:right;padding-left:2px;padding-right:2px;}
 .faq-a{font-size:13px;color:var(--text);line-height:1.9;font-family:var(--font-ui);}
 
 /* ── FOOTER ── */
-.site-footer{background:var(--bg2);border-top:1px solid var(--bdr);padding:16px 20px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;flex-shrink:0;}
+.site-footer{background:var(--bg2);border-top:1px solid var(--bdr);padding:14px 20px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;flex-shrink:0;}
 .footer-links{display:flex;gap:18px;flex-wrap:wrap;justify-content:center;}
-.footer-link{font-size:10px;color:var(--muted);text-decoration:none;letter-spacing:.08em;cursor:pointer;transition:color .15s;}
+.footer-link{font-size:10px;color:var(--muted);text-decoration:none;letter-spacing:.08em;cursor:pointer;transition:color .15s;font-family:var(--font-ui);}
 .footer-link:hover{color:var(--text);}
-.footer-copy{font-size:10px;color:var(--muted);letter-spacing:.06em;text-align:center;}
+.footer-copy{font-size:10px;color:var(--muted);letter-spacing:.04em;text-align:center;font-family:var(--font-ui);line-height:1.8;}
+.footer-disclaimer{font-size:9px;color:rgba(90,110,133,.7);letter-spacing:.04em;text-align:center;font-family:var(--font-ui);line-height:1.7;max-width:600px;}
 .loader{position:fixed;inset:0;background:var(--bg);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;z-index:600;transition:opacity .35s;}
 .loader.gone{opacity:0;pointer-events:none;}
 .llogo{font-size:16px;font-weight:600;letter-spacing:.22em;color:var(--bnb);}
@@ -1150,7 +1157,7 @@ td.pc{text-align:right;padding-left:2px;padding-right:2px;}
   <!-- ── DESKTOP: original layout ── -->
   <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;" class="topbar-desktop-left">
     <canvas id="logo-c" width="110" height="32" style="display:block;cursor:pointer;" onclick="location.reload()" title="ROTATOR"></canvas>
-    <span class="tier-badge free" id="tier-badge">FREE · TOP 50</span>
+    <span class="tier-badge free" id="tier-badge">TOP 100</span>
     <div class="btc-pill unk" id="btc-pill"><span class="pulse"></span><span id="btc-pill-txt">BTC: LOADING</span></div>
     <div class="btc-meta"><span id="btc-p">—</span><span style="margin-left:8px;" id="btc-ma"></span></div>
   </div>
@@ -1193,24 +1200,30 @@ td.pc{text-align:right;padding-left:2px;padding-right:2px;}
 
     <!-- CRYPTO HOLDINGS -->
     <div id="holdings-crypto" style="display:flex;flex-direction:column;flex:1;overflow:hidden;">
-      <div class="phead"><div class="ptitle">ADD CRYPTO</div></div>
+      <div class="sig-box" id="sig-box-crypto">
+        <div class="sig-title">◈ Portfolio Signal</div>
+        <div id="sig-content"><div style="font-size:11px;color:var(--muted);font-family:var(--font-ui);">Add holdings below to see your signal.</div></div>
+      </div>
+      <div class="holdings-section-label"><span>MY HOLDINGS</span><span id="hcount" style="color:var(--bnb);font-size:9px;letter-spacing:.04em;"></span></div>
+      <div class="tiles-scroll"><div class="tiles-grid" id="tiles-grid"></div></div>
+      <div class="phead"><div class="ptitle">Add Crypto</div></div>
       <div class="add-form">
         <div class="frow"><span class="flbl">COIN</span><select id="coin-sel"><option value="">Select…</option></select></div>
         <div class="frow"><span class="flbl">QTY</span><input type="number" id="inp-qty" placeholder="amount" min="0" step="any"></div>
         <div class="frow"><span class="flbl">AVG $</span><input type="number" id="inp-avg" placeholder="avg buy price" min="0" step="any"></div>
         <button class="add-btn" onclick="addHolding()">+ ADD TO HOLDINGS</button>
       </div>
-      <div class="holdings-section-label"><span>MY HOLDINGS</span><span id="hcount" style="color:var(--bnb);font-size:9px;letter-spacing:.04em;"></span></div>
-      <div class="tiles-scroll"><div class="tiles-grid" id="tiles-grid"></div></div>
-      <div class="sig-box">
-        <div class="sig-title">Portfolio Signal</div>
-        <div id="sig-content"><div style="font-size:11px;color:var(--muted);">Add holdings to see signal.</div></div>
-      </div>
     </div>
 
     <!-- FOREX HOLDINGS -->
     <div id="holdings-forex" style="display:none;flex-direction:column;flex:1;overflow:hidden;">
-      <div class="phead"><div class="ptitle">ADD FOREX PAIR</div></div>
+      <div class="sig-box">
+        <div class="sig-title">◈ Forex Signal</div>
+        <div id="fx-sig-content"><div style="font-size:11px;color:var(--muted);font-family:var(--font-ui);">Add pairs below to see your signal.</div></div>
+      </div>
+      <div class="holdings-section-label"><span>MY HOLDINGS</span><span id="fx-hcount" style="color:var(--bnb);font-size:9px;letter-spacing:.04em;"></span></div>
+      <div class="tiles-scroll"><div class="tiles-grid" id="fx-tiles-grid"></div></div>
+      <div class="phead"><div class="ptitle">Add Forex Pair</div></div>
       <div class="add-form">
         <div class="frow"><span class="flbl">PAIR</span>
           <select id="fx-sel">
@@ -1231,17 +1244,17 @@ td.pc{text-align:right;padding-left:2px;padding-right:2px;}
         <div class="frow"><span class="flbl">ENTRY</span><input type="number" id="fx-entry" placeholder="entry rate" min="0" step="any"></div>
         <button class="add-btn" onclick="addForexHolding()">+ ADD FOREX PAIR</button>
       </div>
-      <div class="holdings-section-label"><span>MY HOLDINGS</span><span id="fx-hcount" style="color:var(--bnb);font-size:9px;letter-spacing:.04em;"></span></div>
-      <div class="tiles-scroll"><div class="tiles-grid" id="fx-tiles-grid"></div></div>
-      <div class="sig-box">
-        <div class="sig-title">Forex Signal</div>
-        <div id="fx-sig-content"><div style="font-size:11px;color:var(--muted);">Add pairs to see signal.</div></div>
-      </div>
     </div>
 
     <!-- STOCKS HOLDINGS -->
     <div id="holdings-stocks" style="display:none;flex-direction:column;flex:1;overflow:hidden;">
-      <div class="phead"><div class="ptitle">ADD STOCK</div></div>
+      <div class="sig-box">
+        <div class="sig-title">◈ Stock Signal</div>
+        <div id="st-sig-content"><div style="font-size:11px;color:var(--muted);font-family:var(--font-ui);">Add stocks below to see your signal.</div></div>
+      </div>
+      <div class="holdings-section-label"><span>MY HOLDINGS</span><span id="st-hcount" style="color:var(--bnb);font-size:9px;letter-spacing:.04em;"></span></div>
+      <div class="tiles-scroll"><div class="tiles-grid" id="st-tiles-grid"></div></div>
+      <div class="phead"><div class="ptitle">Add Stock</div></div>
       <div class="add-form">
         <div class="frow"><span class="flbl">TICKER</span>
           <select id="st-sel">
@@ -1278,12 +1291,6 @@ td.pc{text-align:right;padding-left:2px;padding-right:2px;}
         <div class="frow"><span class="flbl">AVG $</span><input type="number" id="st-avg" placeholder="avg buy price" min="0" step="any"></div>
         <button class="add-btn" onclick="addStockHolding()">+ ADD STOCK</button>
       </div>
-      <div class="holdings-section-label"><span>MY HOLDINGS</span><span id="st-hcount" style="color:var(--bnb);font-size:9px;letter-spacing:.04em;"></span></div>
-      <div class="tiles-scroll"><div class="tiles-grid" id="st-tiles-grid"></div></div>
-      <div class="sig-box">
-        <div class="sig-title">Stock Signal</div>
-        <div id="st-sig-content"><div style="font-size:11px;color:var(--muted);">Add stocks to see signal.</div></div>
-      </div>
     </div>
   </div>
 
@@ -1310,7 +1317,7 @@ td.pc{text-align:right;padding-left:2px;padding-right:2px;}
       </div>
     </div>
     <div class="tbl-head">
-      <div class="ptitle" id="tbl-title">PERFORMANCE LEADERBOARD</div>
+      <div class="ptitle" id="tbl-title" style="font-size:12px;color:rgba(220,228,240,.9);letter-spacing:.1em;">PERFORMANCE LEADERBOARD</div>
       <div style="display:flex;align-items:center;gap:10px;">
         <span id="last-updated-crypto"  class="last-upd-ts" style="display:none;"></span>
         <span id="last-updated-forex"   class="last-upd-ts" style="display:none;"></span>
@@ -1351,14 +1358,13 @@ td.pc{text-align:right;padding-left:2px;padding-right:2px;}
     </div>
   </div>
 
-  <!-- RIGHT: Ad Panel -->
+  <!-- RIGHT: Info Panel -->
   <div class="ad-panel">
-    <div class="ad-head"><div class="ptitle">SPONSORED</div></div>
     <div class="ad-body">
       <canvas id="ad-splash-c" width="280" height="90" style="display:block;flex-shrink:0;"></canvas>
       <div class="ad-promo">
         <div class="ad-promo-icon">⚡</div>
-        <div class="ad-promo-title">UNLOCK PRO — FREE</div>
+        <div class="ad-promo-title">Unlock Pro — Free</div>
         <div class="ad-promo-sub">Share with 3 friends.<br>No payment. No subscription.</div>
         <div class="ad-promo-feat">
           <div><span>▸</span>10 crypto + 5 forex + 5 stocks</div>
@@ -1369,14 +1375,10 @@ td.pc{text-align:right;padding-left:2px;padding-right:2px;}
         <button class="ad-promo-btn" onclick="openPro()">GET PRO FREE →</button>
       </div>
       <div class="ad-donate">
-        <div class="ad-donate-title">☕ KEEP IT FREE</div>
+        <div class="ad-donate-title">Keep it Free</div>
         <div class="ad-donate-sub">Rotator is free forever.<br>A coffee keeps the servers on.</div>
         <div id="sidebar-goal" style="margin:8px 0;"></div>
         <button class="ad-donate-btn" onclick="openModal('donate-modal')">SUPPORT THE PROJECT</button>
-      </div>
-      <div class="ad-space">
-        <div class="ad-space-txt">ADVERTISE HERE<br>Reach active crypto traders.<br>Contact via donation address.</div>
-        <span class="ad-space-link" onclick="openModal('donate-modal')">Get in touch →</span>
       </div>
     </div>
   </div>
@@ -1394,6 +1396,7 @@ td.pc{text-align:right;padding-left:2px;padding-right:2px;}
     <a class="footer-link" onclick="openModal('donate-modal')">SUPPORT US</a>
   </div>
   <div class="footer-copy">© 2026 ROTATOR · NOT FINANCIAL ADVICE · <span style="color:var(--red);">DYOR</span></div>
+  <div class="footer-disclaimer">Market data provided by CoinGecko, Frankfurter (ECB), Yahoo Finance and Alpha Vantage. All data is for informational purposes only. Past performance does not guarantee future results. Always conduct your own research before making any investment decision.</div>
 </footer>
 
 
