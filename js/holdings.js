@@ -135,6 +135,7 @@ function renderTiles() {
     }); });
   }
   renderSignal(heldCoins);
+  if (typeof RatioTracker !== 'undefined') RatioTracker.refresh();
 }
 
 /* ── Crypto portfolio signal ─────────────────────────────────── */
