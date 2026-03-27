@@ -1282,32 +1282,21 @@ td.pc{text-align:right;padding-left:2px;padding-right:2px;}
     </div>
 
     <!-- CRYPTO HOLDINGS -->
-   <div id="holdings-crypto" style="display:flex;flex-direction:column;flex:1;overflow:hidden;">
-  <div class="phead">
-    <div class="ptitle">MY HOLDINGS</div>
-  </div>
-  
-  <!-- Minimal Add button - quick access -->
-  <div style="padding:10px 14px;border-bottom:1px solid var(--bdr);background:var(--bg3);">
-    <button class="add-btn" onclick="addHoldingFromQuick()" style="width:100%;padding:8px;">
-      + QUICK ADD FROM LEADERBOARD
-    </button>
-  </div>
-
-  <div class="holdings-section-label">
-    <span>MY HOLDINGS</span>
-    <span id="hcount" style="color:var(--bnb);font-size:9px;letter-spacing:.04em;"></span>
-  </div>
-  
-  <div class="tiles-scroll">
-    <div class="tiles-grid" id="tiles-grid"></div>
-  </div>
-  
-  <div class="sig-box">
-    <div class="sig-title">Portfolio Signal</div>
-    <div id="sig-content"><div style="font-size:11px;color:var(--muted);">Add holdings to see signal.</div></div>
-  </div>
-</div>
+    <div id="holdings-crypto" style="display:flex;flex-direction:column;flex:1;overflow:hidden;">
+      <div class="sig-box" id="sig-box-crypto">
+        <div class="sig-title">◈ Portfolio Signal</div>
+        <div id="sig-content"><div style="font-size:11px;color:var(--muted);font-family:var(--font-ui);">Add holdings below to see your signal.</div></div>
+      </div>
+      <div class="holdings-section-label"><span>MY HOLDINGS</span><span id="hcount" style="color:var(--bnb);font-size:9px;letter-spacing:.04em;"></span></div>
+      <div class="tiles-scroll"><div class="tiles-grid" id="tiles-grid"></div></div>
+      <div class="phead"><div class="ptitle">Add Crypto</div></div>
+      <div class="add-form">
+        <div class="frow"><span class="flbl">COIN</span><select id="coin-sel"><option value="">Select…</option></select></div>
+        <div class="frow"><span class="flbl">QTY</span><input type="number" id="inp-qty" placeholder="amount" min="0" step="any"></div>
+        <div class="frow"><span class="flbl">AVG $</span><input type="number" id="inp-avg" placeholder="avg buy price" min="0" step="any"></div>
+        <button class="add-btn" onclick="addHolding()">+ ADD TO HOLDINGS</button>
+      </div>
+    </div>
 
     <!-- FOREX HOLDINGS -->
     <div id="holdings-forex" style="display:none;flex-direction:column;flex:1;overflow:hidden;">

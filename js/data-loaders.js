@@ -1160,7 +1160,6 @@ document.addEventListener('click', function(e) {
 
 /* ── Entry point ─────────────────────────────────────────────── */
 doLoad().then(function() { initTutorial(); syncPanelAlignment(); });
-renderAll();
 
 /* ── Sync right-panel spacer height to neon-section height ──────
    Makes the ad-panel content start level with the leaderboard

@@ -295,8 +295,5 @@ function renderStHoldings() {
       sigEl.innerHTML = '<div class="sig-avg" style="color:' + avgC + ';">' + avg.toFixed(0) + '<span class="sig-avg-lbl">/ 100 avg score</span></div>'
         + '<div style="font-size:11px;color:var(--muted);margin-top:4px;">Based on 52-week range position and daily momentum.</div>';
     }
-     function addHoldingFromQuick() {
-  alert("Use the + button next to coin names in the leaderboard to quickly add them.");
-}
   }
 }

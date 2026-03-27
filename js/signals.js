@@ -267,13 +267,13 @@ function renderTable() {
     var tipData = 'data-sym="' + c.sym + '" data-name="' + c.name + '" data-mcap="' + mcapStr + '" data-score="' + sc + '" data-p24="' + c.p24.toFixed(2) + '" data-p7="' + c.p7.toFixed(2) + '" data-p30="' + c.p30.toFixed(2) + '" data-held="' + (isH ? '1' : '0') + '"';
     return '<tr class="' + (isH ? 'held' : '') + '" ' + tipData + ' onmouseenter="showRowTip(this,event)" onmouseleave="hideTip()">'
       + '<td style="color:var(--muted);font-size:10px;">' + (i+1) + '</td>'
-+ '<td><div class="cc"><div class="ti"><img src="' + c.image + '" alt="" onerror="this.style.display=\'none\'"></div><div style="flex:1;min-width:0;">'
-  + '<div style="display:flex;align-items:center;justify-content:space-between;">'
-    + '<span class="tsym">' + c.sym + '</span>'
-    + (isH ? '<span class="htag">HELD</span>' : '<button class="add-to-holdings-btn" onclick="quickAddHolding(\'' + c.sym + '\', event)" title="Add to holdings">+</button>')
-  + '</div>'
-  + '<div class="tname">' + c.name + '</div>'
-+ '</div></div></td>'
+      + '<td><div class="cc"><div class="ti"><img src="' + c.image + '" alt="" onerror="this.style.display=\'none\'"></div><div><div style="display:flex;align-items:center;"><span class="tsym">' + c.sym + '</span>' + (isH ? '<span class="htag">HELD</span>' : '') + '</div><div class="tname">' + c.name + '</div></div></div></td>'
+      + '<td class="r" style="padding-right:8px;">' + fmtP(c.price) + '</td>'
+      + '<td class="pc">' + pctSpan(c.p24) + '</td>'
+      + '<td class="pc">' + pctSpan(c.p7)  + '</td>'
+      + '<td class="pc">' + pctSpan(c.p14) + '</td>'
+      + '<td class="pc">' + pctSpan(c.p30) + '</td>'
+      + '<td class="r"><div class="sw"><span class="sv" style="color:' + scC + ';">' + sc + '</span><div class="sb"><div class="sbf" style="width:' + Math.max(2, sc) + '%;background:' + scC + ';"></div></div></div></td>'
       + '</tr>';
   }).join('');
 
@@ -327,41 +327,4 @@ function renderAll() {
   requestAnimationFrame(function() {
     if (typeof syncPanelAlignment === 'function') syncPanelAlignment();
   });
-}
-// Quick add from leaderboard
-function quickAddHolding(sym, evt) {
-  if (evt) evt.stopPropagation();
-  
-  var coin = coins.find(function(c) { return c.sym === sym; });
-  if (!coin) return;
-
-  // Add with current price as avg price, quantity = 1
-  var existing = holdings.find(function(h) { return h.sym === sym; });
-  if (existing) {
-    alert(sym + " is already in your holdings.");
-    return;
-  }
-
-  holdings.push({
-    sym: sym,
-    qty: 1,
-    avgPrice: coin.price,
-    name: coin.name,
-    image: coin.image
-  });
-
-  saveHoldings();
-  renderAll();           // refresh everything
-  renderCoinSel();
-
-  // Optional: nice feedback
-  var btn = evt.target;
-  if (btn) {
-    btn.textContent = "✓";
-    btn.style.color = "var(--green)";
-    setTimeout(function() {
-      btn.textContent = "+";
-      btn.style.color = "";
-    }, 1200);
-  }
 }
