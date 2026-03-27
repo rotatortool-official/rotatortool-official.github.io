@@ -763,6 +763,7 @@ function setMode(mode) {
   document.getElementById('tbl-title').textContent = titles[mode];
   if (mode === 'forex'  && !forexLoaded)  loadForex();
   if (mode === 'stocks' && !stocksLoaded) loadStocks();
+  requestAnimationFrame(function() { syncPanelAlignment(); });
 }
 
 function applyModePrefs() {
@@ -1279,14 +1280,18 @@ function openTileDetail(coinId, evt) {
   document.getElementById('td-name').textContent  = c.name;
   document.getElementById('td-price').textContent = fmtP(c.price);
 
-  document.getElementById('td-perf').innerHTML = [
-    {l:'24H', v:c.p24}, {l:'7D', v:c.p7}, {l:'30D', v:c.p30}
-  ].map(function(p) {
-    var cls = p.v >= 0 ? 'up' : 'dn';
-    return '<div class="td-cell"><div class="td-cell-l">' + p.l + '</div>'
-      + '<div class="td-cell-v ' + cls + '">' + (p.v>=0?'+':'') + p.v.toFixed(1) + '%</div></div>';
-  }).join('');
+  /* 24H change under price */
+  var p24chgEl = document.getElementById('td-price-chg');
+  if (p24chgEl) {
+    p24chgEl.textContent = (c.p24 >= 0 ? '+' : '') + c.p24.toFixed(2) + '% (24H)';
+    p24chgEl.style.color = c.p24 >= 0 ? 'var(--green)' : 'var(--red)';
+  }
 
+  /* Type badge */
+  var badge = document.getElementById('td-type-badge');
+  if (badge) { badge.textContent = 'CRYPTO'; badge.className = 'td-type-badge crypto'; }
+
+  /* Score breakdown */
   var scC = c.score >= 65 ? 'var(--green)' : c.score <= 35 ? 'var(--red)' : 'var(--amber)';
   document.getElementById('td-score-bars').innerHTML =
     '<div style="display:flex;align-items:baseline;gap:6px;margin-bottom:8px;">'
@@ -1300,15 +1305,46 @@ function openTileDetail(coinId, evt) {
         + '<span class="td-bar-val" style="color:'+col+';">#'+b.v+'</span></div>';
     }).join('');
 
+  /* Market data: mkt cap, vol, rank, ATH distance, 7D, 30D */
   var vol24 = c.volume24 || c.total_volume || null;
-  document.getElementById('td-market').innerHTML = [
-    {l:'MKT CAP', v:fmtMcap(c.mcap)},
-    {l:'24H VOL',  v:fmtVol(vol24)},
-    {l:'RANK',     v:c.rank ? '#'+c.rank : '—'}
-  ].map(function(m) {
-    return '<div class="td-cell"><div class="td-cell-l">'+m.l+'</div><div class="td-cell-v bnb">'+m.v+'</div></div>';
-  }).join('');
+  var athPct = c.ath_change_pct || 0;
+  var athC   = athPct >= 0 ? 'up' : 'dn';
+  document.getElementById('td-market').innerHTML =
+    '<div class="td-cell"><div class="td-cell-l">MKT CAP</div><div class="td-cell-v bnb">'+fmtMcap(c.mcap)+'</div></div>'
+    +'<div class="td-cell"><div class="td-cell-l">24H VOL</div><div class="td-cell-v bnb">'+fmtVol(vol24)+'</div></div>'
+    +'<div class="td-cell"><div class="td-cell-l">MC RANK</div><div class="td-cell-v bnb">'+(c.rank?'#'+c.rank:'—')+'</div></div>'
+    +'<div class="td-cell"><div class="td-cell-l">7D</div><div class="td-cell-v '+(c.p7>=0?'up':'dn')+'">'+(c.p7>=0?'+':'')+c.p7.toFixed(2)+'%</div></div>'
+    +'<div class="td-cell"><div class="td-cell-l">14D</div><div class="td-cell-v '+(c.p14>=0?'up':'dn')+'">'+(c.p14>=0?'+':'')+c.p14.toFixed(2)+'%</div></div>'
+    +'<div class="td-cell"><div class="td-cell-l">30D</div><div class="td-cell-v '+(c.p30>=0?'up':'dn')+'">'+(c.p30>=0?'+':'')+c.p30.toFixed(2)+'%</div></div>';
+  /* override grid to 3 cols */
+  document.getElementById('td-market').style.gridTemplateColumns = 'repeat(3,1fr)';
 
+  /* Supply section */
+  var supSec = document.getElementById('td-supply-sec');
+  var supEl  = document.getElementById('td-supply');
+  if (supSec && supEl) {
+    var circ = c.circulating_supply;
+    var maxS = c.max_supply;
+    var supPct = (circ && maxS && maxS > 0) ? Math.round((circ / maxS) * 100) : null;
+    var supPctStr = supPct !== null ? supPct + '%' : '∞';
+    var supCol = supPct !== null ? (supPct >= 90 ? 'var(--red)' : supPct >= 70 ? 'var(--amber)' : 'var(--green)') : 'var(--muted)';
+    function fmtSup(n) {
+      if (!n) return '—';
+      if (n >= 1e9) return (n/1e9).toFixed(2) + 'B';
+      if (n >= 1e6) return (n/1e6).toFixed(2) + 'M';
+      if (n >= 1e3) return (n/1e3).toFixed(1) + 'K';
+      return n.toFixed(0);
+    }
+    supEl.innerHTML =
+      '<div class="td-cell"><div class="td-cell-l">CIRCULATING</div><div class="td-cell-v bnb">'+fmtSup(circ)+'</div></div>'
+      +'<div class="td-cell"><div class="td-cell-l">MAX SUPPLY</div><div class="td-cell-v bnb">'+(maxS ? fmtSup(maxS) : '∞ / No max')+'</div></div>'
+      +'<div class="td-cell"><div class="td-cell-l">% UNLOCKED</div><div class="td-cell-v" style="color:'+supCol+';">'+supPctStr+'</div></div>'
+      +'<div class="td-cell"><div class="td-cell-l">FROM ATH</div><div class="td-cell-v '+(athPct>=0?'up':'dn')+'">'+(athPct>=0?'+':'')+athPct.toFixed(1)+'%</div></div>';
+    supEl.style.gridTemplateColumns = 'repeat(2,1fr)';
+    supSec.style.display = '';
+  }
+
+  /* Signal badges */
   var badges = [];
   if (c.score >= 70)      badges.push({t:'STRONG MOM', cls:'bull'});
   else if (c.score >= 55) badges.push({t:'MOMENTUM',   cls:'bull'});
@@ -1333,6 +1369,14 @@ function openAssetDetail(assetType, id, evt) {
   if (!panel) return;
   var icoEl = document.getElementById('td-ico');
 
+  /* Hide supply section for non-crypto */
+  var supSec = document.getElementById('td-supply-sec');
+  if (supSec) supSec.style.display = 'none';
+
+  /* Clear 24H sub-label */
+  var p24chgEl = document.getElementById('td-price-chg');
+  if (p24chgEl) { p24chgEl.textContent = ''; }
+
   if (assetType === 'stock') {
     var data = stocksData.find(function(s) { return s.sym === id; });
     if (!data) return;
@@ -1342,13 +1386,11 @@ function openAssetDetail(assetType, id, evt) {
     document.getElementById('td-price').textContent = data.price >= 1000
       ? '$' + data.price.toLocaleString('en-US', {maximumFractionDigits:0})
       : '$' + data.price.toFixed(2);
+    var badge = document.getElementById('td-type-badge');
+    if (badge) { badge.textContent = data.type === 'index' ? 'INDEX' : 'STOCK'; badge.className = 'td-type-badge ' + (data.type === 'index' ? 'index' : 'stock'); }
 
     var dayC = data.chgPct >= 0 ? 'up' : 'dn';
-    document.getElementById('td-perf').innerHTML =
-      '<div class="td-cell"><div class="td-cell-l">TODAY</div><div class="td-cell-v '+dayC+'">'+(data.chgPct>=0?'+':'')+data.chgPct.toFixed(2)+'%</div></div>'
-      +'<div class="td-cell"><div class="td-cell-l">CHANGE</div><div class="td-cell-v '+dayC+'">'+(data.chg>=0?'+$':'−$')+Math.abs(data.chg).toFixed(2)+'</div></div>'
-      +'<div class="td-cell"><div class="td-cell-l">52W HIGH</div><div class="td-cell-v bnb">$'+data.high52.toFixed(2)+'</div></div>'
-      +'<div class="td-cell"><div class="td-cell-l">52W LOW</div><div class="td-cell-v bnb">$'+data.low52.toFixed(2)+'</div></div>';
+    if (p24chgEl) { p24chgEl.textContent = (data.chgPct>=0?'+':'')+data.chgPct.toFixed(2)+'% today'; p24chgEl.style.color = data.chgPct>=0?'var(--green)':'var(--red)'; }
 
     var range = data.high52 - data.low52;
     var pos52 = range > 0 ? Math.round(((data.price - data.low52) / range) * 100) : 50;
@@ -1365,11 +1407,14 @@ function openAssetDetail(assetType, id, evt) {
       +'<div class="td-bar-wrap"><div class="td-bar-fill" style="width:'+Math.max(2,data.score)+'%;background:'+scC+';"></div></div>'
       +'<span class="td-bar-val" style="color:'+scC+';">'+data.score+'</span></div>';
 
-    document.getElementById('td-market').innerHTML =
-      '<div class="td-cell"><div class="td-cell-l">TYPE</div><div class="td-cell-v bnb">'+(data.type==='index'?'INDEX':'STOCK')+'</div></div>'
-      +'<div class="td-cell"><div class="td-cell-l">TICKER</div><div class="td-cell-v bnb">'+data.sym+'</div></div>'
+    var mktEl = document.getElementById('td-market');
+    mktEl.innerHTML =
+      '<div class="td-cell"><div class="td-cell-l">CHANGE $</div><div class="td-cell-v '+dayC+'">'+(data.chg>=0?'+$':'−$')+Math.abs(data.chg).toFixed(2)+'</div></div>'
+      +'<div class="td-cell"><div class="td-cell-l">52W HIGH</div><div class="td-cell-v bnb">$'+data.high52.toFixed(2)+'</div></div>'
+      +'<div class="td-cell"><div class="td-cell-l">52W LOW</div><div class="td-cell-v bnb">$'+data.low52.toFixed(2)+'</div></div>'
       +'<div class="td-cell"><div class="td-cell-l">FROM 52W L</div><div class="td-cell-v '+(data.price>data.low52?'up':'dn')+'">'
       +(range>0?((data.price-data.low52)/data.low52*100).toFixed(1):0)+'%</div></div>';
+    mktEl.style.gridTemplateColumns = 'repeat(2,1fr)';
 
     var badges = [];
     if (data.score >= 65)   badges.push({t:'STRONG MOM', c:'bull'});
@@ -1394,15 +1439,11 @@ function openAssetDetail(assetType, id, evt) {
     document.getElementById('td-sym').textContent   = data.from + '/' + data.to;
     document.getElementById('td-name').textContent  = data.name;
     document.getElementById('td-price').textContent = data.rate ? data.rate.toFixed(dec) : '—';
+    var badge = document.getElementById('td-type-badge');
+    if (badge) { badge.textContent = 'FOREX'; badge.className = 'td-type-badge forex'; }
 
     var dayC = data.chgPct>0.001?'up':data.chgPct<-0.001?'dn':'fl';
-    var p7C  = data.p7>0.001?'up':data.p7<-0.001?'dn':'fl';
-    var p30C = data.p30>0.001?'up':data.p30<-0.001?'dn':'fl';
-    document.getElementById('td-perf').innerHTML =
-      '<div class="td-cell"><div class="td-cell-l">DAY%</div><div class="td-cell-v '+dayC+'">'+(data.chgPct>=0?'+':'')+data.chgPct.toFixed(3)+'%</div></div>'
-      +'<div class="td-cell"><div class="td-cell-l">7D%</div><div class="td-cell-v '+p7C+'">'+(data.p7>=0?'+':'')+data.p7.toFixed(2)+'%</div></div>'
-      +'<div class="td-cell"><div class="td-cell-l">30D%</div><div class="td-cell-v '+p30C+'">'+(data.p30>=0?'+':'')+data.p30.toFixed(2)+'%</div></div>'
-      +'<div class="td-cell"><div class="td-cell-l">RSI-14</div><div class="td-cell-v '+(data.rsi>=70?'dn':data.rsi<=30?'up':'fl')+'">'+data.rsi+'</div></div>';
+    if (p24chgEl) { p24chgEl.textContent = (data.chgPct>=0?'+':'')+data.chgPct.toFixed(3)+'% today'; p24chgEl.style.color = data.chgPct>=0?'var(--green)':'var(--red)'; }
 
     var scC = data.score>=65?'var(--green)':data.score<=35?'var(--red)':'var(--amber)';
     var p7col  = data.p7>=0?'var(--green)':'var(--red)';
@@ -1421,10 +1462,15 @@ function openAssetDetail(assetType, id, evt) {
       +'<div class="td-bar-wrap"><div class="td-bar-fill" style="width:'+data.score+'%;background:'+scC+'"></div></div>'
       +'<span class="td-bar-val" style="color:'+scC+';">'+data.score+'</span></div>';
 
-    document.getElementById('td-market').innerHTML =
+    var mktEl = document.getElementById('td-market');
+    mktEl.innerHTML =
       '<div class="td-cell"><div class="td-cell-l">BASE</div><div class="td-cell-v bnb">'+data.from+'</div></div>'
       +'<div class="td-cell"><div class="td-cell-l">QUOTE</div><div class="td-cell-v bnb">'+data.to+'</div></div>'
+      +'<div class="td-cell"><div class="td-cell-l">RSI-14</div><div class="td-cell-v '+(data.rsi>=70?'dn':data.rsi<=30?'up':'fl')+'">'+data.rsi+'</div></div>'
+      +'<div class="td-cell"><div class="td-cell-l">7D%</div><div class="td-cell-v '+(data.p7>=0?'up':'dn')+'">'+(data.p7>=0?'+':'')+data.p7.toFixed(2)+'%</div></div>'
+      +'<div class="td-cell"><div class="td-cell-l">30D%</div><div class="td-cell-v '+(data.p30>=0?'up':'dn')+'">'+(data.p30>=0?'+':'')+data.p30.toFixed(2)+'%</div></div>'
       +'<div class="td-cell"><div class="td-cell-l">SIGNAL</div><div class="td-cell-v" style="color:'+data.sigC+';">'+data.signal+'</div></div>';
+    mktEl.style.gridTemplateColumns = 'repeat(3,1fr)';
 
     var badges = [];
     if (data.signal==='BULLISH')     badges.push({t:'BULLISH',    c:'bull'});
@@ -1440,8 +1486,6 @@ function openAssetDetail(assetType, id, evt) {
       return '<span class="td-badge '+b.c+'">'+b.t+'</span>';
     }).join('');
   }
-  _positionPanel(panel, evt);
-}
 
 function closeTileDetail() {
   var p = document.getElementById('td-panel');

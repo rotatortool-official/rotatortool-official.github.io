@@ -364,12 +364,12 @@ body::before{content:'';position:fixed;inset:0;background:repeating-linear-gradi
 }
 
 /* Header */
-.tdh{display:flex;align-items:center;gap:12px;margin-bottom:14px;}
-.tdh-ico-wrap{width:36px;height:36px;border-radius:50%;overflow:hidden;background:var(--bg4);flex-shrink:0;border:1px solid var(--bdr2);}
+.tdh{display:flex;align-items:center;gap:10px;margin-bottom:12px;padding-right:28px;}
+.tdh-ico-wrap{width:32px;height:32px;border-radius:50%;overflow:hidden;background:var(--bg4);flex-shrink:0;border:1px solid var(--bdr2);}
 .tdh-info{flex:1;min-width:0;}
-.tdh-sym{font-size:17px;font-weight:600;letter-spacing:.02em;font-family:var(--font-mono);}
+.tdh-sym{font-size:15px;font-weight:600;letter-spacing:.02em;font-family:var(--font-mono);}
 .tdh-name{font-size:10px;color:var(--muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-family:var(--font-ui);margin-top:1px;}
-.tdh-price{font-size:16px;font-weight:700;color:var(--text);font-family:var(--font-mono);letter-spacing:.02em;}
+.tdh-price{font-size:14px;font-weight:700;color:var(--text);font-family:var(--font-mono);letter-spacing:.02em;white-space:nowrap;}
 .td-type-badge{font-size:7px;font-weight:700;padding:2px 6px;border-radius:2px;letter-spacing:.08em;flex-shrink:0;}
 .td-type-badge.crypto{background:rgba(243,186,47,.12);color:var(--bnb);border:1px solid rgba(243,186,47,.25);}
 .td-type-badge.forex{background:rgba(0,200,150,.1);color:var(--green);border:1px solid rgba(0,200,150,.25);}
@@ -407,9 +407,21 @@ body::before{content:'';position:fixed;inset:0;background:repeating-linear-gradi
 
 /* Market data grid */
 .td-mkt-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:5px;}
+.td-mkt-grid.cols-4{grid-template-columns:repeat(4,1fr);}
+.td-mkt-grid.cols-2{grid-template-columns:repeat(2,1fr);}
 .td-mkt-cell{background:var(--bg3);border:1px solid var(--bdr);border-radius:5px;padding:6px 5px;text-align:center;}
 .td-mkt-cell-l{font-size:7px;color:var(--muted);letter-spacing:.06em;margin-bottom:3px;}
 .td-mkt-cell-v{font-size:11px;font-weight:600;color:var(--bnb);font-family:var(--font-mono);}
+/* td-cell: inline compact row used in perf/market grids by JS */
+.td-cell{background:var(--bg3);border:1px solid var(--bdr);border-radius:4px;padding:5px 6px;display:flex;flex-direction:column;gap:1px;}
+.td-cell-l{font-size:7px;color:var(--muted);letter-spacing:.06em;text-transform:uppercase;}
+.td-cell-v{font-size:11px;font-weight:600;font-family:var(--font-mono);}
+.td-cell-v.up{color:var(--green);}
+.td-cell-v.dn{color:var(--red);}
+.td-cell-v.fl{color:var(--muted);}
+.td-cell-v.bnb{color:var(--bnb);}
+#td-market,.td-mkt-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:5px;}
+#td-supply{display:grid;grid-template-columns:repeat(2,1fr);gap:5px;}
 
 /* Badges */
 .td-badge-row{display:flex;gap:5px;flex-wrap:wrap;}
@@ -1122,13 +1134,7 @@ td.qa-cell{text-align:center;width:28px;padding:0 4px !important;}
   </div>
 
   <!-- Accent bar that changes color by score -->
-  <div id="td-accent-bar" style="height:2px;margin:-2px -2px 14px -2px;border-radius:0;transition:background .3s;"></div>
-
-  <!-- Performance row -->
-  <div class="td-section">
-    <div class="td-section-title">Performance</div>
-    <div class="td-perf-row" id="td-perf"></div>
-  </div>
+  <div id="td-accent-bar" style="height:2px;margin:-2px -2px 12px -2px;border-radius:0;transition:background .3s;"></div>
 
   <!-- Score + breakdown bars -->
   <div class="td-section">
@@ -1143,6 +1149,12 @@ td.qa-cell{text-align:center;width:28px;padding:0 4px !important;}
   <div class="td-section">
     <div class="td-section-title">Market Data</div>
     <div class="td-mkt-grid" id="td-market"></div>
+  </div>
+
+  <!-- Supply / extra data (crypto only) -->
+  <div class="td-section" id="td-supply-sec" style="display:none;">
+    <div class="td-section-title">Supply</div>
+    <div class="td-mkt-grid" id="td-supply"></div>
   </div>
 
   <!-- Signal badges -->
