@@ -1056,6 +1056,20 @@ td.qa-cell{text-align:center;width:28px;padding:0 4px !important;}
 .rt-refresh-btn:hover{border-color:var(--bnb);color:var(--bnb);}
 .rt-refresh-btn:disabled{opacity:.35;cursor:default;}
 .rt-footer{font-size:9px;color:var(--muted);margin-top:8px;}
+/* ── Saved pairs ── */
+.rt-actions-row{display:flex;align-items:center;gap:8px;margin-top:8px;flex-wrap:wrap;}
+.rt-star-btn{background:none;border:1px solid var(--bdr2);color:var(--muted);padding:3px 10px;font-family:var(--font-mono);font-size:10px;letter-spacing:.07em;cursor:pointer;border-radius:2px;transition:all .15s;flex-shrink:0;}
+.rt-star-btn:hover{border-color:var(--bnb);color:var(--bnb);}
+.rt-star-btn.rt-star-active{border-color:var(--bnb);color:var(--bnb);background:var(--bnbd);}
+.rt-saved-row{margin-top:8px;}
+.rt-saved-lbl{font-size:9px;letter-spacing:.12em;color:var(--muted);text-transform:uppercase;margin-bottom:5px;}
+.rt-saved-wrap{display:flex;flex-wrap:wrap;gap:5px;min-height:22px;}
+.rt-saved-empty{font-size:10px;color:var(--muted);font-style:italic;}
+.rt-saved-chip{display:inline-flex;align-items:center;gap:5px;background:var(--bg3);border:1px solid var(--bdr2);color:var(--text);font-family:var(--font-mono);font-size:10px;padding:3px 8px 3px 10px;border-radius:2px;cursor:pointer;transition:all .15s;letter-spacing:.04em;}
+.rt-saved-chip:hover{border-color:var(--bnb);color:var(--bnb);}
+.rt-saved-chip.active{border-color:var(--bnb);color:var(--bnb);background:var(--bnbd);}
+.rt-chip-x{font-size:13px;line-height:1;color:var(--muted);padding:0 1px;transition:color .15s;}
+.rt-chip-x:hover{color:var(--red);}
 @media(max-width:700px){
   .rt-chart-wrap{height:70px;}
   .rt-ratio-num{font-size:32px;}
@@ -1518,6 +1532,15 @@ td.qa-cell{text-align:center;width:28px;padding:0 4px !important;}
         <div class="rt-sel-wrap">
           <span class="rt-sel-lbl">TO</span>
           <select class="rt-coin-sel" id="rt-to" onchange="RatioTracker.onToChange()"></select>
+        </div>
+        <button class="rt-star-btn" id="rt-star-btn">☆ Save pair</button>
+      </div>
+
+      <!-- Saved pairs -->
+      <div class="rt-saved-row">
+        <div class="rt-saved-lbl">Saved pairs</div>
+        <div class="rt-saved-wrap" id="rt-saved-wrap">
+          <span class="rt-saved-empty">No saved pairs yet — pick a pair and click ☆ Save pair</span>
         </div>
       </div>
 
