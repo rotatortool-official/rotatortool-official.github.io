@@ -997,8 +997,8 @@ function mobNavHoldings() {
       if (!hasHoldings) {
         var phWrap = document.createElement('div');
         phWrap.style.cssText = 'display:grid;grid-template-columns:1fr 1fr;gap:6px;padding:10px 12px 4px;flex-shrink:0;';
-        phWrap.innerHTML = '<div class="mob-placeholder-tile" onclick="var el=document.querySelector(\".mob-holdings-panel .add-form select\");if(el)el.focus();">+ Add Coin</div>'
-          + '<div class="mob-placeholder-tile" onclick="var el=document.querySelector(\".mob-holdings-panel .add-form select\");if(el)el.focus();">+ Add Coin</div>';
+        phWrap.innerHTML = '<div class="mob-placeholder-tile" onclick="var el=document.querySelector(\'.mob-holdings-panel .add-form select\');if(el)el.focus();">+</div>'
+          + '<div class="mob-placeholder-tile" onclick="var el=document.querySelector(\'.mob-holdings-panel .add-form select\');if(el)el.focus();">+</div>';
         panel.appendChild(phWrap);
       }
 
@@ -1159,7 +1159,37 @@ document.addEventListener('click', function(e) {
 });
 
 /* ── Entry point ─────────────────────────────────────────────── */
-doLoad().then(function() { initTutorial(); });
+doLoad().then(function() { initTutorial(); syncPanelAlignment(); });
+
+/* ── Sync right-panel spacer height to neon-section height ──────
+   Makes the ad-panel content start level with the leaderboard
+   header on desktop — called after load and on resize.
+────────────────────────────────────────────────────────────────── */
+function syncPanelAlignment() {
+  var neon      = document.querySelector('.neon-section');
+  var spacer    = document.getElementById('ad-panel-neon-spacer');
+  var modeBar   = document.querySelector('.asset-mode-bar');
+  var sigBox    = document.querySelector('.sig-box');
+  if (!neon) return;
+  var isDesktop = window.innerWidth > 900;
+
+  /* Right panel spacer */
+  if (spacer) spacer.style.height = isDesktop ? neon.offsetHeight + 'px' : '0px';
+
+  /* Left sidebar: add top padding to sig-box so Portfolio Signal
+     aligns with the tbl-head (neon-section bottom) */
+  if (sigBox && modeBar) {
+    if (isDesktop) {
+      var modeBarH = modeBar.offsetHeight || 0;
+      var needed   = neon.offsetHeight - modeBarH;
+      /* clamp so it never goes negative */
+      sigBox.style.marginTop = Math.max(0, needed) + 'px';
+    } else {
+      sigBox.style.marginTop = '';
+    }
+  }
+}
+window.addEventListener('resize', function() { syncPanelAlignment(); });
 
 /* ══════════════════════════════════════════════════════════════
    TILE DETAIL PANEL — openTileDetail / openAssetDetail

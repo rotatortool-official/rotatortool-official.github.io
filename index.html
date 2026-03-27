@@ -241,7 +241,7 @@ body::before{content:'';position:fixed;inset:0;background:repeating-linear-gradi
   0%,100%{box-shadow:inset 0 0 20px rgba(243,186,47,.04),0 0 15px rgba(243,186,47,.05);}
   50%    {box-shadow:inset 0 0 40px rgba(243,186,47,.09),0 0 28px rgba(243,186,47,.13);}
 }
-.neon-inner{padding:8px 0;position:relative;z-index:2;}
+.neon-inner{padding:10px 4px;position:relative;z-index:2;}
 .bar-col-title{font-size:10px;font-weight:400;letter-spacing:.08em;text-transform:uppercase;color:var(--bnb);margin-bottom:7px;display:flex;align-items:center;gap:6px;text-shadow:0 0 8px rgba(243,186,47,.6);font-family:var(--font-display);}
 .bar-col-title::after{content:'';flex:1;height:1px;background:rgba(243,186,47,.2);}
 /* ── SIGNAL TILE GRID (Rotation / Momentum / Worst) ── */
@@ -251,7 +251,7 @@ body::before{content:'';position:fixed;inset:0;background:repeating-linear-gradi
 .bars-col-inner:nth-child(1){border-top-color:rgba(0,200,150,.5);}
 .bars-col-inner:nth-child(3){border-top-color:rgba(240,160,48,.5);}
 .bars-col-inner:nth-child(5){border-top-color:rgba(255,69,96,.5);}
-.sig-tiles-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,120px),1fr));gap:5px;align-items:stretch;grid-auto-rows:1fr;}
+.sig-tiles-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,140px),1fr));gap:7px;align-items:stretch;grid-auto-rows:1fr;}
 /* ── Rotation blur+lock tile wrapper ── */
 .sig-rot-locked{position:relative;cursor:pointer;border-radius:3px;overflow:hidden;}
 .sig-rot-locked:hover .sig-rot-blur{filter:blur(2px) brightness(.7);}
@@ -261,6 +261,8 @@ body::before{content:'';position:fixed;inset:0;background:repeating-linear-gradi
 .sig-rot-lock-overlay span{text-shadow:0 0 10px rgba(167,139,250,.6);}
 .sig-tile{background:var(--bg4);border:1px solid var(--bdr);border-radius:3px;padding:6px 7px;position:relative;overflow:hidden;cursor:pointer;transition:transform .18s cubic-bezier(.22,.68,0,1.4),box-shadow .18s ease,border-color .18s ease;will-change:transform;}
 .sig-tile.pro-locked{border-style:dashed;border-color:rgba(243,186,47,.2);background:rgba(243,186,47,.03);transition:border-color .2s,background .2s;}.sig-tile.pro-locked:hover{border-color:rgba(243,186,47,.5);background:rgba(243,186,47,.07);}
+.sig-tile-empty{border-style:dashed !important;border-color:rgba(0,200,150,.18) !important;background:rgba(0,200,150,.02) !important;min-height:88px;cursor:pointer;transition:border-color .2s,background .2s !important;}
+.sig-tile-empty:hover{border-color:rgba(0,200,150,.4) !important;background:rgba(0,200,150,.06) !important;transform:none !important;box-shadow:none !important;}
 .sig-tile:hover{transform:translateY(-3px) scale(1.025);border-color:rgba(243,186,47,.4);box-shadow:0 8px 24px rgba(0,0,0,.45),0 0 12px rgba(243,186,47,.1);z-index:2;}
 .sig-tile:active{transform:translateY(-1px) scale(1.01);}
 .sig-tile.rot::before{content:'';position:absolute;left:0;top:0;bottom:0;width:2px;background:var(--green);}
@@ -526,6 +528,9 @@ td.pc{text-align:right;padding-left:2px;padding-right:2px;}
 
 /* ── RIGHT PANEL ── */
 .ad-panel{background:var(--bg2);border-left:1px solid var(--bdr);display:flex;flex-direction:column;overflow:hidden;height:100%;max-height:100%;}
+.ad-panel-neon-spacer{flex-shrink:0;background:var(--bg2);border-bottom:1px solid var(--bdr);}
+.ad-panel-spacer{flex-shrink:0;border-bottom:1px solid var(--bdr2);background:var(--bg3);display:flex;align-items:center;padding:0 14px;min-height:34px;}
+.ad-panel-spacer-label{font-size:9px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);font-family:var(--font-display);}
 .ad-body{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;padding:16px 14px 12px;gap:14px;overflow-y:auto;}
 .ad-promo{width:100%;background:linear-gradient(135deg,rgba(167,139,250,.1),rgba(167,139,250,.04));border:1px solid rgba(167,139,250,.28);border-radius:5px;padding:14px 14px;text-align:center;}
 .ad-promo-icon{font-size:22px;margin-bottom:6px;}
@@ -775,17 +780,17 @@ td.pc{text-align:right;padding-left:2px;padding-right:2px;}
   .main-col{padding-bottom:60px;}
   tbody td{border-bottom:none;}
 
-  /* ── SIGNAL CENTER: full width, uniform tile heights ── */
+  /* ── SIGNAL CENTER: full width, 2 rows per column ── */
   .neon-section{width:100%;box-sizing:border-box;}
   .bars-cols{display:flex;flex-direction:row;gap:0;width:100%;}
-  .bars-col-inner{flex:1;min-width:0;padding:4px 3px 6px;}
+  .bars-col-inner{flex:1;min-width:0;padding:3px 3px 4px;}
   .bars-divider{width:1px;align-self:stretch;}
-  .bar-col-title{font-size:7px;letter-spacing:.05em;margin-bottom:3px;white-space:nowrap;overflow:hidden;}
+  .bar-col-title{font-size:7px;letter-spacing:.05em;margin-bottom:2px;white-space:nowrap;overflow:hidden;}
   .bar-col-title::after{display:none;}
-  /* All sig-tiles the same fixed height across all 3 columns */
+  /* Show only 2 tiles per column */
   .sig-tiles-grid{grid-template-columns:1fr !important;grid-auto-rows:auto !important;display:grid !important;}
-  .sig-tile{padding:4px 5px;min-height:72px !important;box-sizing:border-box;}
-  .sig-tile:nth-child(n+4){display:none;}  /* show max 3 per column */
+  .sig-tile{padding:3px 4px;min-height:60px !important;box-sizing:border-box;}
+  .sig-tile:nth-child(n+3){display:none;}
   .sig-tile-sym{font-size:9px;}
   .sig-tile-stats{display:flex;flex-wrap:nowrap;gap:2px;}
   .sig-stat{flex:1;}
@@ -793,7 +798,7 @@ td.pc{text-align:right;padding-left:2px;padding-right:2px;}
   .sig-stat-v{font-size:8px;}
   .sig-tile-badge{display:none;}
   .sig-tile-arrow{display:none;}
-  .sig-tile-ico{width:14px;height:14px;}
+  .sig-tile-ico{width:12px;height:12px;}
 
   /* ── TUTORIAL CARD: below signal center, not floating ── */
   #tut-box{
@@ -832,7 +837,7 @@ td.pc{text-align:right;padding-left:2px;padding-right:2px;}
   .footer-copy{font-size:7px !important;white-space:nowrap !important;flex-shrink:0 !important;}
   .footer-disclaimer{display:none !important;}
 
-  /* ── HOLDINGS PANEL: show Portfolio Signal at top ── */
+  /* ── HOLDINGS PANEL: Portfolio Signal at top ── */
   .mob-holdings-panel{padding:0;}
   .mob-portfolio-sig{
     padding:10px 14px;
@@ -840,25 +845,37 @@ td.pc{text-align:right;padding-left:2px;padding-right:2px;}
     background:linear-gradient(135deg,rgba(243,186,47,.06),rgba(243,186,47,.02));
     flex-shrink:0;
   }
-  /* Placeholder tiles in holdings */
+  /* Placeholder tiles — green + sign, clearly actionable */
   .mob-placeholder-tile{
-    border:1px dashed rgba(255,255,255,.12);
-    border-radius:3px;
-    height:68px;
+    border:1px dashed rgba(0,200,150,.25);
+    border-radius:4px;
+    height:72px;
     display:flex;
+    flex-direction:column;
     align-items:center;
     justify-content:center;
-    font-size:9px;
-    color:rgba(90,110,133,.6);
-    letter-spacing:.08em;
-    text-transform:uppercase;
-    background:rgba(255,255,255,.015);
+    gap:5px;
+    font-size:18px;
+    color:rgba(0,200,150,.5);
+    background:rgba(0,200,150,.03);
     cursor:pointer;
-    transition:border-color .15s,background .15s;
+    transition:border-color .15s,background .15s,color .15s;
+  }
+  .mob-placeholder-tile::after{
+    content:'Add holding';
+    font-size:8px;
+    letter-spacing:.1em;
+    text-transform:uppercase;
+    color:rgba(0,200,150,.4);
+    font-family:var(--font-ui);
   }
   .mob-placeholder-tile:hover{
-    border-color:rgba(243,186,47,.35);
-    background:rgba(243,186,47,.04);
+    border-color:rgba(0,200,150,.5);
+    background:rgba(0,200,150,.07);
+    color:var(--green);
+  }
+  .mob-placeholder-tile:hover::after{
+    color:var(--green);
   }
 
   /* ── TABLE ── */
@@ -1435,6 +1452,10 @@ td.pc{text-align:right;padding-left:2px;padding-right:2px;}
 
   <!-- RIGHT: Info Panel -->
   <div class="ad-panel">
+    <div class="ad-panel-neon-spacer" id="ad-panel-neon-spacer"></div>
+    <div class="ad-panel-spacer">
+      <span class="ad-panel-spacer-label">Rotator</span>
+    </div>
     <div class="ad-body">
       <canvas id="ad-splash-c" width="280" height="90" style="display:block;flex-shrink:0;"></canvas>
       <div class="ad-promo">

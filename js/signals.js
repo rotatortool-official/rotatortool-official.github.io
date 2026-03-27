@@ -132,9 +132,13 @@ function renderTopBars() {
       + '</div>';
   }
 
-  /* Helper: plain empty placeholder tile */
+  /* Helper: empty placeholder tile with green + */
   function emptyPlaceholderTile() {
-    return '<div class="sig-tile" style="min-height:88px;opacity:.2;cursor:default;border-style:dashed;"></div>';
+    return '<div class="sig-tile sig-tile-empty" onclick="openPro()" title="Unlock with Pro">'
+      + '<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;gap:4px;opacity:.45;">'
+      + '<span style="font-size:20px;color:var(--green);line-height:1;">+</span>'
+      + '<span style="font-size:8px;letter-spacing:.08em;color:var(--muted);font-family:var(--font-ui);">Pro</span>'
+      + '</div></div>';
   }
 
   /* ── Column 3: Worst 30D — 3 free / 6 Pro ── */
@@ -319,4 +323,8 @@ function renderAll() {
   }
   renderDonationBar('sidebar-goal');
   document.getElementById('ts').textContent = 'UPDATED ' + now.toLocaleTimeString('en-US', {hour:'2-digit', minute:'2-digit', second:'2-digit'}) + suffix;
+  /* Sync three-panel vertical alignment after every render */
+  requestAnimationFrame(function() {
+    if (typeof syncPanelAlignment === 'function') syncPanelAlignment();
+  });
 }
