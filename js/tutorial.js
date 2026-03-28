@@ -265,7 +265,9 @@ function tutPosition() {
 function tutRender() {
   var step = TUT_STEPS[tutStep_];
 
-  document.getElementById('tut-step-label').textContent = 'STEP ' + (tutStep_+1) + ' OF ' + TUT_STEPS.length;
+  var _s = (typeof t === 'function') ? t('tut_step') : 'STEP';
+  var _o = (typeof t === 'function') ? t('tut_of') : 'OF';
+  document.getElementById('tut-step-label').textContent = _s + ' ' + (tutStep_+1) + ' ' + _o + ' ' + TUT_STEPS.length;
   document.getElementById('tut-title').textContent      = step.title;
   document.getElementById('tut-desc').innerHTML         = step.desc;
 
@@ -292,9 +294,12 @@ function tutRender() {
   document.getElementById('tut-prev').style.display = tutStep_ === 0 ? 'none' : '';
 
   var nextBtn = document.getElementById('tut-next');
-  if      (tutStep_ === TUT_STEPS.length - 1) nextBtn.textContent = 'Finish ✓';
-  else if (showAgree)                          nextBtn.textContent = 'I Agree →';
-  else                                         nextBtn.textContent = 'Next →';
+  var _fin = (typeof t === 'function') ? t('tut_finish') : 'Finish \u2713';
+  var _agr = (typeof t === 'function') ? t('tut_agree_btn') : 'I Agree \u2192';
+  var _nxt = (typeof t === 'function') ? t('tut_next') : 'Next \u2192';
+  if      (tutStep_ === TUT_STEPS.length - 1) nextBtn.textContent = _fin;
+  else if (showAgree)                          nextBtn.textContent = _agr;
+  else                                         nextBtn.textContent = _nxt;
 
   tutPosition();
 }

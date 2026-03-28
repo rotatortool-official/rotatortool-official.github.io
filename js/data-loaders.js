@@ -1098,6 +1098,7 @@ function setLang(lang) {
   var pro = document.querySelector('.btn.pro-btn');
   if (pro && !pro.textContent.includes('ACTIVE')) pro.textContent = s.unlockpro;
   try { localStorage.setItem('rot_lang', lang); } catch(e) {}
+  if (typeof applyLang === 'function') applyLang();
 }
 (function() { try { var l = localStorage.getItem('rot_lang'); if (l) setTimeout(function() { setLang(l); }, 50); } catch(e) {} })();
 
