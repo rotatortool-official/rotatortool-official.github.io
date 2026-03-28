@@ -146,10 +146,10 @@ function renderTopBars() {
   var worstEl  = document.getElementById('worst-cards');
   if (isPro) {
     worstEl.innerHTML = '<div class="sig-tiles-grid">'
-      + worstAll.slice(0, 6).map(function(c) { return sigTile(c, 'wrst'); }).join('') + '</div>';
+      + worstAll.slice(0, 4).map(function(c) { return sigTile(c, 'wrst'); }).join('') + '</div>';
   } else {
-    var w3 = worstAll.slice(0, 3).map(function(c) { return sigTile(c, 'wrst'); }).join('');
-    var wLocked = proUnlockTile('3 more in Pro') + emptyPlaceholderTile() + emptyPlaceholderTile();
+    var w3 = worstAll.slice(0, 2).map(function(c) { return sigTile(c, 'wrst'); }).join('');
+    var wLocked = proUnlockTile('2 more in Pro') + emptyPlaceholderTile();
     worstEl.innerHTML = '<div class="sig-tiles-grid">' + w3 + wLocked + '</div>';
   }
 
@@ -160,15 +160,14 @@ function renderTopBars() {
   if (isPro) {
     if (momAll.length) {
       momEl.innerHTML = '<div class="sig-tiles-grid">'
-        + momAll.slice(0, 6).map(function(c) { return sigTile(c, 'mom'); }).join('') + '</div>';
+        + momAll.slice(0, 4).map(function(c) { return sigTile(c, 'mom'); }).join('') + '</div>';
     } else {
       momEl.innerHTML = '<div class="no-sug">Scanning \u2014 no coins above momentum threshold right now.</div>';
     }
   } else {
     if (momAll.length) {
       var m1 = sigTile(momAll[0], 'mom');
-      var mLocked = proUnlockTile('unlock 5 more') + emptyPlaceholderTile() + emptyPlaceholderTile()
-                  + emptyPlaceholderTile() + emptyPlaceholderTile();
+      var mLocked = proUnlockTile('unlock 3 more') + emptyPlaceholderTile() + emptyPlaceholderTile();
       momEl.innerHTML = '<div class="sig-tiles-grid">' + m1 + mLocked + '</div>';
     } else {
       momEl.innerHTML = '<div class="no-sug">Scanning \u2014 no coins above momentum threshold right now.</div>';
@@ -221,10 +220,10 @@ function renderTopBars() {
       }
     });
 
-    /* Always pad to exactly 6 slots with plain placeholders */
+    /* Always pad to exactly 4 slots with plain placeholders */
     var filledCount = previewPairs.length;
     if (filledCount === 1) gridHtml += proUnlockTile('unlock pairs');
-    for (var pad = Math.max(filledCount, 2); pad < 6; pad++) {
+    for (var pad = Math.max(filledCount, 2); pad < 4; pad++) {
       gridHtml += emptyPlaceholderTile();
     }
 
@@ -237,7 +236,7 @@ function renderTopBars() {
   if (!sells.length) { sugEl.innerHTML = '<div class="no-sug">Monitoring \u2014 no holdings strongly outperforming yet.</div>'; return; }
   if (!buys.length)  { sugEl.innerHTML = '<div class="no-sug">Scanning \u2014 no clear rotation targets right now.</div>'; return; }
   var pairs = [];
-  for (var i = 0; i < Math.min(6, sells.length); i++) pairs.push({sell: sells[i], buy: buys[i % buys.length]});
+  for (var i = 0; i < Math.min(4, sells.length); i++) pairs.push({sell: sells[i], buy: buys[i % buys.length]});
   sugEl.innerHTML = '<div class="sig-tiles-grid">' + pairs.map(function(p) { return sigRotTile(p.sell, p.buy); }).join('') + '</div>';
 }
 
