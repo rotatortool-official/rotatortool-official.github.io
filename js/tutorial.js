@@ -89,6 +89,18 @@ var TUT_STEPS = [
         + 'Click the <strong>⚙ gear icon</strong> (highlighted) to change language, toggle asset modes, or replay this tutorial.'
         + '</div>',
     arrow: 'right', pos: 'gear'
+  },
+
+  /* Step 6: Swap Tool */
+  {
+    target: '#ratio-section',
+    title: '↔ Swap Tool — Best Time to Swap',
+    desc: '<div style="font-size:14px;line-height:1.9;">'
+        + 'The <strong style="color:var(--bnb);">Swap Tool</strong> in the right panel helps you find the <strong>optimal moment</strong> to swap one asset for another — not based on guesswork, but on tracking the live price <strong>ratio</strong> between them over time.<br><br>'
+        + 'Pick your FROM asset (what you hold) and TO asset (what you want). The ratio shows how many TO coins you receive per 1 FROM coin. When the ratio is near its <strong style="color:var(--green);">period peak ▲</strong>, you get maximum value for your swap.<br><br>'
+        + '<span style="font-size:12px;color:rgba(255,255,255,.6);">Use the Swap Calculator to simulate exact amounts. Always verify on your exchange before executing.</span>'
+        + '</div>',
+    arrow: 'right', pos: 'above-left', wide: true
   }
 ];
 

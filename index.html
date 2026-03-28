@@ -237,18 +237,21 @@ body::before{content:'';position:fixed;inset:0;background:repeating-linear-gradi
   0%,100%{box-shadow:inset 0 0 20px rgba(210,160,35,.02),0 0 15px rgba(210,160,35,.025);}
   50%    {box-shadow:inset 0 0 40px rgba(210,160,35,.04),0 0 28px rgba(210,160,35,.06);}
 }
-.neon-inner{padding:10px 10px 10px;position:relative;z-index:2;display:flex;gap:8px;min-height:0;}
+.neon-inner{padding:8px 10px 10px;position:relative;z-index:2;display:flex;gap:8px;min-height:0;}
+/* Compact tiles in signal section */
+.bars-col-inner{padding:8px 8px 7px !important;}
+.sig-tiles-grid{gap:5px !important;}
 .bar-col-title{font-size:9px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;margin-bottom:8px;display:flex;align-items:center;justify-content:center;gap:6px;font-family:var(--font-display);text-align:center;}
 .bar-col-title::before{content:'';flex:1;height:1px;opacity:.25;background:currentColor;}
 .bar-col-title::after{content:'';flex:1;height:1px;opacity:.25;background:currentColor;}
 /* ── SIGNAL TILE GRID (Rotation / Momentum / Worst) ── */
-.bars-cols{display:flex;gap:8px;flex:1;align-items:stretch;}
+.bars-cols{display:flex;gap:14px;flex:1;align-items:stretch;}
 .bars-divider{display:none;}
-.bars-col-inner{flex:1;min-width:0;background:var(--bg3);border:1px solid var(--bdr);border-radius:6px;padding:10px 10px 8px;border-top:2px solid transparent;}
-.bars-col-inner:nth-child(1){border-top-color:rgba(0,200,150,.7);border-color:rgba(0,200,150,.18);}
-.bars-col-inner:nth-child(2){border-top-color:rgba(240,160,48,.7);border-color:rgba(240,160,48,.18);}
-.bars-col-inner:nth-child(3){border-top-color:rgba(255,69,96,.7);border-color:rgba(255,69,96,.18);}
-.sig-tiles-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:6px;align-items:stretch;grid-auto-rows:1fr;}
+.bars-col-inner{flex:1;min-width:0;background:var(--bg3);border:1px solid var(--bdr);border-radius:6px;padding:8px 8px 7px;border-top:2px solid transparent;}
+.bars-col-inner:nth-child(1){border-top-color:rgba(0,200,150,.85);border-color:rgba(0,200,150,.22);box-shadow:0 0 18px rgba(0,200,150,.06);}
+.bars-col-inner:nth-child(2){border-top-color:rgba(240,160,48,.85);border-color:rgba(240,160,48,.22);box-shadow:0 0 18px rgba(240,160,48,.06);}
+.bars-col-inner:nth-child(3){border-top-color:rgba(255,69,96,.85);border-color:rgba(255,69,96,.22);box-shadow:0 0 18px rgba(255,69,96,.06);}
+.sig-tiles-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:5px;align-items:stretch;grid-auto-rows:1fr;max-height:none;}
 /* ── Rotation blur+lock tile wrapper ── */
 .sig-rot-locked{position:relative;cursor:pointer;border-radius:3px;overflow:hidden;}
 .sig-rot-locked:hover .sig-rot-blur{filter:blur(2px) brightness(.7);}
@@ -256,9 +259,9 @@ body::before{content:'';position:fixed;inset:0;background:repeating-linear-gradi
 .sig-rot-lock-overlay{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:5px;background:rgba(10,12,18,.35);transition:background .2s ease;}
 .sig-rot-locked:hover .sig-rot-lock-overlay{background:rgba(167,139,250,.12);}
 .sig-rot-lock-overlay span{text-shadow:0 0 10px rgba(167,139,250,.6);}
-.sig-tile{background:var(--bg4);border:1px solid var(--bdr);border-radius:var(--card-radius);box-shadow:var(--card-shadow);padding:7px 8px;position:relative;overflow:hidden;cursor:pointer;transition:transform .18s cubic-bezier(.22,.68,0,1.4),box-shadow .18s ease,border-color .18s ease;will-change:transform;min-height:70px;}
+.sig-tile{background:var(--bg4);border:1px solid var(--bdr);border-radius:var(--card-radius);box-shadow:var(--card-shadow);padding:6px 7px;position:relative;overflow:hidden;cursor:pointer;transition:transform .18s cubic-bezier(.22,.68,0,1.4),box-shadow .18s ease,border-color .18s ease;will-change:transform;min-height:60px;}
 .sig-tile.pro-locked{border-style:dashed;border-color:rgba(243,186,47,.2);background:rgba(243,186,47,.03);transition:border-color .2s,background .2s;}.sig-tile.pro-locked:hover{border-color:rgba(243,186,47,.5);background:rgba(243,186,47,.07);}
-.sig-tile-empty{border-style:dashed !important;border-color:rgba(0,200,150,.18) !important;background:rgba(0,200,150,.02) !important;min-height:88px;cursor:pointer;transition:border-color .2s,background .2s !important;}
+.sig-tile-empty{border-style:dashed !important;border-color:rgba(0,200,150,.18) !important;background:rgba(0,200,150,.02) !important;min-height:60px;cursor:pointer;transition:border-color .2s,background .2s !important;}
 .sig-tile-empty:hover{border-color:rgba(0,200,150,.4) !important;background:rgba(0,200,150,.06) !important;transform:none !important;box-shadow:none !important;}
 .sig-tile:hover{transform:translateY(-3px) scale(1.025);border-color:rgba(243,186,47,.4);box-shadow:0 8px 24px rgba(0,0,0,.45),0 0 12px rgba(243,186,47,.1);z-index:2;}
 .sig-tile:active{transform:translateY(-1px) scale(1.01);}
@@ -554,8 +557,70 @@ td.qa-cell{text-align:center;width:28px;padding:0 4px !important;}
 .pub-btn:hover{background:rgba(167,139,250,.2);border-color:var(--pro);}
 
 /* ── RIGHT PANEL ── */
-.ad-panel{background:var(--bg2);border-left:1px solid var(--bdr);display:flex;flex-direction:column;overflow-y:auto;overflow-x:hidden;height:100%;max-height:100%;}
-.ad-panel-neon-spacer{flex-shrink:0;background:var(--bg2);border-bottom:1px solid var(--bdr);}
+.ad-panel{background:var(--bg2);border-left:2px solid rgba(243,186,47,.22);box-shadow:-4px 0 24px rgba(0,0,0,.3);display:flex;flex-direction:column;overflow-y:auto;overflow-x:hidden;height:100%;max-height:100%;}
+/* ── LEFT PANEL VIEW TABS ── */
+.holdings-view-tabs{display:flex;gap:0;border-bottom:1px solid var(--bdr);flex-shrink:0;background:var(--bg2);}
+.hvtab{flex:1;background:none;border:none;color:var(--muted);font-family:inherit;font-size:9px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;padding:7px 4px;cursor:pointer;border-bottom:2px solid transparent;transition:all .15s;position:relative;}
+.hvtab.active{color:var(--bnb);border-bottom-color:var(--bnb);background:var(--bnbd);}
+.hvtab:hover:not(.active){color:var(--text);border-bottom-color:var(--bdr2);}
+
+/* ── PLACEHOLDER TILES (watchlist / empty holdings) ── */
+.tile-placeholder{background:var(--bg3);border:1px dashed rgba(0,200,150,.22);border-radius:var(--card-radius);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;min-height:72px;cursor:pointer;transition:all .15s;opacity:.7;}
+.tile-placeholder:hover{opacity:1;border-color:rgba(0,200,150,.55);background:rgba(0,200,150,.05);}
+.tile-placeholder .ph-plus{font-size:20px;color:var(--green);line-height:1;font-weight:300;}
+.tile-placeholder .ph-lbl{font-size:8px;color:var(--muted);letter-spacing:.08em;text-transform:uppercase;}
+
+/* ── WATCHLIST VIEW ── */
+.watchlist-placeholder{padding:14px 12px;text-align:center;color:var(--muted);font-size:10px;line-height:2;border:1px dashed rgba(255,255,255,.07);border-radius:3px;letter-spacing:.06em;grid-column:1/-1;}
+#watchlist-panel{display:none;flex-direction:column;flex:1;overflow:hidden;}
+#watchlist-panel.active-view{display:flex;}
+.watchlist-tip{padding:8px 12px;font-size:10px;color:var(--muted);line-height:1.7;font-family:var(--font-ui);border-bottom:1px solid var(--bdr);background:var(--bg3);flex-shrink:0;}
+
+/* ── ADD HOLDINGS MODAL (leaderboard header) ── */
+#add-holdings-modal .modal{max-width:440px;border:1px solid rgba(243,186,47,.28);box-shadow:0 0 40px rgba(243,186,47,.08);}
+#add-holdings-modal .modal-title{color:var(--bnb);}
+.ahm-coin-search{width:100%;background:var(--bg3);border:1px solid var(--bdr2);color:var(--text);font-family:inherit;font-size:12px;padding:7px 11px;border-radius:3px;outline:none;margin-bottom:8px;letter-spacing:.03em;}
+.ahm-coin-search:focus{border-color:var(--bnb);}
+.ahm-coin-list{max-height:160px;overflow-y:auto;border:1px solid var(--bdr);border-radius:3px;margin-bottom:12px;background:var(--bg3);}
+.ahm-coin-item{display:flex;align-items:center;gap:8px;padding:6px 10px;cursor:pointer;transition:background .12s;border-bottom:1px solid rgba(255,255,255,.04);}
+.ahm-coin-item:hover{background:rgba(243,186,47,.08);}
+.ahm-coin-item.selected{background:rgba(243,186,47,.12);border-left:2px solid var(--bnb);}
+.ahm-coin-ico{width:20px;height:20px;border-radius:50%;background:var(--bg4);flex-shrink:0;}
+.ahm-coin-ico img{width:100%;height:100%;border-radius:50%;}
+.ahm-coin-name{font-size:11px;font-weight:600;flex:1;}
+.ahm-coin-sub{font-size:9px;color:var(--muted);}
+.ahm-inputs{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px;}
+.ahm-field label{display:block;font-size:9px;color:var(--muted);letter-spacing:.08em;text-transform:uppercase;margin-bottom:4px;}
+.ahm-field input{width:100%;background:var(--bg3);border:1px solid var(--bdr2);color:var(--text);font-family:inherit;font-size:12px;padding:6px 9px;border-radius:2px;outline:none;}
+.ahm-field input:focus{border-color:var(--bnb);}
+.ahm-confirm-btn{width:100%;padding:9px;background:rgba(243,186,47,.12);border:1px solid rgba(243,186,47,.35);color:var(--bnb);font-family:inherit;font-size:12px;font-weight:600;letter-spacing:.1em;cursor:pointer;border-radius:3px;transition:all .15s;}
+.ahm-confirm-btn:hover{background:rgba(243,186,47,.22);border-color:var(--bnb);}
+.ahm-confirm-btn:disabled{opacity:.35;cursor:default;}
+.ahm-selected-info{margin-bottom:8px;padding:6px 10px;background:rgba(243,186,47,.06);border:1px solid rgba(243,186,47,.2);border-radius:3px;font-size:11px;color:var(--bnb);display:none;}
+.ahm-selected-info.show{display:block;}
+
+/* ── LEADERBOARD HEADER ADD BUTTON ── */
+.lbh-add-btn{padding:3px 10px;background:rgba(243,186,47,.1);border:1px solid rgba(243,186,47,.3);color:var(--bnb);font-family:inherit;font-size:9px;font-weight:600;letter-spacing:.08em;cursor:pointer;border-radius:2px;transition:all .15s;white-space:nowrap;}
+.lbh-add-btn:hover{background:rgba(243,186,47,.2);border-color:var(--bnb);}
+
+/* ── SWAP TOOL TUTORIAL ── */
+.swap-tut-overlay{display:none;position:fixed;inset:0;z-index:400;pointer-events:none;}
+.swap-tut-overlay.show{display:block;pointer-events:all;}
+.swap-tut-box{position:absolute;background:var(--bg2);border:1px solid rgba(243,186,47,.4);box-shadow:0 8px 32px rgba(0,0,0,.6),0 0 24px rgba(243,186,47,.08);border-radius:5px;padding:16px 18px;width:280px;pointer-events:all;z-index:401;}
+.swap-tut-box::before{content:'';position:absolute;right:-8px;top:20px;width:0;height:0;border-top:7px solid transparent;border-bottom:7px solid transparent;border-left:8px solid rgba(243,186,47,.4);}
+.swap-tut-step{font-size:8px;color:var(--bnb);letter-spacing:.12em;text-transform:uppercase;margin-bottom:6px;font-weight:700;}
+.swap-tut-title{font-size:14px;font-weight:600;color:var(--text);margin-bottom:8px;font-family:var(--font-display);}
+.swap-tut-desc{font-size:11px;color:rgba(180,200,220,.8);line-height:1.8;font-family:var(--font-ui);margin-bottom:12px;}
+.swap-tut-footer{display:flex;align-items:center;justify-content:space-between;gap:8px;}
+.swap-tut-dots{display:flex;gap:4px;}
+.swap-tut-dot{width:5px;height:5px;border-radius:50%;background:var(--bg4);}
+.swap-tut-dot.active{background:var(--bnb);}
+.swap-tut-btn{padding:4px 12px;background:rgba(243,186,47,.12);border:1px solid rgba(243,186,47,.35);color:var(--bnb);font-family:inherit;font-size:10px;font-weight:600;letter-spacing:.08em;cursor:pointer;border-radius:2px;transition:all .15s;}
+.swap-tut-btn:hover{background:rgba(243,186,47,.22);}
+.swap-tut-skip{font-size:10px;color:var(--muted);cursor:pointer;background:none;border:none;font-family:inherit;text-decoration:underline;letter-spacing:.04em;padding:0;}
+.swap-tut-skip:hover{color:var(--text);}
+.swap-tut-highlight{outline:2px solid rgba(243,186,47,.6);outline-offset:3px;border-radius:3px;box-shadow:0 0 14px rgba(243,186,47,.18);transition:outline .2s;}
+
 .ad-panel-spacer{flex-shrink:0;border-bottom:1px solid var(--bdr2);background:var(--bg3);display:flex;align-items:center;padding:0 14px;min-height:34px;}
 .ad-panel-spacer-label{font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);font-family:var(--font-display);}
 .ad-body{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;padding:16px 14px 12px;gap:14px;overflow-y:auto;}
@@ -1099,6 +1164,88 @@ td.qa-cell{text-align:center;width:28px;padding:0 4px !important;}
 .rp-h-stat-v{font-size:9px;font-weight:600;font-family:var(--font-mono);}
 .rp-h-pnl{font-size:10px;font-weight:600;font-family:var(--font-mono);margin-top:3px;}
 .ad-body{display:flex;flex-direction:column;gap:0;margin-top:auto;}
+/* ── ADD HOLDINGS MODAL ── */
+#add-holding-modal .modal{border:1px solid rgba(243,186,47,.28);box-shadow:0 0 40px rgba(243,186,47,.08);max-width:460px;}
+#add-holding-modal .modal-title{color:var(--bnb);}
+.ah-search-wrap{position:relative;margin-bottom:10px;}
+.ah-search-input{width:100%;background:var(--bg3);border:1px solid var(--bdr2);color:var(--text);font-family:inherit;font-size:13px;padding:8px 12px;border-radius:3px;outline:none;letter-spacing:.04em;}
+.ah-search-input:focus{border-color:var(--bnb);}
+.ah-search-input::placeholder{color:var(--muted);letter-spacing:normal;}
+.ah-coin-list{max-height:160px;overflow-y:auto;border:1px solid var(--bdr);border-radius:3px;margin-bottom:12px;background:var(--bg3);}
+.ah-coin-item{display:flex;align-items:center;gap:8px;padding:7px 10px;cursor:pointer;border-bottom:1px solid var(--bdr);transition:background .1s;}
+.ah-coin-item:last-child{border-bottom:none;}
+.ah-coin-item:hover{background:rgba(243,186,47,.06);}
+.ah-coin-item.selected{background:rgba(243,186,47,.1);border-left:2px solid var(--bnb);}
+.ah-coin-ico{width:20px;height:20px;border-radius:50%;background:var(--bg4);flex-shrink:0;overflow:hidden;}
+.ah-coin-ico img{width:100%;height:100%;}
+.ah-coin-sym{font-size:12px;font-weight:700;flex:1;font-family:var(--font-mono);}
+.ah-coin-name{font-size:10px;color:var(--muted);}
+.ah-fields{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:14px;}
+.ah-field label{display:block;font-size:9px;letter-spacing:.1em;color:var(--muted);margin-bottom:4px;text-transform:uppercase;}
+.ah-field input{width:100%;background:var(--bg3);border:1px solid var(--bdr2);color:var(--text);font-family:inherit;font-size:13px;padding:7px 10px;border-radius:3px;outline:none;}
+.ah-field input:focus{border-color:var(--bnb);}
+.ah-field input::placeholder{color:var(--muted);}
+.ah-add-btn{width:100%;padding:10px;background:rgba(243,186,47,.12);border:1px solid rgba(243,186,47,.3);color:var(--bnb);font-family:inherit;font-size:13px;font-weight:600;letter-spacing:.1em;cursor:pointer;border-radius:3px;transition:all .15s;}
+.ah-add-btn:hover{background:rgba(243,186,47,.2);border-color:var(--bnb);}
+.ah-add-btn:disabled{opacity:.4;cursor:default;}
+.ah-selected-coin{display:none;align-items:center;gap:8px;padding:7px 10px;background:rgba(243,186,47,.07);border:1px solid rgba(243,186,47,.2);border-radius:3px;margin-bottom:10px;}
+.ah-selected-coin.show{display:flex;}
+.ah-sel-clear{background:none;border:none;color:var(--muted);cursor:pointer;font-size:16px;margin-left:auto;}
+
+/* ── LEFT PANEL TAB BUTTONS (Holdings / Watchlist) ── */
+.left-tab-bar{display:flex;border-bottom:1px solid var(--bdr);background:var(--bg2);flex-shrink:0;}
+.left-tab-btn{flex:1;padding:7px 4px;font-family:inherit;font-size:9px;font-weight:600;letter-spacing:.12em;text-transform:uppercase;border:none;background:none;cursor:pointer;color:var(--muted);border-bottom:2px solid transparent;transition:color .15s,border-color .15s;display:flex;align-items:center;justify-content:center;gap:4px;}
+.left-tab-btn:hover{color:var(--text);}
+.left-tab-btn.active{color:var(--bnb);border-bottom-color:var(--bnb);}
+
+/* ── WATCHLIST / DESIRED HOLDINGS PANEL ── */
+.watchlist-panel{display:none;flex-direction:column;flex:1;overflow:hidden;}
+.watchlist-panel.show{display:flex;}
+.watchlist-scroll{overflow-y:auto;padding:10px 12px;flex:1;}
+.watchlist-empty{font-size:10px;color:var(--muted);text-align:center;padding:20px 10px;line-height:2;border:1px dashed rgba(255,255,255,.07);border-radius:3px;}
+.wl-tile{background:var(--bg3);border:1px solid var(--bdr);border-radius:4px;padding:8px 10px;margin-bottom:6px;display:flex;align-items:center;gap:8px;cursor:pointer;transition:border-color .15s;}
+.wl-tile:hover{border-color:rgba(167,139,250,.35);}
+.wl-tile-ico{width:22px;height:22px;border-radius:50%;background:var(--bg4);overflow:hidden;flex-shrink:0;}
+.wl-tile-ico img{width:100%;height:100%;}
+.wl-tile-sym{font-size:12px;font-weight:700;flex:1;}
+.wl-tile-score{font-size:10px;font-weight:600;padding:2px 6px;border-radius:2px;}
+.wl-tile-rm{background:none;border:none;color:var(--muted);cursor:pointer;font-size:14px;transition:color .15s;}
+.wl-tile-rm:hover{color:var(--red);}
+.wl-add-btn{width:100%;padding:7px;background:none;border:1px dashed rgba(167,139,250,.25);color:var(--pro);font-family:inherit;font-size:10px;letter-spacing:.1em;cursor:pointer;border-radius:3px;margin-top:6px;transition:all .15s;}
+.wl-add-btn:hover{background:rgba(167,139,250,.08);border-color:var(--pro);}
+
+/* ── HOLDINGS PLACEHOLDER TILES (greyed + icon) ── */
+.holding-placeholder{background:var(--bg4);border:1px dashed rgba(255,255,255,.07);border-radius:4px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:5px;min-height:70px;cursor:pointer;transition:border-color .15s,background .15s;}
+.holding-placeholder:hover{border-color:rgba(243,186,47,.3);background:rgba(243,186,47,.04);}
+.holding-placeholder .ph-plus{font-size:22px;color:rgba(255,255,255,.18);line-height:1;}
+.holding-placeholder .ph-label{font-size:8px;letter-spacing:.1em;color:rgba(255,255,255,.18);text-transform:uppercase;}
+
+/* ── RIGHT PANEL SEPARATOR ── */
+.ad-panel{background:var(--bg2);border-left:2px solid rgba(255,255,255,.07);display:flex;flex-direction:column;overflow-y:auto;overflow-x:hidden;position:relative;}
+.ad-panel::before{content:'';position:absolute;top:0;left:-1px;width:1px;height:100%;background:linear-gradient(180deg,transparent,rgba(243,186,47,.15) 30%,rgba(167,139,250,.12) 70%,transparent);pointer-events:none;}
+
+/* ── SWAP TOOL TUTORIAL BADGE ── */
+.swap-tut-hint{display:flex;align-items:center;gap:6px;padding:5px 10px;background:rgba(0,189,142,.06);border:1px solid rgba(0,189,142,.15);border-radius:3px;font-size:10px;color:var(--green);cursor:pointer;transition:background .15s;margin-bottom:8px;letter-spacing:.04em;}
+.swap-tut-hint:hover{background:rgba(0,189,142,.11);}
+.swap-tut-hint span.hint-ico{font-size:13px;}
+.rt-section-lbl{font-size:8px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);padding:8px 14px 4px;border-top:1px solid var(--bdr);margin-top:2px;}
+
+/* ── SWAP BEST TIME INDICATOR ── */
+.rt-timing{display:flex;align-items:center;gap:8px;padding:7px 10px;border-radius:4px;margin-bottom:8px;border:1px solid;}
+.rt-timing.great{background:rgba(0,189,142,.07);border-color:rgba(0,189,142,.25);color:var(--green);}
+.rt-timing.good{background:rgba(240,160,48,.06);border-color:rgba(240,160,48,.22);color:var(--amber);}
+.rt-timing.wait{background:rgba(240,62,88,.06);border-color:rgba(240,62,88,.2);color:var(--red);}
+.rt-timing .tim-ico{font-size:15px;flex-shrink:0;}
+.rt-timing .tim-txt{font-size:11px;font-weight:600;flex:1;}
+.rt-timing .tim-sub{font-size:9px;color:var(--muted);display:block;font-weight:400;margin-top:1px;}
+
+.rt-res-lbl{font-size:9px;color:var(--muted);letter-spacing:.08em;}
+.rt-res-val{font-size:18px;font-weight:600;font-family:var(--font-mono);}
+
+/* ── ADD HOLDINGS button in leaderboard header ── */
+.add-holdings-lb-btn{display:flex;align-items:center;gap:5px;padding:4px 11px;background:rgba(243,186,47,.08);border:1px solid rgba(243,186,47,.28);color:var(--bnb);font-family:inherit;font-size:9px;font-weight:600;letter-spacing:.1em;cursor:pointer;border-radius:3px;transition:all .15s;white-space:nowrap;}
+.add-holdings-lb-btn:hover{background:rgba(243,186,47,.16);border-color:var(--bnb);}
+
 .rt-pair-row,.rt-sel-wrap,.rt-sel-lbl,.rt-swap-arrow,.rt-saved-row,.rt-saved-lbl,.rt-actions-row{display:none;}
 </style>
 </head>
@@ -1291,6 +1438,30 @@ td.qa-cell{text-align:center;width:28px;padding:0 4px !important;}
   </div>
 </div>
 
+<!-- ADD HOLDINGS MODAL -->
+<div class="overlay" id="add-holding-modal" onclick="if(event.target===this)closeModal('add-holding-modal')">
+  <div class="modal">
+    <button class="modal-x" onclick="closeModal('add-holding-modal')">×</button>
+    <div class="modal-title">+ Add to Holdings</div>
+    <div class="modal-sub" style="margin-bottom:12px;">Search for a coin, enter your quantity and average buy price.</div>
+    <div class="ah-search-wrap">
+      <input class="ah-search-input" id="ah-search" type="text" placeholder="Search coin name or symbol…" oninput="ahSearch(this.value)" autocomplete="off">
+    </div>
+    <div class="ah-selected-coin" id="ah-selected-coin">
+      <div class="ah-coin-ico" id="ah-sel-ico"><img id="ah-sel-img" src="" alt=""></div>
+      <span id="ah-sel-sym" style="font-size:13px;font-weight:700;font-family:var(--font-mono);"></span>
+      <span id="ah-sel-name" style="font-size:11px;color:var(--muted);flex:1;"></span>
+      <button class="ah-sel-clear" onclick="ahClearCoin()">×</button>
+    </div>
+    <div class="ah-coin-list" id="ah-coin-list"></div>
+    <div class="ah-fields">
+      <div class="ah-field"><label>Quantity</label><input type="number" id="ah-qty" placeholder="e.g. 0.5" min="0" step="any"></div>
+      <div class="ah-field"><label>Avg Buy Price ($)</label><input type="number" id="ah-avg" placeholder="e.g. 45000" min="0" step="any"></div>
+    </div>
+    <button class="ah-add-btn" id="ah-confirm-btn" onclick="ahConfirmAdd()" disabled>+ Add to Holdings</button>
+  </div>
+</div>
+
 <!-- DONATE MODAL -->
 <div class="overlay" id="donate-modal" onclick="if(event.target===this)closeModal('donate-modal')">
   <div class="modal">
@@ -1412,18 +1583,38 @@ td.qa-cell{text-align:center;width:28px;padding:0 4px !important;}
 
     <!-- CRYPTO HOLDINGS -->
     <div id="holdings-crypto" style="display:flex;flex-direction:column;flex:1;overflow:hidden;">
-      <div class="sig-box" id="sig-box-crypto">
-        <div class="sig-title">◈ Portfolio Signal</div>
-        <div id="sig-content"><div style="font-size:11px;color:var(--muted);font-family:var(--font-ui);">Add holdings below to see your signal.</div></div>
+      <!-- Dual view tabs -->
+      <div class="holdings-view-tabs">
+        <button class="hvtab active" id="hvtab-my" onclick="switchHoldingsView('my')">💼 My Holdings</button>
+        <button class="hvtab" id="hvtab-watch" onclick="switchHoldingsView('watch')">👁 Watchlist</button>
       </div>
-      <div class="holdings-section-label"><span>MY HOLDINGS</span><span id="hcount" style="color:var(--bnb);font-size:9px;letter-spacing:.04em;"></span></div>
-      <div class="tiles-scroll"><div class="tiles-grid" id="tiles-grid"></div></div>
-      <div class="phead"><div class="ptitle">Add Crypto</div></div>
-      <div class="add-form">
-        <div class="frow"><span class="flbl">COIN</span><select id="coin-sel"><option value="">Select…</option></select></div>
-        <div class="frow"><span class="flbl">QTY</span><input type="number" id="inp-qty" placeholder="amount" min="0" step="any"></div>
-        <div class="frow"><span class="flbl">AVG $</span><input type="number" id="inp-avg" placeholder="avg buy price" min="0" step="any"></div>
-        <button class="add-btn" onclick="addHolding()">+ ADD TO HOLDINGS</button>
+
+      <!-- MY HOLDINGS VIEW -->
+      <div id="my-holdings-panel" style="display:flex;flex-direction:column;flex:1;overflow:hidden;">
+        <div class="sig-box" id="sig-box-crypto">
+          <div class="sig-title">◈ Portfolio Signal</div>
+          <div id="sig-content"><div style="font-size:11px;color:var(--muted);font-family:var(--font-ui);">Add holdings to see your signal.</div></div>
+        </div>
+        <div class="holdings-section-label"><span>MY HOLDINGS</span><span id="hcount" style="color:var(--bnb);font-size:9px;letter-spacing:.04em;"></span></div>
+        <div class="tiles-scroll"><div class="tiles-grid" id="tiles-grid"></div></div>
+        <!-- Placeholder tiles when empty -->
+        <div id="holding-placeholders" class="tiles-scroll" style="display:none;">
+          <div class="tiles-grid">
+            <div class="tile-placeholder" onclick="openAddHoldingsModal()"><div class="ph-plus">+</div><div class="ph-lbl">Add Coin</div></div>
+            <div class="tile-placeholder" onclick="openAddHoldingsModal()"><div class="ph-plus">+</div><div class="ph-lbl">Add Coin</div></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- WATCHLIST VIEW -->
+      <div id="watchlist-panel" style="display:none;flex-direction:column;flex:1;overflow:hidden;">
+        <div class="watchlist-tip">Track coins without committing capital. Ratio tool auto-populates your watchlist pairs.</div>
+        <div class="tiles-scroll"><div class="tiles-grid" id="watchlist-grid">
+          <div class="watchlist-placeholder">Click + to add coins to your watchlist.<br>Compare them in the swap tool →</div>
+        </div></div>
+        <div style="padding:8px 12px;border-top:1px solid var(--bdr);flex-shrink:0;">
+          <button class="add-btn" onclick="openAddWatchlistModal()" style="margin-top:0;">+ ADD TO WATCHLIST</button>
+        </div>
       </div>
     </div>
 
@@ -1528,6 +1719,9 @@ td.qa-cell{text-align:center;width:28px;padding:0 4px !important;}
     </div>
     <div class="tbl-head">
       <div class="ptitle" id="tbl-title">PERFORMANCE LEADERBOARD</div>
+      <div style="position:absolute;left:14px;display:flex;align-items:center;gap:8px;">
+        <button class="lbh-add-btn" id="lbh-add-btn" onclick="openAddHoldingsModal()" title="Track a coin in your portfolio">+ ADD HOLDING</button>
+      </div>
       <div style="position:absolute;right:14px;display:flex;align-items:center;gap:10px;">
         <span id="last-updated-crypto"  class="last-upd-ts" style="display:none;"></span>
         <span id="last-updated-forex"   class="last-upd-ts" style="display:none;"></span>
@@ -1730,7 +1924,50 @@ td.qa-cell{text-align:center;width:28px;padding:0 4px !important;}
   </div>
 </div>
 
-<!-- FOOTER -->
+<!-- ADD HOLDINGS MODAL -->
+<div class="overlay" id="add-holdings-modal">
+  <div class="modal" style="max-width:440px;border:1px solid rgba(243,186,47,.28);box-shadow:0 0 40px rgba(243,186,47,.08);">
+    <button class="modal-x" onclick="closeModal('add-holdings-modal')">×</button>
+    <div class="modal-title" style="color:var(--bnb);">+ Add to Holdings</div>
+    <div class="modal-sub" style="margin-bottom:12px;">Search and select a coin, then enter quantity and average buy price.</div>
+    <input class="ahm-coin-search" id="ahm-search" type="text" placeholder="Search coin name or symbol…" oninput="ahmFilter()" autocomplete="off">
+    <div class="ahm-coin-list" id="ahm-coin-list"></div>
+    <div class="ahm-selected-info" id="ahm-selected-info"></div>
+    <div class="ahm-inputs">
+      <div class="ahm-field">
+        <label>Quantity</label>
+        <input type="number" id="ahm-qty" placeholder="e.g. 0.5" min="0" step="any">
+      </div>
+      <div class="ahm-field">
+        <label>Avg Buy Price ($)</label>
+        <input type="number" id="ahm-avg" placeholder="e.g. 42000" min="0" step="any">
+      </div>
+    </div>
+    <button class="ahm-confirm-btn" id="ahm-confirm-btn" onclick="ahmConfirm()" disabled>+ ADD TO HOLDINGS</button>
+    <!-- Hidden legacy inputs needed by addHolding() -->
+    <select id="coin-sel" style="display:none;"><option value="">Select…</option></select>
+    <input type="number" id="inp-qty" style="display:none;" placeholder="amount" min="0" step="any">
+    <input type="number" id="inp-avg" style="display:none;" placeholder="avg buy price" min="0" step="any">
+  </div>
+</div>
+
+<!-- SWAP TOOL TUTORIAL OVERLAY -->
+<div class="swap-tut-overlay" id="swap-tut-overlay">
+  <div class="swap-tut-box" id="swap-tut-box">
+    <div class="swap-tut-step" id="swap-tut-step-lbl">STEP 1 OF 4</div>
+    <div class="swap-tut-title" id="swap-tut-title">Swap Tool</div>
+    <div class="swap-tut-desc" id="swap-tut-desc"></div>
+    <div class="swap-tut-footer">
+      <div class="swap-tut-dots" id="swap-tut-dots"></div>
+      <div style="display:flex;gap:6px;align-items:center;">
+        <button class="swap-tut-skip" onclick="endSwapTut()">Skip</button>
+        <button class="swap-tut-btn" id="swap-tut-next" onclick="swapTutNext()">Next →</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+
 <footer class="site-footer">
   <div class="footer-links">
     <a class="footer-link" onclick="openModal('about-modal')">ABOUT US</a>
@@ -1960,7 +2197,265 @@ function renderRpHoldings() {
       };
     }
 
-    /* Also wire Enter key on mobile inputs */
+    /* ════════════════════════════════════════════════════════════════
+   NEW FEATURES JS
+   - Left panel dual tabs (My Holdings / Watchlist)
+   - Add Holdings Modal (coin search + inputs)
+   - Swap Tool Tutorial
+   ════════════════════════════════════════════════════════════════ */
+
+/* ── Holdings view tab toggle ───────────────────────────────── */
+var _holdingsView = 'my';
+function switchHoldingsView(view) {
+  _holdingsView = view;
+  document.getElementById('hvtab-my').classList.toggle('active', view === 'my');
+  document.getElementById('hvtab-watch').classList.toggle('active', view === 'watch');
+  document.getElementById('my-holdings-panel').style.display = view === 'my' ? 'flex' : 'none';
+  document.getElementById('watchlist-panel').style.display   = view === 'watch' ? 'flex' : 'none';
+}
+
+/* Show placeholder tiles when no holdings, real tiles when holdings exist */
+function syncHoldingPlaceholders() {
+  var ph  = document.getElementById('holding-placeholders');
+  var tg  = document.getElementById('tiles-grid');
+  var ts  = tg ? tg.closest('.tiles-scroll') : null;
+  if (!ph) return;
+  var empty = !(typeof holdings !== 'undefined' && holdings.length > 0);
+  ph.style.display = empty ? '' : 'none';
+  if (ts) ts.style.display = empty ? 'none' : '';
+}
+/* Patch renderTiles to also sync placeholders */
+var _origRenderTiles = typeof renderTiles !== 'undefined' ? renderTiles : null;
+document.addEventListener('DOMContentLoaded', function() {
+  // run after holdings.js loads
+  setTimeout(function() {
+    syncHoldingPlaceholders();
+    // Override addHolding to keep placeholders in sync
+    var _origAdd = window.addHolding;
+    if (_origAdd) {
+      window.addHolding = function() { _origAdd.apply(this, arguments); syncHoldingPlaceholders(); };
+    }
+    var _origRemove = window.removeHolding;
+    if (_origRemove) {
+      window.removeHolding = function(sym) { _origRemove.call(this, sym); syncHoldingPlaceholders(); };
+    }
+  }, 1200);
+});
+
+/* ── Watchlist state ─────────────────────────────────────────── */
+var watchlist = [];
+try { watchlist = JSON.parse(localStorage.getItem('rot_watchlist') || '[]'); } catch(e) {}
+function saveWatchlist() { try { localStorage.setItem('rot_watchlist', JSON.stringify(watchlist)); } catch(e) {} }
+function renderWatchlist() {
+  var grid = document.getElementById('watchlist-grid');
+  if (!grid) return;
+  if (!watchlist.length) {
+    grid.innerHTML = '<div class="watchlist-placeholder">Click + to add coins to your watchlist.<br>Compare them in the swap tool →</div>';
+    return;
+  }
+  var c = typeof coins !== 'undefined' ? coins : [];
+  var html = watchlist.map(function(sym) {
+    var coin = c.find(function(x) { return x.sym === sym; });
+    if (!coin) return '<div class="tile-placeholder" title="' + sym + ' (loading…)"><div class="ph-plus">' + sym + '</div><div class="ph-lbl">Loading</div></div>';
+    var glw = coin.score >= 65 ? 'glow-g' : coin.score >= 40 ? 'glow-a' : 'glow-r';
+    return '<div class="tile ' + glw + '" style="cursor:pointer;" onclick="openTileDetail(\'' + coin.id + '\',event)" title="' + coin.name + '">'
+      + '<div class="tile-top"><div class="tile-ico"><img src="' + coin.image + '" onerror="this.style.display=\'none\'"></div>'
+      + '<span class="tile-sym">' + coin.sym + '</span>'
+      + '<button class="tile-rm" onclick="event.stopPropagation();removeFromWatchlist(\'' + sym + '\')">×</button></div>'
+      + '<div class="tile-price">' + (typeof fmtP !== 'undefined' ? fmtP(coin.price) : '$'+coin.price) + '</div>'
+      + '<div class="tile-perfs">'
+        + '<div class="tpf"><span class="tpf-l">24H</span><span class="tpf-v ' + (coin.p24>=0?'up':'dn') + '">' + (coin.p24>=0?'+':'') + coin.p24.toFixed(1) + '%</span></div>'
+        + '<div class="tpf"><span class="tpf-l">7D</span><span class="tpf-v '  + (coin.p7>=0?'up':'dn')  + '">' + (coin.p7>=0?'+':'')  + coin.p7.toFixed(1)  + '%</span></div>'
+      + '</div>'
+      + '<div class="tile-foot"><span></span><span class="tile-scr ' + (coin.score>=65?'hi':coin.score>=40?'md':'lo') + '">' + coin.score + '</span></div>'
+      + '</div>';
+  }).join('');
+  grid.innerHTML = html;
+}
+function removeFromWatchlist(sym) {
+  watchlist = watchlist.filter(function(s) { return s !== sym; });
+  saveWatchlist(); renderWatchlist();
+}
+function openAddWatchlistModal() { openAddHoldingsModal('watchlist'); }
+
+/* ── Add Holdings Modal ──────────────────────────────────────── */
+var _ahmMode = 'holdings'; // 'holdings' or 'watchlist'
+var _ahmSelected = null;
+
+function openAddHoldingsModal(mode) {
+  _ahmMode = mode || 'holdings';
+  _ahmSelected = null;
+  document.getElementById('ahm-search').value = '';
+  document.getElementById('ahm-qty').value = '';
+  document.getElementById('ahm-avg').value = '';
+  document.getElementById('ahm-confirm-btn').disabled = true;
+  document.getElementById('ahm-confirm-btn').textContent = _ahmMode === 'watchlist' ? '+ ADD TO WATCHLIST' : '+ ADD TO HOLDINGS';
+  document.querySelector('#add-holdings-modal .modal-title').textContent = _ahmMode === 'watchlist' ? '+ Add to Watchlist' : '+ Add to Holdings';
+  // Show/hide price inputs for watchlist mode
+  var inputs = document.querySelector('.ahm-inputs');
+  inputs.style.display = _ahmMode === 'watchlist' ? 'none' : '';
+  ahmFilter();
+  document.querySelector('#add-holdings-modal .modal-sub').textContent = _ahmMode === 'watchlist'
+    ? 'Track coins without committing capital. Use the Swap Tool to find best swap timing.'
+    : 'Search and select a coin, then enter quantity and average buy price.';
+  document.getElementById('ahm-selected-info').classList.remove('show');
+  openModal('add-holdings-modal');
+}
+
+function ahmFilter() {
+  var q = (document.getElementById('ahm-search').value || '').toLowerCase().trim();
+  var c = typeof coins !== 'undefined' ? coins : [];
+  var filtered = q ? c.filter(function(x) { return x.sym.toLowerCase().includes(q) || (x.name||'').toLowerCase().includes(q); }) : c.slice(0, 40);
+  var html = filtered.slice(0, 40).map(function(coin) {
+    var sel = _ahmSelected && _ahmSelected.sym === coin.sym;
+    return '<div class="ahm-coin-item' + (sel ? ' selected' : '') + '" onclick="ahmSelect(\'' + coin.id + '\')">'
+      + '<div class="ahm-coin-ico"><img src="' + coin.image + '" onerror="this.style.display=\'none\'"></div>'
+      + '<div><div class="ahm-coin-name">' + coin.sym + '</div><div class="ahm-coin-sub">' + (coin.name||'') + ' · $' + (coin.price?coin.price.toFixed(2):'?') + '</div></div>'
+      + '</div>';
+  }).join('');
+  document.getElementById('ahm-coin-list').innerHTML = html || '<div style="padding:10px;font-size:11px;color:var(--muted);text-align:center;">No coins found</div>';
+}
+
+function ahmSelect(coinId) {
+  var c = typeof coins !== 'undefined' ? coins : [];
+  _ahmSelected = c.find(function(x) { return x.id === coinId; });
+  if (!_ahmSelected) return;
+  var info = document.getElementById('ahm-selected-info');
+  info.textContent = 'Selected: ' + _ahmSelected.sym + ' · Current price: $' + (_ahmSelected.price ? _ahmSelected.price.toFixed(2) : '—');
+  info.classList.add('show');
+  document.getElementById('ahm-confirm-btn').disabled = false;
+  // Update coin-sel hidden select for legacy addHolding()
+  var sel = document.getElementById('coin-sel');
+  if (sel) { sel.innerHTML = '<option value="' + _ahmSelected.sym + '">' + _ahmSelected.sym + '</option>'; sel.value = _ahmSelected.sym; }
+  ahmFilter(); // re-render to show selection
+}
+
+function ahmConfirm() {
+  if (!_ahmSelected) return;
+  if (_ahmMode === 'watchlist') {
+    if (!watchlist.includes(_ahmSelected.sym)) { watchlist.push(_ahmSelected.sym); saveWatchlist(); }
+    closeModal('add-holdings-modal');
+    renderWatchlist();
+    switchHoldingsView('watch');
+    return;
+  }
+  // holdings mode
+  var qty = document.getElementById('ahm-qty').value;
+  var avg = document.getElementById('ahm-avg').value;
+  document.getElementById('inp-qty').value = qty;
+  document.getElementById('inp-avg').value = avg;
+  if (typeof addHolding === 'function') addHolding();
+  closeModal('add-holdings-modal');
+  syncHoldingPlaceholders();
+}
+
+/* Run filter when modal opens (populate initial list) */
+document.addEventListener('DOMContentLoaded', function() {
+  setTimeout(ahmFilter, 1500);
+});
+
+/* ── Swap Tool Tutorial ─────────────────────────────────────── */
+var SWAP_TUT_STEPS = [
+  {
+    title: 'Swap Tool — Price Ratio Tracker',
+    desc: 'This tool helps you find the <strong>best moment to swap</strong> one asset for another — not by guessing, but by tracking the live price ratio between them over time.',
+    anchor: 'ratio-section'
+  },
+  {
+    title: 'Pick Your Pair',
+    desc: 'Select the coin you <strong>HOLD</strong> (FROM) and the coin you <strong>WANT</strong> (TO). The ratio shows how many TO coins you\'d receive per 1 FROM coin at current prices.',
+    anchor: 'rt-from'
+  },
+  {
+    title: 'Read the Ratio Chart',
+    desc: 'The range bar shows the ratio over your chosen timeframe. <strong>▲ Peak</strong> = the best swap moment. When current ratio is near the peak, you get more value for your swap.',
+    anchor: 'rt-bar-track'
+  },
+  {
+    title: 'Swap Calculator',
+    desc: 'Enter your amount to see exactly how much you\'d receive. Override prices manually for hypothetical scenarios. Always verify on your exchange before executing — prices shift fast.',
+    anchor: 'rt-calc'
+  }
+];
+var _swapTutStep = 0;
+var _swapTutHighlighted = null;
+
+function startSwapTut() {
+  _swapTutStep = 0;
+  swapTutRender();
+  document.getElementById('swap-tut-overlay').classList.add('show');
+}
+function endSwapTut() {
+  document.getElementById('swap-tut-overlay').classList.remove('show');
+  if (_swapTutHighlighted) { _swapTutHighlighted.classList.remove('swap-tut-highlight'); _swapTutHighlighted = null; }
+  try { localStorage.setItem('rot_swap_tut', 'done'); } catch(e) {}
+}
+function swapTutNext() {
+  _swapTutStep++;
+  if (_swapTutStep >= SWAP_TUT_STEPS.length) { endSwapTut(); return; }
+  swapTutRender();
+}
+function swapTutRender() {
+  var step = SWAP_TUT_STEPS[_swapTutStep];
+  document.getElementById('swap-tut-step-lbl').textContent = 'STEP ' + (_swapTutStep+1) + ' OF ' + SWAP_TUT_STEPS.length;
+  document.getElementById('swap-tut-title').textContent = step.title;
+  document.getElementById('swap-tut-desc').innerHTML = step.desc;
+  var nextBtn = document.getElementById('swap-tut-next');
+  nextBtn.textContent = _swapTutStep === SWAP_TUT_STEPS.length - 1 ? 'Got it ✓' : 'Next →';
+  // dots
+  var dots = '';
+  for (var i = 0; i < SWAP_TUT_STEPS.length; i++) dots += '<div class="swap-tut-dot' + (i===_swapTutStep?' active':'') + '"></div>';
+  document.getElementById('swap-tut-dots').innerHTML = dots;
+  // highlight anchor element and position box
+  if (_swapTutHighlighted) _swapTutHighlighted.classList.remove('swap-tut-highlight');
+  var anchor = step.anchor ? document.getElementById(step.anchor) : null;
+  if (anchor) {
+    anchor.classList.add('swap-tut-highlight');
+    _swapTutHighlighted = anchor;
+    var r = anchor.getBoundingClientRect();
+    var box = document.getElementById('swap-tut-box');
+    var bw = 280, bh = 200;
+    var left = r.left - bw - 12;
+    var top  = r.top + 8;
+    if (left < 8) left = r.right + 12;
+    if (top + bh > window.innerHeight - 8) top = window.innerHeight - bh - 8;
+    box.style.left = Math.max(8, left) + 'px';
+    box.style.top  = Math.max(8, top)  + 'px';
+    // update arrow direction
+    box.style.setProperty('--arr', left < r.left ? 'right' : 'left');
+  }
+}
+
+// Auto-show swap tut on first visit to swap tool area
+document.addEventListener('DOMContentLoaded', function() {
+  setTimeout(function() {
+    try { if (!localStorage.getItem('rot_swap_tut')) {
+      var ratioSec = document.getElementById('ratio-section');
+      if (ratioSec) {
+        var obs = new IntersectionObserver(function(entries) {
+          if (entries[0].isIntersecting) { startSwapTut(); obs.disconnect(); }
+        }, {threshold:0.3});
+        obs.observe(ratioSec);
+      }
+    }} catch(e) {}
+  }, 3000);
+});
+
+// Wire swap tut button next to the ratio section header (add help button)
+document.addEventListener('DOMContentLoaded', function() {
+  setTimeout(function() {
+    var hdr = document.querySelector('.rt-header-row');
+    if (hdr) {
+      var btn = document.createElement('button');
+      btn.textContent = '? How it works';
+      btn.className = 'swap-tut-btn';
+      btn.style.cssText = 'margin-left:auto;font-size:9px;padding:2px 8px;';
+      btn.onclick = startSwapTut;
+      hdr.appendChild(btn);
+    }
+  }, 800);
+});
+
     var inputs = panel.querySelectorAll('input[type="number"]');
     inputs.forEach(function(inp) {
       inp.addEventListener('keydown', function(e) {

@@ -141,7 +141,7 @@ function renderTopBars() {
       + '</div></div>';
   }
 
-  /* ── Column 3: Worst 30D — 3 free / 6 Pro ── */
+  /* ── Column 3: Worst 30D — 2 free / 4 Pro ── */
   var worstAll = coins.slice().sort(function(a, b) { return a.p30 - b.p30; });
   var worstEl  = document.getElementById('worst-cards');
   if (isPro) {
@@ -187,11 +187,11 @@ function renderTopBars() {
   var allBuys  = coins.slice().sort(function(a, b) { return a.score - b.score; });
 
   if (!isPro) {
-    /* Build up to 6 real pairs — from holdings if available, else from all coins */
+    /* Build up to 4 real pairs — from holdings if available, else from all coins */
     var previewSells = (sells.length && buys.length) ? sells : allSells;
     var previewBuys  = (sells.length && buys.length) ? buys  : allBuys;
     var previewPairs = [];
-    for (var pi = 0; pi < Math.min(6, previewSells.length); pi++) {
+    for (var pi = 0; pi < Math.min(4, previewSells.length); pi++) {
       previewPairs.push({ sell: previewSells[pi], buy: previewBuys[pi % previewBuys.length] });
     }
 
