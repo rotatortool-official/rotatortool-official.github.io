@@ -196,6 +196,9 @@ var RatioTracker = (function() {
     set('rt-unit-txt',lbl(t)+' received per 1 '+lbl(f));
     set('rt-from-card-lbl',lbl(f)); set('rt-to-card-lbl',lbl(t));
     set('rt-calc-from-lbl','Amount of '+lbl(f));
+    /* Update tile sym labels immediately */
+    var fs=$('rt-ct-from-sym'); if(fs) fs.textContent=lbl(f);
+    var ts=$('rt-ct-to-sym');   if(ts) ts.textContent=lbl(t);
     updateIcons();
   }
 
@@ -232,11 +235,33 @@ var RatioTracker = (function() {
     S.fromPrice=fo.usd; S.toPrice=to.usd;
     S.fromChg=fo.usd_24h_change||0; S.toChg=to.usd_24h_change||0;
     var ratio=S.fromPrice/S.toPrice;
-    var rEl=$('rt-ratio-num'); if(rEl){rEl.textContent=ratio.toFixed(2); rEl.classList.remove('dim');}
-    set('rt-from-price',fmtP(S.fromPrice)); set('rt-to-price',fmtP(S.toPrice));
-    var fChg=$('rt-from-chg'),tChg=$('rt-to-chg');
-    if(fChg){fChg.textContent=(S.fromChg>=0?'+':'')+S.fromChg.toFixed(2)+'% 24h'; fChg.style.color=S.fromChg>=0?'var(--green)':'var(--red)';}
-    if(tChg){tChg.textContent=(S.toChg>=0?'+':'')+S.toChg.toFixed(2)+'% 24h';   tChg.style.color=S.toChg>=0?'var(--green)':'var(--red)';}
+
+    /* ── Live ratio number (in the middle of tiles) ── */
+    var rEl=$('rt-ratio-num');
+    if(rEl){ rEl.textContent=ratio.toFixed(ratio<1?4:ratio<10?3:2); rEl.classList.remove('dim'); }
+
+    /* ── FROM tile ── */
+    var fromSym=$('rt-ct-from-sym'); if(fromSym) fromSym.textContent=lbl(S.from);
+    set('rt-from-price', fmtP(S.fromPrice));
+    var fChgEl=$('rt-from-chg');
+    if(fChgEl){
+      fChgEl.textContent=(S.fromChg>=0?'+':'')+S.fromChg.toFixed(2)+'% 24h';
+      fChgEl.style.color=S.fromChg>=0?'var(--green)':'var(--red)';
+    }
+
+    /* ── TO tile ── */
+    var toSym=$('rt-ct-to-sym'); if(toSym) toSym.textContent=lbl(S.to);
+    set('rt-to-price', fmtP(S.toPrice));
+    var tChgEl=$('rt-to-chg');
+    if(tChgEl){
+      tChgEl.textContent=(S.toChg>=0?'+':'')+S.toChg.toFixed(2)+'% 24h';
+      tChgEl.style.color=S.toChg>=0?'var(--green)':'var(--red)';
+    }
+
+    /* ── Now ratio card ── */
+    var nowVal=$('rt-now-ratio-val');
+    if(nowVal){ nowVal.textContent=ratio.toFixed(ratio<1?4:ratio<10?3:2)+'×'; }
+
     renderBadge(ratio); calcSwap();
   }
 
