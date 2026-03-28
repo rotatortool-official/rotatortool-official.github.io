@@ -558,6 +558,16 @@ td.qa-cell{text-align:center;width:28px;padding:0 4px !important;}
 
 /* ── RIGHT PANEL ── */
 .ad-panel{background:linear-gradient(180deg,rgba(130,110,200,.055) 0%,rgba(130,110,200,.025) 50%,var(--bg2) 100%);border-left:2px solid rgba(130,110,200,.2);box-shadow:-4px 0 24px rgba(0,0,0,.3);display:flex;flex-direction:column;overflow-y:auto;overflow-x:hidden;height:100%;max-height:100%;}
+
+/* ══ PORTFOLIO SIGNAL: guaranteed flush below mode bar ══ */
+.sidebar > .sig-box {
+  margin: 0 !important;
+  flex-shrink: 0;
+  border-top: none;
+}
+/* Remove top border radius on the mode-bar to connect seamlessly */
+#sig-box-crypto { border-top: none; }
+
 /* ── LEFT PANEL VIEW TABS ── */
 .holdings-view-tabs{display:flex;gap:0;border-bottom:1px solid var(--bdr);flex-shrink:0;background:var(--bg2);}
 .hvtab{flex:1;background:none;border:none;color:var(--muted);font-family:inherit;font-size:9px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;padding:5px 4px;cursor:pointer;border-bottom:2px solid transparent;transition:all .15s;position:relative;}
@@ -877,7 +887,7 @@ td.qa-cell{text-align:center;width:28px;padding:0 4px !important;}
   .sidebar{display:none !important;}
   .ad-panel{display:none !important;}
   .main-col{padding-bottom:60px;overflow-y:auto;}
-  /* sig-box stays visible — no gap */
+
   tbody td{border-bottom:none;}
 
   /* Hide HOLDINGS nav tab — holdings shown inline below leaderboard */
@@ -1707,14 +1717,14 @@ td.qa-cell{text-align:center;width:28px;padding:0 4px !important;}
       </button>
     </div>
 
-    <!-- CRYPTO HOLDINGS -->
-    <div id="holdings-crypto" style="display:flex;flex-direction:column;flex:1;overflow:hidden;">
+    <!-- PORTFOLIO SIGNAL: direct sidebar child — zero gap guaranteed -->
+    <div class="sig-box" id="sig-box-crypto">
+      <div class="sig-title">◈ Portfolio Signal</div>
+      <div id="sig-content"><div style="font-size:11px;color:var(--muted);font-family:var(--font-ui);">Add holdings to see your signal.</div></div>
+    </div>
 
-      <!-- PORTFOLIO SIGNAL — always visible at top of sidebar on desktop -->
-      <div class="sig-box" id="sig-box-crypto">
-        <div class="sig-title">◈ Portfolio Signal</div>
-        <div id="sig-content"><div style="font-size:11px;color:var(--muted);font-family:var(--font-ui);">Add holdings to see your signal.</div></div>
-      </div>
+    <!-- CRYPTO HOLDINGS -->
+    <div id="holdings-crypto" style="display:flex;flex-direction:column;flex:1;min-height:0;overflow:hidden;">
 
       <!-- Dual view tabs -->
       <div class="holdings-view-tabs">

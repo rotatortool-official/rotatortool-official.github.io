@@ -59,26 +59,50 @@ var RatioTracker = (function() {
   function $(id){ return document.getElementById(id); }
   function set(id,v){ var e=$(id); if(e) e.textContent=v; }
 
-  /* ── Coin image lookup ── */
+  /* ── Coin image lookup with comprehensive fallbacks ── */
+  var CG_IDS = {
+    'bitcoin':'1','ethereum':'279','binancecoin':'825','solana':'4128',
+    'ripple':'44','dogecoin':'5','cardano':'975','avalanche-2':'12559',
+    'shiba-inu':'11939','chainlink':'877','polkadot':'12171','bitcoin-cash':'780',
+    'near':'10365','litecoin':'2','uniswap':'12504','tron':'1094',
+    'stellar':'100','monero':'69','cosmos':'3861','vechain':'3077',
+    'filecoin':'12817','aave':'7278','maker':'1364','lido-dao':'13573',
+    'arbitrum':'16547','optimism':'25244','injective-protocol':'7226',
+    'ondo-finance':'26580','toncoin':'17980','fetch-ai':'3773',
+    'singularitynet':'2token','render-token':'11636','hedera-hashgraph':'4642',
+    'aptos':'21794','sui':'26375','internet-computer':'8916',
+    'ethereum-classic':'3897','okb':'8267','stacks':'4847',
+    'immutable-x':'17233','blur':'16925','bonk':'23095','pepe':'29850',
+    'worldcoin-wld':'25942','pyth-network':'28177','ethena':'28028',
+    'hyperliquid':'29835','the-sandbox':'12129','decentraland':'1966',
+    'flow':'4558','ocean-protocol':'3911','bittensor':'22974',
+    'celestia':'22861','raydium':'8526','jito-governance-token':'28541',
+    'pendle':'18735','curve-dao-token':'12124','the-graph':'6719',
+    'wormhole':'26997','layerzero':'30668','stargate-finance':'18934',
+    'gmx':'11857','axie-infinity':'8715','gala':'12493'
+  };
+
   function getCoinImage(id) {
-    if (typeof coins !== 'undefined' && Array.isArray(coins)) {
-      var c = coins.find(function(x) { return x.id === id; });
-      if (c && c.image) return c.image;
+    /* Try live coins array first */
+    if (typeof coins !== 'undefined' && Array.isArray(coins) && coins.length > 0) {
+      var found = coins.find(function(x) { return x.id === id; });
+      if (found && found.image) return found.image;
     }
-    /* Fallback: CoinGecko thumb pattern for common coins */
-    var thumbs = {
-      'bitcoin':'1','ethereum':'279','binancecoin':'825','solana':'4128',
-      'ripple':'44','dogecoin':'5','cardano':'975','avalanche-2':'12559',
-      'ondo-finance':'26580','toncoin':'17980'
-    };
-    if (thumbs[id]) return 'https://assets.coingecko.com/coins/images/'+thumbs[id]+'/thumb/'+id+'.png';
-    return '';
+    /* Fallback: CoinGecko small thumb URL */
+    var cgId = CG_IDS[id];
+    if (cgId) return 'https://assets.coingecko.com/coins/images/' + cgId + '/thumb/' + id + '.png';
+    /* Last resort: bitcoin as placeholder */
+    return 'https://assets.coingecko.com/coins/images/1/thumb/bitcoin.png';
   }
 
   function updateIcons() {
     var fi = $('rt-from-icon'), ti = $('rt-to-icon');
-    if (fi && S.from) { var src = getCoinImage(S.from); fi.src = src; fi.style.opacity = src ? '1' : '0'; }
-    if (ti && S.to)   { var src2= getCoinImage(S.to);   ti.src = src2; ti.style.opacity = src2 ? '1' : '0'; }
+    if (fi && S.from) { fi.src = getCoinImage(S.from); fi.style.opacity = '1'; }
+    if (ti && S.to)   { ti.src = getCoinImage(S.to);   ti.style.opacity = '1'; }
+    /* Retry after coins array loads if needed */
+    if (typeof coins === 'undefined' || !coins.length) {
+      setTimeout(updateIcons, 1500);
+    }
   }
 
   function status(msg,cls){
@@ -241,13 +265,15 @@ var RatioTracker = (function() {
   async function loadAll(clearCache){
     if(S.loading) return; S.loading=true;
     if(clearCache) S.histCache={};
-    setSpin(true); status('Fetching prices…'); updateLabels();
+    setSpin(true); status('Fetching prices…'); updateLabels(); updateIcons();
     try{
       await loadPrices();
+      updateIcons(); /* refresh icons now that coins may be loaded */
       await (typeof sleep==='function'?sleep(800):new Promise(function(r){setTimeout(r,800);}));
       await loadHistory();
     }catch(e){ status('Error: '+e.message,'err'); }
     setSpin(false); S.loading=false;
+    updateIcons(); /* final refresh */
   }
 
   /* ── Rendering ───────────────────────────────────────────────── */

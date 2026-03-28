@@ -750,6 +750,9 @@ function setMode(mode) {
     if (b) b.classList.toggle('active', m === mode);
     var h = document.getElementById('holdings-' + m);
     if (h) h.style.display = m === mode ? (m === 'crypto' ? '' : 'flex') : 'none';
+    /* Show crypto sig-box only in crypto mode — it's a direct sidebar sibling */
+    var cryptoSig = document.getElementById('sig-box-crypto');
+    if (cryptoSig) cryptoSig.style.display = mode === 'crypto' ? '' : 'none';
     /* Item 9: show only the active mode's last-updated stamp */
     var ts = document.getElementById('last-updated-' + m);
     if (ts) ts.style.display = m === mode && _lastUpdated[m] ? '' : 'none';
