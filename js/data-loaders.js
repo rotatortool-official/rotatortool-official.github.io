@@ -1457,7 +1457,7 @@ function closeTileDetail() {
 }
 
 /* ── Share tile insight ─────────────────────────────────────── */
-function shareTileDetail() {
+function _shareText() {
   var sym  = (document.getElementById('td-sym')  || {}).textContent || '';
   var name = (document.getElementById('td-name') || {}).textContent || '';
   var prc  = (document.getElementById('td-price')|| {}).textContent || '';
@@ -1465,45 +1465,64 @@ function shareTileDetail() {
   var badgeEls = document.querySelectorAll('#td-badges .td-badge');
   var signals = [];
   badgeEls.forEach(function(b){ if(b.textContent) signals.push(b.textContent.trim()); });
-
   var arrow = chg.indexOf('+') === 0 ? '▲' : chg.indexOf('-') === 0 || chg.indexOf('−') === 0 ? '▼' : '◆';
-
   var text = '📊 ' + sym + ' (' + name + ')  —  ' + prc + '\n'
     + arrow + ' ' + chg + '\n';
   if (signals.length) text += '⚡ Signals: ' + signals.join(' · ') + '\n';
-  text += '\nAnalyzed with Rotator — real-time rotation & momentum tracker\n'
-    + '🔗 https://rotatortool-official.github.io';
+  text += '\nAnalyzed with Rotator — real-time rotation & momentum tracker\nhttps://rotatortool-official.github.io';
+  return { sym: sym, text: text, url: 'https://rotatortool-official.github.io' };
+}
 
-  var btn = document.getElementById('td-share-btn');
-
-  /* Use native share on mobile if available */
-  if (navigator.share) {
-    navigator.share({
-      title: sym + ' — Rotator Insight',
-      text: text
-    }).catch(function(){});
-    return;
+function _copyToClip(text, btn) {
+  function done() {
+    if (!btn) return;
+    var orig = btn.innerHTML;
+    btn.innerHTML = '<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="3"><path d="M20 6L9 17l-5-5"/></svg><span>Copied!</span>';
+    btn.classList.add('copied');
+    setTimeout(function(){ btn.innerHTML = orig; btn.classList.remove('copied'); }, 2000);
   }
-
-  /* Fallback: copy to clipboard */
   if (navigator.clipboard && navigator.clipboard.writeText) {
-    navigator.clipboard.writeText(text).then(function() {
-      if (btn) { btn.innerHTML = '<span class="td-share-ico">✓</span> COPIED TO CLIPBOARD'; btn.classList.add('copied'); }
-      setTimeout(function() {
-        if (btn) { btn.innerHTML = '<span class="td-share-ico">&#x1F4E4;</span> SHARE INSIGHT'; btn.classList.remove('copied'); }
-      }, 2200);
-    });
+    navigator.clipboard.writeText(text).then(done);
   } else {
-    /* Last-resort textarea fallback */
     var ta = document.createElement('textarea');
     ta.value = text; ta.style.cssText = 'position:fixed;left:-9999px;';
     document.body.appendChild(ta); ta.select();
     try { document.execCommand('copy'); } catch(e){}
-    document.body.removeChild(ta);
-    if (btn) { btn.innerHTML = '<span class="td-share-ico">✓</span> COPIED TO CLIPBOARD'; btn.classList.add('copied'); }
-    setTimeout(function() {
-      if (btn) { btn.innerHTML = '<span class="td-share-ico">&#x1F4E4;</span> SHARE INSIGHT'; btn.classList.remove('copied'); }
-    }, 2200);
+    document.body.removeChild(ta); done();
+  }
+}
+
+function shareTo(platform) {
+  var d = _shareText();
+  var enc = encodeURIComponent(d.text);
+  var encUrl = encodeURIComponent(d.url);
+  var btn = event && event.currentTarget;
+
+  switch (platform) {
+    case 'copy':
+      _copyToClip(d.text, btn);
+      return;
+    case 'x':
+      window.open('https://x.com/intent/tweet?text=' + enc, '_blank', 'width=550,height=420');
+      break;
+    case 'telegram':
+      window.open('https://t.me/share/url?url=' + encUrl + '&text=' + enc, '_blank', 'width=550,height=420');
+      break;
+    case 'whatsapp':
+      window.open('https://wa.me/?text=' + enc, '_blank', 'width=550,height=420');
+      break;
+    case 'discord':
+      _copyToClip(d.text, btn);
+      return;
+    case 'messenger':
+      window.open('https://www.facebook.com/dialog/send?link=' + encUrl + '&app_id=966242223397117&redirect_uri=' + encUrl, '_blank', 'width=550,height=420');
+      break;
+    case 'reddit':
+      window.open('https://www.reddit.com/submit?title=' + encodeURIComponent('📊 ' + d.sym + ' — Rotator Insight') + '&url=' + encUrl, '_blank', 'width=800,height=600');
+      break;
+    case 'threads':
+      window.open('https://www.threads.net/intent/post?text=' + enc, '_blank', 'width=550,height=420');
+      break;
   }
 }
 

@@ -437,12 +437,15 @@ body::before{content:'';position:fixed;inset:0;background:repeating-linear-gradi
 .td-badge.ob{background:rgba(255,69,96,.1);border-color:rgba(255,69,96,.3);color:var(--red);}
 .td-badge.os{background:rgba(0,200,150,.1);border-color:rgba(0,200,150,.25);color:var(--green);}
 
-/* Share button */
-.td-share-wrap{margin-top:10px;padding-top:10px;border-top:1px solid var(--bdr);text-align:center;}
-.td-share-btn{width:100%;padding:8px 12px;background:linear-gradient(135deg,rgba(0,200,150,.12),rgba(0,200,150,.04));border:1px solid rgba(0,200,150,.3);color:var(--green);font-family:var(--font-display);font-size:11px;font-weight:600;letter-spacing:.1em;cursor:pointer;border-radius:3px;transition:all .18s;display:flex;align-items:center;justify-content:center;gap:6px;}
-.td-share-btn:hover{background:rgba(0,200,150,.18);border-color:var(--green);box-shadow:0 0 12px rgba(0,200,150,.12);}
-.td-share-ico{font-size:13px;}
-.td-share-btn.copied{background:rgba(0,200,150,.22);border-color:var(--green);color:#fff;}
+/* Share buttons */
+.td-share-wrap{margin-top:10px;padding-top:10px;border-top:1px solid var(--bdr);}
+.td-share-label{font-size:9px;letter-spacing:.12em;color:var(--muted);text-transform:uppercase;margin-bottom:7px;font-family:var(--font-display);}
+.td-share-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:5px;}
+.td-sh{display:flex;flex-direction:column;align-items:center;gap:3px;padding:7px 2px 5px;background:var(--bg3);border:1px solid var(--bdr);border-radius:4px;color:var(--muted);cursor:pointer;transition:all .15s;font-family:var(--font-ui);font-size:0;}
+.td-sh svg{flex-shrink:0;}
+.td-sh span{font-size:7px;letter-spacing:.06em;text-transform:uppercase;line-height:1;}
+.td-sh:hover{background:var(--bg4);border-color:var(--bdr2);color:var(--text);}
+.td-sh.copied{background:rgba(0,200,150,.15);border-color:rgba(0,200,150,.4);color:var(--green);}
 
 /* Close button */
 .td-close{position:absolute;top:12px;right:14px;background:rgba(255,255,255,.05);border:1px solid var(--bdr);color:var(--muted);font-size:16px;cursor:pointer;line-height:1;padding:3px 7px;transition:all .15s;border-radius:3px;}
@@ -1690,11 +1693,19 @@ td.qa-cell{text-align:center;width:28px;padding:0 4px !important;}
     <div class="td-badge-row" id="td-badges"></div>
   </div>
 
-  <!-- Share button -->
+  <!-- Share buttons -->
   <div class="td-share-wrap">
-    <button class="td-share-btn" id="td-share-btn" onclick="shareTileDetail()">
-      <span class="td-share-ico">&#x1F4E4;</span> SHARE INSIGHT
-    </button>
+    <div class="td-share-label">SHARE INSIGHT</div>
+    <div class="td-share-grid" id="td-share-grid">
+      <button class="td-sh" onclick="shareTo('copy')"     title="Copy to clipboard"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg><span>Copy</span></button>
+      <button class="td-sh" onclick="shareTo('x')"        title="Share on X"><svg viewBox="0 0 24 24" width="14" height="14" fill="currentColor"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg><span>X</span></button>
+      <button class="td-sh" onclick="shareTo('telegram')"  title="Share on Telegram"><svg viewBox="0 0 24 24" width="15" height="15" fill="currentColor"><path d="M11.944 0A12 12 0 000 12a12 12 0 0012 12 12 12 0 0012-12A12 12 0 0012 0h-.056zm4.962 7.224c.1-.002.321.023.465.14a.506.506 0 01.171.325c.016.093.036.306.02.472-.18 1.898-.962 6.502-1.36 8.627-.168.9-.499 1.201-.82 1.23-.696.065-1.225-.46-1.9-.902-1.056-.693-1.653-1.124-2.678-1.8-1.185-.78-.417-1.21.258-1.91.177-.184 3.247-2.977 3.307-3.23.007-.032.014-.15-.056-.212s-.174-.041-.249-.024c-.106.024-1.793 1.14-5.061 3.345-.479.33-.913.492-1.302.486-.428-.008-1.252-.241-1.865-.44-.752-.245-1.349-.374-1.297-.789.027-.216.325-.437.893-.663 3.498-1.524 5.83-2.529 6.998-3.014 3.332-1.386 4.025-1.627 4.476-1.635z"/></svg><span>Telegram</span></button>
+      <button class="td-sh" onclick="shareTo('whatsapp')"  title="Share on WhatsApp"><svg viewBox="0 0 24 24" width="15" height="15" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg><span>WhatsApp</span></button>
+      <button class="td-sh" onclick="shareTo('discord')"   title="Share on Discord"><svg viewBox="0 0 24 24" width="15" height="15" fill="currentColor"><path d="M20.317 4.37a19.791 19.791 0 00-4.885-1.515.074.074 0 00-.079.037c-.21.375-.444.864-.608 1.25a18.27 18.27 0 00-5.487 0 12.64 12.64 0 00-.617-1.25.077.077 0 00-.079-.037A19.736 19.736 0 003.677 4.37a.07.07 0 00-.032.027C.533 9.046-.32 13.58.099 18.057a.082.082 0 00.031.057 19.9 19.9 0 005.993 3.03.078.078 0 00.084-.028c.462-.63.874-1.295 1.226-1.994a.076.076 0 00-.041-.106 13.107 13.107 0 01-1.872-.892.077.077 0 01-.008-.128 10.2 10.2 0 00.372-.292.074.074 0 01.077-.01c3.928 1.793 8.18 1.793 12.062 0a.074.074 0 01.078.01c.12.098.246.198.373.292a.077.077 0 01-.006.127 12.299 12.299 0 01-1.873.892.077.077 0 00-.041.107c.36.698.772 1.362 1.225 1.993a.076.076 0 00.084.028 19.839 19.839 0 006.002-3.03.077.077 0 00.032-.054c.5-5.177-.838-9.674-3.549-13.66a.061.061 0 00-.031-.03zM8.02 15.33c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.956-2.419 2.157-2.419 1.21 0 2.176 1.095 2.157 2.42 0 1.333-.956 2.418-2.157 2.418zm7.975 0c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.956-2.419 2.157-2.419 1.21 0 2.176 1.095 2.157 2.42 0 1.333-.947 2.418-2.157 2.418z"/></svg><span>Discord</span></button>
+      <button class="td-sh" onclick="shareTo('messenger')" title="Share on Messenger"><svg viewBox="0 0 24 24" width="15" height="15" fill="currentColor"><path d="M12 0C5.373 0 0 4.974 0 11.111c0 3.498 1.744 6.614 4.469 8.654V24l4.088-2.242c1.092.301 2.246.464 3.443.464 6.627 0 12-4.975 12-11.111S18.627 0 12 0zm1.191 14.963l-3.055-3.26-5.963 3.26L10.732 8.2l3.131 3.259L19.752 8.2l-6.561 6.763z"/></svg><span>Messenger</span></button>
+      <button class="td-sh" onclick="shareTo('reddit')"    title="Share on Reddit"><svg viewBox="0 0 24 24" width="15" height="15" fill="currentColor"><path d="M12 0A12 12 0 000 12a12 12 0 0012 12 12 12 0 0012-12A12 12 0 0012 0zm5.01 4.744c.688 0 1.25.561 1.25 1.249a1.25 1.25 0 01-2.498.056l-2.597-.547-.8 3.747c1.824.07 3.48.632 4.674 1.488.308-.309.73-.491 1.207-.491.968 0 1.754.786 1.754 1.754 0 .716-.435 1.333-1.053 1.597.047.28.07.567.07.862 0 2.883-3.323 5.217-7.418 5.217s-7.418-2.334-7.418-5.217c0-.282.021-.558.063-.83A1.748 1.748 0 013.2 12c0-.968.786-1.754 1.754-1.754.466 0 .886.178 1.195.484 1.167-.828 2.775-1.386 4.546-1.486l.928-4.392a.393.393 0 01.466-.314l2.883.608a1.254 1.254 0 011.038-.602zm-7.035 8.756a1.25 1.25 0 100 2.498 1.25 1.25 0 000-2.498zm5.05 0a1.25 1.25 0 100 2.498 1.25 1.25 0 000-2.498zm-5.23 3.578c.167.167 1.15.897 2.71.897 1.56 0 2.543-.73 2.71-.897a.268.268 0 00-.01-.383.268.268 0 00-.376-.006c-.01.01-.797.602-2.324.602-1.527 0-2.315-.592-2.324-.602a.268.268 0 00-.376.006.27.27 0 00-.01.383z"/></svg><span>Reddit</span></button>
+      <button class="td-sh" onclick="shareTo('threads')"   title="Share on Threads"><svg viewBox="0 0 24 24" width="15" height="15" fill="currentColor"><path d="M12.186 24h-.007c-3.581-.024-6.334-1.205-8.184-3.509C2.35 18.44 1.5 15.586 1.472 12.01v-.017c.03-3.579.879-6.43 2.525-8.482C5.845 1.205 8.6.024 12.18 0h.014c2.746.02 5.043.725 6.826 2.098 1.677 1.29 2.858 3.13 3.509 5.467l-2.04.569c-1.104-3.96-3.898-5.984-8.304-6.015-2.91.022-5.11.936-6.54 2.717C4.307 6.504 3.616 8.914 3.59 12c.025 3.086.718 5.496 2.057 7.164 1.432 1.781 3.632 2.695 6.54 2.717 2.227-.033 3.96-.545 5.324-1.59 1.494-1.15 2.1-2.636 1.846-4.528-.162-1.206-.756-2.158-1.73-2.79-.015.753-.077 1.478-.2 2.151-.327 1.825-1.025 3.23-2.073 4.178-1.077.974-2.538 1.468-4.339 1.468h-.09c-1.5-.015-2.764-.5-3.757-1.441-.996-.945-1.524-2.213-1.572-3.767l2.118-.05c.035 1.083.376 1.927 1.013 2.513.622.572 1.471.868 2.524.88h.07c1.322 0 2.348-.334 3.05-.991.633-.594 1.075-1.538 1.316-2.806.113-.596.166-1.243.166-1.904 0-.257-.01-.51-.03-.755-1.017-.487-2.23-.738-3.59-.738h-.102c-1.668.014-3.07.538-4.173 1.559l-1.436-1.544c1.453-1.346 3.267-2.052 5.394-2.098h.22c1.093.008 2.117.167 3.058.468-.152-1.197-.682-2.124-1.575-2.76-1.003-.716-2.39-1.082-4.123-1.088h-.077c-1.648.013-2.95.436-3.878 1.261-.958.85-1.465 2.085-1.508 3.674l-2.118-.05c.06-2.161.776-3.882 2.13-5.082C8.08 4.337 9.74 3.76 11.791 3.745h.094c2.135.012 3.863.533 5.137 1.546 1.202.958 1.945 2.268 2.207 3.892a8.27 8.27 0 011.742 1.258c1.326 1.308 2.059 3.107 2.059 5.06 0 .32-.018.643-.055.964-.34 2.62-1.286 4.584-2.81 5.836C18.448 23.277 16.064 24 12.983 24h-.003z"/></svg><span>Threads</span></button>
+    </div>
   </div>
 </div>
 
@@ -1776,7 +1787,7 @@ td.qa-cell{text-align:center;width:28px;padding:0 4px !important;}
     <div class="network-tag">⬡ USDT · TRC20 NETWORK ONLY</div>
     <div class="addr-box">TGt3FQmv8AFPqbj6PnQGUAmemV9gDNm4bt</div>
     <button class="copy-btn" id="copy-donate-btn" onclick="copyAddr('TGt3FQmv8AFPqbj6PnQGUAmemV9gDNm4bt','copy-donate-btn')">COPY ADDRESS</button>
-    <div class="modal-note">⚠ Send only USDT on TRC20 (Tron) network.<br>Wrong network = permanent loss. Always double-check.<br><br><strong style="color:var(--bnb);">After donating:</strong> message us at the donation address with your transaction ID and we will send you a Pro unlock code within 24h.</div>
+    <div class="modal-note">⚠ Send only USDT on TRC20 (Tron) network.<br>Wrong network = permanent loss. Always double-check.<br><br>Every contribution helps keep Rotator free for everyone. Thank you!</div>
   </div>
 </div>
 
