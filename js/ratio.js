@@ -208,7 +208,7 @@ var RatioTracker = (function() {
     S.fromPrice=fo.usd; S.toPrice=to.usd;
     S.fromChg=fo.usd_24h_change||0; S.toChg=to.usd_24h_change||0;
     var ratio=S.fromPrice/S.toPrice;
-    var rEl=$('rt-ratio-num'); if(rEl){rEl.textContent=ratio.toFixed(2)+'×'; rEl.classList.remove('dim');}
+    var rEl=$('rt-ratio-num'); if(rEl){rEl.textContent=ratio.toFixed(2); rEl.classList.remove('dim');}
     set('rt-from-price',fmtP(S.fromPrice)); set('rt-to-price',fmtP(S.toPrice));
     var fChg=$('rt-from-chg'),tChg=$('rt-to-chg');
     if(fChg){fChg.textContent=(S.fromChg>=0?'+':'')+S.fromChg.toFixed(2)+'% 24h'; fChg.style.color=S.fromChg>=0?'var(--green)':'var(--red)';}

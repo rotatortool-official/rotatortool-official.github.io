@@ -172,7 +172,7 @@ body::before{content:'';position:fixed;inset:0;background:repeating-linear-gradi
 .add-btn{width:100%;padding:5px;background:var(--bnbd);border:1px solid rgba(243,186,47,.22);color:var(--bnb);font-family:inherit;font-size:10px;letter-spacing:.1em;cursor:pointer;border-radius:2px;transition:all .15s;margin-top:5px;}
 .add-btn:hover{background:rgba(243,186,47,.16);border-color:var(--bnb);}
 .tiles-scroll-legacy{overflow-y:auto;overflow-x:hidden;padding:10px 12px;min-height:110px;max-height:210px;flex-shrink:0;}
-.holdings-section-label{padding:8px 10px 8px 14px;min-height:38px;font-size:9px;letter-spacing:.14em;text-transform:uppercase;color:rgba(180,195,215,.7);font-weight:500;border-bottom:1px solid rgba(240,140,30,.12);background:rgba(240,140,30,.025);display:flex;align-items:center;justify-content:space-between;gap:6px;flex-shrink:0;font-family:var(--font-ui);}
+.holdings-section-label{padding:0 10px 0 14px;height:38px;font-size:9px;letter-spacing:.14em;text-transform:uppercase;color:rgba(180,195,215,.7);font-weight:500;border-bottom:1px solid rgba(240,140,30,.12);background:rgba(240,140,30,.025);display:flex;align-items:center;justify-content:space-between;gap:6px;flex-shrink:0;font-family:var(--font-ui);}
 .tiles-grid-legacy{display:grid;grid-template-columns:repeat(2,1fr);gap:5px;width:100%;}
 .tile{position:relative;overflow:hidden;border-radius:var(--card-radius);box-shadow:var(--card-shadow);padding:7px 8px 7px 11px;border:1px solid var(--bdr);background:var(--bg3);min-width:0;}
 .tile::before{content:'';position:absolute;left:0;top:0;bottom:0;width:3px;border-radius:3px 0 0 3px;}
@@ -204,7 +204,7 @@ body::before{content:'';position:fixed;inset:0;background:repeating-linear-gradi
 .tile-scr.hi{background:var(--gd);color:var(--green);}
 .tile-scr.md{background:var(--ad);color:var(--amber);}
 .tile-scr.lo{background:var(--rd);color:var(--red);}
-.sig-box{padding:8px 14px 10px;border-bottom:1px solid rgba(243,186,47,.16);background:linear-gradient(135deg,rgba(243,186,47,.065),rgba(243,186,47,.015));flex-shrink:0;}
+.sig-box{padding:8px 12px 9px;border-bottom:1px solid rgba(243,186,47,.18);background:linear-gradient(135deg,rgba(243,186,47,.08),rgba(243,186,47,.02));flex-shrink:0;}
 .sig-title{font-size:9px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--bnb);margin-bottom:7px;text-shadow:0 0 8px rgba(210,160,35,.25);font-family:var(--font-display);display:flex;align-items:center;gap:5px;}
 .sig-title::before{content:'';width:4px;height:4px;background:var(--bnb);border-radius:50%;animation:pulse 2s infinite;flex-shrink:0;}
 .sig-avg{font-size:22px;font-weight:700;margin-bottom:5px;display:flex;align-items:baseline;gap:5px;}
@@ -443,7 +443,7 @@ body::before{content:'';position:fixed;inset:0;background:repeating-linear-gradi
 /* ── consistent card radius + shadow token ── */
 :root{--card-radius:4px;--card-shadow:0 2px 8px rgba(0,0,0,.28);}
 
-.tbl-head{padding:8px 14px;min-height:38px;border-bottom:1px solid var(--bdr2);background:var(--bg3);display:flex;align-items:center;justify-content:center;flex-wrap:wrap;gap:10px;flex-shrink:0;position:relative;}
+.tbl-head{padding:0 14px;height:38px;border-bottom:1px solid var(--bdr2);background:var(--bg3);display:flex;align-items:center;justify-content:center;flex-wrap:wrap;gap:10px;flex-shrink:0;position:relative;}
 .last-upd-ts{font-size:9px;color:var(--muted);letter-spacing:.06em;font-family:var(--font-ui);}
 .tf-tabs{display:flex;gap:3px;}
 .tf-tab{background:none;border:1px solid var(--bdr);color:var(--muted);font-family:inherit;font-size:9px;padding:2px 8px;cursor:pointer;border-radius:var(--card-radius);letter-spacing:.08em;transition:all .15s;}
@@ -583,7 +583,7 @@ td.qa-cell{text-align:center;width:28px;padding:0 4px !important;}
 /* 10-slot grid — always 2 columns, auto rows */
 .tiles-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:5px;width:100%;}
 /* tiles-scroll expands to show all 10 */
-.tiles-scroll{overflow-y:auto;overflow-x:hidden;padding:8px 10px;flex:1;min-height:0;}
+.tiles-scroll{overflow-y:auto;overflow-x:hidden;padding:8px 10px;flex:1;min-height:0;-webkit-overflow-scrolling:touch;}
 
 /* ── WATCHLIST VIEW ── */
 .watchlist-placeholder{padding:14px 12px;text-align:center;color:var(--muted);font-size:10px;line-height:2;border:1px dashed rgba(255,255,255,.07);border-radius:3px;letter-spacing:.06em;grid-column:1/-1;}
@@ -877,8 +877,7 @@ td.qa-cell{text-align:center;width:28px;padding:0 4px !important;}
   .sidebar{display:none !important;}
   .ad-panel{display:none !important;}
   .main-col{padding-bottom:60px;overflow-y:auto;}
-  /* Sig-box is shown inside the mobile holdings panel instead */
-  #sig-box-crypto{display:none;}
+  /* sig-box stays visible — no gap */
   tbody td{border-bottom:none;}
 
   /* Hide HOLDINGS nav tab — holdings shown inline below leaderboard */
@@ -1175,7 +1174,7 @@ td.qa-cell{text-align:center;width:28px;padding:0 4px !important;}
 /* Tighter section label to match tbl-head */
 .holdings-section-label{padding:8px 12px 8px 14px;min-height:38px;}
 /* tbl-head same visual weight */
-.tbl-head{padding:8px 14px;min-height:38px;}
+.tbl-head{padding:0 14px;height:38px;}
 
 /* Holdings preview in right panel */
 .rp-holdings{padding:10px 14px 12px;border-bottom:1px solid var(--bdr);flex-shrink:0;}
@@ -1280,6 +1279,100 @@ td.qa-cell{text-align:center;width:28px;padding:0 4px !important;}
 .add-holdings-lb-btn:hover{background:rgba(243,186,47,.16);border-color:var(--bnb);}
 
 .rt-pair-row,.rt-sel-wrap,.rt-sel-lbl,.rt-swap-arrow,.rt-saved-row,.rt-saved-lbl,.rt-actions-row{display:none;}
+
+/* ══════════════════════════════════════════
+   RATIO TOOL REDESIGN
+══════════════════════════════════════════ */
+
+/* Top action bar */
+.rt-top-actions{display:flex;justify-content:flex-end;gap:5px;margin-bottom:8px;}
+
+/* Pair row — side by side */
+.rt-pair-row{display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:6px;margin-bottom:6px;}
+.rt-pair-side{display:flex;align-items:center;gap:6px;background:var(--bg3);border:1px solid rgba(130,110,200,.2);border-radius:5px;padding:7px 8px;cursor:pointer;transition:border-color .15s;}
+.rt-pair-side:hover{border-color:rgba(130,110,200,.45);}
+.rt-coin-icon-lg{width:26px !important;height:26px !important;border-radius:50%;border:1px solid rgba(255,255,255,.1) !important;}
+.rt-coin-sel-lg{font-size:12px !important;font-weight:700 !important;max-width:none !important;flex:1;color:var(--text) !important;letter-spacing:.02em;}
+.rt-pair-divider{font-size:22px;color:var(--muted);font-weight:200;text-align:center;flex-shrink:0;}
+
+/* Dropdown color scheme matching the tool */
+.rt-coin-sel,.rt-coin-sel-lg{
+  background:transparent;border:none;
+  color:var(--text);font-family:var(--font-mono);
+  cursor:pointer;outline:none;
+  appearance:none;-webkit-appearance:none;
+}
+.rt-coin-sel option,.rt-coin-sel-lg option{
+  background:#0f1318;color:#dce4f0;
+  font-family:'IBM Plex Mono',monospace;
+  font-size:12px;padding:4px 8px;
+}
+.rt-coin-sel optgroup,.rt-coin-sel-lg optgroup{
+  background:#0b0e13;color:#5a6e85;
+  font-size:10px;letter-spacing:.08em;
+}
+
+/* CENTERED ratio hero */
+.rt-ratio-center{text-align:center;padding:10px 0 4px;display:flex;flex-direction:column;align-items:center;}
+.rt-ratio-num{font-size:52px;font-weight:200;letter-spacing:-2px;line-height:1;color:var(--text);font-family:var(--font-mono);display:inline;}
+.rt-ratio-num.dim{color:rgba(180,195,215,.4);}
+.rt-ratio-unit-x{font-size:28px;font-weight:200;color:var(--muted);display:inline;margin-left:2px;font-family:var(--font-mono);}
+.rt-ratio-unit{font-size:11px;color:rgba(180,200,220,.6);margin-top:3px;letter-spacing:.02em;}
+.rt-badge{display:inline-block;font-size:11px;font-weight:700;letter-spacing:.06em;padding:5px 14px;border-radius:3px;border:1px solid transparent;}
+
+/* Price cards brighter */
+.rt-card-lbl{font-size:9px;color:rgba(180,200,220,.6);letter-spacing:.12em;margin-bottom:3px;text-transform:uppercase;}
+.rt-card-val{font-size:14px;font-weight:700;font-family:var(--font-mono);}
+.rt-card-sub{font-size:10px;color:var(--muted);margin-top:1px;}
+
+/* Swap calculator — bigger + brighter */
+.rt-calc{background:rgba(130,110,200,.06);border:1px solid rgba(130,110,200,.2);border-radius:5px;padding:10px 12px;margin-top:8px;}
+.rt-calc-title{font-size:12px;font-weight:700;letter-spacing:.08em;color:rgba(180,200,220,.9);margin-bottom:10px;text-transform:uppercase;}
+.rt-ci label{font-size:10px;color:rgba(180,200,220,.75);display:block;margin-bottom:4px;letter-spacing:.07em;font-weight:500;}
+.rt-ci input{width:100%;box-sizing:border-box;font-size:13px;font-family:var(--font-mono);padding:6px 8px;background:rgba(0,0,0,.3);border:1px solid rgba(130,110,200,.25);border-radius:3px;color:var(--text);outline:none;}
+.rt-ci input:focus{border-color:rgba(130,110,200,.6);}
+.rt-res-lbl{font-size:10px;color:rgba(180,200,220,.7);margin-bottom:3px;letter-spacing:.1em;font-weight:600;}
+.rt-res-val{font-size:18px;font-weight:700;font-family:var(--font-mono);}
+.rt-calc-result{display:flex;justify-content:space-between;align-items:flex-end;gap:6px;padding-top:8px;border-top:1px solid rgba(130,110,200,.18);}
+
+/* Refresh + star buttons */
+.rt-refresh-btn{background:rgba(130,110,200,.1);border:1px solid rgba(130,110,200,.25);color:rgba(180,200,220,.8);padding:4px 10px;font-family:var(--font-mono);font-size:10px;font-weight:600;cursor:pointer;border-radius:3px;display:flex;align-items:center;gap:4px;transition:all .15s;letter-spacing:.05em;}
+.rt-refresh-btn:hover{border-color:rgba(130,110,200,.6);color:#c5b8f5;background:rgba(130,110,200,.18);}
+.rt-star-btn{background:rgba(243,186,47,.08);border:1px solid rgba(243,186,47,.25);color:rgba(243,186,47,.8);padding:4px 10px;font-size:10px;font-weight:600;cursor:pointer;border-radius:3px;transition:all .15s;font-family:var(--font-mono);letter-spacing:.05em;}
+.rt-star-btn:hover{border-color:var(--bnb);color:var(--bnb);background:var(--bnbd);}
+.rt-star-btn.rt-star-active{border-color:var(--bnb);color:var(--bnb);background:var(--bnbd);}
+
+/* Timeframe buttons */
+.rt-tf-btn{background:none;border:1px solid var(--bdr2);color:var(--muted);padding:3px 12px;font-family:var(--font-mono);font-size:10px;cursor:pointer;border-radius:20px;transition:all .15s;}
+.rt-tf-btn.active{background:var(--bnb);border-color:var(--bnb);color:#111;font-weight:700;}
+.rt-tf-btn:hover:not(.active){border-color:var(--bnb);color:var(--bnb);}
+
+/* Range bar */
+.rt-bar-track{height:5px;background:var(--bg4);border-radius:3px;position:relative;margin-bottom:4px;}
+.rt-bar-fill{height:5px;border-radius:3px;background:linear-gradient(90deg,rgba(0,189,142,.4),var(--green));position:absolute;left:0;top:0;transition:width .5s;}
+.rt-bar-marker{position:absolute;top:-4px;width:2px;height:13px;background:var(--red);border-radius:1px;}
+
+/* Footer */
+.rt-footer{font-size:8px;color:rgba(90,110,133,.6);margin-top:8px;text-align:center;line-height:1.6;}
+
+/* Chart */
+.rt-chart-wrap{position:relative;width:100%;height:140px;margin:4px 0 6px;}
+
+/* Ratio section base */
+.ratio-section{background:transparent;padding:10px 14px 12px;border-bottom:1px solid rgba(130,110,200,.18);flex-shrink:0;}
+
+/* Status */
+.rt-status{font-size:9px;color:var(--muted);min-height:12px;margin:2px 0;}
+.rt-status.ok{color:var(--green);}.rt-status.err{color:var(--red);}.rt-status.warn{color:var(--amber);}
+
+/* Saved pairs */
+.rt-saved-wrap{display:flex;flex-wrap:wrap;gap:3px;min-height:14px;margin-bottom:4px;}
+.rt-saved-empty{font-size:9px;color:rgba(90,110,133,.6);font-style:italic;}
+.rt-saved-chip{display:inline-flex;align-items:center;gap:4px;background:var(--bg3);border:1px solid var(--bdr2);color:var(--text);font-family:var(--font-mono);font-size:9px;padding:2px 5px 2px 7px;border-radius:2px;cursor:pointer;transition:all .15s;}
+.rt-saved-chip:hover{border-color:var(--bnb);color:var(--bnb);}
+.rt-saved-chip.active{border-color:var(--bnb);color:var(--bnb);background:var(--bnbd);}
+.rt-chip-x{font-size:12px;line-height:1;color:var(--muted);padding:0 1px;transition:color .15s;}
+.rt-chip-x:hover{color:var(--red);}
 </style>
 </head>
 <body>
@@ -1630,7 +1723,7 @@ td.qa-cell{text-align:center;width:28px;padding:0 4px !important;}
       </div>
 
       <!-- MY HOLDINGS VIEW -->
-      <div id="my-holdings-panel" style="display:flex;flex-direction:column;flex:1;overflow:hidden;">
+      <div id="my-holdings-panel" style="display:flex;flex-direction:column;flex:1;min-height:0;">
         <div class="holdings-section-label">
           <span>MY HOLDINGS</span>
           <span id="hcount" style="color:var(--bnb);font-size:9px;letter-spacing:.04em;"></span>
@@ -1800,46 +1893,44 @@ td.qa-cell{text-align:center;width:28px;padding:0 4px !important;}
 
   <!-- RIGHT: Info Panel -->
   <div class="ad-panel">
-    <!-- RATIO TRACKER — compact, anchored at top of right panel -->
+    <!-- RATIO TRACKER -->
     <div class="ratio-section" id="ratio-section">
 
-      <!-- Header row: pair selector + refresh -->
-      <div class="rt-header-row">
-        <div class="rt-pair-dots">
-          <!-- FROM coin -->
-          <div class="rt-pair-label">
-            <img class="rt-coin-icon" id="rt-from-icon" src="" alt="" onerror="this.style.opacity='0'">
-            <select class="rt-coin-sel" id="rt-from" onchange="RatioTracker.onFromChange()"></select>
-          </div>
-          <span class="rt-pair-sep">÷</span>
-          <!-- TO coin -->
-          <div class="rt-pair-label">
-            <img class="rt-coin-icon" id="rt-to-icon" src="" alt="" onerror="this.style.opacity='0'">
-            <select class="rt-coin-sel" id="rt-to" onchange="RatioTracker.onToChange()"></select>
-          </div>
-          <span class="rt-pair-eq-label">= ratio</span>
+      <!-- TOP ROW: Save pair + Refresh -->
+      <div class="rt-top-actions">
+        <button class="rt-star-btn" id="rt-star-btn" title="Save pair">☆ Save pair</button>
+        <button class="rt-refresh-btn" id="rt-refresh-btn" onclick="RatioTracker.loadAll()" title="Refresh">
+          <span id="rt-spin-icon">↻</span> Refresh
+        </button>
+      </div>
+
+      <!-- PAIR ROW: FROM | ÷ | TO side by side, prominent -->
+      <div class="rt-pair-row">
+        <div class="rt-pair-side" id="rt-from-side">
+          <img class="rt-coin-icon rt-coin-icon-lg" id="rt-from-icon" src="" alt="" onerror="this.style.opacity='0'">
+          <select class="rt-coin-sel rt-coin-sel-lg" id="rt-from" onchange="RatioTracker.onFromChange()"></select>
         </div>
-        <div style="display:flex;gap:4px;align-items:center;">
-          <button class="rt-star-btn" id="rt-star-btn" title="Save pair">☆</button>
-          <button class="rt-refresh-btn" id="rt-refresh-btn" onclick="RatioTracker.loadAll()" title="Refresh">
-            <span id="rt-spin-icon">↻</span> Refresh
-          </button>
+        <div class="rt-pair-divider">÷</div>
+        <div class="rt-pair-side" id="rt-to-side">
+          <img class="rt-coin-icon rt-coin-icon-lg" id="rt-to-icon" src="" alt="" onerror="this.style.opacity='0'">
+          <select class="rt-coin-sel rt-coin-sel-lg" id="rt-to" onchange="RatioTracker.onToChange()"></select>
         </div>
       </div>
 
       <!-- Status + saved pairs -->
       <div class="rt-status" id="rt-status">Connecting…</div>
-      <div class="rt-saved-wrap" id="rt-saved-wrap" style="margin-bottom:6px;">
+      <div class="rt-saved-wrap" id="rt-saved-wrap">
         <span class="rt-saved-empty">No saved pairs yet — pick a pair and click ☆ Save pair</span>
       </div>
 
-      <!-- Big ratio number -->
-      <div class="rt-hero">
-        <div class="rt-ratio-num dim" id="rt-ratio-num">—</div>
+      <!-- CENTERED: Big ratio number -->
+      <div class="rt-ratio-center">
+        <div class="rt-ratio-num dim" id="rt-ratio-num">0.00</div>
+        <div class="rt-ratio-unit-x">×</div>
         <div class="rt-ratio-unit"><span id="rt-unit-txt">— received per 1 —</span></div>
-      </div>
-      <div style="margin-bottom:8px;">
-        <span class="rt-badge" id="rt-badge">&nbsp;</span>
+        <div style="margin-top:8px;">
+          <span class="rt-badge" id="rt-badge">&nbsp;</span>
+        </div>
       </div>
 
       <!-- Price cards: FROM | TO | Peak -->
@@ -1885,14 +1976,14 @@ td.qa-cell{text-align:center;width:28px;padding:0 4px !important;}
         <span>now</span>
       </div>
 
-      <!-- Chart -->
+      <!-- Chart — price movement graph -->
       <div class="rt-chart-wrap">
         <canvas id="rt-spark"></canvas>
       </div>
 
-      <!-- Swap Calculator -->
+      <!-- Swap Calculator — bigger, brighter -->
       <div class="rt-calc">
-        <div class="rt-calc-title">Swap calculator</div>
+        <div class="rt-calc-title">⇄ Swap Calculator</div>
         <div class="rt-calc-inputs">
           <div class="rt-ci rt-ci-full">
             <label id="rt-calc-from-lbl">Amount</label>
