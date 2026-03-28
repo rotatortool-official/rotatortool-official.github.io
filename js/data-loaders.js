@@ -969,13 +969,29 @@ var _mobHoldingsOpen = false;
 function mobNav(mode) {
   _mobHoldingsOpen = false;
   document.getElementById('mob-holdings-panel').classList.remove('open');
-  ['crypto','forex','stocks','holdings'].forEach(function(m) {
+  document.body.classList.remove('mob-swap-active');
+  ['crypto','forex','stocks','holdings','swap'].forEach(function(m) {
     var b = document.getElementById('mn-' + m);
     if (b) b.classList.toggle('active', m === mode);
   });
   setMode(mode);
 }
+function mobNavSwap() {
+  _mobHoldingsOpen = false;
+  document.getElementById('mob-holdings-panel').classList.remove('open');
+  var isActive = document.body.classList.toggle('mob-swap-active');
+  ['crypto','forex','stocks','holdings','swap'].forEach(function(m) {
+    var b = document.getElementById('mn-' + m);
+    if (b) b.classList.toggle('active', m === 'swap' && isActive);
+  });
+  if (isActive && typeof RatioTracker !== 'undefined') {
+    RatioTracker.loadAll();
+  }
+}
 function mobNavHoldings() {
+  document.body.classList.remove('mob-swap-active');
+  var swapBtn = document.getElementById('mn-swap');
+  if (swapBtn) swapBtn.classList.remove('active');
   _mobHoldingsOpen = !_mobHoldingsOpen;
   var panel = document.getElementById('mob-holdings-panel');
   var btn   = document.getElementById('mn-holdings');

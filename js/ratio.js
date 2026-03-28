@@ -187,7 +187,7 @@ var RatioTracker = (function() {
     sel.appendChild(g);
     var saved=loadPair();
     if(saved&&saved.to&&saved.to!==skipId&&sel.querySelector('option[value="'+saved.to+'"]')) sel.value=saved.to;
-    else{ var d=['bitcoin','ethereum','solana','ondo-finance'].find(function(x){return x!==skipId;})||FREE_COINS.find(function(x){return x!==skipId;}); sel.value=d; }
+    else{ var d=['ethereum','solana','ondo-finance','bitcoin'].find(function(x){return x!==skipId;})||FREE_COINS.find(function(x){return x!==skipId;}); sel.value=d; }
     S.to=sel.value;
   }
 
@@ -421,18 +421,28 @@ var RatioTracker = (function() {
     });
   }
 
+  function fmtRatio(v){
+    if(v>=1000) return v.toLocaleString('en-US',{maximumFractionDigits:2});
+    if(v>=1)    return v.toLocaleString('en-US',{maximumFractionDigits:4});
+    if(v>=0.01) return v.toLocaleString('en-US',{maximumFractionDigits:6});
+    return v.toLocaleString('en-US',{maximumFractionDigits:8});
+  }
+
   function calcSwap(){
     var amtEl=$('rt-calc-amt'),ovFEl=$('rt-calc-from-ov'),ovTEl=$('rt-calc-to-ov'); if(!amtEl) return;
     var amt=parseFloat(amtEl.value)||0,ovF=parseFloat(ovFEl?ovFEl.value:''),ovT=parseFloat(ovTEl?ovTEl.value:'');
     var fp=(!isNaN(ovF)&&ovF>0)?ovF:S.fromPrice,tp=(!isNaN(ovT)&&ovT>0)?ovT:S.toPrice;
     if(!fp||!tp||amt<=0) return;
     var outAmt = amt*(fp/tp);
-    var outFmt = outAmt >= 1000 ? outAmt.toLocaleString('en-US',{maximumFractionDigits:2})
-               : outAmt >= 1    ? outAmt.toLocaleString('en-US',{maximumFractionDigits:4})
-               : outAmt >= 0.01 ? outAmt.toLocaleString('en-US',{maximumFractionDigits:6})
-               : outAmt.toLocaleString('en-US',{maximumFractionDigits:8});
+    var outFmt = fmtRatio(outAmt);
     set('rt-calc-out', outFmt + ' ' + lbl(S.to));
     set('rt-calc-usd-out','$'+(amt*fp).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2}));
+
+    /* coin-to-coin price ratio */
+    var fwd=fp/tp, inv=tp/fp;
+    var fwdEl=$('rt-calc-ratio-fwd'), invEl=$('rt-calc-ratio-inv');
+    if(fwdEl) fwdEl.innerHTML='1 '+lbl(S.from)+' = <span>'+fmtRatio(fwd)+' '+lbl(S.to)+'</span>';
+    if(invEl) invEl.innerHTML='1 '+lbl(S.to)+' = <span>'+fmtRatio(inv)+' '+lbl(S.from)+'</span>';
   }
 
   /* ── Controls ────────────────────────────────────────────────── */

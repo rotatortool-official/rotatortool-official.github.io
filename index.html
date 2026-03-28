@@ -800,6 +800,11 @@ td.qa-cell{text-align:center;width:28px;padding:0 4px !important;}
   }
   .sidebar{display:none !important;}
   .ad-panel{display:none !important;}   /* hide right-side ad panel */
+  body.mob-swap-active .ad-panel{display:flex !important;border-left:none;padding:10px 12px 10px;overflow-y:auto;width:100%;}
+  body.mob-swap-active .main-col{display:none !important;}
+  body.mob-swap-active .rt-calc-inputs{grid-template-columns:1fr;gap:8px;}
+  body.mob-swap-active .rt-ratio-bold{font-size:32px;}
+  body.mob-swap-active .rt-picker-panel{position:fixed;top:40px;left:44px;right:0;bottom:0;border-radius:0;z-index:300;}
   .main-col{padding-bottom:0;}
 
   /* ── HOLDINGS PANEL ── */
@@ -886,6 +891,32 @@ td.qa-cell{text-align:center;width:28px;padding:0 4px !important;}
   .root{grid-template-columns:1fr;}
   .sidebar{display:none !important;}
   .ad-panel{display:none !important;}
+  body.mob-swap-active .ad-panel{display:flex !important;border-left:none;padding:10px 12px 70px;overflow-y:auto;width:100%;}
+  body.mob-swap-active .main-col{display:none !important;}
+  body.mob-swap-active .sidebar{display:none !important;}
+
+  /* ── MOBILE SWAP LAYOUT — vertical stacking ── */
+  body.mob-swap-active .rt-pair-tiles{grid-template-columns:1fr 1fr;gap:6px;}
+  body.mob-swap-active .rt-ct{padding:10px 8px;min-height:auto;}
+  body.mob-swap-active .rt-ct-img{width:32px;height:32px;}
+  body.mob-swap-active .rt-ct-sym{font-size:15px;}
+  body.mob-swap-active .rt-ct-price{font-size:12px;}
+  body.mob-swap-active .rt-ratio-center{padding:8px 0;}
+  body.mob-swap-active .rt-ratio-bold{font-size:36px;}
+  body.mob-swap-active .rt-calc{padding:12px;margin-bottom:10px;}
+  body.mob-swap-active .rt-calc-inputs{grid-template-columns:1fr;gap:8px;}
+  body.mob-swap-active .rt-ci{width:100%;}
+  body.mob-swap-active .rt-calc-result{flex-direction:column;gap:8px;align-items:stretch;}
+  body.mob-swap-active .rt-calc-result > div:last-child{text-align:left;}
+  body.mob-swap-active .rt-res-val{font-size:16px;}
+  body.mob-swap-active .rt-calc-ratios{gap:4px;}
+  body.mob-swap-active .rt-calc-ratio-line{font-size:12px;}
+  body.mob-swap-active .rt-cards{grid-template-columns:1fr 1fr;gap:6px;}
+  body.mob-swap-active .rt-chart-wrap{height:180px;margin-top:6px;}
+  body.mob-swap-active .rt-swap-row{flex-wrap:wrap;gap:6px;}
+  body.mob-swap-active .rt-swap-pair-btn{flex:1;min-width:0;}
+  body.mob-swap-active .rt-badge{flex:1;min-width:0;text-align:center;}
+  body.mob-swap-active .rt-picker-panel{position:fixed;top:50px;left:0;right:0;bottom:56px;border-radius:0;z-index:300;}
   .main-col{padding-bottom:60px;overflow-y:auto;}
 
   tbody td{border-bottom:none;}
@@ -1512,6 +1543,9 @@ td.qa-cell{text-align:center;width:28px;padding:0 4px !important;}
 /* ══ SWAP CALCULATOR — top, bigger title ══ */
 .rt-calc{background:rgba(130,110,200,.07);border:1px solid rgba(130,110,200,.22);border-radius:5px;padding:10px 12px;margin-bottom:8px;}
 .rt-calc-title{font-size:14px;font-weight:800;letter-spacing:.1em;color:rgba(195,185,255,.95);margin-bottom:10px;text-transform:uppercase;}
+.rt-calc-ratios{margin-top:8px;padding-top:6px;border-top:1px solid rgba(130,110,200,.15);display:flex;flex-direction:column;gap:3px;}
+.rt-calc-ratio-line{font-size:11px;font-family:var(--font-mono);color:rgba(180,200,220,.75);letter-spacing:.02em;}
+.rt-calc-ratio-line span{color:var(--green);font-weight:700;}
 
 /* ══ PERIOD PEAK + CURRENT — matched sizes ══ */
 .rt-card-val-lg{font-size:17px !important;font-weight:700 !important;font-family:var(--font-mono);}
@@ -2147,6 +2181,10 @@ td.qa-cell{text-align:center;width:28px;padding:0 4px !important;}
             <div class="rt-res-val" style="color:var(--amber);" id="rt-calc-usd-out">—</div>
           </div>
         </div>
+        <div class="rt-calc-ratios">
+          <div class="rt-calc-ratio-line" id="rt-calc-ratio-fwd">—</div>
+          <div class="rt-calc-ratio-line" id="rt-calc-ratio-inv">—</div>
+        </div>
       </div>
 
       <!-- Status + saved pairs -->
@@ -2311,6 +2349,10 @@ td.qa-cell{text-align:center;width:28px;padding:0 4px !important;}
   <button class="mob-nav-btn" id="mn-holdings" onclick="mobNavHoldings()">
     <div class="mob-nav-logo" style="font-size:14px;">💼</div>
     <span>HOLDINGS</span>
+  </button>
+  <button class="mob-nav-btn" id="mn-swap" onclick="mobNavSwap()">
+    <div class="mob-nav-logo" style="font-size:14px;">⇄</div>
+    <span>SWAP</span>
   </button>
 </nav>
 
