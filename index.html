@@ -147,7 +147,7 @@ body::before{content:'';position:fixed;inset:0;background:repeating-linear-gradi
 .loading-source-msg{text-align:center;padding:10px 16px 6px;font-size:10px;letter-spacing:.06em;color:var(--muted);opacity:.75;line-height:1.7;font-family:var(--font-ui);}
 
 /* ── ROOT LAYOUT ── */
-.root{display:grid;grid-template-columns:310px 1fr 320px;height:calc(100vh - 33px);}
+.root{display:grid;grid-template-columns:310px 1fr 310px;height:calc(100vh - 33px);}
 
 /* ── DESKTOP ONLY: hide tier badge, uniform panel heights ── */
 @media(min-width:701px){
@@ -1460,6 +1460,101 @@ td.qa-cell{text-align:center;width:28px;padding:0 4px !important;}
 /* Remove old pair row styles that conflict */
 .rt-pair-row{display:none !important;}
 .rt-pair-col,.rt-pair-col-lbl,.rt-pair-side,.rt-pair-divider{display:none !important;}
+
+/* ══ PAIR TILES: 2-col wider ══ */
+.rt-pair-tiles{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px;}
+.rt-ct{
+  position:relative;background:rgba(20,26,38,.95);
+  border:1px solid rgba(130,110,200,.3);border-radius:8px;
+  padding:10px 8px 9px;cursor:pointer;text-align:center;
+  display:flex;flex-direction:column;align-items:center;gap:3px;
+  min-height:90px;
+  transition:border-color .15s,background .15s,transform .12s;
+}
+.rt-ct::after{content:'▼ tap to change';position:absolute;bottom:4px;font-size:7px;color:rgba(150,150,180,.35);letter-spacing:.04em;}
+.rt-ct:hover{border-color:rgba(130,110,200,.65);background:rgba(130,110,200,.09);transform:translateY(-1px);}
+.rt-ct-to{border-color:rgba(74,144,217,.3);background:rgba(14,20,34,.95);}
+.rt-ct-to:hover{border-color:rgba(74,144,217,.65);background:rgba(74,144,217,.09);}
+.rt-ct-sel{position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%;z-index:2;font-size:16px;}
+.rt-ct-lbl{font-size:7px;font-weight:800;letter-spacing:.16em;text-transform:uppercase;color:var(--muted);margin-bottom:1px;}
+.rt-ct-img{width:30px;height:30px;border-radius:50%;background:var(--bg4);border:1px solid rgba(255,255,255,.1);flex-shrink:0;}
+.rt-ct-sym{font-size:14px;font-weight:800;font-family:var(--font-mono);color:var(--text);line-height:1;}
+.rt-ct-price{font-size:12px;font-weight:600;font-family:var(--font-mono);color:rgba(210,220,235,.9);}
+.rt-ct-chg{font-size:10px;font-weight:700;font-family:var(--font-mono);}
+
+/* ══ SWAP ROW: button + badge below tiles ══ */
+.rt-swap-row{display:flex;align-items:center;gap:8px;margin-bottom:8px;}
+.rt-swap-pair-btn{
+  flex:1;padding:8px 12px;
+  background:linear-gradient(135deg,rgba(130,110,200,.25),rgba(130,110,200,.15));
+  border:1px solid rgba(130,110,200,.5);
+  color:#c5b8f5;font-family:var(--font-mono);font-size:12px;font-weight:700;
+  letter-spacing:.08em;cursor:pointer;border-radius:5px;
+  display:flex;align-items:center;justify-content:center;gap:6px;
+  transition:all .15s;
+}
+.rt-swap-pair-btn:hover{background:linear-gradient(135deg,rgba(130,110,200,.4),rgba(130,110,200,.25));border-color:rgba(167,139,250,.8);color:#d8cfff;transform:translateY(-1px);}
+.rt-swap-arrows{font-size:18px;display:inline-block;transition:transform .3s;}
+.rt-swap-pair-btn:hover .rt-swap-arrows{transform:rotate(180deg);}
+.rt-badge{font-size:10px !important;font-weight:700;letter-spacing:.06em;padding:5px 12px !important;border-radius:4px;border:1px solid transparent;white-space:nowrap;flex-shrink:0;}
+
+/* ══ BOLD RATIO NUMBER ══ */
+.rt-ratio-center{text-align:center;padding:8px 0 5px;}
+.rt-ratio-bold{
+  font-size:54px;font-weight:800;letter-spacing:-2px;line-height:1;
+  color:var(--text);font-family:var(--font-mono);
+  text-shadow:0 2px 20px rgba(200,210,255,.08);
+}
+.rt-ratio-bold.dim{color:rgba(180,195,215,.35);}
+.rt-ratio-bold-x{font-size:20px;font-weight:300;color:var(--muted);font-family:var(--font-mono);margin-top:-4px;}
+.rt-ratio-unit{font-size:11px;color:rgba(160,180,200,.65);margin-top:3px;text-align:center;}
+
+/* ══ SWAP CALCULATOR — top, bigger title ══ */
+.rt-calc{background:rgba(130,110,200,.07);border:1px solid rgba(130,110,200,.22);border-radius:5px;padding:10px 12px;margin-bottom:8px;}
+.rt-calc-title{font-size:14px;font-weight:800;letter-spacing:.1em;color:rgba(195,185,255,.95);margin-bottom:10px;text-transform:uppercase;}
+
+/* ══ PERIOD PEAK + CURRENT — matched sizes ══ */
+.rt-card-val-lg{font-size:17px !important;font-weight:700 !important;font-family:var(--font-mono);}
+
+/* ══ CUSTOM COIN PICKER PANEL ══ */
+.rt-picker-panel{
+  position:absolute;top:0;left:0;right:0;bottom:0;
+  background:rgba(11,14,19,.97);
+  border-radius:8px;z-index:50;
+  display:flex;flex-direction:column;
+  border:1px solid rgba(130,110,200,.35);
+  backdrop-filter:blur(8px);
+}
+.rt-picker-header{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:10px 14px 8px;border-bottom:1px solid rgba(130,110,200,.2);
+  font-size:11px;font-weight:700;letter-spacing:.1em;color:rgba(195,185,255,.9);
+  text-transform:uppercase;flex-shrink:0;
+}
+.rt-picker-close{background:none;border:none;color:var(--muted);font-size:18px;cursor:pointer;padding:0;line-height:1;transition:color .15s;}
+.rt-picker-close:hover{color:var(--red);}
+.rt-picker-search{
+  margin:8px 12px 4px;padding:7px 10px;
+  background:rgba(0,0,0,.4);border:1px solid rgba(130,110,200,.3);
+  border-radius:4px;color:var(--text);font-family:var(--font-mono);font-size:12px;
+  outline:none;flex-shrink:0;
+}
+.rt-picker-search:focus{border-color:rgba(130,110,200,.6);}
+.rt-picker-list{flex:1;overflow-y:auto;padding:4px 6px 8px;}
+.rt-picker-item{
+  display:flex;align-items:center;gap:9px;padding:7px 8px;
+  border-radius:4px;cursor:pointer;transition:background .1s;
+  border-bottom:1px solid rgba(255,255,255,.03);
+}
+.rt-picker-item:hover{background:rgba(130,110,200,.15);}
+.rt-picker-item.selected{background:rgba(130,110,200,.2);border-left:2px solid rgba(130,110,200,.7);}
+.rt-picker-ico{width:22px;height:22px;border-radius:50%;background:var(--bg4);flex-shrink:0;object-fit:cover;}
+.rt-picker-sym{font-size:12px;font-weight:700;font-family:var(--font-mono);color:var(--text);}
+.rt-picker-name{font-size:10px;color:var(--muted);flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.rt-picker-price{font-size:10px;font-weight:600;font-family:var(--font-mono);color:rgba(200,210,220,.7);}
+
+/* ratio-section must be position:relative for picker overlay */
+.ratio-section{position:relative !important;}
 </style>
 </head>
 <body>
@@ -1982,7 +2077,7 @@ td.qa-cell{text-align:center;width:28px;padding:0 4px !important;}
     <!-- RATIO TRACKER -->
     <div class="ratio-section" id="ratio-section">
 
-      <!-- TOP ROW: Save pair + Refresh -->
+      <!-- TOP: Save pair + Refresh -->
       <div class="rt-top-actions">
         <button class="rt-star-btn" id="rt-star-btn" title="Save pair">☆ Save pair</button>
         <button class="rt-refresh-btn" id="rt-refresh-btn" onclick="RatioTracker.loadAll()" title="Refresh">
@@ -1990,41 +2085,69 @@ td.qa-cell{text-align:center;width:28px;padding:0 4px !important;}
         </button>
       </div>
 
-      <!-- PAIR TILES: two square coin buttons + ratio in middle -->
+      <!-- COIN TILES: wider 2-col, no middle column -->
       <div class="rt-pair-tiles">
-
-        <!-- FROM tile -->
-        <div class="rt-ct" id="rt-ct-from" onclick="document.getElementById('rt-from').focus();document.getElementById('rt-from').click();" title="Change FROM coin">
-          <div class="rt-ct-lbl">FROM</div>
+        <div class="rt-ct" id="rt-ct-from" onclick="RatioTracker._openPicker('from')" title="Change FROM coin">
+          <div class="rt-ct-lbl">FROM — you hold</div>
           <img class="rt-ct-img" id="rt-from-icon" src="" alt="" onerror="this.style.opacity='0'">
           <div class="rt-ct-sym" id="rt-ct-from-sym">—</div>
           <div class="rt-ct-price" id="rt-from-price">—</div>
           <div class="rt-ct-chg" id="rt-from-chg">—</div>
-          <!-- hidden select -->
           <select class="rt-ct-sel" id="rt-from" onchange="RatioTracker.onFromChange()"></select>
         </div>
-
-        <!-- Middle: ratio + arrow -->
-        <div class="rt-pair-mid">
-          <div class="rt-ct-live-ratio" id="rt-ratio-num">0.00</div>
-          <div class="rt-ct-live-x">×</div>
-          <div class="rt-ct-arrow">→</div>
-          <span class="rt-badge" id="rt-badge" style="font-size:8px;padding:2px 6px;margin-top:3px;">&nbsp;</span>
-        </div>
-
-        <!-- TO tile -->
-        <div class="rt-ct rt-ct-to" id="rt-ct-to" onclick="document.getElementById('rt-to').focus();document.getElementById('rt-to').click();" title="Change TO coin">
-          <div class="rt-ct-lbl">TO</div>
+        <div class="rt-ct rt-ct-to" id="rt-ct-to" onclick="RatioTracker._openPicker('to')" title="Change TO coin">
+          <div class="rt-ct-lbl">TO — you want</div>
           <img class="rt-ct-img" id="rt-to-icon" src="" alt="" onerror="this.style.opacity='0'">
           <div class="rt-ct-sym" id="rt-ct-to-sym">—</div>
           <div class="rt-ct-price" id="rt-to-price">—</div>
           <div class="rt-ct-chg" id="rt-to-chg">—</div>
-          <!-- hidden select -->
           <select class="rt-ct-sel" id="rt-to" onchange="RatioTracker.onToChange()"></select>
         </div>
       </div>
-      <!-- Subtitle below tiles -->
-      <div class="rt-ratio-unit" style="text-align:center;margin:-2px 0 6px;"><span id="rt-unit-txt">— received per 1 —</span></div>
+
+      <!-- SWAP BUTTON + BADGE — below tiles -->
+      <div class="rt-swap-row">
+        <button class="rt-swap-pair-btn" onclick="RatioTracker.swapPair()" title="Swap FROM and TO">
+          <span class="rt-swap-arrows">⇄</span> Swap Pair
+        </button>
+        <span class="rt-badge" id="rt-badge">&nbsp;</span>
+      </div>
+
+      <!-- BOLD RATIO NUMBER -->
+      <div class="rt-ratio-center">
+        <div class="rt-ratio-bold" id="rt-ratio-num">0.00</div>
+        <div class="rt-ratio-bold-x">×</div>
+        <div class="rt-ratio-unit"><span id="rt-unit-txt">— received per 1 —</span></div>
+      </div>
+
+      <!-- SWAP CALCULATOR — top position -->
+      <div class="rt-calc">
+        <div class="rt-calc-title">⇄ SWAP CALCULATOR</div>
+        <div class="rt-calc-inputs">
+          <div class="rt-ci rt-ci-full">
+            <label id="rt-calc-from-lbl">Amount</label>
+            <input type="number" id="rt-calc-amt" value="100" step="any" oninput="RatioTracker.calcSwap()">
+          </div>
+          <div class="rt-ci">
+            <label id="rt-calc-from-ov-lbl">Override FROM ($)</label>
+            <input type="number" id="rt-calc-from-ov" placeholder="auto" step="any" oninput="RatioTracker.calcSwap()">
+          </div>
+          <div class="rt-ci">
+            <label id="rt-calc-to-ov-lbl">Override TO ($)</label>
+            <input type="number" id="rt-calc-to-ov" placeholder="auto" step="any" oninput="RatioTracker.calcSwap()">
+          </div>
+        </div>
+        <div class="rt-calc-result">
+          <div>
+            <div class="rt-res-lbl">YOU'D RECEIVE</div>
+            <div class="rt-res-val" style="color:var(--green);" id="rt-calc-out">—</div>
+          </div>
+          <div style="text-align:right;">
+            <div class="rt-res-lbl">USD VALUE</div>
+            <div class="rt-res-val" style="color:var(--amber);" id="rt-calc-usd-out">—</div>
+          </div>
+        </div>
+      </div>
 
       <!-- Status + saved pairs -->
       <div class="rt-status" id="rt-status">Connecting…</div>
@@ -2032,19 +2155,17 @@ td.qa-cell{text-align:center;width:28px;padding:0 4px !important;}
         <span class="rt-saved-empty">No saved pairs yet — pick a pair and click ☆ Save pair</span>
       </div>
 
-
-
-      <!-- Peak card only (prices now in tiles) -->
-      <div class="rt-cards" style="margin-bottom:6px;">
-        <div class="rt-card" style="flex:2;">
-          <div class="rt-card-lbl">Period peak ratio</div>
-          <div class="rt-card-val" style="color:var(--green);font-size:18px;" id="rt-peak-val">—</div>
+      <!-- Period peak + Current cards — matched sizes -->
+      <div class="rt-cards">
+        <div class="rt-card">
+          <div class="rt-card-lbl">Period peak</div>
+          <div class="rt-card-val rt-card-val-lg" style="color:var(--green);" id="rt-peak-val">—</div>
           <div class="rt-card-sub">Best this period</div>
         </div>
-        <div class="rt-card" style="flex:3;">
+        <div class="rt-card">
           <div class="rt-card-lbl">Current</div>
-          <div class="rt-card-val" id="rt-now-ratio-val" style="font-size:14px;">—</div>
-          <div class="rt-card-sub" id="rt-now-ratio-sub">ratio now</div>
+          <div class="rt-card-val rt-card-val-lg" id="rt-now-ratio-val">—</div>
+          <div class="rt-card-sub">ratio now</div>
         </div>
       </div>
 
@@ -2072,41 +2193,21 @@ td.qa-cell{text-align:center;width:28px;padding:0 4px !important;}
         <span>now</span>
       </div>
 
-      <!-- Chart — price movement graph -->
-      <div class="rt-chart-wrap">
-        <canvas id="rt-spark"></canvas>
-      </div>
-
-      <!-- Swap Calculator — bigger, brighter -->
-      <div class="rt-calc">
-        <div class="rt-calc-title">⇄ Swap Calculator</div>
-        <div class="rt-calc-inputs">
-          <div class="rt-ci rt-ci-full">
-            <label id="rt-calc-from-lbl">Amount</label>
-            <input type="number" id="rt-calc-amt" value="100" step="any" oninput="RatioTracker.calcSwap()">
-          </div>
-          <div class="rt-ci">
-            <label id="rt-calc-from-ov-lbl">Override FROM ($)</label>
-            <input type="number" id="rt-calc-from-ov" placeholder="auto" step="any" oninput="RatioTracker.calcSwap()">
-          </div>
-          <div class="rt-ci">
-            <label id="rt-calc-to-ov-lbl">Override TO ($)</label>
-            <input type="number" id="rt-calc-to-ov" placeholder="auto" step="any" oninput="RatioTracker.calcSwap()">
-          </div>
-        </div>
-        <div class="rt-calc-result">
-          <div>
-            <div class="rt-res-lbl">YOU'D RECEIVE</div>
-            <div class="rt-res-val" style="color:var(--green);" id="rt-calc-out">—</div>
-          </div>
-          <div style="text-align:right;">
-            <div class="rt-res-lbl">USD VALUE</div>
-            <div class="rt-res-val" style="color:var(--amber);" id="rt-calc-usd-out">—</div>
-          </div>
-        </div>
-      </div>
+      <!-- Chart -->
+      <div class="rt-chart-wrap"><canvas id="rt-spark"></canvas></div>
 
       <div class="rt-footer">Live data via CoinGecko · Not financial advice · Always verify before swapping</div>
+
+      <!-- Custom coin picker panel -->
+      <div class="rt-picker-panel" id="rt-picker-panel" style="display:none;">
+        <div class="rt-picker-header">
+          <span id="rt-picker-title">Select coin</span>
+          <button class="rt-picker-close" onclick="RatioTracker._closePicker()">×</button>
+        </div>
+        <input class="rt-picker-search" id="rt-picker-search" type="text" placeholder="Search by name or symbol…" oninput="RatioTracker._pickerFilter()" autocomplete="off">
+        <div class="rt-picker-list" id="rt-picker-list"></div>
+      </div>
+
     </div>
     <!-- END RATIO TRACKER -->
 

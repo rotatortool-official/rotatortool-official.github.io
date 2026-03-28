@@ -238,7 +238,7 @@ var RatioTracker = (function() {
 
     /* ── Live ratio number (in the middle of tiles) ── */
     var rEl=$('rt-ratio-num');
-    if(rEl){ rEl.textContent=ratio.toFixed(ratio<1?4:ratio<10?3:2); rEl.classList.remove('dim'); }
+    if(rEl){ rEl.textContent=ratio.toFixed(ratio<1?4:ratio<10?3:2); rEl.classList.remove('dim'); rEl.classList.add('rt-ratio-bold'); }
 
     /* ── FROM tile ── */
     var fromSym=$('rt-ct-from-sym'); if(fromSym) fromSym.textContent=lbl(S.from);
@@ -444,6 +444,64 @@ var RatioTracker = (function() {
   function setSpin(on){ var i=$('rt-spin-icon'),b=$('rt-refresh-btn'); if(i)i.className=on?'spinning':''; if(b)b.disabled=on; }
   function setTfDisabled(v){ [1,7,30].forEach(function(d){var b=$('rt-tf-'+d);if(b)b.disabled=v;}); }
 
+  /* ── Swap FROM ↔ TO ── */
+  function swapPair(){
+    var tmp=S.from; S.from=S.to; S.to=tmp;
+    var fs=$('rt-from'),ts=$('rt-to');
+    if(fs) fs.value=S.from;
+    buildToDropdown(S.from);
+    if(ts){ ts.value=S.to; S.to=ts.value||ts.options[0].value; }
+    savePair(); updateStarBtn(); renderSavedPairs(); updateLabels(); loadAll(true);
+    /* Animate arrows */
+    var arrEl=document.querySelector('.rt-swap-arrows');
+    if(arrEl){ arrEl.style.transform='rotate(180deg)'; setTimeout(function(){ arrEl.style.transform=''; },400); }
+  }
+
+  /* ── Custom coin picker ── */
+  var _pickerMode='from';
+  function _openPicker(mode){
+    _pickerMode=mode;
+    var panel=$('rt-picker-panel'); if(!panel) return;
+    var title=$('rt-picker-title'); if(title) title.textContent=(mode==='from'?'Select FROM coin':'Select TO coin');
+    var search=$('rt-picker-search'); if(search) search.value='';
+    panel.style.display='flex';
+    _pickerFilter();
+    if(search) setTimeout(function(){ search.focus(); },60);
+  }
+  function _closePicker(){
+    var panel=$('rt-picker-panel'); if(panel) panel.style.display='none';
+  }
+  function _pickerFilter(){
+    var q=($('rt-picker-search')||{value:''}).value.toLowerCase().trim();
+    var list=$('rt-picker-list'); if(!list) return;
+    var cArr=(typeof coins!=='undefined'&&Array.isArray(coins)&&coins.length)?coins:[];
+    if(!cArr.length){ list.innerHTML='<div style="padding:14px;text-align:center;font-size:11px;color:var(--muted);">Loading coins…</div>'; return; }
+    var filtered=q?cArr.filter(function(x){ return x.sym.toLowerCase().includes(q)||(x.name||'').toLowerCase().includes(q); }):cArr.slice(0,60);
+    var curId=(_pickerMode==='from'?S.from:S.to);
+    list.innerHTML=filtered.slice(0,60).map(function(coin){
+      var sel=coin.id===curId;
+      var p24c=coin.p24>=0?'var(--green)':'var(--red)';
+      return '<div class="rt-picker-item'+(sel?' selected':'')+'" onclick="RatioTracker._pickerSelect(\''+coin.id+'\')">'+
+        '<img class="rt-picker-ico" src="'+coin.image+'" alt="" onerror="this.style.opacity=\'0\'">'+
+        '<span class="rt-picker-sym">'+coin.sym+'</span>'+
+        '<span class="rt-picker-name">'+(coin.name||'')+'</span>'+
+        '<span class="rt-picker-price" style="color:'+p24c+'">'+(coin.p24>=0?'+':'')+coin.p24.toFixed(1)+'%</span>'+
+        '</div>';
+    }).join('');
+  }
+  function _pickerSelect(coinId){
+    if(_pickerMode==='from'){
+      var fs=$('rt-from'); if(fs){ fs.value=coinId; S.from=coinId; }
+      buildToDropdown(S.from);
+      var ts=$('rt-to'); if(ts) S.to=ts.value;
+      onFromChange(); /* triggers rebuild + loadAll */
+    } else {
+      var ts=$('rt-to'); if(ts){ ts.value=coinId; S.to=coinId; }
+      onToChange();
+    }
+    _closePicker();
+  }
+
   function onFromChange(){
     var sel=$('rt-from'); if(!sel) return;
     S.from=sel.value; buildToDropdown(S.from); S.to=$('rt-to').value;
@@ -480,7 +538,9 @@ var RatioTracker = (function() {
     init:init, refresh:refresh, setTF:setTF,
     loadAll:function(){loadAll(true);},
     onFromChange:onFromChange, onToChange:onToChange, calcSwap:calcSwap,
-    _loadFav:loadFavourite, _removeFav:removeFavourite
+    swapPair:swapPair,
+    _loadFav:loadFavourite, _removeFav:removeFavourite,
+    _openPicker:_openPicker, _closePicker:_closePicker, _pickerFilter:_pickerFilter, _pickerSelect:_pickerSelect
   };
 
 })();
