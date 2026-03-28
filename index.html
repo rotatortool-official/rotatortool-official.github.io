@@ -437,6 +437,13 @@ body::before{content:'';position:fixed;inset:0;background:repeating-linear-gradi
 .td-badge.ob{background:rgba(255,69,96,.1);border-color:rgba(255,69,96,.3);color:var(--red);}
 .td-badge.os{background:rgba(0,200,150,.1);border-color:rgba(0,200,150,.25);color:var(--green);}
 
+/* Share button */
+.td-share-wrap{margin-top:10px;padding-top:10px;border-top:1px solid var(--bdr);text-align:center;}
+.td-share-btn{width:100%;padding:8px 12px;background:linear-gradient(135deg,rgba(0,200,150,.12),rgba(0,200,150,.04));border:1px solid rgba(0,200,150,.3);color:var(--green);font-family:var(--font-display);font-size:11px;font-weight:600;letter-spacing:.1em;cursor:pointer;border-radius:3px;transition:all .18s;display:flex;align-items:center;justify-content:center;gap:6px;}
+.td-share-btn:hover{background:rgba(0,200,150,.18);border-color:var(--green);box-shadow:0 0 12px rgba(0,200,150,.12);}
+.td-share-ico{font-size:13px;}
+.td-share-btn.copied{background:rgba(0,200,150,.22);border-color:var(--green);color:#fff;}
+
 /* Close button */
 .td-close{position:absolute;top:12px;right:14px;background:rgba(255,255,255,.05);border:1px solid var(--bdr);color:var(--muted);font-size:16px;cursor:pointer;line-height:1;padding:3px 7px;transition:all .15s;border-radius:3px;}
 .td-close:hover{color:var(--text);background:rgba(255,255,255,.1);border-color:var(--bdr2);}
@@ -1682,6 +1689,13 @@ td.qa-cell{text-align:center;width:28px;padding:0 4px !important;}
     <div class="td-section-title">Signals</div>
     <div class="td-badge-row" id="td-badges"></div>
   </div>
+
+  <!-- Share button -->
+  <div class="td-share-wrap">
+    <button class="td-share-btn" id="td-share-btn" onclick="shareTileDetail()">
+      <span class="td-share-ico">&#x1F4E4;</span> SHARE INSIGHT
+    </button>
+  </div>
 </div>
 
 <!-- TOOLTIP -->
@@ -1967,6 +1981,8 @@ td.qa-cell{text-align:center;width:28px;padding:0 4px !important;}
         <div class="frow"><span class="flbl">AVG $</span><input type="number" id="st-avg" placeholder="avg buy price" min="0" step="any"></div>
         <button class="add-btn" onclick="addStockHolding()">+ ADD STOCK</button>
       </div>
+    </div>
+
     <!-- SUPPORT CARD — bottom of sidebar -->
     <div class="sidebar-donate" style="margin-top:auto;padding:10px 12px 12px;flex-shrink:0;">
       <div class="ad-donate">
@@ -1975,7 +1991,6 @@ td.qa-cell{text-align:center;width:28px;padding:0 4px !important;}
         <div id="sidebar-goal-left" style="margin:8px 0;"></div>
         <button class="ad-donate-btn" onclick="openModal('donate-modal')">SUPPORT THE PROJECT</button>
       </div>
-    </div>
     </div>
   </div>
 

@@ -1456,6 +1456,57 @@ function closeTileDetail() {
   _tdCoin = null;
 }
 
+/* ── Share tile insight ─────────────────────────────────────── */
+function shareTileDetail() {
+  var sym  = (document.getElementById('td-sym')  || {}).textContent || '';
+  var name = (document.getElementById('td-name') || {}).textContent || '';
+  var prc  = (document.getElementById('td-price')|| {}).textContent || '';
+  var chg  = (document.getElementById('td-price-chg') || {}).textContent || '';
+  var badgeEls = document.querySelectorAll('#td-badges .td-badge');
+  var signals = [];
+  badgeEls.forEach(function(b){ if(b.textContent) signals.push(b.textContent.trim()); });
+
+  var arrow = chg.indexOf('+') === 0 ? '▲' : chg.indexOf('-') === 0 || chg.indexOf('−') === 0 ? '▼' : '◆';
+
+  var text = '📊 ' + sym + ' (' + name + ')  —  ' + prc + '\n'
+    + arrow + ' ' + chg + '\n';
+  if (signals.length) text += '⚡ Signals: ' + signals.join(' · ') + '\n';
+  text += '\nAnalyzed with Rotator — real-time rotation & momentum tracker\n'
+    + '🔗 https://rotatortool-official.github.io';
+
+  var btn = document.getElementById('td-share-btn');
+
+  /* Use native share on mobile if available */
+  if (navigator.share) {
+    navigator.share({
+      title: sym + ' — Rotator Insight',
+      text: text
+    }).catch(function(){});
+    return;
+  }
+
+  /* Fallback: copy to clipboard */
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(text).then(function() {
+      if (btn) { btn.innerHTML = '<span class="td-share-ico">✓</span> COPIED TO CLIPBOARD'; btn.classList.add('copied'); }
+      setTimeout(function() {
+        if (btn) { btn.innerHTML = '<span class="td-share-ico">&#x1F4E4;</span> SHARE INSIGHT'; btn.classList.remove('copied'); }
+      }, 2200);
+    });
+  } else {
+    /* Last-resort textarea fallback */
+    var ta = document.createElement('textarea');
+    ta.value = text; ta.style.cssText = 'position:fixed;left:-9999px;';
+    document.body.appendChild(ta); ta.select();
+    try { document.execCommand('copy'); } catch(e){}
+    document.body.removeChild(ta);
+    if (btn) { btn.innerHTML = '<span class="td-share-ico">✓</span> COPIED TO CLIPBOARD'; btn.classList.add('copied'); }
+    setTimeout(function() {
+      if (btn) { btn.innerHTML = '<span class="td-share-ico">&#x1F4E4;</span> SHARE INSIGHT'; btn.classList.remove('copied'); }
+    }, 2200);
+  }
+}
+
 /* ══════════════════════════════
    TOOLTIP SYSTEM
 ══════════════════════════════ */
