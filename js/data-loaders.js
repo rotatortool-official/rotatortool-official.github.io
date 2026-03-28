@@ -1486,6 +1486,7 @@ function openAssetDetail(assetType, id, evt) {
       return '<span class="td-badge '+b.c+'">'+b.t+'</span>';
     }).join('');
   }
+}
 
 function closeTileDetail() {
   var p = document.getElementById('td-panel');
