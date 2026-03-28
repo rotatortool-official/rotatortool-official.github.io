@@ -889,10 +889,11 @@ td.qa-cell{text-align:center;width:28px;padding:0 4px !important;}
   .modal{margin:8px;max-width:calc(100vw - 16px) !important;width:calc(100vw - 16px) !important;}
   /* Layout — continuous vertical scroll: sidebar → leaderboard → swap panel */
   .root{grid-template-columns:1fr;display:flex;flex-direction:column;height:auto;max-height:none;overflow:visible;}
-  .sidebar{display:block !important;order:1;height:auto;max-height:none;overflow:visible;border-right:none;border-bottom:1px solid var(--bdr);}
-  .main-col{order:2;padding-bottom:0;overflow:visible;height:auto;max-height:none;}
-  .ad-panel{display:flex !important;order:3;border-left:none;border-top:1px solid rgba(130,110,200,.2);padding:10px 12px 70px;height:auto;max-height:none;overflow:visible;width:100%;box-sizing:border-box;background:var(--bg2) !important;box-shadow:none !important;}
+  .sidebar{display:block !important;order:1;height:auto;max-height:none;overflow:visible;border-right:none;border-bottom:1px solid var(--bdr);background:var(--bg2) !important;box-shadow:none !important;}
+  .main-col{order:2;padding-bottom:0;overflow:visible;height:auto;max-height:none;background:var(--bg) !important;}
+  .ad-panel{display:flex !important;order:3;border-left:none;border-top:1px solid rgba(130,110,200,.2);padding:10px 12px 70px;height:auto;max-height:none;overflow:visible;width:100%;box-sizing:border-box;background:var(--bg) !important;box-shadow:none !important;}
   .ad-panel::before{display:none !important;}
+  .ratio-section{background:transparent !important;}
   /* ── MOBILE SWAP LAYOUT — vertical stacking ── */
   .rt-pair-tiles{grid-template-columns:1fr 1fr;gap:6px;}
   .rt-ct{padding:10px 8px;min-height:auto;}
@@ -1041,12 +1042,14 @@ td.qa-cell{text-align:center;width:28px;padding:0 4px !important;}
   thead th:first-child,tbody td:first-child{display:none;}
   .sb{display:none;}
   table{table-layout:fixed;width:100%;}
-  thead th:nth-child(2){width:34%;}
-  thead th:nth-child(3){width:13%;}
-  thead th:nth-child(4),thead th:nth-child(5),thead th:nth-child(6),thead th:nth-child(7){width:11%;}
-  thead th:nth-child(8){width:10%;}
+  thead th:nth-child(2){width:30%;}
+  thead th:nth-child(3){width:6%;}
+  thead th:nth-child(4),thead th:nth-child(5),thead th:nth-child(6),thead th:nth-child(7){width:13%;}
+  thead th:nth-child(8){width:9%;}
   tbody td{font-size:10px;padding:3px 1px;}
   thead th{font-size:8px;padding:3px 1px;}
+  td.qa-cell{width:18px;padding:0 1px !important;}
+  .qa-btn{width:16px;height:16px;font-size:11px;}
   .tsym{font-size:10px;}
   .tname{font-size:8px;}
   .ti{width:16px;height:16px;}
@@ -2642,6 +2645,24 @@ document.addEventListener('DOMContentLoaded', function() {
     }} catch(e) {}
   }, 3000);
 });
+
+// Mobile: move support/promo cards from ad-panel to sidebar bottom
+(function(){
+  var mq = window.matchMedia('(max-width:700px) and (orientation:portrait)');
+  function moveAdBody(e){
+    var adBody = document.querySelector('.ad-body');
+    var sidebar = document.querySelector('.sidebar');
+    if(!adBody||!sidebar) return;
+    if(e.matches){
+      sidebar.appendChild(adBody);
+    } else {
+      var adPanel = document.querySelector('.ad-panel');
+      if(adPanel) adPanel.appendChild(adBody);
+    }
+  }
+  mq.addEventListener('change', moveAdBody);
+  document.addEventListener('DOMContentLoaded', function(){ moveAdBody(mq); });
+})();
 
 // Wire swap tut button next to the ratio section header (add help button)
 document.addEventListener('DOMContentLoaded', function() {
