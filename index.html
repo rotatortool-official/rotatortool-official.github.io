@@ -640,6 +640,7 @@ td.qa-cell{text-align:center;width:28px;padding:0 4px !important;}
 .mob-topbar-btc,.mob-topbar-pro,.mob-topbar-center,.mob-topbar-support,.mob-topbar-gear{display:none;}
 .topbar-desktop-left{display:flex;}
 .mob-neon-signal{display:none;}
+.mob-inline-holdings{display:none;}
 
 /* ══════════════════════════════
    LANDSCAPE MOBILE
@@ -793,27 +794,25 @@ td.qa-cell{text-align:center;width:28px;padding:0 4px !important;}
   .root{grid-template-columns:1fr;}
   .sidebar{display:none !important;}
   .ad-panel{display:none !important;}
-  .main-col{padding-bottom:60px;}
+  .main-col{padding-bottom:60px;overflow-y:auto;}
   tbody td{border-bottom:none;}
 
-  /* Portfolio signal strip visible on mobile */
-  .mob-neon-signal{display:flex !important;}
+  /* Hide HOLDINGS nav tab — holdings shown inline below leaderboard */
+  #mn-holdings{display:none !important;}
+  /* Hide old slide-up panel entirely */
+  .mob-holdings-panel{display:none !important;}
 
-  /* ── SIGNAL CENTER: full width, 2 rows per column ── */
+  /* ── NEON SECTION: 2 tiles per column, fixed compact height ── */
   .neon-section{width:100%;box-sizing:border-box;}
-  /* Portfolio signal strip at top of neon section on mobile */
-  .mob-neon-signal{display:flex;align-items:center;justify-content:space-between;padding:4px 8px;border-bottom:1px solid rgba(243,186,47,.15);background:rgba(243,186,47,.04);font-size:9px;letter-spacing:.06em;flex-shrink:0;}
-  .mob-neon-signal-label{color:var(--bnb);font-family:var(--font-display);text-transform:uppercase;letter-spacing:.1em;}
-  .mob-neon-signal-val{color:var(--text);font-weight:600;}
   .bars-cols{display:flex;flex-direction:row;gap:0;width:100%;}
-  .bars-col-inner{flex:1;min-width:0;padding:3px 3px 4px;}
+  .bars-col-inner{flex:1;min-width:0;padding:4px 3px 4px;}
   .bars-divider{width:1px;align-self:stretch;}
-  .bar-col-title{font-size:7px;letter-spacing:.05em;margin-bottom:2px;white-space:nowrap;overflow:hidden;}
+  .bar-col-title{font-size:7px;letter-spacing:.05em;margin-bottom:3px;white-space:nowrap;overflow:hidden;}
   .bar-col-title::after{display:none;}
-  /* Show only 2 tiles per column, compact height */
+  /* Exactly 2 tiles per column — hide ALL from 3rd onwards including pro/placeholder tiles */
   .sig-tiles-grid{grid-template-columns:1fr !important;grid-auto-rows:auto !important;display:grid !important;}
-  .sig-tile{padding:3px 4px;min-height:44px !important;max-height:52px !important;box-sizing:border-box;}
-  .sig-tile:nth-child(n+3){display:none;}
+  .sig-tiles-grid > *:nth-child(n+3){display:none !important;}
+  .sig-tile{padding:3px 5px;min-height:46px !important;max-height:52px !important;box-sizing:border-box;overflow:hidden;}
   .sig-tile-sym{font-size:9px;}
   .sig-tile-stats{display:flex;flex-wrap:nowrap;gap:2px;}
   .sig-stat{flex:1;}
@@ -822,6 +821,60 @@ td.qa-cell{text-align:center;width:28px;padding:0 4px !important;}
   .sig-tile-badge{display:none;}
   .sig-tile-arrow{display:none;}
   .sig-tile-ico{width:12px;height:12px;}
+
+  /* ── INLINE MOBILE HOLDINGS ── */
+  .mob-inline-holdings{
+    display:flex;flex-direction:column;
+    border-top:1px solid var(--bdr);
+    background:var(--bg2);
+    padding-bottom:8px;
+  }
+  /* Section header */
+  .mob-inline-holdings .mob-ih-header{
+    display:flex;align-items:center;justify-content:space-between;
+    padding:7px 12px 5px;
+    border-bottom:1px solid var(--bdr);
+    background:var(--bg3);
+    flex-shrink:0;
+  }
+  .mob-ih-title{
+    font-size:9px;letter-spacing:.12em;text-transform:uppercase;
+    color:var(--muted);font-family:var(--font-display);
+  }
+  .mob-ih-count{font-size:9px;color:var(--bnb);letter-spacing:.04em;}
+  /* Portfolio signal inside inline holdings */
+  .mob-inline-holdings .sig-box{flex-shrink:0;}
+  /* Holdings tiles grid */
+  .mob-inline-holdings .mob-ih-tiles{
+    display:grid;grid-template-columns:repeat(2,1fr);gap:6px;
+    padding:8px 10px 4px;
+    flex-shrink:0;
+  }
+  /* Placeholder tiles */
+  .mob-ph-tile{
+    border:1px dashed rgba(0,200,150,.22);border-radius:4px;
+    height:68px;display:flex;flex-direction:column;
+    align-items:center;justify-content:center;gap:4px;
+    font-size:16px;color:rgba(0,200,150,.45);
+    background:rgba(0,200,150,.025);cursor:pointer;
+    transition:border-color .15s,background .15s,color .15s;
+  }
+  .mob-ph-tile span{font-size:7px;letter-spacing:.1em;text-transform:uppercase;color:rgba(0,200,150,.35);font-family:var(--font-ui);}
+  .mob-ph-tile:hover{border-color:rgba(0,200,150,.5);background:rgba(0,200,150,.06);color:var(--green);}
+  .mob-ph-tile:hover span{color:var(--green);}
+  /* Add form section label */
+  .mob-inline-holdings .mob-ih-add-label{
+    font-size:8px;letter-spacing:.12em;text-transform:uppercase;
+    color:var(--muted);padding:4px 12px 2px;font-family:var(--font-display);
+    border-top:1px solid var(--bdr);margin-top:2px;
+  }
+  /* Override add-form inside inline holdings */
+  .mob-inline-holdings .add-form{padding:8px 10px;}
+  .mob-inline-holdings .add-btn{margin-top:6px;}
+  .mob-inline-holdings .phead{display:none;}
+  .mob-inline-holdings .holdings-section-label{display:none;}
+  .mob-inline-holdings .tiles-scroll{display:none;}
+
 
   /* ── TUTORIAL CARD: centered overlay on mobile ── */
   #tut-box{
@@ -863,47 +916,6 @@ td.qa-cell{text-align:center;width:28px;padding:0 4px !important;}
   .footer-link{font-size:7px !important;white-space:nowrap !important;letter-spacing:.04em !important;}
   .footer-copy{font-size:7px !important;white-space:nowrap !important;flex-shrink:0 !important;}
   .footer-disclaimer{display:none !important;}
-
-  /* ── HOLDINGS PANEL: Portfolio Signal at top ── */
-  .mob-holdings-panel{padding:0;}
-  .mob-portfolio-sig{
-    padding:10px 14px;
-    border-bottom:1px solid rgba(243,186,47,.2);
-    background:linear-gradient(135deg,rgba(243,186,47,.06),rgba(243,186,47,.02));
-    flex-shrink:0;
-  }
-  /* Placeholder tiles — green + sign, clearly actionable */
-  .mob-placeholder-tile{
-    border:1px dashed rgba(0,200,150,.25);
-    border-radius:4px;
-    height:72px;
-    display:flex;
-    flex-direction:column;
-    align-items:center;
-    justify-content:center;
-    gap:5px;
-    font-size:18px;
-    color:rgba(0,200,150,.5);
-    background:rgba(0,200,150,.03);
-    cursor:pointer;
-    transition:border-color .15s,background .15s,color .15s;
-  }
-  .mob-placeholder-tile::after{
-    content:'Add holding';
-    font-size:8px;
-    letter-spacing:.1em;
-    text-transform:uppercase;
-    color:rgba(0,200,150,.4);
-    font-family:var(--font-ui);
-  }
-  .mob-placeholder-tile:hover{
-    border-color:rgba(0,200,150,.5);
-    background:rgba(0,200,150,.07);
-    color:var(--green);
-  }
-  .mob-placeholder-tile:hover::after{
-    color:var(--green);
-  }
 
   /* ── TABLE ── */
   thead th:first-child,tbody td:first-child{display:none;}
@@ -1021,9 +1033,7 @@ td.qa-cell{text-align:center;width:28px;padding:0 4px !important;}
 .rt-ratio-unit{font-size:11px;color:var(--muted);line-height:1.5;}
 .rt-badge{display:inline-block;font-size:10px;font-weight:600;letter-spacing:.07em;padding:3px 10px;border-radius:2px;border:1px solid transparent;margin-bottom:10px;}
 .rt-status{font-size:10px;color:var(--muted);min-height:14px;margin-bottom:8px;}
-.rt-status.ok{color:var(--green);}
-.rt-status.err{color:var(--red);}
-.rt-status.warn{color:var(--amber);}
+.rt-status.ok{color:var(--green);}.rt-status.err{color:var(--red);}.rt-status.warn{color:var(--amber);}
 .rt-cards{display:flex;gap:8px;margin-bottom:10px;flex-wrap:wrap;}
 .rt-card{flex:1;min-width:90px;background:var(--bg3);border:1px solid var(--bdr);border-radius:3px;padding:8px 10px;}
 .rt-card-lbl{font-size:9px;color:var(--muted);letter-spacing:.1em;margin-bottom:3px;}
@@ -1056,7 +1066,6 @@ td.qa-cell{text-align:center;width:28px;padding:0 4px !important;}
 .rt-refresh-btn:hover{border-color:var(--bnb);color:var(--bnb);}
 .rt-refresh-btn:disabled{opacity:.35;cursor:default;}
 .rt-footer{font-size:9px;color:var(--muted);margin-top:8px;}
-/* ── Saved pairs ── */
 .rt-actions-row{display:flex;align-items:center;gap:8px;margin-top:8px;flex-wrap:wrap;}
 .rt-star-btn{background:none;border:1px solid var(--bdr2);color:var(--muted);padding:3px 10px;font-family:var(--font-mono);font-size:10px;letter-spacing:.07em;cursor:pointer;border-radius:2px;transition:all .15s;flex-shrink:0;}
 .rt-star-btn:hover{border-color:var(--bnb);color:var(--bnb);}
@@ -1486,11 +1495,6 @@ td.qa-cell{text-align:center;width:28px;padding:0 4px !important;}
   <!-- CENTER -->
   <div class="content main-col">
     <div class="neon-section">
-      <!-- Portfolio signal strip — mobile only, hidden on desktop -->
-      <div class="mob-neon-signal" id="mob-neon-sig-strip" style="display:none;">
-        <span class="mob-neon-signal-label">◈ Portfolio Signal</span>
-        <span class="mob-neon-signal-val" id="mob-neon-sig-val">Add holdings →</span>
-      </div>
       <div class="neon-inner">
         <div class="bars-cols">
           <div class="bars-col-inner">
@@ -1510,6 +1514,48 @@ td.qa-cell{text-align:center;width:28px;padding:0 4px !important;}
         </div>
       </div>
     </div>
+    <div class="tbl-head">
+      <div class="ptitle" id="tbl-title">PERFORMANCE LEADERBOARD</div>
+      <div style="display:flex;align-items:center;gap:10px;">
+        <span id="last-updated-crypto"  class="last-upd-ts" style="display:none;"></span>
+        <span id="last-updated-forex"   class="last-upd-ts" style="display:none;"></span>
+        <span id="last-updated-stocks"  class="last-upd-ts" style="display:none;"></span>
+        <div style="font-size:9px;color:var(--muted);letter-spacing:.08em;">CLICK COLUMN HEADERS TO SORT</div>
+      </div>
+    </div>
+    <div class="leaderboard" id="crypto-panel">
+      <table>
+        <thead>
+          <tr>
+            <th style="width:22px;">#</th>
+            <th>COIN</th>
+            <th style="width:28px;"></th>
+            <th class="r" style="padding-right:6px;" data-tip="Current market price in USD">PRICE</th>
+            <th class="r" id="th-24" onclick="setSort(24)" data-tip="Price change in the last 24 hours">24H%</th>
+            <th class="r sorted" id="th-7" onclick="setSort(7)" data-tip="Price change over 7 days. Click to sort.">7D%</th>
+            <th class="r" id="th-14" onclick="setSort(14)" data-tip="Price change over 14 days. Click to sort.">14D%</th>
+            <th class="r" id="th-30" onclick="setSort(30)" data-tip="Price change over 30 days. Click to sort.">30D%</th>
+            <th class="r" id="th-score" onclick="setSort(0)" data-tip="Composite score 0–100 combining 7D, 14D and 30D ranks. Higher = stronger momentum.">SCORE <span style="color:var(--muted);font-size:9px;cursor:help;" title="Score = 40% 7D rank + 35% 14D rank + 25% 30D rank. Adjusted for macro & tokenomics.">ⓘ</span></th>
+          </tr>
+        </thead>
+        <tbody id="tbody"></tbody>
+      </table>
+    </div>
+    <div class="leaderboard" id="forex-panel" style="display:none;">
+      <div id="forex-loading">
+        <div class="loading-source-msg" id="forex-source-msg">⟳ Pulling live rates from Frankfurter (ECB) → ExchangeRate.host (30-day history) → ER-API — aggregating for accurate 7D/30D scoring…</div>
+        <div class="asset-tiles-wrap forex-grid" id="forex-skel-grid"></div>
+      </div>
+      <div id="forex-tiles" class="asset-tiles-wrap forex-grid"></div>
+    </div>
+    <div class="leaderboard" id="stocks-panel" style="display:none;">
+      <div id="stocks-loading">
+        <div class="loading-source-msg" id="stocks-source-msg">⟳ Pulling data from Yahoo Finance → Financial Modeling Prep → Alpha Vantage → Twelve Data — trying multiple sources for best coverage…</div>
+        <div class="asset-tiles-wrap stocks-grid" id="stocks-skel-grid"></div>
+      </div>
+      <div id="stocks-tiles" class="asset-tiles-wrap stocks-grid" style="display:none;"></div>
+    </div>
+
     <!-- RATIO TRACKER SECTION -->
     <div class="ratio-section" id="ratio-section">
 
@@ -1536,7 +1582,6 @@ td.qa-cell{text-align:center;width:28px;padding:0 4px !important;}
         <button class="rt-star-btn" id="rt-star-btn">☆ Save pair</button>
       </div>
 
-      <!-- Saved pairs -->
       <div class="rt-saved-row">
         <div class="rt-saved-lbl">Saved pairs</div>
         <div class="rt-saved-wrap" id="rt-saved-wrap">
@@ -1632,47 +1677,8 @@ td.qa-cell{text-align:center;width:28px;padding:0 4px !important;}
     </div>
     <!-- END RATIO TRACKER SECTION -->
 
-    <div class="tbl-head">
-      <div class="ptitle" id="tbl-title">PERFORMANCE LEADERBOARD</div>
-      <div style="display:flex;align-items:center;gap:10px;">
-        <span id="last-updated-crypto"  class="last-upd-ts" style="display:none;"></span>
-        <span id="last-updated-forex"   class="last-upd-ts" style="display:none;"></span>
-        <span id="last-updated-stocks"  class="last-upd-ts" style="display:none;"></span>
-        <div style="font-size:9px;color:var(--muted);letter-spacing:.08em;">CLICK COLUMN HEADERS TO SORT</div>
-      </div>
-    </div>
-    <div class="leaderboard" id="crypto-panel">
-      <table>
-        <thead>
-          <tr>
-            <th style="width:22px;">#</th>
-            <th>COIN</th>
-            <th style="width:28px;"></th>
-            <th class="r" style="padding-right:6px;" data-tip="Current market price in USD">PRICE</th>
-            <th class="r" id="th-24" onclick="setSort(24)" data-tip="Price change in the last 24 hours">24H%</th>
-            <th class="r sorted" id="th-7" onclick="setSort(7)" data-tip="Price change over 7 days. Click to sort.">7D%</th>
-            <th class="r" id="th-14" onclick="setSort(14)" data-tip="Price change over 14 days. Click to sort.">14D%</th>
-            <th class="r" id="th-30" onclick="setSort(30)" data-tip="Price change over 30 days. Click to sort.">30D%</th>
-            <th class="r" id="th-score" onclick="setSort(0)" data-tip="Composite score 0–100 combining 7D, 14D and 30D ranks. Higher = stronger momentum.">SCORE <span style="color:var(--muted);font-size:9px;cursor:help;" title="Score = 40% 7D rank + 35% 14D rank + 25% 30D rank. Adjusted for macro & tokenomics.">ⓘ</span></th>
-          </tr>
-        </thead>
-        <tbody id="tbody"></tbody>
-      </table>
-    </div>
-    <div class="leaderboard" id="forex-panel" style="display:none;">
-      <div id="forex-loading">
-        <div class="loading-source-msg" id="forex-source-msg">⟳ Pulling live rates from Frankfurter (ECB) → ExchangeRate.host (30-day history) → ER-API — aggregating for accurate 7D/30D scoring…</div>
-        <div class="asset-tiles-wrap forex-grid" id="forex-skel-grid"></div>
-      </div>
-      <div id="forex-tiles" class="asset-tiles-wrap forex-grid"></div>
-    </div>
-    <div class="leaderboard" id="stocks-panel" style="display:none;">
-      <div id="stocks-loading">
-        <div class="loading-source-msg" id="stocks-source-msg">⟳ Pulling data from Yahoo Finance → Financial Modeling Prep → Alpha Vantage → Twelve Data — trying multiple sources for best coverage…</div>
-        <div class="asset-tiles-wrap stocks-grid" id="stocks-skel-grid"></div>
-      </div>
-      <div id="stocks-tiles" class="asset-tiles-wrap stocks-grid" style="display:none;"></div>
-    </div>
+    <!-- MOBILE INLINE HOLDINGS — shown below ratio tracker on portrait mobile only -->
+    <div class="mob-inline-holdings" id="mob-inline-holdings"></div>
   </div>
 
   <!-- RIGHT: Info Panel -->
@@ -1760,9 +1766,9 @@ td.qa-cell{text-align:center;width:28px;padding:0 4px !important;}
 <script src="js/pro-system.js?v=2"></script>
 <script src="js/signals.js?v=2"></script>
 <script src="js/holdings.js?v=2"></script>
-<script src="js/ratio.js?v=1"></script>
 <script src="js/tutorial.js?v=2"></script>
 <script src="js/data-loaders.js?v=2"></script>
+<script src="js/ratio.js?v=1"></script>
 
 <script>
 /* ══════════════════════════════════════════════════════════════
