@@ -553,7 +553,7 @@ td.qa-cell{text-align:center;width:28px;padding:0 4px !important;}
 .pub-btn:hover{background:rgba(167,139,250,.2);border-color:var(--pro);}
 
 /* ── RIGHT PANEL ── */
-.ad-panel{background:var(--bg2);border-left:1px solid var(--bdr);display:flex;flex-direction:column;overflow:hidden;height:100%;max-height:100%;}
+.ad-panel{background:var(--bg2);border-left:1px solid var(--bdr);display:flex;flex-direction:column;overflow-y:auto;overflow-x:hidden;height:100%;max-height:100%;}
 .ad-panel-neon-spacer{flex-shrink:0;background:var(--bg2);border-bottom:1px solid var(--bdr);}
 .ad-panel-spacer{flex-shrink:0;border-bottom:1px solid var(--bdr2);background:var(--bg3);display:flex;align-items:center;padding:0 14px;min-height:34px;}
 .ad-panel-spacer-label{font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);font-family:var(--font-display);}
@@ -1017,74 +1017,76 @@ td.qa-cell{text-align:center;width:28px;padding:0 4px !important;}
 /* ══════════════════════════════
    RATIO TRACKER
 ══════════════════════════════ */
-.ratio-section{border-top:1px solid var(--bdr);background:var(--bg2);padding:10px 14px 14px;}
-.ratio-section-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;flex-wrap:wrap;gap:6px;}
-.ratio-section-title{font-size:10px;letter-spacing:.14em;color:var(--muted);text-transform:uppercase;display:flex;align-items:center;gap:8px;}
-.ratio-section-title strong{color:var(--text);font-size:13px;}
-.rt-pair-row{display:flex;align-items:center;gap:8px;flex-wrap:wrap;}
-.rt-sel-wrap{display:flex;align-items:center;gap:5px;}
+.ratio-section{background:var(--bg2);padding:8px 12px 10px;border-bottom:1px solid var(--bdr);flex-shrink:0;}
+.ratio-section-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:7px;}
+.ratio-section-title{font-size:9px;letter-spacing:.14em;color:var(--muted);text-transform:uppercase;display:flex;align-items:center;gap:6px;}
+.ratio-section-title strong{color:var(--text);font-size:11px;}
+.rt-pair-row{display:flex;align-items:center;gap:5px;flex-wrap:wrap;margin-bottom:5px;}
+.rt-sel-wrap{display:flex;align-items:center;gap:4px;flex:1;min-width:0;}
 .rt-sel-lbl{font-size:9px;letter-spacing:.1em;color:var(--muted);flex-shrink:0;}
-.rt-coin-sel{background:var(--bg3);border:1px solid var(--bdr2);color:var(--text);font-family:var(--font-mono);font-size:11px;padding:4px 8px;border-radius:2px;cursor:pointer;max-width:200px;}
+.rt-coin-sel{background:var(--bg3);border:1px solid var(--bdr2);color:var(--text);font-family:var(--font-mono);font-size:10px;padding:3px 5px;border-radius:2px;cursor:pointer;width:100%;min-width:0;}
 .rt-coin-sel:focus{outline:none;border-color:var(--bnb);}
-.rt-swap-arrow{font-size:16px;color:var(--muted);flex-shrink:0;opacity:.6;}
-.rt-hero{display:flex;align-items:baseline;gap:10px;margin:10px 0 4px;flex-wrap:wrap;}
-.rt-ratio-num{font-size:42px;font-weight:300;letter-spacing:-1px;line-height:1;color:var(--text);font-family:var(--font-mono);}
+.rt-swap-arrow{font-size:13px;color:var(--muted);flex-shrink:0;opacity:.6;}
+.rt-hero{display:flex;align-items:baseline;gap:8px;margin:5px 0 3px;flex-wrap:wrap;}
+.rt-ratio-num{font-size:28px;font-weight:300;letter-spacing:-1px;line-height:1;color:var(--text);font-family:var(--font-mono);}
 .rt-ratio-num.dim{color:var(--muted);}
-.rt-ratio-unit{font-size:11px;color:var(--muted);line-height:1.5;}
-.rt-badge{display:inline-block;font-size:10px;font-weight:600;letter-spacing:.07em;padding:3px 10px;border-radius:2px;border:1px solid transparent;margin-bottom:10px;}
-.rt-status{font-size:10px;color:var(--muted);min-height:14px;margin-bottom:8px;}
+.rt-ratio-unit{font-size:10px;color:var(--muted);line-height:1.5;}
+.rt-badge{display:inline-block;font-size:9px;font-weight:600;letter-spacing:.06em;padding:2px 7px;border-radius:2px;border:1px solid transparent;}
+.rt-status{font-size:9px;color:var(--muted);min-height:12px;margin-bottom:5px;}
 .rt-status.ok{color:var(--green);}.rt-status.err{color:var(--red);}.rt-status.warn{color:var(--amber);}
-.rt-cards{display:flex;gap:8px;margin-bottom:10px;flex-wrap:wrap;}
-.rt-card{flex:1;min-width:90px;background:var(--bg3);border:1px solid var(--bdr);border-radius:3px;padding:8px 10px;}
-.rt-card-lbl{font-size:9px;color:var(--muted);letter-spacing:.1em;margin-bottom:3px;}
-.rt-card-val{font-size:15px;font-weight:600;font-family:var(--font-mono);}
-.rt-card-sub{font-size:10px;color:var(--muted);margin-top:2px;}
-.rt-tf-row{display:flex;align-items:center;gap:6px;margin-bottom:8px;}
+.rt-cards{display:flex;gap:5px;margin-bottom:7px;flex-wrap:nowrap;}
+.rt-card{flex:1;min-width:0;background:var(--bg3);border:1px solid var(--bdr);border-radius:3px;padding:5px 7px;}
+.rt-card-lbl{font-size:8px;color:var(--muted);letter-spacing:.1em;margin-bottom:2px;text-transform:uppercase;}
+.rt-card-val{font-size:12px;font-weight:600;font-family:var(--font-mono);}
+.rt-card-sub{font-size:9px;color:var(--muted);margin-top:1px;}
+.rt-tf-row{display:flex;align-items:center;gap:4px;margin-bottom:5px;}
 .rt-tf-lbl{font-size:9px;color:var(--muted);letter-spacing:.1em;margin-right:2px;}
-.rt-tf-btn{background:none;border:1px solid var(--bdr2);color:var(--muted);padding:3px 12px;font-family:var(--font-mono);font-size:10px;letter-spacing:.07em;cursor:pointer;border-radius:2px;transition:all .15s;}
+.rt-tf-btn{background:none;border:1px solid var(--bdr2);color:var(--muted);padding:2px 8px;font-family:var(--font-mono);font-size:9px;letter-spacing:.06em;cursor:pointer;border-radius:2px;transition:all .15s;}
 .rt-tf-btn.active{background:var(--bnb);border-color:var(--bnb);color:#111;font-weight:700;}
 .rt-tf-btn:hover:not(.active){border-color:var(--bnb);color:var(--bnb);}
 .rt-tf-btn:disabled{opacity:.35;cursor:default;}
-.rt-range-meta{display:flex;justify-content:space-between;font-size:10px;color:var(--muted);margin-bottom:5px;}
-.rt-bar-track{height:5px;background:var(--bg4);border-radius:2px;position:relative;margin-bottom:4px;}
-.rt-bar-fill{height:5px;border-radius:2px;background:var(--green);position:absolute;left:0;top:0;transition:width .5s;}
-.rt-bar-marker{position:absolute;top:-4px;width:2px;height:13px;background:var(--red);border-radius:1px;}
-.rt-bar-labels{display:flex;justify-content:space-between;font-size:9px;color:var(--muted);margin-bottom:2px;}
-.rt-chart-wrap{position:relative;width:100%;height:90px;margin:8px 0 4px;}
-.rt-calc{background:var(--bg3);border:1px solid var(--bdr);border-radius:3px;padding:10px 12px;margin-top:10px;}
-.rt-calc-title{font-size:9px;letter-spacing:.14em;color:var(--muted);margin-bottom:8px;text-transform:uppercase;}
-.rt-calc-inputs{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:8px;}
-.rt-ci{flex:1;min-width:80px;}
-.rt-ci label{font-size:9px;color:var(--muted);display:block;margin-bottom:3px;letter-spacing:.08em;}
-.rt-ci input{width:100%;font-size:12px;font-family:var(--font-mono);padding:5px 8px;background:var(--bg4);border:1px solid var(--bdr2);border-radius:2px;color:var(--text);outline:none;}
+.rt-range-meta{display:flex;justify-content:space-between;font-size:9px;color:var(--muted);margin-bottom:3px;}
+.rt-bar-track{height:4px;background:var(--bg4);border-radius:2px;position:relative;margin-bottom:3px;}
+.rt-bar-fill{height:4px;border-radius:2px;background:var(--green);position:absolute;left:0;top:0;transition:width .5s;}
+.rt-bar-marker{position:absolute;top:-3px;width:2px;height:10px;background:var(--red);border-radius:1px;}
+.rt-bar-labels{display:flex;justify-content:space-between;font-size:8px;color:var(--muted);margin-bottom:3px;}
+.rt-chart-wrap{position:relative;width:100%;height:75px;margin:4px 0 3px;}
+.rt-calc{background:var(--bg3);border:1px solid var(--bdr);border-radius:3px;padding:7px 9px;margin-top:6px;}
+.rt-calc-title{font-size:8px;letter-spacing:.12em;color:var(--muted);margin-bottom:5px;text-transform:uppercase;}
+.rt-calc-inputs{display:grid;grid-template-columns:1fr 1fr;gap:5px;margin-bottom:6px;}
+.rt-ci{min-width:0;}
+.rt-ci label{font-size:8px;color:var(--muted);display:block;margin-bottom:2px;letter-spacing:.06em;}
+.rt-ci input{width:100%;box-sizing:border-box;font-size:11px;font-family:var(--font-mono);padding:3px 5px;background:var(--bg4);border:1px solid var(--bdr2);border-radius:2px;color:var(--text);outline:none;}
 .rt-ci input:focus{border-color:var(--bnb);}
-.rt-calc-result{display:flex;justify-content:space-between;align-items:flex-end;gap:8px;flex-wrap:wrap;}
-.rt-res-lbl{font-size:9px;color:var(--muted);margin-bottom:2px;letter-spacing:.08em;}
-.rt-res-val{font-size:18px;font-weight:600;font-family:var(--font-mono);}
-.rt-hr{border:none;border-top:1px solid var(--bdr);margin:10px 0;}
-.rt-refresh-btn{background:none;border:1px solid var(--bdr2);color:var(--muted);padding:3px 10px;font-family:var(--font-mono);font-size:10px;letter-spacing:.07em;cursor:pointer;border-radius:2px;display:flex;align-items:center;gap:5px;transition:all .15s;}
+.rt-calc-result{display:flex;justify-content:space-between;align-items:flex-end;gap:6px;}
+.rt-res-lbl{font-size:8px;color:var(--muted);margin-bottom:2px;letter-spacing:.07em;}
+.rt-res-val{font-size:14px;font-weight:600;font-family:var(--font-mono);}
+.rt-hr{border:none;border-top:1px solid var(--bdr);margin:7px 0;}
+.rt-refresh-btn{background:none;border:1px solid var(--bdr2);color:var(--muted);padding:2px 7px;font-family:var(--font-mono);font-size:10px;cursor:pointer;border-radius:2px;display:flex;align-items:center;gap:3px;transition:all .15s;}
 .rt-refresh-btn:hover{border-color:var(--bnb);color:var(--bnb);}
 .rt-refresh-btn:disabled{opacity:.35;cursor:default;}
-.rt-footer{font-size:9px;color:var(--muted);margin-top:8px;}
-.rt-actions-row{display:flex;align-items:center;gap:8px;margin-top:8px;flex-wrap:wrap;}
-.rt-star-btn{background:none;border:1px solid var(--bdr2);color:var(--muted);padding:3px 10px;font-family:var(--font-mono);font-size:10px;letter-spacing:.07em;cursor:pointer;border-radius:2px;transition:all .15s;flex-shrink:0;}
+.rt-footer{display:none;}
+.rt-actions-row{display:flex;align-items:center;gap:6px;margin-top:6px;flex-wrap:wrap;}
+.rt-star-btn{background:none;border:1px solid var(--bdr2);color:var(--muted);padding:2px 6px;font-family:var(--font-mono);font-size:12px;cursor:pointer;border-radius:2px;transition:all .15s;flex-shrink:0;line-height:1.2;}
 .rt-star-btn:hover{border-color:var(--bnb);color:var(--bnb);}
 .rt-star-btn.rt-star-active{border-color:var(--bnb);color:var(--bnb);background:var(--bnbd);}
-.rt-saved-row{margin-top:8px;}
-.rt-saved-lbl{font-size:9px;letter-spacing:.12em;color:var(--muted);text-transform:uppercase;margin-bottom:5px;}
-.rt-saved-wrap{display:flex;flex-wrap:wrap;gap:5px;min-height:22px;}
-.rt-saved-empty{font-size:10px;color:var(--muted);font-style:italic;}
-.rt-saved-chip{display:inline-flex;align-items:center;gap:5px;background:var(--bg3);border:1px solid var(--bdr2);color:var(--text);font-family:var(--font-mono);font-size:10px;padding:3px 8px 3px 10px;border-radius:2px;cursor:pointer;transition:all .15s;letter-spacing:.04em;}
+.rt-saved-row{margin-top:5px;margin-bottom:4px;}
+.rt-saved-lbl{font-size:8px;letter-spacing:.12em;color:var(--muted);text-transform:uppercase;margin-bottom:4px;}
+.rt-saved-wrap{display:flex;flex-wrap:wrap;gap:3px;min-height:16px;}
+.rt-saved-empty{font-size:9px;color:var(--muted);font-style:italic;}
+.rt-saved-chip{display:inline-flex;align-items:center;gap:4px;background:var(--bg3);border:1px solid var(--bdr2);color:var(--text);font-family:var(--font-mono);font-size:9px;padding:2px 5px 2px 7px;border-radius:2px;cursor:pointer;transition:all .15s;letter-spacing:.03em;}
 .rt-saved-chip:hover{border-color:var(--bnb);color:var(--bnb);}
 .rt-saved-chip.active{border-color:var(--bnb);color:var(--bnb);background:var(--bnbd);}
-.rt-chip-x{font-size:13px;line-height:1;color:var(--muted);padding:0 1px;transition:color .15s;}
+.rt-chip-x{font-size:12px;line-height:1;color:var(--muted);padding:0 1px;transition:color .15s;}
 .rt-chip-x:hover{color:var(--red);}
+/* ad-body pushed to bottom */
+.ad-body{display:flex;flex-direction:column;gap:0;margin-top:auto;}
 @media(max-width:700px){
-  .rt-chart-wrap{height:70px;}
-  .rt-ratio-num{font-size:32px;}
-  .rt-cards{gap:5px;}
-  .rt-card{min-width:70px;padding:6px 8px;}
-  .rt-calc-inputs{gap:5px;}
+  .rt-chart-wrap{height:60px;}
+  .rt-ratio-num{font-size:22px;}
+  .rt-cards{gap:4px;}
+  .rt-card{padding:4px 6px;}
+  .rt-calc-inputs{grid-template-columns:1fr;}
 }
 </style>
 </head>
@@ -1556,16 +1558,23 @@ td.qa-cell{text-align:center;width:28px;padding:0 4px !important;}
       <div id="stocks-tiles" class="asset-tiles-wrap stocks-grid" style="display:none;"></div>
     </div>
 
-    <!-- RATIO TRACKER SECTION -->
+    <!-- RATIO TRACKER moved to right panel -->
+
+    <!-- MOBILE INLINE HOLDINGS — shown below ratio tracker on portrait mobile only -->
+    <div class="mob-inline-holdings" id="mob-inline-holdings"></div>
+  </div>
+
+  <!-- RIGHT: Info Panel -->
+  <div class="ad-panel">
+    <!-- RATIO TRACKER — compact, anchored at top of right panel -->
     <div class="ratio-section" id="ratio-section">
 
       <div class="ratio-section-head">
         <div class="ratio-section-title">
           ⇄ <strong>SWAP RATIO TRACKER</strong>
-          <span>— track the best time to rotate</span>
         </div>
         <button class="rt-refresh-btn" id="rt-refresh-btn" onclick="RatioTracker.loadAll()">
-          <span id="rt-spin-icon">↻</span> Refresh
+          <span id="rt-spin-icon">↻</span>
         </button>
       </div>
 
@@ -1579,13 +1588,12 @@ td.qa-cell{text-align:center;width:28px;padding:0 4px !important;}
           <span class="rt-sel-lbl">TO</span>
           <select class="rt-coin-sel" id="rt-to" onchange="RatioTracker.onToChange()"></select>
         </div>
-        <button class="rt-star-btn" id="rt-star-btn">☆ Save pair</button>
+        <button class="rt-star-btn" id="rt-star-btn">☆</button>
       </div>
 
       <div class="rt-saved-row">
-        <div class="rt-saved-lbl">Saved pairs</div>
         <div class="rt-saved-wrap" id="rt-saved-wrap">
-          <span class="rt-saved-empty">No saved pairs yet — pick a pair and click ☆ Save pair</span>
+          <span class="rt-saved-empty">No saved pairs yet — pick a pair and click ☆</span>
         </div>
       </div>
 
@@ -1593,9 +1601,12 @@ td.qa-cell{text-align:center;width:28px;padding:0 4px !important;}
 
       <div class="rt-hero">
         <div class="rt-ratio-num dim" id="rt-ratio-num">—</div>
-        <div class="rt-ratio-unit"><span id="rt-unit-txt">— received per 1 —</span></div>
+        <div class="rt-ratio-unit"><span id="rt-unit-txt">— per 1 —</span></div>
       </div>
-      <div><span class="rt-badge" id="rt-badge">&nbsp;</span></div>
+      <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:4px;margin-bottom:6px;">
+        <span class="rt-badge" id="rt-badge">&nbsp;</span>
+        <span class="rt-status" id="rt-peak-inline" style="margin:0;"></span>
+      </div>
 
       <div class="rt-cards">
         <div class="rt-card">
@@ -1609,37 +1620,34 @@ td.qa-cell{text-align:center;width:28px;padding:0 4px !important;}
           <div class="rt-card-sub" id="rt-to-chg"></div>
         </div>
         <div class="rt-card">
-          <div class="rt-card-lbl">Period peak</div>
+          <div class="rt-card-lbl">Peak</div>
           <div class="rt-card-val" style="color:var(--green);" id="rt-peak-val">—</div>
-          <div class="rt-card-sub">Best ratio this period</div>
+          <div class="rt-card-sub">this period</div>
         </div>
       </div>
 
-      <hr class="rt-hr">
-
-      <div class="rt-tf-row">
-        <span class="rt-tf-lbl">TIMEFRAME</span>
+      <div class="rt-tf-row" style="margin-bottom:4px;">
         <button class="rt-tf-btn" id="rt-tf-1"  onclick="RatioTracker.setTF(1)">24H</button>
         <button class="rt-tf-btn active" id="rt-tf-7"  onclick="RatioTracker.setTF(7)">7D</button>
         <button class="rt-tf-btn" id="rt-tf-30" onclick="RatioTracker.setTF(30)">30D</button>
       </div>
 
-      <div class="rt-range-meta">
+      <div class="rt-range-meta" style="margin-bottom:3px;">
         <span>Low: <strong id="rt-r-low">—</strong></span>
-        <span style="color:var(--red);">▲ Peak: <strong id="rt-r-peak">—</strong></span>
+        <span style="color:var(--red);">▲ <strong id="rt-r-peak">—</strong></span>
         <span>Now: <strong id="rt-r-now">—</strong></span>
       </div>
-      <div class="rt-bar-track">
+      <div class="rt-bar-track" style="margin-bottom:3px;">
         <div class="rt-bar-fill" id="rt-bar-fill" style="width:0%"></div>
         <div class="rt-bar-marker" id="rt-bar-marker" style="left:50%"></div>
       </div>
-      <div class="rt-bar-labels">
+      <div class="rt-bar-labels" style="margin-bottom:4px;">
         <span id="rt-bl-start">—</span>
         <span id="rt-bl-peak" style="color:var(--red);">peak</span>
         <span>now</span>
       </div>
 
-      <div class="rt-chart-wrap">
+      <div class="rt-chart-wrap" style="height:90px;">
         <canvas id="rt-spark"></canvas>
       </div>
 
@@ -1647,17 +1655,17 @@ td.qa-cell{text-align:center;width:28px;padding:0 4px !important;}
 
       <div class="rt-calc">
         <div class="rt-calc-title">Swap Calculator</div>
-        <div class="rt-calc-inputs">
-          <div class="rt-ci">
+        <div class="rt-calc-inputs" style="grid-template-columns:1fr 1fr;gap:5px;">
+          <div class="rt-ci" style="grid-column:1/-1;">
             <label id="rt-calc-from-lbl">Amount</label>
             <input type="number" id="rt-calc-amt" value="100" step="1" oninput="RatioTracker.calcSwap()">
           </div>
           <div class="rt-ci">
-            <label>Override FROM price ($)</label>
+            <label>FROM price ($)</label>
             <input type="number" id="rt-calc-from-ov" placeholder="auto" step="0.001" oninput="RatioTracker.calcSwap()">
           </div>
           <div class="rt-ci">
-            <label>Override TO price ($)</label>
+            <label>TO price ($)</label>
             <input type="number" id="rt-calc-to-ov" placeholder="auto" step="0.0001" oninput="RatioTracker.calcSwap()">
           </div>
         </div>
@@ -1673,22 +1681,11 @@ td.qa-cell{text-align:center;width:28px;padding:0 4px !important;}
         </div>
       </div>
 
-      <div class="rt-footer">Live data via CoinGecko · Not financial advice · Always verify before swapping</div>
     </div>
-    <!-- END RATIO TRACKER SECTION -->
+    <!-- END RATIO TRACKER -->
 
-    <!-- MOBILE INLINE HOLDINGS — shown below ratio tracker on portrait mobile only -->
-    <div class="mob-inline-holdings" id="mob-inline-holdings"></div>
-  </div>
-
-  <!-- RIGHT: Info Panel -->
-  <div class="ad-panel">
-    <div class="ad-panel-neon-spacer" id="ad-panel-neon-spacer"></div>
-    <div class="ad-panel-spacer">
-      <span class="ad-panel-spacer-label">Rotator</span>
-    </div>
-    <div class="ad-body">
-      <canvas id="ad-splash-c" width="280" height="90" style="display:block;flex-shrink:0;"></canvas>
+    <!-- PRO + SUPPORT CARDS — pushed to bottom -->
+    <div class="ad-body" style="margin-top:auto;">
       <div class="ad-promo">
         <div class="ad-promo-icon">⚡</div>
         <div class="ad-promo-title">Unlock Pro — Free</div>
