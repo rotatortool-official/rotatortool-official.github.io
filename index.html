@@ -205,17 +205,17 @@ body::before{content:'';position:fixed;inset:0;background:repeating-linear-gradi
 .tile-scr.md{background:var(--ad);color:var(--amber);}
 .tile-scr.lo{background:var(--rd);color:var(--red);}
 .sig-box{padding:8px 12px 9px;border-bottom:1px solid rgba(243,186,47,.18);background:linear-gradient(135deg,rgba(243,186,47,.08),rgba(243,186,47,.02));flex-shrink:0;}
-.sig-title{font-size:9px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--bnb);margin-bottom:7px;text-shadow:0 0 8px rgba(210,160,35,.25);font-family:var(--font-display);display:flex;align-items:center;gap:5px;}
-.sig-title::before{content:'';width:4px;height:4px;background:var(--bnb);border-radius:50%;animation:pulse 2s infinite;flex-shrink:0;}
-.sig-avg{font-size:22px;font-weight:700;margin-bottom:5px;display:flex;align-items:baseline;gap:5px;}
-.sig-avg-lbl{font-size:10px;color:var(--muted);font-weight:400;}
-.sig-row-head{font-size:10px;letter-spacing:.1em;text-transform:uppercase;margin-bottom:2px;margin-top:6px;}
+.sig-title{font-size:9px;font-weight:600;letter-spacing:.12em;text-transform:uppercase;color:rgba(210,170,60,.85);margin-bottom:6px;font-family:var(--font-display);display:flex;align-items:center;gap:5px;}
+.sig-title::before{content:'';width:3px;height:3px;background:rgba(210,170,60,.7);border-radius:50%;flex-shrink:0;}
+.sig-avg{font-size:24px;font-weight:600;margin-bottom:5px;display:flex;align-items:baseline;gap:5px;}
+.sig-avg-lbl{font-size:11px;color:var(--muted);font-weight:400;}
+.sig-row-head{font-size:11px;font-weight:600;letter-spacing:.06em;margin-bottom:3px;margin-top:7px;}
 .sig-coin-row{display:flex;align-items:center;justify-content:space-between;padding:2px 5px;border-radius:2px;margin-bottom:2px;}
 .sig-coin-row.sell{background:rgba(240,160,48,.08);border-left:2px solid var(--amber);}
 .sig-coin-row.buy{background:rgba(255,69,96,.07);border-left:2px solid var(--red);}
 .sig-coin-row.ok{background:rgba(0,200,150,.07);border-left:2px solid var(--green);}
-.scr-sym{font-size:11px;font-weight:600;}
-.scr-val{font-size:10px;}
+.scr-sym{font-size:12px;font-weight:700;}
+.scr-val{font-size:11px;font-weight:500;}
 
 /* ══════════════════════════════
    CENTER
@@ -226,7 +226,7 @@ body::before{content:'';position:fixed;inset:0;background:repeating-linear-gradi
   content:'';position:absolute;inset:0;
   border:2px solid transparent;
   background:linear-gradient(var(--bg2),var(--bg2)) padding-box,
-    linear-gradient(90deg,transparent 0%,rgba(210,160,35,.35) 25%,rgba(220,175,55,.45) 50%,rgba(210,160,35,.35) 75%,transparent 100%) border-box;
+    linear-gradient(90deg,transparent 0%,rgba(210,160,35,.18) 25%,rgba(220,175,55,.22) 50%,rgba(210,160,35,.18) 75%,transparent 100%) border-box;
   background-size:100% 100%,200% 100%;
   animation:neonSweep 2.8s linear infinite;
   pointer-events:none;z-index:1;
@@ -241,16 +241,16 @@ body::before{content:'';position:fixed;inset:0;background:repeating-linear-gradi
 /* Compact tiles in signal section */
 .bars-col-inner{padding:8px 8px 7px !important;}
 .sig-tiles-grid{gap:5px !important;}
-.bar-col-title{font-size:9px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;margin-bottom:8px;display:flex;align-items:center;justify-content:center;gap:6px;font-family:var(--font-display);text-align:center;}
+.bar-col-title{font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;margin-bottom:8px;display:flex;align-items:center;justify-content:center;gap:6px;font-family:var(--font-display);text-align:center;}
 .bar-col-title::before{content:'';flex:1;height:1px;opacity:.25;background:currentColor;}
 .bar-col-title::after{content:'';flex:1;height:1px;opacity:.25;background:currentColor;}
 /* ── SIGNAL TILE GRID (Rotation / Momentum / Worst) ── */
 .bars-cols{display:flex;gap:14px;flex:1;align-items:stretch;}
 .bars-divider{display:none;}
 .bars-col-inner{flex:1;min-width:0;background:var(--bg3);border:1px solid var(--bdr);border-radius:6px;padding:8px 8px 7px;border-top:2px solid transparent;}
-.bars-col-inner:nth-child(1){border-top-color:rgba(0,200,150,.85);border-color:rgba(0,200,150,.22);box-shadow:0 0 18px rgba(0,200,150,.06);}
-.bars-col-inner:nth-child(2){border-top-color:rgba(240,160,48,.85);border-color:rgba(240,160,48,.22);box-shadow:0 0 18px rgba(240,160,48,.06);}
-.bars-col-inner:nth-child(3){border-top-color:rgba(255,69,96,.85);border-color:rgba(255,69,96,.22);box-shadow:0 0 18px rgba(255,69,96,.06);}
+.bars-col-inner:nth-child(1){border-top-color:rgba(0,200,150,.6);border-color:rgba(0,200,150,.18);box-shadow:none;}
+.bars-col-inner:nth-child(2){border-top-color:rgba(240,160,48,.6);border-color:rgba(240,160,48,.18);box-shadow:none;}
+.bars-col-inner:nth-child(3){border-top-color:rgba(255,69,96,.6);border-color:rgba(255,69,96,.18);box-shadow:none;}
 .sig-tiles-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:5px;align-items:stretch;grid-auto-rows:1fr;max-height:none;}
 /* ── Rotation blur+lock tile wrapper ── */
 .sig-rot-locked{position:relative;cursor:pointer;border-radius:3px;overflow:hidden;}
@@ -271,7 +271,7 @@ body::before{content:'';position:fixed;inset:0;background:repeating-linear-gradi
 .sig-tile-top{display:flex;align-items:center;gap:5px;margin-bottom:4px;}
 .sig-tile-ico{width:18px;height:18px;border-radius:50%;overflow:hidden;background:var(--bg3);flex-shrink:0;}
 .sig-tile-ico img{width:100%;height:100%;display:block;}
-.sig-tile-sym{font-size:12px;font-weight:600;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.sig-tile-sym{font-size:13px;font-weight:700;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
 .sig-tile-badge{font-size:7px;font-weight:700;padding:1px 5px;border-radius:2px;letter-spacing:.06em;flex-shrink:0;}
 .sig-tile-badge.rot{background:rgba(0,200,150,.13);color:var(--green);border:1px solid rgba(0,200,150,.28);}
 .sig-tile-badge.mom{background:rgba(240,160,48,.13);color:var(--amber);border:1px solid rgba(240,160,48,.28);}
@@ -281,8 +281,8 @@ body::before{content:'';position:fixed;inset:0;background:repeating-linear-gradi
 .sig-tile-arrow .arr-to{color:var(--green);font-weight:600;}
 .sig-tile-stats{display:flex;gap:3px;}
 .sig-stat{display:flex;flex-direction:column;align-items:center;flex:1;background:var(--bg3);border-radius:2px;padding:2px 2px;}
-.sig-stat-l{font-size:7px;color:var(--muted);letter-spacing:.04em;}
-.sig-stat-v{font-size:9px;font-weight:600;}
+.sig-stat-l{font-size:8px;color:var(--muted);letter-spacing:.04em;}
+.sig-stat-v{font-size:10px;font-weight:700;}
 .sig-stat-v.up{color:var(--green);}
 .sig-stat-v.dn{color:var(--red);}
 .sig-stat-v.am{color:var(--amber);}
@@ -468,7 +468,7 @@ tbody tr:hover{background:rgba(243,186,47,0.07) !important;cursor:pointer;transi
 .asset-mode-btn+.asset-mode-btn{border-left:1px solid var(--bdr);}
 .asset-mode-btn:hover{color:var(--text);background:rgba(255,255,255,.025);}
 .asset-mode-btn.active{color:var(--bnb);border-bottom-color:var(--bnb);background:rgba(243,186,47,.04);}
-.asset-mode-btn.active .am-logo{filter:drop-shadow(0 0 7px rgba(243,186,47,.7)) brightness(1.1);}
+.asset-mode-btn.active .am-logo{filter:drop-shadow(0 0 3px rgba(243,186,47,.35)) brightness(1.05);}
 .am-logo{width:26px;height:26px;border-radius:50%;overflow:hidden;flex-shrink:0;transition:filter .15s;background:var(--bg4);display:flex;align-items:center;justify-content:center;font-size:14px;}
 .am-logo img{width:100%;height:100%;display:block;object-fit:cover;}
 .am-label{font-weight:700;letter-spacing:.16em;}
@@ -1383,6 +1383,16 @@ td.qa-cell{text-align:center;width:28px;padding:0 4px !important;}
 .rt-saved-chip.active{border-color:var(--bnb);color:var(--bnb);background:var(--bnbd);}
 .rt-chip-x{font-size:12px;line-height:1;color:var(--muted);padding:0 1px;transition:color .15s;}
 .rt-chip-x:hover{color:var(--red);}
+
+/* ── Pair selector column labels ── */
+.rt-pair-row{display:grid;grid-template-columns:1fr auto 1fr;align-items:end;gap:6px;margin-bottom:6px;}
+.rt-pair-col{display:flex;flex-direction:column;gap:4px;}
+.rt-pair-col-lbl{font-size:8px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);padding:0 2px;}
+.rt-pair-side{display:flex;align-items:center;gap:6px;background:var(--bg3);border:1px solid rgba(130,110,200,.25);border-radius:5px;padding:7px 8px;cursor:pointer;transition:border-color .15s;}
+.rt-pair-side:hover,.rt-pair-side-to:hover{border-color:rgba(130,110,200,.55);}
+.rt-pair-side-to{border-color:rgba(74,144,217,.25);background:rgba(74,144,217,.04);}
+.rt-pair-side-to:hover{border-color:rgba(74,144,217,.55);}
+.rt-pair-divider{font-size:18px;color:var(--muted);font-weight:200;text-align:center;flex-shrink:0;padding-bottom:4px;}
 </style>
 </head>
 <body>
@@ -1737,7 +1747,6 @@ td.qa-cell{text-align:center;width:28px;padding:0 4px !important;}
         <div class="holdings-section-label">
           <span>MY HOLDINGS</span>
           <span id="hcount" style="color:var(--bnb);font-size:9px;letter-spacing:.04em;"></span>
-          <button class="lbh-add-btn" onclick="openAddHoldingsModal()" style="margin-left:auto;" title="Add a coin to track">+ ADD</button>
         </div>
         <div class="tiles-scroll"><div class="tiles-grid" id="tiles-grid"></div></div>
       </div>
@@ -1916,14 +1925,20 @@ td.qa-cell{text-align:center;width:28px;padding:0 4px !important;}
 
       <!-- PAIR ROW: FROM | ÷ | TO side by side, prominent -->
       <div class="rt-pair-row">
-        <div class="rt-pair-side" id="rt-from-side">
-          <img class="rt-coin-icon rt-coin-icon-lg" id="rt-from-icon" src="" alt="" onerror="this.style.opacity='0'">
-          <select class="rt-coin-sel rt-coin-sel-lg" id="rt-from" onchange="RatioTracker.onFromChange()"></select>
+        <div class="rt-pair-col">
+          <div class="rt-pair-col-lbl">FROM — you hold</div>
+          <div class="rt-pair-side" id="rt-from-side">
+            <img class="rt-coin-icon rt-coin-icon-lg" id="rt-from-icon" src="" alt="" onerror="this.style.opacity='0'">
+            <select class="rt-coin-sel rt-coin-sel-lg" id="rt-from" onchange="RatioTracker.onFromChange()"></select>
+          </div>
         </div>
         <div class="rt-pair-divider">÷</div>
-        <div class="rt-pair-side" id="rt-to-side">
-          <img class="rt-coin-icon rt-coin-icon-lg" id="rt-to-icon" src="" alt="" onerror="this.style.opacity='0'">
-          <select class="rt-coin-sel rt-coin-sel-lg" id="rt-to" onchange="RatioTracker.onToChange()"></select>
+        <div class="rt-pair-col">
+          <div class="rt-pair-col-lbl">TO — you want</div>
+          <div class="rt-pair-side rt-pair-side-to" id="rt-to-side">
+            <img class="rt-coin-icon rt-coin-icon-lg" id="rt-to-icon" src="" alt="" onerror="this.style.opacity='0'">
+            <select class="rt-coin-sel rt-coin-sel-lg" id="rt-to" onchange="RatioTracker.onToChange()"></select>
+          </div>
         </div>
       </div>
 
@@ -2148,6 +2163,7 @@ td.qa-cell{text-align:center;width:28px;padding:0 4px !important;}
 <script src="js/holdings.js?v=2"></script>
 <script src="js/tutorial.js?v=2"></script>
 <script src="js/data-loaders.js?v=2"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
 <script src="js/ratio.js?v=1"></script>
 <script>
 

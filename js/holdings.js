@@ -177,22 +177,46 @@ function renderTiles() {
 /* ── Crypto portfolio signal ─────────────────────────────────── */
 function renderSignal(hc) {
   var el = document.getElementById('sig-content');
-  if (!hc || !hc.length) { el.innerHTML = '<div style="font-size:11px;color:var(--muted);">Add holdings to see signal.</div>'; return; }
-  var avg   = hc.reduce(function(s, c) { return s + c.score; }, 0) / hc.length;
-  var avgColor = avg >= 65 ? 'var(--green)' : avg >= 45 ? 'var(--amber)' : 'var(--red)';
-  var over  = hc.filter(function(c) { return c.score >= 62; }).sort(function(a, b) { return b.score - a.score; });
-  var under = hc.filter(function(c) { return c.score <= 38; }).sort(function(a, b) { return a.score - b.score; });
-  var ok    = hc.filter(function(c) { return c.score > 38 && c.score < 62; });
-  var h = '<div class="sig-avg" style="color:' + avgColor + ';">' + avg.toFixed(0) + '<span class="sig-avg-lbl">/ 100 avg score</span></div>';
-  if (over.length)  { h += '<div class="sig-row-head" style="color:var(--amber);">↑ Rotate out</div>'; h += over.map(function(c)  { return '<div class="sig-coin-row sell"><span class="scr-sym">' + c.sym + '</span><span class="scr-val" style="color:var(--amber);">' + c.score + ' / outperforming</span></div>'; }).join(''); }
-  if (under.length) {
-    h += '<div class="sig-row-head" style="color:var(--red);">↓ Lagging — watch or exit</div>';
-    h += under.map(function(c) { return '<div class="sig-coin-row buy"><span class="scr-sym">' + c.sym + '</span><span class="scr-val" style="color:var(--red);">' + c.score + ' / lagging</span></div>'; }).join('');
-    h += '<div style="margin-top:8px;padding:7px 9px;background:rgba(255,69,96,.06);border:1px solid rgba(255,69,96,.2);border-radius:3px;font-size:10px;color:var(--muted);line-height:1.7;">'
-      + '<span style="color:var(--red);font-weight:600;">⚠ DYOR:</span> A coin performing badly for months will not automatically recover because you bought it. Research before rotating capital. <span style="color:var(--red);">Rotator is not responsible for your investment decisions.</span>'
-      + '</div>';
+  if (!hc || !hc.length) {
+    el.innerHTML = '<div style="font-size:11px;color:var(--muted);">Add holdings to see signal.</div>';
+    return;
   }
-  if (!over.length && !under.length) { h += '<div class="sig-row-head" style="color:var(--green);">✓ Balanced</div>'; h += ok.map(function(c) { return '<div class="sig-coin-row ok"><span class="scr-sym">' + c.sym + '</span><span class="scr-val" style="color:var(--green);">' + c.score + '</span></div>'; }).join(''); }
+  var avg      = hc.reduce(function(s, c) { return s + c.score; }, 0) / hc.length;
+  var avgColor = avg >= 65 ? 'var(--green)' : avg >= 45 ? 'var(--amber)' : 'var(--red)';
+  var over     = hc.filter(function(c) { return c.score >= 62; });
+  var under    = hc.filter(function(c) { return c.score <= 38; });
+
+  /* Headline status */
+  var statusTxt, statusCol;
+  if (!over.length && !under.length) { statusTxt = '✓ BALANCED';         statusCol = 'var(--green)'; }
+  else if (over.length && under.length) { statusTxt = '⚡ MIXED SIGNALS'; statusCol = 'var(--amber)'; }
+  else if (over.length)                 { statusTxt = '↑ ROTATE OUT';     statusCol = 'var(--amber)'; }
+  else                                  { statusTxt = '↓ LAGGING — WATCH'; statusCol = 'var(--red)';  }
+
+  var h = '<div class="sig-avg" style="color:' + avgColor + ';">'
+        + avg.toFixed(0)
+        + '<span class="sig-avg-lbl">/ 100 avg score</span></div>'
+        + '<div class="sig-row-head" style="color:' + statusCol + ';">' + statusTxt + '</div>';
+
+  /* Show EVERY holding with its individual status */
+  hc.forEach(function(coin) {
+    var cls, label, color;
+    if (coin.score >= 62)      { cls = 'sell'; label = 'outperforming'; color = 'var(--amber)'; }
+    else if (coin.score <= 38) { cls = 'buy';  label = 'lagging';       color = 'var(--red)';   }
+    else                       { cls = 'ok';   label = 'balanced';      color = 'var(--green)'; }
+    h += '<div class="sig-coin-row ' + cls + '">'
+       + '<span class="scr-sym">' + coin.sym + '</span>'
+       + '<span class="scr-val" style="color:' + color + ';">' + coin.score + ' / ' + label + '</span>'
+       + '</div>';
+  });
+
+  /* DYOR warning only if any are lagging */
+  if (under.length) {
+    h += '<div style="margin-top:6px;padding:5px 8px;background:rgba(255,69,96,.06);border:1px solid rgba(255,69,96,.2);border-radius:3px;font-size:9px;color:var(--muted);line-height:1.6;">'
+       + '<span style="color:var(--red);font-weight:600;">⚠ DYOR:</span> A coin performing badly for months will not automatically recover because you bought it. Research before rotating capital. '
+       + '<span style="color:var(--red);">Rotator is not responsible for your investment decisions.</span>'
+       + '</div>';
+  }
   el.innerHTML = h;
 }
 
