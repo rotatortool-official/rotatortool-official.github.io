@@ -798,14 +798,14 @@ td.qa-cell{text-align:center;width:28px;padding:0 4px !important;}
     margin-left:44px;
     height:calc(100vh - 40px);
   }
-  .sidebar{display:none !important;}
-  .ad-panel{display:none !important;}   /* hide right-side ad panel */
-  body.mob-swap-active .ad-panel{display:flex !important;border-left:none;padding:10px 12px 10px;overflow-y:auto;width:100%;}
-  body.mob-swap-active .main-col{display:none !important;}
-  body.mob-swap-active .rt-calc-inputs{grid-template-columns:1fr;gap:8px;}
-  body.mob-swap-active .rt-ratio-bold{font-size:32px;}
-  body.mob-swap-active .rt-picker-panel{position:fixed;top:40px;left:44px;right:0;bottom:0;border-radius:0;z-index:300;}
-  .main-col{padding-bottom:0;}
+  .root{display:flex;flex-direction:column;height:auto;max-height:none;overflow-y:auto;}
+  .sidebar{display:block !important;order:1;height:auto;max-height:none;overflow:visible;border-right:none;border-bottom:1px solid var(--bdr);}
+  .main-col{order:2;padding-bottom:0;overflow:visible;height:auto;max-height:none;}
+  .ad-panel{display:flex !important;order:3;border-left:none;border-top:1px solid rgba(130,110,200,.2);padding:10px 12px 10px;height:auto;max-height:none;overflow:visible;width:100%;box-sizing:border-box;background:var(--bg2) !important;box-shadow:none !important;}
+  .ad-panel::before{display:none !important;}
+  .rt-calc-inputs{grid-template-columns:1fr;gap:8px;}
+  .rt-ratio-bold{font-size:32px;}
+  .rt-picker-panel{position:fixed;top:40px;left:44px;right:0;bottom:0;border-radius:0;z-index:300;}
 
   /* ── HOLDINGS PANEL ── */
   .mob-holdings-panel{bottom:0;left:44px;}
@@ -887,44 +887,39 @@ td.qa-cell{text-align:center;width:28px;padding:0 4px !important;}
   .tier-badge{display:none !important;}
   /* Modal full-screen */
   .modal{margin:8px;max-width:calc(100vw - 16px) !important;width:calc(100vw - 16px) !important;}
-  /* Layout */
-  .root{grid-template-columns:1fr;}
-  .sidebar{display:none !important;}
-  .ad-panel{display:none !important;}
-  body.mob-swap-active .ad-panel{display:flex !important;border-left:none;padding:10px 12px 70px;overflow-y:auto;width:100%;}
-  body.mob-swap-active .main-col{display:none !important;}
-  body.mob-swap-active .sidebar{display:none !important;}
-
+  /* Layout — continuous vertical scroll: sidebar → leaderboard → swap panel */
+  .root{grid-template-columns:1fr;display:flex;flex-direction:column;height:auto;max-height:none;overflow:visible;}
+  .sidebar{display:block !important;order:1;height:auto;max-height:none;overflow:visible;border-right:none;border-bottom:1px solid var(--bdr);}
+  .main-col{order:2;padding-bottom:0;overflow:visible;height:auto;max-height:none;}
+  .ad-panel{display:flex !important;order:3;border-left:none;border-top:1px solid rgba(130,110,200,.2);padding:10px 12px 70px;height:auto;max-height:none;overflow:visible;width:100%;box-sizing:border-box;background:var(--bg2) !important;box-shadow:none !important;}
+  .ad-panel::before{display:none !important;}
   /* ── MOBILE SWAP LAYOUT — vertical stacking ── */
-  body.mob-swap-active .rt-pair-tiles{grid-template-columns:1fr 1fr;gap:6px;}
-  body.mob-swap-active .rt-ct{padding:10px 8px;min-height:auto;}
-  body.mob-swap-active .rt-ct-img{width:32px;height:32px;}
-  body.mob-swap-active .rt-ct-sym{font-size:15px;}
-  body.mob-swap-active .rt-ct-price{font-size:12px;}
-  body.mob-swap-active .rt-ratio-center{padding:8px 0;}
-  body.mob-swap-active .rt-ratio-bold{font-size:36px;}
-  body.mob-swap-active .rt-calc{padding:12px;margin-bottom:10px;}
-  body.mob-swap-active .rt-calc-inputs{grid-template-columns:1fr;gap:8px;}
-  body.mob-swap-active .rt-ci{width:100%;}
-  body.mob-swap-active .rt-calc-result{flex-direction:column;gap:8px;align-items:stretch;}
-  body.mob-swap-active .rt-calc-result > div:last-child{text-align:left;}
-  body.mob-swap-active .rt-res-val{font-size:16px;}
-  body.mob-swap-active .rt-calc-ratios{gap:4px;}
-  body.mob-swap-active .rt-calc-ratio-line{font-size:12px;}
-  body.mob-swap-active .rt-cards{grid-template-columns:1fr 1fr;gap:6px;}
-  body.mob-swap-active .rt-chart-wrap{height:180px;margin-top:6px;}
-  body.mob-swap-active .rt-swap-row{flex-wrap:wrap;gap:6px;}
-  body.mob-swap-active .rt-swap-pair-btn{flex:1;min-width:0;}
-  body.mob-swap-active .rt-badge{flex:1;min-width:0;text-align:center;}
-  body.mob-swap-active .rt-picker-panel{position:fixed;top:50px;left:0;right:0;bottom:56px;border-radius:0;z-index:300;}
-  .main-col{padding-bottom:60px;overflow-y:auto;}
+  .rt-pair-tiles{grid-template-columns:1fr 1fr;gap:6px;}
+  .rt-ct{padding:10px 8px;min-height:auto;}
+  .rt-ct-img{width:32px;height:32px;}
+  .rt-ct-sym{font-size:15px;}
+  .rt-ct-price{font-size:12px;}
+  .rt-ratio-center{padding:8px 0;}
+  .rt-ratio-bold{font-size:36px;}
+  .rt-calc{padding:12px;margin-bottom:10px;}
+  .rt-calc-inputs{grid-template-columns:1fr;gap:8px;}
+  .rt-ci{width:100%;}
+  .rt-calc-result{flex-direction:column;gap:8px;align-items:stretch;}
+  .rt-calc-result > div:last-child{text-align:left;}
+  .rt-res-val{font-size:16px;}
+  .rt-calc-ratios{gap:4px;}
+  .rt-calc-ratio-line{font-size:12px;}
+  .rt-cards{grid-template-columns:1fr 1fr;gap:6px;}
+  .rt-chart-wrap{height:180px;margin-top:6px;}
+  .rt-swap-row{flex-wrap:wrap;gap:6px;}
+  .rt-swap-pair-btn{flex:1;min-width:0;}
+  .rt-badge{flex:1;min-width:0;text-align:center;}
+  .rt-picker-panel{position:fixed;top:50px;left:0;right:0;bottom:56px;border-radius:0;z-index:300;}
 
   tbody td{border-bottom:none;}
 
-  /* Hide HOLDINGS nav tab — holdings shown inline below leaderboard */
-  #mn-holdings{display:none !important;}
-  /* Hide old slide-up panel entirely */
-  .mob-holdings-panel{display:none !important;}
+  /* Hide SWAP nav tab — swap panel always visible in continuous scroll */
+  #mn-swap{display:none !important;}
 
   /* ── NEON SECTION: 2 tiles per column, fixed compact height ── */
   .neon-section{width:100%;box-sizing:border-box;}

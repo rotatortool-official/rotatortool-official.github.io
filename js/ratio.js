@@ -474,12 +474,22 @@ var RatioTracker = (function() {
 
   /* ── Swap FROM ↔ TO ── */
   function swapPair(){
-    var tmp=S.from; S.from=S.to; S.to=tmp;
-    var fs=$('rt-from'),ts=$('rt-to');
+    var newFrom=S.to, newTo=S.from;
+    S.from=newFrom; S.to=newTo;
+    /* Update FROM dropdown */
+    var fs=$('rt-from');
     if(fs) fs.value=S.from;
+    /* Rebuild TO dropdown (excludes current FROM), then set TO value */
     buildToDropdown(S.from);
-    if(ts){ ts.value=S.to; S.to=ts.value||ts.options[0].value; }
-    savePair(); updateStarBtn(); renderSavedPairs(); updateLabels(); loadAll(true);
+    var ts=$('rt-to');
+    if(ts){
+      /* Ensure the target coin exists in the dropdown */
+      if(!ts.querySelector('option[value="'+S.to+'"]')){
+        var o=document.createElement('option'); o.value=S.to; o.textContent=lbl(S.to)+'  —  '+S.to; ts.appendChild(o);
+      }
+      ts.value=S.to;
+    }
+    savePair(); updateStarBtn(); renderSavedPairs(); updateLabels(); loadAll();
     /* Animate arrows */
     var arrEl=document.querySelector('.rt-swap-arrows');
     if(arrEl){ arrEl.style.transform='rotate(180deg)'; setTimeout(function(){ arrEl.style.transform=''; },400); }
