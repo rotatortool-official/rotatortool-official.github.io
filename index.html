@@ -204,8 +204,9 @@ body::before{content:'';position:fixed;inset:0;background:repeating-linear-gradi
 .tile-scr.hi{background:var(--gd);color:var(--green);}
 .tile-scr.md{background:var(--ad);color:var(--amber);}
 .tile-scr.lo{background:var(--rd);color:var(--red);}
-.sig-box{padding:12px 16px;border-bottom:1px solid rgba(243,186,47,.2);background:linear-gradient(135deg,rgba(243,186,47,.06),rgba(243,186,47,.02));flex-shrink:0;}
-.sig-title{font-size:10px;font-weight:400;letter-spacing:.1em;text-transform:uppercase;color:var(--bnb);margin-bottom:8px;text-shadow:0 0 6px rgba(210,160,35,.2);font-family:var(--font-display);}
+.sig-box{padding:10px 14px 12px;border-bottom:1px solid rgba(243,186,47,.18);background:linear-gradient(135deg,rgba(243,186,47,.07),rgba(243,186,47,.02));flex-shrink:0;}
+.sig-title{font-size:9px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--bnb);margin-bottom:7px;text-shadow:0 0 8px rgba(210,160,35,.25);font-family:var(--font-display);display:flex;align-items:center;gap:5px;}
+.sig-title::before{content:'';width:4px;height:4px;background:var(--bnb);border-radius:50%;animation:pulse 2s infinite;flex-shrink:0;}
 .sig-avg{font-size:18px;font-weight:600;margin-bottom:6px;display:flex;align-items:baseline;gap:5px;}
 .sig-avg-lbl{font-size:10px;color:var(--muted);font-weight:400;}
 .sig-row-head{font-size:10px;letter-spacing:.1em;text-transform:uppercase;margin-bottom:2px;margin-top:6px;}
@@ -802,8 +803,9 @@ td.qa-cell{text-align:center;width:28px;padding:0 4px !important;}
 
   /* ── SIGNAL PANEL: compact ── */
   .neon-section{flex-shrink:0;}
-  .bars-cols{flex-direction:row;gap:4px;}
-  .bars-col-inner{flex:1;min-width:0;padding:5px 5px 4px;border-radius:4px;}
+  .neon-inner{padding:4px 5px 5px !important;}
+  .bars-cols{flex-direction:row;gap:3px !important;}
+  .bars-col-inner{flex:1;min-width:0;padding:4px 4px 3px !important;border-radius:4px;}
   .bars-divider{display:none;}
   .bar-col-title{font-size:7px;letter-spacing:.04em;margin-bottom:3px;}
   .bar-col-title::before,.bar-col-title::after{display:none;}
@@ -875,6 +877,8 @@ td.qa-cell{text-align:center;width:28px;padding:0 4px !important;}
   .sidebar{display:none !important;}
   .ad-panel{display:none !important;}
   .main-col{padding-bottom:60px;overflow-y:auto;}
+  /* Sig-box is shown inside the mobile holdings panel instead */
+  #sig-box-crypto{display:none;}
   tbody td{border-bottom:none;}
 
   /* Hide HOLDINGS nav tab — holdings shown inline below leaderboard */
@@ -884,8 +888,9 @@ td.qa-cell{text-align:center;width:28px;padding:0 4px !important;}
 
   /* ── NEON SECTION: 2 tiles per column, fixed compact height ── */
   .neon-section{width:100%;box-sizing:border-box;}
-  .bars-cols{flex-direction:row;gap:3px;width:100%;}
-  .bars-col-inner{flex:1;min-width:0;padding:4px 4px 3px;border-radius:3px;}
+  .neon-inner{padding:4px 4px 5px !important;}
+  .bars-cols{flex-direction:row;gap:3px !important;width:100%;}
+  .bars-col-inner{flex:1;min-width:0;padding:4px 4px 3px !important;border-radius:3px;}
   .bars-divider{display:none;}
   .bar-col-title{font-size:7px;letter-spacing:.05em;margin-bottom:3px;white-space:nowrap;overflow:hidden;}
   .bar-col-title::before,.bar-col-title::after{display:none;}
@@ -1597,6 +1602,13 @@ td.qa-cell{text-align:center;width:28px;padding:0 4px !important;}
 
     <!-- CRYPTO HOLDINGS -->
     <div id="holdings-crypto" style="display:flex;flex-direction:column;flex:1;overflow:hidden;">
+
+      <!-- PORTFOLIO SIGNAL — always visible at top of sidebar on desktop -->
+      <div class="sig-box" id="sig-box-crypto">
+        <div class="sig-title">◈ Portfolio Signal</div>
+        <div id="sig-content"><div style="font-size:11px;color:var(--muted);font-family:var(--font-ui);">Add holdings to see your signal.</div></div>
+      </div>
+
       <!-- Dual view tabs -->
       <div class="holdings-view-tabs">
         <button class="hvtab active" id="hvtab-my" onclick="switchHoldingsView('my')">💼 My Holdings</button>
@@ -1605,10 +1617,6 @@ td.qa-cell{text-align:center;width:28px;padding:0 4px !important;}
 
       <!-- MY HOLDINGS VIEW -->
       <div id="my-holdings-panel" style="display:flex;flex-direction:column;flex:1;overflow:hidden;">
-        <div class="sig-box" id="sig-box-crypto">
-          <div class="sig-title">◈ Portfolio Signal</div>
-          <div id="sig-content"><div style="font-size:11px;color:var(--muted);font-family:var(--font-ui);">Add holdings to see your signal.</div></div>
-        </div>
         <div class="holdings-section-label">
           <span>MY HOLDINGS</span>
           <span id="hcount" style="color:var(--bnb);font-size:9px;letter-spacing:.04em;"></span>
@@ -2023,16 +2031,6 @@ td.qa-cell{text-align:center;width:28px;padding:0 4px !important;}
 <script src="js/ratio.js?v=1"></script>
 <script>
 
-/* Hook into renderTiles if it exists, otherwise poll */
-(function() {
-  var _origRender = window.renderTiles;
-  if (typeof _origRender === 'function') {
-  /* Also refresh on a short interval as fallback */
-})();
-</script>
-
-
-<script>
 /* ══════════════════════════════════════════════════════════════
    LOGO RENDERER — draws animated ⬡ ROTATOR text on canvas
 ══════════════════════════════════════════════════════════════ */
@@ -2210,20 +2208,36 @@ function openAddHoldingsModal(mode) {
     : 'Search and select a coin, then enter quantity and average buy price.';
   document.getElementById('ahm-selected-info').classList.remove('show');
   openModal('add-holdings-modal');
+  /* Re-filter after a tick so coins array is guaranteed to be populated */
+  setTimeout(ahmFilter, 60);
 }
 
 function ahmFilter() {
   var q = (document.getElementById('ahm-search').value || '').toLowerCase().trim();
-  var c = typeof coins !== 'undefined' ? coins : [];
-  var filtered = q ? c.filter(function(x) { return x.sym.toLowerCase().includes(q) || (x.name||'').toLowerCase().includes(q); }) : c.slice(0, 40);
-  var html = filtered.slice(0, 40).map(function(coin) {
+  var c = (typeof coins !== 'undefined' && Array.isArray(coins)) ? coins : [];
+  var listEl = document.getElementById('ahm-coin-list');
+  if (!listEl) return;
+  if (!c.length) {
+    listEl.innerHTML = '<div style="padding:14px;font-size:11px;color:var(--muted);text-align:center;line-height:2;">⟳ Loading coin data…<br><span style="font-size:10px;opacity:.6;">Open the app first to fetch prices, then re-open this modal.</span></div>';
+    return;
+  }
+  var filtered = q
+    ? c.filter(function(x) { return x.sym.toLowerCase().includes(q) || (x.name||'').toLowerCase().includes(q); })
+    : c.slice(0, 50);
+  var html = filtered.slice(0, 50).map(function(coin) {
     var sel = _ahmSelected && _ahmSelected.sym === coin.sym;
+    var p24c = coin.p24 >= 0 ? '#00bd8e' : '#f03e58';
     return '<div class="ahm-coin-item' + (sel ? ' selected' : '') + '" onclick="ahmSelect(\'' + coin.id + '\')">'
       + '<div class="ahm-coin-ico"><img src="' + coin.image + '" onerror="this.style.display=\'none\'"></div>'
-      + '<div><div class="ahm-coin-name">' + coin.sym + '</div><div class="ahm-coin-sub">' + (coin.name||'') + ' · $' + (coin.price?coin.price.toFixed(2):'?') + '</div></div>'
+      + '<div style="flex:1;min-width:0;">'
+        + '<div class="ahm-coin-name">' + coin.sym + ' <span style="font-weight:400;color:var(--muted);font-size:9px;">' + (coin.name||'') + '</span></div>'
+        + '<div class="ahm-coin-sub">$' + (coin.price ? (coin.price >= 1 ? coin.price.toFixed(2) : coin.price.toFixed(5)) : '—')
+          + ' &nbsp;<span style="color:' + p24c + '">' + (coin.p24 >= 0 ? '+' : '') + (coin.p24||0).toFixed(1) + '% 24h</span></div>'
+      + '</div>'
+      + (sel ? '<span style="color:var(--bnb);font-size:12px;">✓</span>' : '')
       + '</div>';
   }).join('');
-  document.getElementById('ahm-coin-list').innerHTML = html || '<div style="padding:10px;font-size:11px;color:var(--muted);text-align:center;">No coins found</div>';
+  listEl.innerHTML = html || '<div style="padding:10px;font-size:11px;color:var(--muted);text-align:center;">No coins found for "' + q + '"</div>';
 }
 
 function ahmSelect(coinId) {
