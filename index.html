@@ -1014,7 +1014,7 @@ td.qa-cell{text-align:center;width:28px;padding:0 4px !important;}
   }
   #tut-box::before{display:none !important;}
   #tut-hole{display:none !important;}
-  #tut-backdrop{background:rgba(0,0,0,.65) !important;}
+  #tut-backdrop.active{background:rgba(0,0,0,.65) !important;}
 
   /* ── FOOTER: single horizontal line ── */
   .site-footer{
@@ -1190,7 +1190,7 @@ td.qa-cell{text-align:center;width:28px;padding:0 4px !important;}
 .rp-h-stat-l{font-size:7px;color:var(--muted);letter-spacing:.07em;display:block;}
 .rp-h-stat-v{font-size:9px;font-weight:600;font-family:var(--font-mono);}
 .rp-h-pnl{font-size:10px;font-weight:600;font-family:var(--font-mono);margin-top:3px;}
-.ad-body{display:flex;flex-direction:column;gap:0;margin-top:auto;}
+.ad-body{display:flex;flex-direction:column;gap:14px;margin-top:auto;padding:16px 14px 12px;}
 /* ── ADD HOLDINGS MODAL ── */
 #add-holding-modal .modal{border:1px solid rgba(243,186,47,.28);box-shadow:0 0 40px rgba(243,186,47,.08);max-width:460px;}
 #add-holding-modal .modal-title{color:var(--bnb);}
@@ -1967,6 +1967,15 @@ td.qa-cell{text-align:center;width:28px;padding:0 4px !important;}
         <div class="frow"><span class="flbl">AVG $</span><input type="number" id="st-avg" placeholder="avg buy price" min="0" step="any"></div>
         <button class="add-btn" onclick="addStockHolding()">+ ADD STOCK</button>
       </div>
+    <!-- SUPPORT CARD — bottom of sidebar -->
+    <div class="sidebar-donate" style="margin-top:auto;padding:10px 12px 12px;flex-shrink:0;">
+      <div class="ad-donate">
+        <div class="ad-donate-title">Keep it Free</div>
+        <div class="ad-donate-sub">Rotator is free forever.<br>A coffee keeps the servers on.</div>
+        <div id="sidebar-goal-left" style="margin:8px 0;"></div>
+        <button class="ad-donate-btn" onclick="openModal('donate-modal')">SUPPORT THE PROJECT</button>
+      </div>
+    </div>
     </div>
   </div>
 
@@ -2194,12 +2203,6 @@ td.qa-cell{text-align:center;width:28px;padding:0 4px !important;}
           <div><span>▸</span>Advanced signals — coming soon</div>
         </div>
         <button class="ad-promo-btn" onclick="openPro()">GET PRO FREE →</button>
-      </div>
-      <div class="ad-donate">
-        <div class="ad-donate-title">Keep it Free</div>
-        <div class="ad-donate-sub">Rotator is free forever.<br>A coffee keeps the servers on.</div>
-        <div id="sidebar-goal" style="margin:8px 0;"></div>
-        <button class="ad-donate-btn" onclick="openModal('donate-modal')">SUPPORT THE PROJECT</button>
       </div>
     </div>
   </div>
@@ -2645,24 +2648,6 @@ document.addEventListener('DOMContentLoaded', function() {
     }} catch(e) {}
   }, 3000);
 });
-
-// Mobile: move support/promo cards from ad-panel to sidebar bottom
-(function(){
-  var mq = window.matchMedia('(max-width:700px) and (orientation:portrait)');
-  function moveAdBody(e){
-    var adBody = document.querySelector('.ad-body');
-    var sidebar = document.querySelector('.sidebar');
-    if(!adBody||!sidebar) return;
-    if(e.matches){
-      sidebar.appendChild(adBody);
-    } else {
-      var adPanel = document.querySelector('.ad-panel');
-      if(adPanel) adPanel.appendChild(adBody);
-    }
-  }
-  mq.addEventListener('change', moveAdBody);
-  document.addEventListener('DOMContentLoaded', function(){ moveAdBody(mq); });
-})();
 
 // Wire swap tut button next to the ratio section header (add help button)
 document.addEventListener('DOMContentLoaded', function() {

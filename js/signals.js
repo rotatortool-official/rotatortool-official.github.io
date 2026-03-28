@@ -348,7 +348,7 @@ function renderAll() {
     suffix = ' · cached ' + (ageMins > 0 ? ageMins + 'm ' : '') + ageSecs + 's ago'
       + (remMins > 0 ? ' · ↻ in ~' + remMins + 'm' : '');
   }
-  renderDonationBar('sidebar-goal');
+  renderDonationBar('sidebar-goal-left');
   document.getElementById('ts').textContent = 'UPDATED ' + now.toLocaleTimeString('en-US', {hour:'2-digit', minute:'2-digit', second:'2-digit'}) + suffix;
   /* Sync three-panel vertical alignment after every render */
   requestAnimationFrame(function() {
