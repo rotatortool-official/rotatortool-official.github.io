@@ -158,7 +158,7 @@ body::before{content:'';position:fixed;inset:0;background:repeating-linear-gradi
 /* ══════════════════════════════
    LEFT SIDEBAR
 ══════════════════════════════ */
-.sidebar{background:var(--bg2);border-right:1px solid var(--bdr);display:flex;flex-direction:column;overflow:hidden;height:100%;max-height:100%;}
+.sidebar{background:linear-gradient(180deg,rgba(240,140,30,.04) 0%,rgba(240,140,30,.02) 50%,var(--bg2) 100%);border-right:1px solid rgba(240,140,30,.15);display:flex;flex-direction:column;overflow:hidden;height:100%;max-height:100%;}
 .phead{padding:5px 14px;border-bottom:1px solid var(--bdr);border-top:1px solid var(--bdr);background:var(--bg2);display:flex;align-items:center;justify-content:space-between;flex-shrink:0;}
 .ptitle{font-size:10px;font-weight:400;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);font-family:var(--font-display);}
 .ptitle em{color:var(--bnb);font-style:normal;}
@@ -172,7 +172,7 @@ body::before{content:'';position:fixed;inset:0;background:repeating-linear-gradi
 .add-btn{width:100%;padding:5px;background:var(--bnbd);border:1px solid rgba(243,186,47,.22);color:var(--bnb);font-family:inherit;font-size:10px;letter-spacing:.1em;cursor:pointer;border-radius:2px;transition:all .15s;margin-top:5px;}
 .add-btn:hover{background:rgba(243,186,47,.16);border-color:var(--bnb);}
 .tiles-scroll-legacy{overflow-y:auto;overflow-x:hidden;padding:10px 12px;min-height:110px;max-height:210px;flex-shrink:0;}
-.holdings-section-label{padding:4px 10px 4px 12px;font-size:9px;letter-spacing:.14em;text-transform:uppercase;color:rgba(180,195,215,.7);font-weight:500;border-bottom:1px solid var(--bdr);background:var(--bg3);display:flex;align-items:center;justify-content:space-between;gap:6px;flex-shrink:0;font-family:var(--font-ui);}
+.holdings-section-label{padding:8px 10px 8px 14px;min-height:38px;font-size:9px;letter-spacing:.14em;text-transform:uppercase;color:rgba(180,195,215,.7);font-weight:500;border-bottom:1px solid rgba(240,140,30,.12);background:rgba(240,140,30,.025);display:flex;align-items:center;justify-content:space-between;gap:6px;flex-shrink:0;font-family:var(--font-ui);}
 .tiles-grid-legacy{display:grid;grid-template-columns:repeat(2,1fr);gap:5px;width:100%;}
 .tile{position:relative;overflow:hidden;border-radius:var(--card-radius);box-shadow:var(--card-shadow);padding:7px 8px 7px 11px;border:1px solid var(--bdr);background:var(--bg3);min-width:0;}
 .tile::before{content:'';position:absolute;left:0;top:0;bottom:0;width:3px;border-radius:3px 0 0 3px;}
@@ -204,10 +204,10 @@ body::before{content:'';position:fixed;inset:0;background:repeating-linear-gradi
 .tile-scr.hi{background:var(--gd);color:var(--green);}
 .tile-scr.md{background:var(--ad);color:var(--amber);}
 .tile-scr.lo{background:var(--rd);color:var(--red);}
-.sig-box{padding:10px 14px 12px;border-bottom:1px solid rgba(243,186,47,.18);background:linear-gradient(135deg,rgba(243,186,47,.07),rgba(243,186,47,.02));flex-shrink:0;}
+.sig-box{padding:8px 14px 10px;border-bottom:1px solid rgba(243,186,47,.16);background:linear-gradient(135deg,rgba(243,186,47,.065),rgba(243,186,47,.015));flex-shrink:0;}
 .sig-title{font-size:9px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--bnb);margin-bottom:7px;text-shadow:0 0 8px rgba(210,160,35,.25);font-family:var(--font-display);display:flex;align-items:center;gap:5px;}
 .sig-title::before{content:'';width:4px;height:4px;background:var(--bnb);border-radius:50%;animation:pulse 2s infinite;flex-shrink:0;}
-.sig-avg{font-size:18px;font-weight:600;margin-bottom:6px;display:flex;align-items:baseline;gap:5px;}
+.sig-avg{font-size:22px;font-weight:700;margin-bottom:5px;display:flex;align-items:baseline;gap:5px;}
 .sig-avg-lbl{font-size:10px;color:var(--muted);font-weight:400;}
 .sig-row-head{font-size:10px;letter-spacing:.1em;text-transform:uppercase;margin-bottom:2px;margin-top:6px;}
 .sig-coin-row{display:flex;align-items:center;justify-content:space-between;padding:2px 5px;border-radius:2px;margin-bottom:2px;}
@@ -443,7 +443,7 @@ body::before{content:'';position:fixed;inset:0;background:repeating-linear-gradi
 /* ── consistent card radius + shadow token ── */
 :root{--card-radius:4px;--card-shadow:0 2px 8px rgba(0,0,0,.28);}
 
-.tbl-head{padding:9px 14px;border-bottom:1px solid var(--bdr2);background:var(--bg3);display:flex;align-items:center;justify-content:center;flex-wrap:wrap;gap:10px;flex-shrink:0;position:relative;}
+.tbl-head{padding:8px 14px;min-height:38px;border-bottom:1px solid var(--bdr2);background:var(--bg3);display:flex;align-items:center;justify-content:center;flex-wrap:wrap;gap:10px;flex-shrink:0;position:relative;}
 .last-upd-ts{font-size:9px;color:var(--muted);letter-spacing:.06em;font-family:var(--font-ui);}
 .tf-tabs{display:flex;gap:3px;}
 .tf-tab{background:none;border:1px solid var(--bdr);color:var(--muted);font-family:inherit;font-size:9px;padding:2px 8px;cursor:pointer;border-radius:var(--card-radius);letter-spacing:.08em;transition:all .15s;}
@@ -557,10 +557,10 @@ td.qa-cell{text-align:center;width:28px;padding:0 4px !important;}
 .pub-btn:hover{background:rgba(167,139,250,.2);border-color:var(--pro);}
 
 /* ── RIGHT PANEL ── */
-.ad-panel{background:var(--bg2);border-left:2px solid rgba(243,186,47,.22);box-shadow:-4px 0 24px rgba(0,0,0,.3);display:flex;flex-direction:column;overflow-y:auto;overflow-x:hidden;height:100%;max-height:100%;}
+.ad-panel{background:linear-gradient(180deg,rgba(130,110,200,.055) 0%,rgba(130,110,200,.025) 50%,var(--bg2) 100%);border-left:2px solid rgba(130,110,200,.2);box-shadow:-4px 0 24px rgba(0,0,0,.3);display:flex;flex-direction:column;overflow-y:auto;overflow-x:hidden;height:100%;max-height:100%;}
 /* ── LEFT PANEL VIEW TABS ── */
 .holdings-view-tabs{display:flex;gap:0;border-bottom:1px solid var(--bdr);flex-shrink:0;background:var(--bg2);}
-.hvtab{flex:1;background:none;border:none;color:var(--muted);font-family:inherit;font-size:9px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;padding:7px 4px;cursor:pointer;border-bottom:2px solid transparent;transition:all .15s;position:relative;}
+.hvtab{flex:1;background:none;border:none;color:var(--muted);font-family:inherit;font-size:9px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;padding:5px 4px;cursor:pointer;border-bottom:2px solid transparent;transition:all .15s;position:relative;}
 .hvtab.active{color:var(--bnb);border-bottom-color:var(--bnb);background:var(--bnbd);}
 .hvtab:hover:not(.active){color:var(--text);border-bottom-color:var(--bdr2);}
 
@@ -1102,7 +1102,7 @@ td.qa-cell{text-align:center;width:28px;padding:0 4px !important;}
 /* ══════════════════════════════
    RATIO TRACKER
 ══════════════════════════════ */
-.ratio-section{background:var(--bg2);padding:10px 14px 12px;border-bottom:1px solid var(--bdr);flex-shrink:0;}
+.ratio-section{background:transparent;padding:10px 14px 12px;border-bottom:1px solid rgba(130,110,200,.18);flex-shrink:0;}
 .ratio-section-head{display:none;}
 .rt-header-row{display:flex;align-items:center;justify-content:space-between;gap:6px;margin-bottom:4px;flex-wrap:wrap;}
 .rt-pair-dots{display:flex;align-items:center;gap:5px;flex:1;min-width:0;flex-wrap:wrap;}
@@ -1123,14 +1123,14 @@ td.qa-cell{text-align:center;width:28px;padding:0 4px !important;}
 .rt-chip-x{font-size:12px;line-height:1;color:var(--muted);padding:0 1px;transition:color .15s;}
 .rt-chip-x:hover{color:var(--red);}
 .rt-hero{display:flex;align-items:baseline;gap:8px;margin:6px 0 3px;flex-wrap:wrap;}
-.rt-ratio-num{font-size:36px;font-weight:300;letter-spacing:-1px;line-height:1;color:var(--text);font-family:var(--font-mono);}
+.rt-ratio-num{font-size:52px;font-weight:200;letter-spacing:-2px;line-height:1;color:var(--text);font-family:var(--font-mono);text-shadow:0 0 30px rgba(220,220,255,.08);}
 .rt-ratio-num.dim{color:var(--muted);}
-.rt-ratio-unit{font-size:11px;color:var(--muted);line-height:1.5;}
+.rt-ratio-unit{font-size:12px;color:rgba(180,200,220,.7);line-height:1.6;}
 .rt-badge{display:inline-block;font-size:10px;font-weight:600;letter-spacing:.06em;padding:3px 10px;border-radius:2px;border:1px solid transparent;}
 .rt-cards{display:flex;gap:6px;margin-bottom:8px;}
 .rt-card{flex:1;min-width:0;background:var(--bg3);border:1px solid var(--bdr);border-radius:3px;padding:6px 8px;}
 .rt-card-lbl{font-size:8px;color:var(--muted);letter-spacing:.1em;margin-bottom:2px;text-transform:uppercase;}
-.rt-card-val{font-size:12px;font-weight:600;font-family:var(--font-mono);}
+.rt-card-val{font-size:14px;font-weight:700;font-family:var(--font-mono);}
 .rt-card-sub{font-size:9px;color:var(--muted);margin-top:1px;}
 .rt-tf-row{display:flex;align-items:center;gap:5px;margin-bottom:6px;}
 .rt-tf-lbl{font-size:9px;color:var(--muted);margin-right:3px;}
@@ -1143,7 +1143,7 @@ td.qa-cell{text-align:center;width:28px;padding:0 4px !important;}
 .rt-bar-fill{height:4px;border-radius:2px;background:var(--green);position:absolute;left:0;top:0;transition:width .5s;}
 .rt-bar-marker{position:absolute;top:-3px;width:2px;height:10px;background:var(--red);border-radius:1px;}
 .rt-bar-labels{display:flex;justify-content:space-between;font-size:8px;color:var(--muted);margin-bottom:4px;}
-.rt-chart-wrap{position:relative;width:100%;height:110px;margin:2px 0 4px;}
+.rt-chart-wrap{position:relative;width:100%;height:140px;margin:4px 0 6px;}
 .rt-calc{background:var(--bg3);border:1px solid var(--bdr);border-radius:4px;padding:9px 11px;margin-top:6px;}
 .rt-calc-title{font-size:10px;color:var(--muted);margin-bottom:8px;}
 .rt-calc-inputs{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:8px;}
@@ -1163,6 +1163,20 @@ td.qa-cell{text-align:center;width:28px;padding:0 4px !important;}
 .rt-star-btn{background:none;border:1px solid var(--bdr2);color:var(--muted);padding:3px 7px;font-size:13px;cursor:pointer;border-radius:3px;transition:all .15s;line-height:1.2;}
 .rt-star-btn:hover{border-color:var(--bnb);color:var(--bnb);}
 .rt-star-btn.rt-star-active{border-color:var(--bnb);color:var(--bnb);background:var(--bnbd);}
+/* ── SWAP TOOL COIN ICONS ── */
+.rt-coin-icon{width:22px;height:22px;border-radius:50%;object-fit:cover;background:var(--bg4);flex-shrink:0;border:1px solid rgba(255,255,255,.08);}
+.rt-pair-label{display:flex;align-items:center;gap:4px;flex-shrink:0;}
+.rt-pair-label .rt-coin-sel{font-size:11px;font-weight:600;color:var(--text);max-width:80px;}
+.rt-pair-sep{font-size:16px;color:var(--muted);font-weight:200;padding:0 3px;flex-shrink:0;}
+.rt-pair-eq-label{font-size:10px;color:var(--green);font-family:var(--font-mono);font-weight:700;letter-spacing:.05em;flex-shrink:0;}
+/* Ratio hero bigger layout */
+.rt-hero{display:flex;flex-direction:column;gap:2px;margin:8px 0 5px;}
+.rt-badge{display:inline-block;font-size:10px;font-weight:700;letter-spacing:.07em;padding:4px 12px;border-radius:3px;border:1px solid transparent;margin-bottom:6px;}
+/* Tighter section label to match tbl-head */
+.holdings-section-label{padding:8px 12px 8px 14px;min-height:38px;}
+/* tbl-head same visual weight */
+.tbl-head{padding:8px 14px;min-height:38px;}
+
 /* Holdings preview in right panel */
 .rp-holdings{padding:10px 14px 12px;border-bottom:1px solid var(--bdr);flex-shrink:0;}
 .rp-h-title{display:flex;align-items:center;justify-content:space-between;font-size:9px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);margin-bottom:8px;font-family:var(--font-ui);}
@@ -1792,13 +1806,18 @@ td.qa-cell{text-align:center;width:28px;padding:0 4px !important;}
       <!-- Header row: pair selector + refresh -->
       <div class="rt-header-row">
         <div class="rt-pair-dots">
-          <span class="rt-dot rt-dot-from" id="rt-dot-from"></span>
-          <select class="rt-coin-sel" id="rt-from" onchange="RatioTracker.onFromChange()"></select>
-          <span class="rt-divider">÷</span>
-          <span class="rt-dot rt-dot-to" id="rt-dot-to"></span>
-          <select class="rt-coin-sel" id="rt-to" onchange="RatioTracker.onToChange()"></select>
-          <span class="rt-eq">=</span>
-          <span class="rt-eq-label">ratio</span>
+          <!-- FROM coin -->
+          <div class="rt-pair-label">
+            <img class="rt-coin-icon" id="rt-from-icon" src="" alt="" onerror="this.style.opacity='0'">
+            <select class="rt-coin-sel" id="rt-from" onchange="RatioTracker.onFromChange()"></select>
+          </div>
+          <span class="rt-pair-sep">÷</span>
+          <!-- TO coin -->
+          <div class="rt-pair-label">
+            <img class="rt-coin-icon" id="rt-to-icon" src="" alt="" onerror="this.style.opacity='0'">
+            <select class="rt-coin-sel" id="rt-to" onchange="RatioTracker.onToChange()"></select>
+          </div>
+          <span class="rt-pair-eq-label">= ratio</span>
         </div>
         <div style="display:flex;gap:4px;align-items:center;">
           <button class="rt-star-btn" id="rt-star-btn" title="Save pair">☆</button>

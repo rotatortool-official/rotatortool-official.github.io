@@ -59,6 +59,28 @@ var RatioTracker = (function() {
   function $(id){ return document.getElementById(id); }
   function set(id,v){ var e=$(id); if(e) e.textContent=v; }
 
+  /* ── Coin image lookup ── */
+  function getCoinImage(id) {
+    if (typeof coins !== 'undefined' && Array.isArray(coins)) {
+      var c = coins.find(function(x) { return x.id === id; });
+      if (c && c.image) return c.image;
+    }
+    /* Fallback: CoinGecko thumb pattern for common coins */
+    var thumbs = {
+      'bitcoin':'1','ethereum':'279','binancecoin':'825','solana':'4128',
+      'ripple':'44','dogecoin':'5','cardano':'975','avalanche-2':'12559',
+      'ondo-finance':'26580','toncoin':'17980'
+    };
+    if (thumbs[id]) return 'https://assets.coingecko.com/coins/images/'+thumbs[id]+'/thumb/'+id+'.png';
+    return '';
+  }
+
+  function updateIcons() {
+    var fi = $('rt-from-icon'), ti = $('rt-to-icon');
+    if (fi && S.from) { var src = getCoinImage(S.from); fi.src = src; fi.style.opacity = src ? '1' : '0'; }
+    if (ti && S.to)   { var src2= getCoinImage(S.to);   ti.src = src2; ti.style.opacity = src2 ? '1' : '0'; }
+  }
+
   function status(msg,cls){
     var e=$('rt-status'); if(!e) return;
     e.textContent=msg; e.className='rt-status'+(cls?' '+cls:'');
@@ -150,6 +172,7 @@ var RatioTracker = (function() {
     set('rt-unit-txt',lbl(t)+' received per 1 '+lbl(f));
     set('rt-from-card-lbl',lbl(f)); set('rt-to-card-lbl',lbl(t));
     set('rt-calc-from-lbl','Amount of '+lbl(f));
+    updateIcons();
   }
 
   function updateStarBtn(){
@@ -255,10 +278,96 @@ var RatioTracker = (function() {
 
   function renderChart(series){
     var canvas=$('rt-spark'); if(!canvas||!window.Chart) return;
-    var labels=series.map(function(p){ var d=new Date(p.t); return S.days===1?d.getHours()+':'+String(d.getMinutes()).padStart(2,'0'):(d.getMonth()+1)+'/'+d.getDate(); });
-    var data=series.map(function(p){return +p.r.toFixed(4);}),peakIdx=data.indexOf(Math.max.apply(null,data));
+    var ctx=canvas.getContext('2d');
+    var labels=series.map(function(p){
+      var d=new Date(p.t);
+      return S.days===1
+        ? d.getHours()+':'+String(d.getMinutes()).padStart(2,'0')
+        : (d.getMonth()+1)+'/'+d.getDate();
+    });
+    var data=series.map(function(p){return +p.r.toFixed(4);});
+    var peakIdx=data.indexOf(Math.max.apply(null,data));
+    var minVal=Math.min.apply(null,data), maxVal=Math.max.apply(null,data);
+
+    /* Build gradient fill */
+    var grad=ctx.createLinearGradient(0,0,0,canvas.offsetHeight||140);
+    grad.addColorStop(0,'rgba(0,189,142,0.25)');
+    grad.addColorStop(0.5,'rgba(0,189,142,0.10)');
+    grad.addColorStop(1,'rgba(0,189,142,0.01)');
+
     if(S.chart){S.chart.destroy();S.chart=null;}
-    S.chart=new Chart(canvas.getContext('2d'),{type:'line',data:{labels:labels,datasets:[{data:data,borderColor:'var(--green)',borderWidth:1.5,backgroundColor:'rgba(0,189,142,0.07)',tension:0.4,pointRadius:data.map(function(v,i){return(i===peakIdx||i===data.length-1)?4:0;}),pointBackgroundColor:data.map(function(v,i){return i===peakIdx?'#f03e58':'var(--green)';}),fill:true}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{backgroundColor:'#141920',borderColor:'rgba(255,255,255,0.1)',borderWidth:1,titleColor:'#5a6e85',bodyColor:'#dce4f0',callbacks:{label:function(c){return ' '+c.parsed.y.toFixed(3)+'×';}}}},scales:{x:{display:true,grid:{display:false},ticks:{font:{size:9},color:'#5a6e85',maxTicksLimit:S.days===1?6:10,maxRotation:0}},y:{display:true,grid:{color:'rgba(255,255,255,0.04)'},ticks:{font:{size:9},color:'#5a6e85',callback:function(v){return v.toFixed(1)+'×';},maxTicksLimit:4}}}}});
+    S.chart=new Chart(ctx,{
+      type:'line',
+      data:{
+        labels:labels,
+        datasets:[{
+          data:data,
+          borderColor:'#00bd8e',
+          borderWidth:1.8,
+          backgroundColor:grad,
+          tension:0.45,
+          pointRadius:data.map(function(v,i){
+            return (i===peakIdx||i===data.length-1)?5:0;
+          }),
+          pointBackgroundColor:data.map(function(v,i){
+            return i===peakIdx?'#f03e58':'#00bd8e';
+          }),
+          pointBorderColor:data.map(function(v,i){
+            return i===peakIdx?'rgba(240,62,88,.3)':'rgba(0,189,142,.3)';
+          }),
+          pointBorderWidth:data.map(function(v,i){
+            return (i===peakIdx||i===data.length-1)?2:0;
+          }),
+          fill:true
+        }]
+      },
+      options:{
+        responsive:true,
+        maintainAspectRatio:false,
+        animation:{duration:400},
+        plugins:{
+          legend:{display:false},
+          tooltip:{
+            backgroundColor:'rgba(15,19,24,.96)',
+            borderColor:'rgba(243,186,47,.25)',
+            borderWidth:1,
+            titleColor:'#5a6e85',
+            bodyColor:'#dce4f0',
+            padding:8,
+            callbacks:{
+              label:function(c){return ' '+c.parsed.y.toFixed(3)+'×';}
+            }
+          }
+        },
+        scales:{
+          x:{
+            display:true,
+            grid:{display:false},
+            ticks:{
+              font:{size:9,family:'IBM Plex Mono,monospace'},
+              color:'rgba(90,110,133,.7)',
+              maxTicksLimit:S.days===1?6:8,
+              maxRotation:0
+            },
+            border:{display:false}
+          },
+          y:{
+            display:true,
+            position:'right',
+            grid:{color:'rgba(255,255,255,.04)',drawBorder:false},
+            ticks:{
+              font:{size:9,family:'IBM Plex Mono,monospace'},
+              color:'rgba(90,110,133,.7)',
+              callback:function(v){return v.toFixed(2)+'×';},
+              maxTicksLimit:4
+            },
+            border:{display:false},
+            min:minVal*0.997,
+            max:maxVal*1.003
+          }
+        }
+      }
+    });
   }
 
   function calcSwap(){
@@ -302,7 +411,7 @@ var RatioTracker = (function() {
       var tSel=$('rt-to');
       if(tSel&&tSel.querySelector('option[value="'+saved.to+'"]')){ tSel.value=saved.to; S.to=saved.to; }
     }
-    updateLabels(); renderSavedPairs(); updateStarBtn(); loadAll(false);
+    updateLabels(); updateIcons(); renderSavedPairs(); updateStarBtn(); loadAll(false);
   }
 
   function refresh(){
@@ -313,7 +422,7 @@ var RatioTracker = (function() {
     var tSel=$('rt-to');
     if(tSel&&S.to&&tSel.querySelector('option[value="'+S.to+'"]')) tSel.value=S.to;
     else if(tSel) S.to=tSel.value;
-    updateLabels(); updateStarBtn();
+    updateLabels(); updateIcons(); updateStarBtn();
   }
 
   return {
