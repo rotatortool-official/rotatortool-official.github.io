@@ -76,6 +76,7 @@ var AV_KEY = getAVKey(); /* kept for backwards compat — always use getAVKey() 
 var CACHE_RULES = [
   { match: /coins\/bitcoin\/market_chart\?.*days=200/, ttl: 60*60*1000, label: 'BTC-MA200'   }, // 1 hour
   { match: /market_chart\?.*days=30/,                  ttl: 30*60*1000, label: 'CHART-30D'   }, // 30 min
+  { match: /simple\/price/,                             ttl: 10*60*1000, label: 'SIMPLE-PRC'  }, // 10 min
   { match: /coins\/markets/,                           ttl: 15*60*1000, label: 'COINS-MKT'   }, // 15 min
   { match: /finance\.yahoo\.com/,                      ttl: 30*60*1000, label: 'STOCKS'       }, // 30 min
   { match: /alphavantage\.co/,                         ttl: 15*60*1000, label: 'FOREX-AV'    }, // 15 min

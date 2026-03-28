@@ -226,14 +226,33 @@ var RatioTracker = (function() {
   }
 
   /* ── Data loading ────────────────────────────────────────────── */
+
+  /* Try to pull price from the global coins array (already loaded by leaderboard) */
+  function _coinFromCache(id){
+    if(typeof coins!=='undefined'&&Array.isArray(coins)){
+      var c=coins.find(function(x){return x.id===id;});
+      if(c&&c.price>0) return {usd:c.price, chg:c.p24||0};
+    }
+    return null;
+  }
+
   async function loadPrices(){
     var f=S.from,t=S.to;
-    var raw=await apiFetch('https://api.coingecko.com/api/v3/simple/price?vs_currencies=usd&include_24hr_change=true&ids='+f+','+t);
-    var fo=raw[f],to=raw[t];
-    if(!fo||fo.usd===undefined) throw new Error(lbl(f)+' price missing');
-    if(!to||to.usd===undefined) throw new Error(lbl(t)+' price missing');
-    S.fromPrice=fo.usd; S.toPrice=to.usd;
-    S.fromChg=fo.usd_24h_change||0; S.toChg=to.usd_24h_change||0;
+    var fc=_coinFromCache(f), tc=_coinFromCache(t);
+
+    if(fc&&tc){
+      /* Both coins already in leaderboard data — no API call needed */
+      S.fromPrice=fc.usd; S.toPrice=tc.usd;
+      S.fromChg=fc.chg;   S.toChg=tc.chg;
+    } else {
+      /* Fallback: fetch from API (for coins not in leaderboard) */
+      var raw=await apiFetch('https://api.coingecko.com/api/v3/simple/price?vs_currencies=usd&include_24hr_change=true&ids='+f+','+t);
+      var fo=raw[f],to=raw[t];
+      if(!fo||fo.usd===undefined) throw new Error(lbl(f)+' price missing');
+      if(!to||to.usd===undefined) throw new Error(lbl(t)+' price missing');
+      S.fromPrice=fo.usd; S.toPrice=to.usd;
+      S.fromChg=fo.usd_24h_change||0; S.toChg=to.usd_24h_change||0;
+    }
     var ratio=S.fromPrice/S.toPrice;
 
     /* ── Live ratio number (in the middle of tiles) ── */
@@ -268,14 +287,14 @@ var RatioTracker = (function() {
   async function loadHistory(){
     var f=S.from,t=S.to,d=S.days,ckey=f+'|'+t+'|'+d;
     var cached=S.histCache[ckey];
-    if(cached&&(Date.now()-cached.ts)<5*60*1000){ renderChart(cached.series); renderRange(cached.series); return; }
+    if(cached&&(Date.now()-cached.ts)<10*60*1000){ renderChart(cached.series); renderRange(cached.series); return; }
     status('Loading '+(d===1?'24h':d+'d')+' chart…','');
     setTfDisabled(true);
     try{
       var base='https://api.coingecko.com/api/v3/coins/',sfx='/market_chart?vs_currency=usd&days='+d;
       var rawF=await apiFetch(base+f+sfx),fp=rawF&&rawF.prices;
       if(!fp) throw new Error(lbl(f)+' chart missing');
-      await (typeof sleep==='function'?sleep(1200):new Promise(function(r){setTimeout(r,1200);}));
+      await (typeof sleep==='function'?sleep(400):new Promise(function(r){setTimeout(r,400);}));
       var rawT=await apiFetch(base+t+sfx),tp=rawT&&rawT.prices;
       if(!tp) throw new Error(lbl(t)+' chart missing');
       var len=Math.min(fp.length,tp.length),series=[];
@@ -287,14 +306,13 @@ var RatioTracker = (function() {
     setTfDisabled(false);
   }
 
-  async function loadAll(clearCache){
+  async function loadAll(){
     if(S.loading) return; S.loading=true;
-    if(clearCache) S.histCache={};
     setSpin(true); status('Fetching prices…'); updateLabels(); updateIcons();
     try{
       await loadPrices();
       updateIcons(); /* refresh icons now that coins may be loaded */
-      await (typeof sleep==='function'?sleep(800):new Promise(function(r){setTimeout(r,800);}));
+      await (typeof sleep==='function'?sleep(300):new Promise(function(r){setTimeout(r,300);}));
       await loadHistory();
     }catch(e){ status('Error: '+e.message,'err'); }
     setSpin(false); S.loading=false;
