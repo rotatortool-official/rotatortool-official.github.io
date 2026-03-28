@@ -77,31 +77,30 @@ function removeHolding(sym) {
   document.getElementById(id).addEventListener('keydown', function(e) { if (e.key === 'Enter') addHolding(); });
 });
 
-/* ── Crypto tile renderer ────────────────────────────────────── */
+/* ── Crypto tile renderer — always shows 10 slots ───────────── */
+var TOTAL_TILE_SLOTS = 10;
+var PRO_PROMO_SLOTS  = 2;
+
 function renderTiles() {
   Object.keys(sparkStop).forEach(function(k) { sparkStop[k](); delete sparkStop[k]; });
   var grid  = document.getElementById('tiles-grid');
   var hcEl  = document.getElementById('hcount');
-  if (hcEl) {
-    var limit = isPro ? PRO_HOLDINGS_LIMIT : FREE_HOLDINGS_LIMIT;
-    hcEl.textContent = holdings.length ? holdings.length + '/' + limit + ' assets' : '';
-  }
-
-  if (!holdings.length) {
-    grid.innerHTML = '<div class="empty-t">No holdings yet.<br>Add a coin above.</div>';
-    document.getElementById('sig-content').innerHTML = '<div style="font-size:11px;color:var(--muted);">Add holdings to see signal.</div>';
-    return;
-  }
+  var limit = isPro ? PRO_HOLDINGS_LIMIT : FREE_HOLDINGS_LIMIT;
+  if (hcEl) hcEl.textContent = holdings.length ? holdings.length + '/' + limit : '';
 
   var heldCoins = holdings.map(function(h) { return coins.find(function(c) { return c.sym === h.sym; }); }).filter(Boolean);
   var topG = null;
   if (isPro) heldCoins.forEach(function(c) { if (!topG || c.p24 > topG.p24) topG = c; });
 
   var html = '';
+
+  /* ── Real holding tiles ── */
   holdings.forEach(function(h) {
     var c = coins.find(function(x) { return x.sym === h.sym; });
     if (!c) {
-      html += '<div class="tile"><div class="tile-top"><span class="tile-sym">' + h.sym + '</span><button class="tile-rm" onclick="removeHolding(\'' + h.sym + '\')">×</button></div><div style="font-size:10px;color:var(--muted);">Unavailable</div></div>';
+      html += '<div class="tile"><div class="tile-top"><span class="tile-sym">' + h.sym + '</span>'
+            + '<button class="tile-rm" onclick="removeHolding(\'' + h.sym + '\')">×</button></div>'
+            + '<div style="font-size:10px;color:var(--muted);">Unavailable</div></div>';
       return;
     }
     var pl = '', plC = '';
@@ -109,25 +108,61 @@ function renderTiles() {
       var profit = (c.price - h.avg) * h.qty;
       var plPct  = ((c.price - h.avg) / h.avg * 100);
       plC = profit >= 0 ? 'up' : 'dn';
-      pl  = (profit >= 0 ? '+' : '-') + '$' + Math.abs(profit).toLocaleString('en-US', {maximumFractionDigits:0}) + ' (' + (plPct >= 0 ? '+' : '') + plPct.toFixed(1) + '%)';
+      pl  = (profit >= 0 ? '+' : '-') + '$' + Math.abs(profit).toLocaleString('en-US', {maximumFractionDigits:0})
+          + ' (' + (plPct >= 0 ? '+' : '') + plPct.toFixed(1) + '%)';
     }
-    var glw   = c.score >= 65 ? 'glow-g' : c.score >= 40 ? 'glow-a' : 'glow-r';
-    var scrC  = c.score >= 65 ? 'hi'     : c.score >= 40 ? 'md'     : 'lo';
+    var glw  = c.score >= 65 ? 'glow-g' : c.score >= 40 ? 'glow-a' : 'glow-r';
+    var scrC = c.score >= 65 ? 'hi'     : c.score >= 40 ? 'md'     : 'lo';
     var isTop = topG && c.sym === topG.sym && c.p24 > 0;
     html += '<div class="tile ' + glw + '" id="tile-' + c.sym + '" onclick="openTileDetail(\'' + c.id + '\',event)" style="cursor:pointer;" title="Click for full breakdown">'
-      + (isTop ? '<canvas class="sp" id="sp-' + c.sym + '"></canvas>' : '')
-      + '<div class="tile-top"><div class="tile-ico"><img src="' + c.image + '" alt="" onerror="this.style.display=\'none\'"></div><span class="tile-sym">' + c.sym + '</span><button class="tile-rm" onclick="removeHolding(\'' + h.sym + '\')">×</button></div>'
-      + '<div class="tile-price">' + fmtP(c.price) + '</div>'
-      + '<div class="tile-perfs">'
-        + '<div class="tpf"><span class="tpf-l">24H</span><span class="tpf-v ' + (c.p24>=0?'up':'dn') + '">' + (c.p24>=0?'+':'') + c.p24.toFixed(1) + '%</span></div>'
-        + '<div class="tpf"><span class="tpf-l">7D</span><span class="tpf-v '  + (c.p7>=0?'up':'dn')  + '">' + (c.p7>=0?'+':'')  + c.p7.toFixed(1)  + '%</span></div>'
-        + '<div class="tpf"><span class="tpf-l">30D</span><span class="tpf-v ' + (c.p30>=0?'up':'dn') + '">' + (c.p30>=0?'+':'') + c.p30.toFixed(1) + '%</span></div>'
-      + '</div>'
-      + '<div class="tile-foot">' + (pl ? '<span class="tile-pl ' + plC + '">' + pl + '</span>' : '<span></span>') + '<span class="tile-scr ' + scrC + '">' + c.score + '</span></div>'
-      + '</div>';
+          + (isTop ? '<canvas class="sp" id="sp-' + c.sym + '"></canvas>' : '')
+          + '<div class="tile-top"><div class="tile-ico"><img src="' + c.image + '" alt="" onerror="this.style.display=\'none\'"></div>'
+          + '<span class="tile-sym">' + c.sym + '</span>'
+          + '<button class="tile-rm" onclick="event.stopPropagation();removeHolding(\'' + h.sym + '\')">×</button></div>'
+          + '<div class="tile-price">' + fmtP(c.price) + '</div>'
+          + '<div class="tile-perfs">'
+            + '<div class="tpf"><span class="tpf-l">24H</span><span class="tpf-v ' + (c.p24>=0?'up':'dn') + '">' + (c.p24>=0?'+':'') + c.p24.toFixed(1) + '%</span></div>'
+            + '<div class="tpf"><span class="tpf-l">7D</span><span class="tpf-v '  + (c.p7>=0?'up':'dn')  + '">' + (c.p7>=0?'+':'')  + c.p7.toFixed(1)  + '%</span></div>'
+            + '<div class="tpf"><span class="tpf-l">30D</span><span class="tpf-v ' + (c.p30>=0?'up':'dn') + '">' + (c.p30>=0?'+':'') + c.p30.toFixed(1) + '%</span></div>'
+          + '</div>'
+          + '<div class="tile-foot">' + (pl ? '<span class="tile-pl ' + plC + '">' + pl + '</span>' : '<span></span>')
+          + '<span class="tile-scr ' + scrC + '">' + c.score + '</span></div>'
+          + '</div>';
   });
 
+  /* ── Fillable empty slots (green +) ── */
+  var filledCount   = holdings.length;
+  var fillableLimit = isPro ? TOTAL_TILE_SLOTS : FREE_HOLDINGS_LIMIT;
+  for (var i = filledCount; i < fillableLimit; i++) {
+    html += '<div class="tile-placeholder" onclick="openAddHoldingsModal()">'
+          + '<div class="ph-plus">+</div><div class="ph-lbl">Add Coin</div></div>';
+  }
+
+  if (!isPro) {
+    /* ── Locked green + slots ── */
+    var lockedCount = TOTAL_TILE_SLOTS - PRO_PROMO_SLOTS - FREE_HOLDINGS_LIMIT;
+    for (var j = 0; j < lockedCount; j++) {
+      html += '<div class="tile-placeholder tile-placeholder-locked" onclick="openPro()" title="Unlock with Pro">'
+            + '<div class="ph-plus">+</div><div class="ph-lbl">Pro</div></div>';
+    }
+    /* ── Purple Pro promo tiles (last 2) ── */
+    for (var k = 0; k < PRO_PROMO_SLOTS; k++) {
+      html += '<div class="tile-pro-promo" onclick="openPro()">'
+            + '<div class="pro-promo-thunder">⚡</div>'
+            + '<div class="pro-promo-title">Monitor Multiple<br>Assets at Once</div>'
+            + '<div class="pro-promo-sub">Up to 10 with Pro</div>'
+            + '</div>';
+    }
+  } else {
+    /* Pro: all remaining slots are green + */
+    for (var m = fillableLimit; m < TOTAL_TILE_SLOTS; m++) {
+      html += '<div class="tile-placeholder" onclick="openAddHoldingsModal()">'
+            + '<div class="ph-plus">+</div><div class="ph-lbl">Add Coin</div></div>';
+    }
+  }
+
   grid.innerHTML = html;
+
   if (topG && topG.p24 > 0) {
     requestAnimationFrame(function() { requestAnimationFrame(function() {
       var cv = document.getElementById('sp-' + topG.sym);
@@ -137,6 +172,7 @@ function renderTiles() {
   renderSignal(heldCoins);
   if (typeof RatioTracker !== 'undefined') RatioTracker.refresh();
 }
+
 
 /* ── Crypto portfolio signal ─────────────────────────────────── */
 function renderSignal(hc) {

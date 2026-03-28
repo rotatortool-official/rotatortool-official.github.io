@@ -171,10 +171,9 @@ body::before{content:'';position:fixed;inset:0;background:repeating-linear-gradi
 .frow input::placeholder{color:rgba(100,120,145,.8);}
 .add-btn{width:100%;padding:5px;background:var(--bnbd);border:1px solid rgba(243,186,47,.22);color:var(--bnb);font-family:inherit;font-size:10px;letter-spacing:.1em;cursor:pointer;border-radius:2px;transition:all .15s;margin-top:5px;}
 .add-btn:hover{background:rgba(243,186,47,.16);border-color:var(--bnb);}
-.tiles-scroll{overflow-y:auto;overflow-x:hidden;padding:10px 12px;min-height:110px;max-height:210px;flex-shrink:0;}
-.holdings-section-label{padding:5px 12px 4px;font-size:9px;letter-spacing:.14em;text-transform:uppercase;color:rgba(180,195,215,.7);font-weight:500;border-bottom:1px solid var(--bdr);background:var(--bg3);display:flex;align-items:center;justify-content:space-between;flex-shrink:0;font-family:var(--font-ui);}
-.tiles-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:5px;width:100%;}
-.empty-t{grid-column:1/-1;padding:14px 10px;text-align:center;color:var(--muted);font-size:10px;line-height:2;border:1px dashed rgba(255,255,255,.07);border-radius:3px;letter-spacing:.06em;}
+.tiles-scroll-legacy{overflow-y:auto;overflow-x:hidden;padding:10px 12px;min-height:110px;max-height:210px;flex-shrink:0;}
+.holdings-section-label{padding:4px 10px 4px 12px;font-size:9px;letter-spacing:.14em;text-transform:uppercase;color:rgba(180,195,215,.7);font-weight:500;border-bottom:1px solid var(--bdr);background:var(--bg3);display:flex;align-items:center;justify-content:space-between;gap:6px;flex-shrink:0;font-family:var(--font-ui);}
+.tiles-grid-legacy{display:grid;grid-template-columns:repeat(2,1fr);gap:5px;width:100%;}
 .tile{position:relative;overflow:hidden;border-radius:var(--card-radius);box-shadow:var(--card-shadow);padding:7px 8px 7px 11px;border:1px solid var(--bdr);background:var(--bg3);min-width:0;}
 .tile::before{content:'';position:absolute;left:0;top:0;bottom:0;width:3px;border-radius:3px 0 0 3px;}
 .tile.glow-g{border-color:rgba(0,200,150,.35);box-shadow:0 0 10px rgba(0,200,150,.12);}
@@ -569,6 +568,21 @@ td.qa-cell{text-align:center;width:28px;padding:0 4px !important;}
 .tile-placeholder:hover{opacity:1;border-color:rgba(0,200,150,.55);background:rgba(0,200,150,.05);}
 .tile-placeholder .ph-plus{font-size:20px;color:var(--green);line-height:1;font-weight:300;}
 .tile-placeholder .ph-lbl{font-size:8px;color:var(--muted);letter-spacing:.08em;text-transform:uppercase;}
+/* Locked slots — muted green + */
+.tile-placeholder-locked{border-color:rgba(100,120,150,.2) !important;opacity:.4 !important;}
+.tile-placeholder-locked .ph-plus{color:var(--muted) !important;}
+.tile-placeholder-locked:hover{opacity:.6 !important;border-color:rgba(167,139,250,.3) !important;background:rgba(167,139,250,.04) !important;}
+/* Purple Pro promo tiles */
+.tile-pro-promo{background:linear-gradient(135deg,rgba(167,139,250,.13),rgba(167,139,250,.06));border:1px solid rgba(167,139,250,.32);border-radius:var(--card-radius);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;min-height:72px;cursor:pointer;transition:all .18s;text-align:center;padding:8px 6px;position:relative;overflow:hidden;}
+.tile-pro-promo::before{content:'';position:absolute;inset:0;background:linear-gradient(90deg,transparent,rgba(167,139,250,.06),transparent);animation:proShimmer 2.5s linear infinite;}
+.tile-pro-promo:hover{border-color:rgba(167,139,250,.6);background:linear-gradient(135deg,rgba(167,139,250,.22),rgba(167,139,250,.1));transform:translateY(-2px);box-shadow:0 4px 14px rgba(167,139,250,.2);}
+.pro-promo-thunder{font-size:16px;filter:drop-shadow(0 0 5px rgba(167,139,250,.6));}
+.pro-promo-title{font-size:9px;font-weight:700;color:var(--pro);letter-spacing:.05em;line-height:1.4;text-transform:uppercase;}
+.pro-promo-sub{font-size:8px;color:rgba(167,139,250,.65);letter-spacing:.06em;}
+/* 10-slot grid — always 2 columns, auto rows */
+.tiles-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:5px;width:100%;}
+/* tiles-scroll expands to show all 10 */
+.tiles-scroll{overflow-y:auto;overflow-x:hidden;padding:8px 10px;flex:1;min-height:0;}
 
 /* ── WATCHLIST VIEW ── */
 .watchlist-placeholder{padding:14px 12px;text-align:center;color:var(--muted);font-size:10px;line-height:2;border:1px dashed rgba(255,255,255,.07);border-radius:3px;letter-spacing:.06em;grid-column:1/-1;}
@@ -1031,11 +1045,11 @@ td.qa-cell{text-align:center;width:28px;padding:0 4px !important;}
   background:var(--bg2);
   border:1px solid rgba(255,255,255,.15);
   border-radius:6px;
-  padding:18px 20px 16px;
-  width:340px;
+  padding:18px 22px 16px;
+  width:380px;
   z-index:802;
   box-shadow:0 8px 40px rgba(0,0,0,.7);
-  transition:all .25s ease;
+  transition:left .2s ease,top .2s ease;
   font-family:var(--font-ui);
 }
 .tut-box::before{
@@ -1595,15 +1609,12 @@ td.qa-cell{text-align:center;width:28px;padding:0 4px !important;}
           <div class="sig-title">◈ Portfolio Signal</div>
           <div id="sig-content"><div style="font-size:11px;color:var(--muted);font-family:var(--font-ui);">Add holdings to see your signal.</div></div>
         </div>
-        <div class="holdings-section-label"><span>MY HOLDINGS</span><span id="hcount" style="color:var(--bnb);font-size:9px;letter-spacing:.04em;"></span></div>
-        <div class="tiles-scroll"><div class="tiles-grid" id="tiles-grid"></div></div>
-        <!-- Placeholder tiles when empty -->
-        <div id="holding-placeholders" class="tiles-scroll" style="display:none;">
-          <div class="tiles-grid">
-            <div class="tile-placeholder" onclick="openAddHoldingsModal()"><div class="ph-plus">+</div><div class="ph-lbl">Add Coin</div></div>
-            <div class="tile-placeholder" onclick="openAddHoldingsModal()"><div class="ph-plus">+</div><div class="ph-lbl">Add Coin</div></div>
-          </div>
+        <div class="holdings-section-label">
+          <span>MY HOLDINGS</span>
+          <span id="hcount" style="color:var(--bnb);font-size:9px;letter-spacing:.04em;"></span>
+          <button class="lbh-add-btn" onclick="openAddHoldingsModal()" style="margin-left:auto;" title="Add a coin to track">+ ADD</button>
         </div>
+        <div class="tiles-scroll"><div class="tiles-grid" id="tiles-grid"></div></div>
       </div>
 
       <!-- WATCHLIST VIEW -->
@@ -1719,9 +1730,6 @@ td.qa-cell{text-align:center;width:28px;padding:0 4px !important;}
     </div>
     <div class="tbl-head">
       <div class="ptitle" id="tbl-title">PERFORMANCE LEADERBOARD</div>
-      <div style="position:absolute;left:14px;display:flex;align-items:center;gap:8px;">
-        <button class="lbh-add-btn" id="lbh-add-btn" onclick="openAddHoldingsModal()" title="Track a coin in your portfolio">+ ADD HOLDING</button>
-      </div>
       <div style="position:absolute;right:14px;display:flex;align-items:center;gap:10px;">
         <span id="last-updated-crypto"  class="last-upd-ts" style="display:none;"></span>
         <span id="last-updated-forex"   class="last-upd-ts" style="display:none;"></span>
@@ -1888,18 +1896,6 @@ td.qa-cell{text-align:center;width:28px;padding:0 4px !important;}
     </div>
     <!-- END RATIO TRACKER -->
 
-    <!-- HOLDINGS PREVIEW PANEL — mirrors left sidebar holdings in right panel -->
-    <div class="rp-holdings" id="rp-holdings">
-      <div class="rp-h-title">
-        <span>MY HOLDINGS</span>
-        <span class="rp-h-count" id="rp-h-count"></span>
-      </div>
-      <div class="rp-h-grid" id="rp-h-grid">
-        <!-- Populated by JS from holdings array -->
-        <div class="rp-h-empty">Add holdings in the left panel to see them here.</div>
-      </div>
-    </div>
-
     <!-- PRO + SUPPORT CARDS — pushed to bottom -->
     <div class="ad-body" style="margin-top:auto;">
       <div class="ad-promo">
@@ -2026,71 +2022,12 @@ td.qa-cell{text-align:center;width:28px;padding:0 4px !important;}
 <script src="js/data-loaders.js?v=2"></script>
 <script src="js/ratio.js?v=1"></script>
 <script>
-/* Right panel holdings preview — mirrors left panel tiles */
-function renderRpHoldings() {
-  var grid  = document.getElementById('rp-h-grid');
-  var count = document.getElementById('rp-h-count');
-  if (!grid) return;
-
-  var h = (typeof holdings !== 'undefined') ? holdings : [];
-  var c = (typeof coins    !== 'undefined') ? coins    : [];
-
-  if (count) count.textContent = h.length ? h.length + '/' + (typeof PRO_HOLDINGS_LIMIT !== 'undefined' ? PRO_HOLDINGS_LIMIT : 10) + ' ASSETS' : '';
-
-  if (!h.length) {
-    grid.innerHTML = '<div class="rp-h-empty">Add holdings in the left panel.</div>';
-    return;
-  }
-
-  grid.innerHTML = h.map(function(hld) {
-    var coin = c.find(function(x) { return x.sym === hld.sym || x.id === hld.sym; });
-    var price   = coin ? coin.price : 0;
-    var p24     = coin ? coin.p24   : 0;
-    var p7      = coin ? coin.p7    : 0;
-    var p30     = coin ? coin.p30   : 0;
-    var score   = coin ? coin.score : 0;
-    var image   = coin ? coin.image : '';
-    var value   = price * (hld.qty || 0);
-    var cost    = (hld.avg || 0) * (hld.qty || 0);
-    var pnl     = cost > 0 ? ((value - cost) / cost * 100) : 0;
-    var pnlCol  = pnl >= 0 ? 'var(--green)' : 'var(--red)';
-    var scoreCol = score >= 60 ? 'var(--green)' : score >= 40 ? 'var(--amber)' : 'var(--red)';
-
-    function fmtPrc(n) {
-      if (!n) return '—';
-      if (n >= 1000) return '$' + n.toLocaleString('en-US', {maximumFractionDigits:0});
-      if (n >= 1)    return '$' + n.toFixed(2);
-      if (n >= 0.01) return '$' + n.toFixed(4);
-      return '$' + n.toFixed(6);
-    }
-    function pct(v) { return (v >= 0 ? '+' : '') + v.toFixed(2) + '%'; }
-
-    return '<div class="rp-h-tile" onclick="openTileDetail('' + (coin ? coin.id : '') + '',event)">'
-      + '<div class="rp-h-tile-top">'
-        + '<div class="rp-h-ico"><img src="' + image + '" alt="" onerror="this.style.display='none'"></div>'
-        + '<span class="rp-h-sym">' + hld.sym + '</span>'
-        + '<span class="rp-h-score" style="color:' + scoreCol + '">' + score + '</span>'
-      + '</div>'
-      + '<div class="rp-h-price">' + fmtPrc(price) + '</div>'
-      + '<div class="rp-h-stats">'
-        + '<div class="rp-h-stat"><span class="rp-h-stat-l">24H</span><span class="rp-h-stat-v" style="color:' + (p24>=0?'var(--green)':'var(--red)') + '">' + pct(p24) + '</span></div>'
-        + '<div class="rp-h-stat"><span class="rp-h-stat-l">7D</span><span class="rp-h-stat-v" style="color:' + (p7>=0?'var(--green)':'var(--red)') + '">' + pct(p7) + '</span></div>'
-        + '<div class="rp-h-stat"><span class="rp-h-stat-l">30D</span><span class="rp-h-stat-v" style="color:' + (p30>=0?'var(--green)':'var(--red)') + '">' + pct(p30) + '</span></div>'
-      + '</div>'
-      + (cost > 0 ? '<div class="rp-h-pnl" style="color:' + pnlCol + '">' + (pnl>=0?'+':'') + pnl.toFixed(2) + '% P&L &nbsp; ' + (value>=0?'$'+value.toLocaleString('en-US',{maximumFractionDigits:2}):'') + '</div>' : '')
-    + '</div>';
-  }).join('');
-}
 
 /* Hook into renderTiles if it exists, otherwise poll */
 (function() {
   var _origRender = window.renderTiles;
   if (typeof _origRender === 'function') {
-    window.renderTiles = function() { _origRender.apply(this, arguments); renderRpHoldings(); };
-  }
   /* Also refresh on a short interval as fallback */
-  setInterval(renderRpHoldings, 3000);
-  document.addEventListener('DOMContentLoaded', function() { setTimeout(renderRpHoldings, 1500); });
 })();
 </script>
 
@@ -2214,33 +2151,6 @@ function switchHoldingsView(view) {
   document.getElementById('watchlist-panel').style.display   = view === 'watch' ? 'flex' : 'none';
 }
 
-/* Show placeholder tiles when no holdings, real tiles when holdings exist */
-function syncHoldingPlaceholders() {
-  var ph  = document.getElementById('holding-placeholders');
-  var tg  = document.getElementById('tiles-grid');
-  var ts  = tg ? tg.closest('.tiles-scroll') : null;
-  if (!ph) return;
-  var empty = !(typeof holdings !== 'undefined' && holdings.length > 0);
-  ph.style.display = empty ? '' : 'none';
-  if (ts) ts.style.display = empty ? 'none' : '';
-}
-/* Patch renderTiles to also sync placeholders */
-var _origRenderTiles = typeof renderTiles !== 'undefined' ? renderTiles : null;
-document.addEventListener('DOMContentLoaded', function() {
-  // run after holdings.js loads
-  setTimeout(function() {
-    syncHoldingPlaceholders();
-    // Override addHolding to keep placeholders in sync
-    var _origAdd = window.addHolding;
-    if (_origAdd) {
-      window.addHolding = function() { _origAdd.apply(this, arguments); syncHoldingPlaceholders(); };
-    }
-    var _origRemove = window.removeHolding;
-    if (_origRemove) {
-      window.removeHolding = function(sym) { _origRemove.call(this, sym); syncHoldingPlaceholders(); };
-    }
-  }, 1200);
-});
 
 /* ── Watchlist state ─────────────────────────────────────────── */
 var watchlist = [];
@@ -2346,7 +2256,6 @@ function ahmConfirm() {
   document.getElementById('inp-avg').value = avg;
   if (typeof addHolding === 'function') addHolding();
   closeModal('add-holdings-modal');
-  syncHoldingPlaceholders();
 }
 
 /* Run filter when modal opens (populate initial list) */

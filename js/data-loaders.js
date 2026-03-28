@@ -994,12 +994,14 @@ function mobNavHoldings() {
 
       /* ── 2 placeholder tiles if no holdings yet ── */
       var tilesGrid = src.querySelector('.tiles-grid');
-      var hasHoldings = tilesGrid && tilesGrid.children.length > 0;
+      /* Count only real holding tiles (not placeholders or pro-promo) */
+      var realTiles = tilesGrid ? tilesGrid.querySelectorAll('.tile:not(.tile-placeholder):not(.tile-pro-promo)').length : 0;
+      var hasHoldings = realTiles > 0;
       if (!hasHoldings) {
         var phWrap = document.createElement('div');
         phWrap.style.cssText = 'display:grid;grid-template-columns:1fr 1fr;gap:6px;padding:10px 12px 4px;flex-shrink:0;';
-        phWrap.innerHTML = '<div class="mob-placeholder-tile" onclick="var el=document.querySelector(\'.mob-holdings-panel .add-form select\');if(el)el.focus();">+</div>'
-          + '<div class="mob-placeholder-tile" onclick="var el=document.querySelector(\'.mob-holdings-panel .add-form select\');if(el)el.focus();">+</div>';
+        phWrap.innerHTML = '<div class="mob-placeholder-tile" onclick="openAddHoldingsModal()">+</div>'
+          + '<div class="mob-placeholder-tile" onclick="openAddHoldingsModal()">+</div>';
         panel.appendChild(phWrap);
       }
 
@@ -1010,37 +1012,15 @@ function mobNavHoldings() {
       clone.style.display = 'flex'; clone.style.flexDirection = 'column';
       panel.appendChild(clone);
 
-      /* ── Re-wire ADD button to use cloned inputs, then sync to desktop ── */
-      var addBtn = panel.querySelector('.add-btn');
+      /* ── Re-wire ADD button — crypto uses modal, forex/stocks use cloned form ── */
+      var addBtn = panel.querySelector('.add-btn, .lbh-add-btn');
       if (addBtn) {
         addBtn.onclick = function() {
           var mode = currentMode || 'crypto';
           if (mode === 'crypto') {
-            var selEl = panel.querySelector('select');
-            var qtyEl = panel.querySelector('input[placeholder="amount"]');
-            var avgEl = panel.querySelector('input[placeholder="avg buy price"]');
-            var sym = selEl ? selEl.value : '';
-            if (!sym) return;
-            var dSel = document.getElementById('coin-sel');
-            var dQty = document.getElementById('inp-qty');
-            var dAvg = document.getElementById('inp-avg');
-            if (dSel) dSel.value = sym;
-            if (dQty) dQty.value = qtyEl ? (parseFloat(qtyEl.value) || '') : '';
-            if (dAvg) dAvg.value = avgEl ? (parseFloat(avgEl.value) || '') : '';
-            addHolding();
-            /* Refresh mobile panel so new holding shows immediately */
-            setTimeout(function() {
-              var src2 = document.getElementById('holdings-crypto');
-              if (src2 && panel.classList.contains('open')) {
-                panel.innerHTML = '';
-                var clone2 = src2.cloneNode(true);
-                clone2.style.display = 'flex'; clone2.style.flexDirection = 'column';
-                panel.appendChild(clone2);
-              }
-            }, 100);
-            if (selEl) selEl.value = '';
-            if (qtyEl) qtyEl.value = '';
-            if (avgEl) avgEl.value = '';
+            /* Crypto: use the Add Holdings modal */
+            openAddHoldingsModal();
+            return;
           } else if (mode === 'forex') {
             var fromEl = panel.querySelector('#fx-from, select[id*="from"]');
             var toEl   = panel.querySelector('#fx-to, select[id*="to"]');

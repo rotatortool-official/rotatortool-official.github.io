@@ -1,20 +1,5 @@
 /* ══════════════════════════════════════════════════════════════════
-
    tutorial.js — Step-by-step onboarding tutorial
-
-   HOW TO EDIT THIS FILE:
-   ──────────────────────
-   • ADD/REMOVE STEPS: Edit the TUT_STEPS array below.
-     Each step needs: target (CSS selector), title, desc (HTML), arrow,
-     pos, and optionally agree:true for the checkbox step.
-
-   • CHANGE STEP CONTENT: Just edit the title or desc string in
-     the relevant step object.
-
-   • DISABLE TUTORIAL BY DEFAULT: Change the initTutorial() function
-     — find isOn = (val === null || val === 'on') and change to
-     isOn = (val === 'on') so new users don't see it automatically.
-
 ══════════════════════════════════════════════════════════════════ */
 
 var TUT_KEY = 'rot_tutorial_on';
@@ -22,10 +7,9 @@ var tutStep_ = 0;
 var tutActive = false;
 
 /* ── Tutorial steps ──────────────────────────────────────────── */
-
 var TUT_STEPS = [
 
-  /* Step 1: Welcome — centered on screen like a welcome splash */
+  /* Step 1: Welcome */
   {
     target: '.topbar',
     title: 'Welcome to ROTATOR',
@@ -35,72 +19,79 @@ var TUT_STEPS = [
     arrow: 'top', pos: 'center', wide: true
   },
 
-  /* Step 2: Holdings panel — box appears to the right of the panel, anchored near the top */
+  /* Step 2: Holdings Panel — highlight left panel */
   {
-    target: '.add-form',
+    target: '#my-holdings-panel',
     title: 'Your Holdings Panel',
-    desc: '<div style="font-size:15px;line-height:1.9;">This panel is your portfolio tracker. Add any coin with quantity and average buy price — data is saved in your browser, no account needed.<br><br>'
-        + 'Once you add holdings, the <strong>Portfolio Signal</strong> box scores your overall portfolio and flags which assets are lagging or outperforming.<br><br>'
-        + '<span style="font-size:12px;color:rgba(255,255,255,.7);">Free tier: up to <strong>2 crypto</strong> holdings · upgrade to Pro for up to 10, plus Rotation Signals, by sharing with 3 friends.</span>',
-    arrow: 'left', pos: 'right-high'
+    desc: '<div style="font-size:13px;line-height:1.85;">Track any coin with quantity and average buy price — all saved locally, <strong>no account needed</strong>.<br><br>'
+        + 'Once added, the <strong style="color:var(--bnb);">Portfolio Signal</strong> box above scores your portfolio and flags which assets are lagging or outperforming.<br><br>'
+        + '<span style="font-size:11px;color:rgba(255,255,255,.6);">Free tier: <strong>2 crypto</strong> slots · Pro: up to 10, plus full Rotation Signals — unlock free by sharing with 3 friends.</span></div>',
+    arrow: 'left', pos: 'left-panel-right'
   },
 
-  /* Step 3: Signal center */
+  /* Step 3: Signal Center — colored columns, arrow pointing up to tiles */
   {
     target: '.neon-section',
     title: 'Signal Center',
-    desc: '<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;font-size:16px;line-height:1.8;">'
-        + '<div><div style="font-size:10px;letter-spacing:.12em;color:rgba(255,255,255,.5);margin-bottom:5px;">ROTATION OPPS ↑ ⚡</div>'
-        + '<div style="color:#4ade80;font-size:17px;font-weight:600;margin-bottom:5px;">↑ Rotate</div>'
-        + 'Pairs from your holdings where rotating makes sense. The score gap shows how much one coin is outpacing another. <strong style="color:var(--pro);">Pro feature</strong> — unlock free by sharing with 3 friends.</div>'
-        + '<div><div style="font-size:10px;letter-spacing:.12em;color:rgba(255,255,255,.5);margin-bottom:5px;">HIGH MOMENTUM ⚡</div>'
-        + '<div style="color:#f3ba2f;font-size:17px;font-weight:600;margin-bottom:5px;">⚡ Leading</div>'
-        + 'Top 6 coins by composite score across all timeframes. Sustained strength, not single-week spikes.</div>'
-        + '<div><div style="font-size:10px;letter-spacing:.12em;color:rgba(255,255,255,.5);margin-bottom:5px;">WORST 30D ↓</div>'
-        + '<div style="color:#ff4560;font-size:17px;font-weight:600;margin-bottom:5px;">↓ Lagging</div>'
-        + 'Biggest 30-day losers. Potential bounce candidates — or assets to exit. Click any tile for the full breakdown.</div>'
+    desc: '<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:18px;font-size:13px;line-height:1.85;">'
+        + '<div style="border-left:3px solid #00bd8e;padding-left:12px;">'
+          + '<div style="font-size:9px;letter-spacing:.13em;color:rgba(0,200,150,.7);margin-bottom:6px;font-weight:700;">↑ ROTATION OPPS</div>'
+          + '<div style="color:#00bd8e;font-size:16px;font-weight:700;margin-bottom:7px;">↑ Rotate</div>'
+          + '<span style="color:rgba(200,220,210,.85);">Pairs from your holdings where rotating makes sense. The score gap shows how much one coin is outpacing another.</span>'
+          + '<div style="margin-top:7px;font-size:10px;color:rgba(167,139,250,.9);font-weight:600;">⚡ Pro feature — unlock free</div>'
+        + '</div>'
+        + '<div style="border-left:3px solid #f0a030;padding-left:12px;">'
+          + '<div style="font-size:9px;letter-spacing:.13em;color:rgba(240,160,48,.7);margin-bottom:6px;font-weight:700;">⚡ HIGH MOMENTUM</div>'
+          + '<div style="color:#f0a030;font-size:16px;font-weight:700;margin-bottom:7px;">⚡ Leading</div>'
+          + '<span style="color:rgba(220,210,195,.85);">Top coins by composite score across all timeframes. Sustained strength — not single-week spikes. Click any tile for full breakdown.</span>'
+        + '</div>'
+        + '<div style="border-left:3px solid #f03e58;padding-left:12px;">'
+          + '<div style="font-size:9px;letter-spacing:.13em;color:rgba(240,62,88,.7);margin-bottom:6px;font-weight:700;">↓ WORST 30D</div>'
+          + '<div style="color:#f03e58;font-size:16px;font-weight:700;margin-bottom:7px;">↓ Lagging</div>'
+          + '<span style="color:rgba(220,200,200,.85);">Biggest 30-day losers. Potential bounce candidates — or assets to exit. Monitor or reduce exposure.</span>'
+        + '</div>'
         + '</div>',
-    arrow: 'top', pos: 'below', wide: true
+    arrow: 'top', pos: 'neon-below', wide: true
   },
 
   /* Step 4: Leaderboard + disclaimer */
   {
     target: '.leaderboard',
     title: 'Leaderboard — Scores — Disclaimer',
-    desc: '<div style="font-size:14px;line-height:1.9;">'
-        + '<strong>100 coins</strong> ranked across <strong style="color:#ffffff;">24H · 7D · 14D · 30D</strong>. Click any column header to sort. Click any row for a full score breakdown.<br><br>'
-        + 'The <strong>Score</strong> combines three layers:<br>'
-        + '<strong>L1</strong> Momentum rank vs all 50 coins &nbsp;·&nbsp; <strong>L2</strong> Relative strength vs BTC, Gold, Silver, Oil &nbsp;·&nbsp; <strong>L3</strong> Tokenomics quality<br><br>'
+    desc: '<div style="font-size:13px;line-height:1.85;">'
+        + '<strong>100 coins</strong> ranked across <strong style="color:#fff;">24H · 7D · 14D · 30D</strong>. Click any column header to sort. Click any row for a full score breakdown.<br><br>'
+        + 'The <strong>Score</strong> combines three layers: <strong>L1</strong> Momentum rank · <strong>L2</strong> Relative strength vs BTC, Gold, Oil · <strong>L3</strong> Tokenomics quality<br><br>'
         + '<div style="background:rgba(255,69,96,.07);border:1px solid rgba(255,69,96,.3);border-radius:4px;padding:10px 12px;">'
         + '<strong style="color:#ff4560;">⚠ NOT FINANCIAL ADVICE</strong><br>'
-        + 'Rotator tracks historical price data. Scores do not predict future performance. A coin that has fallen for months will not automatically recover. Nothing here constitutes investment advice. Always research before trading. <strong>Never risk money you cannot afford to lose.</strong>'
+        + 'Rotator tracks historical price data only. Scores do not predict future performance. Always research before trading. <strong>Never risk money you cannot afford to lose.</strong>'
         + '</div></div>',
     arrow: 'bottom', pos: 'above', wide: true, agree: true,
     agreeText: 'I understand that Rotator is not financial advice and I am solely responsible for my own investment decisions.'
   },
 
-  /* Step 5: All set */
-  {
-    target: '.settings-btn',
-    title: "You're all set.",
-    desc: '<div style="font-size:14px;line-height:1.9;">'
-        + 'Data refreshes every 15 minutes automatically. Hit <strong>↻ REFRESH</strong> to force a fresh fetch at any time.<br><br>'
-        + '<strong style="color:var(--pro);">⚡ Unlock Pro free</strong> by sharing Rotator with 3 friends — this gives you up to 10 portfolio holdings and full Rotation Signals. Or support the project with a donation for an instant unlock code.<br><br>'
-        + 'Click the <strong>⚙ gear icon</strong> (highlighted) to change language, toggle asset modes, or replay this tutorial.'
-        + '</div>',
-    arrow: 'right', pos: 'gear'
-  },
-
-  /* Step 6: Swap Tool */
+  /* Step 5: Swap Tool — positioned BESIDE ratio section, arrow pointing right toward it */
   {
     target: '#ratio-section',
     title: '↔ Swap Tool — Best Time to Swap',
-    desc: '<div style="font-size:14px;line-height:1.9;">'
-        + 'The <strong style="color:var(--bnb);">Swap Tool</strong> in the right panel helps you find the <strong>optimal moment</strong> to swap one asset for another — not based on guesswork, but on tracking the live price <strong>ratio</strong> between them over time.<br><br>'
-        + 'Pick your FROM asset (what you hold) and TO asset (what you want). The ratio shows how many TO coins you receive per 1 FROM coin. When the ratio is near its <strong style="color:var(--green);">period peak ▲</strong>, you get maximum value for your swap.<br><br>'
-        + '<span style="font-size:12px;color:rgba(255,255,255,.6);">Use the Swap Calculator to simulate exact amounts. Always verify on your exchange before executing.</span>'
+    desc: '<div style="font-size:13px;line-height:1.85;">'
+        + 'The <strong style="color:var(--bnb);">Swap Tool</strong> helps you find the <strong>optimal moment</strong> to swap one asset for another — by tracking the live price <strong>ratio</strong> between them over time.<br><br>'
+        + 'Pick your <strong>FROM</strong> asset (what you hold) and <strong>TO</strong> asset (what you want). The ratio shows how many TO coins you get per 1 FROM coin right now.<br><br>'
+        + 'When the ratio is near its <strong style="color:var(--green);">▲ Period Peak</strong>, you get maximum value. The range bar and chart show exactly where you are in the cycle.<br><br>'
+        + '<span style="font-size:11px;color:rgba(255,255,255,.5);">Use the Swap Calculator to simulate exact amounts before executing on your exchange.</span>'
         + '</div>',
-    arrow: 'right', pos: 'above-left', wide: true
+    arrow: 'right', pos: 'swap-tool', wide: false
+  },
+
+  /* Step 6: All set — LAST STEP */
+  {
+    target: '.settings-btn',
+    title: "You're all set.",
+    desc: '<div style="font-size:13px;line-height:1.85;">'
+        + 'Data refreshes every 15 minutes automatically. Hit <strong>↻ REFRESH</strong> to force a fresh fetch at any time.<br><br>'
+        + '<strong style="color:var(--pro);">⚡ Unlock Pro free</strong> — share Rotator with 3 friends for up to 10 portfolio slots, full Rotation Signals, and the Swap Tool watchlist.<br><br>'
+        + 'Click the <strong>⚙ gear icon</strong> (highlighted) to change language, toggle asset modes, or replay this tutorial.'
+        + '</div>',
+    arrow: 'right', pos: 'gear'
   }
 ];
 
@@ -113,7 +104,7 @@ function tutCheckAgree() {
 
 function tutGetEl(selector) { return document.querySelector(selector); }
 
-/* ── Mobile-safe positioning ─────────────────────────────────── */
+/* ── Positioning ─────────────────────────────────────────────── */
 function tutPosition() {
   var step = TUT_STEPS[tutStep_];
   var el   = tutGetEl(step.target);
@@ -122,10 +113,10 @@ function tutPosition() {
   var vw   = window.innerWidth;
   var vh   = window.innerHeight;
 
-  /* Mobile: always center, fill width, scroll internally */
-  if (vw < 600) {
-    hole.style.display  = 'none';
-    var mg = 16;
+  /* Mobile: always center */
+  if (vw < 700) {
+    hole.style.display = 'none';
+    var mg = 12;
     box.style.left      = mg + 'px';
     box.style.top       = Math.round(vh * 0.06) + 'px';
     box.style.width     = (vw - mg * 2) + 'px';
@@ -135,14 +126,12 @@ function tutPosition() {
     return;
   }
 
-  /* Desktop — two-pass: set position estimate, then correct after paint */
   box.style.maxHeight = '';
   box.style.overflowY = '';
 
   if (!el) { tutGoNext(); return; }
   var r = el.getBoundingClientRect();
 
-  /* Element hidden/off-screen → center */
   if (r.width === 0 && r.height === 0) {
     hole.style.display = 'none';
     var bw = step.wide ? Math.min(vw - 40, 620) : 360;
@@ -153,14 +142,14 @@ function tutPosition() {
     return;
   }
 
-  /* Highlight hole */
-  hole.style.display  = 'block';
-  var pad = 8;
+  var pad = 6;
+  hole.style.display = 'block';
   hole.style.left   = (r.left - pad) + 'px';
   hole.style.top    = (r.top  - pad) + 'px';
   hole.style.width  = (r.width  + pad * 2) + 'px';
   hole.style.height = (r.height + pad * 2) + 'px';
 
+  /* ── center (step 1 welcome) ── */
   if (step.pos === 'center') {
     hole.style.display = 'none';
     var bw = step.wide ? Math.min(vw - 40, 620) : 380;
@@ -171,6 +160,7 @@ function tutPosition() {
     return;
   }
 
+  /* ── gear (step 6 all set) — left of gear icon ── */
   if (step.pos === 'gear') {
     var bw = 320;
     var bx = Math.max(10, r.left - bw - 12);
@@ -182,27 +172,91 @@ function tutPosition() {
     return;
   }
 
-  /* General positioning — set width first, then use rAF to read real height */
+  /* ── left-panel-right (step 2 holdings) — to the right of left sidebar ── */
+  if (step.pos === 'left-panel-right') {
+    var bw = 310;
+    /* Place box just to the right of the sidebar (left panel is ~310px wide) */
+    var sidebar = document.querySelector('.sidebar');
+    var sRect   = sidebar ? sidebar.getBoundingClientRect() : r;
+    /* Highlight the tiles area specifically */
+    var tilesEl = document.getElementById('tiles-grid');
+    if (tilesEl) {
+      var tr = tilesEl.getBoundingClientRect();
+      hole.style.left   = (sRect.left) + 'px';
+      hole.style.top    = (sRect.top) + 'px';
+      hole.style.width  = (sRect.width) + 'px';
+      hole.style.height = (sRect.height) + 'px';
+    }
+    var bx = sRect.right + 14;
+    /* Vertically center on the panel */
+    box.style.width = bw + 'px';
+    box.className   = 'tut-box arrow-left';
+    requestAnimationFrame(function() {
+      var bh = box.offsetHeight || 200;
+      var by = sRect.top + (sRect.height - bh) / 2;
+      by = Math.max(40, Math.min(by, vh - bh - 10));
+      bx = Math.min(bx, vw - bw - 10);
+      box.style.left = bx + 'px';
+      box.style.top  = by + 'px';
+    });
+    return;
+  }
+
+  /* ── neon-below (step 3 signal center) — below the neon section tiles ── */
+  if (step.pos === 'neon-below') {
+    var bw = step.wide ? Math.min(vw - 40, Math.max(620, r.width - 20)) : 500;
+    /* Center horizontally over the neon section */
+    var bx = r.left + (r.width - bw) / 2;
+    bx = Math.max(10, Math.min(bx, vw - bw - 10));
+    box.style.width = bw + 'px';
+    box.className   = 'tut-box arrow-top';
+    requestAnimationFrame(function() {
+      var bh = box.offsetHeight || 220;
+      var by = r.bottom + 10;
+      if (by + bh > vh - 10) { by = r.top - bh - 10; box.className = 'tut-box arrow-bottom'; }
+      box.style.left = bx + 'px';
+      box.style.top  = by + 'px';
+    });
+    return;
+  }
+
+  /* ── swap-tool (step 5) — to the LEFT of the right panel, arrow pointing right ── */
+  if (step.pos === 'swap-tool') {
+    hole.style.display = 'none'; /* don't highlight the whole right panel */
+    var bw = 360;
+    /* right panel starts at r.left — place box just to its left */
+    var bx = r.left - bw - 18;
+    if (bx < 10) bx = 10;
+    box.style.width = bw + 'px';
+    box.className   = 'tut-box arrow-right';
+    requestAnimationFrame(function() {
+      var bh = box.offsetHeight || 300;
+      /* Align vertically to the ratio section top area */
+      var by = r.top + 40;
+      by = Math.max(40, Math.min(by, vh - bh - 10));
+      box.style.left = bx + 'px';
+      box.style.top  = by + 'px';
+    });
+    return;
+  }
+
+  /* ── General fallback ── */
   var bw = step.wide ? Math.min(vw - 40, Math.max(600, r.width)) : 320;
   box.style.width = bw + 'px';
   box.className   = 'tut-box arrow-' + step.arrow;
 
-  /* Use requestAnimationFrame so box.offsetHeight reflects real rendered height */
   requestAnimationFrame(function() {
     var bh = box.offsetHeight || 260;
     var margin = 14;
     var bx, by;
-
     if      (step.pos === 'below')      { bx = r.left; by = r.bottom + pad + margin; }
     else if (step.pos === 'above')      { bx = r.left; by = r.top - pad - margin - bh; }
-    else if (step.pos === 'above-left') { bx = r.left; by = r.top - pad - margin - bh - 60; }
     else if (step.pos === 'right')      { bx = r.right + pad + margin; by = r.top; }
     else if (step.pos === 'right-high') { bx = r.right + pad + margin; by = Math.max(50, r.top); }
     else                                { bx = r.left - bw - pad - margin; by = r.top; }
 
     bx = Math.max(10, Math.min(bx, vw - bw - 10));
     by = Math.max(10, Math.min(by, vh - bh - 10));
-
     box.style.left = bx + 'px';
     box.style.top  = by + 'px';
   });
@@ -282,7 +336,6 @@ function toggleTutSetting(on) {
 
 function initTutorial() {
   var val; try { val = localStorage.getItem(TUT_KEY); } catch(e) {}
-  /* Default: ON for new users (no key stored yet) */
   var isOn = (val === null || val === 'on');
   document.getElementById('tut-toggle').checked = isOn;
   if (isOn) setTimeout(startTutorial, 800);
