@@ -38,11 +38,6 @@ function pctSpan(v) {
   var c = v >= 0 ? 'pct up' : 'pct dn';
   return '<span class="' + c + '">' + (v >= 0 ? '+' : '') + v.toFixed(2) + '%</span>';
 }
-function dateOffset(days) {
-  var d = new Date(); d.setDate(d.getDate() + days);
-  return d.toISOString().slice(0, 10);
-}
-
 /* ── BTC trend pill ──────────────────────────────────────────── */
 var _bearDismissed = false;
 try { _bearDismissed = localStorage.getItem('rot_bear_dismissed') === '1'; } catch(e) {}

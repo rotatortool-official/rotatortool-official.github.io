@@ -1206,45 +1206,6 @@ function fmtMcap(n) {
 }
 function fmtVol(n) { return fmtMcap(n); }
 
-/* ── Shared card builders ────────────────────────────────────── */
-function _tdPerfPill(label, value, cls, decimals, suffix) {
-  suffix = suffix || '%';
-  decimals = decimals !== undefined ? decimals : 1;
-  return '<div class="td-perf-pill">'
-    + '<div class="td-perf-pill-l">' + label + '</div>'
-    + '<div class="td-perf-pill-v ' + cls + '">'
-    + (cls === 'up' && value >= 0 ? '+' : '') + (+value).toFixed(decimals) + suffix
-    + '</div></div>';
-}
-
-function _tdBar(label, pct, color, rightLabel) {
-  return '<div class="td-bar-row">'
-    + '<span class="td-bar-lbl">' + label + '</span>'
-    + '<div class="td-bar-wrap"><div class="td-bar-fill" style="width:' + Math.max(2, Math.min(100, pct)) + '%;background:' + color + ';"></div></div>'
-    + '<span class="td-bar-val" style="color:' + color + ';">' + rightLabel + '</span>'
-    + '</div>';
-}
-
-function _tdMktCell(label, value) {
-  return '<div class="td-mkt-cell"><div class="td-mkt-cell-l">' + label + '</div><div class="td-mkt-cell-v">' + value + '</div></div>';
-}
-
-function _tdSetAccent(score) {
-  var bar   = document.getElementById('td-accent-bar');
-  if (!bar) return;
-  var color = score >= 65 ? 'var(--green)' : score <= 35 ? 'var(--red)' : 'var(--amber)';
-  bar.style.background = color;
-  bar.style.boxShadow  = '0 0 10px ' + color;
-}
-
-function _tdSetScore(score) {
-  var color = score >= 65 ? 'var(--green)' : score <= 35 ? 'var(--red)' : 'var(--amber)';
-  var numEl = document.getElementById('td-score-num');
-  if (numEl) numEl.innerHTML =
-    '<div class="td-score-num-val" style="color:' + color + ';">' + score + '</div>'
-    + '<div class="td-score-num-lbl">/ 100</div>';
-}
-
 function _positionPanel(panel, evt) {
   var isMobile = window.innerWidth <= 700;
   if (isMobile) {

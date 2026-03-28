@@ -1142,63 +1142,19 @@ td.qa-cell{text-align:center;width:28px;padding:0 4px !important;}
 /* ══════════════════════════════
    RATIO TRACKER
 ══════════════════════════════ */
-.ratio-section{background:transparent;padding:10px 14px 12px;border-bottom:1px solid rgba(130,110,200,.18);flex-shrink:0;}
-.ratio-section-head{display:none;}
+/* Legacy ratio classes kept for tutorial JS reference */
 .rt-header-row{display:flex;align-items:center;justify-content:space-between;gap:6px;margin-bottom:4px;flex-wrap:wrap;}
-.rt-pair-dots{display:flex;align-items:center;gap:5px;flex:1;min-width:0;flex-wrap:wrap;}
-.rt-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0;display:inline-block;}
-.rt-dot-from{background:#f03e58;}
-.rt-dot-to{background:#4a90d9;}
-.rt-divider,.rt-eq{font-size:13px;color:var(--muted);font-weight:300;}
-.rt-eq-label{font-size:10px;color:var(--green);font-family:var(--font-mono);font-weight:600;}
-.rt-coin-sel{background:transparent;border:none;color:var(--text);font-family:var(--font-mono);font-size:10px;cursor:pointer;padding:0 2px;outline:none;max-width:90px;}
-.rt-coin-sel:focus{color:var(--bnb);}
-.rt-status{font-size:9px;color:var(--muted);min-height:12px;margin-bottom:3px;}
-.rt-status.ok{color:var(--green);}.rt-status.err{color:var(--red);}.rt-status.warn{color:var(--amber);}
-.rt-saved-wrap{display:flex;flex-wrap:wrap;gap:3px;min-height:14px;}
-.rt-saved-empty{font-size:9px;color:var(--muted);font-style:italic;}
-.rt-saved-chip{display:inline-flex;align-items:center;gap:4px;background:var(--bg3);border:1px solid var(--bdr2);color:var(--text);font-family:var(--font-mono);font-size:9px;padding:2px 5px 2px 7px;border-radius:2px;cursor:pointer;transition:all .15s;}
-.rt-saved-chip:hover{border-color:var(--bnb);color:var(--bnb);}
-.rt-saved-chip.active{border-color:var(--bnb);color:var(--bnb);background:var(--bnbd);}
-.rt-chip-x{font-size:12px;line-height:1;color:var(--muted);padding:0 1px;transition:color .15s;}
-.rt-chip-x:hover{color:var(--red);}
-.rt-hero{display:flex;align-items:baseline;gap:8px;margin:6px 0 3px;flex-wrap:wrap;}
-.rt-ratio-num{font-size:52px;font-weight:200;letter-spacing:-2px;line-height:1;color:var(--text);font-family:var(--font-mono);text-shadow:0 0 30px rgba(220,220,255,.08);}
-.rt-ratio-num.dim{color:var(--muted);}
-.rt-ratio-unit{font-size:12px;color:rgba(180,200,220,.7);line-height:1.6;}
-.rt-badge{display:inline-block;font-size:10px;font-weight:600;letter-spacing:.06em;padding:3px 10px;border-radius:2px;border:1px solid transparent;}
 .rt-cards{display:flex;gap:6px;margin-bottom:8px;}
 .rt-card{flex:1;min-width:0;background:var(--bg3);border:1px solid var(--bdr);border-radius:3px;padding:6px 8px;}
-.rt-card-lbl{font-size:8px;color:var(--muted);letter-spacing:.1em;margin-bottom:2px;text-transform:uppercase;}
-.rt-card-val{font-size:14px;font-weight:700;font-family:var(--font-mono);}
-.rt-card-sub{font-size:9px;color:var(--muted);margin-top:1px;}
 .rt-tf-row{display:flex;align-items:center;gap:5px;margin-bottom:6px;}
 .rt-tf-lbl{font-size:9px;color:var(--muted);margin-right:3px;}
-.rt-tf-btn{background:none;border:1px solid var(--bdr2);color:var(--muted);padding:3px 10px;font-family:var(--font-mono);font-size:10px;cursor:pointer;border-radius:20px;transition:all .15s;}
 .rt-tf-btn.active{background:var(--bnb);border-color:var(--bnb);color:#111;font-weight:700;}
 .rt-tf-btn:hover:not(.active){border-color:var(--bnb);color:var(--bnb);}
 .rt-tf-btn:disabled{opacity:.35;cursor:default;}
 .rt-range-meta{display:flex;justify-content:space-between;font-size:9px;color:var(--muted);margin-bottom:4px;}
-.rt-bar-track{height:4px;background:var(--bg4);border-radius:2px;position:relative;margin-bottom:3px;}
-.rt-bar-fill{height:4px;border-radius:2px;background:var(--green);position:absolute;left:0;top:0;transition:width .5s;}
-.rt-bar-marker{position:absolute;top:-3px;width:2px;height:10px;background:var(--red);border-radius:1px;}
 .rt-bar-labels{display:flex;justify-content:space-between;font-size:8px;color:var(--muted);margin-bottom:4px;}
-.rt-chart-wrap{position:relative;width:100%;height:140px;margin:4px 0 6px;}
-.rt-calc{background:var(--bg3);border:1px solid var(--bdr);border-radius:4px;padding:9px 11px;margin-top:6px;}
-.rt-calc-title{font-size:10px;color:var(--muted);margin-bottom:8px;}
-.rt-calc-inputs{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:8px;}
 .rt-ci{min-width:0;}
 .rt-ci-full{grid-column:1/-1;}
-.rt-ci label{font-size:9px;color:var(--muted);display:block;margin-bottom:3px;letter-spacing:.06em;}
-.rt-ci input{width:100%;box-sizing:border-box;font-size:12px;font-family:var(--font-mono);padding:5px 7px;background:var(--bg4);border:1px solid var(--bdr2);border-radius:3px;color:var(--text);outline:none;}
-.rt-ci input:focus{border-color:var(--bnb);}
-.rt-calc-result{display:flex;justify-content:space-between;align-items:flex-end;gap:6px;padding-top:6px;border-top:1px solid var(--bdr);}
-.rt-res-lbl{font-size:9px;color:var(--muted);margin-bottom:3px;letter-spacing:.08em;}
-.rt-res-val{font-size:16px;font-weight:600;font-family:var(--font-mono);}
-.rt-footer{font-size:8px;color:var(--muted);margin-top:7px;text-align:center;}
-.rt-hr{border:none;border-top:1px solid var(--bdr);margin:8px 0;}
-.rt-refresh-btn{background:none;border:1px solid var(--bdr2);color:var(--muted);padding:3px 9px;font-family:var(--font-mono);font-size:10px;cursor:pointer;border-radius:3px;display:flex;align-items:center;gap:3px;transition:all .15s;}
-.rt-refresh-btn:hover{border-color:var(--bnb);color:var(--bnb);}
 .rt-refresh-btn:disabled{opacity:.35;cursor:default;}
 .rt-star-btn{background:none;border:1px solid var(--bdr2);color:var(--muted);padding:3px 7px;font-size:13px;cursor:pointer;border-radius:3px;transition:all .15s;line-height:1.2;}
 .rt-star-btn:hover{border-color:var(--bnb);color:var(--bnb);}
@@ -1312,14 +1268,9 @@ td.qa-cell{text-align:center;width:28px;padding:0 4px !important;}
 .rt-timing .tim-txt{font-size:11px;font-weight:600;flex:1;}
 .rt-timing .tim-sub{font-size:9px;color:var(--muted);display:block;font-weight:400;margin-top:1px;}
 
-.rt-res-lbl{font-size:9px;color:var(--muted);letter-spacing:.08em;}
-.rt-res-val{font-size:18px;font-weight:600;font-family:var(--font-mono);}
-
 /* ── ADD HOLDINGS button in leaderboard header ── */
 .add-holdings-lb-btn{display:flex;align-items:center;gap:5px;padding:4px 11px;background:rgba(243,186,47,.08);border:1px solid rgba(243,186,47,.28);color:var(--bnb);font-family:inherit;font-size:9px;font-weight:600;letter-spacing:.1em;cursor:pointer;border-radius:3px;transition:all .15s;white-space:nowrap;}
 .add-holdings-lb-btn:hover{background:rgba(243,186,47,.16);border-color:var(--bnb);}
-
-.rt-pair-row,.rt-sel-wrap,.rt-sel-lbl,.rt-swap-arrow,.rt-saved-row,.rt-saved-lbl,.rt-actions-row{display:none;}
 
 /* ══════════════════════════════════════════
    RATIO TOOL REDESIGN
@@ -1327,9 +1278,6 @@ td.qa-cell{text-align:center;width:28px;padding:0 4px !important;}
 
 /* Top action bar */
 .rt-top-actions{display:flex;justify-content:flex-end;gap:5px;margin-bottom:8px;}
-
-/* Pair row — side by side */
-.rt-pair-row{display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:6px;margin-bottom:6px;}
 .rt-pair-side{display:flex;align-items:center;gap:6px;background:var(--bg3);border:1px solid rgba(130,110,200,.2);border-radius:5px;padding:7px 8px;cursor:pointer;transition:border-color .15s;}
 .rt-pair-side:hover{border-color:rgba(130,110,200,.45);}
 .rt-coin-icon-lg{width:26px !important;height:26px !important;border-radius:50%;border:1px solid rgba(255,255,255,.1) !important;}
@@ -1366,9 +1314,7 @@ td.qa-cell{text-align:center;width:28px;padding:0 4px !important;}
 .rt-card-val{font-size:14px;font-weight:700;font-family:var(--font-mono);}
 .rt-card-sub{font-size:10px;color:var(--muted);margin-top:1px;}
 
-/* Swap calculator — bigger + brighter */
-.rt-calc{background:rgba(130,110,200,.06);border:1px solid rgba(130,110,200,.2);border-radius:5px;padding:10px 12px;margin-top:8px;}
-.rt-calc-title{font-size:12px;font-weight:700;letter-spacing:.08em;color:rgba(180,200,220,.9);margin-bottom:10px;text-transform:uppercase;}
+/* Swap calculator inputs */
 .rt-ci label{font-size:10px;color:rgba(180,200,220,.75);display:block;margin-bottom:4px;letter-spacing:.07em;font-weight:500;}
 .rt-ci input{width:100%;box-sizing:border-box;font-size:13px;font-family:var(--font-mono);padding:6px 8px;background:rgba(0,0,0,.3);border:1px solid rgba(130,110,200,.25);border-radius:3px;color:var(--text);outline:none;}
 .rt-ci input:focus{border-color:rgba(130,110,200,.6);}
@@ -1415,15 +1361,6 @@ td.qa-cell{text-align:center;width:28px;padding:0 4px !important;}
 .rt-chip-x{font-size:12px;line-height:1;color:var(--muted);padding:0 1px;transition:color .15s;}
 .rt-chip-x:hover{color:var(--red);}
 
-/* ── Pair selector column labels ── */
-.rt-pair-row{display:grid;grid-template-columns:1fr auto 1fr;align-items:end;gap:6px;margin-bottom:6px;}
-.rt-pair-col{display:flex;flex-direction:column;gap:4px;}
-.rt-pair-col-lbl{font-size:8px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);padding:0 2px;}
-.rt-pair-side{display:flex;align-items:center;gap:6px;background:var(--bg3);border:1px solid rgba(130,110,200,.25);border-radius:5px;padding:7px 8px;cursor:pointer;transition:border-color .15s;}
-.rt-pair-side:hover,.rt-pair-side-to:hover{border-color:rgba(130,110,200,.55);}
-.rt-pair-side-to{border-color:rgba(74,144,217,.25);background:rgba(74,144,217,.04);}
-.rt-pair-side-to:hover{border-color:rgba(74,144,217,.55);}
-.rt-pair-divider{font-size:18px;color:var(--muted);font-weight:200;text-align:center;flex-shrink:0;padding-bottom:4px;}
 
 /* ══════════════════════════════════════════════════
    COIN PAIR TILES — square compact pair display
@@ -1488,9 +1425,6 @@ td.qa-cell{text-align:center;width:28px;padding:0 4px !important;}
 /* Now ratio display in cards */
 #rt-now-ratio-val{font-size:14px;font-weight:700;font-family:var(--font-mono);}
 
-/* Remove old pair row styles that conflict */
-.rt-pair-row{display:none !important;}
-.rt-pair-col,.rt-pair-col-lbl,.rt-pair-side,.rt-pair-divider{display:none !important;}
 
 /* ══ PAIR TILES: 2-col wider ══ */
 .rt-pair-tiles{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px;}
