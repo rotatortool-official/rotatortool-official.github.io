@@ -266,7 +266,12 @@ var RatioTracker = (function() {
     var amt=parseFloat(amtEl.value)||0,ovF=parseFloat(ovFEl?ovFEl.value:''),ovT=parseFloat(ovTEl?ovTEl.value:'');
     var fp=(!isNaN(ovF)&&ovF>0)?ovF:S.fromPrice,tp=(!isNaN(ovT)&&ovT>0)?ovT:S.toPrice;
     if(!fp||!tp||amt<=0) return;
-    set('rt-calc-out',(amt*(fp/tp)).toLocaleString('en-US',{maximumFractionDigits:2})+' '+lbl(S.to));
+    var outAmt = amt*(fp/tp);
+    var outFmt = outAmt >= 1000 ? outAmt.toLocaleString('en-US',{maximumFractionDigits:2})
+               : outAmt >= 1    ? outAmt.toLocaleString('en-US',{maximumFractionDigits:4})
+               : outAmt >= 0.01 ? outAmt.toLocaleString('en-US',{maximumFractionDigits:6})
+               : outAmt.toLocaleString('en-US',{maximumFractionDigits:8});
+    set('rt-calc-out', outFmt + ' ' + lbl(S.to));
     set('rt-calc-usd-out','$'+(amt*fp).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2}));
   }
 
