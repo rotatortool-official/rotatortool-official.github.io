@@ -247,29 +247,19 @@ function quickAddCoin(sym, price, btn) {
     return;
   }
 
-  /* Open the Add Holdings modal pre-selecting this coin */
+  /* Always open the Add Holdings modal so user can enter price & qty */
   var c = coins.find(function(x) { return x.sym === sym; });
-  if (c && typeof openAddHoldingsModal === 'function') {
+  if (typeof openAddHoldingsModal === 'function') {
     openAddHoldingsModal();
-    setTimeout(function() { if (typeof ahmSelect === 'function') ahmSelect(c.id); }, 80);
-    return;
+    /* Pre-select the coin after modal renders */
+    var coinId = c ? c.id : sym;
+    setTimeout(function() {
+      if (typeof ahmSelect === 'function') ahmSelect(coinId);
+      /* Pre-fill price with current market price as suggestion */
+      var avgEl = document.getElementById('ahm-avg');
+      if (avgEl && price) avgEl.value = price;
+    }, 150);
   }
-
-  /* Fallback: add with qty=1 and avg=current price */
-  var isFirst = holdings.length === 0;
-  holdings.push({ sym: sym, qty: 1, avg: price || null });
-  saveH();
-  if (isFirst) creditReferrer();
-
-  /* Update just this button immediately for snappy feedback */
-  if (btn) {
-    btn.textContent = '✓';
-    btn.classList.add('held');
-    btn.title = 'In holdings';
-    btn.onclick = null;
-  }
-
-  renderAll();
 }
 
 /* ══════════════════════════════════════════════════════════════
@@ -303,7 +293,7 @@ function renderTable() {
       + '<td class="qa-cell">' + qaBtnHtml + '</td>'
       + '<td style="color:var(--muted);font-size:10px;">' + (i+1) + '</td>'
       + '<td><div class="cc"><div class="ti"><img src="' + c.image + '" alt="" onerror="this.style.display=\'none\'"></div><div><div style="display:flex;align-items:center;"><span class="tsym">' + c.sym + '</span>' + (isH ? '<span class="htag">HELD</span>' : '') + '</div><div class="tname">' + (c.name.length > 17 ? c.name.slice(0,15) + '…' : c.name) + '</div></div></div></td>'
-      + '<td class="r" style="padding-right:8px;">' + fmtP(c.price) + '</td>'
+      + '<td class="r price-col">' + fmtP(c.price) + '</td>'
       + '<td class="pc">' + pctSpan(c.p24) + '</td>'
       + '<td class="pc">' + pctSpan(c.p7)  + '</td>'
       + '<td class="pc">' + pctSpan(c.p14) + '</td>'
