@@ -726,7 +726,7 @@ td.qa-cell{text-align:center;width:28px;padding:0 4px !important;}
 .ad-donate{width:100%;background:rgba(243,186,47,.05);border:1px solid rgba(243,186,47,.18);border-radius:5px;padding:12px 14px;text-align:center;}
 .ad-donate-title{font-size:13px;font-weight:400;color:var(--bnb);letter-spacing:.02em;margin-bottom:4px;font-family:var(--font-display);}
 .ad-donate-sub{font-size:10px;color:var(--muted);line-height:1.7;margin-bottom:8px;font-family:var(--font-ui);}
-.ad-donate-btn{width:100%;padding:6px;background:var(--bnbd);border:1px solid rgba(243,186,47,.25);color:var(--bnb);font-family:inherit;font-size:11px;letter-spacing:.1em;cursor:pointer;border-radius:3px;transition:all .15s;}
+.ad-donate-btn{width:100%;padding:7px;background:var(--bnbd);border:1px solid rgba(243,186,47,.25);color:var(--bnb);font-family:inherit;font-size:12px;font-weight:600;letter-spacing:.1em;cursor:pointer;border-radius:3px;transition:all .15s;}
 .ad-donate-btn:hover{background:rgba(243,186,47,.15);border-color:var(--bnb);}
 /* ── STRETCHED ACTION BUTTONS ── */
 .topbar-action-btns{display:flex;gap:5px;flex:1;justify-content:flex-end;}
@@ -1600,13 +1600,13 @@ td.qa-cell{text-align:center;width:28px;padding:0 4px !important;}
 :root.light .topbar{background:rgba(240,250,255,.92);border-bottom:2px solid rgba(80,190,155,.30);}
 :root.light .sidebar{background:linear-gradient(180deg,rgba(80,195,155,.18) 0%,rgba(80,195,155,.06) 50%,var(--bg2) 100%);border-right:2px solid rgba(80,190,155,.25);}
 :root.light .ad-panel{background:linear-gradient(180deg,rgba(230,70,85,.14) 0%,rgba(230,70,85,.06) 50%,var(--bg2) 100%);border-left:3px solid rgba(230,70,85,.35);box-shadow:-4px 0 20px rgba(230,70,85,.10);}
-:root.light thead tr{background:rgba(70,200,155,.28);box-shadow:0 2px 0 rgba(70,190,150,.22);}
-:root.light thead th{color:rgba(10,70,50,.85);font-weight:700;}
+:root.light thead tr{background:rgb(195,235,220);box-shadow:0 2px 4px rgba(0,0,0,.08);}
+:root.light thead th{color:rgba(10,60,45,.9);font-weight:800;}
 :root.light tbody tr:nth-child(odd){background:rgba(230,242,255,.5);}
 :root.light tbody tr:nth-child(even){background:rgba(240,165,185,.16);}
 :root.light tbody tr:hover{background:rgba(240,165,185,.30) !important;}
 :root.light tbody tr.held{background:rgba(0,153,110,.10);}
-:root.light .tbl-head{background:rgba(70,200,155,.22);}
+:root.light .tbl-head{background:rgb(195,235,220);}
 :root.light .bars-col-inner{background:var(--bg3) !important;border:1px solid rgba(80,190,155,.18);}
 :root.light .mob-nav{background:rgba(240,250,255,.95);border-top:2px solid rgba(80,190,155,.25);}
 :root.light .overlay{background:var(--overlay-bg);}
@@ -1697,6 +1697,116 @@ td.qa-cell{text-align:center;width:28px;padding:0 4px !important;}
 :root.light .rt-header-row{font-weight:700;}
 :root.light .ad-panel .rt-label{font-weight:600;color:var(--text);}
 :root.light .keep-free-title{color:var(--text) !important;}
+/* ── Swap calculator: darker, bigger, more readable ── */
+:root.light .rt-calc{background:rgba(100,80,180,.06);border-color:rgba(100,80,180,.18);}
+:root.light .rt-calc-title{font-size:16px;color:rgba(50,30,100,.85);text-shadow:none;}
+:root.light .rt-calc label{color:rgba(30,30,60,.7);font-weight:600;}
+:root.light .rt-calc input{color:var(--text) !important;font-weight:600;}
+:root.light .rt-calc-result{border-top-color:rgba(100,80,180,.15);}
+:root.light .rt-calc-result div{color:var(--text);}
+:root.light .rt-calc-ratios{border-top-color:rgba(100,80,180,.12);}
+:root.light .rt-calc-ratio-line{color:rgba(30,40,60,.65);font-weight:500;}
+:root.light .rt-card-val,.rt-card-val-lg{color:var(--text);}
+:root.light .ad-panel label{color:rgba(30,30,60,.65);font-weight:600;}
+:root.light .ad-panel .rt-card{color:var(--text);}
+:root.light .rt-picker-price{color:rgba(30,40,60,.55);}
+/* ── Topbar: mint green to match the theme ── */
+:root.light .topbar{background:rgba(70,200,155,.14);border-bottom:2px solid rgba(70,190,150,.28);box-shadow:0 2px 10px rgba(70,200,155,.08);}
+/* ── 3 Central panels: sticky note schoolbook aesthetic ── */
+:root.light .bars-col-inner{
+  background:linear-gradient(180deg,rgba(255,248,220,.90) 0%,rgba(255,245,210,.70) 100%) !important;
+  border:1px solid rgba(200,180,120,.30) !important;
+  border-top:3px solid rgba(200,180,120,.45) !important;
+  box-shadow:2px 3px 10px rgba(0,0,0,.10), 0 1px 0 rgba(255,255,255,.5) inset !important;
+  background-image:
+    linear-gradient(180deg,rgba(255,248,220,.90) 0%,rgba(255,245,210,.70) 100%),
+    repeating-linear-gradient(transparent, transparent 23px, rgba(140,120,80,.22) 23px, rgba(140,120,80,.22) 24px) !important;
+  position:relative;overflow:visible;padding-top:14px !important;
+}
+:root.light .bars-col-inner::before{
+  content:'';position:absolute;top:-6px;left:50%;transform:translateX(-50%);
+  width:16px;height:16px;border-radius:50%;z-index:3;
+  box-shadow:0 2px 5px rgba(0,0,0,.22), inset 0 -1px 2px rgba(0,0,0,.15), inset 0 2px 4px rgba(255,255,255,.5);
+}
+:root.light .bars-col-inner:nth-child(1){border-top-color:rgba(0,180,130,.5) !important;}
+:root.light .bars-col-inner:nth-child(2){border-top-color:rgba(230,160,40,.5) !important;}
+:root.light .bars-col-inner:nth-child(3){border-top-color:rgba(220,60,70,.45) !important;}
+:root.light .bars-col-inner:nth-child(1)::before{background:radial-gradient(circle at 38% 32%, rgba(255,255,255,.7), rgba(40,190,140,.9) 60%);}
+:root.light .bars-col-inner:nth-child(2)::before{background:radial-gradient(circle at 38% 32%, rgba(255,255,255,.7), rgba(235,175,40,.9) 60%);}
+:root.light .bars-col-inner:nth-child(3)::before{background:radial-gradient(circle at 38% 32%, rgba(255,255,255,.7), rgba(225,65,75,.9) 60%);}
+:root.light .bar-col-title{color:rgba(80,60,20,.80) !important;}
+:root.light .bars-col-inner .sig-tile{background:rgba(255,252,240,.75);border:1px solid rgba(200,180,120,.22);box-shadow:1px 1px 4px rgba(0,0,0,.05);}
+/* ── Colorful push-pin on tiles (light mode only) ── */
+:root.light .tile::before{
+  content:'';position:absolute;top:-5px;left:50%;transform:translateX(-50%);
+  width:14px;height:14px;border-radius:50%;
+  box-shadow:0 2px 4px rgba(0,0,0,.18), inset 0 -1px 2px rgba(0,0,0,.12), inset 0 2px 3px rgba(255,255,255,.5);
+  z-index:2;background:radial-gradient(circle at 40% 35%, rgba(255,255,255,.6), rgba(220,60,70,.85) 60%);
+}
+:root.light .tile{position:relative;overflow:visible;margin-top:8px;clip-path:none;}
+:root.light .tile canvas.sp{clip-path:inset(0 0 0 0 round var(--card-radius));}
+:root.light .tile:nth-child(2n)::before{background:radial-gradient(circle at 40% 35%, rgba(255,255,255,.6), rgba(60,160,220,.85) 60%);}
+:root.light .tile:nth-child(3n)::before{background:radial-gradient(circle at 40% 35%, rgba(255,255,255,.6), rgba(80,200,130,.85) 60%);}
+:root.light .tile:nth-child(4n)::before{background:radial-gradient(circle at 40% 35%, rgba(255,255,255,.6), rgba(230,170,40,.85) 60%);}
+:root.light .tile:nth-child(5n)::before{background:radial-gradient(circle at 40% 35%, rgba(255,255,255,.6), rgba(180,100,220,.85) 60%);}
+/* ── Tile: torn notebook page feel ── */
+:root.light .tile{
+  background:
+    repeating-linear-gradient(transparent, transparent 23px, rgba(130,140,180,.14) 23px, rgba(130,140,180,.14) 24px),
+    linear-gradient(180deg, rgba(255,255,255,.85) 0%, rgba(245,248,255,.65) 100%) !important;
+  border-left:3px solid rgba(220,80,90,.22) !important;
+  border-color:rgba(180,170,150,.20) !important;
+  border-left-color:rgba(220,80,90,.25) !important;
+}
+:root.light .tile-placeholder{background:rgba(255,250,230,.5) !important;border-left:3px solid rgba(0,153,110,.15) !important;}
+/* ── Tile detail: sticky note / notebook page style ── */
+:root.light .tile-detail{
+  background:
+    repeating-linear-gradient(transparent, transparent 27px, rgba(140,125,90,.18) 27px, rgba(140,125,90,.18) 28px),
+    linear-gradient(180deg, rgba(255,250,225,.97) 0%, rgba(255,245,210,.95) 100%) !important;
+  border:1px solid rgba(200,180,120,.35) !important;
+  border-radius:4px 4px 4px 4px !important;
+  box-shadow:3px 4px 14px rgba(0,0,0,.14), 0 1px 0 rgba(255,255,255,.5) inset !important;
+  padding-top:32px !important;
+  position:relative;overflow:visible;
+}
+/* Notebook holes across the top */
+:root.light .tile-detail::before{
+  content:'';position:absolute;top:8px;left:16px;right:16px;height:14px;z-index:3;
+  background:
+    radial-gradient(circle 5px at 10% 50%, rgba(200,190,160,.9) 4px, transparent 5px),
+    radial-gradient(circle 5px at 25% 50%, rgba(200,190,160,.9) 4px, transparent 5px),
+    radial-gradient(circle 5px at 40% 50%, rgba(200,190,160,.9) 4px, transparent 5px),
+    radial-gradient(circle 5px at 55% 50%, rgba(200,190,160,.9) 4px, transparent 5px),
+    radial-gradient(circle 5px at 70% 50%, rgba(200,190,160,.9) 4px, transparent 5px),
+    radial-gradient(circle 5px at 85% 50%, rgba(200,190,160,.9) 4px, transparent 5px);
+}
+/* Curled corner bottom-right */
+:root.light .tile-detail::after{
+  content:'';position:absolute;bottom:0;right:0;width:28px;height:28px;z-index:3;
+  background:linear-gradient(225deg, rgba(221,234,246,.95) 0%, rgba(221,234,246,.95) 48%, rgba(230,210,150,.7) 50%, rgba(245,235,200,.9) 100%);
+  border-radius:0 0 0 0;
+  box-shadow:-1px -1px 3px rgba(0,0,0,.06);
+}
+/* Red margin line on left */
+:root.light .tile-detail{border-left:3px solid rgba(220,70,80,.25) !important;}
+/* Section titles on the note */
+:root.light .td-section-title{color:rgba(120,90,40,.7);}
+:root.light .td-section-title::after{background:rgba(180,160,100,.25);}
+:root.light .tdh-sym{color:rgba(60,40,10,.9);}
+:root.light .tdh-name{color:rgba(100,80,40,.6);}
+:root.light .tdh-price{color:rgba(40,30,10,.9);}
+:root.light .td-close{color:rgba(160,130,60,.5);}
+:root.light .td-close:hover{color:rgba(140,80,30,.8);}
+:root.light .td-share-label{color:rgba(120,90,40,.65);}
+:root.light .td-sh{background:rgba(255,248,220,.7);border-color:rgba(200,180,120,.25);color:rgba(100,80,40,.6);}
+:root.light .td-sh:hover{background:rgba(245,235,200,.9);border-color:rgba(180,150,80,.4);color:rgba(80,60,20,.8);}
+:root.light .td-share-wrap{border-top-color:rgba(180,160,100,.25);}
+/* Score and data sections */
+:root.light .td-score-num-val{color:rgba(50,35,10,.85);}
+:root.light .td-data-box{background:rgba(255,248,220,.5);border-color:rgba(200,180,120,.20);}
+:root.light .td-data-label{color:rgba(120,90,40,.6);}
+:root.light .td-data-val{color:rgba(50,35,10,.85);}
 </style>
 </head>
 <body>
@@ -2198,8 +2308,8 @@ td.qa-cell{text-align:center;width:28px;padding:0 4px !important;}
     <!-- SUPPORT CARD — bottom of sidebar -->
     <div class="sidebar-donate" style="margin-top:auto;padding:10px 12px 12px;flex-shrink:0;">
       <div class="ad-donate">
-        <div class="ad-donate-title">Keep it Free</div>
-        <div class="ad-donate-sub">Rotator is free forever.<br>A coffee keeps the servers on.</div>
+        <div class="ad-donate-title" style="font-size:14px;">Keep it Free</div>
+        <div class="ad-donate-sub">Rotator is free forever.<br>A coffee keeps the servers on.<br><span style="font-style:italic;opacity:.75;">Your donation keeps the person building this safe from starving ♥</span></div>
         <div id="sidebar-goal-left" style="margin:8px 0;"></div>
         <button class="ad-donate-btn" onclick="openModal('donate-modal')">SUPPORT THE PROJECT</button>
       </div>
