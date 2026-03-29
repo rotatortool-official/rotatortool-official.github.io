@@ -465,13 +465,7 @@ body::before{content:'';position:fixed;inset:0;background:repeating-linear-gradi
 .tf-tab{background:none;border:1px solid var(--bdr);color:var(--muted);font-family:inherit;font-size:9px;padding:2px 8px;cursor:pointer;border-radius:var(--card-radius);letter-spacing:.08em;transition:all .15s;}
 .tf-tab.active{border-color:var(--bnb);color:var(--bnb);background:var(--bnbd);}
 .leaderboard{flex:1;overflow-y:auto;min-height:0;}
-table{width:100%;border-collapse:collapse;table-layout:fixed;}
-/* Desktop column widths: eye(28) rank(28) coin(auto) price(70) 4×pct(60ea) score(70) */
-thead th:nth-child(1){width:28px;}
-thead th:nth-child(2){width:28px;}
-thead th:nth-child(4){width:70px;}
-thead th:nth-child(5),thead th:nth-child(6),thead th:nth-child(7),thead th:nth-child(8){width:60px;}
-thead th:nth-child(9){width:75px;}
+table{width:100%;border-collapse:collapse;}
 thead tr{background:var(--bg4);position:sticky;top:0;z-index:10;box-shadow:0 1px 0 var(--bdr2);}
 thead th{padding:9px 5px;text-align:left;font-size:11px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:rgba(180,195,215,.75);border-bottom:2px solid var(--bdr2);white-space:nowrap;cursor:pointer;user-select:none;}
 thead th:hover{color:var(--text);}
@@ -558,7 +552,7 @@ td.pc{text-align:right;padding-left:2px;padding-right:2px;}
 .qa-btn.watch-eye.watching{opacity:1;border-color:rgba(0,200,150,.5);color:var(--green);background:rgba(0,200,150,.08);}
 .qa-btn.watch-eye.watching:hover{background:rgba(255,69,96,.08);border-color:rgba(255,69,96,.4);color:var(--red);}
 td.qa-cell{text-align:center;width:28px;padding:0 4px !important;}
-.price-col{padding-left:2px !important;padding-right:2px !important;white-space:nowrap;}
+.price-col{padding-left:4px !important;padding-right:4px !important;white-space:nowrap;}
 
 
 .pro-upsell-row td{padding:0;}
@@ -599,7 +593,9 @@ td.qa-cell{text-align:center;width:28px;padding:0 4px !important;}
 .holdings-view-tabs{display:flex;gap:0;border-bottom:1px solid var(--bdr);flex-shrink:0;background:var(--bg2);}
 .hvtab{flex:1;background:none;border:none;color:var(--muted);font-family:inherit;font-size:9px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;padding:5px 4px;cursor:pointer;border-bottom:2px solid transparent;transition:all .15s;position:relative;}
 .hvtab.active{color:var(--bnb);border-bottom-color:var(--bnb);background:var(--bnbd);}
-.hvtab.watch-active{color:var(--green) !important;border-bottom-color:var(--green) !important;background:rgba(0,200,150,.06) !important;}
+.hvtab-watch{color:rgba(0,200,150,.55) !important;}
+.hvtab-watch:hover:not(.active){color:var(--green) !important;border-bottom-color:rgba(0,200,150,.35) !important;}
+.hvtab-watch.active{color:var(--green) !important;border-bottom-color:var(--green) !important;background:rgba(0,200,150,.06) !important;}
 .hvtab:hover:not(.active){color:var(--text);border-bottom-color:var(--bdr2);}
 
 /* ── PLACEHOLDER TILES (watchlist / empty holdings) ── */
@@ -1070,10 +1066,11 @@ td.qa-cell{text-align:center;width:28px;padding:0 4px !important;}
   thead th:nth-child(2),tbody td:nth-child(2){display:none;}
   .sb{display:none;}
   table{table-layout:fixed;width:100%;}
-  thead th:nth-child(1){width:18px;}
-  thead th:nth-child(3){width:30%;}
-  thead th:nth-child(4),thead th:nth-child(5),thead th:nth-child(6),thead th:nth-child(7){width:13%;}
-  thead th:nth-child(8){width:9%;}
+  thead th:nth-child(1){width:20px;}
+  thead th:nth-child(3){width:24%;}
+  thead th:nth-child(4){width:14%;}
+  thead th:nth-child(5),thead th:nth-child(6),thead th:nth-child(7),thead th:nth-child(8){width:13%;}
+  thead th:nth-child(9){width:10%;}
   tbody td{font-size:10px;padding:3px 1px;}
   thead th{font-size:8px;padding:3px 1px;}
   td.qa-cell{width:18px;padding:0 1px !important;}
@@ -1931,7 +1928,7 @@ td.qa-cell{text-align:center;width:28px;padding:0 4px !important;}
       <!-- Dual view tabs -->
       <div class="holdings-view-tabs">
         <button class="hvtab active" id="hvtab-my" onclick="switchHoldingsView('my')">💼 My Holdings</button>
-        <button class="hvtab" id="hvtab-watch" onclick="switchHoldingsView('watch')">👁 Watchlist</button>
+        <button class="hvtab hvtab-watch" id="hvtab-watch" onclick="switchHoldingsView('watch')">👁 Watchlist</button>
       </div>
 
       <!-- MY HOLDINGS VIEW -->
@@ -2482,8 +2479,10 @@ td.qa-cell{text-align:center;width:28px;padding:0 4px !important;}
         if (avgEl) avgEl.value = '';
       };
     }
+  };
+})();
 
-    /* ════════════════════════════════════════════════════════════════
+/* ════════════════════════════════════════════════════════════════
    NEW FEATURES JS
    - Left panel dual tabs (My Holdings / Watchlist)
    - Add Holdings Modal (coin search + inputs)
@@ -2497,7 +2496,6 @@ function switchHoldingsView(view) {
   document.getElementById('hvtab-my').classList.toggle('active', view === 'my');
   var wTab = document.getElementById('hvtab-watch');
   wTab.classList.toggle('active', view === 'watch');
-  wTab.classList.toggle('watch-active', view === 'watch');
   document.getElementById('my-holdings-panel').style.display = view === 'my' ? 'flex' : 'none';
   document.getElementById('watchlist-panel').style.display   = view === 'watch' ? 'flex' : 'none';
 }
@@ -2731,15 +2729,6 @@ document.addEventListener('DOMContentLoaded', function() {
     }
   }, 800);
 });
-
-    var inputs = panel.querySelectorAll('input[type="number"]');
-    inputs.forEach(function(inp) {
-      inp.addEventListener('keydown', function(e) {
-        if (e.key === 'Enter') { if (addBtn) addBtn.click(); }
-      });
-    });
-  };
-})();
 </script>
 <style>
 @media(max-width:700px){
