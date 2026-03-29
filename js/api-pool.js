@@ -174,10 +174,9 @@ function getCacheInfo(url) {
    
    Strategy (tried in order, stops at first success):
      1. Direct fetch          — fastest, works for CORS-safe APIs
-     2. thingproxy            — more reliable on mobile
-     3. corsproxy.io          — good fallback
-     4. allorigins.win        — last resort
-   
+     2. corsproxy.io          — good fallback
+     3. allorigins.win        — last resort
+
    Returns: parsed JSON data (already unwrapped from proxy format)
    Throws:  Error with all failure messages if all proxies fail
 ══════════════════════════════════════════════════════════════════ */
@@ -193,7 +192,6 @@ async function apiFetch(url) {
     /* ── Proxy pool — add more here if needed ── */
     var ps = [
       function(){ return fetch(url, {signal: AbortSignal.timeout(9000)}); },
-      function(){ return fetch('https://thingproxy.freeboard.io/fetch/' + url, {signal: AbortSignal.timeout(11000)}); },
       function(){ return fetch('https://corsproxy.io/?' + encodeURIComponent(url), {signal: AbortSignal.timeout(11000)}); },
       function(){ return fetch('https://api.allorigins.win/get?url=' + encodeURIComponent(url), {signal: AbortSignal.timeout(11000)}); }
     ];

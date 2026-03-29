@@ -116,7 +116,7 @@ function renderTiles() {
     var isTop = topG && c.sym === topG.sym && c.p24 > 0;
     html += '<div class="tile ' + glw + '" id="tile-' + c.sym + '" onclick="openTileDetail(\'' + c.id + '\',event)" style="cursor:pointer;" title="Click for full breakdown">'
           + (isTop ? '<canvas class="sp" id="sp-' + c.sym + '"></canvas>' : '')
-          + '<div class="tile-top"><div class="tile-ico"><img src="' + c.image + '" alt="" onerror="this.style.display=\'none\'"></div>'
+          + '<div class="tile-top"><div class="tile-ico"><img src="' + c.image + '" alt="' + c.sym + ' logo" loading="lazy" width="16" height="16" onerror="this.style.display=\'none\'"></div>'
           + '<span class="tile-sym">' + c.sym + '</span>'
           + '<button class="tile-rm" onclick="event.stopPropagation();removeHolding(\'' + h.sym + '\')">×</button></div>'
           + '<div class="tile-price">' + fmtP(c.price) + '</div>'

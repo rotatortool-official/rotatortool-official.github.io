@@ -6,6 +6,18 @@
 <meta http-equiv="X-Content-Type-Options" content="nosniff">
 <meta name="referrer" content="no-referrer-when-downgrade">
 <meta name="description" content="Rotation Screener — Find the best crypto, forex and stock rotation opportunities. Free top 30 coins, Pro top 50 coins.">
+<meta name="robots" content="index, follow">
+<link rel="canonical" href="https://rotatortool.github.io/">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Rotator — Crypto, Forex & Stock Rotation Screener">
+<meta property="og:description" content="Free real-time rotation screener. Track the top 50 coins, forex pairs, and stocks. Find rotation opportunities with multi-timeframe scoring.">
+<meta property="og:url" content="https://rotatortool.github.io/">
+<meta property="og:image" content="https://rotatortool.github.io/og-image.png">
+<meta property="og:site_name" content="Rotator">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Rotator — Crypto, Forex & Stock Rotation Screener">
+<meta name="twitter:description" content="Free real-time rotation screener. Find the best rotation opportunities across crypto, forex, and stocks.">
+<meta name="twitter:image" content="https://rotatortool.github.io/og-image.png">
 <title>⬡ ROTATOR — Binance Rotation Screener</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -52,6 +64,7 @@
   --overlay-bg:rgba(0,0,0,.40);
   --tooltip-bg:rgba(238,245,252,.98);
 }
+.sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0;}
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
 html,body{height:100%;font-family:'IBM Plex Mono',monospace;background:var(--bg);color:var(--text);font-size:13px;line-height:1.4;}
 body::before{content:'';position:fixed;inset:0;background:repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(0,0,0,0.02) 2px,rgba(0,0,0,0.02) 4px);pointer-events:none;z-index:998;}
@@ -1687,6 +1700,7 @@ td.qa-cell{text-align:center;width:28px;padding:0 4px !important;}
 </style>
 </head>
 <body>
+<noscript><div style="padding:40px;text-align:center;font-family:sans-serif;font-size:16px;color:#333;background:#f4f5f8;">Rotator requires JavaScript to run. Please enable JavaScript in your browser settings and reload the page.</div></noscript>
 
 <!-- ABOUT MODAL -->
 <div class="overlay" id="about-modal" onclick="if(event.target===this)closeModal('about-modal')">
@@ -1861,11 +1875,11 @@ td.qa-cell{text-align:center;width:28px;padding:0 4px !important;}
     <div style="display:flex;gap:8px;align-items:flex-end;">
       <div style="flex:1;">
         <label style="font-size:9px;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;">Buy Price ($)</label>
-        <input type="number" id="td-hold-avg" placeholder="0.00" step="any" min="0" style="width:100%;margin-top:3px;padding:6px 8px;background:var(--bg1);border:1px solid var(--bdr);border-radius:4px;color:var(--fg);font-size:12px;font-family:var(--font-mono);">
+        <input type="number" id="td-hold-avg" aria-label="Buy price" placeholder="0.00" step="any" min="0" style="width:100%;margin-top:3px;padding:6px 8px;background:var(--bg1);border:1px solid var(--bdr);border-radius:4px;color:var(--fg);font-size:12px;font-family:var(--font-mono);">
       </div>
       <div style="flex:1;">
         <label style="font-size:9px;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;">Quantity</label>
-        <input type="number" id="td-hold-qty" placeholder="0" step="any" min="0" style="width:100%;margin-top:3px;padding:6px 8px;background:var(--bg1);border:1px solid var(--bdr);border-radius:4px;color:var(--fg);font-size:12px;font-family:var(--font-mono);">
+        <input type="number" id="td-hold-qty" aria-label="Quantity" placeholder="0" step="any" min="0" style="width:100%;margin-top:3px;padding:6px 8px;background:var(--bg1);border:1px solid var(--bdr);border-radius:4px;color:var(--fg);font-size:12px;font-family:var(--font-mono);">
       </div>
       <button id="td-hold-save" onclick="saveTileHolding()" style="padding:6px 14px;background:var(--green);color:#000;border:none;border-radius:4px;font-size:11px;font-weight:700;cursor:pointer;white-space:nowrap;">SAVE</button>
     </div>
@@ -1988,6 +2002,7 @@ td.qa-cell{text-align:center;width:28px;padding:0 4px !important;}
 </div>
 
 <!-- TOPBAR -->
+<header>
 <div class="topbar">
   <!-- ── MOBILE: 5 equal cells ── -->
   <!-- Cell 1: BTC trend -->
@@ -2042,8 +2057,10 @@ td.qa-cell{text-align:center;width:28px;padding:0 4px !important;}
     </div>
   </div>
 </div>
+</header>
 
-
+<main>
+<h1 class="sr-only">Rotator — Real-Time Crypto, Forex & Stock Rotation Screener</h1>
 <div class="root">
 
   <!-- LEFT: Holdings (mode-aware) -->
@@ -2066,7 +2083,7 @@ td.qa-cell{text-align:center;width:28px;padding:0 4px !important;}
 
     <!-- PORTFOLIO SIGNAL: direct sidebar child — zero gap guaranteed -->
     <div class="sig-box" id="sig-box-crypto">
-      <div class="sig-title">◈ Portfolio Signal</div>
+      <h2 class="sig-title">◈ Portfolio Signal</h2>
       <div id="sig-content"><div style="font-size:11px;color:var(--muted);font-family:var(--font-ui);">Add holdings to see your signal.</div></div>
     </div>
 
@@ -2111,7 +2128,7 @@ td.qa-cell{text-align:center;width:28px;padding:0 4px !important;}
       <div class="phead"><div class="ptitle">Add Forex Pair</div></div>
       <div class="add-form">
         <div class="frow"><span class="flbl">PAIR</span>
-          <select id="fx-sel">
+          <select id="fx-sel" aria-label="Select forex pair">
             <option value="">Select…</option>
             <option value="EUR/USD">EUR/USD — Euro / US Dollar</option>
             <option value="GBP/USD">GBP/USD — British Pound</option>
@@ -2125,8 +2142,8 @@ td.qa-cell{text-align:center;width:28px;padding:0 4px !important;}
             <option value="GBP/JPY">GBP/JPY — Pound / Yen</option>
           </select>
         </div>
-        <div class="frow"><span class="flbl">SIZE</span><input type="number" id="fx-qty" placeholder="lot size" min="0" step="any"></div>
-        <div class="frow"><span class="flbl">ENTRY</span><input type="number" id="fx-entry" placeholder="entry rate" min="0" step="any"></div>
+        <div class="frow"><span class="flbl">SIZE</span><input type="number" id="fx-qty" aria-label="Lot size" placeholder="lot size" min="0" step="any"></div>
+        <div class="frow"><span class="flbl">ENTRY</span><input type="number" id="fx-entry" aria-label="Entry rate" placeholder="entry rate" min="0" step="any"></div>
         <button class="add-btn" onclick="addForexHolding()">+ ADD FOREX PAIR</button>
       </div>
     </div>
@@ -2142,7 +2159,7 @@ td.qa-cell{text-align:center;width:28px;padding:0 4px !important;}
       <div class="phead"><div class="ptitle">Add Stock</div></div>
       <div class="add-form">
         <div class="frow"><span class="flbl">TICKER</span>
-          <select id="st-sel">
+          <select id="st-sel" aria-label="Select stock">
             <option value="">Select…</option>
             <optgroup label="Indices">
               <option value="^GSPC">S&amp;P 500</option>
@@ -2172,8 +2189,8 @@ td.qa-cell{text-align:center;width:28px;padding:0 4px !important;}
             </optgroup>
           </select>
         </div>
-        <div class="frow"><span class="flbl">SHARES</span><input type="number" id="st-qty" placeholder="shares" min="0" step="any"></div>
-        <div class="frow"><span class="flbl">AVG $</span><input type="number" id="st-avg" placeholder="avg buy price" min="0" step="any"></div>
+        <div class="frow"><span class="flbl">SHARES</span><input type="number" id="st-qty" aria-label="Number of shares" placeholder="shares" min="0" step="any"></div>
+        <div class="frow"><span class="flbl">AVG $</span><input type="number" id="st-avg" aria-label="Average buy price" placeholder="avg buy price" min="0" step="any"></div>
         <button class="add-btn" onclick="addStockHolding()">+ ADD STOCK</button>
       </div>
     </div>
@@ -2210,7 +2227,7 @@ td.qa-cell{text-align:center;width:28px;padding:0 4px !important;}
       </div>
     </div>
     <div class="tbl-head">
-      <div class="ptitle" id="tbl-title">PERFORMANCE LEADERBOARD</div>
+      <h2 class="ptitle" id="tbl-title">PERFORMANCE LEADERBOARD</h2>
       <div style="display:flex;align-items:center;gap:10px;flex-shrink:0;">
         <span id="last-updated-crypto"  class="last-upd-ts" style="display:none;"></span>
         <span id="last-updated-forex"   class="last-upd-ts" style="display:none;"></span>
@@ -2264,19 +2281,19 @@ td.qa-cell{text-align:center;width:28px;padding:0 4px !important;}
 
       <!-- SWAP CALCULATOR — top of panel -->
       <div class="rt-calc">
-        <div class="rt-calc-title">⇄ SWAP CALCULATOR</div>
+        <h2 class="rt-calc-title">⇄ SWAP CALCULATOR</h2>
         <div class="rt-calc-inputs">
           <div class="rt-ci rt-ci-full">
             <label id="rt-calc-from-lbl">Amount</label>
-            <input type="number" id="rt-calc-amt" value="100" step="any" oninput="RatioTracker.calcSwap()">
+            <input type="number" id="rt-calc-amt" aria-label="Swap amount" value="100" step="any" oninput="RatioTracker.calcSwap()">
           </div>
           <div class="rt-ci">
             <label id="rt-calc-from-ov-lbl">Override FROM ($)</label>
-            <input type="number" id="rt-calc-from-ov" placeholder="auto" step="any" oninput="RatioTracker.calcSwap()">
+            <input type="number" id="rt-calc-from-ov" aria-label="Override from price" placeholder="auto" step="any" oninput="RatioTracker.calcSwap()">
           </div>
           <div class="rt-ci">
             <label id="rt-calc-to-ov-lbl">Override TO ($)</label>
-            <input type="number" id="rt-calc-to-ov" placeholder="auto" step="any" oninput="RatioTracker.calcSwap()">
+            <input type="number" id="rt-calc-to-ov" aria-label="Override to price" placeholder="auto" step="any" oninput="RatioTracker.calcSwap()">
           </div>
         </div>
         <div class="rt-calc-result">
@@ -2439,9 +2456,9 @@ td.qa-cell{text-align:center;width:28px;padding:0 4px !important;}
     </div>
     <button class="ahm-confirm-btn" id="ahm-confirm-btn" onclick="ahmConfirm()" disabled>+ ADD TO HOLDINGS</button>
     <!-- Hidden legacy inputs needed by addHolding() -->
-    <select id="coin-sel" style="display:none;"><option value="">Select…</option></select>
-    <input type="number" id="inp-qty" style="display:none;" placeholder="amount" min="0" step="any">
-    <input type="number" id="inp-avg" style="display:none;" placeholder="avg buy price" min="0" step="any">
+    <select id="coin-sel" aria-label="Select coin" style="display:none;"><option value="">Select…</option></select>
+    <input type="number" id="inp-qty" aria-label="Amount" style="display:none;" placeholder="amount" min="0" step="any">
+    <input type="number" id="inp-avg" aria-label="Average buy price" style="display:none;" placeholder="avg buy price" min="0" step="any">
   </div>
 </div>
 
@@ -2460,7 +2477,7 @@ td.qa-cell{text-align:center;width:28px;padding:0 4px !important;}
     </div>
   </div>
 </div>
-
+</main>
 
 <footer class="site-footer">
   <div class="footer-links">
@@ -2515,16 +2532,16 @@ td.qa-cell{text-align:center;width:28px;padding:0 4px !important;}
      6. tutorial.js     — onboarding tutorial
      7. data-loaders.js — actual data fetching + app boot
      ══════════════════════════════════════════════════════════════ -->
-<script src="js/config.js?v=2"></script>
-<script src="js/api-pool.js?v=2"></script>
-<script src="js/pro-system.js?v=2"></script>
-<script src="js/signals.js?v=2"></script>
-<script src="js/holdings.js?v=2"></script>
-<script src="js/tutorial.js?v=2"></script>
-<script src="js/i18n.js?v=1"></script>
-<script src="js/data-loaders.js?v=2"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
-<script src="js/ratio.js?v=1"></script>
+<script defer src="js/config.js?v=2"></script>
+<script defer src="js/api-pool.js?v=2"></script>
+<script defer src="js/pro-system.js?v=2"></script>
+<script defer src="js/signals.js?v=2"></script>
+<script defer src="js/holdings.js?v=2"></script>
+<script defer src="js/tutorial.js?v=2"></script>
+<script defer src="js/i18n.js?v=1"></script>
+<script defer src="js/data-loaders.js?v=2"></script>
+<script defer src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<script defer src="js/ratio.js?v=1"></script>
 <script>
 
 /* ══════════════════════════════════════════════════════════════
