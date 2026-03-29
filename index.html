@@ -844,7 +844,7 @@ td.qa-cell{text-align:center;width:28px;padding:0 4px !important;}
   .sig-tile-ico{width:12px;height:12px;}
 
   /* ── TABLE: tight ── */
-  thead th:first-child,tbody td:first-child{display:none;}
+  thead th:nth-child(2),tbody td:nth-child(2){display:none;}
   .sb{display:none;}
   tbody td{font-size:11px;padding:3px 2px;border-bottom:none;}
   thead th{font-size:9px;padding:3px 2px;}
@@ -1049,11 +1049,11 @@ td.qa-cell{text-align:center;width:28px;padding:0 4px !important;}
   .footer-disclaimer{display:none !important;}
 
   /* ── TABLE ── */
-  thead th:first-child,tbody td:first-child{display:none;}
+  thead th:nth-child(2),tbody td:nth-child(2){display:none;}
   .sb{display:none;}
   table{table-layout:fixed;width:100%;}
-  thead th:nth-child(2){width:30%;}
-  thead th:nth-child(3){width:6%;}
+  thead th:nth-child(1){width:18px;}
+  thead th:nth-child(3){width:30%;}
   thead th:nth-child(4),thead th:nth-child(5),thead th:nth-child(6),thead th:nth-child(7){width:13%;}
   thead th:nth-child(8){width:9%;}
   tbody td{font-size:10px;padding:3px 1px;}
@@ -1693,6 +1693,22 @@ td.qa-cell{text-align:center;width:28px;padding:0 4px !important;}
     <div class="td-badge-row" id="td-badges"></div>
   </div>
 
+  <!-- Edit Holdings (shown only for held coins) -->
+  <div class="td-section" id="td-edit-hold-sec" style="display:none;">
+    <div class="td-section-title">Edit Holdings</div>
+    <div style="display:flex;gap:8px;align-items:flex-end;">
+      <div style="flex:1;">
+        <label style="font-size:9px;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;">Buy Price ($)</label>
+        <input type="number" id="td-hold-avg" placeholder="0.00" step="any" min="0" style="width:100%;margin-top:3px;padding:6px 8px;background:var(--bg1);border:1px solid var(--bdr);border-radius:4px;color:var(--fg);font-size:12px;font-family:var(--font-mono);">
+      </div>
+      <div style="flex:1;">
+        <label style="font-size:9px;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;">Quantity</label>
+        <input type="number" id="td-hold-qty" placeholder="0" step="any" min="0" style="width:100%;margin-top:3px;padding:6px 8px;background:var(--bg1);border:1px solid var(--bdr);border-radius:4px;color:var(--fg);font-size:12px;font-family:var(--font-mono);">
+      </div>
+      <button id="td-hold-save" onclick="saveTileHolding()" style="padding:6px 14px;background:var(--green);color:#000;border:none;border-radius:4px;font-size:11px;font-weight:700;cursor:pointer;white-space:nowrap;">SAVE</button>
+    </div>
+  </div>
+
   <!-- Share buttons -->
   <div class="td-share-wrap">
     <div class="td-share-label">SHARE INSIGHT</div>
@@ -2038,9 +2054,9 @@ td.qa-cell{text-align:center;width:28px;padding:0 4px !important;}
       <table>
         <thead>
           <tr>
+            <th style="width:28px;"></th>
             <th style="width:22px;">#</th>
             <th>COIN</th>
-            <th style="width:28px;"></th>
             <th class="r" style="padding-right:6px;" data-tip="Current market price in USD">PRICE</th>
             <th class="r" id="th-24" onclick="setSort(24)" data-tip="Price change in the last 24 hours">24H%</th>
             <th class="r sorted" id="th-7" onclick="setSort(7)" data-tip="Price change over 7 days. Click to sort.">7D%</th>
@@ -2078,50 +2094,7 @@ td.qa-cell{text-align:center;width:28px;padding:0 4px !important;}
     <!-- RATIO TRACKER -->
     <div class="ratio-section" id="ratio-section">
 
-      <!-- TOP: Save pair + Refresh -->
-      <div class="rt-top-actions">
-        <button class="rt-star-btn" id="rt-star-btn" title="Save pair">☆ Save pair</button>
-        <button class="rt-refresh-btn" id="rt-refresh-btn" onclick="RatioTracker.loadAll()" title="Refresh">
-          <span id="rt-spin-icon">↻</span> Refresh
-        </button>
-      </div>
-
-      <!-- COIN TILES: wider 2-col, no middle column -->
-      <div class="rt-pair-tiles">
-        <div class="rt-ct" id="rt-ct-from" onclick="RatioTracker._openPicker('from')" title="Change FROM coin">
-          <div class="rt-ct-lbl">FROM — you hold</div>
-          <img class="rt-ct-img" id="rt-from-icon" src="" alt="" onerror="this.style.opacity='0'">
-          <div class="rt-ct-sym" id="rt-ct-from-sym">—</div>
-          <div class="rt-ct-price" id="rt-from-price">—</div>
-          <div class="rt-ct-chg" id="rt-from-chg">—</div>
-          <select class="rt-ct-sel" id="rt-from" onchange="RatioTracker.onFromChange()"></select>
-        </div>
-        <div class="rt-ct rt-ct-to" id="rt-ct-to" onclick="RatioTracker._openPicker('to')" title="Change TO coin">
-          <div class="rt-ct-lbl">TO — you want</div>
-          <img class="rt-ct-img" id="rt-to-icon" src="" alt="" onerror="this.style.opacity='0'">
-          <div class="rt-ct-sym" id="rt-ct-to-sym">—</div>
-          <div class="rt-ct-price" id="rt-to-price">—</div>
-          <div class="rt-ct-chg" id="rt-to-chg">—</div>
-          <select class="rt-ct-sel" id="rt-to" onchange="RatioTracker.onToChange()"></select>
-        </div>
-      </div>
-
-      <!-- SWAP BUTTON + BADGE — below tiles -->
-      <div class="rt-swap-row">
-        <button class="rt-swap-pair-btn" onclick="RatioTracker.swapPair()" title="Swap FROM and TO">
-          <span class="rt-swap-arrows">⇄</span> Swap Pair
-        </button>
-        <span class="rt-badge" id="rt-badge">&nbsp;</span>
-      </div>
-
-      <!-- BOLD RATIO NUMBER -->
-      <div class="rt-ratio-center">
-        <div class="rt-ratio-bold" id="rt-ratio-num">0.00</div>
-        <div class="rt-ratio-bold-x">×</div>
-        <div class="rt-ratio-unit"><span id="rt-unit-txt">— received per 1 —</span></div>
-      </div>
-
-      <!-- SWAP CALCULATOR — top position -->
+      <!-- SWAP CALCULATOR — top of panel -->
       <div class="rt-calc">
         <div class="rt-calc-title">⇄ SWAP CALCULATOR</div>
         <div class="rt-calc-inputs">
@@ -2154,33 +2127,57 @@ td.qa-cell{text-align:center;width:28px;padding:0 4px !important;}
         </div>
       </div>
 
+      <!-- COIN TILES: FROM / TO -->
+      <div class="rt-pair-tiles">
+        <div class="rt-ct" id="rt-ct-from" onclick="RatioTracker._openPicker('from')" title="Change FROM coin">
+          <div class="rt-ct-lbl">FROM — you hold</div>
+          <img class="rt-ct-img" id="rt-from-icon" src="" alt="" onerror="this.style.opacity='0'">
+          <div class="rt-ct-sym" id="rt-ct-from-sym">—</div>
+          <div class="rt-ct-price" id="rt-from-price">—</div>
+          <div class="rt-ct-chg" id="rt-from-chg">—</div>
+          <select class="rt-ct-sel" id="rt-from" onchange="RatioTracker.onFromChange()"></select>
+        </div>
+        <div class="rt-ct rt-ct-to" id="rt-ct-to" onclick="RatioTracker._openPicker('to')" title="Change TO coin">
+          <div class="rt-ct-lbl">TO — you want</div>
+          <img class="rt-ct-img" id="rt-to-icon" src="" alt="" onerror="this.style.opacity='0'">
+          <div class="rt-ct-sym" id="rt-ct-to-sym">—</div>
+          <div class="rt-ct-price" id="rt-to-price">—</div>
+          <div class="rt-ct-chg" id="rt-to-chg">—</div>
+          <select class="rt-ct-sel" id="rt-to" onchange="RatioTracker.onToChange()"></select>
+        </div>
+      </div>
+
+      <!-- SWAP BUTTON + BADGE -->
+      <div class="rt-swap-row">
+        <button class="rt-swap-pair-btn" onclick="RatioTracker.swapPair()" title="Swap FROM and TO">
+          <span class="rt-swap-arrows">⇄</span> Swap Pair
+        </button>
+        <span class="rt-badge" id="rt-badge">&nbsp;</span>
+      </div>
+
+      <!-- BOLD RATIO NUMBER -->
+      <div class="rt-ratio-center">
+        <div class="rt-ratio-bold" id="rt-ratio-num">0.00</div>
+        <div class="rt-ratio-bold-x">×</div>
+        <div class="rt-ratio-unit"><span id="rt-unit-txt">— received per 1 —</span></div>
+      </div>
+
+      <!-- Save pair + Refresh -->
+      <div class="rt-top-actions">
+        <button class="rt-star-btn" id="rt-star-btn" title="Save pair">☆ Save pair</button>
+        <button class="rt-refresh-btn" id="rt-refresh-btn" onclick="RatioTracker.loadAll()" title="Refresh">
+          <span id="rt-spin-icon">↻</span> Refresh
+        </button>
+      </div>
+
       <!-- Status + saved pairs -->
       <div class="rt-status" id="rt-status">Connecting…</div>
       <div class="rt-saved-wrap" id="rt-saved-wrap">
         <span class="rt-saved-empty">No saved pairs yet — pick a pair and click ☆ Save pair</span>
       </div>
 
-      <!-- Period peak + Current cards — matched sizes -->
-      <div class="rt-cards">
-        <div class="rt-card">
-          <div class="rt-card-lbl">Period peak</div>
-          <div class="rt-card-val rt-card-val-lg" style="color:var(--green);" id="rt-peak-val">—</div>
-          <div class="rt-card-sub">Best this period</div>
-        </div>
-        <div class="rt-card">
-          <div class="rt-card-lbl">Current</div>
-          <div class="rt-card-val rt-card-val-lg" id="rt-now-ratio-val">—</div>
-          <div class="rt-card-sub">ratio now</div>
-        </div>
-      </div>
-
-      <!-- Timeframe -->
-      <div class="rt-tf-row">
-        <span class="rt-tf-lbl">Timeframe</span>
-        <button class="rt-tf-btn" id="rt-tf-1"  onclick="RatioTracker.setTF(1)">24h</button>
-        <button class="rt-tf-btn active" id="rt-tf-7"  onclick="RatioTracker.setTF(7)">7d</button>
-        <button class="rt-tf-btn" id="rt-tf-30" onclick="RatioTracker.setTF(30)">30d</button>
-      </div>
+      <!-- Chart -->
+      <div class="rt-chart-wrap"><canvas id="rt-spark"></canvas></div>
 
       <!-- Range bar -->
       <div class="rt-range-meta">
@@ -2198,8 +2195,27 @@ td.qa-cell{text-align:center;width:28px;padding:0 4px !important;}
         <span>now</span>
       </div>
 
-      <!-- Chart -->
-      <div class="rt-chart-wrap"><canvas id="rt-spark"></canvas></div>
+      <!-- Timeframe -->
+      <div class="rt-tf-row">
+        <span class="rt-tf-lbl">Timeframe</span>
+        <button class="rt-tf-btn" id="rt-tf-1"  onclick="RatioTracker.setTF(1)">24h</button>
+        <button class="rt-tf-btn active" id="rt-tf-7"  onclick="RatioTracker.setTF(7)">7d</button>
+        <button class="rt-tf-btn" id="rt-tf-30" onclick="RatioTracker.setTF(30)">30d</button>
+      </div>
+
+      <!-- Period peak + Current cards -->
+      <div class="rt-cards">
+        <div class="rt-card">
+          <div class="rt-card-lbl">Period peak</div>
+          <div class="rt-card-val rt-card-val-lg" style="color:var(--green);" id="rt-peak-val">—</div>
+          <div class="rt-card-sub">Best this period</div>
+        </div>
+        <div class="rt-card">
+          <div class="rt-card-lbl">Current</div>
+          <div class="rt-card-val rt-card-val-lg" id="rt-now-ratio-val">—</div>
+          <div class="rt-card-sub">ratio now</div>
+        </div>
+      </div>
 
       <div class="rt-footer">Live data via CoinGecko · Not financial advice · Always verify before swapping</div>
 
