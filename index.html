@@ -65,6 +65,12 @@ body::before{content:'';position:fixed;inset:0;background:repeating-linear-gradi
 .bear-banner span:nth-child(2){overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
 .bear-close{background:none;border:none;color:rgba(255,69,96,.5);cursor:pointer;font-size:16px;line-height:1;padding:0 0 0 4px;margin-left:auto;flex-shrink:0;font-family:inherit;transition:color .15s;}
 .bear-close:hover{color:var(--red);}
+/* ── SCALING TIP BANNER ── */
+.scale-banner{display:none;align-items:center;gap:6px;padding:3px 10px;background:rgba(180,195,215,.07);border:1px solid rgba(180,195,215,.18);border-radius:3px;font-size:10px;color:rgba(180,195,215,.7);line-height:1.5;flex:1;min-width:0;margin:0 8px;font-family:var(--font-ui);}
+.scale-banner.show{display:flex;}
+.scale-banner span:nth-child(2){overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.scale-close{background:none;border:none;color:rgba(180,195,215,.4);cursor:pointer;font-size:16px;line-height:1;padding:0 0 0 4px;margin-left:auto;flex-shrink:0;font-family:inherit;transition:color .15s;}
+.scale-close:hover{color:rgba(180,195,215,.8);}
 
 /* ══════════════════════════════
    MODALS
@@ -459,7 +465,13 @@ body::before{content:'';position:fixed;inset:0;background:repeating-linear-gradi
 .tf-tab{background:none;border:1px solid var(--bdr);color:var(--muted);font-family:inherit;font-size:9px;padding:2px 8px;cursor:pointer;border-radius:var(--card-radius);letter-spacing:.08em;transition:all .15s;}
 .tf-tab.active{border-color:var(--bnb);color:var(--bnb);background:var(--bnbd);}
 .leaderboard{flex:1;overflow-y:auto;min-height:0;}
-table{width:100%;border-collapse:collapse;}
+table{width:100%;border-collapse:collapse;table-layout:fixed;}
+/* Desktop column widths: eye(28) rank(28) coin(auto) price(70) 4×pct(60ea) score(70) */
+thead th:nth-child(1){width:28px;}
+thead th:nth-child(2){width:28px;}
+thead th:nth-child(4){width:70px;}
+thead th:nth-child(5),thead th:nth-child(6),thead th:nth-child(7),thead th:nth-child(8){width:60px;}
+thead th:nth-child(9){width:75px;}
 thead tr{background:var(--bg4);position:sticky;top:0;z-index:10;box-shadow:0 1px 0 var(--bdr2);}
 thead th{padding:9px 5px;text-align:left;font-size:11px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:rgba(180,195,215,.75);border-bottom:2px solid var(--bdr2);white-space:nowrap;cursor:pointer;user-select:none;}
 thead th:hover{color:var(--text);}
@@ -541,6 +553,10 @@ td.pc{text-align:right;padding-left:2px;padding-right:2px;}
 .qa-btn:hover{background:rgba(243,186,47,.14);border-color:var(--bnb);color:var(--bnb);transform:scale(1.18);}
 .qa-btn.held{border-color:rgba(0,200,150,.45);color:var(--green);cursor:default;font-size:11px;}
 .qa-btn.held:hover{background:rgba(0,200,150,.08);transform:none;}
+.qa-btn.watch-eye{font-size:10px;opacity:.35;border-color:rgba(255,255,255,.12);color:var(--muted);}
+.qa-btn.watch-eye:hover{opacity:.7;border-color:rgba(0,200,150,.4);color:var(--green);background:rgba(0,200,150,.06);}
+.qa-btn.watch-eye.watching{opacity:1;border-color:rgba(0,200,150,.5);color:var(--green);background:rgba(0,200,150,.08);}
+.qa-btn.watch-eye.watching:hover{background:rgba(255,69,96,.08);border-color:rgba(255,69,96,.4);color:var(--red);}
 td.qa-cell{text-align:center;width:28px;padding:0 4px !important;}
 .price-col{padding-left:2px !important;padding-right:2px !important;white-space:nowrap;}
 
@@ -583,6 +599,7 @@ td.qa-cell{text-align:center;width:28px;padding:0 4px !important;}
 .holdings-view-tabs{display:flex;gap:0;border-bottom:1px solid var(--bdr);flex-shrink:0;background:var(--bg2);}
 .hvtab{flex:1;background:none;border:none;color:var(--muted);font-family:inherit;font-size:9px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;padding:5px 4px;cursor:pointer;border-bottom:2px solid transparent;transition:all .15s;position:relative;}
 .hvtab.active{color:var(--bnb);border-bottom-color:var(--bnb);background:var(--bnbd);}
+.hvtab.watch-active{color:var(--green) !important;border-bottom-color:var(--green) !important;background:rgba(0,200,150,.06) !important;}
 .hvtab:hover:not(.active){color:var(--text);border-bottom-color:var(--bdr2);}
 
 /* ── PLACEHOLDER TILES (watchlist / empty holdings) ── */
@@ -1866,6 +1883,11 @@ td.qa-cell{text-align:center;width:28px;padding:0 4px !important;}
     <span><strong>BEAR MARKET CAUTION:</strong> BTC is below its 200-day moving average. Rotation strategies carry higher risk in downtrends.</span>
     <button class="bear-close" onclick="dismissBearBanner()" title="Dismiss">×</button>
   </div>
+  <div class="scale-banner" id="scale-banner">
+    <span>🖥</span>
+    <span>This website uses dynamic scaling. Use <strong>Ctrl +</strong> / <strong>Ctrl −</strong> to adjust the layout to your liking.</span>
+    <button class="scale-close" onclick="dismissScaleBanner()" title="Dismiss">×</button>
+  </div>
   <div class="topbar-r">
     <span class="ts" id="ts">—</span>
     <button class="settings-btn" onclick="openSettingsPanel(this)" title="Settings">⚙ <span id="lang-flag">🇬🇧</span></button>
@@ -2473,7 +2495,9 @@ var _holdingsView = 'my';
 function switchHoldingsView(view) {
   _holdingsView = view;
   document.getElementById('hvtab-my').classList.toggle('active', view === 'my');
-  document.getElementById('hvtab-watch').classList.toggle('active', view === 'watch');
+  var wTab = document.getElementById('hvtab-watch');
+  wTab.classList.toggle('active', view === 'watch');
+  wTab.classList.toggle('watch-active', view === 'watch');
   document.getElementById('my-holdings-panel').style.display = view === 'my' ? 'flex' : 'none';
   document.getElementById('watchlist-panel').style.display   = view === 'watch' ? 'flex' : 'none';
 }

@@ -42,6 +42,13 @@ function pctSpan(v) {
 var _bearDismissed = false;
 try { _bearDismissed = localStorage.getItem('rot_bear_dismissed') === '1'; } catch(e) {}
 
+function _showScaleBannerIfNeeded() {
+  var scaleDismissed = false;
+  try { scaleDismissed = localStorage.getItem('rot_scale_dismissed') === '1'; } catch(e) {}
+  var sb = document.getElementById('scale-banner');
+  if (sb && !scaleDismissed) sb.classList.add('show');
+}
+
 function renderBTC() {
   var pill    = document.getElementById('btc-pill');
   var pillTxt = document.getElementById('btc-pill-txt');
@@ -56,12 +63,19 @@ function renderBTC() {
     document.getElementById('bear-banner').classList.remove('show');
     _bearDismissed = false;
     try { localStorage.removeItem('rot_bear_dismissed'); } catch(e) {}
+    /* No bear banner → show scale tip directly */
+    _showScaleBannerIfNeeded();
   } else {
     if (pill)    pill.className = 'btc-pill bear';
     if (pillTxt) pillTxt.textContent = 'BTC DOWNTREND ▼';
     if (mobInner) mobInner.className = 'mob-btc-cell';
     if (mobTxt)   mobTxt.textContent = '▼ BTC';
-    if (!_bearDismissed) document.getElementById('bear-banner').classList.add('show');
+    if (!_bearDismissed) {
+      document.getElementById('bear-banner').classList.add('show');
+    } else {
+      /* Bear banner already dismissed → show scale tip */
+      _showScaleBannerIfNeeded();
+    }
   }
 }
 
@@ -235,31 +249,19 @@ function renderTopBars() {
   sugEl.innerHTML = '<div class="sig-tiles-grid">' + pairs.map(function(p) { return sigRotTile(p.sell, p.buy); }).join('') + '</div>';
 }
 
-/* ── Quick-add a coin from the leaderboard ─────────────────── */
-function quickAddCoin(sym, price, btn) {
-  /* Check if already held */
-  if (holdings.findIndex(function(h) { return h.sym === sym; }) >= 0) return;
-
-  /* Check limits */
-  var limit = isPro ? PRO_HOLDINGS_LIMIT : FREE_HOLDINGS_LIMIT;
-  if (holdings.length >= limit) {
-    if (!isPro) { openPro(); } else { alert('Portfolio limit reached (' + PRO_HOLDINGS_LIMIT + ' assets).'); }
-    return;
+/* ── Toggle watchlist from the leaderboard eye icon ────────── */
+function toggleWatch(sym, btn) {
+  if (typeof watchlist === 'undefined') return;
+  var idx = watchlist.indexOf(sym);
+  if (idx >= 0) {
+    watchlist.splice(idx, 1);
+    if (btn) { btn.classList.remove('watching'); btn.title = 'Add to watchlist'; }
+  } else {
+    watchlist.push(sym);
+    if (btn) { btn.classList.add('watching'); btn.title = 'Watching'; }
   }
-
-  /* Always open the Add Holdings modal so user can enter price & qty */
-  var c = coins.find(function(x) { return x.sym === sym; });
-  if (typeof openAddHoldingsModal === 'function') {
-    openAddHoldingsModal();
-    /* Pre-select the coin after modal renders */
-    var coinId = c ? c.id : sym;
-    setTimeout(function() {
-      if (typeof ahmSelect === 'function') ahmSelect(coinId);
-      /* Pre-fill price with current market price as suggestion */
-      var avgEl = document.getElementById('ahm-avg');
-      if (avgEl && price) avgEl.value = price;
-    }, 150);
-  }
+  if (typeof saveWatchlist === 'function') saveWatchlist();
+  if (typeof renderWatchlist === 'function') renderWatchlist();
 }
 
 /* ══════════════════════════════════════════════════════════════
@@ -286,9 +288,10 @@ function renderTable() {
     var scC    = sc >= 65 ? 'var(--green)' : sc < 0 ? 'var(--red)' : sc >= 40 ? 'var(--amber)' : 'var(--muted)';
     var mcapStr = c.mcap ? '$' + (c.mcap/1e9 >= 1 ? (c.mcap/1e9).toFixed(2) + 'B' : (c.mcap/1e6).toFixed(0) + 'M') : '—';
     var tipData = 'data-sym="' + c.sym + '" data-name="' + c.name + '" data-mcap="' + mcapStr + '" data-score="' + sc + '" data-p24="' + c.p24.toFixed(2) + '" data-p7="' + c.p7.toFixed(2) + '" data-p30="' + c.p30.toFixed(2) + '" data-held="' + (isH ? '1' : '0') + '"';
+    var isW = (typeof watchlist !== 'undefined') && watchlist.indexOf(c.sym) >= 0;
     var qaBtnHtml = isH
       ? '<button class="qa-btn held" title="In holdings" onclick="event.stopPropagation()">✓</button>'
-      : '<button class="qa-btn" title="Add to holdings" onclick="event.stopPropagation();quickAddCoin(\'' + c.sym + '\',' + (c.price || 0) + ',this)">+</button>';
+      : '<button class="qa-btn watch-eye' + (isW ? ' watching' : '') + '" title="' + (isW ? 'Watching' : 'Add to watchlist') + '" onclick="event.stopPropagation();toggleWatch(\'' + c.sym + '\',this)">👁</button>';
     return '<tr class="' + (isH ? 'held' : '') + '" ' + tipData + ' onmouseenter="showRowTip(this,event)" onmouseleave="hideTip()" onclick="openTileDetail(\'' + c.id + '\',event)">'
       + '<td class="qa-cell">' + qaBtnHtml + '</td>'
       + '<td style="color:var(--muted);font-size:10px;">' + (i+1) + '</td>'

@@ -996,6 +996,20 @@ function dismissBearBanner() {
   _bearDismissed = true;
   try { localStorage.setItem('rot_bear_dismissed', '1'); } catch(e) {}
   document.getElementById('bear-banner').classList.remove('show');
+  /* Show scaling tip if not already dismissed */
+  var scaleDismissed = false;
+  try { scaleDismissed = localStorage.getItem('rot_scale_dismissed') === '1'; } catch(e) {}
+  if (!scaleDismissed) {
+    var sb = document.getElementById('scale-banner');
+    if (sb) sb.classList.add('show');
+  }
+}
+
+/* ── Dismiss scale tip banner ──────────────────────────────── */
+function dismissScaleBanner() {
+  try { localStorage.setItem('rot_scale_dismissed', '1'); } catch(e) {}
+  var sb = document.getElementById('scale-banner');
+  if (sb) sb.classList.remove('show');
 }
 
 /* ── Mobile holdings panel ───────────────────────────────────── */
