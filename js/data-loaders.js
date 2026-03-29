@@ -7,7 +7,7 @@
    • CHANGE SCORING WEIGHTS:
        In computeScores() find the three LAYERS:
        L1 = intra-list rank:  adjust the 0.25 / 0.30 / 0.45 weights
-       L2 = macro strength:   adjust the 0.40 / 0.30 / 0.15 / 0.15 weights
+       L2 = macro strength:   adjust the 0.35/0.25/0.10/0.10 core + 0.10 DXY + 0.10 Total3 weights
        L3 = tokenomics:       adjust supplyPts / deflPts / unlockPts values
    
    • CHANGE AUTO-REFRESH INTERVAL:
@@ -154,7 +154,7 @@ async function loadCoins() {
 
 
 /* ── Macro data (Gold, Silver, Oil, BTC 7D) ──────────────────── */
-var _macroData = {btcP7: null, goldP7: null, silverP7: null, oilP7: null};
+var _macroData = {btcP7: null, goldP7: null, silverP7: null, oilP7: null, dxyP7: null, total3P7: null};
 
 async function loadMacroData() {
   try {
@@ -175,6 +175,30 @@ async function loadMacroData() {
     var oilData = await apiFetch(oilUrl);
     var oilQ    = oilData && oilData['Global Quote'];
     if (oilQ) _macroData.oilP7 = parseFloat((oilQ['10. change percent'] || '0%').replace('%', '')) || 0;
+
+    /* DXY (US Dollar Index) — rising DXY is bearish for crypto */
+    try {
+      var dxyUrl  = 'https://www.alphavantage.co/query?function=GLOBAL_QUOTE&symbol=UUP&apikey=' + getAVKey();
+      var dxyData = await apiFetch(dxyUrl);
+      var dxyQ    = dxyData && dxyData['Global Quote'];
+      if (dxyQ) _macroData.dxyP7 = parseFloat((dxyQ['10. change percent'] || '0%').replace('%', '')) || 0;
+    } catch(e2) { console.warn('DXY fetch:', e2.message); }
+
+    /* TOTAL3 (alt market cap excl. BTC+ETH) — via CoinGecko global */
+    try {
+      var t3Url  = 'https://api.coingecko.com/api/v3/global';
+      var t3Data = await apiFetch(t3Url);
+      if (t3Data && t3Data.data) {
+        var totalMcap = t3Data.data.total_market_cap && t3Data.data.total_market_cap.usd || 0;
+        var btcMcap   = (coins.find(function(c){ return c.id==='bitcoin'; }) || {mcap:0}).mcap || 0;
+        var ethMcap   = (coins.find(function(c){ return c.id==='ethereum'; }) || {mcap:0}).mcap || 0;
+        var total3Now = totalMcap - btcMcap - ethMcap;
+        var chgPct    = t3Data.data.market_cap_change_percentage_24h_usd || 0;
+        /* Approximate 7D from 24h change — rough but directional */
+        _macroData.total3P7 = chgPct * 2.5;
+        _macroData.total3Mcap = total3Now;
+      }
+    } catch(e3) { console.warn('Total3 fetch:', e3.message); }
   } catch(e) { console.warn('Macro data:', e.message); }
 }
 
@@ -193,12 +217,22 @@ function computeScores() {
     var wAvg   = (c.r7 * 0.25 + c.r14 * 0.30 + c.r30 * 0.45);
     var layer1 = Math.round((1 - (wAvg - 1) / n) * 40);
 
-    /* LAYER 2: Macro relative strength vs BTC/Gold/Silver/Oil (0–30 pts) */
-    var btcP7  = _macroData.btcP7    != null ? _macroData.btcP7    : (coins.find(function(x){ return x.id==='bitcoin'; }) || {p7:0}).p7;
-    var goldP7 = _macroData.goldP7   != null ? _macroData.goldP7   : 2;
-    var silvP7 = _macroData.silverP7 != null ? _macroData.silverP7 : 1.5;
-    var oilP7  = _macroData.oilP7    != null ? _macroData.oilP7    : 1;
-    var delta  = (c.p7 - btcP7)*0.40 + (c.p7 - goldP7)*0.30 + (c.p7 - silvP7)*0.15 + (c.p7 - oilP7)*0.15;
+    /* LAYER 2: Macro relative strength vs BTC/Gold/Silver/Oil + DXY/Total3 (0–30 pts)
+       DXY inverse: rising dollar is headwind for crypto, so we ADD dxy strength (coin benefits when DXY falls)
+       Total3: rising altcoin market = tailwind, coin benefits when outperforming total3 */
+    var btcP7    = _macroData.btcP7    != null ? _macroData.btcP7    : (coins.find(function(x){ return x.id==='bitcoin'; }) || {p7:0}).p7;
+    var goldP7   = _macroData.goldP7   != null ? _macroData.goldP7   : 2;
+    var silvP7   = _macroData.silverP7 != null ? _macroData.silverP7 : 1.5;
+    var oilP7    = _macroData.oilP7    != null ? _macroData.oilP7    : 1;
+    var dxyP7    = _macroData.dxyP7    != null ? _macroData.dxyP7    : 0;
+    var total3P7 = _macroData.total3P7 != null ? _macroData.total3P7 : 0;
+    /* Core: vs traditional assets (60% weight) */
+    var coreDelta = (c.p7 - btcP7)*0.35 + (c.p7 - goldP7)*0.25 + (c.p7 - silvP7)*0.10 + (c.p7 - oilP7)*0.10;
+    /* DXY headwind: if DXY rose 2%, all crypto gets -2 pts penalty; coin-specific edge stays in coreDelta (10% weight) */
+    var dxyDelta  = -dxyP7 * 0.10;
+    /* Total3 tailwind: coin outperforming altcoin market = bonus (10% weight) */
+    var t3Delta   = (c.p7 - total3P7) * 0.10;
+    var delta  = coreDelta + dxyDelta + t3Delta;
     var layer2 = Math.min(30, Math.max(0, Math.round(15 + Math.min(Math.max(delta * 0.9, -15), 15))));
 
     /* LAYER 3: Tokenomics quality (−50 to +30 pts) */
@@ -217,7 +251,7 @@ function computeScores() {
     var layer3    = Math.min(30, Math.max(-50, supplyPts + deflPts + unlockPts));
 
     c.score = Math.min(100, Math.max(-50, Math.round(layer1 + layer2 + layer3)));
-    c.scoreBreakdown = {layer1, layer2, layer3, supplyPts, deflPts, unlockPts};
+    c.scoreBreakdown = {layer1, layer2, layer3, supplyPts, deflPts, unlockPts, dxyP7: dxyP7, total3P7: total3P7};
   });
 }
 
@@ -1321,7 +1355,38 @@ function openTileDetail(coinId, evt) {
     return '<span class="td-badge ' + b.cls + '">' + b.t + '</span>';
   }).join('');
 
+  /* Edit Holdings section — show only for held coins */
+  var editSec = document.getElementById('td-edit-hold-sec');
+  if (editSec) {
+    var hIdx = holdings.findIndex(function(h) { return h.sym === c.sym; });
+    if (hIdx >= 0) {
+      editSec.style.display = '';
+      var h = holdings[hIdx];
+      document.getElementById('td-hold-avg').value = h.avg || '';
+      document.getElementById('td-hold-qty').value = h.qty || '';
+    } else {
+      editSec.style.display = 'none';
+    }
+  }
+
   _positionPanel(panel, evt);
+}
+
+/* Save edited holdings from tile detail panel */
+function saveTileHolding() {
+  if (!_tdCoin) return;
+  var avg = parseFloat(document.getElementById('td-hold-avg').value) || null;
+  var qty = parseFloat(document.getElementById('td-hold-qty').value) || null;
+  var idx = holdings.findIndex(function(h) { return h.sym === _tdCoin.sym; });
+  if (idx >= 0) {
+    holdings[idx].avg = avg;
+    holdings[idx].qty = qty;
+    saveH();
+    renderAll();
+    /* Flash save button green */
+    var btn = document.getElementById('td-hold-save');
+    if (btn) { btn.textContent = '✓ SAVED'; setTimeout(function() { btn.textContent = 'SAVE'; }, 1500); }
+  }
 }
 
 function openAssetDetail(assetType, id, evt) {
