@@ -1150,6 +1150,34 @@ function setLang(lang) {
 }
 (function() { try { var l = localStorage.getItem('rot_lang'); if (l) setTimeout(function() { setLang(l); }, 50); } catch(e) {} })();
 
+/* ── Theme toggle (dark/light) ──────────────────────────────── */
+function toggleTheme(isLight) {
+  document.documentElement.classList.toggle('light', isLight);
+  try { localStorage.setItem('rot_theme', isLight ? 'light' : 'dark'); } catch(e) {}
+  var tog = document.getElementById('theme-toggle');
+  if (tog) tog.checked = isLight;
+  var ico = document.getElementById('theme-icon');
+  var lbl = document.getElementById('theme-label');
+  if (ico) ico.textContent = isLight ? '🌙' : '☀';
+  if (lbl) lbl.textContent = isLight ? 'DARK' : 'LIGHT';
+}
+(function() {
+  try {
+    var saved = localStorage.getItem('rot_theme');
+    if (saved === 'light') {
+      document.documentElement.classList.add('light');
+      setTimeout(function() {
+        var tog = document.getElementById('theme-toggle');
+        if (tog) tog.checked = true;
+        var ico = document.getElementById('theme-icon');
+        var lbl = document.getElementById('theme-label');
+        if (ico) ico.textContent = '🌙';
+        if (lbl) lbl.textContent = 'DARK';
+      }, 100);
+    }
+  } catch(e) {}
+})();
+
 /* ── Modal helpers ───────────────────────────────────────────── */
 function openModal(id) {
   if (id === 'settings-modal') { openSettingsPanel(document.querySelector('.settings-btn')); return; }
