@@ -1596,6 +1596,74 @@ td.qa-cell{text-align:center;width:28px;padding:0 4px !important;}
 .ratio-section{position:relative !important;}
 
 /* ══════════════════════════════════════════════════════════════
+   COLLAPSIBLE SECTIONS — compact mobile, expandable on tap
+   ══════════════════════════════════════════════════════════════ */
+.collapse-hdr{
+  display:none; /* hidden on desktop by default */
+  align-items:center;justify-content:space-between;
+  padding:8px 12px;
+  background:var(--bg3);border-bottom:1px solid var(--bdr);
+  cursor:pointer;user-select:none;
+  transition:background .15s;
+  -webkit-tap-highlight-color:transparent;
+}
+.collapse-hdr:hover{background:var(--bg4);}
+.collapse-hdr:active{background:var(--bg4);}
+.collapse-hdr-left{display:flex;align-items:center;gap:6px;}
+.collapse-hdr-icon{font-size:13px;flex-shrink:0;}
+.collapse-hdr-title{font-size:9px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);font-family:var(--font-ui);}
+.collapse-hdr-count{font-size:8px;color:var(--bnb);letter-spacing:.04em;font-weight:600;}
+.collapse-chevron{
+  font-size:10px;color:var(--muted);
+  transition:transform .25s cubic-bezier(.4,0,.2,1);
+  flex-shrink:0;
+}
+.collapse-hdr.open .collapse-chevron{transform:rotate(180deg);}
+.collapse-body{overflow:hidden;transition:max-height .3s cubic-bezier(.4,0,.2,1),opacity .2s ease;max-height:none;opacity:1;}
+.collapse-body.collapsed{max-height:0 !important;opacity:0 !important;pointer-events:none;}
+/* Desktop: force all collapse-body visible regardless of collapsed class */
+@media(min-width:701px){
+  .collapse-body.collapsed{max-height:none !important;opacity:1 !important;pointer-events:auto !important;overflow:visible !important;}
+}
+
+/* Mobile portrait: show collapsible headers, collapse sections by default */
+@media(max-width:700px) and (orientation:portrait){
+  .collapse-hdr{display:flex;}
+  /* What's Hot header — green accent */
+  .collapse-hdr.hot{background:rgba(0,200,150,.06);border-bottom:1px solid rgba(0,200,150,.15);}
+  .collapse-hdr.hot .collapse-hdr-title{color:var(--green);}
+  .collapse-hdr.hot:hover{background:rgba(0,200,150,.10);}
+  /* Pro promo header — purple accent */
+  .collapse-hdr.promo{background:rgba(167,139,250,.06);border-bottom:1px solid rgba(167,139,250,.15);}
+  .collapse-hdr.promo .collapse-hdr-title{color:var(--pro);}
+  .collapse-hdr.promo:hover{background:rgba(167,139,250,.10);}
+  /* Swap header — purple accent */
+  .collapse-hdr.swap{background:rgba(130,110,200,.06);border-bottom:1px solid rgba(130,110,200,.15);}
+  .collapse-hdr.swap .collapse-hdr-title{color:rgba(130,110,200,.8);}
+  .collapse-hdr.swap:hover{background:rgba(130,110,200,.10);}
+  /* Holdings add-form header — gold accent */
+  .collapse-hdr.holdings{background:rgba(243,186,47,.06);border-bottom:1px solid rgba(243,186,47,.15);}
+  .collapse-hdr.holdings .collapse-hdr-title{color:var(--bnb);}
+  .collapse-hdr.holdings:hover{background:rgba(243,186,47,.10);}
+}
+/* Landscape mobile: also show collapsible headers */
+@media(max-height:500px) and (orientation:landscape){
+  .collapse-hdr{display:flex;}
+}
+
+/* Light theme collapsible overrides */
+:root.light .collapse-hdr{background:rgba(240,250,255,.8);}
+:root.light .collapse-hdr:hover{background:rgba(220,240,250,.9);}
+:root.light .collapse-hdr.hot{background:rgba(70,200,155,.10);}
+:root.light .collapse-hdr.hot:hover{background:rgba(70,200,155,.16);}
+:root.light .collapse-hdr.promo{background:rgba(124,95,214,.06);}
+:root.light .collapse-hdr.promo:hover{background:rgba(124,95,214,.10);}
+:root.light .collapse-hdr.swap{background:rgba(100,80,180,.06);}
+:root.light .collapse-hdr.swap:hover{background:rgba(100,80,180,.10);}
+:root.light .collapse-hdr.holdings{background:rgba(180,140,20,.06);}
+:root.light .collapse-hdr.holdings:hover{background:rgba(180,140,20,.10);}
+
+/* ══════════════════════════════════════════════════════════════
    LIGHT THEME OVERRIDES
    ══════════════════════════════════════════════════════════════ */
 /* ── Light theme: sky blue bg, lollipop pink zebra, mint headers, watermelon right panel ── */
@@ -2307,7 +2375,15 @@ td.qa-cell{text-align:center;width:28px;padding:0 4px !important;}
       </div>
     </div>
 
-    <!-- SUPPORT CARD — bottom of sidebar -->
+    <!-- SUPPORT CARD — collapsible on mobile -->
+    <div class="collapse-hdr holdings" id="ch-support" onclick="toggleCollapse('support')">
+      <div class="collapse-hdr-left">
+        <span class="collapse-hdr-icon">☕</span>
+        <span class="collapse-hdr-title">Keep it Free</span>
+      </div>
+      <span class="collapse-chevron" id="chev-support">▼</span>
+    </div>
+    <div class="collapse-body collapsed" id="cb-support">
     <div class="sidebar-donate" style="margin-top:auto;padding:10px 12px 12px;flex-shrink:0;">
       <div class="ad-donate">
         <div class="ad-donate-title" style="font-size:14px;">Keep it Free</div>
@@ -2316,10 +2392,20 @@ td.qa-cell{text-align:center;width:28px;padding:0 4px !important;}
         <button class="ad-donate-btn" onclick="openModal('donate-modal')">SUPPORT THE PROJECT</button>
       </div>
     </div>
+    </div>
   </div>
 
   <!-- CENTER -->
   <div class="content main-col">
+    <!-- WHAT'S HOT — collapsible on mobile -->
+    <div class="collapse-hdr hot" id="ch-hot" onclick="toggleCollapse('hot')">
+      <div class="collapse-hdr-left">
+        <span class="collapse-hdr-icon">🔥</span>
+        <span class="collapse-hdr-title">What's Hot — Signals & Rotation</span>
+      </div>
+      <span class="collapse-chevron" id="chev-hot">▼</span>
+    </div>
+    <div class="collapse-body collapsed" id="cb-hot">
     <div class="neon-section">
       <div class="neon-inner">
         <div class="bars-cols">
@@ -2337,6 +2423,7 @@ td.qa-cell{text-align:center;width:28px;padding:0 4px !important;}
           </div>
         </div>
       </div>
+    </div>
     </div>
     <div class="tbl-head">
       <h2 class="ptitle" id="tbl-title">PERFORMANCE LEADERBOARD</h2>
@@ -2388,6 +2475,15 @@ td.qa-cell{text-align:center;width:28px;padding:0 4px !important;}
 
   <!-- RIGHT: Info Panel -->
   <div class="ad-panel">
+    <!-- SWAP TOOL — collapsible on mobile -->
+    <div class="collapse-hdr swap" id="ch-swap" onclick="toggleCollapse('swap')">
+      <div class="collapse-hdr-left">
+        <span class="collapse-hdr-icon">⇄</span>
+        <span class="collapse-hdr-title">Swap Calculator</span>
+      </div>
+      <span class="collapse-chevron" id="chev-swap">▼</span>
+    </div>
+    <div class="collapse-body collapsed" id="cb-swap">
     <!-- RATIO TRACKER -->
     <div class="ratio-section" id="ratio-section">
 
@@ -2528,8 +2624,17 @@ td.qa-cell{text-align:center;width:28px;padding:0 4px !important;}
 
     </div>
     <!-- END RATIO TRACKER -->
+    </div><!-- /cb-swap -->
 
-    <!-- PRO + SUPPORT CARDS — pushed to bottom -->
+    <!-- PRO PROMO — collapsible on mobile -->
+    <div class="collapse-hdr promo" id="ch-promo" onclick="toggleCollapse('promo')">
+      <div class="collapse-hdr-left">
+        <span class="collapse-hdr-icon">⚡</span>
+        <span class="collapse-hdr-title">Unlock Pro — Free</span>
+      </div>
+      <span class="collapse-chevron" id="chev-promo">▼</span>
+    </div>
+    <div class="collapse-body collapsed" id="cb-promo">
     <div class="ad-body" style="margin-top:auto;">
       <div class="ad-promo">
         <div class="ad-promo-icon">⚡</div>
@@ -2543,6 +2648,7 @@ td.qa-cell{text-align:center;width:28px;padding:0 4px !important;}
         </div>
         <button class="ad-promo-btn" onclick="openPro()">GET PRO FREE →</button>
       </div>
+    </div>
     </div>
   </div>
 </div>
@@ -2655,6 +2761,63 @@ td.qa-cell{text-align:center;width:28px;padding:0 4px !important;}
 <script defer src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
 <script defer src="js/ratio.js?v=1"></script>
 <script>
+
+/* ══════════════════════════════════════════════════════════════
+   COLLAPSIBLE SECTIONS — toggle open/closed on mobile
+══════════════════════════════════════════════════════════════ */
+(function initCollapsible() {
+  /* State stored in localStorage so sections remember open/closed */
+  var STORAGE_KEY = 'rot_collapse';
+  var state = {};
+  try { state = JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}'); } catch(e) {}
+
+  function save() { try { localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); } catch(e) {} }
+
+  /* Expose globally */
+  window.toggleCollapse = function(id) {
+    var hdr  = document.getElementById('ch-' + id);
+    var body = document.getElementById('cb-' + id);
+    if (!hdr || !body) return;
+
+    var isCollapsed = body.classList.contains('collapsed');
+    if (isCollapsed) {
+      /* Open: measure real height, animate, then clear max-height */
+      body.classList.remove('collapsed');
+      body.style.maxHeight = body.scrollHeight + 'px';
+      body.style.opacity   = '1';
+      hdr.classList.add('open');
+      state[id] = 'open';
+      setTimeout(function() { body.style.maxHeight = 'none'; }, 320);
+    } else {
+      /* Close: set explicit height first, then collapse */
+      body.style.maxHeight = body.scrollHeight + 'px';
+      body.offsetHeight; /* force reflow */
+      body.style.maxHeight = '0';
+      body.style.opacity   = '0';
+      hdr.classList.remove('open');
+      state[id] = 'closed';
+      setTimeout(function() { body.classList.add('collapsed'); }, 320);
+    }
+    save();
+  };
+
+  /* On load: restore saved state (open sections that user previously opened) */
+  document.addEventListener('DOMContentLoaded', function() {
+    var ids = ['hot', 'swap', 'promo', 'support'];
+    ids.forEach(function(id) {
+      if (state[id] === 'open') {
+        var hdr  = document.getElementById('ch-' + id);
+        var body = document.getElementById('cb-' + id);
+        if (hdr && body) {
+          body.classList.remove('collapsed');
+          body.style.maxHeight = 'none';
+          body.style.opacity   = '1';
+          hdr.classList.add('open');
+        }
+      }
+    });
+  });
+})();
 
 /* ══════════════════════════════════════════════════════════════
    LOGO RENDERER — draws animated ⬡ ROTATOR text on canvas
