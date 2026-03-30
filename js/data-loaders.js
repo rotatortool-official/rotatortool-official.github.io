@@ -1012,114 +1012,109 @@ function dismissScaleBanner() {
   if (sb) sb.classList.remove('show');
 }
 
-/* ── Mobile holdings panel ───────────────────────────────────── */
-var _mobHoldingsOpen = false;
+/* ── Mobile nav — scroll-to helpers ─────────────────────────── */
+function _mobScrollTo(el) {
+  if (!el) return;
+  el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+function _mobHighlightBtn(activeId) {
+  ['signal','hot','holdings','swap','more'].forEach(function(m) {
+    var b = document.getElementById('mn-' + m);
+    if (b) b.classList.toggle('active', m === activeId);
+  });
+}
+
+function _mobOpenAndScroll(sectionId, btnId) {
+  _mobHighlightBtn(btnId);
+  closeMobMore();
+  var hdr  = document.getElementById('ch-' + sectionId);
+  var body = document.getElementById('cb-' + sectionId);
+  if (hdr && body && body.classList.contains('collapsed')) {
+    toggleCollapse(sectionId);
+  }
+  if (hdr) _mobScrollTo(hdr);
+}
+
 function mobNav(mode) {
-  _mobHoldingsOpen = false;
-  document.getElementById('mob-holdings-panel').classList.remove('open');
-  document.body.classList.remove('mob-swap-active');
-  ['crypto','forex','stocks','holdings','swap'].forEach(function(m) {
-    var b = document.getElementById('mn-' + m);
-    if (b) b.classList.toggle('active', m === mode);
-  });
+  closeMobMore();
   setMode(mode);
+  var tbl = document.querySelector('.tbl-head');
+  if (tbl) _mobScrollTo(tbl);
 }
+
+function mobNavSignal() {
+  /* Scroll to portfolio signal at top of sidebar */
+  _mobHighlightBtn('signal');
+  closeMobMore();
+  var sig = document.querySelector('.sig-box');
+  if (sig) _mobScrollTo(sig);
+}
+
+function mobNavHot() {
+  _mobOpenAndScroll('hot', 'hot');
+}
+
 function mobNavSwap() {
-  _mobHoldingsOpen = false;
-  document.getElementById('mob-holdings-panel').classList.remove('open');
-  var isActive = document.body.classList.toggle('mob-swap-active');
-  ['crypto','forex','stocks','holdings','swap'].forEach(function(m) {
-    var b = document.getElementById('mn-' + m);
-    if (b) b.classList.toggle('active', m === 'swap' && isActive);
-  });
-  if (isActive && typeof RatioTracker !== 'undefined') {
-    RatioTracker.loadAll();
-  }
+  _mobOpenAndScroll('swap', 'swap');
+  if (typeof RatioTracker !== 'undefined') RatioTracker.loadAll();
 }
+
 function mobNavHoldings() {
-  document.body.classList.remove('mob-swap-active');
-  var swapBtn = document.getElementById('mn-swap');
-  if (swapBtn) swapBtn.classList.remove('active');
-  _mobHoldingsOpen = !_mobHoldingsOpen;
-  var panel = document.getElementById('mob-holdings-panel');
-  var btn   = document.getElementById('mn-holdings');
-  panel.classList.toggle('open', _mobHoldingsOpen);
-  if (btn) btn.classList.toggle('active', _mobHoldingsOpen);
-  if (_mobHoldingsOpen) {
-    var src = document.getElementById('holdings-' + (currentMode || 'crypto'));
-    if (src) {
-      panel.innerHTML = '';
-
-      /* ── Portfolio Signal at top of mobile holdings ── */
-      var sigSrc = src.querySelector('.sig-box');
-      if (sigSrc) {
-        var sigWrap = document.createElement('div');
-        sigWrap.className = 'mob-portfolio-sig';
-        sigWrap.innerHTML = sigSrc.outerHTML;
-        panel.appendChild(sigWrap);
-      }
-
-      /* ── 2 placeholder tiles if no holdings yet ── */
-      var tilesGrid = src.querySelector('.tiles-grid');
-      /* Count only real holding tiles (not placeholders or pro-promo) */
-      var realTiles = tilesGrid ? tilesGrid.querySelectorAll('.tile:not(.tile-placeholder):not(.tile-pro-promo)').length : 0;
-      var hasHoldings = realTiles > 0;
-      if (!hasHoldings) {
-        var phWrap = document.createElement('div');
-        phWrap.style.cssText = 'display:grid;grid-template-columns:1fr 1fr;gap:6px;padding:10px 12px 4px;flex-shrink:0;';
-        phWrap.innerHTML = '<div class="mob-placeholder-tile" onclick="openAddHoldingsModal()">+</div>'
-          + '<div class="mob-placeholder-tile" onclick="openAddHoldingsModal()">+</div>';
-        panel.appendChild(phWrap);
-      }
-
-      var clone = src.cloneNode(true);
-      /* Hide sig-box inside clone (already shown above) */
-      var clonedSig = clone.querySelector('.sig-box');
-      if (clonedSig) clonedSig.style.display = 'none';
-      clone.style.display = 'flex'; clone.style.flexDirection = 'column';
-      panel.appendChild(clone);
-
-      /* ── Re-wire ADD button — crypto uses modal, forex/stocks use cloned form ── */
-      var addBtn = panel.querySelector('.add-btn, .lbh-add-btn');
-      if (addBtn) {
-        addBtn.onclick = function() {
-          var mode = currentMode || 'crypto';
-          if (mode === 'crypto') {
-            /* Crypto: use the Add Holdings modal */
-            openAddHoldingsModal();
-            return;
-          } else if (mode === 'forex') {
-            var fromEl = panel.querySelector('#fx-from, select[id*="from"]');
-            var toEl   = panel.querySelector('#fx-to, select[id*="to"]');
-            var dFrom  = document.getElementById('fx-from');
-            var dTo    = document.getElementById('fx-to');
-            if (fromEl && dFrom) dFrom.value = fromEl.value;
-            if (toEl   && dTo)   dTo.value   = toEl.value;
-            addForexHolding();
-          } else if (mode === 'stocks') {
-            var stSelEl = panel.querySelector('#st-sel, select[id*="st"]');
-            var stQtyEl = panel.querySelector('input[placeholder*="shares"]');
-            var stAvgEl = panel.querySelector('input[placeholder*="price"]');
-            var dStSel = document.getElementById('st-sel');
-            var dStQty = document.getElementById('inp-st-qty');
-            var dStAvg = document.getElementById('inp-st-avg');
-            if (dStSel && stSelEl) dStSel.value = stSelEl.value;
-            if (dStQty && stQtyEl) dStQty.value = parseFloat(stQtyEl.value) || '';
-            if (dStAvg && stAvgEl) dStAvg.value = parseFloat(stAvgEl.value) || '';
-            addStockHolding();
-          }
-        };
-      }
-
-      /* Re-wire Enter key on mobile inputs */
-      panel.querySelectorAll('input[type="number"]').forEach(function(inp) {
-        inp.addEventListener('keydown', function(e) {
-          if (e.key === 'Enter' && addBtn) addBtn.click();
-        });
-      });
-    }
-  }
+  _mobOpenAndScroll('holdings', 'holdings');
 }
+
+/* ── More menu ─────────────────────────────────────────────── */
+function mobNavMore() {
+  var menu     = document.getElementById('mob-more-menu');
+  var backdrop = document.getElementById('mob-more-backdrop');
+  var btn      = document.getElementById('mn-more');
+  var isOpen   = menu && menu.classList.contains('show');
+  if (isOpen) { closeMobMore(); return; }
+  if (menu)     menu.classList.add('show');
+  if (backdrop) backdrop.classList.add('show');
+  if (btn)      btn.classList.add('active');
+  /* Sync theme label */
+  var isLight = document.documentElement.classList.contains('light');
+  var ico = document.getElementById('mm-theme-ico');
+  var txt = document.getElementById('mm-theme-txt');
+  if (ico) ico.textContent = isLight ? '🌙' : '☀';
+  if (txt) txt.textContent = isLight ? 'Dark Mode' : 'Light Mode';
+}
+function closeMobMore() {
+  var menu     = document.getElementById('mob-more-menu');
+  var backdrop = document.getElementById('mob-more-backdrop');
+  var btn      = document.getElementById('mn-more');
+  if (menu)     menu.classList.remove('show');
+  if (backdrop) backdrop.classList.remove('show');
+  if (btn)      btn.classList.remove('active');
+}
+
+/* ── Topbar auto-hide on scroll (mobile portrait) ──────────── */
+(function initTopbarAutoHide() {
+  var lastY = 0;
+  var ticking = false;
+  function onScroll() {
+    if (ticking) return;
+    ticking = true;
+    requestAnimationFrame(function() {
+      if (window.innerWidth > 700) { ticking = false; return; }
+      var topbar = document.querySelector('.topbar');
+      if (!topbar) { ticking = false; return; }
+      var y = window.scrollY || window.pageYOffset;
+      if (y > 80 && y > lastY) {
+        topbar.style.transform = 'translateY(-100%)';
+        topbar.style.transition = 'transform .25s ease';
+      } else {
+        topbar.style.transform = 'translateY(0)';
+        topbar.style.transition = 'transform .25s ease';
+      }
+      lastY = y;
+      ticking = false;
+    });
+  }
+  window.addEventListener('scroll', onScroll, { passive: true });
+})();
 
 /* ── Language system ─────────────────────────────────────────── */
 var LANG_STRINGS = {
