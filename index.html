@@ -951,8 +951,10 @@ td.qa-cell{text-align:center;width:28px;padding:0 4px !important;}
   /* Hides */
   .btc-meta,.ts{display:none;}
   .tier-badge{display:none !important;}
-  /* Modal full-screen */
-  .modal{margin:8px;max-width:calc(100vw - 16px) !important;width:calc(100vw - 16px) !important;}
+  /* Modal full-screen — scrollable on mobile */
+  .overlay{overflow-y:auto !important;align-items:flex-start !important;padding:12px 0 !important;}
+  .modal{margin:12px auto !important;max-width:calc(100vw - 24px) !important;width:calc(100vw - 24px) !important;max-height:none !important;overflow:visible !important;}
+  .modal-x{position:sticky !important;top:0;right:0;z-index:10;font-size:24px !important;padding:6px 10px !important;background:var(--bg2);border-radius:50%;}
   /* Layout — continuous vertical scroll: sidebar → leaderboard → swap panel */
   .root{grid-template-columns:1fr;display:flex;flex-direction:column;height:auto;max-height:none;overflow:visible;}
   .sidebar{display:block !important;order:1;height:auto;max-height:none;overflow:visible;border-right:none;border-bottom:1px solid var(--bdr);background:var(--bg2) !important;box-shadow:none !important;}
@@ -1545,7 +1547,7 @@ td.qa-cell{text-align:center;width:28px;padding:0 4px !important;}
 
 /* ══ SWAP CALCULATOR — top, bigger title ══ */
 .rt-calc{background:rgba(130,110,200,.07);border:1px solid rgba(130,110,200,.22);border-radius:5px;padding:10px 12px;margin-bottom:8px;}
-.rt-calc-title{font-size:14px;font-weight:800;letter-spacing:.1em;color:rgba(195,185,255,.95);margin-bottom:10px;text-transform:uppercase;}
+.rt-calc-title{font-size:16px;font-weight:800;letter-spacing:.1em;color:rgba(195,185,255,.95);margin-bottom:10px;text-transform:uppercase;}
 .rt-calc-ratios{margin-top:8px;padding-top:6px;border-top:1px solid rgba(130,110,200,.15);display:flex;flex-direction:column;gap:3px;}
 .rt-calc-ratio-line{font-size:11px;font-family:var(--font-mono);color:rgba(180,200,220,.75);letter-spacing:.02em;}
 .rt-calc-ratio-line span{color:var(--green);font-weight:700;}
@@ -1761,11 +1763,9 @@ td.qa-cell{text-align:center;width:28px;padding:0 4px !important;}
 :root.light .tile-placeholder{background:rgba(255,250,230,.5) !important;border-left:3px solid rgba(0,153,110,.15) !important;}
 /* ── Tile detail: sticky note / notebook page style ── */
 :root.light .tile-detail{
-  background:
-    repeating-linear-gradient(transparent, transparent 27px, rgba(140,125,90,.18) 27px, rgba(140,125,90,.18) 28px),
-    linear-gradient(180deg, rgba(255,250,225,.97) 0%, rgba(255,245,210,.95) 100%) !important;
+  background:linear-gradient(180deg, rgba(255,250,225,.97) 0%, rgba(255,245,210,.95) 100%) !important;
   border:1px solid rgba(200,180,120,.35) !important;
-  border-radius:4px 4px 4px 4px !important;
+  border-radius:4px !important;
   box-shadow:3px 4px 14px rgba(0,0,0,.14), 0 1px 0 rgba(255,255,255,.5) inset !important;
   padding-top:32px !important;
   position:relative;overflow:visible;
@@ -1785,14 +1785,17 @@ td.qa-cell{text-align:center;width:28px;padding:0 4px !important;}
 :root.light .tile-detail::after{
   content:'';position:absolute;bottom:0;right:0;width:28px;height:28px;z-index:3;
   background:linear-gradient(225deg, rgba(221,234,246,.95) 0%, rgba(221,234,246,.95) 48%, rgba(230,210,150,.7) 50%, rgba(245,235,200,.9) 100%);
-  border-radius:0 0 0 0;
   box-shadow:-1px -1px 3px rgba(0,0,0,.06);
 }
 /* Red margin line on left */
 :root.light .tile-detail{border-left:3px solid rgba(220,70,80,.25) !important;}
-/* Section titles on the note */
-:root.light .td-section-title{color:rgba(120,90,40,.7);}
-:root.light .td-section-title::after{background:rgba(180,160,100,.25);}
+/* Section dividers = ruled notebook lines */
+:root.light .td-section{border-top:1px solid rgba(140,125,90,.22);padding-top:10px;margin-top:10px;}
+:root.light .td-section:first-child{border-top:none;padding-top:0;margin-top:0;}
+:root.light .td-section-title{color:rgba(120,90,40,.75);font-weight:800;}
+:root.light .td-section-title::after{background:rgba(140,125,90,.22);}
+:root.light .td-share-wrap{border-top:1px solid rgba(140,125,90,.22);}
+/* Text colours — warm brown tones */
 :root.light .tdh-sym{color:rgba(60,40,10,.9);}
 :root.light .tdh-name{color:rgba(100,80,40,.6);}
 :root.light .tdh-price{color:rgba(40,30,10,.9);}
@@ -1801,7 +1804,6 @@ td.qa-cell{text-align:center;width:28px;padding:0 4px !important;}
 :root.light .td-share-label{color:rgba(120,90,40,.65);}
 :root.light .td-sh{background:rgba(255,248,220,.7);border-color:rgba(200,180,120,.25);color:rgba(100,80,40,.6);}
 :root.light .td-sh:hover{background:rgba(245,235,200,.9);border-color:rgba(180,150,80,.4);color:rgba(80,60,20,.8);}
-:root.light .td-share-wrap{border-top-color:rgba(180,160,100,.25);}
 /* Score and data sections */
 :root.light .td-score-num-val{color:rgba(50,35,10,.85);}
 :root.light .td-data-box{background:rgba(255,248,220,.5);border-color:rgba(200,180,120,.20);}
