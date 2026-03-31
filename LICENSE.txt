@@ -1,0 +1,44 @@
+Copyright (c) 2026 Daniel Stoilkovski. All Rights Reserved.
+
+ROTATOR — Crypto, Forex & Stock Rotation Screener
+https://rotatortool-official.github.io
+
+TERMS AND CONDITIONS
+
+1. OWNERSHIP
+   This software, including all source code, design, logic, algorithms,
+   and associated files, is the exclusive intellectual property of
+   Daniel Stoilkovski ("the Author"). All rights are reserved.
+
+2. RESTRICTIONS
+   You may NOT, without prior written permission from the Author:
+   - Copy, reproduce, or duplicate any part of this software
+   - Modify, adapt, or create derivative works
+   - Distribute, publish, or sublicense the software
+   - Use any part of the code, design, or logic in another project
+   - Reverse engineer or decompile the software
+   - Use the software for commercial purposes
+
+3. PERMITTED USE
+   - You may view the publicly deployed application for personal,
+     non-commercial use only.
+   - You may not host, deploy, or redistribute your own version
+     of this application.
+
+4. DMCA & ENFORCEMENT
+   Any unauthorized use, copying, or distribution of this software
+   will be subject to a DMCA takedown notice and may result in
+   legal action under applicable copyright law.
+
+5. DISCLAIMER
+   This software is provided for informational purposes only.
+   Nothing in this application constitutes financial advice.
+   The Author accepts no liability for any financial decisions
+   made based on information provided by this tool.
+
+6. CONTACT
+   For licensing inquiries or permission requests, contact the Author
+   through the GitHub repository or the application website.
+
+---
+ROTATOR © 2026 Daniel Stoilkovski — All Rights Reserved.
