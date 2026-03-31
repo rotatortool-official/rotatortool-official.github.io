@@ -1,4 +1,4 @@
-# ROTATOR — File Structure Guide
+# ROTATOR — File Structure & Developer Guide
 
 ## How to edit without breaking things
 
@@ -16,8 +16,29 @@ Each file has ONE job. Edit the right file for what you want to change.
 | `js/signals.js` | Rotation tiles, leaderboard, scoring engine | Change signal thresholds, how many tiles show, scoring weights |
 | `js/holdings.js` | Holdings panels (crypto/forex/stocks) + portfolio signals | Change tile appearance, how P&L is shown |
 | `js/tutorial.js` | Onboarding tutorial steps | Edit tutorial text, add/remove steps |
-| `js/data-loaders.js` | Data fetching, mode switching, mobile nav, auto-refresh | Change refresh interval, add data sources, language strings |
-| `index.html` | All HTML structure + CSS | Change layout, colours, modals, add new HTML sections |
+| `js/i18n.js` | Translations / language strings | Add or edit language support |
+| `js/ratio.js` | Swap calculator, ratio tracker, coin picker panel | Edit swap tool logic, chart, saved pairs |
+| `js/data-loaders.js` | Data fetching, mode switching, mobile nav, auto-refresh | Change refresh interval, add data sources |
+| `index.html` | All HTML structure + ALL CSS + inline JS | Change layout, colours, modals, mobile nav, collapsible sections |
+
+---
+
+## 🗂️ What's inside index.html
+
+`index.html` is large (~200KB) and contains everything visual. Key sections:
+
+| Section | What it is |
+|---------|-----------|
+| `:root { }` | All CSS colour variables (dark + light theme) |
+| `.topbar` | Top navigation bar styles |
+| `.asset-mode-bar` | CRYPTO / FOREX / STOCKS switcher buttons |
+| `.mob-nav` | Mobile bottom navigation bar (FAB layout) |
+| `.tile-detail` | Floating info card when you click a coin |
+| `.collapse-*` | Collapsible sections on mobile |
+| `initNavToggle()` | Bottom nav toggle logic (second press closes section) |
+| `initCollapsible()` | Remembers open/closed state of sections in localStorage |
+| `SWAP_TUT_STEPS` | Swap tool tutorial step content |
+| `ahmFilter()` / `ahmSelect()` | Add Holdings modal search logic |
 
 ---
 
@@ -65,6 +86,91 @@ c.score >= 62   // sells (rotate OUT of these) — lower = more signals
 c.score <= 38   // buys  (rotate INTO these)   — raise = more signals
 ```
 
+### Change the overlay darkness behind info card
+In `index.html`, find `.tile-detail-overlay`:
+```css
+.tile-detail-overlay { background: rgba(0,0,0,.18); }
+/* .18 = very light, .45 = dark, 0 = no overlay */
+```
+
+### Change bottom nav toggle behaviour
+In `index.html`, find `initNavToggle()` in the inline `<script>` block.
+The `NAV_MAP` object maps button IDs to section keys.
+
+---
+
+## 🎨 Theme & Colour variables
+
+All colours live in `:root { }` at the top of `index.html`.
+
+| Variable | Used for |
+|----------|---------|
+| `--bg`, `--bg2`, `--bg3`, `--bg4` | Background layers dark to light |
+| `--text`, `--muted` | Primary and secondary text |
+| `--green`, `--gd` | Positive / bull signals |
+| `--red`, `--rd` | Negative / bear signals |
+| `--amber`, `--ad` | Warning / watch signals |
+| `--bnb` | Gold accent (primary brand colour) |
+| `--pro`, `--prod` | Purple Pro tier colour |
+
+Light theme overrides are in `:root.light { }` just below.
+
+---
+
+## 📱 Mobile Layout
+
+The mobile layout uses two separate systems:
+
+### Bottom Navigation Bar (`mob-nav`)
+- FAB 2-1-2 layout: SIGNAL · HOT · [SWAP FAB] · HOLD · MORE
+- **Toggle behaviour:** pressing a button twice closes the section (added in session March 2026)
+- Defined in `index.html` — the nav HTML is near the bottom, toggle JS is in the inline `<script>` block (`initNavToggle()`)
+
+### Top Bar (mobile)
+5 cells: BTC trend · PRO ⚡ · Logo · SUPPORT ☕ · GEAR ⚙
+- Each cell has a distinct colour matching its function (purple/green/amber)
+- Defined in `index.html` inside `@media(max-width:700px)` blocks
+
+### Collapsible Sections
+Sections (Holdings, What's Hot, Swap, Promo) collapse/expand on mobile.
+State is saved in `localStorage` key `rot_collapse`.
+Toggle function: `toggleCollapse(id)` in the inline `<script>` block.
+
+---
+
+## 🖥️ Desktop Layout
+
+3-column grid: Left sidebar · Center leaderboard · Right swap panel
+
+| Column | Contents |
+|--------|---------|
+| Left | Mode switcher (CRYPTO/FOREX/STOCKS) + Portfolio Signal + Holdings/Watchlist |
+| Center | What's Hot signal tiles + Performance Leaderboard |
+| Right | Swap Calculator + Ratio Tracker + Pro Promo |
+
+---
+
+## ✅ Features added (March 2026 session)
+
+- **Bottom nav toggle** — second press closes the open section
+- **Top bar mobile buttons** — distinct colors per button (purple/green/amber) with bottom border accent
+- **CRYPTO/FOREX/STOCKS buttons** — each has own color identity (gold/green/red) with glow on active
+- **Leaderboard header** — "updated X min ago" now stacks below "CLICK COLUMN HEADERS TO SORT" to prevent overlap on mobile
+- **Light mode info card** — fixed `position:relative` bug that was pushing the page down when card opened
+- **Tile detail overlay** — blur removed, opacity reduced to `.18` for see-through feel
+- **Typography pass** — increased font sizes across: mode labels, section headers, tabs, signal titles, leaderboard title, coin names, swap calculator labels
+
+---
+
+## ⚠️ Things Claude should NOT change without being told
+
+- The tutorial system (`js/tutorial.js` + `SWAP_TUT_STEPS` in `index.html`)
+- The Pro referral logic (`js/pro-system.js`)
+- The yellow notepad card style in light mode (`:root.light .tile-detail`)
+- The `initCollapsible()` function — it handles localStorage state
+- The `initNavToggle()` function — handles second-press close behaviour
+- The donation wallet address in the donate modal
+
 ---
 
 ## 🚀 Deploying to GitHub Pages
@@ -74,3 +180,18 @@ c.score <= 38   // buys  (rotate INTO these)   — raise = more signals
 3. The `js/` folder must be next to `index.html`
 4. Enable GitHub Pages in repo Settings → Pages → source: main branch
 
+> ⚠️ GitHub Pages only works on **public repos** for free accounts.
+> For a private repo use **Netlify** (free, connect to private GitHub repo).
+
+---
+
+## 🔒 License & Protection
+
+- `LICENSE.txt` is in the root — All Rights Reserved
+- Do not add DevTools/right-click blocking if you need F12 for debugging
+- JS obfuscation recommended before major public releases
+- DMCA takedowns can be filed at github.com/contact/dmca
+
+---
+
+*ROTATOR © 2026 Daniel Stoilkovski — All Rights Reserved*
