@@ -520,14 +520,35 @@ tbody tr:hover{background:rgba(243,186,47,0.07) !important;cursor:pointer;transi
 
 /* ── ASSET MODE BAR ── */
 .asset-mode-bar{display:flex;border-bottom:2px solid var(--bdr);flex-shrink:0;background:var(--bg2);}
-.asset-mode-btn{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;padding:9px 4px 7px;background:none;border:none;border-bottom:3px solid transparent;cursor:pointer;font-family:inherit;color:var(--muted);transition:color .15s,background .15s,border-color .15s;font-size:8px;letter-spacing:.14em;position:relative;}
+.asset-mode-btn{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:5px;padding:11px 4px 9px;background:none;border:none;border-bottom:3px solid transparent;cursor:pointer;font-family:inherit;color:var(--muted);transition:color .15s,background .2s,border-color .15s,box-shadow .15s;font-size:8px;letter-spacing:.14em;position:relative;}
 .asset-mode-btn+.asset-mode-btn{border-left:1px solid var(--bdr);}
-.asset-mode-btn:hover{color:var(--text);background:rgba(255,255,255,.025);}
-.asset-mode-btn.active{color:var(--bnb);border-bottom-color:var(--bnb);background:rgba(243,186,47,.04);}
-.asset-mode-btn.active .am-logo{filter:drop-shadow(0 0 3px rgba(243,186,47,.35)) brightness(1.05);}
-.am-logo{width:26px;height:26px;border-radius:50%;overflow:hidden;flex-shrink:0;transition:filter .15s;background:var(--bg4);display:flex;align-items:center;justify-content:center;font-size:14px;}
+.asset-mode-btn:hover{color:var(--text);background:rgba(255,255,255,.03);}
+
+/* CRYPTO — gold */
+#am-crypto{border-bottom-color:transparent;}
+#am-crypto:hover{background:rgba(243,186,47,.06);color:var(--bnb);}
+#am-crypto.active{color:var(--bnb);border-bottom-color:var(--bnb);background:rgba(243,186,47,.08);box-shadow:inset 0 -2px 8px rgba(243,186,47,.08);}
+#am-crypto .am-logo{border:2px solid rgba(243,186,47,.0);}
+#am-crypto.active .am-logo{border-color:rgba(243,186,47,.4);box-shadow:0 0 8px rgba(243,186,47,.3);}
+
+/* FOREX — green */
+#am-forex{border-bottom-color:transparent;}
+#am-forex:hover{background:rgba(0,189,142,.06);color:var(--green);}
+#am-forex.active{color:var(--green);border-bottom-color:var(--green);background:rgba(0,189,142,.08);box-shadow:inset 0 -2px 8px rgba(0,189,142,.08);}
+#am-forex .am-logo{border:2px solid rgba(0,189,142,.0);}
+#am-forex.active .am-logo{border-color:rgba(0,189,142,.5);box-shadow:0 0 8px rgba(0,189,142,.3);}
+
+/* STOCKS — red/pink */
+#am-stocks{border-bottom-color:transparent;}
+#am-stocks:hover{background:rgba(196,30,58,.07);color:#f26680;}
+#am-stocks.active{color:#f26680;border-bottom-color:#c41e3a;background:rgba(196,30,58,.08);box-shadow:inset 0 -2px 8px rgba(196,30,58,.08);}
+#am-stocks .am-logo{border:2px solid rgba(196,30,58,.0);}
+#am-stocks.active .am-logo{border-color:rgba(196,30,58,.5);box-shadow:0 0 8px rgba(196,30,58,.3);}
+
+.asset-mode-btn.active .am-logo{filter:brightness(1.1);}
+.am-logo{width:28px;height:28px;border-radius:50%;overflow:hidden;flex-shrink:0;transition:filter .15s,border-color .15s,box-shadow .15s;background:var(--bg4);display:flex;align-items:center;justify-content:center;font-size:15px;border:2px solid transparent;}
 .am-logo img{width:100%;height:100%;display:block;object-fit:cover;}
-.am-label{font-weight:700;letter-spacing:.16em;}
+.am-label{font-weight:800;letter-spacing:.16em;font-size:9px;}
 
 /* ── MODE TABS ── */
 .mode-tabs{display:flex;gap:3px;}
@@ -815,16 +836,16 @@ td.qa-cell{text-align:center;width:28px;padding:0 4px !important;}
     height:100%;cursor:pointer;transition:background .15s;
   }
   .mob-topbar-btc{border-right:1px solid var(--bdr);}
-  .mob-topbar-pro{border-right:1px solid var(--bdr);background:rgba(167,139,250,.07);}
-  .mob-topbar-pro:hover{background:rgba(167,139,250,.15);}
+  .mob-topbar-pro{border-right:1px solid var(--bdr);background:rgba(167,139,250,.12);border-bottom:2px solid rgba(167,139,250,.4);}
+  .mob-topbar-pro:hover{background:rgba(167,139,250,.22);}
   /* Hide canvas, show ⬡ text instead */
   .mob-topbar-center{border-right:1px solid var(--bdr);background:var(--bg3);}
   #logo-c-mob{display:none !important;}
   .mob-topbar-center::after{content:'⬡';font-size:16px;color:var(--bnb);}
-  .mob-topbar-support{border-right:1px solid var(--bdr);background:rgba(0,200,150,.05);}
-  .mob-topbar-support:hover{background:rgba(0,200,150,.12);}
-  .mob-topbar-gear{background:rgba(243,186,47,.06);}
-  .mob-topbar-gear:hover{background:rgba(243,186,47,.13);}
+  .mob-topbar-support{border-right:1px solid var(--bdr);background:rgba(0,200,150,.10);border-bottom:2px solid rgba(0,200,150,.4);}
+  .mob-topbar-support:hover{background:rgba(0,200,150,.20);}
+  .mob-topbar-gear{background:rgba(243,186,47,.10);border-bottom:2px solid rgba(243,186,47,.4);}
+  .mob-topbar-gear:hover{background:rgba(243,186,47,.20);}
   /* BTC cell styling */
   .mob-btc-cell{width:100%;height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;font-size:9px;font-weight:700;letter-spacing:.06em;background:rgba(255,69,96,.10);color:var(--red);}
   .mob-btc-cell.bull{background:rgba(0,200,150,.10);color:var(--green);}
@@ -933,18 +954,18 @@ td.qa-cell{text-align:center;width:28px;padding:0 4px !important;}
   .mob-btc-cell.unk{background:var(--bg3);color:var(--muted);}
   .mob-btc-cell .pulse{width:4px;height:4px;border-radius:50%;background:currentColor;animation:pulse 2s infinite;flex-shrink:0;}
   /* PRO cell — purple */
-  .mob-topbar-pro{background:rgba(167,139,250,.07);}
-  .mob-topbar-pro:hover{background:rgba(167,139,250,.15);}
+  .mob-topbar-pro{background:rgba(167,139,250,.12);border-bottom:2px solid rgba(167,139,250,.4);}
+  .mob-topbar-pro:hover{background:rgba(167,139,250,.22);}
   .mob-pro-icon{font-size:17px;color:var(--pro);}
   /* Center logo */
   .mob-topbar-center{background:var(--bg2);}
   /* SUPPORT cell — green */
-  .mob-topbar-support{background:rgba(0,200,150,.05);}
-  .mob-topbar-support:hover{background:rgba(0,200,150,.12);}
+  .mob-topbar-support{background:rgba(0,200,150,.10);border-bottom:2px solid rgba(0,200,150,.4);}
+  .mob-topbar-support:hover{background:rgba(0,200,150,.20);}
   .mob-support-icon{font-size:16px;color:var(--green);}
   /* GEAR cell — amber */
-  .mob-topbar-gear{background:rgba(243,186,47,.06);}
-  .mob-topbar-gear:hover{background:rgba(243,186,47,.13);}
+  .mob-topbar-gear{background:rgba(243,186,47,.10);border-bottom:2px solid rgba(243,186,47,.4);}
+  .mob-topbar-gear:hover{background:rgba(243,186,47,.20);}
   .mob-gear-icon{font-size:17px;color:var(--bnb);}
   /* Hides */
   .btc-meta,.ts{display:none;}
@@ -2871,8 +2892,97 @@ td.qa-cell{text-align:center;width:28px;padding:0 4px !important;}
 <script>
 
 /* ══════════════════════════════════════════════════════════════
-   COLLAPSIBLE SECTIONS — toggle open/closed on mobile
+   BOTTOM NAV TOGGLE — second press closes the open section
 ══════════════════════════════════════════════════════════════ */
+(function initNavToggle() {
+  // Track which nav section is currently open
+  var _activeNavSection = null;
+
+  // Map each button id to its section key
+  var NAV_MAP = {
+    'mn-signal':   'signal',
+    'mn-hot':      'hot',
+    'mn-swap':     'swap',
+    'mn-holdings': 'holdings'
+  };
+
+  function closeActiveSection() {
+    if (!_activeNavSection) return;
+    // Collapse the open section
+    var bodyId = 'cb-' + _activeNavSection;
+    var body = document.getElementById(bodyId);
+    var hdr  = document.getElementById('ch-' + _activeNavSection);
+    if (body) {
+      body.style.maxHeight = body.scrollHeight + 'px';
+      body.offsetHeight;
+      body.style.maxHeight = '0';
+      body.style.opacity   = '0';
+      if (hdr) hdr.classList.remove('open');
+      setTimeout(function() { body.classList.add('collapsed'); }, 320);
+      // save state
+      try {
+        var state = JSON.parse(localStorage.getItem('rot_collapse') || '{}');
+        state[_activeNavSection] = 'closed';
+        localStorage.setItem('rot_collapse', JSON.stringify(state));
+      } catch(e) {}
+    }
+    // For swap — hide the swap picker panel too
+    if (_activeNavSection === 'swap') {
+      var picker = document.getElementById('rt-picker-panel');
+      if (picker) picker.style.display = 'none';
+    }
+    // Remove active class from button
+    var btn = document.getElementById('mn-' + _activeNavSection);
+    if (btn) btn.classList.remove('active');
+    _activeNavSection = null;
+  }
+
+  // Wrap each nav button: second tap = close
+  function wrapNavBtn(btnId, sectionKey, originalFn) {
+    var btn = document.getElementById(btnId);
+    if (!btn) return;
+    btn.onclick = function(e) {
+      e.stopPropagation();
+      if (_activeNavSection === sectionKey) {
+        // Second press — close
+        closeActiveSection();
+        return;
+      }
+      // First press — close whatever is open, then open this
+      if (_activeNavSection && _activeNavSection !== sectionKey) {
+        closeActiveSection();
+      }
+      _activeNavSection = sectionKey;
+      btn.classList.add('active');
+      if (typeof originalFn === 'function') originalFn();
+    };
+  }
+
+  // Wire up after external JS loads (deferred scripts run in order)
+  window.addEventListener('load', function() {
+    setTimeout(function() {
+      wrapNavBtn('mn-signal',   'signal',   window.mobNavSignal);
+      wrapNavBtn('mn-hot',      'hot',      window.mobNavHot);
+      wrapNavBtn('mn-holdings', 'holdings', window.mobNavHoldings);
+
+      // SWAP FAB: toggle the swap collapse section
+      var swapFab = document.getElementById('mn-swap');
+      if (swapFab) {
+        swapFab.onclick = function(e) {
+          e.stopPropagation();
+          if (_activeNavSection === 'swap') {
+            closeActiveSection();
+            return;
+          }
+          if (_activeNavSection) closeActiveSection();
+          _activeNavSection = 'swap';
+          swapFab.classList.add('active');
+          if (typeof window.mobNavSwap === 'function') window.mobNavSwap();
+        };
+      }
+    }, 500);
+  });
+})();
 (function initCollapsible() {
   /* State stored in localStorage so sections remember open/closed */
   var STORAGE_KEY = 'rot_collapse';
