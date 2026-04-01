@@ -66,6 +66,10 @@
 }
 .sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0;}
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+/* Theme transition — GPU composite only, no layout thrash */
+*{transition:background-color .18s ease,border-color .18s ease,color .12s ease;}
+/* Exclude animations and transforms from blanket transition */
+.skel,.spinning,.rt-swap-arrows,.mob-nav-fab,.btc-pill,.pulse{transition:none !important;}
 html,body{height:100%;font-family:'IBM Plex Mono',monospace;background:var(--bg);color:var(--text);font-size:13px;line-height:1.4;}
 body::before{content:'';position:fixed;inset:0;background:repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(0,0,0,0.02) 2px,rgba(0,0,0,0.02) 4px);pointer-events:none;z-index:998;}
 :root.light body::before{display:none;}
@@ -129,6 +133,9 @@ body::before{content:'';position:fixed;inset:0;background:repeating-linear-gradi
 }
 .modal-x:hover{color:var(--text);background:var(--bg3);border-color:var(--red);color:var(--red);}
 .modal .modal-title{padding-right:36px;}
+#pro-modal .modal{overflow:hidden;}
+#pro-modal .modal-x{top:14px;right:14px;}
+.already-pro{margin-top:4px;}
 .modal-title{font-size:18px;font-weight:400;margin-bottom:6px;letter-spacing:.01em;font-family:var(--font-display);}
 .modal-sub{font-size:13px;color:var(--muted);margin-bottom:18px;line-height:1.9;font-family:var(--font-ui);}
 
@@ -357,7 +364,7 @@ body::before{content:'';position:fixed;inset:0;background:repeating-linear-gradi
 .asset-tile:hover{
   transform:translateY(-3px) scale(1.025);
   border-color:rgba(243,186,47,.4);
-  box-shadow:0 8px 24px rgba(0,0,0,.45),0 0 12px rgba(243,186,47,.1);
+  box-shadow:0 8px 24px var(--b03),0 0 12px rgba(243,186,47,.1);
   z-index:2;
 }
 .asset-tile:active{transform:translateY(-1px) scale(1.01);}
@@ -1761,6 +1768,10 @@ td.qa-cell{text-align:center;width:28px;padding:0 4px !important;}
 :root.light thead th{color:rgba(10,60,45,.9);font-weight:800;}
 :root.light tbody tr:nth-child(odd){background:rgba(230,242,255,.5);}
 :root.light tbody tr:nth-child(even){background:rgba(240,165,185,.16);}
+/* Dark-mode explicit row colors — prevents ghost on theme switch */
+:root:not(.light) tbody tr:nth-child(odd){background:rgba(255,255,255,.018);}
+:root:not(.light) tbody tr:nth-child(even){background:transparent;}
+:root:not(.light) tbody tr:hover{background:rgba(255,255,255,.045) !important;}
 :root.light tbody tr:hover{background:rgba(240,165,185,.30) !important;}
 :root.light tbody tr.held{background:rgba(0,153,110,.10);}
 :root.light .tbl-head{background:rgb(195,235,220);}
@@ -2557,6 +2568,12 @@ td.qa-cell{text-align:center;width:28px;padding:0 4px !important;}
     <span class="mob-support-icon">☕</span>
   </div>
   <!-- Cell 5: Settings gear -->
+  <div class="mob-topbar-search" onclick="toggleMobSearch()" title="Search" aria-label="Search">
+    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+      <circle cx="6.5" cy="6.5" r="5" stroke="currentColor" stroke-width="1.7"/>
+      <line x1="10.5" y1="10.5" x2="14.5" y2="14.5" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/>
+    </svg>
+  </div>
   <div class="mob-topbar-gear" onclick="openSettingsPanel(this)" title="Settings">
     <span class="mob-gear-icon">⚙</span>
   </div>
@@ -2582,6 +2599,22 @@ td.qa-cell{text-align:center;width:28px;padding:0 4px !important;}
   <div class="topbar-r">
     <span class="ts" id="ts">—</span>
     <button class="theme-btn" id="theme-topbar-btn" onclick="toggleTheme(!document.documentElement.classList.contains('light'))" title="Toggle light/dark theme"><span id="theme-icon">☀</span><span id="theme-label">LIGHT</span></button>
+    <div class="topbar-search-wrap" id="topbar-search-wrap">
+      <button class="topbar-search-btn" id="topbar-search-btn" onclick="toggleTopbarSearch()" title="Search coins" aria-label="Search coins">
+        <svg width="14" height="14" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+          <circle cx="6.5" cy="6.5" r="5" stroke="currentColor" stroke-width="1.6"/>
+          <line x1="10.5" y1="10.5" x2="14.5" y2="14.5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>
+        </svg>
+      </button>
+      <div class="topbar-search-dropdown" id="topbar-search-dropdown" style="display:none;">
+        <input type="text" id="topbar-search-input" class="topbar-search-input"
+          placeholder="Search coins, forex, stocks…"
+          autocomplete="off"
+          oninput="handleTopbarSearch(this.value)"
+          onkeydown="if(event.key==='Escape')toggleTopbarSearch(false)">
+        <div class="topbar-search-results" id="topbar-search-results"></div>
+      </div>
+    </div>
     <button class="settings-btn" onclick="openSettingsPanel(this)" title="Settings">⚙ <span id="lang-flag">🇬🇧</span></button>
     <div class="topbar-action-btns">
       <button class="btn pro-btn" onclick="openPro()">⚡ UNLOCK PRO</button>
@@ -2590,6 +2623,23 @@ td.qa-cell{text-align:center;width:28px;padding:0 4px !important;}
   </div>
 </div>
 </header>
+
+<!-- Mobile search panel — slides down from topbar -->
+<div id="mob-search-panel" class="mob-search-panel" style="display:none;">
+  <div class="mob-search-inner">
+    <svg width="14" height="14" viewBox="0 0 16 16" fill="none" style="flex-shrink:0;color:var(--muted);" aria-hidden="true">
+      <circle cx="6.5" cy="6.5" r="5" stroke="currentColor" stroke-width="1.6"/>
+      <line x1="10.5" y1="10.5" x2="14.5" y2="14.5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>
+    </svg>
+    <input type="text" id="mob-search-input" class="mob-search-input"
+      placeholder="Search coins, forex, stocks…"
+      autocomplete="off"
+      oninput="handleTopbarSearch(this.value)"
+      onkeydown="if(event.key==='Escape')toggleMobSearch(false)">
+    <button onclick="toggleMobSearch(false)" style="background:none;border:none;color:var(--muted);font-size:18px;line-height:1;cursor:pointer;padding:0 4px;flex-shrink:0;">×</button>
+  </div>
+  <div class="mob-search-results" id="mob-search-results"></div>
+</div>
 
 <main>
 <h1 class="sr-only">Rotator — Real-Time Crypto, Forex & Stock Rotation Screener</h1>
@@ -2887,7 +2937,7 @@ td.qa-cell{text-align:center;width:28px;padding:0 4px !important;}
           </div>
 
           <!-- SWAP DIRECTION -->
-          <div class="new-swap-dir-btn" onclick="RatioTracker.swapPair()" role="button" tabindex="0" aria-label="Swap direction">
+          <div class="new-swap-dir-btn" onclick="event.stopPropagation();RatioTracker.swapPair();" role="button" tabindex="0" aria-label="Swap FROM and TO">
             <span class="rt-swap-arrows">⇄</span>
           </div>
 
@@ -3730,6 +3780,138 @@ document.addEventListener('DOMContentLoaded', function() {
 
 
 <script>
+/* ── Search bar & theme patch injected ── */
+</script>
+<style>
+/* ── Desktop topbar search ─────────────────────────────── */
+.topbar-search-wrap{position:relative;display:flex;align-items:center;}
+.topbar-search-btn{background:rgba(130,190,220,.1);border:1px solid rgba(130,190,220,.35);color:rgba(130,190,220,.8);width:28px;height:28px;border-radius:2px;display:flex;align-items:center;justify-content:center;cursor:pointer;transition:all .15s;padding:0;}
+.topbar-search-btn:hover{background:rgba(130,190,220,.22);border-color:rgba(130,190,220,.6);color:rgba(130,190,220,1);}
+.topbar-search-dropdown{position:absolute;top:calc(100% + 6px);right:0;width:260px;background:var(--bg2);border:1px solid var(--bdr2);border-radius:4px;box-shadow:0 8px 28px rgba(0,0,0,.5);z-index:300;overflow:hidden;}
+.topbar-search-input{width:100%;background:var(--bg3);border:none;border-bottom:1px solid var(--bdr2);color:var(--text);font-family:var(--font-mono);font-size:12px;padding:9px 12px;outline:none;letter-spacing:.04em;}
+.topbar-search-input::placeholder{color:var(--muted);}
+.topbar-search-results{max-height:240px;overflow-y:auto;}
+.topbar-search-result-item{display:flex;align-items:center;gap:8px;padding:7px 12px;cursor:pointer;transition:background .1s;border-bottom:1px solid var(--bdr);}
+.topbar-search-result-item:last-child{border-bottom:none;}
+.topbar-search-result-item:hover{background:var(--bg4);}
+.tsri-ico{width:22px;height:22px;border-radius:50%;background:var(--bg4);object-fit:cover;flex-shrink:0;}
+.tsri-sym{font-family:var(--font-mono);font-size:11px;font-weight:700;color:var(--text);min-width:44px;}
+.tsri-name{font-size:10px;color:var(--muted);flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.tsri-chg{font-family:var(--font-mono);font-size:9px;font-weight:700;flex-shrink:0;}
+.topbar-search-empty{padding:12px;text-align:center;font-size:10px;color:var(--muted);letter-spacing:.06em;}
+
+/* ── Mobile search panel ────────────────────────────────── */
+.mob-search-panel{background:var(--bg2);border-bottom:1px solid var(--bdr2);padding:8px 12px 10px;z-index:99;position:relative;}
+.mob-search-inner{display:flex;align-items:center;gap:8px;background:var(--bg3);border:1px solid var(--bdr2);border-radius:6px;padding:7px 10px;margin-bottom:0;}
+.mob-search-input{flex:1;background:transparent;border:none;outline:none;font-family:var(--font-mono);font-size:13px;color:var(--text);min-width:0;}
+.mob-search-input::placeholder{color:var(--muted);}
+.mob-search-results{max-height:200px;overflow-y:auto;margin-top:6px;}
+.mob-search-results .topbar-search-result-item{border-radius:4px;margin-bottom:2px;}
+
+/* ── Mobile topbar search icon cell ───────────────────── */
+.mob-topbar-search{display:none;align-items:center;justify-content:center;flex:1;cursor:pointer;height:100%;color:rgba(130,190,220,.8);transition:background .15s;}
+@media(max-width:900px) and (orientation:landscape){.mob-topbar-search{display:flex;}}
+@media(max-width:700px){.mob-topbar-search{display:flex !important;background:rgba(130,190,220,.08);border-bottom:2px solid rgba(130,190,220,.3);}}
+:root.light .mob-topbar-search{background:rgba(40,100,170,.06);border-bottom-color:rgba(40,100,170,.2);color:rgba(40,100,170,.7);}
+
+/* ── Light mode search ───────────────────────────────── */
+:root.light .topbar-search-btn{background:rgba(60,60,100,.08);border-color:rgba(60,60,100,.2);color:rgba(60,60,100,.6);}
+:root.light .topbar-search-btn:hover{background:rgba(60,60,100,.16);}
+:root.light .topbar-search-dropdown{box-shadow:0 8px 28px rgba(0,0,0,.15);}
+</style>
+<script>
+/* ── Topbar search logic ──────────────────────────────── */
+var _tsOpen = false;
+function toggleTopbarSearch(force) {
+  _tsOpen = (force !== undefined) ? force : !_tsOpen;
+  var dd = document.getElementById('topbar-search-dropdown');
+  var inp = document.getElementById('topbar-search-input');
+  if (dd) dd.style.display = _tsOpen ? 'block' : 'none';
+  if (_tsOpen && inp) { inp.value=''; inp.focus(); renderTopbarResults([]); }
+}
+var _mobSrchOpen = false;
+function toggleMobSearch(force) {
+  _mobSrchOpen = (force !== undefined) ? force : !_mobSrchOpen;
+  var panel = document.getElementById('mob-search-panel');
+  var inp   = document.getElementById('mob-search-input');
+  if (panel) panel.style.display = _mobSrchOpen ? 'block' : 'none';
+  if (_mobSrchOpen && inp) { inp.value=''; inp.focus(); renderMobResults([]); }
+}
+/* Close desktop search on outside click */
+document.addEventListener('click', function(e) {
+  if (!_tsOpen) return;
+  var wrap = document.getElementById('topbar-search-wrap');
+  if (wrap && !wrap.contains(e.target)) toggleTopbarSearch(false);
+}, true);
+
+function handleTopbarSearch(q) {
+  q = q.toLowerCase().trim();
+  if (!q) { renderTopbarResults([]); renderMobResults([]); return; }
+  var cArr = (typeof coins !== 'undefined' && Array.isArray(coins)) ? coins : [];
+  var filtered = cArr.filter(function(c) {
+    return c.sym.toLowerCase().includes(q) || (c.name||'').toLowerCase().includes(q);
+  }).slice(0, 12);
+  renderTopbarResults(filtered);
+  renderMobResults(filtered);
+}
+function _searchItemHTML(coin) {
+  var chgColor = coin.p24 >= 0 ? 'var(--green)' : 'var(--red)';
+  var chgTxt   = (coin.p24 >= 0 ? '+' : '') + (coin.p24||0).toFixed(2) + '%';
+  return '<div class="topbar-search-result-item" onclick="handleSearchSelect(''+coin.id+'')">'
+    + '<img class="tsri-ico" src="'+(coin.image||'')+'" alt="" onerror="this.style.opacity='0'">'
+    + '<span class="tsri-sym">'+coin.sym+'</span>'
+    + '<span class="tsri-name">'+(coin.name||'')+'</span>'
+    + '<span class="tsri-chg" style="color:'+chgColor+'">'+chgTxt+'</span>'
+    + '</div>';
+}
+function renderTopbarResults(arr) {
+  var el = document.getElementById('topbar-search-results');
+  if (!el) return;
+  el.innerHTML = arr.length
+    ? arr.map(_searchItemHTML).join('')
+    : '<div class="topbar-search-empty">No results</div>';
+}
+function renderMobResults(arr) {
+  var el = document.getElementById('mob-search-results');
+  if (!el) return;
+  el.innerHTML = arr.length
+    ? arr.map(_searchItemHTML).join('')
+    : '';
+}
+function handleSearchSelect(coinId) {
+  /* Load coin into swap ratio tracker */
+  if (typeof RatioTracker !== 'undefined') {
+    var fSel = document.getElementById('rt-from');
+    if (fSel && fSel.querySelector('option[value="'+coinId+'"]')) {
+      fSel.value = coinId;
+      RatioTracker.onFromChange();
+    }
+  }
+  /* Scroll to swap section */
+  var sec = document.getElementById('ratio-section');
+  if (sec) sec.scrollIntoView({behavior:'smooth', block:'start'});
+  toggleTopbarSearch(false);
+  toggleMobSearch(false);
+}
+
+/* ── Theme switch: RAF-batched to prevent mobile jank ─── */
+var _themeRAF = null;
+var _origToggleTheme = (typeof toggleTheme === 'function') ? toggleTheme : null;
+window.toggleTheme = function(isLight) {
+  if (_themeRAF) cancelAnimationFrame(_themeRAF);
+  _themeRAF = requestAnimationFrame(function() {
+    document.documentElement.classList.toggle('light', isLight);
+    try { localStorage.setItem('rot_theme', isLight ? 'light' : 'dark'); } catch(e) {}
+    var tog = document.getElementById('theme-toggle');
+    var ico = document.getElementById('theme-icon');
+    var lbl = document.getElementById('theme-label');
+    if (tog) tog.checked = isLight;
+    if (ico) ico.textContent = isLight ? '🌙' : '☀';
+    if (lbl) lbl.textContent = isLight ? 'DARK' : 'LIGHT';
+    _themeRAF = null;
+  });
+};
+
 /* ── Inline picker override: drives the leaderboard search bar ── */
 (function() {
   var _origOpen  = null;
