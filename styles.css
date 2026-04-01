@@ -509,33 +509,30 @@ tbody tr.held:nth-child(even){background:rgba(243,186,47,.055);}
 tbody tr:hover{background:rgba(243,186,47,0.07) !important;cursor:pointer;transition:background .1s;}
 
 /* ── ASSET MODE BAR ── */
-.asset-mode-bar{display:flex;border-bottom:2px solid var(--bdr);flex-shrink:0;background:var(--bg2);}
-.asset-mode-btn{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:5px;padding:11px 4px 9px;background:none;border:none;border-bottom:3px solid transparent;cursor:pointer;font-family:inherit;color:var(--muted);transition:color .15s,background .2s,border-color .15s,box-shadow .15s;font-size:8px;letter-spacing:.14em;position:relative;}
-.asset-mode-btn+.asset-mode-btn{border-left:1px solid var(--bdr);}
-.asset-mode-btn:hover{color:var(--text);background:rgba(255,255,255,.03);}
+.asset-mode-bar{display:flex;gap:8px;flex-shrink:0;background:var(--bg2);padding:12px 10px 10px;border-bottom:1px solid var(--bdr);}
+.asset-mode-btn{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:5px;padding:10px 4px;background:var(--bg3);border:1px solid var(--bdr2);border-radius:8px;cursor:pointer;font-family:inherit;color:var(--muted);transition:color .18s,background .18s,border-color .18s,box-shadow .18s;font-size:8px;letter-spacing:.14em;position:relative;}
+.asset-mode-btn+.asset-mode-btn{border-left:none;}
+.asset-mode-btn:hover{color:var(--text);background:var(--bg4);border-color:var(--bdr2);}
 
-/* CRYPTO — gold */
-#am-crypto{border-bottom-color:transparent;}
-#am-crypto:hover{background:rgba(243,186,47,.06);color:var(--bnb);}
-#am-crypto.active{color:var(--bnb);border-bottom-color:var(--bnb);background:rgba(243,186,47,.08);box-shadow:inset 0 -2px 8px rgba(243,186,47,.08);}
-#am-crypto .am-logo{border:2px solid rgba(243,186,47,.0);}
-#am-crypto.active .am-logo{border-color:rgba(243,186,47,.4);box-shadow:0 0 8px rgba(243,186,47,.3);}
+/* CRYPTO — gold hover, sky-blue active */
+#am-crypto:hover{background:rgba(243,186,47,.09);border-color:rgba(243,186,47,.25);color:var(--bnb);}
+#am-crypto.active{color:#000;background:#87CEEB;border-color:#5fb8e0;box-shadow:0 4px 14px rgba(135,206,235,.35);font-weight:700;}
+#am-crypto .am-logo{border:2px solid transparent;}
+#am-crypto.active .am-logo{border-color:rgba(0,0,0,.15);box-shadow:none;}
 
-/* FOREX — green */
-#am-forex{border-bottom-color:transparent;}
-#am-forex:hover{background:rgba(0,189,142,.06);color:var(--green);}
-#am-forex.active{color:var(--green);border-bottom-color:var(--green);background:rgba(0,189,142,.08);box-shadow:inset 0 -2px 8px rgba(0,189,142,.08);}
-#am-forex .am-logo{border:2px solid rgba(0,189,142,.0);}
-#am-forex.active .am-logo{border-color:rgba(0,189,142,.5);box-shadow:0 0 8px rgba(0,189,142,.3);}
+/* FOREX — green hover, sky-blue active */
+#am-forex:hover{background:rgba(0,189,142,.09);border-color:rgba(0,189,142,.25);color:var(--green);}
+#am-forex.active{color:#000;background:#87CEEB;border-color:#5fb8e0;box-shadow:0 4px 14px rgba(135,206,235,.35);font-weight:700;}
+#am-forex .am-logo{border:2px solid transparent;}
+#am-forex.active .am-logo{border-color:rgba(0,0,0,.15);box-shadow:none;}
 
-/* STOCKS — red/pink */
-#am-stocks{border-bottom-color:transparent;}
-#am-stocks:hover{background:rgba(196,30,58,.07);color:#f26680;}
-#am-stocks.active{color:#f26680;border-bottom-color:#c41e3a;background:rgba(196,30,58,.08);box-shadow:inset 0 -2px 8px rgba(196,30,58,.08);}
-#am-stocks .am-logo{border:2px solid rgba(196,30,58,.0);}
-#am-stocks.active .am-logo{border-color:rgba(196,30,58,.5);box-shadow:0 0 8px rgba(196,30,58,.3);}
+/* STOCKS — red hover, sky-blue active */
+#am-stocks:hover{background:rgba(196,30,58,.09);border-color:rgba(196,30,58,.25);color:#f26680;}
+#am-stocks.active{color:#000;background:#87CEEB;border-color:#5fb8e0;box-shadow:0 4px 14px rgba(135,206,235,.35);font-weight:700;}
+#am-stocks .am-logo{border:2px solid transparent;}
+#am-stocks.active .am-logo{border-color:rgba(0,0,0,.15);box-shadow:none;}
 
-.asset-mode-btn.active .am-logo{filter:brightness(1.1);}
+.asset-mode-btn.active .am-logo{filter:brightness(.85);}
 .am-logo{width:28px;height:28px;border-radius:50%;overflow:hidden;flex-shrink:0;transition:filter .15s,border-color .15s,box-shadow .15s;background:var(--bg4);display:flex;align-items:center;justify-content:center;font-size:15px;border:2px solid transparent;}
 .am-logo img{width:100%;height:100%;display:block;object-fit:cover;}
 .am-label{font-weight:800;letter-spacing:.16em;font-size:11px;}
@@ -628,7 +625,7 @@ td.qa-cell{text-align:center;width:28px;padding:0 4px !important;}
 }
 .pub-btn:hover{background:rgba(167,139,250,.2);border-color:var(--pro);}
 @media(max-width:700px) and (orientation:portrait){
-  .pro-upsell-banner{margin-bottom:70px;} /* safe area above fixed nav FAB */
+  .pro-upsell-banner{margin-bottom:70px;}
   .pro-upsell-row{position:relative;z-index:1;}
 }
 
@@ -1822,11 +1819,11 @@ td.qa-cell{text-align:center;width:28px;padding:0 4px !important;}
 :root.light .mob-topbar-gear{background:rgba(70,200,155,.14);}
 :root.light .mob-topbar-gear:hover{background:rgba(70,200,155,.25);}
 /* ── Readability & depth boost ── */
-:root.light .asset-mode-bar{background:rgba(70,200,155,.10);border-bottom:2px solid rgba(70,190,150,.28);}
-:root.light .asset-mode-btn{color:var(--text);font-weight:700;opacity:.65;}
-:root.light .asset-mode-btn:hover{opacity:.85;background:rgba(70,200,155,.08);}
-:root.light .asset-mode-btn.active{opacity:1;color:var(--bnb);border-bottom-color:var(--bnb);background:rgba(160,120,24,.06);}
-:root.light .asset-mode-btn+.asset-mode-btn{border-left-color:rgba(70,190,150,.20);}
+:root.light .asset-mode-bar{background:var(--bg2);border-bottom:1px solid var(--bdr);}
+:root.light .asset-mode-btn{color:var(--muted);background:rgba(0,0,0,.04);border-color:rgba(0,0,0,.1);opacity:1;}
+:root.light .asset-mode-btn:hover{background:rgba(0,0,0,.07);opacity:1;}
+:root.light .asset-mode-btn.active{color:#000;background:#87CEEB;border-color:#5fb8e0;box-shadow:0 4px 14px rgba(135,206,235,.4);}
+:root.light .asset-mode-btn+.asset-mode-btn{border-left:none;}
 :root.light .sig-box{font-weight:500;}
 :root.light .sig-title{font-weight:700;color:var(--text);}
 :root.light .tbl-head{font-weight:700;color:var(--text);}
