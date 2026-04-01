@@ -1955,6 +1955,282 @@ td.qa-cell{text-align:center;width:28px;padding:0 4px !important;}
 :root.light .td-data-box{background:rgba(255,248,220,.5);border-color:rgba(200,180,120,.20);}
 :root.light .td-data-label{color:rgba(120,90,40,.6);}
 :root.light .td-data-val{color:rgba(50,35,10,.85);}
+
+/* ═══════════════════════════════════════════════════════════════
+   NEW SWAP REDESIGN — injected styles
+   Pair hero, ratio hook, chart header, calc card, picker sheet
+═══════════════════════════════════════════════════════════════ */
+
+/* ── Pair hero ─────────────────────────────────────────────── */
+.new-swap-hero {
+  padding: 10px 0 8px;
+  margin-bottom: 4px;
+}
+.new-swap-hero-label {
+  font-size: 8px;
+  letter-spacing: .18em;
+  text-transform: uppercase;
+  color: var(--muted);
+  margin-bottom: 8px;
+}
+.new-pair-grid {
+  display: grid;
+  grid-template-columns: 1fr 36px 1fr;
+  align-items: center;
+  gap: 6px;
+}
+.new-coin-card {
+  background: var(--bg3);
+  border: 1px solid var(--bdr);
+  border-radius: 6px;
+  padding: 10px 10px 10px 10px;
+  cursor: pointer;
+  transition: border-color .18s, transform .18s;
+  position: relative;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+}
+.new-coin-card:hover { border-color: var(--bdr2); transform: translateY(-1px); }
+.new-coin-card:active { transform: scale(0.97); }
+.new-from-card { border-left: 2px solid rgba(212,164,40,.45); }
+.new-to-card   { border-left: 2px solid rgba(0,189,142,.45); }
+
+.new-coin-badge {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 7px;
+  letter-spacing: .18em;
+  text-transform: uppercase;
+  color: var(--muted);
+  margin-bottom: 7px;
+  font-family: var(--font-mono);
+}
+.new-tap-hint { font-size: 6.5px; opacity: .5; }
+
+.new-coin-main {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+}
+.new-coin-icon-wrap {
+  width: 30px; height: 30px;
+  border-radius: 50%;
+  background: var(--bg4);
+  border: 1px solid rgba(255,255,255,.08);
+  overflow: hidden;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.new-coin-icon-wrap img {
+  width: 100%; height: 100%;
+  object-fit: cover;
+  opacity: 0;
+  transition: opacity .3s;
+}
+.new-coin-info { flex: 1; min-width: 0; }
+.new-coin-sym {
+  font-family: var(--font-mono);
+  font-size: 13px;
+  font-weight: 800;
+  color: var(--text);
+  letter-spacing: .02em;
+  line-height: 1.2;
+}
+.new-coin-price {
+  font-family: var(--font-mono);
+  font-size: 9px;
+  color: rgba(200,215,230,.8);
+  margin-top: 2px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.new-coin-chg {
+  font-family: var(--font-mono);
+  font-size: 8px;
+  margin-top: 1px;
+}
+
+.new-swap-dir-btn {
+  width: 36px; height: 36px;
+  border-radius: 50%;
+  background: var(--bg4);
+  border: 1px solid var(--bdr2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  font-size: 15px;
+  transition: all .2s;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+  color: var(--muted);
+  margin: 0 auto;
+}
+.new-swap-dir-btn:hover { border-color: var(--bnb); color: var(--bnb); background: var(--bnbd); }
+.new-swap-dir-btn:active { transform: scale(0.9); }
+
+/* ── Ratio hook ────────────────────────────────────────────── */
+.new-ratio-hook {
+  text-align: center;
+  padding: 12px 0 8px;
+  border-top: 1px solid var(--bdr);
+  border-bottom: 1px solid var(--bdr);
+  margin: 8px 0;
+}
+.new-ratio-unit-lbl {
+  font-size: 8px;
+  letter-spacing: .16em;
+  text-transform: uppercase;
+  color: var(--muted);
+  margin-bottom: 4px;
+  font-family: var(--font-mono);
+}
+
+/* ── Chart section ─────────────────────────────────────────── */
+.new-chart-section {
+  padding: 8px 0;
+}
+.new-chart-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 8px;
+}
+.new-chart-title {
+  font-size: 8px;
+  letter-spacing: .18em;
+  text-transform: uppercase;
+  color: var(--muted);
+  font-family: var(--font-mono);
+}
+
+/* ── Calculator card ───────────────────────────────────────── */
+.new-calc-card {
+  background: var(--bg3) !important;
+  border: 1px solid var(--bdr) !important;
+  border-radius: 6px !important;
+  padding: 12px 12px 10px !important;
+  margin-top: 8px !important;
+}
+.new-amount-input {
+  width: 100%;
+  background: rgba(0,0,0,.25);
+  border: 1px solid rgba(130,110,200,.3);
+  border-radius: 4px;
+  padding: 9px 12px;
+  font-family: var(--font-mono);
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--text);
+  outline: none;
+  transition: border-color .15s;
+  -webkit-appearance: none;
+}
+.new-amount-input:focus { border-color: rgba(130,110,200,.7); }
+.new-amount-input::placeholder { color: var(--muted); font-size: 13px; }
+
+.new-calc-output {
+  background: rgba(0,0,0,.2);
+  border: 1px solid rgba(130,110,200,.15);
+  border-radius: 4px;
+  padding: 10px 12px;
+  margin-bottom: 8px;
+  text-align: right;
+}
+.new-calc-out-label {
+  font-family: var(--font-mono);
+  font-size: 8px;
+  letter-spacing: .14em;
+  color: var(--muted);
+  margin-bottom: 3px;
+}
+
+/* ── Advanced toggle ───────────────────────────────────────── */
+.new-adv-toggle {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 7px 0 0;
+  cursor: pointer;
+  font-family: var(--font-mono);
+  font-size: 8px;
+  letter-spacing: .12em;
+  color: var(--muted);
+  transition: color .15s;
+  user-select: none;
+  border-top: 1px solid var(--bdr);
+  margin-top: 4px;
+}
+.new-adv-toggle:hover { color: var(--text); }
+.new-adv-icon { font-size: 9px; transition: transform .2s; }
+.new-adv-icon.open { transform: rotate(90deg); }
+.new-adv-panel { display: none; margin-top: 8px; }
+.new-adv-panel.open { display: block; }
+
+/* ── Picker bottom-sheet ───────────────────────────────────── */
+.new-picker-sheet {
+  position: fixed !important;
+  top: 0 !important; left: 0 !important; right: 0 !important; bottom: 0 !important;
+  background: rgba(0,0,0,.6) !important;
+  backdrop-filter: blur(8px) !important;
+  -webkit-backdrop-filter: blur(8px) !important;
+  border-radius: 0 !important;
+  z-index: 400 !important;
+  display: flex !important;
+  flex-direction: column !important;
+  justify-content: flex-end !important;
+}
+.new-picker-inner {
+  background: var(--bg2);
+  border-radius: 16px 16px 0 0;
+  border-top: 1px solid var(--bdr2);
+  max-height: 75vh;
+  display: flex;
+  flex-direction: column;
+  animation: newSheetUp .28s cubic-bezier(.34,1.56,.64,1);
+}
+@keyframes newSheetUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
+.new-picker-handle {
+  width: 36px; height: 4px;
+  border-radius: 2px;
+  background: var(--bg4);
+  margin: 10px auto 0;
+  flex-shrink: 0;
+}
+.new-picker-search-wrap {
+  padding: 0 12px 10px;
+  flex-shrink: 0;
+}
+.new-picker-sheet .rt-picker-search {
+  width: 100%;
+  background: var(--bg3);
+  border: 1px solid var(--bdr2);
+  border-radius: 8px;
+  padding: 10px 14px;
+  font-family: var(--font-mono);
+  font-size: 13px;
+  color: var(--text);
+  outline: none;
+}
+.new-picker-sheet .rt-picker-search:focus { border-color: var(--bnb); }
+.new-picker-sheet .rt-picker-list {
+  flex: 1;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
+  padding: 0 4px 20px;
+}
+
+/* ── Light mode adjustments ────────────────────────────────── */
+:root.light .new-coin-card { background: var(--bg3); }
+:root.light .new-amount-input { background: var(--bg2); border-color: rgba(106,77,192,.25); }
+:root.light .new-calc-output { background: var(--bg3); border-color: rgba(106,77,192,.15); }
+:root.light .new-picker-inner { background: var(--bg2); }
+
 </style>
 </head>
 <body>
@@ -2576,75 +2852,64 @@ td.qa-cell{text-align:center;width:28px;padding:0 4px !important;}
     <!-- RATIO TRACKER -->
     <div class="ratio-section" id="ratio-section">
 
-      <!-- SWAP CALCULATOR — top of panel -->
-      <div class="rt-calc">
-        <h2 class="rt-calc-title">⇄ SWAP CALCULATOR</h2>
-        <div class="rt-calc-inputs">
-          <div class="rt-ci rt-ci-full">
-            <label id="rt-calc-from-lbl">Amount</label>
-            <input type="number" id="rt-calc-amt" aria-label="Swap amount" value="100" step="any" oninput="RatioTracker.calcSwap()">
-          </div>
-          <div class="rt-ci">
-            <label id="rt-calc-from-ov-lbl">Override FROM ($)</label>
-            <input type="number" id="rt-calc-from-ov" aria-label="Override from price" placeholder="auto" step="any" oninput="RatioTracker.calcSwap()">
-          </div>
-          <div class="rt-ci">
-            <label id="rt-calc-to-ov-lbl">Override TO ($)</label>
-            <input type="number" id="rt-calc-to-ov" aria-label="Override to price" placeholder="auto" step="any" oninput="RatioTracker.calcSwap()">
-          </div>
-        </div>
-        <div class="rt-calc-result">
-          <div>
-            <div class="rt-res-lbl">YOU'D RECEIVE</div>
-            <div class="rt-res-val" style="color:var(--green);" id="rt-calc-out">—</div>
-          </div>
-          <div style="text-align:right;">
-            <div class="rt-res-lbl">USD VALUE</div>
-            <div class="rt-res-val" style="color:var(--amber);" id="rt-calc-usd-out">—</div>
-          </div>
-        </div>
-        <div class="rt-calc-ratios">
-          <div class="rt-calc-ratio-line" id="rt-calc-ratio-fwd">—</div>
-          <div class="rt-calc-ratio-line" id="rt-calc-ratio-inv">—</div>
-        </div>
-      </div>
+      <!-- ══ PAIR SELECTION HERO ══ -->
+      <div class="new-swap-hero">
+        <div class="new-swap-hero-label">Select pair</div>
+        <div class="new-pair-grid">
 
-      <!-- COIN TILES: FROM / TO -->
-      <div class="rt-pair-tiles">
-        <div class="rt-ct" id="rt-ct-from" onclick="RatioTracker._openPicker('from')" title="Change FROM coin">
-          <div class="rt-ct-lbl">FROM — you hold</div>
-          <img class="rt-ct-img" id="rt-from-icon" src="" alt="" onerror="this.style.opacity='0'">
-          <div class="rt-ct-sym" id="rt-ct-from-sym">—</div>
-          <div class="rt-ct-price" id="rt-from-price">—</div>
-          <div class="rt-ct-chg" id="rt-from-chg">—</div>
-          <select class="rt-ct-sel" id="rt-from" onchange="RatioTracker.onFromChange()"></select>
-        </div>
-        <div class="rt-ct rt-ct-to" id="rt-ct-to" onclick="RatioTracker._openPicker('to')" title="Change TO coin">
-          <div class="rt-ct-lbl">TO — you want</div>
-          <img class="rt-ct-img" id="rt-to-icon" src="" alt="" onerror="this.style.opacity='0'">
-          <div class="rt-ct-sym" id="rt-ct-to-sym">—</div>
-          <div class="rt-ct-price" id="rt-to-price">—</div>
-          <div class="rt-ct-chg" id="rt-to-chg">—</div>
-          <select class="rt-ct-sel" id="rt-to" onchange="RatioTracker.onToChange()"></select>
-        </div>
-      </div>
+          <!-- FROM CARD -->
+          <div class="new-coin-card new-from-card" onclick="RatioTracker._openPicker('from')" role="button" tabindex="0" aria-label="Select FROM coin">
+            <div class="new-coin-badge">FROM <span class="new-tap-hint">tap ▾</span></div>
+            <div class="new-coin-main">
+              <div class="new-coin-icon-wrap">
+                <img id="rt-from-icon" src="" alt="" onerror="this.style.opacity='0'">
+              </div>
+              <div class="new-coin-info">
+                <div class="new-coin-sym" id="rt-from-card-lbl"><span id="rt-ct-from-sym">—</span></div>
+                <div class="new-coin-price" id="rt-from-price">—</div>
+                <div class="new-coin-chg" id="rt-from-chg"></div>
+              </div>
+            </div>
+          </div>
 
-      <!-- SWAP BUTTON + BADGE -->
-      <div class="rt-swap-row">
-        <button class="rt-swap-pair-btn" onclick="RatioTracker.swapPair()" title="Swap FROM and TO">
-          <span class="rt-swap-arrows">⇄</span> Swap Pair
-        </button>
-        <span class="rt-badge" id="rt-badge">&nbsp;</span>
-      </div>
+          <!-- SWAP DIRECTION -->
+          <div class="new-swap-dir-btn" onclick="RatioTracker.swapPair()" role="button" tabindex="0" aria-label="Swap direction">
+            <span class="rt-swap-arrows">⇄</span>
+          </div>
 
-      <!-- BOLD RATIO NUMBER -->
-      <div class="rt-ratio-center">
-        <div class="rt-ratio-bold" id="rt-ratio-num">0.00</div>
-        <div class="rt-ratio-bold-x">×</div>
+          <!-- TO CARD -->
+          <div class="new-coin-card new-to-card" onclick="RatioTracker._openPicker('to')" role="button" tabindex="0" aria-label="Select TO coin">
+            <div class="new-coin-badge">TO <span class="new-tap-hint">tap ▾</span></div>
+            <div class="new-coin-main">
+              <div class="new-coin-icon-wrap">
+                <img id="rt-to-icon" src="" alt="" onerror="this.style.opacity='0'">
+              </div>
+              <div class="new-coin-info">
+                <div class="new-coin-sym" id="rt-to-card-lbl"><span id="rt-ct-to-sym">—</span></div>
+                <div class="new-coin-price" id="rt-to-price">—</div>
+                <div class="new-coin-chg" id="rt-to-chg"></div>
+              </div>
+            </div>
+          </div>
+
+        </div><!-- /new-pair-grid -->
+
+        <!-- Hidden selects — JS populates & reads these -->
+        <select class="rt-ct-sel" id="rt-from" onchange="RatioTracker.onFromChange()" aria-hidden="true" tabindex="-1"></select>
+        <select class="rt-ct-sel" id="rt-to"   onchange="RatioTracker.onToChange()"   aria-hidden="true" tabindex="-1"></select>
+      </div><!-- /new-swap-hero -->
+
+      <!-- ══ RATIO HOOK ══ -->
+      <div class="new-ratio-hook">
+        <div class="new-ratio-unit-lbl">Current exchange ratio</div>
+        <div class="rt-ratio-bold" id="rt-ratio-num" style="font-size:clamp(36px,12vw,52px);font-weight:700;font-family:var(--font-mono);line-height:1;display:block;color:var(--text);">——</div>
         <div class="rt-ratio-unit"><span id="rt-unit-txt">— received per 1 —</span></div>
+        <div style="margin-top:8px;">
+          <span class="rt-badge" id="rt-badge">&nbsp;</span>
+        </div>
       </div>
 
-      <!-- Save pair + Refresh -->
+      <!-- ══ SAVE + REFRESH ACTIONS ══ -->
       <div class="rt-top-actions">
         <button class="rt-star-btn" id="rt-star-btn" title="Save pair">☆ Save pair</button>
         <button class="rt-refresh-btn" id="rt-refresh-btn" onclick="RatioTracker.loadAll()" title="Refresh">
@@ -2658,35 +2923,37 @@ td.qa-cell{text-align:center;width:28px;padding:0 4px !important;}
         <span class="rt-saved-empty">No saved pairs yet — pick a pair and click ☆ Save pair</span>
       </div>
 
-      <!-- Chart -->
-      <div class="rt-chart-wrap"><canvas id="rt-spark"></canvas></div>
+      <!-- ══ CHART ══ -->
+      <div class="new-chart-section">
+        <div class="new-chart-header">
+          <span class="new-chart-title">Ratio history</span>
+          <div class="rt-tf-row" style="margin-bottom:0;">
+            <button class="rt-tf-btn" id="rt-tf-1"  onclick="RatioTracker.setTF(1)">24h</button>
+            <button class="rt-tf-btn active" id="rt-tf-7"  onclick="RatioTracker.setTF(7)">7d</button>
+            <button class="rt-tf-btn" id="rt-tf-30" onclick="RatioTracker.setTF(30)">30d</button>
+          </div>
+        </div>
+        <div class="rt-chart-wrap"><canvas id="rt-spark"></canvas></div>
 
-      <!-- Range bar -->
-      <div class="rt-range-meta">
-        <span>Low: <strong id="rt-r-low">—</strong></span>
-        <span style="color:var(--red);">▲ Peak: <strong id="rt-r-peak">—</strong></span>
-        <span>Now: <strong id="rt-r-now">—</strong></span>
-      </div>
-      <div class="rt-bar-track">
-        <div class="rt-bar-fill" id="rt-bar-fill" style="width:0%"></div>
-        <div class="rt-bar-marker" id="rt-bar-marker" style="left:50%"></div>
-      </div>
-      <div class="rt-bar-labels">
-        <span id="rt-bl-start">—</span>
-        <span id="rt-bl-peak" style="color:var(--red);">peak</span>
-        <span>now</span>
-      </div>
+        <!-- Range bar -->
+        <div class="rt-range-meta">
+          <span>Low: <strong id="rt-r-low">—</strong></span>
+          <span style="color:var(--red);">▲ Peak: <strong id="rt-r-peak">—</strong></span>
+          <span>Now: <strong id="rt-r-now">—</strong></span>
+        </div>
+        <div class="rt-bar-track">
+          <div class="rt-bar-fill" id="rt-bar-fill" style="width:0%"></div>
+          <div class="rt-bar-marker" id="rt-bar-marker" style="left:50%"></div>
+        </div>
+        <div class="rt-bar-labels">
+          <span id="rt-bl-start">—</span>
+          <span id="rt-bl-peak" style="color:var(--red);">peak</span>
+          <span>now</span>
+        </div>
+      </div><!-- /new-chart-section -->
 
-      <!-- Timeframe -->
-      <div class="rt-tf-row">
-        <span class="rt-tf-lbl">Timeframe</span>
-        <button class="rt-tf-btn" id="rt-tf-1"  onclick="RatioTracker.setTF(1)">24h</button>
-        <button class="rt-tf-btn active" id="rt-tf-7"  onclick="RatioTracker.setTF(7)">7d</button>
-        <button class="rt-tf-btn" id="rt-tf-30" onclick="RatioTracker.setTF(30)">30d</button>
-      </div>
-
-      <!-- Period peak + Current cards -->
-      <div class="rt-cards">
+      <!-- ══ STAT CARDS ══ -->
+      <div class="rt-cards" style="margin-top:8px;">
         <div class="rt-card">
           <div class="rt-card-lbl">Period peak</div>
           <div class="rt-card-val rt-card-val-lg" style="color:var(--green);" id="rt-peak-val">—</div>
@@ -2699,20 +2966,61 @@ td.qa-cell{text-align:center;width:28px;padding:0 4px !important;}
         </div>
       </div>
 
+      <!-- ══ SWAP CALCULATOR ══ -->
+      <div class="rt-calc new-calc-card">
+        <h2 class="rt-calc-title">⇄ SWAP CALCULATOR</h2>
+
+        <div style="margin-bottom:10px;">
+          <label id="rt-calc-from-lbl" style="display:block;font-size:9px;letter-spacing:.12em;color:var(--muted);margin-bottom:5px;">Amount</label>
+          <input type="number" id="rt-calc-amt" class="new-amount-input" aria-label="Swap amount" value="100" step="any" oninput="RatioTracker.calcSwap()" placeholder="Enter amount…">
+        </div>
+
+        <div class="new-calc-output">
+          <div class="new-calc-out-label">YOU'D RECEIVE</div>
+          <div class="rt-res-val" style="color:var(--green);font-size:22px;" id="rt-calc-out">—</div>
+          <div class="rt-res-val" style="color:var(--amber);font-size:13px;margin-top:3px;" id="rt-calc-usd-out"></div>
+        </div>
+
+        <div class="rt-calc-ratios" style="margin-bottom:10px;">
+          <div class="rt-calc-ratio-line" id="rt-calc-ratio-fwd">—</div>
+          <div class="rt-calc-ratio-line" id="rt-calc-ratio-inv">—</div>
+        </div>
+
+        <!-- Advanced toggle -->
+        <div class="new-adv-toggle" onclick="newToggleAdvanced()" role="button" tabindex="0">
+          <span class="new-adv-icon" id="new-adv-icon">▶</span>
+          ADVANCED — Override prices
+        </div>
+        <div class="new-adv-panel" id="new-adv-panel">
+          <div class="rt-ci" style="margin-bottom:8px;">
+            <label id="rt-calc-from-ov-lbl">Override FROM ($)</label>
+            <input type="number" id="rt-calc-from-ov" aria-label="Override from price" placeholder="auto" step="any" oninput="RatioTracker.calcSwap()">
+          </div>
+          <div class="rt-ci">
+            <label id="rt-calc-to-ov-lbl">Override TO ($)</label>
+            <input type="number" id="rt-calc-to-ov" aria-label="Override to price" placeholder="auto" step="any" oninput="RatioTracker.calcSwap()">
+          </div>
+        </div>
+      </div><!-- /rt-calc -->
+
       <div class="rt-footer">Live data via CoinGecko · Not financial advice · Always verify before swapping</div>
 
-      <!-- Custom coin picker panel -->
-      <div class="rt-picker-panel" id="rt-picker-panel" style="display:none;">
-        <div class="rt-picker-header">
-          <span id="rt-picker-title">Select coin</span>
-          <button class="rt-picker-close" onclick="RatioTracker._closePicker()">×</button>
+      <!-- Custom coin picker panel — bottom sheet -->
+      <div class="rt-picker-panel new-picker-sheet" id="rt-picker-panel" style="display:none;" onclick="if(event.target===this)RatioTracker._closePicker()">
+        <div class="new-picker-inner">
+          <div class="new-picker-handle"></div>
+          <div class="rt-picker-header">
+            <span id="rt-picker-title">Select coin</span>
+            <button class="rt-picker-close" onclick="RatioTracker._closePicker()">×</button>
+          </div>
+          <div class="new-picker-search-wrap">
+            <input class="rt-picker-search" id="rt-picker-search" type="text" placeholder="Search by name or symbol…" oninput="RatioTracker._pickerFilter()" autocomplete="off">
+          </div>
+          <div class="rt-picker-list" id="rt-picker-list"></div>
         </div>
-        <input class="rt-picker-search" id="rt-picker-search" type="text" placeholder="Search by name or symbol…" oninput="RatioTracker._pickerFilter()" autocomplete="off">
-        <div class="rt-picker-list" id="rt-picker-list"></div>
       </div>
 
     </div>
-    <!-- END RATIO TRACKER -->
     </div><!-- /cb-swap -->
 
     <!-- PRO PROMO — collapsible on mobile -->
@@ -2894,6 +3202,15 @@ td.qa-cell{text-align:center;width:28px;padding:0 4px !important;}
 /* ══════════════════════════════════════════════════════════════
    BOTTOM NAV TOGGLE — second press closes the open section
 ══════════════════════════════════════════════════════════════ */
+/* ── New swap redesign: advanced override toggle ── */
+function newToggleAdvanced() {
+  var panel = document.getElementById('new-adv-panel');
+  var icon  = document.getElementById('new-adv-icon');
+  if (!panel) return;
+  var open = panel.classList.toggle('open');
+  if (icon) icon.classList.toggle('open', open);
+}
+
 (function initNavToggle() {
   // Track which nav section is currently open
   var _activeNavSection = null;
