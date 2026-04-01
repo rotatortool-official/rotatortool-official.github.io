@@ -118,8 +118,17 @@ body::before{content:'';position:fixed;inset:0;background:repeating-linear-gradi
 .overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.78);z-index:500;align-items:center;justify-content:center;backdrop-filter:blur(4px);}
 .overlay.show{display:flex;}
 .modal{background:var(--bg2);border-radius:var(--card-radius);box-shadow:0 8px 40px rgba(0,0,0,.6);padding:28px;width:100%;max-width:500px;position:relative;margin:16px;}
-.modal-x{position:absolute;top:12px;right:14px;background:none;border:none;color:var(--muted);font-size:18px;cursor:pointer;transition:color .15s;}
-.modal-x:hover{color:var(--text);}
+.modal-x{
+  position:absolute;top:14px;right:14px;
+  width:28px;height:28px;
+  display:flex;align-items:center;justify-content:center;
+  background:var(--bg4);border:1px solid var(--bdr2);border-radius:50%;
+  color:var(--muted);font-size:16px;line-height:1;
+  cursor:pointer;transition:all .15s;z-index:10;
+  font-family:inherit;
+}
+.modal-x:hover{color:var(--text);background:var(--bg3);border-color:var(--red);color:var(--red);}
+.modal .modal-title{padding-right:36px;}
 .modal-title{font-size:18px;font-weight:400;margin-bottom:6px;letter-spacing:.01em;font-family:var(--font-display);}
 .modal-sub{font-size:13px;color:var(--muted);margin-bottom:18px;line-height:1.9;font-family:var(--font-ui);}
 
@@ -2172,18 +2181,7 @@ td.qa-cell{text-align:center;width:28px;padding:0 4px !important;}
 .new-adv-panel.open { display: block; }
 
 /* ── Picker bottom-sheet ───────────────────────────────────── */
-.new-picker-sheet {
-  position: fixed !important;
-  top: 0 !important; left: 0 !important; right: 0 !important; bottom: 0 !important;
-  background: rgba(0,0,0,.6) !important;
-  backdrop-filter: blur(8px) !important;
-  -webkit-backdrop-filter: blur(8px) !important;
-  border-radius: 0 !important;
-  z-index: 400 !important;
-  display: flex !important;
-  flex-direction: column !important;
-  justify-content: flex-end !important;
-}
+/* new-picker-sheet removed — picker is now inline in leaderboard */
 .new-picker-inner {
   background: var(--bg2);
   border-radius: 16px 16px 0 0;
@@ -2489,8 +2487,8 @@ td.qa-cell{text-align:center;width:28px;padding:0 4px !important;}
 
 <!-- DONATE MODAL -->
 <div class="overlay" id="donate-modal" onclick="if(event.target===this)closeModal('donate-modal')">
-  <div class="modal">
-    <button class="modal-x" onclick="closeModal('donate-modal')">×</button>
+  <div class="modal" style="padding-top:20px;">
+    <button class="modal-x" onclick="closeModal('donate-modal')" aria-label="Close">×</button>
     <div class="modal-title">☕ Support Rotator</div>
     <div class="modal-sub">Rotator is and always will be <strong style="color:var(--bnb)">100% free and ad-free</strong>. Your support directly funds new features and keeps the servers running.</div>
     <div id="donate-modal-goal" style="background:var(--bg3);border:1px solid var(--bdr2);border-radius:3px;padding:10px 14px;margin-bottom:12px;"></div>
@@ -2519,8 +2517,8 @@ td.qa-cell{text-align:center;width:28px;padding:0 4px !important;}
 
 <!-- PRO UNLOCK MODAL -->
 <div class="overlay" id="pro-modal" onclick="if(event.target===this)closeModal('pro-modal')">
-  <div class="modal">
-    <button class="modal-x" onclick="closeModal('pro-modal')">×</button>
+  <div class="modal" style="padding-top:20px;">
+    <button class="modal-x" onclick="closeModal('pro-modal')" aria-label="Close">×</button>
     <div id="pro-modal-body">
       <!-- filled by JS -->
     </div>
@@ -2790,13 +2788,29 @@ td.qa-cell{text-align:center;width:28px;padding:0 4px !important;}
       </div>
     </div>
     </div>
-    <div class="tbl-head">
-      <h2 class="ptitle" id="tbl-title">PERFORMANCE LEADERBOARD</h2>
-      <div style="display:flex;flex-direction:column;align-items:flex-end;gap:2px;flex-shrink:0;">
-        <div class="sort-hint" style="font-size:9px;color:var(--muted);letter-spacing:.08em;white-space:nowrap;">CLICK COLUMN HEADERS TO SORT</div>
-        <span id="last-updated-crypto"  class="last-upd-ts" style="display:none;"></span>
-        <span id="last-updated-forex"   class="last-upd-ts" style="display:none;"></span>
-        <span id="last-updated-stocks"  class="last-upd-ts" style="display:none;"></span>
+    <div class="tbl-head" style="flex-direction:column;align-items:stretch;height:auto;padding:8px 14px 0;">
+      <div style="display:flex;align-items:center;justify-content:space-between;gap:6px;min-height:30px;padding-bottom:6px;">
+        <h2 class="ptitle" id="tbl-title">PERFORMANCE LEADERBOARD</h2>
+        <div style="display:flex;flex-direction:column;align-items:flex-end;gap:2px;flex-shrink:0;">
+          <div class="sort-hint" style="font-size:9px;color:var(--muted);letter-spacing:.08em;white-space:nowrap;">CLICK COLUMN HEADERS TO SORT</div>
+          <span id="last-updated-crypto"  class="last-upd-ts" style="display:none;"></span>
+          <span id="last-updated-forex"   class="last-upd-ts" style="display:none;"></span>
+          <span id="last-updated-stocks"  class="last-upd-ts" style="display:none;"></span>
+        </div>
+      </div>
+      <!-- Inline coin picker bar — shown when user taps a coin card -->
+      <div id="lb-picker-bar" style="display:none;padding-bottom:8px;">
+        <div style="display:flex;align-items:center;gap:6px;background:var(--bg4);border:1px solid var(--bdr2);border-radius:6px 6px 0 0;padding:6px 10px;">
+          <span id="lb-picker-mode-label" style="font-family:var(--font-mono);font-size:8px;letter-spacing:.14em;color:var(--bnb);white-space:nowrap;text-transform:uppercase;flex-shrink:0;"></span>
+          <span id="rt-picker-title" style="font-family:var(--font-mono);font-size:9px;color:var(--muted);flex-shrink:0;letter-spacing:.06em;"></span>
+          <input id="rt-picker-search" type="text" placeholder="Search coin name or symbol…"
+            autocomplete="off" oninput="RatioTracker._pickerFilter()"
+            style="flex:1;background:transparent;border:none;outline:none;font-family:var(--font-mono);font-size:12px;color:var(--text);min-width:0;">
+          <button onclick="RatioTracker._closePicker()" style="background:none;border:none;color:var(--muted);font-size:18px;line-height:1;cursor:pointer;padding:2px 4px;flex-shrink:0;transition:color .15s;" onmouseenter="this.style.color='var(--red)'" onmouseleave="this.style.color='var(--muted)'" aria-label="Close search">×</button>
+        </div>
+        <div id="rt-picker-list"
+          style="max-height:240px;overflow-y:auto;background:var(--bg2);border:1px solid var(--bdr2);border-top:none;border-radius:0 0 6px 6px;padding:4px 4px 6px;-webkit-overflow-scrolling:touch;">
+        </div>
       </div>
     </div>
     <div class="leaderboard" id="crypto-panel">
@@ -3005,20 +3019,8 @@ td.qa-cell{text-align:center;width:28px;padding:0 4px !important;}
 
       <div class="rt-footer">Live data via CoinGecko · Not financial advice · Always verify before swapping</div>
 
-      <!-- Custom coin picker panel — bottom sheet -->
-      <div class="rt-picker-panel new-picker-sheet" id="rt-picker-panel" style="display:none;" onclick="if(event.target===this)RatioTracker._closePicker()">
-        <div class="new-picker-inner">
-          <div class="new-picker-handle"></div>
-          <div class="rt-picker-header">
-            <span id="rt-picker-title">Select coin</span>
-            <button class="rt-picker-close" onclick="RatioTracker._closePicker()">×</button>
-          </div>
-          <div class="new-picker-search-wrap">
-            <input class="rt-picker-search" id="rt-picker-search" type="text" placeholder="Search by name or symbol…" oninput="RatioTracker._pickerFilter()" autocomplete="off">
-          </div>
-          <div class="rt-picker-list" id="rt-picker-list"></div>
-        </div>
-      </div>
+      <!-- Coin picker is now embedded in leaderboard header (#lb-picker-bar) -->
+      <div id="rt-picker-panel" style="display:none;"></div>
 
     </div>
     </div><!-- /cb-swap -->
@@ -3079,14 +3081,17 @@ td.qa-cell{text-align:center;width:28px;padding:0 4px !important;}
 
 <!-- SWAP TOOL TUTORIAL OVERLAY -->
 <div class="swap-tut-overlay" id="swap-tut-overlay">
-  <div class="swap-tut-box" id="swap-tut-box">
+  <div class="swap-tut-box" id="swap-tut-box" style="position:relative;">
+    <button onclick="endSwapTut()" aria-label="Close tutorial"
+      style="position:absolute;top:8px;right:8px;width:24px;height:24px;display:flex;align-items:center;justify-content:center;background:var(--bg4);border:1px solid var(--bdr2);border-radius:50%;color:var(--muted);font-size:14px;line-height:1;cursor:pointer;transition:all .15s;z-index:2;font-family:inherit;"
+      onmouseenter="this.style.borderColor='var(--red)';this.style.color='var(--red)'"
+      onmouseleave="this.style.borderColor='var(--bdr2)';this.style.color='var(--muted)'">×</button>
     <div class="swap-tut-step" id="swap-tut-step-lbl">STEP 1 OF 4</div>
     <div class="swap-tut-title" id="swap-tut-title">Swap Tool</div>
     <div class="swap-tut-desc" id="swap-tut-desc"></div>
     <div class="swap-tut-footer">
       <div class="swap-tut-dots" id="swap-tut-dots"></div>
       <div style="display:flex;gap:6px;align-items:center;">
-        <button class="swap-tut-skip" onclick="endSwapTut()">Skip</button>
         <button class="swap-tut-btn" id="swap-tut-next" onclick="swapTutNext()">Next →</button>
       </div>
     </div>
@@ -3723,5 +3728,59 @@ document.addEventListener('DOMContentLoaded', function() {
 }
 </style>
 
+
+<script>
+/* ── Inline picker override: drives the leaderboard search bar ── */
+(function() {
+  var _origOpen  = null;
+  var _origClose = null;
+  var _origFilter = null;
+
+  function waitForRT() {
+    if (typeof RatioTracker === 'undefined' || !RatioTracker._openPicker) {
+      return setTimeout(waitForRT, 80);
+    }
+    _origOpen   = RatioTracker._openPicker;
+    _origClose  = RatioTracker._closePicker;
+    _origFilter = RatioTracker._pickerFilter;
+
+    RatioTracker._openPicker = function(mode) {
+      var bar   = document.getElementById('lb-picker-bar');
+      var lbl   = document.getElementById('lb-picker-mode-label');
+      var inp   = document.getElementById('rt-picker-search');
+      var title = document.getElementById('rt-picker-title');
+      if (!bar) { _origOpen(mode); return; }
+
+      /* Update label */
+      if (lbl)   lbl.textContent  = (mode === 'from' ? 'FROM' : 'TO') + ' ▾';
+      if (title) title.textContent = 'Select ' + (mode === 'from' ? 'FROM' : 'TO') + ' coin';
+
+      /* Show bar and scroll to it */
+      bar.style.display = 'block';
+      if (inp)  { inp.value = ''; inp.focus(); }
+
+      /* Scroll leaderboard header into view */
+      var tblHead = bar.closest('.tbl-head');
+      if (tblHead) tblHead.scrollIntoView({ behavior: 'smooth', block: 'start' });
+
+      /* Populate list */
+      _origFilter.call(RatioTracker);
+
+      /* Also call original so internal _pickerMode is set correctly */
+      _origOpen.call(RatioTracker, mode);
+    };
+
+    RatioTracker._closePicker = function() {
+      var bar = document.getElementById('lb-picker-bar');
+      if (bar) bar.style.display = 'none';
+      var inp = document.getElementById('rt-picker-search');
+      if (inp) inp.value = '';
+      /* Call original so internal state resets */
+      _origClose.call(RatioTracker);
+    };
+  }
+  waitForRT();
+})();
+</script>
 </body>
 </html>
