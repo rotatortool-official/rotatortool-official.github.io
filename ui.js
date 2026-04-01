@@ -559,7 +559,7 @@ function _searchItemHTML(coin) {
   var chgTxt   = (coin.p24 >= 0 ? '+' : '') + (coin.p24||0).toFixed(2) + '%';
   var safeId   = (coin.id||'').replace(/'/g, '');
   return '<div class="topbar-search-result-item" onclick="handleSearchSelect(\'' + safeId + '\')">'
-    + '<img class="tsri-ico" src="'+(coin.image||'')+'" alt="" onerror="this.style.opacity='0'">'
+    + '<img class="tsri-ico" src="'+(coin.image||'')+'" alt="" onerror="this.style.opacity=0">'
     + '<span class="tsri-sym">'+(coin.sym||'')+'</span>'
     + '<span class="tsri-name">'+(coin.name||'')+'</span>'
     + '<span class="tsri-chg" style="color:'+chgColor+'">'+chgTxt+'</span>'
