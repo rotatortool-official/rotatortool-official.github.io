@@ -1025,9 +1025,6 @@ function _mobHighlightBtn(activeId) {
     var b = document.getElementById('mn-' + m);
     if (b) b.classList.toggle('active', m === activeId);
   });
-  /* Also sync the landscape sidebar swap button */
-  var bls = document.getElementById('mn-swap-ls');
-  if (bls) bls.classList.toggle('active', activeId === 'swap');
 }
 
 function _mobOpenAndScroll(sectionId, btnId) {
