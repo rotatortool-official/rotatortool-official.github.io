@@ -1278,7 +1278,8 @@ function fmtMcap(n) {
   if (n >= 1e6)  return '$' + (n/1e6).toFixed(1)  + 'M';
   return '$' + n.toLocaleString();
 }
-function fmtVol(n) { return fmtMcap(n); }
+/* fmtVol uses the same bucketing as market cap — alias, not a copy */
+var fmtVol = fmtMcap;
 
 function _positionPanel(panel, evt) {
   var isMobile = window.innerWidth <= 700;
