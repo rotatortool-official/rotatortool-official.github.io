@@ -474,9 +474,13 @@ var RatioTracker = (function() {
   function _openPicker(mode){
     _pickerMode=mode;
     var panel=$('rt-picker-panel'); if(!panel) return;
+    var backdrop=$('rt-picker-backdrop');
     var title=$('rt-picker-title'); if(title) title.textContent=(mode==='from'?'Select FROM coin':'Select TO coin');
     var search=$('rt-picker-search'); if(search) search.value='';
     panel.style.display='flex';
+    if(backdrop) backdrop.style.display='block';
+    /* Prevent body scroll while picker is open */
+    document.body.style.overflow='hidden';
     _pickerFilter();
     if(search) setTimeout(function(){ search.focus(); },60);
 
@@ -497,6 +501,8 @@ var RatioTracker = (function() {
 
   function _closePicker(){
     var panel=$('rt-picker-panel'); if(panel) panel.style.display='none';
+    var backdrop=$('rt-picker-backdrop'); if(backdrop) backdrop.style.display='none';
+    document.body.style.overflow='';
     if(_pickerOutsideHandler){
       document.removeEventListener('click', _pickerOutsideHandler, true);
       _pickerOutsideHandler=null;

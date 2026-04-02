@@ -313,9 +313,11 @@
 
 <!-- PRO UNLOCK MODAL -->
 <div class="overlay" id="pro-modal" onclick="if(event.target===this)closeModal('pro-modal')">
-  <div class="modal" style="padding-top:20px;">
-    <button class="modal-x" onclick="closeModal('pro-modal')" aria-label="Close">×</button>
-    <div id="pro-modal-body">
+  <div class="modal" style="padding-top:20px;position:relative;overflow:hidden;">
+    <!-- Sparkle canvas — fills modal background, pointer-events:none so it never blocks clicks -->
+    <canvas id="pro-sparkle-c" style="position:absolute;inset:0;width:100%;height:100%;pointer-events:none;z-index:0;border-radius:var(--card-radius);"></canvas>
+    <button class="modal-x" onclick="closeModal('pro-modal')" aria-label="Close" style="position:relative;z-index:2;">×</button>
+    <div id="pro-modal-body" style="position:relative;z-index:2;">
       <!-- filled by JS -->
     </div>
   </div>
@@ -843,21 +845,7 @@
 
       <div class="rt-footer">Live data via CoinGecko · Not financial advice · Always verify before swapping</div>
 
-      <!-- Coin picker — inline panel inside the swap section -->
-      <div id="rt-picker-panel" style="display:none;margin-top:6px;background:var(--bg3);border:1px solid var(--bdr2);border-radius:8px;overflow:hidden;max-height:320px;flex-direction:column;">
-        <div style="display:flex;align-items:center;gap:8px;padding:8px 12px;border-bottom:1px solid var(--bdr);background:var(--bg4);flex-shrink:0;">
-          <svg width="13" height="13" viewBox="0 0 16 16" fill="none" style="color:var(--muted);flex-shrink:0;" aria-hidden="true"><circle cx="6.5" cy="6.5" r="5" stroke="currentColor" stroke-width="1.6"/><line x1="10.5" y1="10.5" x2="14.5" y2="14.5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
-          <input class="rt-picker-search" id="rt-picker-search" type="text"
-            placeholder="Search coin…" autocomplete="off"
-            oninput="RatioTracker._pickerFilter()"
-            style="flex:1;background:transparent;border:none;outline:none;font-family:var(--font-mono);font-size:12px;color:var(--text);min-width:0;">
-          <span id="rt-picker-title" style="font-family:var(--font-mono);font-size:8px;letter-spacing:.12em;color:var(--bnb);flex-shrink:0;text-transform:uppercase;"></span>
-          <button onclick="RatioTracker._closePicker()" aria-label="Close"
-            style="background:none;border:none;color:var(--muted);font-size:18px;line-height:1;cursor:pointer;padding:0 2px;flex-shrink:0;transition:color .15s;"
-            onmouseenter="this.style.color='var(--red)'" onmouseleave="this.style.color='var(--muted)'">×</button>
-        </div>
-        <div class="rt-picker-list" id="rt-picker-list" style="overflow-y:auto;flex:1;-webkit-overflow-scrolling:touch;"></div>
-      </div>
+      <!-- Coin picker placeholder (actual modal is outside scroll context, appended to body) -->
 
     </div>
     </div><!-- /cb-swap -->
@@ -970,6 +958,12 @@
     <span>SWAP</span>
   </button>
 
+  <!-- SWAP button — hidden in portrait (FAB used instead), shown in landscape sidebar -->
+  <button class="mob-nav-btn mob-nav-swap-ls" id="mn-swap-ls" onclick="mobNavSwap()" title="Swap Calculator">
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="17 1 21 5 17 9"/><path d="M3 11V9a4 4 0 0 1 4-4h14"/><polyline points="7 23 3 19 7 15"/><path d="M21 13v2a4 4 0 0 1-4 4H3"/></svg>
+    <span>SWAP</span>
+  </button>
+
   <!-- RIGHT PAIR -->
   <button class="mob-nav-btn" id="mn-holdings" onclick="mobNavHoldings()">
     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2"/><path d="M12 12v2"/><path d="M2 12h20"/></svg>
@@ -1058,5 +1052,23 @@
   <script src="js/visuals.js"></script>
   <script src="js/ui.js"></script>
   <script src="js/data-loaders.js"></script>
+
+<!-- COIN PICKER MODAL — fixed overlay, always on top, viewport-centered -->
+<div id="rt-picker-backdrop" class="rt-picker-backdrop" onclick="RatioTracker._closePicker()" style="display:none;"></div>
+<div id="rt-picker-panel" class="rt-picker-modal" style="display:none;" role="dialog" aria-modal="true" aria-label="Select coin">
+  <div class="rt-picker-modal-header">
+    <div class="rt-picker-modal-search-row">
+      <svg width="14" height="14" viewBox="0 0 16 16" fill="none" class="rt-picker-modal-search-ico" aria-hidden="true"><circle cx="6.5" cy="6.5" r="5" stroke="currentColor" stroke-width="1.6"/><line x1="10.5" y1="10.5" x2="14.5" y2="14.5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
+      <input class="rt-picker-search" id="rt-picker-search" type="text"
+        placeholder="Search coin…" autocomplete="off"
+        oninput="RatioTracker._pickerFilter()">
+    </div>
+    <div class="rt-picker-modal-title-row">
+      <span id="rt-picker-title" class="rt-picker-modal-title"></span>
+      <button class="rt-picker-close" onclick="RatioTracker._closePicker()" aria-label="Close picker">×</button>
+    </div>
+  </div>
+  <div class="rt-picker-list" id="rt-picker-list"></div>
+</div>
 </body>
 </html>

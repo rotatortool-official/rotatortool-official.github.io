@@ -165,6 +165,8 @@ function checkProCode() {
   updateTierBadge();
   incrementDonationCount();
   closeModal('pro-modal');
+  /* Start ambient sparkle overlay now that Pro is active */
+  if (typeof Visuals !== 'undefined') Visuals.start();
 
   var t = document.createElement('div');
   t.style.cssText = 'position:fixed;top:56px;left:50%;transform:translateX(-50%);background:var(--bg2);border:1px solid var(--pro);border-radius:6px;padding:14px 22px;font-family:IBM Plex Mono,monospace;font-size:12px;color:var(--pro);z-index:900;text-align:center;box-shadow:0 0 30px rgba(167,139,250,.2);letter-spacing:.06em;';
@@ -185,6 +187,8 @@ function revokePro() {
   isPro = false; savePro(false);
   closeModal('pro-modal');
   updateTierBadge();
+  /* Stop ambient sparkle when Pro is revoked */
+  if (typeof Visuals !== 'undefined') Visuals.stop();
   doRefresh();
 }
 
