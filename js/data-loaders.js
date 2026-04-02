@@ -150,6 +150,7 @@ async function loadCoins() {
   }
 
   computeScores();
+  window.coins = coins; /* sync so ui.js search/modal can access live data */
 }
 
 
@@ -909,6 +910,7 @@ async function doLoad() {
     prog(92, 'Almost ready — building your dashboard…');
     applyModePrefs();
     renderAll();         prog(100, 'All done! This free tool is built by one person — thanks for your patience ♥');
+    window.coins = coins; /* keep window.coins fresh for search/modal */
     _setLastUpdated('crypto');
     var tsEl = document.getElementById('last-updated-crypto');
     if (tsEl) tsEl.style.display = '';

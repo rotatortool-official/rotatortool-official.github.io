@@ -61,6 +61,19 @@ body::before{content:'';position:fixed;inset:0;background:repeating-linear-gradi
 @keyframes pulse{0%,100%{opacity:1}50%{opacity:.2}}
 .btc-meta{font-size:11px;color:var(--muted);display:flex;align-items:center;gap:6px;}
 .topbar-r{display:flex;align-items:center;gap:5px;width:320px;justify-content:flex-end;flex-shrink:0;}
+/* ── Topbar search ── */
+.topbar-search-wrap{position:relative;display:flex;align-items:center;}
+.topbar-search-btn{background:none;border:1px solid var(--bdr2);color:var(--muted);width:28px;height:28px;display:flex;align-items:center;justify-content:center;cursor:pointer;border-radius:4px;transition:all .15s;padding:0;flex-shrink:0;}
+.topbar-search-btn:hover{border-color:var(--bnb);color:var(--bnb);}
+.topbar-search-dropdown{position:absolute;top:calc(100% + 6px);right:0;width:300px;background:var(--bg2);border:1px solid var(--bdr2);border-radius:6px;box-shadow:0 8px 32px rgba(0,0,0,.5);z-index:200;overflow:hidden;}
+.topbar-search-input{width:100%;background:var(--bg3);border:none;border-bottom:1px solid var(--bdr);color:var(--text);font-family:inherit;font-size:12px;padding:10px 12px;outline:none;box-sizing:border-box;letter-spacing:.04em;}
+.topbar-search-input::placeholder{color:var(--muted);}
+.topbar-search-results{max-height:320px;overflow-y:auto;}
+.topbar-search-result-item{display:flex;align-items:center;gap:8px;padding:8px 12px;cursor:pointer;border-bottom:1px solid var(--bdr);transition:background .12s;font-size:11px;color:var(--text);}
+.topbar-search-result-item:last-child{border-bottom:none;}
+.topbar-search-result-item:hover{background:var(--bg3);}
+.topbar-search-result-item img{width:20px;height:20px;border-radius:50%;flex-shrink:0;}
+.topbar-search-empty{padding:14px 12px;font-size:11px;color:var(--muted);text-align:center;}
 .ts{font-size:10px;color:var(--text);letter-spacing:.04em;opacity:.7;}
 .btn{background:none;border:1px solid var(--bdr2);color:var(--muted);padding:3px 10px;font-family:inherit;font-size:10px;cursor:pointer;letter-spacing:.07em;border-radius:2px;transition:all .15s;}
 .btn:hover{border-color:var(--bnb);color:var(--bnb);}
@@ -2068,6 +2081,8 @@ td.qa-cell{text-align:center;width:28px;padding:0 4px !important;}
   -webkit-tap-highlight-color: transparent;
   color: var(--muted);
   margin: 0 auto;
+  position: relative;
+  z-index: 2;
 }
 .new-swap-dir-btn:hover { border-color: var(--bnb); color: var(--bnb); background: var(--bnbd); }
 .new-swap-dir-btn:active { transform: scale(0.9); }

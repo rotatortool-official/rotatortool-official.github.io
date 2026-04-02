@@ -347,7 +347,9 @@ function openAddHoldingsModal(mode) {
 
 function ahmFilter() {
   var q = (document.getElementById('ahm-search').value || '').toLowerCase().trim();
-  var c = (typeof coins !== 'undefined' && Array.isArray(coins)) ? coins : [];
+  var c = (window.coins && Array.isArray(window.coins) && window.coins.length)
+        ? window.coins
+        : (typeof coins !== 'undefined' && Array.isArray(coins) ? coins : []);
   var listEl = document.getElementById('ahm-coin-list');
   if (!listEl) return;
   if (!c.length) {
@@ -374,7 +376,9 @@ function ahmFilter() {
 }
 
 function ahmSelect(coinId) {
-  var c = typeof coins !== 'undefined' ? coins : [];
+  var c = (window.coins && Array.isArray(window.coins) && window.coins.length)
+        ? window.coins
+        : (typeof coins !== 'undefined' ? coins : []);
   _ahmSelected = c.find(function(x) { return x.id === coinId; });
   if (!_ahmSelected) return;
   var info = document.getElementById('ahm-selected-info');
