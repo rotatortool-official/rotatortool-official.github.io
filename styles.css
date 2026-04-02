@@ -2469,3 +2469,92 @@ td.qa-cell{text-align:center;width:28px;padding:0 4px !important;}
     padding: 6px 5px 5px !important;
   }
 }
+
+
+/* ══════════════════════════════════════════════════════════════
+   PATCH: Mobile nav — landscape positioning + portrait scroll fix
+   ══════════════════════════════════════════════════════════════ */
+
+/* ── PORTRAIT: scroll padding so sections aren't hidden behind 60px fixed bottom nav ── */
+@media(max-width:700px) and (orientation:portrait) {
+  html {
+    scroll-padding-bottom: 68px; /* matches nav height + 8px breathing room */
+  }
+  body {
+    padding-bottom: 68px; /* ensures last section is fully scrollable above the nav */
+  }
+}
+
+/* ── LANDSCAPE: reset ALL portrait mob-nav properties, then apply column sidebar ──
+   The portrait base styles (bottom:0, height:60px, align-items:flex-end, border-top)
+   were bleeding into the landscape override because some properties weren't cancelled.
+   This block explicitly resets every portrait-only value before setting landscape ones. ── */
+@media(max-height:500px) and (orientation:landscape) {
+
+  /* Full reset of portrait-only nav properties */
+  .mob-nav {
+    bottom:       auto   !important; /* portrait: bottom:0  → cancel */
+    height:       auto   !important; /* portrait: height:60px → cancel */
+    align-items:  stretch !important;/* portrait: align-items:flex-end → cancel */
+    padding:      0      !important; /* portrait: padding:0 4px → cancel */
+    border-top:   none   !important; /* portrait: border-top:1px → cancel */
+    border-bottom:none   !important;
+    /* Landscape sidebar shape */
+    display:      flex   !important;
+    flex-direction: column !important;
+    position:     fixed  !important;
+    left:         0      !important;
+    top:          40px   !important; /* below fixed topbar */
+    right:        auto   !important;
+    width:        44px   !important;
+    border-right: 1px solid var(--bdr2) !important;
+    background:   var(--bg2) !important;
+    z-index:      300    !important;
+    overflow:     hidden !important;
+  }
+
+  /* Each button: fill equal height slices of the sidebar */
+  .mob-nav-btn {
+    flex:         1    !important;
+    width:        44px !important;
+    min-width:    0    !important;
+    min-height:   0    !important;
+    padding:      4px 2px !important;
+    border-bottom:1px solid var(--bdr) !important;
+    border-right: 3px solid transparent !important;
+    border-left:  none !important;
+    border-top:   none !important;
+    font-size:    6px  !important;
+    gap:          2px  !important;
+    /* Cancel the portrait absolute FAB positioning that leaks in */
+    position:     static !important;
+    transform:    none   !important;
+  }
+
+  .mob-nav-btn svg {
+    width:  16px !important;
+    height: 16px !important;
+  }
+
+  .mob-nav-btn.active {
+    border-right-color: var(--bnb)  !important;
+    background: rgba(243,186,47,.06) !important;
+  }
+
+  /* FAB spacer: zero width in landscape (no FAB in sidebar mode) */
+  .mob-nav-fab-spacer {
+    display: none !important;
+  }
+
+  /* FAB itself hidden in landscape — side buttons replace it */
+  .mob-nav-fab {
+    display:  none !important;
+    position: static !important; /* cancel fixed positioning leak */
+  }
+
+  /* Light theme sidebar */
+  :root.light .mob-nav {
+    background: rgba(240,250,255,.97) !important;
+    border-right: 1px solid rgba(80,190,155,.25) !important;
+  }
+}

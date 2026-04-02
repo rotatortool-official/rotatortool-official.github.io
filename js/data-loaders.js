@@ -1032,10 +1032,14 @@ function _mobOpenAndScroll(sectionId, btnId) {
   closeMobMore();
   var hdr  = document.getElementById('ch-' + sectionId);
   var body = document.getElementById('cb-' + sectionId);
-  if (hdr && body && body.classList.contains('collapsed')) {
-    toggleCollapse(sectionId);
-  }
-  if (hdr) _mobScrollTo(hdr);
+  /* Track collapsed state before toggling so we know to delay scroll */
+  var wasCollapsed = !!(hdr && body && body.classList.contains('collapsed'));
+  if (wasCollapsed) toggleCollapse(sectionId);
+  /* Wait for 320ms CSS transition to finish before scrolling.
+     Firing immediately scrolls to wrong position (section still has height:0) */
+  setTimeout(function() {
+    if (hdr) _mobScrollTo(hdr);
+  }, wasCollapsed ? 350 : 0);
 }
 
 function mobNav(mode) {
