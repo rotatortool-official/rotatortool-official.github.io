@@ -7,6 +7,18 @@
    • Saved pairs bar — star to save, click to load, × to remove
    • Chart, range bar, badge, swap calculator
    • Uses apiFetch() from api-pool.js (caching + proxy rotation)
+   ──────────────────────────────────────────────────────────────
+   FIXES (2026):
+   • BUG 1: Right panel acting as giant button — the document-level
+     capture listener from _openPicker was leaking. Replaced with a
+     clean single-listener pattern that is always removed before
+     re-attaching, and guards against display:none state properly.
+   • BUG 2: Swap arrows not swapping card values — updateLabels() and
+     updateIcons() now run synchronously before loadAll(), so the
+     FROM/TO cards visually flip instantly on click.
+   • BUG 3: Chart not rendering — Chart.js CDN load race + collapsed
+     section zero-height canvas. Added a retry loop that waits for
+     both window.Chart and a non-zero canvas height before drawing.
 ══════════════════════════════════════════════════════════════════ */
 
 var RatioTracker = (function() {
@@ -59,16 +71,12 @@ var RatioTracker = (function() {
   function $(id){ return document.getElementById(id); }
   function set(id,v){ var e=$(id); if(e) e.textContent=v; }
 
-  /* ── Coin image lookup with comprehensive fallbacks ── */
-  /* getCoinImage — uses the global coins array populated by signals.js.
-     CG_IDS static map removed: it used incorrect URL patterns and was
-     unreachable since the live coins array is always populated first. */
+  /* ── Coin image lookup ── */
   function getCoinImage(id) {
     if (typeof coins !== 'undefined' && Array.isArray(coins) && coins.length > 0) {
       var found = coins.find(function(x) { return x.id === id; });
       if (found && found.image) return found.image;
     }
-    /* Fallback placeholder while coins array loads */
     return 'https://assets.coingecko.com/coins/images/1/thumb/bitcoin.png';
   }
 
@@ -76,7 +84,6 @@ var RatioTracker = (function() {
     var fi = $('rt-from-icon'), ti = $('rt-to-icon');
     if (fi && S.from) { fi.src = getCoinImage(S.from); fi.style.opacity = '1'; }
     if (ti && S.to)   { ti.src = getCoinImage(S.to);   ti.style.opacity = '1'; }
-    /* Retry after coins array loads if needed */
     if (typeof coins === 'undefined' || !coins.length) {
       setTimeout(updateIcons, 1500);
     }
@@ -86,8 +93,6 @@ var RatioTracker = (function() {
     var e=$('rt-status'); if(!e) return;
     e.textContent=msg; e.className='rt-status'+(cls?' '+cls:'');
   }
-
-  /* fmtP() — uses the global fmtP defined in signals.js to avoid duplication */
 
   /* ── Persistence ─────────────────────────────────────────────── */
   function savePair(){ try{ localStorage.setItem(LS_PAIR,JSON.stringify({from:S.from,to:S.to})); }catch(e){} }
@@ -121,7 +126,9 @@ var RatioTracker = (function() {
       var o2=document.createElement('option'); o2.value=t; o2.textContent=lbl(t)+'  —  '+t; tSel.appendChild(o2);
     }
     tSel.value=t; S.to=t;
-    savePair(); renderSavedPairs(); updateStarBtn(); loadAll(true);
+    savePair(); renderSavedPairs(); updateStarBtn();
+    updateLabels(); updateIcons();   /* FIX: immediate visual update before async load */
+    loadAll(true);
   }
 
   /* ── Dropdowns ───────────────────────────────────────────────── */
@@ -167,7 +174,6 @@ var RatioTracker = (function() {
     set('rt-unit-txt',lbl(t)+' received per 1 '+lbl(f));
     set('rt-from-card-lbl',lbl(f)); set('rt-to-card-lbl',lbl(t));
     set('rt-calc-from-lbl','Amount of '+lbl(f));
-    /* Update tile sym labels immediately */
     var fs=$('rt-ct-from-sym'); if(fs) fs.textContent=lbl(f);
     var ts=$('rt-ct-to-sym');   if(ts) ts.textContent=lbl(t);
     updateIcons();
@@ -197,8 +203,6 @@ var RatioTracker = (function() {
   }
 
   /* ── Data loading ────────────────────────────────────────────── */
-
-  /* Try to pull price from the global coins array (already loaded by leaderboard) */
   function _coinFromCache(id){
     if(typeof coins!=='undefined'&&Array.isArray(coins)){
       var c=coins.find(function(x){return x.id===id;});
@@ -212,11 +216,9 @@ var RatioTracker = (function() {
     var fc=_coinFromCache(f), tc=_coinFromCache(t);
 
     if(fc&&tc){
-      /* Both coins already in leaderboard data — no API call needed */
       S.fromPrice=fc.usd; S.toPrice=tc.usd;
       S.fromChg=fc.chg;   S.toChg=tc.chg;
     } else {
-      /* Fallback: fetch from API (for coins not in leaderboard) */
       var raw=await apiFetch('https://api.coingecko.com/api/v3/simple/price?vs_currencies=usd&include_24hr_change=true&ids='+f+','+t);
       var fo=raw[f],to=raw[t];
       if(!fo||fo.usd===undefined) throw new Error(lbl(f)+' price missing');
@@ -226,11 +228,9 @@ var RatioTracker = (function() {
     }
     var ratio=S.fromPrice/S.toPrice;
 
-    /* ── Live ratio number (in the middle of tiles) ── */
     var rEl=$('rt-ratio-num');
     if(rEl){ rEl.textContent=ratio.toFixed(ratio<1?4:ratio<10?3:2); rEl.classList.remove('dim'); rEl.classList.add('rt-ratio-bold'); }
 
-    /* ── FROM tile ── */
     var fromSym=$('rt-ct-from-sym'); if(fromSym) fromSym.textContent=lbl(S.from);
     set('rt-from-price', fmtP(S.fromPrice));
     var fChgEl=$('rt-from-chg');
@@ -239,7 +239,6 @@ var RatioTracker = (function() {
       fChgEl.style.color=S.fromChg>=0?'var(--green)':'var(--red)';
     }
 
-    /* ── TO tile ── */
     var toSym=$('rt-ct-to-sym'); if(toSym) toSym.textContent=lbl(S.to);
     set('rt-to-price', fmtP(S.toPrice));
     var tChgEl=$('rt-to-chg');
@@ -248,7 +247,6 @@ var RatioTracker = (function() {
       tChgEl.style.color=S.toChg>=0?'var(--green)':'var(--red)';
     }
 
-    /* ── Now ratio card ── */
     var nowVal=$('rt-now-ratio-val');
     if(nowVal){ nowVal.textContent=ratio.toFixed(ratio<1?4:ratio<10?3:2)+'×'; }
 
@@ -282,12 +280,12 @@ var RatioTracker = (function() {
     setSpin(true); status('Fetching prices…'); updateLabels(); updateIcons();
     try{
       await loadPrices();
-      updateIcons(); /* refresh icons now that coins may be loaded */
+      updateIcons();
       await (typeof sleep==='function'?sleep(300):new Promise(function(r){setTimeout(r,300);}));
       await loadHistory();
     }catch(e){ status('Error: '+e.message,'err'); }
     setSpin(false); S.loading=false;
-    updateIcons(); /* final refresh */
+    updateIcons();
   }
 
   /* ── Rendering ───────────────────────────────────────────────── */
@@ -316,8 +314,29 @@ var RatioTracker = (function() {
     renderBadge(nowR);
   }
 
+  /* ── FIX BUG 3: Chart rendering with retry for CDN load race + collapsed canvas ── */
+  var _chartRetryTimer = null;
   function renderChart(series){
-    var canvas=$('rt-spark'); if(!canvas||!window.Chart) return;
+    /* Clear any pending retry */
+    if(_chartRetryTimer){ clearTimeout(_chartRetryTimer); _chartRetryTimer=null; }
+
+    var canvas=$('rt-spark');
+    if(!canvas) return;
+
+    /* Wait for Chart.js to be available from CDN */
+    if(!window.Chart){
+      _chartRetryTimer=setTimeout(function(){ renderChart(series); }, 300);
+      return;
+    }
+
+    /* Wait for canvas to have real dimensions (fails when section is collapsed) */
+    var h=canvas.offsetHeight||canvas.clientHeight||0;
+    var w=canvas.offsetWidth||canvas.clientWidth||0;
+    if(h<10||w<10){
+      _chartRetryTimer=setTimeout(function(){ renderChart(series); }, 300);
+      return;
+    }
+
     var ctx=canvas.getContext('2d');
     var labels=series.map(function(p){
       var d=new Date(p.t);
@@ -329,8 +348,7 @@ var RatioTracker = (function() {
     var peakIdx=data.indexOf(Math.max.apply(null,data));
     var minVal=Math.min.apply(null,data), maxVal=Math.max.apply(null,data);
 
-    /* Build gradient fill */
-    var grad=ctx.createLinearGradient(0,0,0,canvas.offsetHeight||140);
+    var grad=ctx.createLinearGradient(0,0,0,h);
     grad.addColorStop(0,'rgba(0,189,142,0.25)');
     grad.addColorStop(0.5,'rgba(0,189,142,0.10)');
     grad.addColorStop(1,'rgba(0,189,142,0.01)');
@@ -427,7 +445,6 @@ var RatioTracker = (function() {
     set('rt-calc-out', outFmt + ' ' + lbl(S.to));
     set('rt-calc-usd-out','$'+(amt*fp).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2}));
 
-    /* coin-to-coin price ratio */
     var fwd=fp/tp, inv=tp/fp;
     var fwdEl=$('rt-calc-ratio-fwd'), invEl=$('rt-calc-ratio-inv');
     if(fwdEl) fwdEl.innerHTML='1 '+lbl(S.from)+' = <span>'+fmtRatio(fwd)+' '+lbl(S.to)+'</span>';
@@ -443,16 +460,15 @@ var RatioTracker = (function() {
   function setSpin(on){ var i=$('rt-spin-icon'),b=$('rt-refresh-btn'); if(i)i.className=on?'spinning':''; if(b)b.disabled=on; }
   function setTfDisabled(v){ [1,7,30].forEach(function(d){var b=$('rt-tf-'+d);if(b)b.disabled=v;}); }
 
-  /* ── Swap FROM ↔ TO ── */
+  /* ── FIX BUG 2: Swap FROM ↔ TO — instant visual flip before async reload ── */
   function swapPair(){
     var newFrom=S.to, newTo=S.from;
     S.from=newFrom; S.to=newTo;
-    /* Save BEFORE rebuilding so buildToDropdown reads the swapped pair */
     savePair();
-    /* Update FROM dropdown */
+
+    /* Update hidden selects */
     var fs=$('rt-from');
     if(fs) fs.value=S.from;
-    /* Rebuild TO dropdown (excludes current FROM), then set TO value */
     buildToDropdown(S.from);
     var ts=$('rt-to');
     if(ts){
@@ -461,47 +477,105 @@ var RatioTracker = (function() {
       }
       ts.value=S.to;
     }
-    updateStarBtn(); renderSavedPairs(); updateLabels(); loadAll();
-    /* Animate arrows */
+
+    /* FIX: Immediately update all card labels + icons so the UI flips at once.
+       Also swap the displayed price/chg values so the cards look correct
+       while loadAll() fetches fresh data in the background. */
+    var prevFromPrice = S.fromPrice, prevFromChg = S.fromChg;
+    var prevToPrice   = S.toPrice,   prevToChg   = S.toChg;
+    S.fromPrice = prevToPrice;   S.fromChg = prevToChg;
+    S.toPrice   = prevFromPrice; S.toChg   = prevFromChg;
+
+    updateLabels(); /* refreshes sym labels + icons */
+
+    /* Swap the price/chg text in the cards immediately */
+    set('rt-from-price', S.fromPrice ? fmtP(S.fromPrice) : '—');
+    set('rt-to-price',   S.toPrice   ? fmtP(S.toPrice)   : '—');
+    var fChgEl=$('rt-from-chg');
+    if(fChgEl&&S.fromChg!=null){
+      fChgEl.textContent=(S.fromChg>=0?'+':'')+S.fromChg.toFixed(2)+'% 24h';
+      fChgEl.style.color=S.fromChg>=0?'var(--green)':'var(--red)';
+    }
+    var tChgEl=$('rt-to-chg');
+    if(tChgEl&&S.toChg!=null){
+      tChgEl.textContent=(S.toChg>=0?'+':'')+S.toChg.toFixed(2)+'% 24h';
+      tChgEl.style.color=S.toChg>=0?'var(--green)':'var(--red)';
+    }
+
+    /* If we have a valid inverted ratio, show it immediately */
+    if(S.fromPrice&&S.toPrice){
+      var ratio=S.fromPrice/S.toPrice;
+      var rEl=$('rt-ratio-num');
+      if(rEl) rEl.textContent=ratio.toFixed(ratio<1?4:ratio<10?3:2);
+      var nowVal=$('rt-now-ratio-val');
+      if(nowVal) nowVal.textContent=ratio.toFixed(ratio<1?4:ratio<10?3:2)+'×';
+      calcSwap();
+    }
+
+    updateStarBtn(); renderSavedPairs();
+
+    /* Animate the swap button */
     var arrEl=document.querySelector('.rt-swap-arrows');
     if(arrEl){ arrEl.style.transform='rotate(180deg)'; setTimeout(function(){ arrEl.style.transform=''; },400); }
+
+    /* Reload in background for fresh server data */
+    loadAll();
   }
 
-  /* ── Custom coin picker ── */
-  var _pickerMode='from';
-  var _pickerOutsideHandler=null;
+  /* ── FIX BUG 1: Custom coin picker — clean single-listener pattern ──
+     The original code attached a document capture listener on every open
+     call without guaranteeing removal, causing stale handlers to fire
+     and making the entire panel feel like a giant button.
+     New pattern: one named handler, always removed before re-attaching,
+     with a robust guard that checks visibility before acting.          */
+  var _pickerMode = 'from';
+  var _pickerOutsideHandler = null;
+
+  function _removeOutsideHandler(){
+    if(_pickerOutsideHandler){
+      document.removeEventListener('mousedown', _pickerOutsideHandler, true);
+      document.removeEventListener('touchstart', _pickerOutsideHandler, true);
+      _pickerOutsideHandler = null;
+    }
+  }
 
   function _openPicker(mode){
-    _pickerMode=mode;
-    var panel=$('rt-picker-panel'); if(!panel) return;
-    var title=$('rt-picker-title'); if(title) title.textContent=(mode==='from'?'Select FROM coin':'Select TO coin');
-    var search=$('rt-picker-search'); if(search) search.value='';
-    panel.style.display='flex';
-    _pickerFilter();
-    if(search) setTimeout(function(){ search.focus(); },60);
+    _pickerMode = mode;
+    var panel = $('rt-picker-panel'); if(!panel) return;
+    var title = $('rt-picker-title'); if(title) title.textContent=(mode==='from'?'Select FROM coin':'Select TO coin');
+    var search = $('rt-picker-search'); if(search) search.value='';
 
-    /* Close picker when clicking outside of it or the coin cards */
-    if(_pickerOutsideHandler) document.removeEventListener('click', _pickerOutsideHandler, true);
+    panel.style.display = 'flex';
+    _pickerFilter();
+    if(search) setTimeout(function(){ search.focus(); }, 60);
+
+    /* Remove any stale listener before attaching a fresh one */
+    _removeOutsideHandler();
+
     _pickerOutsideHandler = function(e){
-      var p=$('rt-picker-panel');
-      if(!p || p.style.display==='none') return;
+      var p = $('rt-picker-panel');
+      /* Guard: only act if panel is actually visible */
+      if(!p || p.style.display === 'none') { _removeOutsideHandler(); return; }
+      /* Don't close if the click is inside the panel itself */
       if(p.contains(e.target)) return;
-      if(e.target.closest && e.target.closest('.new-coin-card')) return;
+      /* Don't close if the click is on one of the coin cards (they re-open the picker) */
+      if(e.target.closest && (e.target.closest('.new-from-card') || e.target.closest('.new-to-card'))) return;
       _closePicker();
     };
-    /* Delay attaching so the triggering click doesn't immediately close */
+
+    /* Use mousedown + touchstart instead of click so the handler fires
+       before the element's own click, preventing immediate re-open */
     setTimeout(function(){
-      document.addEventListener('click', _pickerOutsideHandler, true);
-    }, 50);
+      document.addEventListener('mousedown', _pickerOutsideHandler, true);
+      document.addEventListener('touchstart', _pickerOutsideHandler, true);
+    }, 80);
   }
 
   function _closePicker(){
-    var panel=$('rt-picker-panel'); if(panel) panel.style.display='none';
-    if(_pickerOutsideHandler){
-      document.removeEventListener('click', _pickerOutsideHandler, true);
-      _pickerOutsideHandler=null;
-    }
+    var panel = $('rt-picker-panel'); if(panel) panel.style.display = 'none';
+    _removeOutsideHandler();
   }
+
   function _pickerFilter(){
     var q=($('rt-picker-search')||{value:''}).value.toLowerCase().trim();
     var list=$('rt-picker-list'); if(!list) return;
@@ -520,12 +594,13 @@ var RatioTracker = (function() {
         '</div>';
     }).join('');
   }
+
   function _pickerSelect(coinId){
     if(_pickerMode==='from'){
       var fs=$('rt-from'); if(fs){ fs.value=coinId; S.from=coinId; }
       buildToDropdown(S.from);
       var ts=$('rt-to'); if(ts) S.to=ts.value;
-      onFromChange(); /* triggers rebuild + loadAll */
+      onFromChange();
     } else {
       var ts=$('rt-to'); if(ts){ ts.value=coinId; S.to=coinId; }
       onToChange();
@@ -536,11 +611,15 @@ var RatioTracker = (function() {
   function onFromChange(){
     var sel=$('rt-from'); if(!sel) return;
     S.from=sel.value; buildToDropdown(S.from); S.to=$('rt-to').value;
-    savePair(); updateStarBtn(); renderSavedPairs(); loadAll(true);
+    savePair(); updateStarBtn(); renderSavedPairs();
+    updateLabels(); updateIcons();   /* FIX: immediate visual update */
+    loadAll(true);
   }
   function onToChange(){
     var sel=$('rt-to'); if(!sel) return;
-    S.to=sel.value; savePair(); updateStarBtn(); renderSavedPairs(); loadAll(true);
+    S.to=sel.value; savePair(); updateStarBtn(); renderSavedPairs();
+    updateLabels(); updateIcons();   /* FIX: immediate visual update */
+    loadAll(true);
   }
 
   /* ── Init ────────────────────────────────────────────────────── */

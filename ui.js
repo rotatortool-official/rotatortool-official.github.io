@@ -347,7 +347,9 @@ function openAddHoldingsModal(mode) {
 
 function ahmFilter() {
   var q = (document.getElementById('ahm-search').value || '').toLowerCase().trim();
-  var c = (typeof coins !== 'undefined' && Array.isArray(coins)) ? coins : [];
+  var c = (window.coins && Array.isArray(window.coins) && window.coins.length)
+        ? window.coins
+        : (typeof coins !== 'undefined' && Array.isArray(coins) ? coins : []);
   var listEl = document.getElementById('ahm-coin-list');
   if (!listEl) return;
   if (!c.length) {
@@ -374,7 +376,9 @@ function ahmFilter() {
 }
 
 function ahmSelect(coinId) {
-  var c = typeof coins !== 'undefined' ? coins : [];
+  var c = (window.coins && Array.isArray(window.coins) && window.coins.length)
+        ? window.coins
+        : (typeof coins !== 'undefined' ? coins : []);
   _ahmSelected = c.find(function(x) { return x.id === coinId; });
   if (!_ahmSelected) return;
   var info = document.getElementById('ahm-selected-info');
@@ -559,7 +563,7 @@ function _searchItemHTML(coin) {
   var chgTxt   = (coin.p24 >= 0 ? '+' : '') + (coin.p24||0).toFixed(2) + '%';
   var safeId   = (coin.id||'').replace(/'/g, '');
   return '<div class="topbar-search-result-item" onclick="handleSearchSelect(\'' + safeId + '\')">'
-    + '<img class="tsri-ico" src="'+(coin.image||'')+'" alt="" onerror="this.style.opacity=0">'
+    + '<img class="tsri-ico" src="'+(coin.image||'')+'" alt="" onerror="this.style.opacity=\'0\'">'
     + '<span class="tsri-sym">'+(coin.sym||'')+'</span>'
     + '<span class="tsri-name">'+(coin.name||'')+'</span>'
     + '<span class="tsri-chg" style="color:'+chgColor+'">'+chgTxt+'</span>'
@@ -621,38 +625,4 @@ document.addEventListener('DOMContentLoaded', function() {
   } catch(e) {}
 });
 
-/* ── Picker: show/hide inline panel, set internal mode, populate list ── */
-document.addEventListener('DOMContentLoaded', function() {
-  function patchPicker2() {
-    if (typeof RatioTracker === 'undefined' || !RatioTracker._openPicker) {
-      return setTimeout(patchPicker2, 100);
-    }
-
-    var orig_open   = RatioTracker._openPicker;
-    var orig_close  = RatioTracker._closePicker;
-
-    RatioTracker._openPicker = function(mode) {
-      /* Call original — this sets _pickerMode in ratio.js closure and populates rt-picker-list */
-      orig_open.call(this, mode);
-
-      /* Now show OUR inline panel (original may have shown rt-picker-panel but we restyled it as inline) */
-      var panel = document.getElementById('rt-picker-panel');
-      var title = document.getElementById('rt-picker-title');
-      var inp   = document.getElementById('rt-picker-search');
-      if (panel) {
-        panel.style.display = 'flex';
-        /* Scroll panel into view smoothly */
-        panel.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-      }
-      if (title) title.textContent = (mode === 'from' ? 'FROM' : 'TO');
-      if (inp)   setTimeout(function(){ inp.focus(); }, 60);
-    };
-
-    RatioTracker._closePicker = function() {
-      orig_close.call(this);
-      var panel = document.getElementById('rt-picker-panel');
-      if (panel) panel.style.display = 'none';
-    };
-  }
-  patchPicker2();
-});
+/* ── Picker patch removed — ratio.js now owns the full open/close/listener lifecycle ── */
