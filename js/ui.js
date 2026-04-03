@@ -625,38 +625,4 @@ document.addEventListener('DOMContentLoaded', function() {
   } catch(e) {}
 });
 
-/* ── Picker: show/hide inline panel, set internal mode, populate list ── */
-document.addEventListener('DOMContentLoaded', function() {
-  function patchPicker2() {
-    if (typeof RatioTracker === 'undefined' || !RatioTracker._openPicker) {
-      return setTimeout(patchPicker2, 100);
-    }
-
-    var orig_open   = RatioTracker._openPicker;
-    var orig_close  = RatioTracker._closePicker;
-
-    RatioTracker._openPicker = function(mode) {
-      /* Call original — this sets _pickerMode in ratio.js closure and populates rt-picker-list */
-      orig_open.call(this, mode);
-
-      /* Now show OUR inline panel (original may have shown rt-picker-panel but we restyled it as inline) */
-      var panel = document.getElementById('rt-picker-panel');
-      var title = document.getElementById('rt-picker-title');
-      var inp   = document.getElementById('rt-picker-search');
-      if (panel) {
-        panel.style.display = 'flex';
-        /* Scroll panel into view smoothly */
-        panel.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-      }
-      if (title) title.textContent = (mode === 'from' ? 'FROM' : 'TO');
-      if (inp)   setTimeout(function(){ inp.focus(); }, 60);
-    };
-
-    RatioTracker._closePicker = function() {
-      orig_close.call(this);
-      var panel = document.getElementById('rt-picker-panel');
-      if (panel) panel.style.display = 'none';
-    };
-  }
-  patchPicker2();
-});
+/* ── Picker patch removed — ratio.js now owns the full open/close/listener lifecycle ── */
