@@ -71,12 +71,39 @@ var RatioTracker = (function() {
   function $(id){ return document.getElementById(id); }
   function set(id,v){ var e=$(id); if(e) e.textContent=v; }
 
-  /* ── Coin image lookup ── */
+  /* ── Coin image lookup with comprehensive fallbacks ── */
+  var CG_IDS = {
+    'bitcoin':'1','ethereum':'279','binancecoin':'825','solana':'4128',
+    'ripple':'44','dogecoin':'5','cardano':'975','avalanche-2':'12559',
+    'shiba-inu':'11939','chainlink':'877','polkadot':'12171','bitcoin-cash':'780',
+    'near':'10365','litecoin':'2','uniswap':'12504','tron':'1094',
+    'stellar':'100','monero':'69','cosmos':'3861','vechain':'3077',
+    'filecoin':'12817','aave':'7278','maker':'1364','lido-dao':'13573',
+    'arbitrum':'16547','optimism':'25244','injective-protocol':'7226',
+    'ondo-finance':'26580','toncoin':'17980','fetch-ai':'3773',
+    'singularitynet':'2token','render-token':'11636','hedera-hashgraph':'4642',
+    'aptos':'21794','sui':'26375','internet-computer':'8916',
+    'ethereum-classic':'3897','okb':'8267','stacks':'4847',
+    'immutable-x':'17233','blur':'16925','bonk':'23095','pepe':'29850',
+    'worldcoin-wld':'25942','pyth-network':'28177','ethena':'28028',
+    'hyperliquid':'29835','the-sandbox':'12129','decentraland':'1966',
+    'flow':'4558','ocean-protocol':'3911','bittensor':'22974',
+    'celestia':'22861','raydium':'8526','jito-governance-token':'28541',
+    'pendle':'18735','curve-dao-token':'12124','the-graph':'6719',
+    'wormhole':'26997','layerzero':'30668','stargate-finance':'18934',
+    'gmx':'11857','axie-infinity':'8715','gala':'12493'
+  };
+
   function getCoinImage(id) {
+    /* Try live coins array first */
     if (typeof coins !== 'undefined' && Array.isArray(coins) && coins.length > 0) {
       var found = coins.find(function(x) { return x.id === id; });
       if (found && found.image) return found.image;
     }
+    /* Fallback: CoinGecko small thumb URL */
+    var cgId = CG_IDS[id];
+    if (cgId) return 'https://assets.coingecko.com/coins/images/' + cgId + '/thumb/' + id + '.png';
+    /* Last resort: bitcoin as placeholder */
     return 'https://assets.coingecko.com/coins/images/1/thumb/bitcoin.png';
   }
 
@@ -92,6 +119,14 @@ var RatioTracker = (function() {
   function status(msg,cls){
     var e=$('rt-status'); if(!e) return;
     e.textContent=msg; e.className='rt-status'+(cls?' '+cls:'');
+  }
+
+  function fmtP(n){
+    if(!n) return '—';
+    if(n>=100) return '$'+n.toFixed(2);
+    if(n>=1)   return '$'+n.toFixed(3);
+    if(n>=0.01)return '$'+n.toFixed(4);
+    return '$'+n.toFixed(6);
   }
 
   /* ── Persistence ─────────────────────────────────────────────── */
