@@ -691,7 +691,7 @@
     <div class="ratio-section" id="ratio-section">
 
       <!-- ══ PAIR SELECTION HERO ══ -->
-      <div class="new-swap-hero">
+      <div class="swap-card new-swap-hero">
         <div class="new-swap-hero-label">Select pair</div>
         <div class="new-pair-grid">
 
@@ -738,7 +738,7 @@
       </div><!-- /new-swap-hero -->
 
       <!-- ══ RATIO HOOK ══ -->
-      <div class="new-ratio-hook">
+      <div class="swap-card new-ratio-hook">
         <div class="new-ratio-unit-lbl">Current exchange ratio</div>
         <div class="rt-ratio-bold" id="rt-ratio-num" style="font-size:clamp(36px,12vw,52px);font-weight:700;font-family:var(--font-mono);line-height:1;display:block;color:var(--text);">——</div>
         <div class="rt-ratio-unit"><span id="rt-unit-txt">— received per 1 —</span></div>
@@ -762,7 +762,7 @@
       </div>
 
       <!-- ══ CHART ══ -->
-      <div class="new-chart-section">
+      <div class="swap-card new-chart-section">
         <div class="new-chart-header">
           <span class="new-chart-title">Ratio history</span>
           <div class="rt-tf-row" style="margin-bottom:0;">
@@ -843,17 +843,22 @@
 
       <div class="rt-footer">Live data via CoinGecko · Not financial advice · Always verify before swapping</div>
 
-      <!-- Coin picker — inline panel inside the swap section -->
-      <div id="rt-picker-panel" class="rt-picker-panel">
-        <div class="rt-picker-header">
-          <svg width="13" height="13" viewBox="0 0 16 16" fill="none" aria-hidden="true"><circle cx="6.5" cy="6.5" r="5" stroke="currentColor" stroke-width="1.6"/><line x1="10.5" y1="10.5" x2="14.5" y2="14.5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
-          <input class="rt-picker-search" id="rt-picker-search" type="text"
-            placeholder="Search coin…" autocomplete="off"
-            oninput="RatioTracker._pickerFilter()">
-          <span class="rt-picker-title" id="rt-picker-title"></span>
-          <button class="rt-picker-close" onclick="RatioTracker._closePicker()" aria-label="Close">×</button>
+      <!-- Coin picker — full-screen bottom sheet overlay -->
+      <div id="rt-picker-panel" class="rt-picker-overlay" role="dialog" aria-modal="true" aria-labelledby="rt-picker-title"
+        onclick="if(event.target===this)RatioTracker._closePicker()">
+        <div class="picker-sheet">
+          <div class="picker-handle" aria-hidden="true"></div>
+          <div class="picker-sheet-header">
+            <div class="rt-picker-title" id="rt-picker-title">Select coin</div>
+            <button class="picker-sheet-close" onclick="RatioTracker._closePicker()" aria-label="Close">✕</button>
+          </div>
+          <div class="picker-search-wrap">
+            <input type="search" class="rt-picker-search" id="rt-picker-search"
+              placeholder="Search coins…" autocomplete="off"
+              oninput="RatioTracker._pickerFilter()">
+          </div>
+          <div class="rt-picker-list" id="rt-picker-list" role="listbox"></div>
         </div>
-        <div class="rt-picker-list" id="rt-picker-list"></div>
       </div>
 
     </div>
