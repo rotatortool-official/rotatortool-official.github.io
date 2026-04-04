@@ -2310,11 +2310,11 @@ td.qa-cell{text-align:center;width:28px;padding:0 4px !important;}
 
 /* ── Light mode comprehensive ghost-color fixes ─────────────────── */
 :root.light .new-coin-card       { background:var(--bg3); border-color:var(--bdr2); }
-:root.light .new-coin-card:hover { border-color:rgba(56,162,220,.5); background:rgba(56,162,220,.06); transform:translateY(-1px); }
+:root.light .new-coin-card:hover { border-color:rgba(135,206,235,.7); background:rgba(135,206,235,.12); transform:translateY(-1px); box-shadow:0 2px 8px rgba(135,206,235,.25); }
 :root.light .new-from-card       { border-left-color:rgba(180,130,0,.5); }
-:root.light .new-from-card:hover { border-left-color:rgba(56,162,220,.7); }
+:root.light .new-from-card:hover { border-left-color:#87CEEB; }
 :root.light .new-to-card         { border-left-color:rgba(0,140,100,.5); }
-:root.light .new-to-card:hover   { border-left-color:rgba(56,162,220,.7); }
+:root.light .new-to-card:hover   { border-left-color:#87CEEB; }
 :root.light .new-swap-dir-btn    { background:var(--bg4); border-color:var(--bdr2); color:var(--muted); }
 :root.light .new-swap-dir-btn:hover { border-color:rgba(56,162,220,.6); color:rgba(56,162,220,1); background:rgba(56,162,220,.08); }
 :root.light .new-ratio-hook      { border-color:var(--bdr2); }
@@ -2360,7 +2360,7 @@ td.qa-cell{text-align:center;width:28px;padding:0 4px !important;}
 :root.light .picker-sheet-close { background:var(--bg3); border-color:var(--bdr2); color:var(--muted); }
 :root.light .rt-picker-title    { color:var(--text); }
 :root.light .rt-picker-search   { background:var(--bg3) !important; border-color:var(--bdr2) !important; color:var(--text); }
-:root.light .rt-picker-item:hover  { background:rgba(56,162,220,.08); }
+:root.light .rt-picker-item:hover  { background:rgba(135,206,235,.15); }
 :root.light .rt-picker-item.selected .rt-picker-sym { color:var(--bnb); }
 :root.light .rt-picker-sym     { color:var(--text); }
 :root.light .rt-picker-price   { color:var(--muted); }
