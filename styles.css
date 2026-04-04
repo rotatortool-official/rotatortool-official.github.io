@@ -1640,7 +1640,7 @@ td.qa-cell{text-align:center;width:28px;padding:0 4px !important;}
 /* ══ PERIOD PEAK + CURRENT — matched sizes ══ */
 .rt-card-val-lg{font-size:18px !important;font-weight:700 !important;font-family:var(--font-mono);line-height:1.1;}
 
-/* ══ COIN PICKER — FULL-SCREEN BOTTOM SHEET ══ */
+/* ══ COIN PICKER — BOTTOM SHEET (mobile) / INLINE DROPDOWN (desktop) ══ */
 .rt-picker-overlay{
   position:fixed;
   inset:0;
@@ -1651,6 +1651,19 @@ td.qa-cell{text-align:center;width:28px;padding:0 4px !important;}
   backdrop-filter:blur(8px);
   -webkit-backdrop-filter:blur(8px);
   animation:pickerFadeIn .2s ease;
+}
+/* Desktop: constrain picker to the right panel instead of fullscreen */
+@media(min-width:701px){
+  .rt-picker-overlay{
+    position:absolute;
+    inset:auto 0 0 0;
+    top:0;
+    background:rgba(0,0,0,0.45);
+    backdrop-filter:blur(4px);
+    -webkit-backdrop-filter:blur(4px);
+    border-radius:8px;
+    overflow:hidden;
+  }
 }
 @keyframes pickerFadeIn{from{opacity:0}to{opacity:1}}
 
@@ -1664,6 +1677,18 @@ td.qa-cell{text-align:center;width:28px;padding:0 4px !important;}
   display:flex;
   flex-direction:column;
   animation:pickerSlideUp .3s cubic-bezier(0.34,1.56,0.64,1);
+}
+/* Desktop: fill the panel, rounded corners all around */
+@media(min-width:701px){
+  .picker-sheet{
+    position:relative;
+    bottom:auto;
+    max-height:480px;
+    border-radius:8px;
+    margin:0;
+    border:1px solid var(--bdr2);
+    box-shadow:0 8px 32px rgba(0,0,0,.4);
+  }
 }
 @keyframes pickerSlideUp{from{transform:translateY(100%)}to{transform:translateY(0)}}
 
@@ -1733,8 +1758,8 @@ td.qa-cell{text-align:center;width:28px;padding:0 4px !important;}
 .rt-picker-name{font-size:11px;color:var(--muted);flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
 .rt-picker-price{font-size:9px;font-weight:700;font-family:var(--font-mono);flex-shrink:0;}
 
-/* ratio-section — normal flow */
-.ratio-section{position:static;}
+/* ratio-section — normal flow; relative for desktop picker containment */
+.ratio-section{position:relative;}
 
 /* ══════════════════════════════════════════════════════════════
    COLLAPSIBLE SECTIONS — compact mobile, expandable on tap
