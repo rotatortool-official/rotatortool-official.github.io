@@ -383,10 +383,11 @@
   </div>
   <div class="topbar-r">
     <span class="ts" id="ts">—</span>
-    <button class="theme-btn" id="theme-topbar-btn" onclick="toggleTheme(!document.documentElement.classList.contains('light'))" title="Toggle light/dark theme"><span id="theme-icon">☀</span><span id="theme-label">LIGHT</span></button>
+
+    <!-- Search -->
     <div class="topbar-search-wrap" id="topbar-search-wrap">
       <button class="topbar-search-btn" id="topbar-search-btn" onclick="toggleTopbarSearch()" title="Search coins" aria-label="Search coins">
-        <svg width="14" height="14" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
           <circle cx="6.5" cy="6.5" r="5" stroke="currentColor" stroke-width="1.6"/>
           <line x1="10.5" y1="10.5" x2="14.5" y2="14.5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>
         </svg>
@@ -400,11 +401,59 @@
         <div class="topbar-search-results" id="topbar-search-results"></div>
       </div>
     </div>
-    <button class="settings-btn" onclick="openSettingsPanel(this)" title="Settings">⚙ <span id="lang-flag">🇬🇧</span></button>
-    <div class="topbar-action-btns">
-      <button class="btn pro-btn" onclick="openPro()">⚡ UNLOCK PRO</button>
-      <button class="btn donate" onclick="openModal('donate-modal')">☕ SUPPORT</button>
+
+    <!-- Download App -->
+    <div class="tb-dropdown-wrap">
+      <button class="tb-icon-btn" title="Download App">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+      </button>
+      <div class="tb-dropdown">
+        <div class="tb-dropdown-item" style="opacity:.55;cursor:default;">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="5" y="2" rx="2" width="14" height="20"/><line x1="12" y1="18" x2="12" y2="18.01"/></svg>
+          <span>Mobile App</span>
+          <span class="tb-dd-soon">SOON</span>
+        </div>
+        <div class="tb-dropdown-item" style="opacity:.55;cursor:default;">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="2" y="3" rx="2" width="20" height="14"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
+          <span>Desktop App</span>
+          <span class="tb-dd-soon">SOON</span>
+        </div>
+      </div>
     </div>
+
+    <!-- Pro -->
+    <div class="tb-dropdown-wrap">
+      <button class="tb-icon-btn" onclick="openPro()" title="Unlock Pro" style="color:var(--pro);">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+      </button>
+    </div>
+
+    <!-- Support -->
+    <div class="tb-dropdown-wrap">
+      <button class="tb-icon-btn" title="Support Rotator">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+      </button>
+      <div class="tb-dropdown">
+        <div class="tb-dropdown-item" onclick="openModal('donate-modal')">
+          <span class="tb-dd-ico">☕</span>
+          <span>Buy Me a Coffee</span>
+        </div>
+        <div class="tb-dropdown-item" onclick="openModal('about-modal')">
+          <span class="tb-dd-ico">ℹ️</span>
+          <span>About Rotator</span>
+        </div>
+        <div class="tb-dropdown-item" onclick="openModal('faq-modal')">
+          <span class="tb-dd-ico">❓</span>
+          <span>FAQ</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Theme toggle -->
+    <button class="theme-btn" id="theme-topbar-btn" onclick="toggleTheme(!document.documentElement.classList.contains('light'))" title="Toggle light/dark theme"><span id="theme-icon">☀</span><span id="theme-label">LIGHT</span></button>
+
+    <!-- Settings -->
+    <button class="settings-btn" onclick="openSettingsPanel(this)" title="Settings">⚙</button>
   </div>
 </div>
 </header>
