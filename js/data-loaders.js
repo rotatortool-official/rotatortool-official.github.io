@@ -1637,39 +1637,131 @@ function shareTo(platform) {
 }
 
 /* ══════════════════════════════
-   TOOLTIP SYSTEM
+   TOOLTIP SYSTEM (Smart Info Card)
 ══════════════════════════════ */
 var tipEl = null;
+var _tipTimer = null;
+var _tipRow   = null;
+
+/* Native chain lookup for common assets */
+var _chainMap = {
+  BTC:'Bitcoin',ETH:'Ethereum',BNB:'BNB Chain',SOL:'Solana',XRP:'XRP Ledger',
+  ADA:'Cardano',DOGE:'Dogecoin',DOT:'Polkadot',AVAX:'Avalanche',SHIB:'Ethereum',
+  LINK:'Ethereum',MATIC:'Polygon',UNI:'Ethereum',LTC:'Litecoin',BCH:'Bitcoin Cash',
+  NEAR:'NEAR',ICP:'Internet Computer',ETC:'Ethereum Classic',XLM:'Stellar',XMR:'Monero',
+  HBAR:'Hedera',FIL:'Filecoin',ATOM:'Cosmos',VET:'VeChain',TRX:'Tron',
+  SUI:'Sui',APT:'Aptos',SEI:'Sei',RENDER:'Solana',JUP:'Solana',
+  AAVE:'Ethereum',GRT:'Ethereum',CRV:'Ethereum',MKR:'Ethereum',LDO:'Ethereum',
+  ARB:'Arbitrum',OP:'Optimism',STX:'Bitcoin',IMX:'Ethereum',INJ:'Injective',
+  BLUR:'Ethereum',BONK:'Solana',WIF:'Solana',BOME:'Solana',PEPE:'Ethereum',
+  ONDO:'Ethereum',WLD:'Ethereum',PYTH:'Solana',JTO:'Solana',ENA:'Ethereum',
+  HYPE:'HyperEVM',TON:'TON',SAND:'Ethereum',MANA:'Ethereum',AXS:'Ronin',
+  GALA:'Ethereum',ILV:'Ethereum',GMT:'Solana',FLOW:'Flow',WAX:'WAX',
+  OCEAN:'Ethereum',FET:'Ethereum',AGIX:'Ethereum',NMR:'Ethereum',TAO:'Bittensor',
+  ZETA:'ZetaChain',TIA:'Celestia',DYM:'Dymension',ALT:'Ethereum',OMNI:'Ethereum',
+  SAGA:'Cosmos',MANTA:'Manta',MEW:'Solana',W:'Solana',RAY:'Solana',
+  ORCA:'Solana',IO:'Solana',KMNO:'Solana',MET:'Solana',DRIFT:'Solana',
+  MRGN:'Solana',LFI:'Solana',SBR:'Solana',SRM:'Solana',
+  GMX:'Arbitrum',GNS:'Arbitrum',KWENTA:'Optimism',PENDLE:'Ethereum',
+  CVX:'Ethereum',FXS:'Ethereum',OKB:'OKX Chain',STG:'Ethereum'
+};
+
 function getTip() { if (!tipEl) tipEl = document.getElementById('rt-tip'); return tipEl; }
+
 function showTip(title, body, x, y) {
   var t = getTip(); if (!t) return;
-  document.getElementById('rt-tip-title').textContent = title;
-  document.getElementById('rt-tip-body').innerHTML    = body;
+  document.getElementById('rt-tip-title').innerHTML = title;
+  document.getElementById('rt-tip-body').innerHTML  = body;
   t.classList.add('show');
-  var tw=220, lx=x+14, ly=y+14;
-  if (lx+tw > window.innerWidth-10)  lx = x-tw-8;
-  if (ly+100 > window.innerHeight-10) ly = y-100-8;
-  t.style.left = lx+'px'; t.style.top = ly+'px';
+  var tw = 330, th = t.offsetHeight || 200;
+  var lx = x + 16, ly = y + 16;
+  if (lx + tw > window.innerWidth - 12)  lx = x - tw - 10;
+  if (ly + th > window.innerHeight - 12) ly = Math.max(8, window.innerHeight - th - 12);
+  t.style.left = lx + 'px'; t.style.top = ly + 'px';
 }
-function hideTip() { var t = getTip(); if (t) t.classList.remove('show'); }
+
+function hideTip() {
+  if (_tipTimer) { clearTimeout(_tipTimer); _tipTimer = null; }
+  _tipRow = null;
+  var t = getTip(); if (t) t.classList.remove('show');
+}
+
 function showRowTip(row, e) {
-  var sym   = row.getAttribute('data-sym');
-  var name  = row.getAttribute('data-name');
-  var mcap  = row.getAttribute('data-mcap');
-  var score = row.getAttribute('data-score');
-  var p24   = row.getAttribute('data-p24');
-  var p7    = row.getAttribute('data-p7');
-  var p30   = row.getAttribute('data-p30');
-  var held  = row.getAttribute('data-held') === '1';
-  var scN   = parseInt(score);
-  var signal = scN>=65 ? '⬆ Strong momentum' : scN>=45 ? '→ Neutral' : '⬇ Lagging — watch closely';
-  var body = 'Market Cap: <strong style="color:var(--bnb)">'+mcap+'</strong><br>'
-    +'24H: <strong>'+(parseFloat(p24)>=0?'+':'')+p24+'%</strong> &nbsp; '
-    +'7D: <strong>'+(parseFloat(p7)>=0?'+':'')+p7+'%</strong> &nbsp; '
-    +'30D: <strong>'+(parseFloat(p30)>=0?'+':'')+p30+'%</strong><br>'
-    +'Signal: <strong>'+signal+'</strong>'
-    +(held ? '<br><span style="color:var(--bnb)">✓ In your holdings</span>' : '');
-  showTip(sym + ' — ' + name, body, e.clientX, e.clientY);
+  /* 200ms hover-intent delay */
+  if (_tipTimer) clearTimeout(_tipTimer);
+  _tipRow = row;
+  var cx = e.clientX, cy = e.clientY;
+  _tipTimer = setTimeout(function() {
+    if (_tipRow !== row) return;
+    _buildRowTip(row, cx, cy);
+  }, 200);
+}
+
+function _buildRowTip(row, cx, cy) {
+  var sym     = row.getAttribute('data-sym');
+  var name    = row.getAttribute('data-name');
+  var mcap    = row.getAttribute('data-mcap');
+  var score   = row.getAttribute('data-score');
+  var p24     = row.getAttribute('data-p24');
+  var p7      = row.getAttribute('data-p7');
+  var p30     = row.getAttribute('data-p30');
+  var held    = row.getAttribute('data-held') === '1';
+  var unlock  = parseInt(row.getAttribute('data-unlock'));
+  var maxSup  = parseFloat(row.getAttribute('data-maxsup'));
+
+  var scN  = parseInt(score);
+  var p24N = parseFloat(p24);
+  var p7N  = parseFloat(p7);
+
+  /* Directional sentiment based on 24h + 7d trend */
+  var sentimentScore = p24N * 0.4 + p7N * 0.6;
+  var isBull = sentimentScore >= 0;
+  var sentimentLabel = isBull ? 'Bullish' : 'Bearish';
+  var sentimentCls   = isBull ? 'bull' : 'bear';
+
+  /* Unlocked % display */
+  var unlockStr = unlock >= 0 ? unlock + '% Unlocked' : '∞ No Cap';
+  var unlockCls = unlock >= 0 ? 'bnb' : 'muted';
+
+  /* Native chain */
+  var chain = _chainMap[sym] || '—';
+
+  /* Build 2-column grid body */
+  var body = '<div class="rt-tip-grid">'
+    + '<div><div class="rt-tip-cell-l">Market Cap</div><div class="rt-tip-cell-v bnb">' + mcap + '</div></div>'
+    + '<div><div class="rt-tip-cell-l">Unlocked Supply</div><div class="rt-tip-cell-v ' + unlockCls + '">' + unlockStr + '</div></div>'
+    + '<div><div class="rt-tip-cell-l">Chain</div><div class="rt-tip-cell-v muted">' + chain + '</div></div>'
+    + '<div><div class="rt-tip-cell-l">Sentiment</div><div><span class="rt-tip-sentiment ' + sentimentCls + '">' + sentimentLabel + '</span></div></div>'
+    + '</div>';
+
+  /* ── Smart Warning Engine ── */
+  var warnings = [];
+
+  /* High Inflation Warning: infinite supply OR unlocked < 20% AND score negative */
+  if ((maxSup <= 0 || (unlock >= 0 && unlock < 20)) && scN < 45) {
+    warnings.push('⚠️ <strong>High Inflation Risk:</strong> Low circulating supply and negative momentum.');
+  }
+
+  /* Avoidance Tip: score deep red (< -50 maps to raw score < 20 on 0-100 scale) */
+  if (scN < 20) {
+    warnings.push('🛑 <strong>Sentiment Warning:</strong> Strong downward pressure. Exercise caution.');
+  }
+
+  /* Strength Indicator: positive score AND market cap present */
+  if (scN >= 55 && mcap !== '—') {
+    warnings.push('✅ <strong>Healthy Rotation:</strong> Asset is gaining dominance.');
+  }
+
+  if (warnings.length) {
+    body += '<div class="rt-tip-warning">' + warnings.join('<br style="margin-bottom:4px;">') + '</div>';
+  }
+
+  /* Holdings tag */
+  if (held) {
+    body += '<div style="margin-top:6px;font-size:10px;color:var(--bnb);font-family:var(--font-ui);">✓ In your holdings</div>';
+  }
+
+  showTip(sym + ' <span style="color:var(--muted);font-weight:300;">—</span> ' + name, body, cx, cy);
 }
 
 /* ══════════════════════════════
