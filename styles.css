@@ -1551,11 +1551,12 @@ td.qa-cell{text-align:center;width:28px;padding:0 4px !important;}
 .rt-ct-to{border-color:rgba(74,144,217,.28);background:var(--bg3);}
 .rt-ct-to:hover{border-color:rgba(74,144,217,.6);background:rgba(74,144,217,.08);}
 
-/* Hidden native select — covers the entire tile for clicking */
+/* Hidden native select — state-only, not interactive (picker handles UI) */
 .rt-ct-sel{
-  position:absolute;inset:0;opacity:0;cursor:pointer;
-  width:100%;height:100%;z-index:2;
-  font-size:16px; /* makes mobile tap area bigger */
+  position:absolute;left:-9999px;top:0;
+  width:1px;height:1px;opacity:0;
+  pointer-events:none;
+  z-index:-1;
 }
 
 /* Tile content */
@@ -1595,7 +1596,7 @@ td.qa-cell{text-align:center;width:28px;padding:0 4px !important;}
 .rt-ct:hover{border-color:rgba(130,110,200,.65);background:rgba(130,110,200,.09);transform:translateY(-1px);}
 .rt-ct-to{border-color:rgba(74,144,217,.3);background:var(--bg3);}
 .rt-ct-to:hover{border-color:rgba(74,144,217,.65);background:rgba(74,144,217,.09);}
-.rt-ct-sel{position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%;z-index:2;font-size:16px;}
+.rt-ct-sel{position:absolute;left:-9999px;top:0;width:1px;height:1px;opacity:0;pointer-events:none;z-index:-1;}
 .rt-ct-lbl{font-size:7px;font-weight:800;letter-spacing:.16em;text-transform:uppercase;color:var(--muted);margin-bottom:1px;}
 .rt-ct-img{width:30px;height:30px;border-radius:50%;background:var(--bg4);border:1px solid rgba(255,255,255,.1);flex-shrink:0;}
 .rt-ct-sym{font-size:14px;font-weight:800;font-family:var(--font-mono);color:var(--text);line-height:1;}
