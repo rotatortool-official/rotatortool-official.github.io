@@ -121,7 +121,7 @@ async function loadCoins() {
     return {
       id: c.id, sym: c.symbol.toUpperCase(), name: c.name,
       price:  bnb ? bnb.price  : c.current_price,
-      image:  c.image, mcap: c.market_cap, rank: 0,
+      image:  (c.image || '').replace(/\/small\//, '/large/'), mcap: c.market_cap, rank: 0,
       p24:    bnb ? bnb.p24    : (c.price_change_percentage_24h || 0),
       p7:     c.price_change_percentage_7d_in_currency  || 0,
       p14:    c.price_change_percentage_14d_in_currency || 0,

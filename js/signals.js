@@ -87,10 +87,20 @@ function renderBTC() {
 /* Single signal tile (momentum / worst) */
 function sigTile(c, kind) {
   var badges = {rot:'ROT', mom:'MOM', wrst:'WORST'};
-  var p24c = c.p24 >= 0 ? 'up' : 'dn';
-  var p7c  = c.p7  >= 0 ? 'up' : 'dn';
-  var p30c = c.p30 >= 0 ? 'up' : 'dn';
   var scC  = c.score >= 65 ? 'up' : c.score <= 35 ? 'dn' : 'am';
+
+  /* Supply & sentiment */
+  var circ = c.circulating_supply || 0;
+  var maxS = c.max_supply || 0;
+  var unlockPct = (circ && maxS > 0) ? Math.round((circ / maxS) * 100) : -1;
+  var unlockStr = unlockPct >= 0 ? unlockPct + '%' : '∞';
+  var sentScore = (c.p24 || 0) * 0.4 + (c.p7 || 0) * 0.6;
+  var sentLabel = sentScore >= 0 ? 'BULL' : 'BEAR';
+  var sentCls   = sentScore >= 0 ? 'up' : 'dn';
+
+  /* Market cap formatted */
+  var mcapStr = c.mcap ? (c.mcap >= 1e9 ? '$' + (c.mcap/1e9).toFixed(1) + 'B' : '$' + (c.mcap/1e6).toFixed(0) + 'M') : '—';
+
   return '<div class="sig-tile ' + kind + '" onclick="openTileDetail(\'' + c.id + '\',event)" title="Click for details">'
     + '<div class="sig-tile-top">'
       + '<div class="sig-tile-ico"><img src="' + c.image + '" alt="' + c.sym + ' logo" loading="lazy" width="20" height="20" onerror="this.style.display=\'none\'"></div>'
@@ -98,9 +108,9 @@ function sigTile(c, kind) {
       + '<span class="sig-tile-badge ' + kind + '">' + badges[kind] + '</span>'
     + '</div>'
     + '<div class="sig-tile-stats">'
-      + '<div class="sig-stat"><span class="sig-stat-l">24H</span><span class="sig-stat-v ' + p24c + '">' + (c.p24>=0?'+':'') + c.p24.toFixed(1) + '%</span></div>'
-      + '<div class="sig-stat"><span class="sig-stat-l">7D</span><span class="sig-stat-v '  + p7c  + '">' + (c.p7>=0?'+':'')  + c.p7.toFixed(1)  + '%</span></div>'
-      + '<div class="sig-stat"><span class="sig-stat-l">30D</span><span class="sig-stat-v ' + p30c + '">' + (c.p30>=0?'+':'') + c.p30.toFixed(1) + '%</span></div>'
+      + '<div class="sig-stat"><span class="sig-stat-l">MCAP</span><span class="sig-stat-v am">' + mcapStr + '</span></div>'
+      + '<div class="sig-stat"><span class="sig-stat-l">UNLOCK</span><span class="sig-stat-v am">' + unlockStr + '</span></div>'
+      + '<div class="sig-stat"><span class="sig-stat-l">SENT</span><span class="sig-stat-v ' + sentCls + '">' + sentLabel + '</span></div>'
       + '<div class="sig-stat"><span class="sig-stat-l">SCR</span><span class="sig-stat-v '  + scC  + '">' + c.score + '</span></div>'
     + '</div>'
     + '</div>';
@@ -109,18 +119,29 @@ function sigTile(c, kind) {
 /* Rotation opportunity tile (sell→buy pair) */
 function sigRotTile(sell, buy) {
   var delta = sell.score - buy.score;
+
+  /* Buy-side sentiment */
+  var buySent = (buy.p24 || 0) * 0.4 + (buy.p7 || 0) * 0.6;
+  var buySentLabel = buySent >= 0 ? 'BULL' : 'BEAR';
+  var buySentCls   = buySent >= 0 ? 'up' : 'dn';
+
+  /* Buy-side unlock % */
+  var bCirc = buy.circulating_supply || 0;
+  var bMax  = buy.max_supply || 0;
+  var bUnlock = (bCirc && bMax > 0) ? Math.round((bCirc / bMax) * 100) + '%' : '∞';
+
   return '<div class="sig-tile rot" onclick="openTileDetail(\'' + buy.id + '\',event)" title="Click for buy-side details">'
     + '<div class="sig-tile-top">'
       + '<div class="sig-tile-ico"><img src="' + sell.image + '" alt="' + sell.sym + ' logo" loading="lazy" width="20" height="20" onerror="this.style.display=\'none\'"></div>'
       + '<span class="sig-tile-sym" style="color:var(--red);">'   + sell.sym + '</span>'
       + '<span style="color:var(--muted);font-size:10px;">→</span>'
-      + '<div class="sig-tile-ico"><img src="' + buy.image  + '" alt="' + buy.sym + ' logo" loading="lazy" width="20" height="20" onerror="this.style.display=\'none\'"></div>'
+      + '<div class="sig-tile-ico"><img src="' + buy.image + '" alt="' + buy.sym + ' logo" loading="lazy" width="20" height="20" onerror="this.style.display=\'none\'"></div>'
       + '<span class="sig-tile-sym" style="color:var(--green);">' + buy.sym  + '</span>'
       + '<span class="sig-tile-badge rot">Δ' + delta + '</span>'
     + '</div>'
     + '<div class="sig-tile-stats">'
-      + '<div class="sig-stat"><span class="sig-stat-l">SELL 7D</span><span class="sig-stat-v ' + (sell.p7>=0?'up':'dn')  + '">' + (sell.p7>=0?'+':'')  + sell.p7.toFixed(1)  + '%</span></div>'
-      + '<div class="sig-stat"><span class="sig-stat-l">BUY 30D</span><span class="sig-stat-v ' + (buy.p30>=0?'up':'dn') + '">' + (buy.p30>=0?'+':'')  + buy.p30.toFixed(1)  + '%</span></div>'
+      + '<div class="sig-stat"><span class="sig-stat-l">BUY SENT</span><span class="sig-stat-v ' + buySentCls + '">' + buySentLabel + '</span></div>'
+      + '<div class="sig-stat"><span class="sig-stat-l">UNLOCK</span><span class="sig-stat-v am">' + bUnlock + '</span></div>'
       + '<div class="sig-stat"><span class="sig-stat-l">SCR DELTA</span><span class="sig-stat-v am">' + sell.score + '→' + buy.score + '</span></div>'
     + '</div>'
     + '</div>';
