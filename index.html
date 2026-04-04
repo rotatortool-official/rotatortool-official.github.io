@@ -363,6 +363,22 @@
     <span class="mob-gear-icon">⚙</span>
   </div>
 
+  <!-- ── LANDSCAPE: inline category buttons (hidden by default, shown via CSS) ── -->
+  <div class="land-mode-bar" style="display:none;">
+    <button class="asset-mode-btn active" onclick="setMode('crypto')" id="lm-crypto">
+      <div class="am-logo"><span style="font-size:12px;">₿</span></div>
+      <span class="am-label">CRYPTO</span>
+    </button>
+    <button class="asset-mode-btn" onclick="setMode('forex')" id="lm-forex">
+      <div class="am-logo">💱</div>
+      <span class="am-label">FOREX</span>
+    </button>
+    <button class="asset-mode-btn" onclick="setMode('stocks')" id="lm-stocks">
+      <div class="am-logo">S&P</div>
+      <span class="am-label">STOCKS</span>
+    </button>
+  </div>
+
   <!-- ── DESKTOP: original layout ── -->
   <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;" class="topbar-desktop-left">
     <canvas id="logo-c" width="110" height="32" style="display:block;cursor:pointer;" onclick="location.reload()" title="ROTATOR"></canvas>

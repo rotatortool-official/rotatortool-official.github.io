@@ -108,20 +108,22 @@ body::before{content:'';position:fixed;inset:0;background:repeating-linear-gradi
 ══════════════════════════════ */
 .overlay{display:none;position:fixed;inset:0;background:var(--overlay-bg);z-index:500;align-items:center;justify-content:center;backdrop-filter:blur(4px);}
 .overlay.show{display:flex;}
-.modal{background:var(--bg2);border-radius:var(--card-radius);box-shadow:0 8px 40px rgba(0,0,0,.6);padding:28px;width:100%;max-width:500px;position:relative;margin:16px;}
+.modal{background:var(--bg2);border-radius:var(--card-radius);box-shadow:0 8px 40px rgba(0,0,0,.6);padding:28px;width:100%;max-width:500px;position:relative;margin:16px;max-height:85vh;display:flex;flex-direction:column;overflow:hidden;}
 .modal-x{
-  position:absolute;top:14px;right:14px;
-  width:28px;height:28px;
+  position:absolute;top:10px;right:10px;
+  width:44px;height:44px;
   display:flex;align-items:center;justify-content:center;
   background:var(--bg4);border:1px solid var(--bdr2);border-radius:50%;
-  color:var(--muted);font-size:16px;line-height:1;
-  cursor:pointer;transition:all .15s;z-index:10;
+  color:var(--muted);font-size:18px;line-height:1;
+  cursor:pointer;transition:all .15s;z-index:10001;
   font-family:inherit;
+  left:auto;
 }
 .modal-x:hover{color:var(--text);background:var(--bg3);border-color:var(--red);color:var(--red);}
-.modal .modal-title{padding-right:36px;}
+.modal .modal-title{padding-right:50px;}
 #pro-modal .modal{overflow:hidden;}
-#pro-modal .modal-x{top:14px;right:14px;}
+#pro-modal .modal-x{top:10px;right:10px;}
+#pro-modal-body{overflow-y:auto;-webkit-overflow-scrolling:touch;flex:1;padding-right:4px;}
 .already-pro{margin-top:4px;}
 .modal-title{font-size:18px;font-weight:400;margin-bottom:6px;letter-spacing:.01em;font-family:var(--font-display);}
 .modal-sub{font-size:13px;color:var(--muted);margin-bottom:18px;line-height:1.9;font-family:var(--font-ui);}
@@ -853,6 +855,7 @@ td.qa-cell{text-align:center;width:28px;padding:0 4px !important;}
 
 /* ── Default: mobile zones hidden, desktop visible ── */
 .mob-topbar-btc,.mob-topbar-pro,.mob-topbar-center,.mob-topbar-support,.mob-topbar-gear,.mob-topbar-search{display:none;}
+.land-mode-bar{display:none;}
 .topbar-desktop-left{display:flex;}
 .mob-neon-signal{display:none;}
 .mob-inline-holdings{display:none;}
@@ -862,33 +865,35 @@ td.qa-cell{text-align:center;width:28px;padding:0 4px !important;}
    Applies when phone is rotated: max-height ~500px and landscape orientation
 ══════════════════════════════ */
 @media(max-height:500px) and (orientation:landscape){
-  /* ── TOPBAR: sticky, 40px, 5 cells fill full width, no logo ── */
+  /* ── TOPBAR: desktop-style row with logo, BTC, categories, search, gear ── */
   .topbar{
     position:fixed;top:0;left:0;right:0;z-index:200;
-    padding:0;gap:0;flex-wrap:nowrap;height:40px;align-items:stretch;
+    padding:0 6px;gap:0;flex-wrap:nowrap;height:40px;align-items:center;
+    justify-content:space-between;
   }
-  .topbar-desktop-left{display:none !important;}
-  .topbar-r{display:none !important;}
-  /* Show and size all 5 mobile cells */
-  .mob-topbar-btc,.mob-topbar-pro,.mob-topbar-center,.mob-topbar-support,.mob-topbar-gear{
-    flex:1 !important;display:flex !important;align-items:center;justify-content:center;
-    height:100%;cursor:pointer;transition:background .15s;
+  /* Show desktop left section (logo + BTC pill) */
+  .topbar-desktop-left{display:flex !important;align-items:center;gap:6px;flex-shrink:0;height:100%;}
+  #logo-c{width:80px;height:22px;}
+  .topbar-desktop-left .btc-pill{font-size:9px;padding:2px 6px;}
+  .topbar-desktop-left .btc-meta{display:none;}
+  .bear-banner,.scale-banner{display:none !important;}
+  /* Show desktop right section (search + gear) */
+  .topbar-r{display:flex !important;align-items:center;gap:4px;flex-shrink:0;height:100%;}
+  .topbar-r .ts{display:none;}
+  .topbar-r .tb-dropdown-wrap{display:none !important;}
+  .topbar-r .theme-btn{display:none !important;}
+  .topbar-r .topbar-search-wrap{display:flex !important;}
+  .topbar-r .settings-btn{display:flex !important;}
+  /* Show asset-mode-bar inline in topbar */
+  .land-mode-bar{display:flex !important;align-items:center;gap:4px;margin:0 auto;flex-shrink:1;min-width:0;}
+  .land-mode-bar .asset-mode-btn{flex-direction:row;gap:4px;padding:4px 10px;border-radius:4px;font-size:9px;min-height:28px;}
+  .land-mode-bar .am-logo{width:18px;height:18px;font-size:10px;}
+  .land-mode-bar .am-label{font-size:9px;letter-spacing:.1em;}
+  /* Hide all mobile-only topbar cells */
+  .mob-topbar-btc,.mob-topbar-pro,.mob-topbar-center,.mob-topbar-support,.mob-topbar-gear,.mob-topbar-search{
+    display:none !important;
   }
-  .mob-topbar-btc{border-right:1px solid var(--bdr);}
-  .mob-topbar-pro{border-right:1px solid var(--bdr);background:rgba(167,139,250,.12);border-bottom:2px solid rgba(167,139,250,.4);}
-  .mob-topbar-pro:hover{background:rgba(167,139,250,.22);}
-  /* Hide canvas, show ⬡ text instead */
-  .mob-topbar-center{border-right:1px solid var(--bdr);background:var(--bg3);}
   #logo-c-mob{display:none !important;}
-  .mob-topbar-center::after{content:'⬡';font-size:16px;color:var(--bnb);}
-  .mob-topbar-support{border-right:1px solid var(--bdr);background:rgba(0,200,150,.10);border-bottom:2px solid rgba(0,200,150,.4);}
-  .mob-topbar-support:hover{background:rgba(0,200,150,.20);}
-  .mob-topbar-gear{background:rgba(243,186,47,.10);border-bottom:2px solid rgba(243,186,47,.4);}
-  .mob-topbar-gear:hover{background:rgba(243,186,47,.20);}
-  /* BTC cell styling */
-  .mob-btc-cell{width:100%;height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;font-size:9px;font-weight:700;letter-spacing:.06em;background:rgba(255,69,96,.10);color:var(--red);}
-  .mob-btc-cell.bull{background:rgba(0,200,150,.10);color:var(--green);}
-  .mob-btc-cell.unk{background:var(--bg3);color:var(--muted);}
   /* Hide FREE badge, btc meta, timestamp */
   .tier-badge{display:none !important;}
   .btc-meta,.ts{display:none;}
@@ -970,6 +975,13 @@ td.qa-cell{text-align:center;width:28px;padding:0 4px !important;}
   .cc{gap:3px;}
   .sw{justify-content:flex-end;}
   .sv{font-size:12px;font-weight:700;}
+
+  /* ── LEADERBOARD HEADER: sticky so it doesn't slide under the fixed topbar ── */
+  .tbl-head{
+    position:sticky;top:0;z-index:50;
+    background:var(--bg2);
+  }
+  thead{position:sticky;top:0;z-index:49;background:var(--bg2);}
 }
 @media(max-width:700px) and (orientation:portrait){
   /* ── TOPBAR — portrait: BTC + logo only, pro/support/gear moved to More menu ── */
@@ -2471,10 +2483,50 @@ td.qa-cell{text-align:center;width:28px;padding:0 4px !important;}
     grid-template-columns: repeat(3, 1fr) !important;
   }
 
-  /* ── FAB: hide in landscape — side nav buttons serve this purpose ── */
-  .mob-nav-fab,
+  /* ── FAB spacer: hide in landscape ── */
   .mob-nav-fab-spacer {
     display: none !important;
+  }
+
+  /* ── FAB: restyle as regular side-nav button in landscape ── */
+  .mob-nav-fab {
+    position: static !important;
+    transform: none !important;
+    width: 44px !important;
+    height: auto !important;
+    flex: 1 !important;
+    border-radius: 0 !important;
+    border: none !important;
+    border-bottom: 1px solid var(--bdr) !important;
+    border-right: 3px solid transparent !important;
+    background: none !important;
+    box-shadow: none !important;
+    color: var(--muted) !important;
+    font-size: 6px !important;
+    font-weight: 700 !important;
+    letter-spacing: .12em !important;
+    padding: 4px 2px !important;
+    gap: 2px !important;
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: center !important;
+    justify-content: center !important;
+    z-index: auto !important;
+  }
+  .mob-nav-fab svg {
+    width: 16px !important;
+    height: 16px !important;
+    stroke: currentColor !important;
+    color: inherit !important;
+  }
+  .mob-nav-fab:active {
+    transform: none !important;
+  }
+  .mob-nav-fab.active {
+    border-right-color: var(--bnb) !important;
+    background: rgba(243,186,47,.06) !important;
+    color: var(--bnb) !important;
+    box-shadow: none !important;
   }
 
   /* ── Side nav buttons: ensure they fill height correctly ── */
@@ -2584,15 +2636,33 @@ td.qa-cell{text-align:center;width:28px;padding:0 4px !important;}
     background: rgba(243,186,47,.06) !important;
   }
 
-  /* FAB spacer: zero width in landscape (no FAB in sidebar mode) */
+  /* FAB spacer: hidden in landscape */
   .mob-nav-fab-spacer {
     display: none !important;
   }
 
-  /* FAB itself hidden in landscape — side buttons replace it */
+  /* FAB restyled as regular nav button — cancel portrait FAB styles */
   .mob-nav-fab {
-    display:  none !important;
-    position: static !important; /* cancel fixed positioning leak */
+    display:  flex !important;
+    position: static !important;
+    transform: none !important;
+    width: 44px !important;
+    height: auto !important;
+    flex: 1 !important;
+    border-radius: 0 !important;
+    border: none !important;
+    border-bottom: 1px solid var(--bdr) !important;
+    border-right: 3px solid transparent !important;
+    background: none !important;
+    box-shadow: none !important;
+    color: var(--muted) !important;
+    z-index: auto !important;
+  }
+  .mob-nav-fab.active {
+    border-right-color: var(--bnb) !important;
+    background: rgba(243,186,47,.06) !important;
+    color: var(--bnb) !important;
+    box-shadow: none !important;
   }
 
   /* Light theme sidebar */

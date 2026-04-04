@@ -783,6 +783,8 @@ function setMode(mode) {
   ['crypto','forex','stocks'].forEach(function(m) {
     var b = document.getElementById('am-' + m);
     if (b) b.classList.toggle('active', m === mode);
+    var lb = document.getElementById('lm-' + m);
+    if (lb) lb.classList.toggle('active', m === mode);
     var h = document.getElementById('holdings-' + m);
     if (h) h.style.display = m === mode ? (m === 'crypto' ? '' : 'flex') : 'none';
     /* Show crypto sig-box only in crypto mode — it's a direct sidebar sibling */
@@ -1050,11 +1052,23 @@ function mobNav(mode) {
 }
 
 function mobNavSignal() {
-  /* Scroll to portfolio signal at top of sidebar */
-  _mobHighlightBtn('signal');
   closeMobMore();
-  var sig = document.querySelector('.sig-box');
-  if (sig) _mobScrollTo(sig);
+  var body = document.getElementById('cb-hot');
+  var hdr  = document.getElementById('ch-hot');
+  var isOpen = body && !body.classList.contains('collapsed');
+
+  if (isOpen) {
+    /* Close: toggle collapse and deselect button */
+    toggleCollapse('hot');
+    _mobHighlightBtn('');
+  } else {
+    /* Open: expand section, highlight, and scroll into view */
+    _mobHighlightBtn('signal');
+    if (body && body.classList.contains('collapsed')) toggleCollapse('hot');
+    setTimeout(function() {
+      if (hdr) _mobScrollTo(hdr);
+    }, 350);
+  }
 }
 
 function mobNavHot() {
