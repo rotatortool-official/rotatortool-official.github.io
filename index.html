@@ -711,9 +711,9 @@
           </div>
 
           <!-- SWAP DIRECTION -->
-          <div class="new-swap-dir-btn" onclick="event.stopPropagation();if(typeof RatioTracker!=='undefined'&&RatioTracker.swapPair){var a=this;a.style.transform='scale(.88) rotate(180deg)';setTimeout(function(){a.style.transform='';},300);RatioTracker.swapPair();}" role="button" tabindex="0" aria-label="Swap FROM and TO">
+          <button class="new-swap-dir-btn" type="button" onclick="event.stopPropagation();RatioTracker.swapPair();" role="button" tabindex="0" aria-label="Swap FROM and TO">
             <span class="rt-swap-arrows">⇄</span>
-          </div>
+          </button>
 
           <!-- TO CARD -->
           <div class="new-coin-card new-to-card" onclick="RatioTracker._openPicker('to')" role="button" tabindex="0" aria-label="Select TO coin">
@@ -844,19 +844,16 @@
       <div class="rt-footer">Live data via CoinGecko · Not financial advice · Always verify before swapping</div>
 
       <!-- Coin picker — inline panel inside the swap section -->
-      <div id="rt-picker-panel" style="display:none;margin-top:6px;background:var(--bg3);border:1px solid var(--bdr2);border-radius:8px;overflow:hidden;max-height:320px;flex-direction:column;">
-        <div style="display:flex;align-items:center;gap:8px;padding:8px 12px;border-bottom:1px solid var(--bdr);background:var(--bg4);flex-shrink:0;">
-          <svg width="13" height="13" viewBox="0 0 16 16" fill="none" style="color:var(--muted);flex-shrink:0;" aria-hidden="true"><circle cx="6.5" cy="6.5" r="5" stroke="currentColor" stroke-width="1.6"/><line x1="10.5" y1="10.5" x2="14.5" y2="14.5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
+      <div id="rt-picker-panel" class="rt-picker-panel">
+        <div class="rt-picker-header">
+          <svg width="13" height="13" viewBox="0 0 16 16" fill="none" aria-hidden="true"><circle cx="6.5" cy="6.5" r="5" stroke="currentColor" stroke-width="1.6"/><line x1="10.5" y1="10.5" x2="14.5" y2="14.5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
           <input class="rt-picker-search" id="rt-picker-search" type="text"
             placeholder="Search coin…" autocomplete="off"
-            oninput="RatioTracker._pickerFilter()"
-            style="flex:1;background:transparent;border:none;outline:none;font-family:var(--font-mono);font-size:12px;color:var(--text);min-width:0;">
-          <span id="rt-picker-title" style="font-family:var(--font-mono);font-size:8px;letter-spacing:.12em;color:var(--bnb);flex-shrink:0;text-transform:uppercase;"></span>
-          <button onclick="RatioTracker._closePicker()" aria-label="Close"
-            style="background:none;border:none;color:var(--muted);font-size:18px;line-height:1;cursor:pointer;padding:0 2px;flex-shrink:0;transition:color .15s;"
-            onmouseenter="this.style.color='var(--red)'" onmouseleave="this.style.color='var(--muted)'">×</button>
+            oninput="RatioTracker._pickerFilter()">
+          <span class="rt-picker-title" id="rt-picker-title"></span>
+          <button class="rt-picker-close" onclick="RatioTracker._closePicker()" aria-label="Close">×</button>
         </div>
-        <div class="rt-picker-list" id="rt-picker-list" style="overflow-y:auto;flex:1;-webkit-overflow-scrolling:touch;"></div>
+        <div class="rt-picker-list" id="rt-picker-list"></div>
       </div>
 
     </div>

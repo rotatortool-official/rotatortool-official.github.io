@@ -275,16 +275,33 @@ var RatioTracker = (function() {
     setTfDisabled(false);
   }
 
-  async function loadAll(){
+  var _loadGen = 0;  /* generation counter — newer loadAll() cancels stale in-flight loads */
+
+  async function loadAll(forceRefresh){
+    if(forceRefresh){
+      S.loading = false;          /* allow re-entry when caller forces refresh */
+      _loadGen++;                 /* invalidate any in-flight load */
+    }
     if(S.loading) return; S.loading=true;
+    var gen = ++_loadGen;         /* capture generation for staleness checks */
+
+    if(forceRefresh){
+      /* bust hist cache for current pair so chart fetches fresh data */
+      var ck = S.from+'|'+S.to+'|'+S.days;
+      delete S.histCache[ck];
+    }
+
     setSpin(true); status('Fetching prices…'); updateLabels(); updateIcons();
     try{
       await loadPrices();
+      if(gen !== _loadGen){ S.loading=false; return; }   /* superseded */
       updateIcons();
-      await (typeof sleep==='function'?sleep(300):new Promise(function(r){setTimeout(r,300);}));
+      await new Promise(function(r){setTimeout(r,300);});
+      if(gen !== _loadGen){ S.loading=false; return; }   /* superseded */
       await loadHistory();
-    }catch(e){ status('Error: '+e.message,'err'); }
-    setSpin(false); S.loading=false;
+    }catch(e){ if(gen === _loadGen) status('Error: '+e.message,'err'); }
+    if(gen === _loadGen){ setSpin(false); }
+    S.loading=false;
     updateIcons();
   }
 
@@ -353,6 +370,11 @@ var RatioTracker = (function() {
     grad.addColorStop(0.5,'rgba(0,189,142,0.10)');
     grad.addColorStop(1,'rgba(0,189,142,0.01)');
 
+    /* ── Support / Resistance levels for "Best Time to Swap" cues ── */
+    var sorted=data.slice().sort(function(a,b){return a-b;});
+    var supportLvl  = sorted[Math.floor(sorted.length*0.25)];  /* 25th percentile */
+    var resistLvl   = sorted[Math.floor(sorted.length*0.75)];  /* 75th percentile */
+
     if(S.chart){S.chart.destroy();S.chart=null;}
     S.chart=new Chart(ctx,{
       type:'line',
@@ -379,6 +401,28 @@ var RatioTracker = (function() {
           fill:true
         }]
       },
+      plugins:[{
+        /* Inline plugin: draw support/resistance dashed lines + labels */
+        id:'swapLevels',
+        afterDraw:function(chart){
+          var yAxis=chart.scales.y; if(!yAxis) return;
+          var ctx2=chart.ctx, area=chart.chartArea;
+          function drawLevel(val,color,label){
+            var y=yAxis.getPixelForValue(val);
+            if(y<area.top||y>area.bottom) return;
+            ctx2.save();
+            ctx2.setLineDash([4,4]);
+            ctx2.strokeStyle=color; ctx2.lineWidth=1; ctx2.globalAlpha=0.55;
+            ctx2.beginPath(); ctx2.moveTo(area.left,y); ctx2.lineTo(area.right,y); ctx2.stroke();
+            ctx2.setLineDash([]);
+            ctx2.globalAlpha=0.8; ctx2.font='600 8px IBM Plex Mono,monospace'; ctx2.fillStyle=color;
+            ctx2.fillText(label,area.left+4,y-4);
+            ctx2.restore();
+          }
+          drawLevel(resistLvl,'#00bd8e','BEST SWAP ▲');
+          drawLevel(supportLvl,'#f0a030','SUPPORT ▼');
+        }
+      }],
       options:{
         responsive:true,
         maintainAspectRatio:false,
@@ -515,11 +559,13 @@ var RatioTracker = (function() {
     updateStarBtn(); renderSavedPairs();
 
     /* Animate the swap button */
+    var swapBtn=document.querySelector('.new-swap-dir-btn');
+    if(swapBtn){ swapBtn.style.transform='scale(.88) rotate(180deg)'; setTimeout(function(){ swapBtn.style.transform=''; },350); }
     var arrEl=document.querySelector('.rt-swap-arrows');
     if(arrEl){ arrEl.style.transform='rotate(180deg)'; setTimeout(function(){ arrEl.style.transform=''; },400); }
 
-    /* Reload in background for fresh server data */
-    loadAll();
+    /* Reload in background for fresh server data — force refresh to bust cache + cancel stale loads */
+    loadAll(true);
   }
 
   /* ── FIX BUG 1: Custom coin picker — clean single-listener pattern ──
@@ -542,7 +588,7 @@ var RatioTracker = (function() {
   function _openPicker(mode){
     _pickerMode = mode;
     var panel = $('rt-picker-panel'); if(!panel) return;
-    var title = $('rt-picker-title'); if(title) title.textContent=(mode==='from'?'Select FROM coin':'Select TO coin');
+    var title = $('rt-picker-title'); if(title) title.textContent='Select '+mode.toUpperCase()+' asset';
     var search = $('rt-picker-search'); if(search) search.value='';
 
     panel.style.display = 'flex';
@@ -646,7 +692,7 @@ var RatioTracker = (function() {
 
   return {
     init:init, refresh:refresh, setTF:setTF,
-    loadAll:function(){loadAll(true);},
+    loadAll:function(force){loadAll(force!==undefined?force:true);},
     onFromChange:onFromChange, onToChange:onToChange, calcSwap:calcSwap,
     swapPair:swapPair,
     _loadFav:loadFavourite, _removeFav:removeFavourite,
