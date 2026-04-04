@@ -333,6 +333,9 @@ var RatioTracker = (function() {
 
   /* ── FIX BUG 3: Chart rendering with retry for CDN load race + collapsed canvas ── */
   var _chartRetryTimer = null;
+  var _chartRetryCount = 0;
+  var _pendingChartSeries = null;   /* stash series when canvas has no dimensions */
+
   function renderChart(series){
     /* Clear any pending retry */
     if(_chartRetryTimer){ clearTimeout(_chartRetryTimer); _chartRetryTimer=null; }
@@ -340,9 +343,11 @@ var RatioTracker = (function() {
     var canvas=$('rt-spark');
     if(!canvas) return;
 
-    /* Wait for Chart.js to be available from CDN */
+    /* Wait for Chart.js to be available from CDN (max ~6s) */
     if(!window.Chart){
-      _chartRetryTimer=setTimeout(function(){ renderChart(series); }, 300);
+      if(_chartRetryCount++ < 20){
+        _chartRetryTimer=setTimeout(function(){ renderChart(series); }, 300);
+      }
       return;
     }
 
@@ -350,9 +355,15 @@ var RatioTracker = (function() {
     var h=canvas.offsetHeight||canvas.clientHeight||0;
     var w=canvas.offsetWidth||canvas.clientWidth||0;
     if(h<10||w<10){
-      _chartRetryTimer=setTimeout(function(){ renderChart(series); }, 300);
+      /* Stash series so it can be drawn when the section opens */
+      _pendingChartSeries = series;
+      if(_chartRetryCount++ < 20){
+        _chartRetryTimer=setTimeout(function(){ renderChart(series); }, 300);
+      }
       return;
     }
+    _chartRetryCount = 0;
+    _pendingChartSeries = null;
 
     var ctx=canvas.getContext('2d');
     var labels=series.map(function(p){
@@ -643,12 +654,26 @@ var RatioTracker = (function() {
 
   function _pickerSelect(coinId){
     if(_pickerMode==='from'){
-      var fs=$('rt-from'); if(fs){ fs.value=coinId; S.from=coinId; }
+      var fs=$('rt-from');
+      if(fs){
+        /* Ensure the option exists in the hidden select before setting value */
+        if(!fs.querySelector('option[value="'+coinId+'"]')){
+          var o=document.createElement('option'); o.value=coinId; o.textContent=lbl(coinId)+'  —  '+coinId; fs.appendChild(o);
+        }
+        fs.value=coinId; S.from=coinId;
+      }
       buildToDropdown(S.from);
       var ts=$('rt-to'); if(ts) S.to=ts.value;
       onFromChange();
     } else {
-      var ts=$('rt-to'); if(ts){ ts.value=coinId; S.to=coinId; }
+      var ts=$('rt-to');
+      if(ts){
+        /* Ensure the option exists in the hidden select before setting value */
+        if(!ts.querySelector('option[value="'+coinId+'"]')){
+          var o=document.createElement('option'); o.value=coinId; o.textContent=lbl(coinId)+'  —  '+coinId; ts.appendChild(o);
+        }
+        ts.value=coinId; S.to=coinId;
+      }
       onToChange();
     }
     _closePicker();
@@ -668,6 +693,19 @@ var RatioTracker = (function() {
     loadAll(true);
   }
 
+  /* ── Re-render chart when collapsed section becomes visible ── */
+  function _watchCollapseOpen(){
+    var body=$('cb-swap');
+    if(!body) return;
+    var obs=new MutationObserver(function(){
+      if(!body.classList.contains('collapsed') && _pendingChartSeries && _pendingChartSeries.length){
+        _chartRetryCount=0;
+        setTimeout(function(){ renderChart(_pendingChartSeries); }, 120);
+      }
+    });
+    obs.observe(body,{attributes:true,attributeFilter:['class']});
+  }
+
   /* ── Init ────────────────────────────────────────────────────── */
   function init(){
     loadSaved(); buildFromDropdown(); buildToDropdown(S.from);
@@ -676,7 +714,9 @@ var RatioTracker = (function() {
       var tSel=$('rt-to');
       if(tSel&&tSel.querySelector('option[value="'+saved.to+'"]')){ tSel.value=saved.to; S.to=saved.to; }
     }
-    updateLabels(); updateIcons(); renderSavedPairs(); updateStarBtn(); loadAll(false);
+    updateLabels(); updateIcons(); renderSavedPairs(); updateStarBtn();
+    _watchCollapseOpen();
+    loadAll(false);
   }
 
   function refresh(){
