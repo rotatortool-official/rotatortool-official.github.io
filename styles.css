@@ -318,6 +318,7 @@ body::before{content:'';position:fixed;inset:0;background:repeating-linear-gradi
 :root.light .insight-pulse::after{background:var(--bg2);border-color:var(--bdr);color:var(--text);}
 
 /* Detail panel — insight section */
+.td-pro-tag{font-size:7px;font-weight:800;letter-spacing:.1em;padding:2px 6px;border-radius:3px;background:rgba(167,139,250,.15);border:1px solid rgba(167,139,250,.35);color:var(--pro);vertical-align:middle;}
 .td-insight-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;}
 .td-insight-pulse{font-size:11px;padding:4px 10px;}
 .td-insight-score{font-size:20px;font-weight:700;}
@@ -488,10 +489,27 @@ body::before{content:'';position:fixed;inset:0;background:repeating-linear-gradi
   border-radius:8px;
   padding:18px 20px 20px;
   width:330px;
+  max-height:calc(100vh - 32px);
+  overflow-y:auto;
+  overscroll-behavior:contain;
   box-shadow:0 24px 64px rgba(0,0,0,.75),0 0 0 1px rgba(255,255,255,.04),0 0 40px rgba(243,186,47,.06);
   animation:tileDetailIn .18s cubic-bezier(.22,.68,0,1.4) both;
   pointer-events:all;
-  overflow:hidden;
+}
+/* Mobile tile detail — full-width bottom sheet, scrollable */
+@media(max-width:700px){
+  .tile-detail{
+    left:0 !important;right:0 !important;bottom:0 !important;top:auto !important;
+    width:100% !important;max-width:100% !important;
+    max-height:85vh;
+    border-radius:16px 16px 0 0;
+    padding:14px 16px 24px;
+    animation:tileDetailSlideUp .25s cubic-bezier(.22,.68,0,1.4) both;
+  }
+  @keyframes tileDetailSlideUp{
+    from{opacity:0;transform:translateY(40px);}
+    to{opacity:1;transform:translateY(0);}
+  }
 }
 @keyframes tileDetailIn{
   from{opacity:0;transform:translateY(10px) scale(.95);}
@@ -579,8 +597,8 @@ body::before{content:'';position:fixed;inset:0;background:repeating-linear-gradi
 .td-sh.copied{background:rgba(0,200,150,.15);border-color:rgba(0,200,150,.4);color:var(--green);}
 
 /* Close button */
-.td-close{position:absolute;top:12px;right:14px;background:rgba(255,255,255,.05);border:1px solid var(--bdr);color:var(--muted);font-size:16px;cursor:pointer;line-height:1;padding:3px 7px;transition:all .15s;border-radius:3px;}
-.td-close:hover{color:var(--text);background:rgba(255,255,255,.1);border-color:var(--bdr2);}
+.td-close{position:sticky;top:0;float:right;z-index:10;background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.18);color:var(--text);font-size:18px;cursor:pointer;line-height:1;padding:5px 9px;transition:all .15s;border-radius:50%;margin:-6px -6px 4px 0;backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px);}
+.td-close:hover{color:#fff;background:rgba(255,69,96,.35);border-color:rgba(255,69,96,.5);}
 /* ── consistent card radius + shadow token ── */
 :root{--card-radius:10px;--card-shadow:0 2px 8px rgba(0,0,0,.28), 0 6px 20px rgba(0,0,0,.14);}
 
@@ -1450,8 +1468,8 @@ td.qa-cell{text-align:center;width:28px;padding:0 4px !important;}
 .rt-tf-btn.active{background:var(--bnbd);border-color:var(--bnb);color:var(--bnb);font-weight:700;}
 .rt-tf-btn:hover:not(.active){border-color:var(--bnb);color:var(--bnb);}
 .rt-tf-btn:disabled{opacity:.35;cursor:default;}
-.rt-range-meta{display:flex;justify-content:space-between;font-size:9px;color:var(--muted);margin-bottom:4px;}
-.rt-bar-labels{display:flex;justify-content:space-between;font-size:8px;color:var(--muted);margin-bottom:4px;}
+.rt-range-meta{display:flex;justify-content:space-between;font-size:10px;color:var(--muted);margin-bottom:5px;}
+.rt-bar-labels{display:flex;justify-content:space-between;font-size:9px;color:var(--muted);margin-bottom:4px;}
 .rt-ci{min-width:0;}
 .rt-ci-full{grid-column:1/-1;}
 .rt-refresh-btn:disabled{opacity:.35;cursor:default;}
@@ -1609,9 +1627,9 @@ td.qa-cell{text-align:center;width:28px;padding:0 4px !important;}
 .rt-badge{display:inline-block;font-size:11px;font-weight:700;letter-spacing:.06em;padding:5px 14px;border-radius:100px;border:1px solid transparent;}
 
 /* Price cards brighter */
-.rt-card-lbl{font-size:11px;color:rgba(180,200,220,.6);letter-spacing:.12em;margin-bottom:3px;text-transform:uppercase;}
-.rt-card-val{font-size:14px;font-weight:700;font-family:var(--font-mono);}
-.rt-card-sub{font-size:10px;color:var(--muted);margin-top:1px;}
+.rt-card-lbl{font-size:11px;color:rgba(180,200,220,.6);letter-spacing:.12em;margin-bottom:4px;text-transform:uppercase;font-weight:700;}
+.rt-card-val{font-size:15px;font-weight:700;font-family:var(--font-mono);}
+.rt-card-sub{font-size:10px;color:var(--muted);margin-top:2px;}
 
 /* Swap calculator inputs */
 .rt-ci label{font-size:10px;color:rgba(180,200,220,.75);display:block;margin-bottom:4px;letter-spacing:.07em;font-weight:500;}
@@ -1629,7 +1647,7 @@ td.qa-cell{text-align:center;width:28px;padding:0 4px !important;}
 .rt-star-btn.rt-star-active{border-color:var(--bnb);color:var(--bnb);background:var(--bnbd);}
 
 /* Timeframe buttons */
-.rt-tf-btn{background:transparent;border:1px solid var(--bdr);color:var(--muted);padding:3px 9px;font-family:var(--font-mono);font-size:9px;letter-spacing:.08em;cursor:pointer;border-radius:6px;transition:all .15s;}
+.rt-tf-btn{background:transparent;border:1px solid var(--bdr);color:var(--muted);padding:4px 11px;font-family:var(--font-mono);font-size:10px;letter-spacing:.08em;cursor:pointer;border-radius:6px;transition:all .15s;}
 .rt-tf-btn.active{background:var(--bnbd);border-color:var(--bnb);color:var(--bnb);font-weight:700;}
 .rt-tf-btn:hover:not(.active){border-color:var(--bnb);color:var(--bnb);}
 
@@ -1777,13 +1795,13 @@ td.qa-cell{text-align:center;width:28px;padding:0 4px !important;}
 
 /* ══ SWAP CALCULATOR — top, bigger title ══ */
 .rt-calc{background:rgba(130,110,200,.07);border:1px solid rgba(130,110,200,.22);border-radius:var(--card-radius);padding:12px 14px;margin-bottom:10px;}
-.rt-calc-title{font-size:16px;font-weight:800;letter-spacing:.1em;color:rgba(195,185,255,.95);margin-bottom:10px;text-transform:uppercase;}
+.rt-calc-title{font-size:18px;font-weight:800;letter-spacing:.08em;color:rgba(195,185,255,.95);margin-bottom:12px;text-transform:uppercase;}
 .rt-calc-ratios{margin-top:8px;padding-top:6px;border-top:1px solid rgba(130,110,200,.15);display:flex;flex-direction:column;gap:3px;}
-.rt-calc-ratio-line{font-size:11px;font-family:var(--font-mono);color:rgba(180,200,220,.75);letter-spacing:.02em;}
+.rt-calc-ratio-line{font-size:12px;font-family:var(--font-mono);color:rgba(180,200,220,.75);letter-spacing:.02em;}
 .rt-calc-ratio-line span{color:var(--green);font-weight:700;}
 
 /* ══ PERIOD PEAK + CURRENT — matched sizes ══ */
-.rt-card-val-lg{font-size:18px !important;font-weight:700 !important;font-family:var(--font-mono);line-height:1.1;}
+.rt-card-val-lg{font-size:22px !important;font-weight:700 !important;font-family:var(--font-mono);line-height:1.1;}
 
 /* ══ COIN PICKER — BOTTOM SHEET (mobile) / INLINE DROPDOWN (desktop) ══ */
 .rt-picker-overlay{
@@ -2230,11 +2248,13 @@ td.qa-cell{text-align:center;width:28px;padding:0 4px !important;}
   margin-bottom: 4px;
 }
 .new-swap-hero-label {
-  font-size: 8px;
-  letter-spacing: .18em;
+  font-size: 11px;
+  letter-spacing: .14em;
   text-transform: uppercase;
   color: var(--muted);
-  margin-bottom: 8px;
+  margin-bottom: 10px;
+  font-weight: 700;
+  font-family: var(--font-mono);
 }
 .new-pair-grid {
   display: grid;
@@ -2344,12 +2364,13 @@ td.qa-cell{text-align:center;width:28px;padding:0 4px !important;}
   padding: 16px 14px 14px;
 }
 .new-ratio-unit-lbl {
-  font-size: 8px;
-  letter-spacing: .16em;
+  font-size: 10px;
+  letter-spacing: .14em;
   text-transform: uppercase;
   color: var(--muted);
-  margin-bottom: 4px;
+  margin-bottom: 6px;
   font-family: var(--font-mono);
+  font-weight: 600;
 }
 
 /* ── Chart section ─────────────────────────────────────────── */
@@ -2363,11 +2384,12 @@ td.qa-cell{text-align:center;width:28px;padding:0 4px !important;}
   margin-bottom: 8px;
 }
 .new-chart-title {
-  font-size: 8px;
-  letter-spacing: .18em;
+  font-size: 11px;
+  letter-spacing: .14em;
   text-transform: uppercase;
   color: var(--muted);
   font-family: var(--font-mono);
+  font-weight: 700;
 }
 
 /* ── Calculator card ───────────────────────────────────────── */
@@ -2405,10 +2427,11 @@ td.qa-cell{text-align:center;width:28px;padding:0 4px !important;}
 }
 .new-calc-out-label {
   font-family: var(--font-mono);
-  font-size: 8px;
+  font-size: 9px;
   letter-spacing: .14em;
   color: var(--muted);
-  margin-bottom: 3px;
+  margin-bottom: 4px;
+  font-weight: 600;
 }
 
 /* ── Advanced toggle ───────────────────────────────────────── */

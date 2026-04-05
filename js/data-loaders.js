@@ -1326,22 +1326,24 @@ var fmtVol = fmtMcap;
 function _positionPanel(panel, evt) {
   var isMobile = window.innerWidth <= 700;
   if (isMobile) {
-    /* Mobile: CSS handles centering via fixed+transform */
+    /* Mobile: CSS bottom-sheet handles positioning */
     panel.style.left = ''; panel.style.top = '';
     panel.style.display = 'block';
     document.getElementById('td-overlay').classList.add('show');
     return;
   }
-  var pw = 340, ph = 460;
+  panel.style.display = 'block';
+  var pw = panel.offsetWidth || 340;
+  var ph = panel.offsetHeight || 460;
   var cx = evt ? evt.clientX : window.innerWidth  / 2;
   var cy = evt ? evt.clientY : window.innerHeight / 2;
-  var left = cx + 18, top = cy - 80;
+  var left = cx + 18, top = cy - 120;
   if (left + pw > window.innerWidth  - 16) left = cx - pw - 18;
+  if (left < 8) left = 8;
   if (top  + ph > window.innerHeight - 16) top  = window.innerHeight - ph - 16;
   if (top < 8) top = 8;
   panel.style.left = left + 'px';
   panel.style.top  = top  + 'px';
-  panel.style.display = 'block';
   document.getElementById('td-overlay').classList.add('show');
 }
 

@@ -199,7 +199,7 @@
 
   <!-- Insight Engine (shown for holdings + watchlist coins) -->
   <div class="td-section td-insight-sec" id="td-insight-sec" style="display:none;">
-    <div class="td-section-title">Insight Engine</div>
+    <div class="td-section-title"><span style="display:inline-flex;align-items:center;gap:5px;">⚡ Insight Engine <span class="td-pro-tag">PRO</span></span></div>
     <div id="td-insight-content"></div>
   </div>
 
@@ -880,14 +880,14 @@
         <h2 class="rt-calc-title">⇄ SWAP CALCULATOR</h2>
 
         <div style="margin-bottom:10px;">
-          <label id="rt-calc-from-lbl" style="display:block;font-size:9px;letter-spacing:.12em;color:var(--muted);margin-bottom:5px;">Amount</label>
+          <label id="rt-calc-from-lbl" style="display:block;font-size:10px;letter-spacing:.1em;color:var(--muted);margin-bottom:6px;font-weight:600;">Amount</label>
           <input type="number" id="rt-calc-amt" class="new-amount-input" aria-label="Swap amount" value="100" step="any" oninput="RatioTracker.calcSwap()" placeholder="Enter amount…">
         </div>
 
         <div class="new-calc-output">
           <div class="new-calc-out-label">YOU'D RECEIVE</div>
-          <div class="rt-res-val" style="color:var(--green);font-size:22px;" id="rt-calc-out">—</div>
-          <div class="rt-res-val" style="color:var(--amber);font-size:13px;margin-top:3px;" id="rt-calc-usd-out"></div>
+          <div class="rt-res-val" style="color:var(--green);font-size:26px;" id="rt-calc-out">—</div>
+          <div class="rt-res-val" style="color:var(--amber);font-size:14px;margin-top:4px;" id="rt-calc-usd-out"></div>
         </div>
 
         <div class="rt-calc-ratios" style="margin-bottom:10px;">
