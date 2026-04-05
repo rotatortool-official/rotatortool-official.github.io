@@ -1225,7 +1225,16 @@ function openSettingsPanel(triggerEl) {
   var backdrop = document.getElementById('settings-backdrop');
   if (!panel) return;
 
-  /* Position it: to the left of the gear button, like tutorial step 5 */
+  /* Mobile: CSS handles bottom-sheet positioning, skip JS positioning */
+  if (window.innerWidth <= 700) {
+    panel.style.left = '';
+    panel.style.top  = '';
+    panel.style.display    = 'block';
+    backdrop.style.display = 'block';
+    return;
+  }
+
+  /* Desktop: position relative to gear button */
   var btn = triggerEl instanceof Element ? triggerEl : (document.querySelector('.settings-btn') || triggerEl);
   if (btn && btn.getBoundingClientRect) {
     var r   = btn.getBoundingClientRect();

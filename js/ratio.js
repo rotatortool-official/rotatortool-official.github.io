@@ -626,10 +626,12 @@ var RatioTracker = (function() {
   function _removeOutsideHandler(){
     if(_pickerOutsideHandler){
       document.removeEventListener('mousedown', _pickerOutsideHandler, true);
-      document.removeEventListener('touchstart', _pickerOutsideHandler, true);
+      document.removeEventListener('touchstart', _pickerOutsideHandler, true); /* works for both {capture:true} and true */
       _pickerOutsideHandler = null;
     }
   }
+
+  var _pickerOpenTime = 0;
 
   function _openPicker(mode){
     _pickerMode = mode;
@@ -637,30 +639,34 @@ var RatioTracker = (function() {
     var title = $('rt-picker-title'); if(title) title.textContent='Select '+mode.toUpperCase()+' asset';
     var search = $('rt-picker-search'); if(search) search.value='';
 
-    panel.style.display = 'flex';
-    _pickerFilter();
-    if(search) setTimeout(function(){ search.focus(); }, 60);
-
-    /* Remove any stale listener before attaching a fresh one */
+    /* Remove any stale listener before showing panel */
     _removeOutsideHandler();
 
+    panel.style.display = 'flex';
+    _pickerOpenTime = Date.now();
+    _pickerFilter();
+    if(search) setTimeout(function(){ search.focus(); }, 120);
+
     _pickerOutsideHandler = function(e){
+      /* Ignore events that fire within 200ms of open (prevents touch race) */
+      if(Date.now() - _pickerOpenTime < 200) return;
       var p = $('rt-picker-panel');
       /* Guard: only act if panel is actually visible */
       if(!p || p.style.display === 'none') { _removeOutsideHandler(); return; }
-      /* Don't close if the click is inside the panel itself */
+      /* Don't close if the click/touch is inside the panel itself */
       if(p.contains(e.target)) return;
       /* Don't close if the click is on one of the coin cards (they re-open the picker) */
-      if(e.target.closest && (e.target.closest('.new-from-card') || e.target.closest('.new-to-card'))) return;
+      var card = e.target.closest ? (e.target.closest('.new-from-card') || e.target.closest('.new-to-card')) : null;
+      if(card) return;
+      e.preventDefault();
       _closePicker();
     };
 
-    /* Use mousedown + touchstart instead of click so the handler fires
-       before the element's own click, preventing immediate re-open */
+    /* Attach outside listener with a longer delay to avoid same-tap race */
     setTimeout(function(){
       document.addEventListener('mousedown', _pickerOutsideHandler, true);
-      document.addEventListener('touchstart', _pickerOutsideHandler, true);
-    }, 80);
+      document.addEventListener('touchstart', _pickerOutsideHandler, {capture:true, passive:false});
+    }, 220);
   }
 
   function _closePicker(){
