@@ -626,4 +626,25 @@ document.addEventListener('DOMContentLoaded', function() {
   } catch(e) {}
 });
 
+/* ── Consent banner — show on first visit until accepted ── */
+function acceptConsent() {
+  try { localStorage.setItem('rot_consent', 'accepted'); } catch(e) {}
+  var banner = document.getElementById('consent-banner');
+  if (banner) {
+    banner.style.transition = 'transform .3s ease, opacity .3s ease';
+    banner.style.transform = 'translateY(100%)';
+    banner.style.opacity = '0';
+    setTimeout(function() { banner.style.display = 'none'; }, 350);
+  }
+}
+document.addEventListener('DOMContentLoaded', function() {
+  try {
+    var accepted = localStorage.getItem('rot_consent');
+    if (!accepted) {
+      var banner = document.getElementById('consent-banner');
+      if (banner) banner.style.display = 'block';
+    }
+  } catch(e) {}
+});
+
 /* ── Picker patch removed — ratio.js now owns the full open/close/listener lifecycle ── */

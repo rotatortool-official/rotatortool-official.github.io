@@ -91,6 +91,107 @@
   </div>
 </div>
 
+<!-- TERMS OF SERVICE MODAL -->
+<div class="overlay" id="tos-modal" onclick="if(event.target===this)closeModal('tos-modal')">
+  <div class="modal" style="max-width:560px;max-height:85vh;overflow-y:auto;">
+    <button class="modal-x" onclick="closeModal('tos-modal')">×</button>
+    <div class="modal-title" style="color:var(--bnb);">Terms of Service</div>
+    <div class="modal-sub">Last updated: April 2026</div>
+    <div class="legal-content">
+      <p>By accessing or using Rotator ("the Application"), you agree to be bound by these Terms of Service. If you do not agree, please do not use the Application.</p>
+
+      <h4>1. Informational Tool Only</h4>
+      <p>Rotator is a market data visualization and rotation screening tool provided <strong>strictly for informational and educational purposes</strong>. Nothing displayed in this Application constitutes financial advice, investment advice, trading advice, or any other kind of professional advice. You acknowledge that all investment decisions are made solely at your own risk.</p>
+
+      <h4>2. No Guarantees</h4>
+      <p>All scores, signals, rankings, and data presented are based on publicly available market data and algorithmic calculations. Past performance does not guarantee future results. We make no warranties or representations regarding the accuracy, completeness, or timeliness of any information provided.</p>
+
+      <h4>3. User Responsibility</h4>
+      <p>You are solely responsible for your own investment decisions and any financial outcomes that result from using the information provided by Rotator. Always conduct your own research (DYOR) and consider consulting a qualified financial advisor before making investment decisions.</p>
+
+      <h4>4. Data & Privacy</h4>
+      <p>Rotator runs entirely in your browser. Your holdings, watchlist, and preferences are stored locally on your device via localStorage. We do not collect, transmit, or store any personal data or portfolio information on any server. See our <a onclick="closeModal('tos-modal');setTimeout(function(){openModal('privacy-modal')},200)" style="color:var(--bnb);cursor:pointer;text-decoration:underline;">Privacy Policy</a> for full details.</p>
+
+      <h4>5. Intellectual Property</h4>
+      <p>All source code, design, algorithms, scoring logic, and associated files are the exclusive property of Daniel Stoilkovski. All rights reserved. You may not copy, modify, distribute, or create derivative works without prior written permission.</p>
+
+      <h4>6. Third-Party Data</h4>
+      <p>Market data is sourced from third-party providers including CoinGecko, Binance, Alpha Vantage, Yahoo Finance, and Frankfurter (ECB). Rotator is not affiliated with any of these providers and does not guarantee the availability or accuracy of their data.</p>
+
+      <h4>7. Pro Features & Donations</h4>
+      <p>Pro features may be unlocked via referrals or donation codes. Donations are voluntary and non-refundable. Pro features are provided "as is" and may change at any time without notice.</p>
+
+      <h4>8. Limitation of Liability</h4>
+      <p>To the maximum extent permitted by law, Rotator and its creator shall not be liable for any direct, indirect, incidental, consequential, or special damages arising from your use of this Application, including but not limited to financial losses from investment decisions.</p>
+
+      <h4>9. Changes to Terms</h4>
+      <p>We reserve the right to update these Terms at any time. Continued use of the Application after changes constitutes acceptance of the updated Terms.</p>
+
+      <div style="margin-top:16px;padding:12px 14px;background:var(--bg3);border:1px solid var(--bdr2);border-radius:4px;font-size:11px;color:var(--muted);line-height:1.8;text-align:center;">
+        ROTATOR &copy; 2026 Daniel Stoilkovski &mdash; All Rights Reserved.
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- PRIVACY POLICY MODAL -->
+<div class="overlay" id="privacy-modal" onclick="if(event.target===this)closeModal('privacy-modal')">
+  <div class="modal" style="max-width:560px;max-height:85vh;overflow-y:auto;">
+    <button class="modal-x" onclick="closeModal('privacy-modal')">×</button>
+    <div class="modal-title" style="color:var(--green);">Privacy Policy</div>
+    <div class="modal-sub">Last updated: April 2026</div>
+    <div class="legal-content">
+      <p>Your privacy is important to us. This Privacy Policy explains what data Rotator collects, how it is used, and your rights.</p>
+
+      <h4>1. No Data Collection</h4>
+      <p>Rotator does <strong>not</strong> collect, store, or transmit any personal information. There are no user accounts, no logins, no registration, and no server-side databases storing your data.</p>
+
+      <h4>2. Local Storage Only</h4>
+      <p>All user data — including your holdings, watchlist, preferences, Pro status, and visit history — is stored exclusively in your browser's localStorage. This data never leaves your device. Clearing your browser data will permanently delete this information.</p>
+
+      <h4>3. No Cookies</h4>
+      <p>Rotator does not use cookies for tracking or any other purpose.</p>
+
+      <h4>4. Third-Party APIs</h4>
+      <p>Rotator fetches market data from public APIs (CoinGecko, Binance, Alpha Vantage, Yahoo Finance, Frankfurter). These requests are made directly from your browser. We do not proxy, log, or monitor these requests. Please refer to each provider's own privacy policy for details on how they handle API requests.</p>
+
+      <h4>5. No Analytics or Tracking</h4>
+      <p>Rotator does not use Google Analytics, Facebook Pixel, or any other analytics or tracking service. We do not track page views, clicks, or user behavior.</p>
+
+      <h4>6. Referral Links</h4>
+      <p>The Pro referral system uses URL parameters to credit referrals. Referral data (a randomly generated ID) is stored only in localStorage on each user's device. No personal information is shared between referrer and referee.</p>
+
+      <h4>7. Donations</h4>
+      <p>If you choose to donate via cryptocurrency, the transaction is processed entirely by the blockchain network. We do not collect your wallet address or transaction details beyond what is publicly visible on the blockchain.</p>
+
+      <h4>8. Children's Privacy</h4>
+      <p>Rotator is not intended for use by individuals under the age of 18. We do not knowingly collect any information from minors.</p>
+
+      <h4>9. Your Rights</h4>
+      <p>Since all data is stored locally on your device, you have full control over it at all times. You can view, modify, or delete your data by clearing your browser's localStorage for this site.</p>
+
+      <h4>10. Changes to This Policy</h4>
+      <p>We may update this Privacy Policy from time to time. The "Last updated" date at the top will reflect the most recent revision.</p>
+
+      <div style="margin-top:16px;padding:12px 14px;background:var(--bg3);border:1px solid var(--bdr2);border-radius:4px;font-size:11px;color:var(--muted);line-height:1.8;text-align:center;">
+        Questions? Reach out via the <a onclick="closeModal('privacy-modal')" style="color:var(--bnb);cursor:pointer;text-decoration:underline;">Contact</a> link in the footer.
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- CONSENT BANNER (first visit) -->
+<div id="consent-banner" class="consent-banner" style="display:none;">
+  <div class="consent-inner">
+    <div class="consent-text">
+      <strong>Welcome to Rotator!</strong> By continuing to use this application, you acknowledge that this is an <strong style="color:var(--amber);">informational tool only</strong> and not financial advice. You accept our
+      <a onclick="openModal('tos-modal')" style="color:var(--bnb);cursor:pointer;text-decoration:underline;">Terms of Service</a> and
+      <a onclick="openModal('privacy-modal')" style="color:var(--green);cursor:pointer;text-decoration:underline;">Privacy Policy</a>.
+    </div>
+    <button class="consent-accept-btn" onclick="acceptConsent()">I Understand & Accept</button>
+  </div>
+</div>
+
 <!-- SETTINGS MODAL -->
 <!-- SETTINGS PANEL (positioned near gear button, like tutorial end step) -->
 <div id="settings-backdrop" style="display:none;position:fixed;inset:0;z-index:498;" onclick="closeSettingsPanel()"></div>
@@ -310,6 +411,27 @@
       </div>
     </div>
 
+    <!-- Payment methods -->
+    <div style="font-size:9px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);margin-bottom:10px;">Payment Methods</div>
+
+    <!-- Stripe (coming soon) -->
+    <button class="stripe-btn" id="stripe-donate-btn" onclick="document.getElementById('stripe-soon-msg').style.display=document.getElementById('stripe-soon-msg').style.display==='none'?'block':'none'">
+      <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor" style="flex-shrink:0;"><path d="M13.976 9.15c-2.172-.806-3.356-1.426-3.356-2.409 0-.831.683-1.305 1.901-1.305 2.227 0 4.515.858 6.09 1.631l.89-5.494C18.252.975 15.697 0 12.165 0 9.667 0 7.589.654 6.104 1.872 4.56 3.147 3.757 4.992 3.757 7.218c0 4.039 2.467 5.76 6.476 7.219 2.585.92 3.445 1.574 3.445 2.583 0 .98-.84 1.545-2.354 1.545-1.875 0-4.965-.921-7.076-2.19l-.893 5.575C4.746 22.901 7.614 24 11.174 24c2.6 0 4.719-.67 6.225-1.828 1.635-1.263 2.481-3.158 2.481-5.603 0-4.128-2.544-5.818-5.904-7.419z"/></svg>
+      <span>Pay with Stripe</span>
+      <span class="stripe-soon-tag">COMING SOON</span>
+    </button>
+    <div id="stripe-soon-msg" class="stripe-soon-msg" style="display:none;">
+      <span style="font-size:13px;">🔧</span>
+      <div>
+        <strong>Stripe payments coming soon!</strong><br>
+        For now, we only accept crypto donations via the USDT TRC20 network below. Card payments will be available once our Stripe account is set up.
+      </div>
+    </div>
+
+    <!-- Crypto (active) -->
+    <div style="font-size:9px;letter-spacing:.14em;text-transform:uppercase;color:var(--green);margin:14px 0 8px;display:flex;align-items:center;gap:6px;">
+      <span style="font-size:8px;">●</span> Active — Crypto Donation
+    </div>
     <div class="network-tag">⬡ USDT · TRC20 NETWORK ONLY</div>
     <div class="addr-box">TGt3FQmv8AFPqbj6PnQGUAmemV9gDNm4bt</div>
     <button class="copy-btn" id="copy-donate-btn" onclick="copyAddr('TGt3FQmv8AFPqbj6PnQGUAmemV9gDNm4bt','copy-donate-btn')">COPY ADDRESS</button>
@@ -991,8 +1113,8 @@
     <a class="footer-link" onclick="openModal('about-modal')">ABOUT US</a>
     <a class="footer-link" onclick="openModal('faq-modal')">FAQ</a>
     <a class="footer-link" onclick="alert('How It Works — Coming soon')">HOW IT WORKS</a>
-    <a class="footer-link" onclick="alert('Terms of Service — Coming soon')">TERMS</a>
-    <a class="footer-link" onclick="alert('Privacy Policy — Coming soon')">PRIVACY</a>
+    <a class="footer-link" onclick="openModal('tos-modal')">TERMS</a>
+    <a class="footer-link" onclick="openModal('privacy-modal')">PRIVACY</a>
     <a class="footer-link" onclick="alert('Contact — Coming soon')">CONTACT</a>
     <a class="footer-link" onclick="openModal('donate-modal')">SUPPORT US</a>
   </div>
