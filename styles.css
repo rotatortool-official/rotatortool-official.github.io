@@ -1640,9 +1640,9 @@ td.qa-cell{text-align:center;width:28px;padding:0 4px !important;}
 .rt-calc-result{display:flex;justify-content:space-between;align-items:flex-end;gap:6px;padding-top:8px;border-top:1px solid rgba(130,110,200,.18);}
 
 /* Refresh + star buttons */
-.rt-refresh-btn{background:rgba(130,110,200,.1);border:1px solid rgba(130,110,200,.25);color:rgba(180,200,220,.8);padding:4px 10px;font-family:var(--font-mono);font-size:10px;font-weight:600;cursor:pointer;border-radius:6px;display:flex;align-items:center;gap:4px;transition:all .15s;letter-spacing:.05em;}
+.rt-refresh-btn{background:rgba(130,110,200,.1);border:1px solid rgba(130,110,200,.25);color:rgba(180,200,220,.8);padding:5px 12px;font-family:var(--font-mono);font-size:11px;font-weight:600;cursor:pointer;border-radius:6px;display:flex;align-items:center;gap:4px;transition:all .15s;letter-spacing:.05em;}
 .rt-refresh-btn:hover{border-color:rgba(130,110,200,.6);color:#c5b8f5;background:rgba(130,110,200,.18);}
-.rt-star-btn{background:rgba(243,186,47,.08);border:1px solid rgba(243,186,47,.25);color:rgba(243,186,47,.8);padding:4px 10px;font-size:10px;font-weight:600;cursor:pointer;border-radius:6px;transition:all .15s;font-family:var(--font-mono);letter-spacing:.05em;}
+.rt-star-btn{background:rgba(243,186,47,.08);border:1px solid rgba(243,186,47,.25);color:rgba(243,186,47,.8);padding:5px 12px;font-size:11px;font-weight:600;cursor:pointer;border-radius:6px;transition:all .15s;font-family:var(--font-mono);letter-spacing:.05em;}
 .rt-star-btn:hover{border-color:var(--bnb);color:var(--bnb);background:var(--bnbd);}
 .rt-star-btn.rt-star-active{border-color:var(--bnb);color:var(--bnb);background:var(--bnbd);}
 
@@ -1658,7 +1658,7 @@ td.qa-cell{text-align:center;width:28px;padding:0 4px !important;}
 .rt-bar-marker{position:absolute;top:50%;transform:translateY(-50%) translateX(-50%);width:5px;height:5px;border-radius:50%;background:var(--red);border:1.5px solid var(--bg);transition:left .5s ease;}
 
 /* Footer */
-.rt-footer{font-size:8px;color:rgba(90,110,133,.6);margin-top:8px;text-align:center;line-height:1.6;}
+.rt-footer{font-size:9px;color:rgba(90,110,133,.6);margin-top:10px;text-align:center;line-height:1.6;}
 
 /* Chart */
 .rt-chart-wrap{position:relative;width:100%;height:140px;margin:4px 0 6px;}
@@ -1791,7 +1791,7 @@ td.qa-cell{text-align:center;width:28px;padding:0 4px !important;}
 }
 .rt-ratio-bold.dim{color:rgba(180,195,215,.35);}
 .rt-ratio-bold-x{font-size:20px;font-weight:300;color:var(--muted);font-family:var(--font-mono);margin-top:-4px;}
-.rt-ratio-unit{font-size:11px;color:rgba(160,180,200,.65);margin-top:3px;text-align:center;}
+.rt-ratio-unit{font-size:12px;color:rgba(160,180,200,.65);margin-top:4px;text-align:center;}
 
 /* ══ SWAP CALCULATOR — top, bigger title ══ */
 .rt-calc{background:rgba(130,110,200,.07);border:1px solid rgba(130,110,200,.22);border-radius:var(--card-radius);padding:12px 14px;margin-bottom:10px;}
@@ -2282,14 +2282,15 @@ td.qa-cell{text-align:center;width:28px;padding:0 4px !important;}
   display: flex;
   align-items: center;
   justify-content: space-between;
-  font-size: 7px;
-  letter-spacing: .18em;
+  font-size: 8px;
+  letter-spacing: .16em;
   text-transform: uppercase;
   color: var(--muted);
   margin-bottom: 7px;
   font-family: var(--font-mono);
+  font-weight: 700;
 }
-.new-tap-hint { font-size: 6.5px; opacity: .5; }
+.new-tap-hint { font-size: 7px; opacity: .5; }
 
 .new-coin-main {
   display: flex;
@@ -2316,7 +2317,7 @@ td.qa-cell{text-align:center;width:28px;padding:0 4px !important;}
 .new-coin-info { flex: 1; min-width: 0; }
 .new-coin-sym {
   font-family: var(--font-mono);
-  font-size: 13px;
+  font-size: 15px;
   font-weight: 800;
   color: var(--text);
   letter-spacing: .02em;
@@ -2324,7 +2325,7 @@ td.qa-cell{text-align:center;width:28px;padding:0 4px !important;}
 }
 .new-coin-price {
   font-family: var(--font-mono);
-  font-size: 9px;
+  font-size: 11px;
   color: rgba(200,215,230,.8);
   margin-top: 2px;
   white-space: nowrap;
@@ -2333,8 +2334,8 @@ td.qa-cell{text-align:center;width:28px;padding:0 4px !important;}
 }
 .new-coin-chg {
   font-family: var(--font-mono);
-  font-size: 8px;
-  margin-top: 1px;
+  font-size: 9px;
+  margin-top: 2px;
 }
 
 .new-swap-dir-btn {
@@ -2439,16 +2440,17 @@ td.qa-cell{text-align:center;width:28px;padding:0 4px !important;}
   display: flex;
   align-items: center;
   gap: 6px;
-  padding: 7px 0 0;
+  padding: 8px 0 0;
   cursor: pointer;
   font-family: var(--font-mono);
-  font-size: 8px;
-  letter-spacing: .12em;
+  font-size: 9px;
+  letter-spacing: .1em;
   color: var(--muted);
   transition: color .15s;
   user-select: none;
   border-top: 1px solid var(--bdr);
   margin-top: 4px;
+  font-weight: 600;
 }
 .new-adv-toggle:hover { color: var(--text); }
 .new-adv-icon { font-size: 9px; transition: transform .2s; }
