@@ -203,6 +203,20 @@ async function loadMacroData() {
   } catch(e) { console.warn('Macro data:', e.message); }
 }
 
+/* ── Fear & Greed Index (used by Insight Engine) ─────────────── */
+window.fearGreed = { value: 50, label: 'Neutral' };
+async function loadFearGreed() {
+  try {
+    var data = await apiFetch('https://api.alternative.me/fng/?limit=1');
+    if (data && data.data && data.data[0]) {
+      window.fearGreed = {
+        value: parseInt(data.data[0].value) || 50,
+        label: data.data[0].value_classification || 'Neutral'
+      };
+    }
+  } catch(e) { console.warn('[FearGreed]', e.message); }
+}
+
 /* ── Score engine (3 layers) ─────────────────────────────────── */
 function computeScores() {
   var n = Math.max(coins.length - 1, 1);
@@ -909,6 +923,7 @@ async function doLoad() {
   try {
     await loadCoins();   prog(55, 'Scoring and ranking all assets…');  renderCoinSel();
     await loadMacroData(); prog(80, 'Loading macro data — Gold, Oil…');
+    await loadFearGreed(); prog(88, 'Fetching sentiment data…');
     prog(92, 'Almost ready — building your dashboard…');
     applyModePrefs();
     renderAll();         prog(100, 'All done! This free tool is built by one person — thanks for your patience ♥');
@@ -1412,6 +1427,40 @@ function openTileDetail(coinId, evt) {
   document.getElementById('td-badges').innerHTML = badges.map(function(b) {
     return '<span class="td-badge ' + b.cls + '">' + b.t + '</span>';
   }).join('');
+
+  /* Insight Engine section — show only for holdings + watchlist coins */
+  var insSec = document.getElementById('td-insight-sec');
+  var insEl  = document.getElementById('td-insight-content');
+  if (insSec && insEl) {
+    var hSyms = holdings.map(function(h) { return h.sym; });
+    var wSyms = (typeof watchlist !== 'undefined') ? watchlist : [];
+    var isTracked = hSyms.indexOf(c.sym) >= 0 || wSyms.indexOf(c.sym) >= 0;
+    if (isTracked && c.insight) {
+      var ins = c.insight;
+      var insHtml = '<div class="td-insight-header">'
+        + '<div class="insight-pulse ' + ins.color + ' td-insight-pulse"><span class="insight-dot"></span><span class="insight-lbl">' + ins.label + '</span></div>'
+        + '<span class="td-insight-score" style="color:' + (ins.score >= 65 ? 'var(--green)' : ins.score <= 35 ? 'var(--red)' : '#87CEEB') + ';">' + ins.score + '<span style="font-size:9px;color:var(--muted);"> / 100</span></span>'
+        + '</div>';
+      if (ins.signals && ins.signals.length) {
+        insHtml += '<div class="td-insight-signals">';
+        ins.signals.forEach(function(s) {
+          var cls = 'neut';
+          if (s.indexOf('Oversold') >= 0 || s.indexOf('Accumulation') >= 0 || s.indexOf('Hidden Strength') >= 0 || s.indexOf('Cleared') >= 0 || s.indexOf('Extreme Fear') >= 0 || s.indexOf('Outperforming') >= 0) cls = 'bull';
+          else if (s.indexOf('Overbought') >= 0 || s.indexOf('Dilution') >= 0 || s.indexOf('Greed') >= 0 || s.indexOf('Underperforming') >= 0 || s.indexOf('Low Liquidity') >= 0) cls = 'bear';
+          insHtml += '<div class="td-insight-pill ' + cls + '">' + s + '</div>';
+        });
+        insHtml += '</div>';
+      }
+      var fgVal = window.fearGreed ? window.fearGreed.value : 50;
+      var fgLbl = window.fearGreed ? window.fearGreed.label : 'Neutral';
+      var fgCls = fgVal < 25 ? 'bear' : fgVal < 40 ? 'bear' : fgVal > 80 ? 'bull' : fgVal > 65 ? 'bull' : 'neut';
+      insHtml += '<div class="td-insight-fg"><span class="td-insight-fg-lbl">FEAR & GREED</span><span class="td-insight-fg-val ' + fgCls + '">' + fgVal + ' — ' + fgLbl + '</span></div>';
+      insEl.innerHTML = insHtml;
+      insSec.style.display = '';
+    } else {
+      insSec.style.display = 'none';
+    }
+  }
 
   /* Edit Holdings section — show only for held coins */
   var editSec = document.getElementById('td-edit-hold-sec');

@@ -255,6 +255,73 @@ body::before{content:'';position:fixed;inset:0;background:repeating-linear-gradi
 .tile-scr.hi{background:var(--gd);color:var(--green);}
 .tile-scr.md{background:var(--ad);color:var(--amber);}
 .tile-scr.lo{background:var(--rd);color:var(--red);}
+
+/* ── INSIGHT ENGINE — tile badges & detail panel ─────────── */
+.tile-insight{padding:3px 0 1px;display:flex;justify-content:center;}
+.insight-pulse{
+  display:inline-flex;align-items:center;gap:4px;
+  padding:3px 8px;border-radius:4px;
+  font-size:9px;font-weight:700;letter-spacing:.1em;
+  cursor:default;position:relative;white-space:nowrap;
+  transition:background .2s;
+}
+.insight-buy{background:rgba(0,200,150,.13);border:1px solid rgba(0,200,150,.35);color:#00c896;}
+.insight-buy .insight-dot{background:#00c896;}
+.insight-neut{background:rgba(135,206,235,.1);border:1px solid rgba(135,206,235,.3);color:#87CEEB;}
+.insight-neut .insight-dot{background:#87CEEB;}
+.insight-warn{background:rgba(255,69,96,.1);border:1px solid rgba(255,69,96,.3);color:#ff4560;}
+.insight-warn .insight-dot{background:#ff4560;}
+.insight-dot{
+  width:6px;height:6px;border-radius:50%;flex-shrink:0;
+  animation:insightPulse 2s ease-in-out infinite;
+}
+@keyframes insightPulse{
+  0%,100%{opacity:1;transform:scale(1);}
+  50%{opacity:.4;transform:scale(.7);}
+}
+.insight-lbl{font-size:9px;font-weight:700;letter-spacing:.08em;}
+.insight-score{font-size:9px;font-weight:600;opacity:.7;margin-left:2px;}
+/* Tooltip on hover (tiles) */
+.insight-pulse::after{
+  content:attr(data-tip);
+  position:absolute;bottom:calc(100% + 6px);left:50%;transform:translateX(-50%);
+  background:var(--bg2);border:1px solid var(--bdr2);
+  border-radius:5px;padding:8px 10px;
+  font-size:10px;font-weight:400;letter-spacing:.03em;
+  color:var(--text);line-height:1.6;
+  width:240px;white-space:normal;text-align:left;
+  box-shadow:0 6px 24px rgba(0,0,0,.5);
+  pointer-events:none;opacity:0;transition:opacity .15s;z-index:50;
+  font-family:var(--font-ui,sans-serif);
+}
+.insight-pulse:hover::after{opacity:1;}
+/* Light mode overrides */
+:root.light .insight-buy{background:rgba(0,160,120,.1);border-color:rgba(0,160,120,.3);color:#007a5c;}
+:root.light .insight-buy .insight-dot{background:#007a5c;}
+:root.light .insight-neut{background:rgba(100,170,210,.12);border-color:rgba(100,170,210,.35);color:#2288bb;}
+:root.light .insight-neut .insight-dot{background:#2288bb;}
+:root.light .insight-warn{background:rgba(200,30,50,.08);border-color:rgba(200,30,50,.25);color:#c41e3a;}
+:root.light .insight-warn .insight-dot{background:#c41e3a;}
+:root.light .insight-pulse::after{background:var(--bg2);border-color:var(--bdr);color:var(--text);}
+
+/* Detail panel — insight section */
+.td-insight-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;}
+.td-insight-pulse{font-size:11px;padding:4px 10px;}
+.td-insight-score{font-size:20px;font-weight:700;}
+.td-insight-signals{display:flex;flex-wrap:wrap;gap:4px;margin-bottom:8px;}
+.td-insight-pill{font-size:9px;font-weight:600;letter-spacing:.04em;padding:3px 8px;border-radius:3px;line-height:1.4;font-family:var(--font-ui,sans-serif);}
+.td-insight-pill.bull{background:rgba(0,200,150,.1);border:1px solid rgba(0,200,150,.25);color:var(--green);}
+.td-insight-pill.bear{background:rgba(255,69,96,.08);border:1px solid rgba(255,69,96,.2);color:var(--red);}
+.td-insight-pill.neut{background:rgba(135,206,235,.08);border:1px solid rgba(135,206,235,.2);color:#87CEEB;}
+:root.light .td-insight-pill.neut{color:#2288bb;}
+.td-insight-fg{display:flex;align-items:center;justify-content:space-between;padding:5px 8px;background:var(--bg3);border:1px solid var(--bdr);border-radius:4px;font-size:10px;}
+.td-insight-fg-lbl{font-weight:600;letter-spacing:.1em;color:var(--muted);font-size:9px;}
+.td-insight-fg-val{font-weight:700;letter-spacing:.04em;}
+.td-insight-fg-val.bull{color:var(--green);}
+.td-insight-fg-val.bear{color:var(--red);}
+.td-insight-fg-val.neut{color:#87CEEB;}
+:root.light .td-insight-fg-val.neut{color:#2288bb;}
+
 .sig-box{padding:8px 12px 9px;border-bottom:1px solid rgba(243,186,47,.18);background:linear-gradient(135deg,rgba(243,186,47,.08),rgba(243,186,47,.02));flex-shrink:0;}
 .sig-title{font-size:11px;font-weight:600;letter-spacing:.12em;text-transform:uppercase;color:rgba(210,170,60,.85);margin-bottom:6px;font-family:var(--font-display);display:flex;align-items:center;gap:5px;}
 .sig-title::before{content:'';width:3px;height:3px;background:rgba(210,170,60,.7);border-radius:50%;flex-shrink:0;}

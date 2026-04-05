@@ -308,6 +308,7 @@ function renderWatchlist() {
         + '<div class="tpf"><span class="tpf-l">24H</span><span class="tpf-v ' + (coin.p24>=0?'up':'dn') + '">' + (coin.p24>=0?'+':'') + coin.p24.toFixed(1) + '%</span></div>'
         + '<div class="tpf"><span class="tpf-l">7D</span><span class="tpf-v '  + (coin.p7>=0?'up':'dn')  + '">' + (coin.p7>=0?'+':'')  + coin.p7.toFixed(1)  + '%</span></div>'
       + '</div>'
+      + (coin.insight ? '<div class="tile-insight"><div class="insight-pulse ' + coin.insight.color + '" data-tip="' + coin.insight.tooltip.replace(/"/g, '&quot;') + '" title="' + coin.insight.tooltip.replace(/"/g, '&quot;') + '"><span class="insight-dot"></span><span class="insight-lbl">' + coin.insight.label + '</span><span class="insight-score">' + coin.insight.score + '</span></div></div>' : '')
       + '<div class="tile-foot"><span></span><span class="tile-scr ' + (coin.score>=65?'hi':coin.score>=40?'md':'lo') + '">' + coin.score + '</span></div>'
       + '</div>';
   }).join('');

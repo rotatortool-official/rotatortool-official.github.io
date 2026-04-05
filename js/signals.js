@@ -270,6 +270,130 @@ function renderTopBars() {
   sugEl.innerHTML = '<div class="sig-tiles-grid">' + pairs.map(function(p) { return sigRotTile(p.sell, p.buy); }).join('') + '</div>';
 }
 
+/* ══════════════════════════════════════════════════════════════
+   INSIGHT ENGINE — 5-pillar forward-looking signals
+   Only computed for holdings + watchlist coins to save resources.
+   Attaches c.insight = { score, label, color, tooltip, signals }
+══════════════════════════════════════════════════════════════ */
+function computeInsights() {
+  var btc = coins.find(function(c) { return c.id === 'bitcoin'; }) || { p24: 0, p7: 0, p14: 0 };
+  var fg  = (window.fearGreed && typeof window.fearGreed.value === 'number')
+              ? window.fearGreed.value : 50;
+  var fgLabel = (window.fearGreed && window.fearGreed.label) || 'Neutral';
+
+  /* Only compute for holdings + watchlist coins */
+  var hSyms = holdings.map(function(h) { return h.sym; });
+  var wSyms = (typeof watchlist !== 'undefined') ? watchlist : [];
+  var targetSyms = hSyms.concat(wSyms.filter(function(s) { return hSyms.indexOf(s) < 0; }));
+
+  coins.forEach(function(c) { delete c.insight; }); /* clear old */
+
+  targetSyms.forEach(function(sym) {
+    var c = coins.find(function(x) { return x.sym === sym; });
+    if (!c) return;
+
+    var signals = [];
+    var pts     = 0;
+
+    /* ── PILLAR 1: Momentum Reset (RSI proxy via rank + MACD proxy via p7 vs p14) ── */
+    var rsiApprox = Math.round((1 - (c.r30 - 1) / Math.max(coins.length - 1, 1)) * 100);
+    var macdUp   = c.p7 > c.p14;
+    var macdDown = c.p7 < c.p14;
+
+    if (rsiApprox < 35 && macdUp) {
+      pts += 30;
+      signals.push('RSI Oversold + MACD Rising');
+    } else if (rsiApprox > 75 && macdDown) {
+      pts -= 25;
+      signals.push('RSI Overbought + MACD Falling');
+    } else if (rsiApprox < 40) {
+      pts += 15;
+      signals.push('Low Momentum (Potential Reset)');
+    } else if (rsiApprox > 70) {
+      pts -= 12;
+      signals.push('High Momentum (Watch for Reversal)');
+    }
+
+    /* ── PILLAR 2: Liquidity Trap (Volume / Market Cap) ── */
+    var volMcap = (c.volume24 && c.mcap) ? c.volume24 / c.mcap : 0;
+    var priceStable = Math.abs(c.p24) < 3;
+    if (volMcap > 0.20 && priceStable) {
+      pts += 25;
+      signals.push('High Volume + Stable Price (Accumulation)');
+    } else if (volMcap > 0.20) {
+      pts += 12;
+      signals.push('High Liquidity Interest');
+    } else if (volMcap > 0.10) {
+      pts += 6;
+      signals.push('Moderate Volume Interest');
+    } else if (volMcap < 0.02 && c.mcap > 5e8) {
+      pts -= 8;
+      signals.push('Low Liquidity (Large Cap)');
+    }
+
+    /* ── PILLAR 3: Dilution Shield (Supply Dynamics) ── */
+    var circ = c.circulating_supply || 0;
+    var maxS = c.max_supply || 0;
+    var supplyRatio = (circ && maxS > 0) ? circ / maxS : -1;
+    if (supplyRatio >= 0.85) {
+      pts += 20;
+      signals.push('Supply Cleared (' + Math.round(supplyRatio * 100) + '% Unlocked)');
+    } else if (supplyRatio >= 0.50) {
+      pts += 5;
+    } else if (supplyRatio >= 0 && supplyRatio < 0.30) {
+      pts -= 20;
+      signals.push('High Dilution Risk (' + Math.round(supplyRatio * 100) + '% Unlocked)');
+    }
+
+    /* ── PILLAR 4: Contrarian Sentiment (Fear & Greed) ── */
+    if (fg < 25) {
+      pts += 25;
+      signals.push('Extreme Fear (' + fg + ') — Contrarian Buy');
+    } else if (fg < 40) {
+      pts += 12;
+      signals.push('Fear Zone (' + fg + ')');
+    } else if (fg > 80) {
+      pts -= 20;
+      signals.push('Extreme Greed (' + fg + ') — Caution');
+    } else if (fg > 65) {
+      pts -= 8;
+      signals.push('Greed Zone (' + fg + ')');
+    }
+
+    /* ── PILLAR 5: Relative Strength vs BTC ── */
+    var btcP24 = btc.p24 || 0;
+    var relStr = c.p24 - btcP24;
+    if (btcP24 < -1 && c.p24 > 0) {
+      pts += 28;
+      signals.push('Hidden Strength vs BTC (' + (relStr >= 0 ? '+' : '') + relStr.toFixed(1) + '%)');
+    } else if (relStr > 5) {
+      pts += 15;
+      signals.push('Outperforming BTC (+' + relStr.toFixed(1) + '%)');
+    } else if (relStr < -5) {
+      pts -= 15;
+      signals.push('Underperforming BTC (' + relStr.toFixed(1) + '%)');
+    }
+
+    /* ── Normalise to 0–100 ── */
+    var raw        = Math.min(128, Math.max(-88, pts));
+    var normalised = Math.round(((raw + 88) / 216) * 100);
+
+    /* ── Label & colour ── */
+    var label, color;
+    if      (normalised >= 65) { label = 'BUY';     color = 'insight-buy';  }
+    else if (normalised <= 35) { label = 'WARN';    color = 'insight-warn'; }
+    else                       { label = 'NEUTRAL'; color = 'insight-neut'; }
+
+    /* ── Tooltip text ── */
+    var tooltip = signals.length
+      ? signals.join(' · ')
+      : 'No strong signals — monitoring';
+    tooltip += ' | F&G: ' + fg + ' (' + fgLabel + ')';
+
+    c.insight = { score: normalised, label: label, color: color, tooltip: tooltip, signals: signals };
+  });
+}
+
 /* ── Toggle watchlist from the leaderboard eye icon ────────── */
 function toggleWatch(sym, btn) {
   if (typeof watchlist === 'undefined') return;
@@ -362,6 +486,7 @@ function setSort(tf) {
 
 /* Master render — call this after any data change */
 function renderAll() {
+  computeInsights();
   renderBTC(); renderTiles(); renderTopBars(); renderTable(); renderCoinSel(); updateTierBadge();
   var now      = new Date();
   var coinsUrl = 'https://api.coingecko.com/api/v3/coins/markets';
