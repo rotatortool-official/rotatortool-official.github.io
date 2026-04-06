@@ -13,24 +13,24 @@
 
 /* ── Crypto coin lists ───────────────────────────────────────────── */
 var FREE_COINS = [
-  /* Mega caps */
+  /* ── Mega caps ── */
   'bitcoin','ethereum','binancecoin','solana','ripple',
-  /* Large caps */
+  /* ── Large caps ── */
   'dogecoin','cardano','avalanche-2','shiba-inu','chainlink',
   'polkadot','bitcoin-cash','near','litecoin','uniswap',
   'internet-computer','ethereum-classic','stellar','monero','okb',
-  /* Mid caps */
+  /* ── Mid caps ── */
   'hedera-hashgraph','filecoin','cosmos','vechain','tron',
   'sui','aptos','sei-network','render-token','jupiter-exchange-solana',
-  /* DeFi */
+  /* ── DeFi ── */
   'aave','the-graph','curve-dao-token','maker','lido-dao',
-  /* L2 & Infrastructure */
+  /* ── L2 & Infrastructure ── */
   'arbitrum','optimism','stacks','immutable-x','injective-protocol',
-  /* Meme & Emerging */
+  /* ── Meme & Emerging ── */
   'blur','bonk','dogwifcoin','book-of-meme','pepe',
-  /* RWA & New */
+  /* ── RWA & New ── */
   'ondo-finance','worldcoin-wld','pyth-network','jito-governance-token','ethena',
-  /* Additional 50 — always free */
+  /* ── Batch 51–100 ── */
   'hyperliquid','toncoin','the-sandbox','decentraland','axie-infinity',
   'gala','illuvium','stepn','flow','wax',
   'ocean-protocol','fetch-ai','singularitynet','numeraire','bittensor',
@@ -40,12 +40,52 @@ var FREE_COINS = [
   'raydium','orca','lifinity','saber','serum',
   'wormhole','layerzero','across-protocol','synapse-2','stargate-finance',
   'gmx','gains-network','kwenta','polynomial-protocol','vertex-protocol',
-  'pendle','spectra-finance','time-wonderland','convex-finance','frax-share'
+  'pendle','spectra-finance','time-wonderland','convex-finance','frax-share',
+  /* ── Batch 101–150: more L1s, gaming, AI, privacy ── */
+  'kaspa','mantle','flare-networks','kava','zilliqa',
+  'harmony','celo','moonbeam','astar','fantom',
+  'theta-token','enjincoin','gods-unchained','ultra','treasure-lol',
+  'ronin','beam-2','echelon-prime','myria','xai-blockchain',
+  'arkham','dextools','mask-network','1inch','sushi',
+  'pancakeswap-token','thorchain','osmosis','kujira','neutron-3',
+  'akash-network','arweave','livepeer','theta-fuel','helium',
+  'quant-network','algorand','elrond-erd-2','iota','eos',
+  'neo','qtum','waves','conflux-token','icon',
+  /* ── Batch 151–200: DeFi, stables, bridges, memes, infra ── */
+  'compound-governance-token','yearn-finance','ribbon-finance','morpho','euler',
+  'balancer','rocket-pool','frax-ether','ankr','ssv-network',
+  'oasis-network','secret','nucypher','keep-network','hopr',
+  'floki','cat-in-a-dogs-world','popcat','brett','turbo-eth',
+  'memecoin','neiro-on-eth','toshi','ponke','wen-4',
+  'jup','magic-eden','tensor','marinade','sanctum-2',
+  'polymarket','grass','nosana','shadow-token','hivemapper',
+  'mantra-dao','reserve-rights-token','maple-finance','clearpool','centrifuge',
+  /* ── Stablecoins — shown with APR instead of % change ── */
+  'tether','usd-coin','dai','first-digital-usd','true-usd',
+  'ethena-usde','frax','paypal-usd','gemini-dollar','usdd'
 ];
 
-var PRO_EXTRA_COINS = []; /* All 100 in free tier — Pro reserved for future expansion */
+var PRO_EXTRA_COINS = []; /* All 200 in free tier — Pro reserved for future expansion */
 
-function getActiveCoins() { return FREE_COINS; } /* All 100 always available */
+function getActiveCoins() { return FREE_COINS; } /* All 200 always available */
+
+/* ── Stablecoin APR database ────────────────────────────────────── */
+/* Approximate lending/staking APR (%) for stablecoins.              */
+/* These are representative DeFi rates — updated periodically.       */
+var STABLECOINS = {
+  'tether':          { sym: 'USDT', apr: 4.5,  platform: 'Aave / Compound' },
+  'usd-coin':        { sym: 'USDC', apr: 4.2,  platform: 'Aave / Compound' },
+  'dai':             { sym: 'DAI',  apr: 5.0,  platform: 'Maker DSR' },
+  'first-digital-usd':{ sym:'FDUSD',apr: 3.8,  platform: 'Binance Earn' },
+  'true-usd':        { sym: 'TUSD', apr: 3.5,  platform: 'Aave / Venus' },
+  'ethena-usde':     { sym: 'USDe', apr: 12.0, platform: 'Ethena sUSDe' },
+  'frax':            { sym: 'FRAX', apr: 4.0,  platform: 'Frax Finance' },
+  'paypal-usd':      { sym: 'PYUSD',apr: 3.2,  platform: 'Aave / Morpho' },
+  'gemini-dollar':   { sym: 'GUSD', apr: 3.0,  platform: 'Gemini Earn' },
+  'usdd':            { sym: 'USDD', apr: 5.5,  platform: 'JustLend (Tron)' }
+};
+
+function isStablecoin(coinId) { return STABLECOINS.hasOwnProperty(coinId); }
 
 /* ── Forex pairs ─────────────────────────────────────────────────── */
 /* Set pro:true to lock a pair behind Pro tier                        */

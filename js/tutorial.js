@@ -59,7 +59,7 @@ var TUT_STEPS = [
     target: '.leaderboard',
     title: 'Leaderboard — Scores — Disclaimer',
     desc: '<div style="font-size:13px;line-height:1.85;">'
-        + '<strong>100 coins</strong> ranked across <strong style="color:#fff;">24H · 7D · 14D · 30D</strong>. Click any column header to sort. Click any row for a full score breakdown.<br><br>'
+        + '<strong>200 coins</strong> (including stablecoins with APR yields) ranked across <strong style="color:#fff;">24H · 7D · 14D · 30D</strong>. Click any column header to sort. Click any row for a full score breakdown.<br><br>'
         + 'The <strong>Score</strong> combines three layers: <strong>L1</strong> Momentum rank · <strong>L2</strong> Relative strength vs BTC, Gold, Oil · <strong>L3</strong> Tokenomics quality<br><br>'
         + '<div style="background:rgba(255,69,96,.07);border:1px solid rgba(255,69,96,.3);border-radius:4px;padding:10px 12px;">'
         + '<strong style="color:#ff4560;">⚠ NOT FINANCIAL ADVICE</strong><br>'

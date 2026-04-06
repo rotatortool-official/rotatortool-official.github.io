@@ -61,7 +61,7 @@ en: {
   pro_feat_4: 'Advanced signals \u2014 coming soon',
 
   /* Pro modal */
-  pro_active: 'PRO ACTIVE \u2014 TOP 50 UNLOCKED',
+  pro_active: 'PRO ACTIVE \u2014 TOP 200 UNLOCKED',
   pro_active_sub_1: ' joined via your link. You\'re helping keep Rotator free for everyone \u2014 thank you!',
   pro_coming: 'COMING TO PRO FIRST:',
   pro_coming_1: 'Forex pairs',
@@ -86,7 +86,7 @@ en: {
   pro_vs2: 'vs 2 on Free',
   pro_vs1: 'vs 1 on Free',
   pro_free_all: '\u2713 Already free for everyone:',
-  pro_free_list: 'Top 50 coins \u00B7 Forex pairs \u00B7 Stock screener \u00B7 3-layer scoring \u00B7 Rotation signals',
+  pro_free_list: 'Top 200 coins \u00B7 Stablecoin yields \u00B7 Forex pairs \u00B7 Stock screener \u00B7 3-layer scoring \u00B7 Rotation signals',
   pro_step1: 'Copy your referral link below',
   pro_step2: 'Share it with <strong>3 friends</strong> \u2014 Discord, Twitter, WhatsApp, anywhere',
   pro_step3: 'When they add their first holding, Pro unlocks <em>automatically</em>',
@@ -119,7 +119,7 @@ en: {
         + '<div style="border-left:3px solid #f03e58;padding-left:12px;"><div style="font-size:9px;letter-spacing:.13em;color:rgba(240,62,88,.7);margin-bottom:6px;font-weight:700;">\u2193 WORST 30D</div><div style="color:#f03e58;font-size:16px;font-weight:700;margin-bottom:7px;">\u2193 Lagging</div><span style="color:rgba(220,200,200,.85);">Biggest 30-day losers. Potential bounce candidates \u2014 or assets to exit. Monitor or reduce exposure.</span></div>'
         + '</div>' },
     { title: 'Leaderboard \u2014 Scores \u2014 Disclaimer',
-      desc: '<div style="font-size:13px;line-height:1.85;"><strong>100 coins</strong> ranked across <strong style="color:#fff;">24H \u00B7 7D \u00B7 14D \u00B7 30D</strong>. Click any column header to sort. Click any row for a full score breakdown.<br><br>'
+      desc: '<div style="font-size:13px;line-height:1.85;"><strong>200 coins</strong> (including stablecoins with APR yields) ranked across <strong style="color:#fff;">24H \u00B7 7D \u00B7 14D \u00B7 30D</strong>. Click any column header to sort. Click any row for a full score breakdown.<br><br>'
         + 'The <strong>Score</strong> combines three layers: <strong>L1</strong> Momentum rank \u00B7 <strong>L2</strong> Relative strength vs BTC, Gold, Oil \u00B7 <strong>L3</strong> Tokenomics quality<br><br>'
         + '<div style="background:rgba(255,69,96,.07);border:1px solid rgba(255,69,96,.3);border-radius:4px;padding:10px 12px;"><strong style="color:#ff4560;">\u26A0 NOT FINANCIAL ADVICE</strong><br>Rotator tracks historical price data only. Scores do not predict future performance. Always research before trading. <strong>Never risk money you cannot afford to lose.</strong></div></div>',
       agreeText: 'I understand that Rotator is not financial advice and I am solely responsible for my own investment decisions.' },

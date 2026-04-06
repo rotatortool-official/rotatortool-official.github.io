@@ -57,7 +57,7 @@ function prog(p, m) {
 }
 
 async function loadCoins() {
-  prog(10, 'Fetching market data for 100 coins…');
+  prog(10, 'Fetching market data for 200 coins…');
   /* Show skeleton rows immediately */
   var tbody = document.getElementById('tbody');
   if (tbody && !tbody.querySelector('tr:not(.skel-tr)')) {
@@ -101,23 +101,30 @@ async function loadCoins() {
 
   /* Fetch CoinGecko for 7D/14D/30D data (always needed for scoring) */
   var allIds   = getActiveCoins();
-  var page1Ids = allIds.slice(0,  50).join(',');
-  var page2Ids = allIds.slice(50, 100).join(',');
+  /* Deduplicate IDs (some may appear twice in the list) */
+  var seen = {}; var uniqueIds = [];
+  allIds.forEach(function(id) { if (!seen[id]) { seen[id] = true; uniqueIds.push(id); } });
+  /* Split into batches of 50 for CoinGecko's per_page limit */
+  var batches = [];
+  for (var b = 0; b < uniqueIds.length; b += 50) {
+    batches.push(uniqueIds.slice(b, b + 50).join(','));
+  }
   var baseUrl  = 'https://api.coingecko.com/api/v3/coins/markets'
     + '?vs_currency=usd&order=market_cap_desc&per_page=50&page=1'
     + '&sparkline=false&price_change_percentage=7d,14d,30d&include_24hr_vol=true';
 
-  var results  = await Promise.all([
-    apiFetch(baseUrl + '&ids=' + page1Ids),
-    apiFetch(baseUrl + '&ids=' + page2Ids)
-  ]);
-  var data1 = results[0], data2 = results[1];
-  if (!Array.isArray(data1)) throw new Error('CoinGecko data invalid');
-  var rawData = data1.concat(Array.isArray(data2) ? data2 : []);
+  prog(20, 'Fetching data for ' + uniqueIds.length + ' coins (' + batches.length + ' batches)…');
+  var results  = await Promise.all(
+    batches.map(function(ids) { return apiFetch(baseUrl + '&ids=' + ids); })
+  );
+  var rawData = [];
+  results.forEach(function(r) { if (Array.isArray(r)) rawData = rawData.concat(r); });
+  if (!rawData.length) throw new Error('CoinGecko data invalid');
 
   coins = rawData.map(function(c) {
     /* Prefer Binance for real-time price + 24H — it updates every second vs CoinGecko's 60s */
     var bnb = _binancePrices[c.symbol.toUpperCase()];
+    var stable = (typeof STABLECOINS !== 'undefined') && STABLECOINS[c.id];
     return {
       id: c.id, sym: c.symbol.toUpperCase(), name: c.name,
       price:  bnb ? bnb.price  : c.current_price,
@@ -130,7 +137,10 @@ async function loadCoins() {
       circulating_supply: c.circulating_supply || 0,
       max_supply: c.max_supply || null,
       ath: c.ath || 0, ath_change_pct: c.ath_change_percentage || 0,
-      score: 0, r7: 0, r14: 0, r30: 0, isPro: false
+      score: 0, r7: 0, r14: 0, r30: 0, isPro: false,
+      isStable: !!stable,
+      apr: stable ? stable.apr : 0,
+      aprPlatform: stable ? stable.platform : ''
     };
   });
   coins.sort(function(a, b) { return b.mcap - a.mcap; });
@@ -219,15 +229,20 @@ async function loadFearGreed() {
 
 /* ── Score engine (3 layers) ─────────────────────────────────── */
 function computeScores() {
-  var n = Math.max(coins.length - 1, 1);
+  /* Exclude stablecoins from scoring — they get APR display instead */
+  var scorable = coins.filter(function(c) { return !c.isStable; });
+  var n = Math.max(scorable.length - 1, 1);
 
   /* LAYER 1: Intra-list rank (0–40 pts) */
   ['p7','p14','p30'].forEach(function(k) {
-    var sorted = coins.slice().sort(function(a, b) { return b[k] - a[k]; });
+    var sorted = scorable.slice().sort(function(a, b) { return b[k] - a[k]; });
     sorted.forEach(function(c, i) { c['r' + k.slice(1)] = i + 1; });
   });
 
-  coins.forEach(function(c) {
+  /* Set stablecoin scores to 0 (they use APR display) */
+  coins.forEach(function(c) { if (c.isStable) { c.score = 0; c.r7 = 0; c.r14 = 0; c.r30 = 0; } });
+
+  scorable.forEach(function(c) {
     /* Weighted rank (lower rank# = better) */
     var wAvg   = (c.r7 * 0.25 + c.r14 * 0.30 + c.r30 * 0.45);
     var layer1 = Math.round((1 - (wAvg - 1) / n) * 40);

@@ -51,7 +51,7 @@ function checkMyReferrals() {
 function showProToast() {
   var t = document.createElement('div');
   t.style.cssText = 'position:fixed;top:56px;left:50%;transform:translateX(-50%);background:#1a2030;border:1px solid #a78bfa;border-radius:6px;padding:14px 22px;font-family:IBM Plex Mono,monospace;font-size:12px;color:#a78bfa;z-index:900;text-align:center;box-shadow:0 0 30px rgba(167,139,250,.2);letter-spacing:.06em;';
-  t.innerHTML = '⚡ PRO UNLOCKED — 3 friends joined!<br><span style="font-size:10px;color:#3e4d60;margin-top:4px;display:block;">Top 50 coins now available.</span>';
+  t.innerHTML = '⚡ PRO UNLOCKED — 3 friends joined!<br><span style="font-size:10px;color:#3e4d60;margin-top:4px;display:block;">All 200 coins + stablecoin yields available.</span>';
   document.body.appendChild(t);
   setTimeout(function() { t.style.transition = 'opacity .5s'; t.style.opacity = '0'; setTimeout(function() { t.remove(); }, 500); }, 4000);
 }
@@ -62,10 +62,10 @@ function updateTierBadge() {
   var pb = document.querySelector('.btn.pro-btn');
   var count = getRefData().refs.length;
   if (isPro) {
-    b.className = 'tier-badge pro'; b.textContent = '⚡ PRO · TOP 50 COINS';
+    b.className = 'tier-badge pro'; b.textContent = '⚡ PRO · TOP 200';
     if (pb) { pb.textContent = '⚡ PRO ACTIVE'; pb.style.opacity = '.6'; }
   } else {
-    b.className = 'tier-badge free'; b.textContent = 'FREE · TOP 50';
+    b.className = 'tier-badge free'; b.textContent = 'FREE · TOP 200';
     if (pb) { pb.textContent = count > 0 ? '⚡ UNLOCK PRO (' + count + '/3)' : '⚡ UNLOCK PRO'; pb.style.opacity = ''; }
   }
 }
