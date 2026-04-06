@@ -455,6 +455,10 @@
   <div style="font-size:11px;letter-spacing:.14em;color:#3e4d60;text-transform:uppercase;font-family:var(--font-ui);">Your Daily Asset Performance Tracker</div>
   <div style="width:110px;height:2px;background:#181f28;border-radius:1px;overflow:hidden;"><div style="height:100%;background:#f3ba2f;border-radius:1px;animation:loadBar 2.5s ease 0.5s both;"></div></div>
   <div style="font-size:10px;color:#3e4d60;letter-spacing:.1em;font-family:IBM Plex Mono,monospace;" id="lmsg">INITIALIZING…</div>
+  <a href="https://www.coingecko.com/en/api" target="_blank" rel="noopener" class="cg-attribution" style="margin-top:14px;display:inline-flex;align-items:center;gap:8px;text-decoration:none;opacity:.55;transition:opacity .2s;" onmouseenter="this.style.opacity='.85'" onmouseleave="this.style.opacity='.55'">
+    <span style="font-size:9px;letter-spacing:.08em;color:#8899aa;font-family:'DM Sans',sans-serif;white-space:nowrap;">Price data provided by</span>
+    <img src="coingecko-api-logo.svg" alt="CoinGecko API" style="height:16px;filter:brightness(0) invert(1);opacity:.8;">
+  </a>
 </div>
 
 <!-- TOPBAR -->
@@ -1119,7 +1123,13 @@
     <a class="footer-link" onclick="openModal('donate-modal')">SUPPORT US</a>
   </div>
   <div class="footer-copy">© 2026 ROTATOR · NOT FINANCIAL ADVICE · <span style="color:var(--red);">DYOR</span></div>
-  <div class="footer-disclaimer">Market data provided by CoinGecko, Frankfurter (ECB), Yahoo Finance and Alpha Vantage. All data is for informational purposes only. Past performance does not guarantee future results. Always conduct your own research before making any investment decision.</div>
+  <div class="footer-disclaimer" style="display:flex;flex-direction:column;align-items:center;gap:8px;">
+    <a href="https://www.coingecko.com/en/api" target="_blank" rel="noopener" style="display:inline-flex;align-items:center;gap:8px;text-decoration:none;opacity:.6;transition:opacity .2s;" onmouseenter="this.style.opacity='1'" onmouseleave="this.style.opacity='.6'">
+      <span style="font-size:11px;color:#8899aa;font-family:'DM Sans',sans-serif;">Data powered by</span>
+      <img src="coingecko-api-logo.svg" alt="CoinGecko API" style="height:18px;filter:brightness(0) invert(1);opacity:.85;">
+    </a>
+    <span>Market data also sourced from Frankfurter (ECB), Yahoo Finance and Alpha Vantage. All data is for informational purposes only. Past performance does not guarantee future results. Always conduct your own research before making any investment decision.</span>
+  </div>
 </footer>
 
 
