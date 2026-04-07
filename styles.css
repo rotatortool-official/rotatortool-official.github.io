@@ -411,9 +411,9 @@ body::before{content:'';position:fixed;inset:0;background:repeating-linear-gradi
 }
 .neon-inner{padding:12px 14px 14px;position:relative;z-index:2;display:flex;gap:12px;min-height:0;}
 /* Compact tiles in signal section */
-.bars-col-inner{padding:8px 8px 7px !important;}
+.bars-col-inner{padding:10px 10px 8px !important;}
 .sig-tiles-grid{gap:5px !important;}
-.bar-col-title{font-size:12px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;margin-bottom:10px;display:flex;align-items:center;justify-content:center;gap:6px;font-family:var(--font-display);text-align:center;}
+.bar-col-title{font-size:11px;font-weight:800;letter-spacing:.10em;text-transform:uppercase;margin-bottom:8px;padding-bottom:6px;border-bottom:1px solid rgba(255,255,255,.06);display:flex;align-items:center;justify-content:center;gap:6px;font-family:var(--font-display);text-align:center;}
 .bar-col-title::before{content:'';flex:1;height:1px;opacity:.25;background:currentColor;}
 .bar-col-title::after{content:'';flex:1;height:1px;opacity:.25;background:currentColor;}
 /* ── SIGNAL TILE GRID (Rotation / Momentum / Worst) ── */
@@ -675,7 +675,7 @@ tbody tr:nth-child(even){background:var(--bgz);}
 tbody tr{transition:background-color .15s ease-out;outline:1px solid transparent;}
 tbody tr.held:nth-child(odd){background:rgba(243,186,47,.035);}
 tbody tr.held:nth-child(even){background:rgba(243,186,47,.055);}
-tbody tr:hover{background:rgba(243,186,47,0.07) !important;cursor:pointer;}
+tbody tr:hover{background:rgba(243,186,47,0.07) !important;cursor:pointer;box-shadow:inset 0 0 0 1px rgba(243,186,47,.12),0 0 12px rgba(243,186,47,.06);}
 tbody tr{border-radius:6px;}
 
 /* ── ASSET MODE BAR ── */
@@ -747,6 +747,11 @@ td.pc{text-align:right;padding-left:2px;padding-right:2px;}
 .pct.up{color:var(--green);}
 .pct.dn{color:var(--red);}
 .pct.fl{color:var(--muted);}
+
+/* ── Performance heat-map tint on percentage cells ── */
+td.pc{position:relative;}
+td.pc .pct-heat{position:absolute;inset:0;pointer-events:none;border-radius:2px;z-index:0;}
+td.pc .pct{position:relative;z-index:1;}
 .sw{display:flex;align-items:center;gap:5px;justify-content:flex-end;}
 .sv{font-size:15px;font-weight:700;}
 .sb{width:32px;height:4px;background:var(--bg4);border-radius:3px;overflow:hidden;}
@@ -905,7 +910,7 @@ td.qa-cell{text-align:center;width:28px;padding:0 4px !important;}
 .ad-promo-btn{width:100%;padding:8px;background:var(--prod);border:1px solid rgba(167,139,250,.4);color:var(--pro);font-family:inherit;font-size:11px;font-weight:600;letter-spacing:.12em;cursor:pointer;border-radius:3px;transition:all .15s;position:relative;overflow:hidden;}
 .ad-promo-btn::before{content:'';position:absolute;inset:0;background:linear-gradient(90deg,transparent,rgba(167,139,250,.12),transparent);animation:proShimmer 2.5s linear infinite;}
 .ad-promo-btn:hover{background:rgba(167,139,250,.22);border-color:var(--pro);}
-.ad-donate{width:100%;background:rgba(243,186,47,.05);border:1px solid rgba(243,186,47,.18);border-radius:5px;padding:12px 14px;text-align:center;}
+.ad-donate{width:100%;background:rgba(243,186,47,.05);border:1px solid rgba(243,186,47,.25);border-left:3px solid rgba(243,186,47,.55);border-radius:5px;padding:14px 14px;text-align:center;box-shadow:0 2px 12px rgba(243,186,47,.06);}
 .ad-donate-title{font-size:13px;font-weight:400;color:var(--bnb);letter-spacing:.02em;margin-bottom:4px;font-family:var(--font-display);}
 .ad-donate-sub{font-size:10px;color:var(--muted);line-height:1.7;margin-bottom:8px;font-family:var(--font-ui);}
 .ad-donate-btn{width:100%;padding:7px;background:var(--bnbd);border:1px solid rgba(243,186,47,.25);color:var(--bnb);font-family:inherit;font-size:12px;font-weight:600;letter-spacing:.1em;cursor:pointer;border-radius:3px;transition:all .15s;}
@@ -2060,7 +2065,7 @@ td.qa-cell{text-align:center;width:28px;padding:0 4px !important;}
 :root.light thead th{color:rgba(10,60,45,.9);font-weight:800;}
 :root.light tbody tr:nth-child(odd){background:#ffffff;}
 :root.light tbody tr:nth-child(even){background:#f8fafc;}
-:root.light tbody tr:hover{background:rgba(135,206,235,.15) !important;outline:1px solid rgba(0,150,255,.1);}
+:root.light tbody tr:hover{background:rgba(135,206,235,.15) !important;outline:1px solid rgba(0,150,255,.1);box-shadow:inset 0 0 0 1px rgba(135,206,235,.18),0 0 10px rgba(135,206,235,.08);}
 :root.light tbody tr.held{background:rgba(0,153,110,.10);}
 :root.light tbody tr.held:hover{background:rgba(0,153,110,.18) !important;outline:1px solid rgba(0,153,110,.15);}
 /* Dark-mode explicit row colors — prevents ghost on theme switch */
@@ -2206,7 +2211,8 @@ td.qa-cell{text-align:center;width:28px;padding:0 4px !important;}
 :root.light .bars-col-inner:nth-child(1)::before{background:radial-gradient(circle at 38% 32%, rgba(255,255,255,.7), rgba(40,190,140,.9) 60%);}
 :root.light .bars-col-inner:nth-child(2)::before{background:radial-gradient(circle at 38% 32%, rgba(255,255,255,.7), rgba(235,175,40,.9) 60%);}
 :root.light .bars-col-inner:nth-child(3)::before{background:radial-gradient(circle at 38% 32%, rgba(255,255,255,.7), rgba(225,65,75,.9) 60%);}
-:root.light .bar-col-title{color:rgba(80,60,20,.80) !important;}
+:root.light .bar-col-title{color:rgba(80,60,20,.80) !important;border-bottom-color:rgba(0,0,0,.08);}
+:root.light td.pc .pct-heat{opacity:.7;}
 :root.light .bars-col-inner .sig-tile{background:rgba(255,252,240,.75);border:1px solid rgba(200,180,120,.22);box-shadow:1px 1px 4px rgba(0,0,0,.05);}
 /* ── Colorful push-pin on tiles (light mode only) ── */
 :root.light .tile::before{

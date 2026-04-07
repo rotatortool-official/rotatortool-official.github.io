@@ -36,7 +36,11 @@ function fmtP(p) {
 }
 function pctSpan(v) {
   var c = v >= 0 ? 'pct up' : 'pct dn';
-  return '<span class="' + c + '">' + (v >= 0 ? '+' : '') + v.toFixed(2) + '%</span>';
+  /* Heat-map tint: opacity scales with magnitude, capped at 0.18 */
+  var abs = Math.min(Math.abs(v), 50);
+  var opacity = (abs / 50 * 0.16 + 0.02).toFixed(3);
+  var heatColor = v >= 0 ? 'rgba(0,189,142,' + opacity + ')' : 'rgba(234,57,67,' + opacity + ')';
+  return '<span class="pct-heat" style="background:' + heatColor + '"></span><span class="' + c + '">' + (v >= 0 ? '+' : '') + v.toFixed(2) + '%</span>';
 }
 /* ── BTC trend pill ──────────────────────────────────────────── */
 var _bearDismissed = false;
