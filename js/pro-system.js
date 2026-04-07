@@ -44,7 +44,11 @@ function checkMyReferrals() {
   try { cr = JSON.parse(localStorage.getItem(key) || '[]'); } catch(e) {}
   var d = getRefData();
   cr.forEach(function(u) { if (d.refs.indexOf(u) < 0) d.refs.push(u); });
-  if (d.refs.length >= 3 && !d.pro) { d.pro = true; showProToast(); }
+  if (d.refs.length >= 3 && !d.pro) {
+    d.pro = true; showProToast();
+    /* Sync to Supabase */
+    if (typeof supaSavePro === 'function') supaSavePro(getMyId(), 'referral');
+  }
   saveRefData(d); return d;
 }
 
@@ -88,6 +92,14 @@ function openPro() {
         + '<div style="font-size:10px;color:var(--muted);letter-spacing:.12em;margin-bottom:8px;">' + _('pro_coming') + '</div>'
         + '<div style="font-size:11px;color:var(--text);line-height:2;">◈ <strong style="color:var(--bnb)">' + _('pro_coming_1') + '</strong> rotation tracker<br>◈ <strong style="color:var(--pro)">' + _('pro_coming_2') + '</strong> performance screener<br>◈ ' + _('pro_coming_3') + '</div>'
       + '</div>'
+      + '<div style="margin-top:14px;background:var(--bg3);border:1px solid var(--bdr2);border-radius:4px;padding:12px 14px;">'
+        + '<div style="font-size:10px;color:var(--muted);letter-spacing:.12em;margin-bottom:8px;">YOUR RECOVERY KEY</div>'
+        + '<div style="font-size:10px;color:var(--muted);line-height:1.6;margin-bottom:8px;">Save this key to restore Pro on another device or browser:</div>'
+        + '<div style="display:flex;gap:6px;">'
+          + '<input class="code-input" id="recovery-key-display" value="' + getMyId() + '" readonly onclick="this.select()" style="font-size:11px;font-weight:600;color:var(--pro);letter-spacing:.08em;">'
+          + '<button class="code-btn" onclick="copyRecoveryKey()">COPY</button>'
+        + '</div>'
+      + '</div>'
       + '<button class="revoke-btn" onclick="revokePro()">' + _('pro_revoke') + '</button>'
       + '</div>';
   } else {
@@ -126,6 +138,15 @@ function openPro() {
       + '<div style="font-size:10px;color:var(--muted);line-height:1.8;text-align:center;">'
         + _('pro_progress') + '<strong style="color:var(--pro);">' + count + ' / ' + needed + _('pro_friends') + '</strong>' + _('pro_joined')
         + (count > 0 ? '<div style="width:100%;height:3px;background:var(--bg4);border-radius:2px;margin-top:5px;"><div style="width:' + pct + '%;height:100%;background:var(--pro);border-radius:2px;transition:width .4s;"></div></div>' : '')
+      + '</div>'
+      + '<div class="pro-divider"></div>'
+      + '<div style="text-align:center;margin-top:6px;">'
+        + '<div style="font-size:10px;color:var(--muted);letter-spacing:.08em;margin-bottom:8px;">ALREADY HAVE PRO ON ANOTHER DEVICE?</div>'
+        + '<div style="display:flex;gap:6px;">'
+          + '<input class="code-input" id="restore-key-input" placeholder="Enter your recovery key" style="font-size:11px;">'
+          + '<button class="code-btn" onclick="restoreProFromKey()">RESTORE</button>'
+        + '</div>'
+        + '<div id="restore-err" style="font-size:10px;margin-top:6px;min-height:14px;"></div>'
       + '</div>';
   }
 
@@ -164,6 +185,8 @@ function checkProCode() {
   isPro = true; savePro(true);
   updateTierBadge();
   incrementDonationCount();
+  /* Sync to Supabase */
+  if (typeof supaSavePro === 'function') supaSavePro(getMyId(), code);
   closeModal('pro-modal');
 
   var t = document.createElement('div');
@@ -235,6 +258,44 @@ function copyAddr(addr, btnId) {
   var copy = function() { btn.textContent = '✓ COPIED!'; btn.classList.add('ok'); setTimeout(function() { btn.textContent = 'COPY ADDRESS'; btn.classList.remove('ok'); }, 2500); };
   if (navigator.clipboard) { navigator.clipboard.writeText(addr).then(copy).catch(copy); }
   else { var t = document.createElement('textarea'); t.value = addr; document.body.appendChild(t); t.select(); document.execCommand('copy'); document.body.removeChild(t); copy(); }
+}
+
+/* ── Recovery key helpers ────────────────────────────────────── */
+function copyRecoveryKey() {
+  var inp = document.getElementById('recovery-key-display');
+  var val = inp ? inp.value : getMyId();
+  var done = function() {
+    var btn = inp.nextElementSibling;
+    if (btn) { btn.textContent = '✓ COPIED!'; btn.classList.add('ok'); setTimeout(function() { btn.textContent = 'COPY'; btn.classList.remove('ok'); }, 2500); }
+  };
+  if (navigator.clipboard) { navigator.clipboard.writeText(val).then(done).catch(done); }
+  else { var t = document.createElement('textarea'); t.value = val; document.body.appendChild(t); t.select(); document.execCommand('copy'); document.body.removeChild(t); done(); }
+}
+
+function restoreProFromKey() {
+  var inp = document.getElementById('restore-key-input');
+  var err = document.getElementById('restore-err');
+  if (!inp || !err) return;
+  var key = (inp.value || '').trim();
+  if (!key) { err.style.color = 'var(--red)'; err.textContent = 'Please enter your recovery key.'; return; }
+
+  err.style.color = 'var(--muted)'; err.textContent = 'Checking...';
+
+  if (typeof supaRecoverPro !== 'function') {
+    err.style.color = 'var(--red)'; err.textContent = 'Recovery service unavailable. Try again later.';
+    return;
+  }
+
+  supaRecoverPro(key).then(function(ok) {
+    if (ok) {
+      err.style.color = 'var(--green)'; err.textContent = '⚡ Pro restored! Reloading...';
+      setTimeout(function() { location.reload(); }, 1200);
+    } else {
+      err.style.color = 'var(--red)'; err.textContent = 'No Pro found for this key. Check and try again.';
+    }
+  }).catch(function() {
+    err.style.color = 'var(--red)'; err.textContent = 'Connection error. Try again later.';
+  });
 }
 
 /* Init on page load */

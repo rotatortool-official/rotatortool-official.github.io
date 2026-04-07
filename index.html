@@ -834,6 +834,18 @@
         </div>
       </div>
     </div>
+    <div class="cat-bar" id="cat-bar">
+      <button class="cat-tab" data-cat="all" onclick="switchCategory('all')"><span class="cat-ico">🌐</span><span class="cat-lbl">ALL</span></button>
+      <button class="cat-tab active" data-cat="l1" onclick="switchCategory('l1')"><span class="cat-ico">⛓</span><span class="cat-lbl">L1</span></button>
+      <button class="cat-tab" data-cat="defi" onclick="switchCategory('defi')"><span class="cat-ico">🏦</span><span class="cat-lbl">DEFI</span></button>
+      <button class="cat-tab" data-cat="l2" onclick="switchCategory('l2')"><span class="cat-ico">🔗</span><span class="cat-lbl">L2</span></button>
+      <button class="cat-tab" data-cat="meme" onclick="switchCategory('meme')"><span class="cat-ico">🐸</span><span class="cat-lbl">MEME</span></button>
+      <button class="cat-tab" data-cat="ai" onclick="switchCategory('ai')"><span class="cat-ico">🤖</span><span class="cat-lbl">AI</span></button>
+      <button class="cat-tab" data-cat="gaming" onclick="switchCategory('gaming')"><span class="cat-ico">🎮</span><span class="cat-lbl">GAMING</span></button>
+      <button class="cat-tab" data-cat="rwa" onclick="switchCategory('rwa')"><span class="cat-ico">🏠</span><span class="cat-lbl">RWA</span></button>
+      <button class="cat-tab" data-cat="infra" onclick="switchCategory('infra')"><span class="cat-ico">🛠</span><span class="cat-lbl">INFRA</span></button>
+      <button class="cat-tab" data-cat="stable" onclick="switchCategory('stable')"><span class="cat-ico">💵</span><span class="cat-lbl">STABLE</span></button>
+    </div>
     <div class="leaderboard" id="crypto-panel">
       <table>
         <thead>
@@ -1233,6 +1245,7 @@
   <script src="js/config.js"></script>
   <script src="js/api-pool.js"></script>
   <script src="js/pro-system.js"></script>
+  <script src="js/supabase.js"></script>
   <script src="js/i18n.js"></script>
   <script src="js/signals.js"></script>
   <script src="js/holdings.js"></script>

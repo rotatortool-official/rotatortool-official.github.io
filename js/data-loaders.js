@@ -56,8 +56,17 @@ function prog(p, m) {
   type();
 }
 
-async function loadCoins() {
-  prog(10, 'Fetching market data for 200 coins…');
+/* ── Category-aware lazy loading state ────────────────────────── */
+var activeCategory   = 'l1';             /* default category on first load */
+var _loadedCategories = {};              /* cat → true once fetched */
+var _coinCache        = {};              /* coinId → coin object (merged across loads) */
+
+/* Load coins for a specific category, or reload all loaded coins on refresh */
+async function loadCoins(categoryOverride) {
+  var cat       = categoryOverride || activeCategory;
+  var isInitial = Object.keys(_loadedCategories).length === 0;
+  var catLabel  = cat === 'all' ? 'all 200' : cat.toUpperCase();
+  prog(10, 'Fetching market data for ' + catLabel + ' coins…');
   /* Show skeleton rows immediately */
   var tbody = document.getElementById('tbody');
   if (tbody && !tbody.querySelector('tr:not(.skel-tr)')) {
@@ -100,10 +109,25 @@ async function loadCoins() {
   } catch(e) { console.warn('[Binance] 24hr ticker failed — using CoinGecko prices:', e.message); }
 
   /* Fetch CoinGecko for 7D/14D/30D data (always needed for scoring) */
-  var allIds   = getActiveCoins();
+  /* On initial load: only fetch the active category to save API calls.
+     On refresh (doRefresh): re-fetch all previously loaded categories.
+     On category switch: fetch only the new category's coins. */
+  var idsToFetch;
+  if (cat === 'all') {
+    idsToFetch = getActiveCoins();
+  } else if (_loadedCategories[cat]) {
+    /* Already loaded — re-fetch all loaded categories for refresh */
+    idsToFetch = [];
+    Object.keys(_loadedCategories).forEach(function(c) {
+      getCategoryCoins(c).forEach(function(id) { idsToFetch.push(id); });
+    });
+  } else {
+    /* New category — only fetch its coins */
+    idsToFetch = getCategoryCoins(cat);
+  }
   /* Deduplicate IDs (some may appear twice in the list) */
   var seen = {}; var uniqueIds = [];
-  allIds.forEach(function(id) { if (!seen[id]) { seen[id] = true; uniqueIds.push(id); } });
+  idsToFetch.forEach(function(id) { if (!seen[id]) { seen[id] = true; uniqueIds.push(id); } });
   /* Split into batches of 50 for CoinGecko's per_page limit */
   var batches = [];
   for (var b = 0; b < uniqueIds.length; b += 50) {
@@ -121,7 +145,7 @@ async function loadCoins() {
   results.forEach(function(r) { if (Array.isArray(r)) rawData = rawData.concat(r); });
   if (!rawData.length) throw new Error('CoinGecko data invalid');
 
-  coins = rawData.map(function(c) {
+  var fetchedCoins = rawData.map(function(c) {
     /* Prefer Binance for real-time price + 24H — it updates every second vs CoinGecko's 60s */
     var bnb = _binancePrices[c.symbol.toUpperCase()];
     var stable = (typeof STABLECOINS !== 'undefined') && STABLECOINS[c.id];
@@ -143,6 +167,18 @@ async function loadCoins() {
       aprPlatform: stable ? stable.platform : ''
     };
   });
+
+  /* Merge fetched coins into persistent cache */
+  fetchedCoins.forEach(function(c) { _coinCache[c.id] = c; });
+  _loadedCategories[cat] = true;
+  if (cat === 'all') {
+    /* Mark every individual category as loaded too */
+    CATEGORY_LIST.forEach(function(ct) { if (ct.key !== 'all') _loadedCategories[ct.key] = true; });
+  }
+
+  /* Build coins array from all cached coins */
+  coins = [];
+  Object.keys(_coinCache).forEach(function(id) { coins.push(_coinCache[id]); });
   coins.sort(function(a, b) { return b.mcap - a.mcap; });
   coins.forEach(function(c, i) { c.rank = i + 1; });
 
@@ -826,6 +862,8 @@ function setMode(mode) {
   document.getElementById('crypto-panel').style.display = mode === 'crypto' ? '' : 'none';
   document.getElementById('forex-panel').style.display  = mode === 'forex'  ? '' : 'none';
   document.getElementById('stocks-panel').style.display = mode === 'stocks' ? '' : 'none';
+  var catBar = document.getElementById('cat-bar');
+  if (catBar) catBar.style.display = mode === 'crypto' ? '' : 'none';
   var sortTabs = document.getElementById('sort-tabs');
   if (sortTabs) sortTabs.style.display = mode === 'crypto' ? '' : 'none';
   var titles = {crypto:'PERFORMANCE LEADERBOARD', forex:'FOREX PAIRS', stocks:'MARKET SCREENER'};
@@ -936,7 +974,7 @@ async function doLoad() {
     }
   });
   try {
-    await loadCoins();   prog(55, 'Scoring and ranking all assets…');  renderCoinSel();
+    await loadCoins('l1');   prog(55, 'Scoring and ranking L1 coins…');  renderCoinSel();
     await loadMacroData(); prog(80, 'Loading macro data — Gold, Oil…');
     await loadFearGreed(); prog(88, 'Fetching sentiment data…');
     prog(92, 'Almost ready — building your dashboard…');
@@ -962,8 +1000,8 @@ async function doRefresh() {
   var tsEl = document.getElementById('ts');
   if (tsEl) tsEl.style.color = 'var(--bnb)';
   try {
-    /* Always refresh crypto */
-    await loadCoins();
+    /* Always refresh crypto — re-fetch all loaded categories */
+    await loadCoins(_loadedCategories['all'] ? 'all' : activeCategory);
     renderAll();
     _setLastUpdated('crypto');
 

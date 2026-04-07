@@ -67,6 +67,98 @@ var FREE_COINS = [
 
 var PRO_EXTRA_COINS = []; /* All 200 in free tier — Pro reserved for future expansion */
 
+/* ── Coin category map ───────────────────────────────────────────
+   Each coin ID → category tag.  Used by the leaderboard filter tabs.
+   Coins not listed here default to 'other'.
+   Categories: l1, defi, l2, meme, ai, gaming, rwa, infra, stable
+──────────────────────────────────────────────────────────────────── */
+var COIN_CATEGORIES = {
+  /* ── L1 / Major chains ── */
+  'bitcoin':'l1','ethereum':'l1','binancecoin':'l1','solana':'l1','ripple':'l1',
+  'cardano':'l1','avalanche-2':'l1','polkadot':'l1','bitcoin-cash':'l1',
+  'near':'l1','litecoin':'l1','internet-computer':'l1','ethereum-classic':'l1',
+  'stellar':'l1','monero':'l1','hedera-hashgraph':'l1','cosmos':'l1',
+  'vechain':'l1','tron':'l1','sui':'l1','aptos':'l1','sei-network':'l1',
+  'toncoin':'l1','kaspa':'l1','flare-networks':'l1','kava':'l1','zilliqa':'l1',
+  'harmony':'l1','celo':'l1','fantom':'l1','algorand':'l1','elrond-erd-2':'l1',
+  'iota':'l1','eos':'l1','neo':'l1','qtum':'l1','waves':'l1','conflux-token':'l1',
+  'icon':'l1','filecoin':'l1','quant-network':'l1',
+  /* ── DeFi ── */
+  'aave':'defi','uniswap':'defi','the-graph':'defi','curve-dao-token':'defi',
+  'maker':'defi','lido-dao':'defi','jupiter-exchange-solana':'defi',
+  'raydium':'defi','orca':'defi','lifinity':'defi','saber':'defi',
+  'gmx':'defi','gains-network':'defi','kwenta':'defi','polynomial-protocol':'defi',
+  'vertex-protocol':'defi','pendle':'defi','spectra-finance':'defi',
+  'time-wonderland':'defi','convex-finance':'defi','frax-share':'defi',
+  'compound-governance-token':'defi','yearn-finance':'defi','ribbon-finance':'defi',
+  'morpho':'defi','euler':'defi','balancer':'defi','rocket-pool':'defi',
+  'frax-ether':'defi','ankr':'defi','ssv-network':'defi',
+  '1inch':'defi','sushi':'defi','pancakeswap-token':'defi','thorchain':'defi',
+  'osmosis':'defi','kujira':'defi','neutron-3':'defi',
+  'kamino':'defi','meteora':'defi','drift-protocol':'defi','marginfi':'defi',
+  'jup':'defi','serum':'defi',
+  /* ── L2 & Infrastructure ── */
+  'arbitrum':'l2','optimism':'l2','stacks':'l2','immutable-x':'l2',
+  'injective-protocol':'l2','manta-network':'l2','zetachain':'l2',
+  'celestia':'l2','dymension':'l2','altlayer':'l2','omni-network':'l2',
+  'saga-2':'l2','moonbeam':'l2','astar':'l2',
+  /* ── Bridges & Interop ── */
+  'wormhole':'l2','layerzero':'l2','across-protocol':'l2','synapse-2':'l2',
+  'stargate-finance':'l2',
+  /* ── Meme ── */
+  'dogecoin':'meme','shiba-inu':'meme','pepe':'meme','bonk':'meme',
+  'dogwifcoin':'meme','book-of-meme':'meme','blur':'meme','floki':'meme',
+  'cat-in-a-dogs-world':'meme','popcat':'meme','brett':'meme','turbo-eth':'meme',
+  'memecoin':'meme','neiro-on-eth':'meme','toshi':'meme','ponke':'meme',
+  'wen-4':'meme','mew':'meme','nyan-heroes':'meme',
+  /* ── AI ── */
+  'ocean-protocol':'ai','fetch-ai':'ai','singularitynet':'ai','numeraire':'ai',
+  'bittensor':'ai','arkham':'ai','render-token':'ai','nosana':'ai','io-net':'ai',
+  /* ── Gaming ── */
+  'the-sandbox':'gaming','decentraland':'gaming','axie-infinity':'gaming',
+  'gala':'gaming','illuvium':'gaming','stepn':'gaming','flow':'gaming','wax':'gaming',
+  'theta-token':'gaming','enjincoin':'gaming','gods-unchained':'gaming',
+  'ultra':'gaming','treasure-lol':'gaming','ronin':'gaming','beam-2':'gaming',
+  'echelon-prime':'gaming','myria':'gaming','xai-blockchain':'gaming',
+  /* ── RWA ── */
+  'ondo-finance':'rwa','worldcoin-wld':'rwa','mantra-dao':'rwa',
+  'reserve-rights-token':'rwa','maple-finance':'rwa','clearpool':'rwa',
+  'centrifuge':'rwa',
+  /* ── Infra / DePIN / Data ── */
+  'chainlink':'infra','pyth-network':'infra','okb':'infra',
+  'jito-governance-token':'infra','ethena':'infra','hyperliquid':'infra',
+  'akash-network':'infra','arweave':'infra','livepeer':'infra',
+  'theta-fuel':'infra','helium':'infra','oasis-network':'infra',
+  'secret':'infra','nucypher':'infra','keep-network':'infra','hopr':'infra',
+  'dextools':'infra','mask-network':'infra','parcl':'infra',
+  'magic-eden':'infra','tensor':'infra','marinade':'infra','sanctum-2':'infra',
+  'polymarket':'infra','grass':'infra','shadow-token':'infra','hivemapper':'infra',
+  /* ── Stablecoins ── */
+  'tether':'stable','usd-coin':'stable','dai':'stable','first-digital-usd':'stable',
+  'true-usd':'stable','ethena-usde':'stable','frax':'stable','paypal-usd':'stable',
+  'gemini-dollar':'stable','usdd':'stable'
+};
+
+/* Category display config — order matters for tab rendering */
+var CATEGORY_LIST = [
+  {key:'all',    label:'ALL',     icon:'🌐'},
+  {key:'l1',     label:'L1',      icon:'⛓'},
+  {key:'defi',   label:'DEFI',    icon:'🏦'},
+  {key:'l2',     label:'L2',      icon:'🔗'},
+  {key:'meme',   label:'MEME',    icon:'🐸'},
+  {key:'ai',     label:'AI',      icon:'🤖'},
+  {key:'gaming', label:'GAMING',  icon:'🎮'},
+  {key:'rwa',    label:'RWA',     icon:'🏠'},
+  {key:'infra',  label:'INFRA',   icon:'🛠'},
+  {key:'stable', label:'STABLE',  icon:'💵'}
+];
+
+/* Get coin IDs for a specific category (or all if 'all') */
+function getCategoryCoins(cat) {
+  if (cat === 'all') return FREE_COINS;
+  return FREE_COINS.filter(function(id) { return (COIN_CATEGORIES[id] || 'other') === cat; });
+}
+
 function getActiveCoins() { return FREE_COINS; } /* All 200 always available */
 
 /* ── Stablecoin APR database ────────────────────────────────────── */

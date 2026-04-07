@@ -412,10 +412,71 @@ function toggleWatch(sym, btn) {
 /* ══════════════════════════════════════════════════════════════
    LEADERBOARD TABLE
 ══════════════════════════════════════════════════════════════ */
+/* ── Category switching (lazy load) ───────────────────────────── */
+async function switchCategory(cat) {
+  if (cat === activeCategory) return;
+  activeCategory = cat;
+  /* Update tab UI */
+  document.querySelectorAll('.cat-tab').forEach(function(el) {
+    el.classList.toggle('active', el.dataset.cat === cat);
+  });
+  /* If category not loaded yet, fetch it */
+  if (cat !== 'all' && !_loadedCategories[cat]) {
+    /* Show skeleton while loading */
+    var tbody = document.getElementById('tbody');
+    if (tbody) {
+      var skRows = '';
+      for (var s = 0; s < 8; s++) {
+        skRows += '<tr class="skel-tr"><td></td>'
+          + '<td><div class="skel-row"><div class="skel skel-ico"></div><div class="skel skel-name"></div></div></td>'
+          + '<td><div class="skel skel-val" style="margin:auto"></div></td>'
+          + '<td><div class="skel skel-val" style="margin:auto"></div></td>'
+          + '<td><div class="skel skel-val" style="margin:auto"></div></td>'
+          + '<td><div class="skel skel-val" style="margin:auto"></div></td>'
+          + '<td><div class="skel skel-val" style="margin:auto"></div></td>'
+          + '<td><div class="skel skel-val" style="margin:auto"></div></td>'
+          + '</tr>';
+      }
+      tbody.innerHTML = skRows;
+    }
+    await loadCoins(cat);
+    computeScores();
+    window.coins = coins;
+  } else if (cat === 'all' && !_loadedCategories['all']) {
+    var tbody = document.getElementById('tbody');
+    if (tbody) {
+      var skRows = '';
+      for (var s = 0; s < 15; s++) {
+        skRows += '<tr class="skel-tr"><td></td>'
+          + '<td><div class="skel-row"><div class="skel skel-ico"></div><div class="skel skel-name"></div></div></td>'
+          + '<td><div class="skel skel-val" style="margin:auto"></div></td>'
+          + '<td><div class="skel skel-val" style="margin:auto"></div></td>'
+          + '<td><div class="skel skel-val" style="margin:auto"></div></td>'
+          + '<td><div class="skel skel-val" style="margin:auto"></div></td>'
+          + '<td><div class="skel skel-val" style="margin:auto"></div></td>'
+          + '<td><div class="skel skel-val" style="margin:auto"></div></td>'
+          + '</tr>';
+      }
+      tbody.innerHTML = skRows;
+    }
+    await loadCoins('all');
+    computeScores();
+    window.coins = coins;
+  }
+  renderTable();
+  renderCoinSel();
+}
+
 function renderTable() {
   var body = document.getElementById('tbody');
   if (!coins.length) return;
-  var sorted = coins.slice().sort(function(a, b) {
+
+  /* Filter by active category */
+  var catCoins = activeCategory === 'all'
+    ? coins.slice()
+    : coins.filter(function(c) { return (COIN_CATEGORIES[c.id] || 'other') === activeCategory; });
+
+  var sorted = catCoins.sort(function(a, b) {
     if (sortTF === 0)  return b.score - a.score;
     if (sortTF === 24) return b.p24 - a.p24;
     if (sortTF === 7)  return b.p7  - a.p7;
