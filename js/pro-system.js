@@ -181,7 +181,8 @@ function openPro() {
       var feats = planFeatures[idx] || planFeatures[planFeatures.length - 1];
       var featHtml = feats.map(function(f) { return '<div style="font-size:9px;color:var(--text);line-height:1.6;">✓ ' + f + '</div>'; }).join('');
       var isBest = idx === PRO_PLANS.length - 1;
-      plansHtml += '<a href="https://skrill.me/YourName/' + plan.price + '" target="_blank" rel="noopener" class="pro-plan-card' + (isBest ? ' pro-plan-best' : '') + '" onclick="showTipScreen()">'
+      var skrillUrls = {5:'https://skrill.me/rq/Daniel/5/USD?key=Aw1OEJXlKgBA8JsQQUlWczzO64A',10:'https://skrill.me/rq/Daniel/10/USD?key=UioGmHInL3DGuPlwSNb7ur5flZr',20:'https://skrill.me/rq/Daniel/20/USD?key=ERwwyCSOLuNQd0mqjQew-P_YFPu'};
+      plansHtml += '<a href="' + (skrillUrls[plan.price] || ('https://skrill.me/rq/Daniel/' + plan.price + '/USD')) + '" target="_blank" rel="noopener" class="pro-plan-card' + (isBest ? ' pro-plan-best' : '') + '" onclick="showTipScreen()">'
         + (isBest ? '<div class="pro-plan-best-tag">BEST VALUE</div>' : '')
         + '<div class="pro-plan-price">$' + plan.price + '</div>'
         + '<div class="pro-plan-dur">' + plan.label + '</div>'
@@ -442,7 +443,10 @@ function sendSkrill() {
   var amount = document.getElementById('skrill-custom-amount').value;
   if (!amount || amount < 1) { document.getElementById('skrill-custom-amount').style.borderColor = 'var(--red)'; return; }
   document.getElementById('skrill-custom-amount').style.borderColor = '';
-  window.open('https://skrill.me/YourName/' + amount, '_blank');
+  var skrillUrls = {5:'https://skrill.me/rq/Daniel/5/USD?key=Aw1OEJXlKgBA8JsQQUlWczzO64A',10:'https://skrill.me/rq/Daniel/10/USD?key=UioGmHInL3DGuPlwSNb7ur5flZr',20:'https://skrill.me/rq/Daniel/20/USD?key=ERwwyCSOLuNQd0mqjQew-P_YFPu'};
+  /* Pick the closest tier link, or default to the $5 link */
+  var url = skrillUrls[+amount] || (amount >= 15 ? skrillUrls[20] : amount >= 8 ? skrillUrls[10] : skrillUrls[5]);
+  window.open(url, '_blank');
   showTipScreen();
 }
 

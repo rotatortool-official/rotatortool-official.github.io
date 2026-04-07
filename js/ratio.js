@@ -103,8 +103,8 @@ var RatioTracker = (function() {
     /* Fallback: CoinGecko small thumb URL */
     var cgId = CG_IDS[id];
     if (cgId) return 'https://assets.coingecko.com/coins/images/' + cgId + '/thumb/' + id + '.png';
-    /* Last resort: bitcoin as placeholder */
-    return 'https://assets.coingecko.com/coins/images/1/thumb/bitcoin.png';
+    /* Last resort: return empty — let onerror handler hide the img */
+    return '';
   }
 
   function updateIcons() {
@@ -407,9 +407,29 @@ var RatioTracker = (function() {
         ? d.getHours()+':'+String(d.getMinutes()).padStart(2,'0')
         : (d.getMonth()+1)+'/'+d.getDate();
     });
-    var data=series.map(function(p){return +p.r.toFixed(4);});
-    var peakIdx=data.indexOf(Math.max.apply(null,data));
-    var minVal=Math.min.apply(null,data), maxVal=Math.max.apply(null,data);
+    var rawData=series.map(function(p){return +p.r.toFixed(8);});
+    var peakIdx=rawData.indexOf(Math.max.apply(null,rawData));
+    var rawMin=Math.min.apply(null,rawData), rawMax=Math.max.apply(null,rawData);
+
+    /* ── Normalize for extreme discrepancies ──
+       When the ratio range is tiny relative to the values (e.g. 0.000213 to 0.000215),
+       the chart looks flat. Convert to % change from the first value so the shape
+       of the movement is visible regardless of absolute scale. */
+    var range=rawMax-rawMin;
+    var usePercent = rawMin>0 && (range/rawMin < 0.01);  /* less than 1% swing */
+    var data, minVal, maxVal, yLabel;
+    if(usePercent){
+      var baseVal=rawData[0];
+      data=rawData.map(function(v){ return +((v/baseVal-1)*100).toFixed(4); });
+      minVal=Math.min.apply(null,data);
+      maxVal=Math.max.apply(null,data);
+      yLabel='%';
+    } else {
+      data=rawData.map(function(v){return +v.toFixed(4);});
+      minVal=rawMin;
+      maxVal=rawMax;
+      yLabel='×';
+    }
 
     var grad=ctx.createLinearGradient(0,0,0,h);
     grad.addColorStop(0,'rgba(0,189,142,0.25)');
@@ -483,7 +503,10 @@ var RatioTracker = (function() {
             bodyColor:'#dce4f0',
             padding:8,
             callbacks:{
-              label:function(c){return ' '+c.parsed.y.toFixed(3)+'×';}
+              label:function(c){
+                if(usePercent) return ' '+c.parsed.y.toFixed(3)+'%  ('+rawData[c.dataIndex].toFixed(6)+' ratio)';
+                return ' '+c.parsed.y.toFixed(3)+'×';
+              }
             }
           }
         },
@@ -506,12 +529,12 @@ var RatioTracker = (function() {
             ticks:{
               font:{size:9,family:'IBM Plex Mono,monospace'},
               color:'rgba(90,110,133,.7)',
-              callback:function(v){return v.toFixed(2)+'×';},
+              callback:function(v){return usePercent ? v.toFixed(2)+'%' : v.toFixed(2)+'×';},
               maxTicksLimit:4
             },
             border:{display:false},
-            min:minVal*0.997,
-            max:maxVal*1.003
+            min: usePercent ? minVal - Math.max(Math.abs(maxVal-minVal)*0.15, 0.01) : minVal*0.997,
+            max: usePercent ? maxVal + Math.max(Math.abs(maxVal-minVal)*0.15, 0.01) : maxVal*1.003
           }
         }
       }

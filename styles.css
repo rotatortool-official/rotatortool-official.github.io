@@ -2322,6 +2322,8 @@ td.qa-cell{text-align:center;width:28px;padding:0 4px !important;}
   grid-template-columns: 1fr 40px 1fr;
   align-items: center;
   gap: 8px;
+  max-width: 100%;
+  overflow: hidden;
 }
 .new-coin-card {
   background: var(--bg3);
@@ -2333,6 +2335,8 @@ td.qa-cell{text-align:center;width:28px;padding:0 4px !important;}
   position: relative;
   user-select: none;
   -webkit-tap-highlight-color: transparent;
+  min-width: 0;
+  overflow: hidden;
 }
 .new-coin-card:hover { border-color: var(--bdr2); background: var(--bg4); transform: translateY(-1px); }
 .new-coin-card:active { transform: scale(0.97); }
@@ -2375,7 +2379,7 @@ td.qa-cell{text-align:center;width:28px;padding:0 4px !important;}
   opacity: 0;
   transition: opacity .3s;
 }
-.new-coin-info { flex: 1; min-width: 0; }
+.new-coin-info { flex: 1; min-width: 0; overflow: hidden; }
 .new-coin-sym {
   font-family: var(--font-mono);
   font-size: 15px;
@@ -2383,6 +2387,9 @@ td.qa-cell{text-align:center;width:28px;padding:0 4px !important;}
   color: var(--text);
   letter-spacing: .02em;
   line-height: 1.2;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 .new-coin-price {
   font-family: var(--font-mono);
