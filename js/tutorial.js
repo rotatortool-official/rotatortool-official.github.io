@@ -25,7 +25,7 @@ var TUT_STEPS = [
     title: 'Your Holdings Panel',
     desc: '<div style="font-size:13px;line-height:1.85;">Track any coin with quantity and average buy price — all saved locally, <strong>no account needed</strong>.<br><br>'
         + 'Once added, the <strong style="color:var(--bnb);">Portfolio Signal</strong> box above scores your portfolio and flags which assets are lagging or outperforming.<br><br>'
-        + '<span style="font-size:11px;color:rgba(255,255,255,.6);">Free tier: <strong>2 crypto</strong> slots · Pro: up to 10, plus full Rotation Signals — unlock free by sharing with 3 friends.</span></div>',
+        + '<span style="font-size:11px;color:rgba(255,255,255,.6);">Free tier: <strong>5 crypto</strong> slots · Pro: unlimited holdings, Insight Engine, Best Time to Swap & more.</span></div>',
     arrow: 'left', pos: 'left-panel-right'
   },
 
@@ -347,3 +347,139 @@ function initTutorial() {
 }
 
 window.addEventListener('resize', function() { if (tutActive) tutPosition(); });
+
+/* ══════════════════════════════════════════════════════════════════
+   PRO TUTORIAL — shown once after Pro is unlocked
+   Reuses the same engine but with Pro-specific steps.
+══════════════════════════════════════════════════════════════════ */
+
+var PRO_TUT_KEY = 'rot_pro_tutorial_done';
+
+var PRO_TUT_STEPS = [
+
+  /* Step 1: Welcome to Pro */
+  {
+    target: '.topbar',
+    title: '⚡ Welcome to Pro!',
+    desc: '<div style="font-size:13px;line-height:1.85;">'
+        + 'Thank you for supporting Rotator! You\'ve unlocked the full experience.<br><br>'
+        + 'Let\'s quickly walk through <strong style="color:var(--pro);">what\'s new</strong> so you get the most out of your upgrade.'
+        + '</div>',
+    arrow: 'top', pos: 'center', wide: false
+  },
+
+  /* Step 2: All categories unlocked */
+  {
+    target: '#cat-bar',
+    title: 'All Categories Unlocked',
+    desc: '<div style="font-size:13px;line-height:1.85;">'
+        + 'You now have access to <strong>all 10 categories</strong> — L2, AI, Gaming, RWA, Infra, and Stablecoins are all unlocked.<br><br>'
+        + 'Each category filters the leaderboard to show sector-specific performance. Use this to spot <strong>sector rotation</strong> trends.'
+        + '</div>',
+    arrow: 'top', pos: 'neon-below', wide: true
+  },
+
+  /* Step 3: Top 200 coins */
+  {
+    target: '.leaderboard',
+    title: 'Top 200 Coins',
+    desc: '<div style="font-size:13px;line-height:1.85;">'
+        + 'The leaderboard now shows <strong>200 coins</strong> including stablecoins with live DeFi <strong style="color:#8dffc0;">APR yields</strong>.<br><br>'
+        + 'More coins means more rotation opportunities and better coverage of emerging trends across sectors.'
+        + '</div>',
+    arrow: 'bottom', pos: 'above', wide: true
+  },
+
+  /* Step 4: Insight Engine */
+  {
+    target: '#td-insight-sec',
+    title: '⚡ Insight Engine',
+    desc: '<div style="font-size:13px;line-height:1.85;">'
+        + 'The <strong style="color:var(--pro);">Insight Engine</strong> gives you a 5-pillar forward-looking signal on any coin in your holdings or watchlist:<br><br>'
+        + '<div style="display:grid;gap:6px;font-size:11px;line-height:1.6;">'
+          + '<div><strong style="color:var(--green);">Momentum Reset</strong> — oversold/overbought detection</div>'
+          + '<div><strong style="color:var(--bnb);">Liquidity Trap</strong> — volume vs market cap analysis</div>'
+          + '<div><strong style="color:var(--pro);">Dilution Shield</strong> — token unlock risk assessment</div>'
+          + '<div><strong style="color:#87CEEB;">Contrarian Sentiment</strong> — Fear & Greed signals</div>'
+          + '<div><strong style="color:var(--green);">Relative Strength</strong> — performance vs BTC</div>'
+        + '</div><br>'
+        + '<span style="font-size:11px;color:var(--muted);">Click any coin in your holdings to see its Insight score.</span>'
+        + '</div>',
+    arrow: 'top', pos: 'center', wide: true
+  },
+
+  /* Step 5: Best Time to Swap */
+  {
+    target: '#ratio-section',
+    title: '↔ Best Time to Swap',
+    desc: '<div style="font-size:13px;line-height:1.85;">'
+        + 'The Swap Tool now shows <strong style="color:var(--green);">support and resistance levels</strong> on the ratio chart — green dashed lines marking the best swap zone.<br><br>'
+        + '<strong>BEST SWAP ▲</strong> — when the ratio hits the <strong>resistance level</strong> (75th percentile), you get maximum value for your swap.<br><br>'
+        + '<strong style="color:var(--bnb);">SUPPORT ▼</strong> — when the ratio drops to the <strong>support level</strong> (25th percentile), it may be better to wait.<br><br>'
+        + '<span style="font-size:11px;color:var(--muted);">Use the calculator below the chart to simulate exact amounts before executing.</span>'
+        + '</div>',
+    arrow: 'right', pos: 'swap-tool', wide: false
+  },
+
+  /* Step 6: Unlimited holdings */
+  {
+    target: '#my-holdings-panel',
+    title: 'Unlimited Holdings',
+    desc: '<div style="font-size:13px;line-height:1.85;">'
+        + 'Your holdings limit has been raised to <strong>unlimited</strong>. Add as many coins as you want to track your full portfolio.<br><br>'
+        + 'The <strong style="color:var(--bnb);">Portfolio Signal</strong> improves with more data — it compares your holdings against each other and against the broader market to surface rotation opportunities.<br><br>'
+        + '<strong>Full Rotation Signals</strong> — all 4 rotation pair slots are now unlocked in the Signal Center above.'
+        + '</div>',
+    arrow: 'left', pos: 'left-panel-right'
+  },
+
+  /* Step 7: Recovery key */
+  {
+    target: '.settings-btn',
+    title: 'Save Your Recovery Key',
+    desc: '<div style="font-size:13px;line-height:1.85;">'
+        + 'Your Pro status is <strong>synced to the cloud</strong>. To access it on another device or browser:<br><br>'
+        + '<strong>1.</strong> Open Pro settings (click ⚡ in the top bar)<br>'
+        + '<strong>2.</strong> Copy your <strong>Recovery Key</strong><br>'
+        + '<strong>3.</strong> Paste it on the new device to restore Pro<br><br>'
+        + '<span style="font-size:11px;color:var(--muted);">You can replay this tutorial anytime from the ⚙ gear menu.</span>'
+        + '</div>',
+    arrow: 'right', pos: 'gear'
+  }
+];
+
+/* ── Pro tutorial engine (reuses base tutorial UI) ──────────── */
+var proTutOrigSteps = null;
+
+function startProTutorial() {
+  /* Don't show if already completed */
+  try { if (localStorage.getItem(PRO_TUT_KEY) === 'done') return; } catch(e) {}
+
+  /* Swap in Pro steps, preserving originals */
+  proTutOrigSteps = TUT_STEPS;
+  TUT_STEPS = PRO_TUT_STEPS;
+  tutStep_ = 0;
+  tutActive = true;
+  document.getElementById('tut-hole').style.display = 'block';
+  document.getElementById('tut-box').style.display  = 'block';
+  document.getElementById('tut-backdrop').classList.add('active');
+  tutRender();
+}
+
+/* Patch endTutorial to handle Pro tutorial cleanup */
+var _origEndTutorial = endTutorial;
+endTutorial = function() {
+  if (proTutOrigSteps) {
+    /* We were running Pro tutorial — mark it done and restore base steps */
+    try { localStorage.setItem(PRO_TUT_KEY, 'done'); } catch(e) {}
+    TUT_STEPS = proTutOrigSteps;
+    proTutOrigSteps = null;
+  }
+  _origEndTutorial();
+};
+
+/* Allow replaying Pro tutorial from settings */
+function replayProTutorial() {
+  try { localStorage.removeItem(PRO_TUT_KEY); } catch(e) {}
+  startProTutorial();
+}

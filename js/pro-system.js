@@ -58,6 +58,8 @@ function showProToast() {
   t.innerHTML = '⚡ PRO UNLOCKED — 3 friends joined!<br><span style="font-size:10px;color:#3e4d60;margin-top:4px;display:block;">All 200 coins + stablecoin yields available.</span>';
   document.body.appendChild(t);
   setTimeout(function() { t.style.transition = 'opacity .5s'; t.style.opacity = '0'; setTimeout(function() { t.remove(); }, 500); }, 4000);
+  /* Start Pro tutorial after toast */
+  setTimeout(function() { if (typeof startProTutorial === 'function') startProTutorial(); }, 2500);
 }
 
 /* ── Tier badge ──────────────────────────────────────────────── */
@@ -222,13 +224,16 @@ function checkProCode() {
   /* Sync to Supabase */
   if (typeof supaSavePro === 'function') supaSavePro(getMyId(), code);
   closeModal('pro-modal');
+  renderAll();
 
+  /* Launch Pro tutorial after a brief welcome toast */
   var t = document.createElement('div');
   t.style.cssText = 'position:fixed;top:56px;left:50%;transform:translateX(-50%);background:var(--bg2);border:1px solid var(--pro);border-radius:6px;padding:14px 22px;font-family:IBM Plex Mono,monospace;font-size:12px;color:var(--pro);z-index:900;text-align:center;box-shadow:0 0 30px rgba(167,139,250,.2);letter-spacing:.06em;';
   t.innerHTML = '⚡ PRO UNLOCKED — Welcome!<br><span style="font-size:10px;color:var(--muted);margin-top:4px;display:block;">Thank you for supporting Rotator ♥</span>';
   document.body.appendChild(t);
   setTimeout(function() { t.style.transition = 'opacity .5s'; t.style.opacity = '0'; setTimeout(function() { t.remove(); }, 500); }, 3500);
-  renderAll();
+  /* Start Pro tutorial after toast fades */
+  setTimeout(function() { if (typeof startProTutorial === 'function') startProTutorial(); }, 2000);
 }
 
 function copyRefLink() {
@@ -341,6 +346,9 @@ function updateProGates() {
     swapGate.style.display = isPro ? 'none' : 'block';
     swapBody.style.display = isPro ? '' : 'none';
   }
+  /* Show Pro tutorial button in settings only for Pro users */
+  var proTutRow = document.getElementById('pro-tut-setting');
+  if (proTutRow) proTutRow.style.display = isPro ? '' : 'none';
 }
 
 /* ── Skrill helpers ──────────────────────────────────────────── */

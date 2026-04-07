@@ -224,6 +224,10 @@
     <div><div class="setting-label">Replay Tutorial Now</div><div class="setting-sub">Walk through the guide again</div></div>
     <button class="tut-btn primary" onclick="closeSettingsPanel();startTutorial()">START →</button>
   </div>
+  <div class="setting-row" id="pro-tut-setting" style="display:none;">
+    <div><div class="setting-label">⚡ Pro Features Tutorial</div><div class="setting-sub">Learn about Insight Engine, swap levels & more</div></div>
+    <button class="tut-btn primary" onclick="closeSettingsPanel();replayProTutorial()">START →</button>
+  </div>
   <div class="setting-row">
     <div><div class="setting-label">Swap Tool Tutorial</div><div class="setting-sub">Learn how to use the ratio swap calculator</div></div>
     <button class="tut-btn primary" onclick="closeSettingsPanel();setTimeout(function(){var el=document.getElementById('ratio-section');if(el)el.scrollIntoView({behavior:'smooth'});setTimeout(function(){if(typeof startSwapTut==='function')startSwapTut();},600);},300)">START →</button>

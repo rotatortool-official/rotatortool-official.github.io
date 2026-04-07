@@ -162,12 +162,12 @@ function renderTopBars() {
       + '</div>';
   }
 
-  /* Helper: empty placeholder tile with green + */
+  /* Helper: empty placeholder tile — guides user to add holdings */
   function emptyPlaceholderTile() {
-    return '<div class="sig-tile sig-tile-empty" onclick="openPro()" title="Unlock with Pro">'
-      + '<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;gap:4px;opacity:.45;">'
-      + '<span style="font-size:20px;color:var(--green);line-height:1;">+</span>'
-      + '<span style="font-size:8px;letter-spacing:.08em;color:var(--muted);font-family:var(--font-ui);">Pro</span>'
+    return '<div class="sig-tile sig-tile-empty" onclick="document.getElementById(\'coin-sel\')&&document.getElementById(\'coin-sel\').focus()" title="Add holdings to get signals">'
+      + '<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;gap:4px;opacity:.5;padding:6px;text-align:center;">'
+      + '<span style="font-size:16px;color:var(--green);line-height:1;">+</span>'
+      + '<span style="font-size:7px;letter-spacing:.04em;color:var(--muted);font-family:var(--font-ui);line-height:1.3;">Add holdings to receive signals</span>'
       + '</div></div>';
   }
 
@@ -418,6 +418,11 @@ var FREE_CATEGORIES = ['all', 'l1', 'defi', 'meme', 'demo'];
 function initCategoryLocks() {
   document.querySelectorAll('.cat-tab').forEach(function(el) {
     var cat = el.dataset.cat;
+    /* Hide DEMO tab for Pro users — it's for new/free users only */
+    if (cat === 'demo') {
+      el.style.display = isPro ? 'none' : '';
+      return;
+    }
     if (!isPro && FREE_CATEGORIES.indexOf(cat) < 0) {
       el.classList.add('pro-locked');
       if (!el.querySelector('.pro-lock-ico')) {
