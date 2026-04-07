@@ -414,18 +414,19 @@
     <!-- Payment methods -->
     <div style="font-size:9px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);margin-bottom:10px;">Payment Methods</div>
 
-    <!-- Stripe (coming soon) -->
-    <button class="stripe-btn" id="stripe-donate-btn" onclick="document.getElementById('stripe-soon-msg').style.display=document.getElementById('stripe-soon-msg').style.display==='none'?'block':'none'">
-      <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor" style="flex-shrink:0;"><path d="M13.976 9.15c-2.172-.806-3.356-1.426-3.356-2.409 0-.831.683-1.305 1.901-1.305 2.227 0 4.515.858 6.09 1.631l.89-5.494C18.252.975 15.697 0 12.165 0 9.667 0 7.589.654 6.104 1.872 4.56 3.147 3.757 4.992 3.757 7.218c0 4.039 2.467 5.76 6.476 7.219 2.585.92 3.445 1.574 3.445 2.583 0 .98-.84 1.545-2.354 1.545-1.875 0-4.965-.921-7.076-2.19l-.893 5.575C4.746 22.901 7.614 24 11.174 24c2.6 0 4.719-.67 6.225-1.828 1.635-1.263 2.481-3.158 2.481-5.603 0-4.128-2.544-5.818-5.904-7.419z"/></svg>
-      <span>Pay with Stripe</span>
-      <span class="stripe-soon-tag">COMING SOON</span>
-    </button>
-    <div id="stripe-soon-msg" class="stripe-soon-msg" style="display:none;">
-      <span style="font-size:13px;">🔧</span>
-      <div>
-        <strong>Stripe payments coming soon!</strong><br>
-        For now, we only accept crypto donations via the USDT TRC20 network below. Card payments will be available once our Stripe account is set up.
-      </div>
+    <!-- Skrill (active) -->
+    <div style="font-size:9px;letter-spacing:.14em;text-transform:uppercase;color:var(--green);margin-bottom:8px;display:flex;align-items:center;gap:6px;">
+      <span style="font-size:8px;">●</span> Active — Skrill
+    </div>
+    <div class="skrill-tier-row">
+      <a href="https://skrill.me/YourName/5" target="_blank" rel="noopener" class="skrill-btn" onclick="showTipScreen()">$5</a>
+      <a href="https://skrill.me/YourName/10" target="_blank" rel="noopener" class="skrill-btn" onclick="showTipScreen()">$10</a>
+      <a href="https://skrill.me/YourName/20" target="_blank" rel="noopener" class="skrill-btn" onclick="showTipScreen()">$20</a>
+    </div>
+    <div class="skrill-custom-row">
+      <span style="font-size:14px;color:var(--muted);font-weight:600;">$</span>
+      <input type="number" id="skrill-custom-amount" class="code-input" placeholder="Custom" min="1" style="font-size:12px;width:70px;text-transform:none;letter-spacing:normal;text-align:center;">
+      <button class="skrill-btn skrill-custom-go" onclick="sendSkrill()">Donate via Skrill</button>
     </div>
 
     <!-- Crypto (active) -->
@@ -434,8 +435,24 @@
     </div>
     <div class="network-tag">⬡ USDT · TRC20 NETWORK ONLY</div>
     <div class="addr-box">TGt3FQmv8AFPqbj6PnQGUAmemV9gDNm4bt</div>
-    <button class="copy-btn" id="copy-donate-btn" onclick="copyAddr('TGt3FQmv8AFPqbj6PnQGUAmemV9gDNm4bt','copy-donate-btn')">COPY ADDRESS</button>
+    <button class="copy-btn" id="copy-donate-btn" onclick="copyAddr('TGt3FQmv8AFPqbj6PnQGUAmemV9gDNm4bt','copy-donate-btn');showTipScreen()">COPY ADDRESS</button>
     <div class="modal-note">⚠ Send only USDT on TRC20 (Tron) network.<br>Wrong network = permanent loss. Always double-check.<br><br>Every contribution helps keep Rotator free for everyone. Thank you!</div>
+  </div>
+</div>
+
+<!-- TIP / THANK YOU SCREEN -->
+<div class="overlay" id="tip-modal" onclick="if(event.target===this)closeModal('tip-modal')">
+  <div class="modal" style="padding-top:20px;text-align:center;">
+    <button class="modal-x" onclick="closeModal('tip-modal')" aria-label="Close">×</button>
+    <div style="font-size:36px;margin-bottom:8px;">♥</div>
+    <div class="modal-title">Thank You!</div>
+    <div class="modal-sub">Your support keeps Rotator free for everyone.<br>If you'd like to leave an extra tip, choose below:</div>
+    <div class="skrill-tier-row" style="margin:16px 0;">
+      <a href="https://skrill.me/YourName/2" target="_blank" rel="noopener" class="skrill-btn tip-btn">$2</a>
+      <a href="https://skrill.me/YourName/5" target="_blank" rel="noopener" class="skrill-btn tip-btn">$5</a>
+      <a href="https://skrill.me/YourName/10" target="_blank" rel="noopener" class="skrill-btn tip-btn">$10</a>
+    </div>
+    <button class="code-btn" onclick="closeModal('tip-modal')" style="width:100%;margin-top:8px;padding:10px;font-size:11px;letter-spacing:.08em;">NO THANKS, CLOSE</button>
   </div>
 </div>
 

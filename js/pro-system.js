@@ -141,6 +141,15 @@ function openPro() {
       + '</div>'
       + '<div class="pro-divider"></div>'
       + '<div style="text-align:center;margin-top:6px;">'
+        + '<div style="font-size:10px;color:var(--muted);letter-spacing:.08em;margin-bottom:8px;">HAVE A PRO CODE?</div>'
+        + '<div style="display:flex;gap:6px;">'
+          + '<input class="code-input" id="pro-code-input" placeholder="Enter your Pro code" style="font-size:11px;">'
+          + '<button class="code-btn" onclick="checkProCode()">REDEEM</button>'
+        + '</div>'
+        + '<div id="pro-code-err" style="font-size:10px;margin-top:6px;min-height:14px;color:var(--red);"></div>'
+      + '</div>'
+      + '<div class="pro-divider"></div>'
+      + '<div style="text-align:center;margin-top:6px;">'
         + '<div style="font-size:10px;color:var(--muted);letter-spacing:.08em;margin-bottom:8px;">ALREADY HAVE PRO ON ANOTHER DEVICE?</div>'
         + '<div style="display:flex;gap:6px;">'
           + '<input class="code-input" id="restore-key-input" placeholder="Enter your recovery key" style="font-size:11px;">'
@@ -296,6 +305,19 @@ function restoreProFromKey() {
   }).catch(function() {
     err.style.color = 'var(--red)'; err.textContent = 'Connection error. Try again later.';
   });
+}
+
+/* ── Skrill helpers ──────────────────────────────────────────── */
+function sendSkrill() {
+  var amount = document.getElementById('skrill-custom-amount').value;
+  if (!amount || amount < 1) { document.getElementById('skrill-custom-amount').style.borderColor = 'var(--red)'; return; }
+  document.getElementById('skrill-custom-amount').style.borderColor = '';
+  window.open('https://skrill.me/YourName/' + amount, '_blank');
+  showTipScreen();
+}
+
+function showTipScreen() {
+  setTimeout(function() { openModal('tip-modal'); }, 800);
 }
 
 /* Init on page load */

@@ -145,12 +145,13 @@ body::before{content:'';position:fixed;inset:0;background:repeating-linear-gradi
 #donate-modal .modal{border:1px solid rgba(243,186,47,.28);box-shadow:0 0 40px rgba(243,186,47,.1);}
 #donate-modal .modal-title{color:var(--bnb);}
 
-/* Stripe button (coming soon) */
-.stripe-btn{width:100%;display:flex;align-items:center;justify-content:center;gap:8px;padding:12px 16px;background:rgba(99,91,255,.08);border:1px solid rgba(99,91,255,.3);color:rgba(99,91,255,.9);font-family:inherit;font-size:13px;font-weight:600;letter-spacing:.06em;cursor:pointer;border-radius:6px;transition:all .18s;margin-bottom:8px;}
-.stripe-btn:hover{background:rgba(99,91,255,.14);border-color:rgba(99,91,255,.5);}
-.stripe-soon-tag{font-size:8px;font-weight:800;letter-spacing:.12em;padding:2px 7px;border-radius:3px;background:rgba(99,91,255,.15);border:1px solid rgba(99,91,255,.3);color:rgba(130,120,255,.9);margin-left:auto;}
-.stripe-soon-msg{display:flex;align-items:flex-start;gap:8px;padding:10px 12px;background:rgba(99,91,255,.06);border:1px solid rgba(99,91,255,.18);border-radius:5px;margin-bottom:10px;font-size:11px;color:rgba(180,200,220,.85);line-height:1.6;}
-.stripe-soon-msg strong{color:rgba(130,120,255,.95);font-weight:700;}
+/* Skrill donation buttons */
+.skrill-tier-row{display:flex;gap:8px;margin-bottom:10px;}
+.skrill-btn{flex:1;display:flex;align-items:center;justify-content:center;padding:11px 14px;background:rgba(130,41,95,.12);border:1px solid rgba(130,41,95,.4);color:#c565a0;font-family:inherit;font-size:14px;font-weight:700;letter-spacing:.04em;cursor:pointer;border-radius:6px;transition:all .18s;text-decoration:none;text-align:center;}
+.skrill-btn:hover{background:rgba(130,41,95,.22);border-color:rgba(130,41,95,.65);color:#e080be;}
+.skrill-custom-row{display:flex;align-items:center;gap:8px;margin-bottom:14px;}
+.skrill-custom-go{white-space:nowrap;font-size:12px;padding:9px 16px;}
+.tip-btn{background:rgba(130,41,95,.08);border-color:rgba(130,41,95,.3);font-size:13px;padding:10px 12px;}
 
 /* Legal content (ToS + Privacy modals) */
 .legal-content{font-size:12px;color:rgba(200,215,230,.85);line-height:1.9;}
@@ -637,11 +638,11 @@ body::before{content:'';position:fixed;inset:0;background:repeating-linear-gradi
 .tf-tab{background:none;border:1px solid var(--bdr);color:var(--muted);font-family:inherit;font-size:9px;padding:2px 8px;cursor:pointer;border-radius:var(--card-radius);letter-spacing:.08em;transition:all .15s;}
 .tf-tab.active{border-color:var(--bnb);color:var(--bnb);background:var(--bnbd);}
 /* ── Category filter bar ── */
-.cat-bar{display:flex;gap:4px;padding:6px 10px;background:var(--bg3);border-bottom:1px solid var(--bdr2);overflow-x:auto;scrollbar-width:none;-ms-overflow-style:none;flex-shrink:0;}
+.cat-bar{display:flex;gap:8px;padding:8px 12px;background:var(--bg3);border-bottom:1px solid var(--bdr2);overflow-x:auto;scrollbar-width:none;-ms-overflow-style:none;flex-shrink:0;}
 .cat-bar::-webkit-scrollbar{display:none;}
-.cat-tab{display:flex;align-items:center;gap:3px;padding:5px 10px;background:none;border:1px solid var(--bdr);color:var(--muted);font-family:inherit;font-size:10px;font-weight:600;letter-spacing:.08em;cursor:pointer;border-radius:14px;transition:all .18s;white-space:nowrap;flex-shrink:0;}
-.cat-tab:hover{color:var(--text);border-color:var(--text);background:var(--bg4);}
-.cat-tab.active{color:var(--bnb);border-color:var(--bnb);background:var(--bnbd);}
+.cat-tab{display:flex;align-items:center;gap:4px;padding:6px 13px;background:var(--bg2);border:1px solid var(--bdr2);color:var(--muted);font-family:inherit;font-size:10px;font-weight:600;letter-spacing:.08em;cursor:pointer;border-radius:6px;transition:all .18s;white-space:nowrap;flex-shrink:0;box-shadow:0 1px 3px rgba(0,0,0,.25),inset 0 1px 0 rgba(255,255,255,.04);}
+.cat-tab:hover{color:var(--text);border-color:var(--text);background:var(--bg4);box-shadow:0 2px 6px rgba(0,0,0,.3),inset 0 1px 0 rgba(255,255,255,.06),0 0 8px rgba(130,170,220,.08);}
+.cat-tab.active{color:var(--bnb);border-color:rgba(243,186,47,.4);background:var(--bnbd);box-shadow:0 2px 8px rgba(243,186,47,.2),inset 0 1px 0 rgba(255,255,255,.05),0 0 12px rgba(243,186,47,.1);}
 .cat-ico{font-size:11px;line-height:1;}
 .cat-lbl{line-height:1;}
 .leaderboard{flex:1;overflow-y:auto;min-height:0;}
@@ -2051,9 +2052,9 @@ td.qa-cell{text-align:center;width:28px;padding:0 4px !important;}
 :root:not(.light) tbody tr:hover{background:rgba(130,170,220,.06) !important;outline:1px solid rgba(130,170,220,.06);}
 :root.light .tbl-head{background:rgb(195,235,220);}
 :root.light .cat-bar{background:rgb(210,240,228);}
-:root.light .cat-tab{border-color:rgba(0,0,0,.12);color:rgba(0,0,0,.45);}
-:root.light .cat-tab:hover{color:#000;border-color:rgba(0,0,0,.3);background:rgba(0,0,0,.05);}
-:root.light .cat-tab.active{color:#0a7e5a;border-color:#0a7e5a;background:rgba(10,126,90,.1);}
+:root.light .cat-tab{border-color:rgba(0,0,0,.1);color:rgba(0,0,0,.45);background:rgba(255,255,255,.6);box-shadow:0 1px 3px rgba(0,0,0,.1),inset 0 1px 0 rgba(255,255,255,.8);}
+:root.light .cat-tab:hover{color:#000;border-color:rgba(0,0,0,.25);background:rgba(255,255,255,.85);box-shadow:0 2px 5px rgba(0,0,0,.12),inset 0 1px 0 rgba(255,255,255,.9);}
+:root.light .cat-tab.active{color:#0a7e5a;border-color:#0a7e5a;background:rgba(10,126,90,.1);box-shadow:0 2px 6px rgba(10,126,90,.15),inset 0 1px 0 rgba(255,255,255,.5);}
 :root.light .bars-col-inner{background:var(--bg3) !important;border:1px solid rgba(80,190,155,.18);}
 :root.light .mob-nav{background:rgba(240,250,255,.95);border-top:2px solid rgba(80,190,155,.25);}
 :root.light .overlay{background:var(--overlay-bg);}
@@ -2121,6 +2122,8 @@ td.qa-cell{text-align:center;width:28px;padding:0 4px !important;}
 :root.light .btn.pro-btn{border-color:rgba(124,95,214,.25);}
 :root.light .tier-badge.free{background:var(--bg3);border-color:rgba(0,0,0,.08);}
 :root.light .copy-btn{background:rgba(160,120,24,.10);border-color:rgba(160,120,24,.25);}
+:root.light .skrill-btn{background:rgba(130,41,95,.08);border-color:rgba(130,41,95,.25);color:#82295f;}
+:root.light .skrill-btn:hover{background:rgba(130,41,95,.16);color:#6a1f4d;}
 :root.light .mob-topbar-gear{background:rgba(70,200,155,.14);}
 :root.light .mob-topbar-gear:hover{background:rgba(70,200,155,.25);}
 /* ── Readability & depth boost ── */
