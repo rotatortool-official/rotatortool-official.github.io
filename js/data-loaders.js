@@ -1492,14 +1492,20 @@ function openTileDetail(coinId, evt) {
     return '<span class="td-badge ' + b.cls + '">' + b.t + '</span>';
   }).join('');
 
-  /* Insight Engine section — show only for holdings + watchlist coins */
+  /* Insight Engine section — PRO only, show for holdings + watchlist coins */
   var insSec = document.getElementById('td-insight-sec');
   var insEl  = document.getElementById('td-insight-content');
   if (insSec && insEl) {
     var hSyms = holdings.map(function(h) { return h.sym; });
     var wSyms = (typeof watchlist !== 'undefined') ? watchlist : [];
     var isTracked = hSyms.indexOf(c.sym) >= 0 || wSyms.indexOf(c.sym) >= 0;
-    if (isTracked && c.insight) {
+    if (!isPro && isTracked) {
+      insEl.innerHTML = '<div style="text-align:center;padding:10px 0;">'
+        + '<div style="font-size:10px;color:var(--muted);margin-bottom:6px;">Insight Engine is a Pro feature</div>'
+        + '<button class="code-btn" onclick="openPro()" style="font-size:10px;padding:6px 14px;">⚡ UNLOCK PRO</button>'
+        + '</div>';
+      insSec.style.display = '';
+    } else if (isTracked && c.insight) {
       var ins = c.insight;
       var insHtml = '<div class="td-insight-header">'
         + '<div class="insight-pulse ' + ins.color + ' td-insight-pulse"><span class="insight-dot"></span><span class="insight-lbl">' + ins.label + '</span></div>'

@@ -317,3 +317,15 @@ var VALID_CODES = [
 var DONATION_GOAL    = 50;   /* $ monthly target  — update as needed */
 var DONATION_CURRENT = 0;    /* $ received so far — UPDATE MANUALLY  */
 var DONATION_LABEL   = 'monthly server costs';
+
+/* ══════════════════════════════════════════════════════════════════
+   PRO TIER PLANS
+   ──────────────
+   Donation-based Pro tiers. Each tier grants Pro for a duration.
+   Skrill links use these amounts. Codes bypass payment.
+══════════════════════════════════════════════════════════════════ */
+var PRO_PLANS = [
+  { label: '1 Month',   price: 5,  months: 1,  badge: 'Starter' },
+  { label: '3 Months',  price: 10, months: 3,  badge: 'Supporter' },
+  { label: '6 Months',  price: 20, months: 6,  badge: 'Pro' }
+];

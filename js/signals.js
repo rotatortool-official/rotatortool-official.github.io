@@ -412,9 +412,33 @@ function toggleWatch(sym, btn) {
 /* ══════════════════════════════════════════════════════════════
    LEADERBOARD TABLE
 ══════════════════════════════════════════════════════════════ */
+/* ── Free vs Pro categories ──────────────────────────────────── */
+var FREE_CATEGORIES = ['all', 'l1', 'defi', 'meme', 'demo'];
+
+function initCategoryLocks() {
+  document.querySelectorAll('.cat-tab').forEach(function(el) {
+    var cat = el.dataset.cat;
+    if (!isPro && FREE_CATEGORIES.indexOf(cat) < 0) {
+      el.classList.add('pro-locked');
+      if (!el.querySelector('.pro-lock-ico')) {
+        el.innerHTML += '<span class="pro-lock-ico">🔒</span>';
+      }
+    } else {
+      el.classList.remove('pro-locked');
+      var lock = el.querySelector('.pro-lock-ico');
+      if (lock) lock.remove();
+    }
+  });
+}
+
 /* ── Category switching (lazy load) ───────────────────────────── */
 async function switchCategory(cat) {
   if (cat === activeCategory) return;
+  /* Block locked categories for free users */
+  if (!isPro && FREE_CATEGORIES.indexOf(cat) < 0) {
+    openPro();
+    return;
+  }
   activeCategory = cat;
   /* Update tab UI */
   document.querySelectorAll('.cat-tab').forEach(function(el) {
@@ -472,9 +496,15 @@ function renderTable() {
   if (!coins.length) return;
 
   /* Filter by active category */
-  var catCoins = activeCategory === 'all'
-    ? coins.slice()
-    : coins.filter(function(c) { return (COIN_CATEGORIES[c.id] || 'other') === activeCategory; });
+  var DEMO_IDS = ['bitcoin','ethereum','binancecoin','solana','cardano','ripple','polkadot','avalanche-2','chainlink','dogecoin'];
+  var catCoins;
+  if (activeCategory === 'demo') {
+    catCoins = coins.filter(function(c) { return DEMO_IDS.indexOf(c.id) >= 0; });
+  } else if (activeCategory === 'all') {
+    catCoins = coins.slice();
+  } else {
+    catCoins = coins.filter(function(c) { return (COIN_CATEGORIES[c.id] || 'other') === activeCategory; });
+  }
 
   var sorted = catCoins.sort(function(a, b) {
     if (sortTF === 0)  return b.score - a.score;
@@ -564,7 +594,7 @@ function setSort(tf) {
 /* Master render — call this after any data change */
 function renderAll() {
   computeInsights();
-  renderBTC(); renderTiles(); renderTopBars(); renderTable(); renderCoinSel(); updateTierBadge();
+  renderBTC(); renderTiles(); renderTopBars(); renderTable(); renderCoinSel(); updateTierBadge(); if (typeof initCategoryLocks === 'function') initCategoryLocks(); if (typeof updateProGates === 'function') updateProGates();
   var now      = new Date();
   var coinsUrl = 'https://api.coingecko.com/api/v3/coins/markets';
   var info     = getCacheInfo(coinsUrl);

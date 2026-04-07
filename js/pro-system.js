@@ -103,23 +103,50 @@ function openPro() {
       + '<button class="revoke-btn" onclick="revokePro()">' + _('pro_revoke') + '</button>'
       + '</div>';
   } else {
-    body.innerHTML = '<div class="modal-title">' + _('pro_modal_title') + '</div>'
-      + '<div class="modal-sub">' + _('pro_modal_sub_1') + '<strong style="color:var(--pro)">' + _('pro_modal_sub_2') + '</strong>' + _('pro_modal_sub_3') + '</div>'
+    /* ── PRO PLANS ── */
+    var plansHtml = '<div class="pro-plans-row">';
+    PRO_PLANS.forEach(function(plan) {
+      plansHtml += '<a href="https://skrill.me/YourName/' + plan.price + '" target="_blank" rel="noopener" class="pro-plan-card" onclick="showTipScreen()">'
+        + '<div class="pro-plan-price">$' + plan.price + '</div>'
+        + '<div class="pro-plan-dur">' + plan.label + '</div>'
+        + '<div class="pro-plan-badge">' + plan.badge + '</div>'
+        + '</a>';
+    });
+    plansHtml += '</div>';
+
+    body.innerHTML = '<div class="modal-title">⚡ Unlock Pro</div>'
+      + '<div class="modal-sub">Support development and unlock the full power of Rotator.</div>'
+
+      /* ── FREE vs PRO comparison ── */
       + '<div style="background:var(--bg3);border:1px solid rgba(167,139,250,.2);border-radius:4px;padding:12px 14px;margin-bottom:14px;">'
-        + '<div style="font-size:10px;color:var(--muted);letter-spacing:.12em;margin-bottom:10px;text-transform:uppercase;">' + _('pro_unlocks') + '</div>'
-        + '<div style="font-size:12px;color:var(--text);line-height:2.2;">'
-          + '<span style="color:var(--green);">✓</span> <strong>' + _('pro_u1') + '</strong> <span style="color:var(--muted);font-size:10px;">' + _('pro_vs2') + '</span><br>'
-          + '<span style="color:var(--green);">✓</span> <strong>' + _('pro_u2') + '</strong> <span style="color:var(--muted);font-size:10px;">' + _('pro_vs1') + '</span><br>'
-          + '<span style="color:var(--green);">✓</span> <strong>' + _('pro_u3') + '</strong> <span style="color:var(--muted);font-size:10px;">' + _('pro_vs1') + '</span><br>'
-          + '<span style="color:var(--pro);">✓</span> <strong style="color:var(--pro)">' + _('pro_u4') + '</strong> ' + _('pro_u4s') + '<br>'
-          + '<span style="color:var(--bnb);">◈</span> <strong style="color:var(--bnb)">' + _('pro_u5') + '</strong> ' + _('pro_u5s') + ' <span style="color:var(--muted);font-size:10px;">' + _('pro_soon') + '</span><br>'
-          + '<span style="color:var(--bnb);">◈</span> <strong style="color:var(--bnb)">' + _('pro_u6') + '</strong> ' + _('pro_u6s') + ' <span style="color:var(--muted);font-size:10px;">' + _('pro_soon') + '</span>'
+        + '<div style="display:flex;gap:12px;margin-bottom:10px;">'
+          + '<div style="flex:1;font-size:10px;letter-spacing:.12em;color:var(--muted);text-transform:uppercase;">FREE</div>'
+          + '<div style="flex:1;font-size:10px;letter-spacing:.12em;color:var(--pro);text-transform:uppercase;text-align:right;">⚡ PRO</div>'
+        + '</div>'
+        + '<div style="font-size:11px;color:var(--text);line-height:2.4;">'
+          + '<div style="display:flex;justify-content:space-between;"><span>Top 50 coins</span><span style="color:var(--pro);">Top 200 coins</span></div>'
+          + '<div style="display:flex;justify-content:space-between;"><span>3 categories</span><span style="color:var(--pro);">All 10 categories</span></div>'
+          + '<div style="display:flex;justify-content:space-between;"><span>5 holdings max</span><span style="color:var(--pro);">Unlimited holdings</span></div>'
+          + '<div style="display:flex;justify-content:space-between;"><span style="color:var(--muted);">—</span><span style="color:var(--pro);">⚡ Insight Engine</span></div>'
+          + '<div style="display:flex;justify-content:space-between;"><span style="color:var(--muted);">—</span><span style="color:var(--pro);">↔ Best Time to Swap</span></div>'
+          + '<div style="display:flex;justify-content:space-between;"><span style="color:var(--muted);">—</span><span style="color:var(--pro);">💵 Stablecoin Yields</span></div>'
+          + '<div style="display:flex;justify-content:space-between;"><span style="color:var(--muted);">—</span><span style="color:var(--pro);">📊 Score Breakdown</span></div>'
         + '</div>'
       + '</div>'
-      + '<div style="background:var(--gd);border:1px solid rgba(0,200,150,.2);border-radius:4px;padding:10px 14px;margin-bottom:14px;font-size:11px;line-height:1.8;">'
-        + '<span style="color:var(--green);font-weight:600;">' + _('pro_free_all') + '</span><br>'
-        + '<span style="color:var(--muted);">' + _('pro_free_list') + '</span>'
+
+      /* ── Tier plan cards ── */
+      + '<div style="font-size:9px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);margin-bottom:8px;">CHOOSE YOUR PLAN</div>'
+      + plansHtml
+
+      /* ── OR use crypto ── */
+      + '<div style="text-align:center;margin:10px 0 6px;font-size:9px;color:var(--muted);letter-spacing:.12em;">— OR DONATE CRYPTO —</div>'
+      + '<div style="text-align:center;margin-bottom:10px;">'
+        + '<a href="#" onclick="closeModal(\'pro-modal\');openModal(\'donate-modal\');return false;" style="font-size:11px;color:var(--bnb);text-decoration:none;font-weight:600;">☕ Send USDT (TRC20) →</a>'
       + '</div>'
+
+      /* ── Free referral option ── */
+      + '<div class="pro-divider"></div>'
+      + '<div style="font-size:9px;letter-spacing:.14em;text-transform:uppercase;color:var(--green);margin-bottom:8px;">FREE OPTION — REFER 3 FRIENDS</div>'
       + '<div class="pro-steps" id="ref-steps">'
         + '<div class="pro-step"><div class="step-num">1</div><div class="step-txt">' + _('pro_step1') + '</div></div>'
         + '<div class="pro-step"><div class="step-num">2</div><div class="step-txt">' + _('pro_step2') + '</div></div>'
@@ -129,16 +156,12 @@ function openPro() {
         + '<input class="code-input" id="ref-link-display" value="' + link + '" readonly onclick="this.select()" style="font-size:10px;">'
         + '<button class="code-btn" id="copy-ref-btn" onclick="copyRefLink()">' + _('pro_copy') + '</button>'
       + '</div>'
-      + '<div class="pro-divider"></div>'
-      + '<div style="text-align:center;margin-bottom:6px;">'
-        + '<span style="font-size:10px;color:var(--muted);">' + _('pro_love') + '</span>'
-        + '<a href="#" onclick="closeModal(\'pro-modal\');openModal(\'donate-modal\');return false;" style="font-size:10px;color:var(--bnb);">' + _('pro_love_link') + '</a>'
-      + '</div>'
-      + '<div class="pro-divider"></div>'
       + '<div style="font-size:10px;color:var(--muted);line-height:1.8;text-align:center;">'
         + _('pro_progress') + '<strong style="color:var(--pro);">' + count + ' / ' + needed + _('pro_friends') + '</strong>' + _('pro_joined')
         + (count > 0 ? '<div style="width:100%;height:3px;background:var(--bg4);border-radius:2px;margin-top:5px;"><div style="width:' + pct + '%;height:100%;background:var(--pro);border-radius:2px;transition:width .4s;"></div></div>' : '')
       + '</div>'
+
+      /* ── Pro code ── */
       + '<div class="pro-divider"></div>'
       + '<div style="text-align:center;margin-top:6px;">'
         + '<div style="font-size:10px;color:var(--muted);letter-spacing:.08em;margin-bottom:8px;">HAVE A PRO CODE?</div>'
@@ -148,6 +171,8 @@ function openPro() {
         + '</div>'
         + '<div id="pro-code-err" style="font-size:10px;margin-top:6px;min-height:14px;color:var(--red);"></div>'
       + '</div>'
+
+      /* ── Recovery key ── */
       + '<div class="pro-divider"></div>'
       + '<div style="text-align:center;margin-top:6px;">'
         + '<div style="font-size:10px;color:var(--muted);letter-spacing:.08em;margin-bottom:8px;">ALREADY HAVE PRO ON ANOTHER DEVICE?</div>'
@@ -307,6 +332,17 @@ function restoreProFromKey() {
   });
 }
 
+/* ── Pro feature gates ──────────────────────────────────────── */
+function updateProGates() {
+  /* Swap tool gate */
+  var swapGate = document.getElementById('swap-pro-gate');
+  var swapBody = document.getElementById('ratio-section');
+  if (swapGate && swapBody) {
+    swapGate.style.display = isPro ? 'none' : 'block';
+    swapBody.style.display = isPro ? '' : 'none';
+  }
+}
+
 /* ── Skrill helpers ──────────────────────────────────────────── */
 function sendSkrill() {
   var amount = document.getElementById('skrill-custom-amount').value;
@@ -321,4 +357,18 @@ function showTipScreen() {
 }
 
 /* Init on page load */
-(function() { try { getVisitStats(); } catch(e) {} })();
+(function() {
+  try { getVisitStats(); } catch(e) {}
+  /* Apply Pro gates as soon as DOM is ready */
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', function() {
+      if (typeof initCategoryLocks === 'function') initCategoryLocks();
+      updateProGates();
+    });
+  } else {
+    setTimeout(function() {
+      if (typeof initCategoryLocks === 'function') initCategoryLocks();
+      updateProGates();
+    }, 0);
+  }
+})();

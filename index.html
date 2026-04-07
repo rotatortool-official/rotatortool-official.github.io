@@ -419,10 +419,11 @@
       <span style="font-size:8px;">●</span> Active — Skrill
     </div>
     <div class="skrill-tier-row">
-      <a href="https://skrill.me/YourName/5" target="_blank" rel="noopener" class="skrill-btn" onclick="showTipScreen()">$5</a>
-      <a href="https://skrill.me/YourName/10" target="_blank" rel="noopener" class="skrill-btn" onclick="showTipScreen()">$10</a>
-      <a href="https://skrill.me/YourName/20" target="_blank" rel="noopener" class="skrill-btn" onclick="showTipScreen()">$20</a>
+      <a href="https://skrill.me/YourName/5" target="_blank" rel="noopener" class="skrill-btn" onclick="showTipScreen()"><div style="font-size:16px;font-weight:800;">$5</div><div style="font-size:8px;color:inherit;opacity:.7;margin-top:2px;">1 Month</div></a>
+      <a href="https://skrill.me/YourName/10" target="_blank" rel="noopener" class="skrill-btn" onclick="showTipScreen()"><div style="font-size:16px;font-weight:800;">$10</div><div style="font-size:8px;color:inherit;opacity:.7;margin-top:2px;">3 Months</div></a>
+      <a href="https://skrill.me/YourName/20" target="_blank" rel="noopener" class="skrill-btn" onclick="showTipScreen()"><div style="font-size:16px;font-weight:800;">$20</div><div style="font-size:8px;color:inherit;opacity:.7;margin-top:2px;">6 Months</div></a>
     </div>
+    <div style="font-size:9px;color:var(--muted);text-align:center;margin-bottom:10px;">Donations unlock ⚡ Pro features. Thank you for supporting Rotator!</div>
     <div class="skrill-custom-row">
       <span style="font-size:14px;color:var(--muted);font-weight:600;">$</span>
       <input type="number" id="skrill-custom-amount" class="code-input" placeholder="Custom" min="1" style="font-size:12px;width:70px;text-transform:none;letter-spacing:normal;text-align:center;">
@@ -446,13 +447,14 @@
     <button class="modal-x" onclick="closeModal('tip-modal')" aria-label="Close">×</button>
     <div style="font-size:36px;margin-bottom:8px;">♥</div>
     <div class="modal-title">Thank You!</div>
-    <div class="modal-sub">Your support keeps Rotator free for everyone.<br>If you'd like to leave an extra tip, choose below:</div>
-    <div class="skrill-tier-row" style="margin:16px 0;">
+    <div class="modal-sub" style="line-height:1.8;">Your donation ensures the future development of this tool and better quality of its products — faster API calls, more accurate live data, and new features.<br><br><span style="font-size:10px;color:var(--muted);">These improvements require a paid CoinGecko API. For now we go steady — your support gets us there.</span></div>
+    <div style="font-size:9px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);margin:14px 0 8px;">LEAVE AN EXTRA TIP</div>
+    <div class="skrill-tier-row" style="margin-bottom:12px;">
       <a href="https://skrill.me/YourName/2" target="_blank" rel="noopener" class="skrill-btn tip-btn">$2</a>
       <a href="https://skrill.me/YourName/5" target="_blank" rel="noopener" class="skrill-btn tip-btn">$5</a>
       <a href="https://skrill.me/YourName/10" target="_blank" rel="noopener" class="skrill-btn tip-btn">$10</a>
     </div>
-    <button class="code-btn" onclick="closeModal('tip-modal')" style="width:100%;margin-top:8px;padding:10px;font-size:11px;letter-spacing:.08em;">NO THANKS, CLOSE</button>
+    <button class="code-btn" onclick="closeModal('tip-modal')" style="width:100%;margin-top:4px;padding:10px;font-size:11px;letter-spacing:.08em;">CLOSE</button>
   </div>
 </div>
 
@@ -862,6 +864,7 @@
       <button class="cat-tab" data-cat="rwa" onclick="switchCategory('rwa')"><span class="cat-ico">🏠</span><span class="cat-lbl">RWA</span></button>
       <button class="cat-tab" data-cat="infra" onclick="switchCategory('infra')"><span class="cat-ico">🛠</span><span class="cat-lbl">INFRA</span></button>
       <button class="cat-tab" data-cat="stable" onclick="switchCategory('stable')"><span class="cat-ico">💵</span><span class="cat-lbl">STABLE</span></button>
+      <button class="cat-tab demo-tab" data-cat="demo" onclick="switchCategory('demo')"><span class="cat-ico">🎯</span><span class="cat-lbl">DEMO</span></button>
     </div>
     <div class="leaderboard" id="crypto-panel">
       <table>
@@ -913,6 +916,15 @@
       <span class="collapse-chevron" id="chev-swap">▼</span>
     </div>
     <div class="collapse-body collapsed" id="cb-swap">
+    <!-- PRO GATE for Swap Tool -->
+    <div class="swap-pro-gate" id="swap-pro-gate" style="display:none;">
+      <div style="text-align:center;padding:20px 14px;">
+        <div style="font-size:28px;margin-bottom:8px;">🔒</div>
+        <div style="font-size:12px;color:var(--text);font-weight:600;margin-bottom:4px;">Best Time to Swap is a Pro Feature</div>
+        <div style="font-size:10px;color:var(--muted);line-height:1.6;margin-bottom:12px;">Unlock support/resistance levels, ratio charts, and the swap calculator with Pro.</div>
+        <button class="code-btn" onclick="openPro()" style="font-size:11px;padding:8px 20px;">⚡ UNLOCK PRO</button>
+      </div>
+    </div>
     <!-- RATIO TRACKER -->
     <div class="ratio-section" id="ratio-section">
 

@@ -10,16 +10,18 @@ Each file has ONE job. Edit the right file for what you want to change.
 
 | File | What it controls | Edit when you want to... |
 |------|-----------------|--------------------------|
-| `js/config.js` | Coin lists, forex pairs, stocks, Pro codes, donation goal | Add/remove assets, add new Pro codes, update donation target |
+| `js/config.js` | Coin lists, forex pairs, stocks, Pro codes, donation goal, Pro tier plans | Add/remove assets, add new Pro codes, update donation target, change Pro pricing |
 | `js/api-pool.js` | Fetch logic, proxy rotation, caching, AV keys | Add API keys, change cache times, add a new proxy |
-| `js/pro-system.js` | Referral system, Pro modal, tier badge | Change Pro modal wording, referral count needed |
-| `js/signals.js` | Rotation tiles, leaderboard, scoring engine | Change signal thresholds, how many tiles show, scoring weights |
-| `js/holdings.js` | Holdings panels (crypto/forex/stocks) + portfolio signals | Change tile appearance, how P&L is shown |
+| `js/pro-system.js` | Referral system, Pro modal, tier badge, Pro feature gates, Skrill helpers | Change Pro modal wording, referral count, locked features, payment links |
+| `js/signals.js` | Rotation tiles, leaderboard, scoring engine, category locks | Change signal thresholds, scoring weights, free/pro category list |
+| `js/holdings.js` | Holdings panels (crypto/forex/stocks) + portfolio signals | Change tile appearance, P&L display, holdings limits (5 free / unlimited Pro) |
 | `js/tutorial.js` | Onboarding tutorial steps | Edit tutorial text, add/remove steps |
 | `js/i18n.js` | Translations / language strings | Add or edit language support |
 | `js/ratio.js` | Swap calculator, ratio tracker, coin picker panel | Edit swap tool logic, chart, saved pairs |
-| `js/data-loaders.js` | Data fetching, mode switching, mobile nav, auto-refresh | Change refresh interval, add data sources |
-| `index.html` | All HTML structure + ALL CSS + inline JS | Change layout, colours, modals, mobile nav, collapsible sections |
+| `js/data-loaders.js` | Data fetching, mode switching, mobile nav, auto-refresh, Insight Engine gating | Change refresh interval, add data sources |
+| `js/supabase.js` | Cloud sync for Pro status (Supabase REST API) | Change Supabase URL/key, modify Pro persistence logic |
+| `styles.css` | All CSS styles (dark + light theme) | Change colours, layout, animations, Pro plan cards, category buttons |
+| `index.html` | HTML structure, modals (donate, pro, tip), inline JS | Change layout, modals, mobile nav, collapsible sections |
 
 ---
 
@@ -59,6 +61,25 @@ Open `js/config.js`, change:
 var DONATION_CURRENT = 25;  // ← amount received this month
 var DONATION_GOAL    = 50;  // ← monthly target
 ```
+
+### Change Pro tier pricing
+Open `js/config.js`, find `PRO_PLANS`:
+```js
+var PRO_PLANS = [
+  { label: '1 Month',  price: 5,  months: 1,  badge: 'Starter' },
+  { label: '3 Months', price: 10, months: 3,  badge: 'Supporter' },
+  { label: '6 Months', price: 20, months: 6,  badge: 'Pro' }
+];
+```
+
+### Change which categories are free
+Open `js/signals.js`, find `FREE_CATEGORIES`:
+```js
+var FREE_CATEGORIES = ['all', 'l1', 'defi', 'meme', 'demo'];
+```
+
+### Change Skrill payment links
+Search for `skrill.me/YourName` in `index.html` and `js/pro-system.js` — replace `YourName` with your actual Skrill username
 
 ### Add an Alpha Vantage key (so stocks don't fail)
 Open `js/api-pool.js`, find `AV_KEYS`:
@@ -160,6 +181,43 @@ Toggle function: `toggleCollapse(id)` in the inline `<script>` block.
 - **Tile detail overlay** — blur removed, opacity reduced to `.18` for see-through feel
 - **Typography pass** — increased font sizes across: mode labels, section headers, tabs, signal titles, leaderboard title, coin names, swap calculator labels
 
+## ✅ Features added (April 2026 session)
+
+### Pro Tier System (donation-based)
+- **3 Pro plans**: $5/1 month, $10/3 months, $20/6 months
+- **Skrill payment** with tiered buttons in donate modal and Pro modal
+- **Tip screen** appears after any payment with thank-you message about future development
+- **Pro codes** still work as alternative unlock method
+- **Referral system** still works (3 friends = free Pro)
+- Plans configured in `config.js` → `PRO_PLANS` array
+
+### Pro Feature Gates (FREE vs PRO)
+| Feature | FREE | PRO |
+|---------|------|-----|
+| Coins | Top 50 | Top 200 |
+| Categories | ALL, L1, DEFI, MEME, DEMO | All 10 + DEMO |
+| Holdings | 5 max | Unlimited |
+| Insight Engine | Locked | Full access |
+| Best Time to Swap | Locked | Full access |
+| Stablecoin Yields | Locked (STABLE category) | Full access |
+| Score Breakdown | Basic | Full access |
+
+### Category Button Redesign
+- 3D shadow effect with inner highlight on buttons
+- Subtle glow on hover and active state
+- More spacing between buttons (8px gap)
+- Locked categories show 🔒 icon and redirect to Pro modal
+
+### DEMO Category Tab
+- Pulsing green button showing curated top 10 coins (BTC, ETH, BNB, SOL, etc.)
+- Helps new users see how the tool works without configuration
+
+### Supabase Cloud Sync
+- Pro status persists across devices via Supabase
+- Recovery key system to restore Pro on new devices
+- Referral tracking stored in cloud
+- Graceful fallback to localStorage if offline
+
 ---
 
 ## ⚠️ Things Claude should NOT change without being told
@@ -170,6 +228,9 @@ Toggle function: `toggleCollapse(id)` in the inline `<script>` block.
 - The `initCollapsible()` function — it handles localStorage state
 - The `initNavToggle()` function — handles second-press close behaviour
 - The donation wallet address in the donate modal
+- The Supabase URL/key in `js/supabase.js`
+- The `PRO_PLANS` pricing without user approval
+- The `FREE_CATEGORIES` list — controls what free users can access
 
 ---
 
