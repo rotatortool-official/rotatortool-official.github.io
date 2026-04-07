@@ -284,10 +284,110 @@ function renderTopBars() {
 }
 
 /* ══════════════════════════════════════════════════════════════
-   INSIGHT ENGINE — 5-pillar forward-looking signals
+   INSIGHT ENGINE 2.0 — 7-pillar forward-looking signals
+   Pillars 1-2 use REAL Binance kline data (RSI, MACD, Bollinger)
    Only computed for holdings + watchlist coins to save resources.
    Attaches c.insight = { score, label, color, tooltip, signals }
 ══════════════════════════════════════════════════════════════ */
+
+/* ── Binance kline cache & fetcher ─────────────────────────── */
+var _klineCache = {};  /* sym → { ts, closes, volumes, rsi, macd, bb } */
+var _klineTTL   = 10 * 60 * 1000;  /* 10 min cache */
+
+function _calcRSI(closes, period) {
+  if (closes.length < period + 1) return 50;
+  var gains = 0, losses = 0;
+  for (var i = 1; i <= period; i++) {
+    var diff = closes[i] - closes[i - 1];
+    if (diff > 0) gains += diff; else losses -= diff;
+  }
+  var avgGain = gains / period, avgLoss = losses / period;
+  for (var j = period + 1; j < closes.length; j++) {
+    var d = closes[j] - closes[j - 1];
+    avgGain = (avgGain * (period - 1) + (d > 0 ? d : 0)) / period;
+    avgLoss = (avgLoss * (period - 1) + (d < 0 ? -d : 0)) / period;
+  }
+  if (avgLoss === 0) return 100;
+  var rs = avgGain / avgLoss;
+  return +(100 - 100 / (1 + rs)).toFixed(2);
+}
+
+function _calcEMA(arr, period) {
+  var k = 2 / (period + 1), ema = [arr[0]];
+  for (var i = 1; i < arr.length; i++) ema.push(arr[i] * k + ema[i - 1] * (1 - k));
+  return ema;
+}
+
+function _calcMACD(closes) {
+  if (closes.length < 26) return { line: 0, signal: 0, hist: 0 };
+  var ema12 = _calcEMA(closes, 12);
+  var ema26 = _calcEMA(closes, 26);
+  var macdLine = ema12.map(function(v, i) { return v - ema26[i]; });
+  var signalLine = _calcEMA(macdLine.slice(26), 9);
+  var last = macdLine.length - 1;
+  var sigLast = signalLine.length - 1;
+  return {
+    line:   macdLine[last],
+    signal: signalLine[sigLast],
+    hist:   macdLine[last] - signalLine[sigLast]
+  };
+}
+
+function _calcBollinger(closes, period, mult) {
+  if (closes.length < period) return { upper: 0, lower: 0, mid: 0, width: 0, pctB: 50 };
+  var slice = closes.slice(-period);
+  var sum = 0; for (var i = 0; i < slice.length; i++) sum += slice[i];
+  var sma = sum / period;
+  var sqSum = 0; for (var j = 0; j < slice.length; j++) sqSum += (slice[j] - sma) * (slice[j] - sma);
+  var stdDev = Math.sqrt(sqSum / period);
+  var upper = sma + mult * stdDev;
+  var lower = sma - mult * stdDev;
+  var lastP = closes[closes.length - 1];
+  var pctB = (upper - lower) > 0 ? ((lastP - lower) / (upper - lower)) * 100 : 50;
+  var width = sma > 0 ? ((upper - lower) / sma) * 100 : 0;
+  return { upper: upper, lower: lower, mid: sma, width: width, pctB: pctB };
+}
+
+async function _fetchKlines(sym) {
+  var now = Date.now();
+  if (_klineCache[sym] && (now - _klineCache[sym].ts) < _klineTTL) return _klineCache[sym];
+  try {
+    var pair = sym + 'USDT';
+    var url = 'https://api.binance.com/api/v3/klines?symbol=' + pair + '&interval=4h&limit=100';
+    var resp = await fetch(url);
+    if (!resp.ok) return null;
+    var data = await resp.json();
+    if (!Array.isArray(data) || data.length < 30) return null;
+    var closes = data.map(function(k) { return parseFloat(k[4]); });
+    var volumes = data.map(function(k) { return parseFloat(k[5]); });
+    var result = {
+      ts: now,
+      closes: closes,
+      volumes: volumes,
+      rsi:  _calcRSI(closes, 14),
+      macd: _calcMACD(closes),
+      bb:   _calcBollinger(closes, 20, 2)
+    };
+    _klineCache[sym] = result;
+    return result;
+  } catch(e) {
+    console.warn('[Insight] Kline fetch failed for ' + sym + ':', e.message);
+    return null;
+  }
+}
+
+/* ── Fetch klines for all holdings (called after data load) ── */
+async function fetchInsightKlines() {
+  var hSyms = holdings.map(function(h) { return h.sym; });
+  var wSyms = (typeof watchlist !== 'undefined') ? watchlist : [];
+  var targetSyms = hSyms.concat(wSyms.filter(function(s) { return hSyms.indexOf(s) < 0; }));
+  /* Fetch in parallel, max 10 to respect rate limits */
+  var batch = targetSyms.slice(0, 10);
+  await Promise.all(batch.map(function(sym) { return _fetchKlines(sym); }));
+  /* Re-run insights with fresh kline data */
+  computeInsights();
+}
+
 function computeInsights() {
   var btc = coins.find(function(c) { return c.id === 'bitcoin'; }) || { p24: 0, p7: 0, p14: 0 };
   var fg  = (window.fearGreed && typeof window.fearGreed.value === 'number')
@@ -307,44 +407,98 @@ function computeInsights() {
 
     var signals = [];
     var pts     = 0;
+    var kd      = _klineCache[sym] || null;  /* Binance kline data if available */
 
-    /* ── PILLAR 1: Momentum Reset (RSI proxy via rank + MACD proxy via p7 vs p14) ── */
-    var rsiApprox = Math.round((1 - (c.r30 - 1) / Math.max(coins.length - 1, 1)) * 100);
-    var macdUp   = c.p7 > c.p14;
-    var macdDown = c.p7 < c.p14;
+    /* ── PILLAR 1: RSI Momentum (real if klines available, proxy if not) ── */
+    var rsi = kd ? kd.rsi : Math.round((1 - (c.r30 - 1) / Math.max(coins.length - 1, 1)) * 100);
+    var rsiLabel = kd ? 'RSI(' + rsi.toFixed(0) + ')' : 'RSI~' + rsi;
 
-    if (rsiApprox < 35 && macdUp) {
-      pts += 30;
-      signals.push('RSI Oversold + MACD Rising');
-    } else if (rsiApprox > 75 && macdDown) {
-      pts -= 25;
-      signals.push('RSI Overbought + MACD Falling');
-    } else if (rsiApprox < 40) {
-      pts += 15;
-      signals.push('Low Momentum (Potential Reset)');
-    } else if (rsiApprox > 70) {
-      pts -= 12;
-      signals.push('High Momentum (Watch for Reversal)');
+    if (rsi <= 30) {
+      pts += 25;
+      signals.push(rsiLabel + ' Oversold');
+    } else if (rsi <= 40) {
+      pts += 12;
+      signals.push(rsiLabel + ' Low Momentum');
+    } else if (rsi >= 75) {
+      pts -= 22;
+      signals.push(rsiLabel + ' Overbought');
+    } else if (rsi >= 65) {
+      pts -= 8;
+      signals.push(rsiLabel + ' Hot Zone');
     }
 
-    /* ── PILLAR 2: Liquidity Trap (Volume / Market Cap) ── */
+    /* ── PILLAR 2: MACD Trend (real if klines, proxy if not) ── */
+    if (kd && kd.macd) {
+      var mHist = kd.macd.hist;
+      if (kd.macd.line > kd.macd.signal && mHist > 0) {
+        pts += 20;
+        signals.push('MACD Bullish Cross');
+      } else if (kd.macd.line < kd.macd.signal && mHist < 0) {
+        pts -= 18;
+        signals.push('MACD Bearish Cross');
+      } else if (mHist > 0) {
+        pts += 8;
+      } else {
+        pts -= 5;
+      }
+    } else {
+      /* Proxy: compare p7 vs p14 */
+      if (c.p7 > c.p14 + 3) { pts += 15; signals.push('Momentum Accelerating'); }
+      else if (c.p7 < c.p14 - 3) { pts -= 12; signals.push('Momentum Decelerating'); }
+    }
+
+    /* ── PILLAR 3: Bollinger Bands Squeeze & Position (real if klines) ── */
+    if (kd && kd.bb) {
+      var bb = kd.bb;
+      if (bb.width < 4) {
+        pts += 18;
+        signals.push('BB Squeeze (width ' + bb.width.toFixed(1) + '%) — Breakout Likely');
+      } else if (bb.width > 20) {
+        pts -= 5;
+        signals.push('BB Wide — High Volatility');
+      }
+      if (bb.pctB < 10) {
+        pts += 15;
+        signals.push('Price at Lower Band (' + bb.pctB.toFixed(0) + '%B)');
+      } else if (bb.pctB > 95) {
+        pts -= 15;
+        signals.push('Price at Upper Band (' + bb.pctB.toFixed(0) + '%B)');
+      }
+    }
+
+    /* ── PILLAR 4: Volume Profile (real volumes if klines) ── */
     var volMcap = (c.volume24 && c.mcap) ? c.volume24 / c.mcap : 0;
     var priceStable = Math.abs(c.p24) < 3;
-    if (volMcap > 0.20 && priceStable) {
-      pts += 25;
-      signals.push('High Volume + Stable Price (Accumulation)');
-    } else if (volMcap > 0.20) {
-      pts += 12;
-      signals.push('High Liquidity Interest');
-    } else if (volMcap > 0.10) {
-      pts += 6;
-      signals.push('Moderate Volume Interest');
-    } else if (volMcap < 0.02 && c.mcap > 5e8) {
-      pts -= 8;
-      signals.push('Low Liquidity (Large Cap)');
+    if (kd && kd.volumes && kd.volumes.length >= 6) {
+      /* Compare last 6 candles avg volume vs prior 20 candles */
+      var recentVol = kd.volumes.slice(-6).reduce(function(a,b){return a+b;},0) / 6;
+      var priorVol  = kd.volumes.slice(-26, -6).reduce(function(a,b){return a+b;},0) / Math.min(20, kd.volumes.length - 6);
+      var volRatio  = priorVol > 0 ? recentVol / priorVol : 1;
+      if (volRatio > 2 && priceStable) {
+        pts += 25;
+        signals.push('Volume Surge + Stable Price (Accumulation ' + volRatio.toFixed(1) + 'x)');
+      } else if (volRatio > 1.8) {
+        pts += 15;
+        signals.push('Volume Breakout (' + volRatio.toFixed(1) + 'x avg)');
+      } else if (volRatio < 0.3) {
+        pts -= 8;
+        signals.push('Volume Drying Up');
+      }
+    } else {
+      /* Fallback to basic vol/mcap ratio */
+      if (volMcap > 0.20 && priceStable) {
+        pts += 25;
+        signals.push('High Volume + Stable Price (Accumulation)');
+      } else if (volMcap > 0.20) {
+        pts += 12;
+        signals.push('High Liquidity Interest');
+      } else if (volMcap < 0.02 && c.mcap > 5e8) {
+        pts -= 8;
+        signals.push('Low Liquidity (Large Cap)');
+      }
     }
 
-    /* ── PILLAR 3: Dilution Shield (Supply Dynamics) ── */
+    /* ── PILLAR 5: Dilution Shield (Supply Dynamics) ── */
     var circ = c.circulating_supply || 0;
     var maxS = c.max_supply || 0;
     var supplyRatio = (circ && maxS > 0) ? circ / maxS : -1;
@@ -358,7 +512,7 @@ function computeInsights() {
       signals.push('High Dilution Risk (' + Math.round(supplyRatio * 100) + '% Unlocked)');
     }
 
-    /* ── PILLAR 4: Contrarian Sentiment (Fear & Greed) ── */
+    /* ── PILLAR 6: Contrarian Sentiment (Fear & Greed) ── */
     if (fg < 25) {
       pts += 25;
       signals.push('Extreme Fear (' + fg + ') — Contrarian Buy');
@@ -373,7 +527,7 @@ function computeInsights() {
       signals.push('Greed Zone (' + fg + ')');
     }
 
-    /* ── PILLAR 5: Relative Strength vs BTC ── */
+    /* ── PILLAR 7: Relative Strength vs BTC ── */
     var btcP24 = btc.p24 || 0;
     var relStr = c.p24 - btcP24;
     if (btcP24 < -1 && c.p24 > 0) {
@@ -388,8 +542,10 @@ function computeInsights() {
     }
 
     /* ── Normalise to 0–100 ── */
-    var raw        = Math.min(128, Math.max(-88, pts));
-    var normalised = Math.round(((raw + 88) / 216) * 100);
+    var maxPts = kd ? 176 : 128;  /* wider range when kline data enriches signals */
+    var minPts = kd ? -128 : -88;
+    var raw    = Math.min(maxPts, Math.max(minPts, pts));
+    var normalised = Math.round(((raw - minPts) / (maxPts - minPts)) * 100);
 
     /* ── Label & colour ── */
     var label, color;
@@ -402,6 +558,7 @@ function computeInsights() {
       ? signals.join(' · ')
       : 'No strong signals — monitoring';
     tooltip += ' | F&G: ' + fg + ' (' + fgLabel + ')';
+    if (kd) tooltip += ' | Binance 4H data';
 
     c.insight = { score: normalised, label: label, color: color, tooltip: tooltip, signals: signals };
   });
@@ -425,8 +582,10 @@ function toggleWatch(sym, btn) {
 /* ══════════════════════════════════════════════════════════════
    LEADERBOARD TABLE
 ══════════════════════════════════════════════════════════════ */
-/* ── Free vs Pro categories ──────────────────────────────────── */
-var FREE_CATEGORIES = ['all', 'l1', 'defi', 'meme', 'demo'];
+/* ── Category visibility ─────────────────────────────────────── */
+/* All categories are open to free & Pro users.                   */
+/* Pro gating applies only to: Score column, Insight Engine,      */
+/* Best-Time-to-Swap, and holdings limits (2 free / 10 Pro).      */
 
 function initCategoryLocks() {
   document.querySelectorAll('.cat-tab').forEach(function(el) {
@@ -436,27 +595,17 @@ function initCategoryLocks() {
       el.style.display = isPro ? 'none' : '';
       return;
     }
-    if (!isPro && FREE_CATEGORIES.indexOf(cat) < 0) {
-      el.classList.add('pro-locked');
-      if (!el.querySelector('.pro-lock-ico')) {
-        el.innerHTML += '<span class="pro-lock-ico">🔒</span>';
-      }
-    } else {
-      el.classList.remove('pro-locked');
-      var lock = el.querySelector('.pro-lock-ico');
-      if (lock) lock.remove();
-    }
+    /* Remove any legacy locks — all categories are free */
+    el.classList.remove('pro-locked');
+    var lock = el.querySelector('.pro-lock-ico');
+    if (lock) lock.remove();
   });
 }
 
 /* ── Category switching (lazy load) ───────────────────────────── */
 async function switchCategory(cat) {
   if (cat === activeCategory) return;
-  /* Block locked categories for free users */
-  if (!isPro && FREE_CATEGORIES.indexOf(cat) < 0) {
-    openPro();
-    return;
-  }
+  /* All categories open to everyone — Pro gating is on Score/Insights only */
   activeCategory = cat;
   /* Update tab UI */
   document.querySelectorAll('.cat-tab').forEach(function(el) {
@@ -562,12 +711,19 @@ function renderTable() {
       col14  = '<td class="pc" style="text-align:center;"><span style="color:var(--muted);font-size:9px;">~$1.00</span></td>';
       col30  = '<td class="pc" style="text-align:center;"><span style="color:var(--muted);font-size:9px;">PEG</span></td>';
       colScore = '<td class="r"><div class="sw"><span class="sv" style="color:#8dffc0;">YIELD</span></div></td>';
-    } else {
+    } else if (isPro) {
       col24  = '<td class="pc">' + pctSpan(c.p24) + '</td>';
       col7   = '<td class="pc">' + pctSpan(c.p7)  + '</td>';
       col14  = '<td class="pc">' + pctSpan(c.p14) + '</td>';
       col30  = '<td class="pc">' + pctSpan(c.p30) + '</td>';
       colScore = '<td class="r"><div class="sw"><span class="sv" style="color:' + scC + ';">' + sc + '</span><div class="sb"><div class="sbf" style="width:' + Math.max(2, sc) + '%;background:' + scC + ';"></div></div></div></td>';
+    } else {
+      /* Free users: all % columns visible, only Score gated */
+      col24  = '<td class="pc">' + pctSpan(c.p24) + '</td>';
+      col7   = '<td class="pc">' + pctSpan(c.p7)  + '</td>';
+      col14  = '<td class="pc">' + pctSpan(c.p14) + '</td>';
+      col30  = '<td class="pc">' + pctSpan(c.p30) + '</td>';
+      colScore = '<td class="r pro-blur-cell" onclick="event.stopPropagation();openPro()" title="Unlock Rotator Score with Pro"><div class="pro-blur-wrap"><div class="sw"><span class="sv" style="color:var(--muted);">' + sc + '</span><div class="sb"><div class="sbf" style="width:' + Math.max(2, sc) + '%;background:var(--muted);"></div></div></div></div><span class="pro-blur-lock">🔒</span></td>';
     }
 
     return '<tr class="' + (isH ? 'held' : '') + (c.isStable ? ' stable-row' : '') + '" ' + tipData + ' onmouseenter="showRowTip(this,event)" onmouseleave="hideTip()" onclick="openTileDetail(\'' + c.id + '\',event)">'
@@ -610,9 +766,18 @@ function setSort(tf) {
 }
 
 /* Master render — call this after any data change */
+var _klinesFetched = false;
 function renderAll() {
   computeInsights();
   renderBTC(); renderTiles(); renderTopBars(); renderTable(); renderCoinSel(); updateTierBadge(); if (typeof initCategoryLocks === 'function') initCategoryLocks(); if (typeof updateProGates === 'function') updateProGates();
+  /* Async: fetch Binance klines for holdings to enrich Insight Engine */
+  if (holdings.length && !_klinesFetched) {
+    _klinesFetched = true;
+    fetchInsightKlines().then(function() {
+      /* Re-render insight sections in tile detail if open */
+      renderTopBars();
+    }).catch(function(e) { console.warn('[Insight] Kline enrich failed:', e); });
+  }
   var now      = new Date();
   var coinsUrl = 'https://api.coingecko.com/api/v3/coins/markets';
   var info     = getCacheInfo(coinsUrl);

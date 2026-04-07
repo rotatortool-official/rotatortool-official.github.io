@@ -25,7 +25,7 @@ var TUT_STEPS = [
     title: 'Your Holdings Panel',
     desc: '<div style="font-size:13px;line-height:1.85;">Track any coin with quantity and average buy price — all saved locally, <strong>no account needed</strong>.<br><br>'
         + 'Once added, the <strong style="color:var(--bnb);">Portfolio Signal</strong> box above scores your portfolio and flags which assets are lagging or outperforming.<br><br>'
-        + '<span style="font-size:11px;color:rgba(255,255,255,.6);">Free tier: <strong>5 crypto</strong> slots · Pro: unlimited holdings, Insight Engine, Best Time to Swap & more.</span></div>',
+        + '<span style="font-size:11px;color:rgba(255,255,255,.6);">Free tier: <strong>2 crypto</strong> slots · Pro: up to 10 holdings, Insight Engine, Best Time to Swap & more.</span></div>',
     arrow: 'left', pos: 'left-panel-right'
   },
 
@@ -421,12 +421,12 @@ var PRO_TUT_STEPS = [
     arrow: 'right', pos: 'swap-tool', wide: false
   },
 
-  /* Step 6: Unlimited holdings */
+  /* Step 6: Pro holdings */
   {
     target: '#my-holdings-panel',
-    title: 'Unlimited Holdings',
+    title: 'Pro Holdings (Up to 10)',
     desc: '<div style="font-size:13px;line-height:1.85;">'
-        + 'Your holdings limit has been raised to <strong>unlimited</strong>. Add as many coins as you want to track your full portfolio.<br><br>'
+        + 'Your holdings limit has been raised to <strong>10 assets</strong>. Track your full portfolio with advanced insights on each coin.<br><br>'
         + 'The <strong style="color:var(--bnb);">Portfolio Signal</strong> improves with more data — it compares your holdings against each other and against the broader market to surface rotation opportunities.<br><br>'
         + '<strong>Full Rotation Signals</strong> — all 4 rotation pair slots are now unlocked in the Signal Center above.'
         + '</div>',

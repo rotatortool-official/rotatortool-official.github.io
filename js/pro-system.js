@@ -173,8 +173,8 @@ function openPro() {
     /* ── PRO PLANS with feature details ── */
     var planFeatures = [
       ['Top 200 coins', 'All 10 categories', '5 holdings'],
-      ['Top 200 coins', 'All 10 categories', 'Unlimited holdings', '⚡ Insight Engine'],
-      ['Top 200 coins', 'All 10 categories', 'Unlimited holdings', '⚡ Insight Engine', '↔ Best Time to Swap', '💵 Stablecoin Yields']
+      ['Top 200 coins', 'All 10 categories', '10 holdings', '⚡ Insight Engine'],
+      ['Top 200 coins', 'All 10 categories', '10 holdings', '⚡ Insight Engine', '↔ Best Time to Swap', '💵 Stablecoin Yields']
     ];
     var plansHtml = '<div class="pro-plans-row">';
     PRO_PLANS.forEach(function(plan, idx) {
@@ -204,7 +204,7 @@ function openPro() {
         + '<div style="font-size:11px;color:var(--text);line-height:2.4;">'
           + '<div style="display:flex;justify-content:space-between;"><span>Top 50 coins</span><span style="color:var(--pro);">Top 200 coins</span></div>'
           + '<div style="display:flex;justify-content:space-between;"><span>3 categories</span><span style="color:var(--pro);">All 10 categories</span></div>'
-          + '<div style="display:flex;justify-content:space-between;"><span>5 holdings max</span><span style="color:var(--pro);">Unlimited holdings</span></div>'
+          + '<div style="display:flex;justify-content:space-between;"><span>2 holdings</span><span style="color:var(--pro);">10 holdings</span></div>'
           + '<div style="display:flex;justify-content:space-between;"><span style="color:var(--muted);">—</span><span style="color:var(--pro);">⚡ Insight Engine</span></div>'
           + '<div style="display:flex;justify-content:space-between;"><span style="color:var(--muted);">—</span><span style="color:var(--pro);">↔ Best Time to Swap</span></div>'
           + '<div style="display:flex;justify-content:space-between;"><span style="color:var(--muted);">—</span><span style="color:var(--pro);">💵 Stablecoin Yields</span></div>'

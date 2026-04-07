@@ -33,9 +33,9 @@ function saveStH() { try { localStorage.setItem('rot_st_h', JSON.stringify(stHol
 /* ════════════════════════════════
    CRYPTO HOLDINGS
 ════════════════════════════════ */
-/* ── Holdings limits: 5 free / unlimited Pro ── */
-var FREE_HOLDINGS_LIMIT = 5;
-var PRO_HOLDINGS_LIMIT  = 999;
+/* ── Holdings limits: 2 free / 10 Pro ── */
+var FREE_HOLDINGS_LIMIT = 2;
+var PRO_HOLDINGS_LIMIT  = 10;
 
 function addHolding() {
   var sym = document.getElementById('coin-sel').value;

@@ -432,8 +432,9 @@ var RatioTracker = (function() {
     }
 
     var grad=ctx.createLinearGradient(0,0,0,h);
-    grad.addColorStop(0,'rgba(0,189,142,0.25)');
-    grad.addColorStop(0.5,'rgba(0,189,142,0.10)');
+    grad.addColorStop(0,'rgba(0,189,142,0.35)');
+    grad.addColorStop(0.4,'rgba(0,189,142,0.18)');
+    grad.addColorStop(0.75,'rgba(0,189,142,0.06)');
     grad.addColorStop(1,'rgba(0,189,142,0.01)');
 
     /* ── Support / Resistance levels for "Best Time to Swap" cues ── */
@@ -449,7 +450,7 @@ var RatioTracker = (function() {
         datasets:[{
           data:data,
           borderColor:'#00bd8e',
-          borderWidth:1.8,
+          borderWidth:2,
           backgroundColor:grad,
           tension:0.45,
           pointRadius:data.map(function(v,i){

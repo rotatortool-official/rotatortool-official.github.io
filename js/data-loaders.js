@@ -1006,8 +1006,6 @@ async function doLoad() {
     await sleep(320);
     document.getElementById('loader').classList.add('gone');
     startAutoRefresh();
-    /* ── Open coin from shared link (?coin=BTC) ── */
-    _handleCoinDeepLink();
   } catch(e) {
     document.getElementById('lmsg').textContent = 'ERROR: ' + e.message;
     document.getElementById('lbf').style.background = 'var(--red)';
@@ -1018,6 +1016,7 @@ async function doLoad() {
 async function doRefresh() {
   if (busy) return;
   busy = true;
+  if (typeof _klinesFetched !== 'undefined') _klinesFetched = false; /* re-fetch klines on refresh */
   var tsEl = document.getElementById('ts');
   if (tsEl) tsEl.style.color = 'var(--bnb)';
   try {
@@ -1349,7 +1348,7 @@ document.addEventListener('click', function(e) {
 });
 
 /* ── Entry point ─────────────────────────────────────────────── */
-doLoad().then(function() { initTutorial(); syncPanelAlignment(); });
+doLoad().then(function() { initTutorial(); syncPanelAlignment(); _handleCoinDeepLink(); });
 
 /* ── Sync right-panel spacer height to neon-section height ──────
    Makes the ad-panel content start level with the leaderboard
@@ -1738,22 +1737,42 @@ function closeTileDetail() {
 }
 
 /* ── Deep link: open coin detail from ?coin= URL param ──────── */
-function _handleCoinDeepLink() {
+var _pendingDeepLinkCoin = null;
+
+/* Call early to capture param before anything cleans the URL */
+(function() {
   try {
     var params = new URLSearchParams(window.location.search);
     var coinParam = params.get('coin');
-    if (!coinParam) return;
+    if (coinParam) _pendingDeepLinkCoin = coinParam;
+  } catch(e) {}
+})();
+
+function _handleCoinDeepLink() {
+  if (!_pendingDeepLinkCoin) return;
+  var coinParam = _pendingDeepLinkCoin;
+  _pendingDeepLinkCoin = null;
+  try {
     /* Clean URL without reloading */
-    var cleanUrl = window.location.pathname + (params.get('ref') ? '?ref=' + params.get('ref') : '');
-    window.history.replaceState({}, '', cleanUrl || window.location.pathname);
+    var params = new URLSearchParams(window.location.search);
+    params.delete('coin');
+    var remaining = params.toString();
+    var cleanUrl = window.location.pathname + (remaining ? '?' + remaining : '');
+    window.history.replaceState({}, '', cleanUrl);
     /* Find coin by symbol (case insensitive) or ID */
     var sym = coinParam.toUpperCase();
     var c = coins.find(function(x) {
       return x.sym === sym || x.id === coinParam.toLowerCase();
     });
     if (c) {
-      /* Small delay so the UI is fully settled */
-      setTimeout(function() { openTileDetail(c.id); }, 200);
+      /* Delay enough for tutorial/consent overlays to settle */
+      setTimeout(function() {
+        /* Dismiss tutorial if it's active so the panel is visible */
+        if (typeof dismissTutorial === 'function') {
+          try { dismissTutorial(); } catch(e) {}
+        }
+        openTileDetail(c.id);
+      }, 800);
     }
   } catch(e) { console.warn('Deep link error:', e); }
 }
@@ -1837,6 +1856,245 @@ function shareTo(platform) {
 }
 
 /* ══════════════════════════════
+   SHARE-AS-IMAGE — Canvas card generator
+══════════════════════════════ */
+function shareAsImage() {
+  if (!_tdCoin) return;
+  var c = _tdCoin;
+
+  /* ── Gather visible data from the detail panel ── */
+  var sym   = (document.getElementById('td-sym')  || {}).textContent || c.sym || '';
+  var name  = (document.getElementById('td-name') || {}).textContent || c.name || '';
+  var price = (document.getElementById('td-price')|| {}).textContent || '';
+  var chg   = (document.getElementById('td-price-chg') || {}).textContent || '';
+  var scoreEl = document.querySelector('#td-score-bars span');
+  var score   = scoreEl ? scoreEl.textContent.trim() : '';
+
+  /* badges */
+  var badgeEls = document.querySelectorAll('#td-badges .td-badge');
+  var badges = [];
+  badgeEls.forEach(function(b) { if (b.textContent) badges.push(b.textContent.trim()); });
+
+  /* market data cells */
+  var mktCells = document.querySelectorAll('#td-market .td-mkt-cell');
+  var mktData = [];
+  mktCells.forEach(function(cell) {
+    var label = (cell.querySelector('.td-mkt-label') || {}).textContent || '';
+    var val   = (cell.querySelector('.td-mkt-val')   || {}).textContent || '';
+    if (label && val) mktData.push({ label: label, val: val });
+  });
+
+  /* ── Canvas setup — 1200×630 for OG-compatible ratio ── */
+  var W = 1200, H = 630;
+  var can = document.createElement('canvas');
+  can.width = W; can.height = H;
+  var ctx = can.getContext('2d');
+
+  /* ── Background: dark gradient ── */
+  var bg = ctx.createLinearGradient(0, 0, W, H);
+  bg.addColorStop(0, '#0d1117');
+  bg.addColorStop(0.5, '#161b22');
+  bg.addColorStop(1, '#0d1117');
+  ctx.fillStyle = bg;
+  ctx.fillRect(0, 0, W, H);
+
+  /* subtle grid pattern */
+  ctx.strokeStyle = 'rgba(243,186,47,0.03)';
+  ctx.lineWidth = 1;
+  for (var gx = 0; gx < W; gx += 40) { ctx.beginPath(); ctx.moveTo(gx, 0); ctx.lineTo(gx, H); ctx.stroke(); }
+  for (var gy = 0; gy < H; gy += 40) { ctx.beginPath(); ctx.moveTo(0, gy); ctx.lineTo(W, gy); ctx.stroke(); }
+
+  /* ── Gold accent line at top ── */
+  var gold = ctx.createLinearGradient(0, 0, W, 0);
+  gold.addColorStop(0, 'rgba(243,186,47,0)');
+  gold.addColorStop(0.3, 'rgba(243,186,47,0.8)');
+  gold.addColorStop(0.7, 'rgba(243,186,47,0.8)');
+  gold.addColorStop(1, 'rgba(243,186,47,0)');
+  ctx.fillStyle = gold;
+  ctx.fillRect(0, 0, W, 3);
+
+  /* ── Glow circle behind symbol area ── */
+  var glow = ctx.createRadialGradient(160, 180, 0, 160, 180, 200);
+  glow.addColorStop(0, 'rgba(243,186,47,0.08)');
+  glow.addColorStop(1, 'rgba(243,186,47,0)');
+  ctx.fillStyle = glow;
+  ctx.fillRect(0, 0, 400, 400);
+
+  /* ── Symbol + Name header ── */
+  ctx.fillStyle = '#f3ba2f';
+  ctx.font = 'bold 52px "DM Sans", Arial, sans-serif';
+  ctx.fillText(sym, 60, 90);
+
+  ctx.fillStyle = 'rgba(255,255,255,0.5)';
+  ctx.font = '22px "DM Sans", Arial, sans-serif';
+  ctx.fillText(name, 60, 122);
+
+  /* ── Price (big) ── */
+  ctx.fillStyle = '#ffffff';
+  ctx.font = 'bold 56px "DM Serif Display", Georgia, serif';
+  ctx.fillText(price, 60, 200);
+
+  /* 24H change */
+  var isPos = chg.indexOf('+') === 0;
+  var isNeg = chg.indexOf('-') === 0 || chg.indexOf('\u2212') === 0;
+  ctx.fillStyle = isPos ? '#00c896' : isNeg ? '#ff4560' : 'rgba(255,255,255,0.6)';
+  ctx.font = 'bold 28px "DM Sans", Arial, sans-serif';
+  var arrow = isPos ? '\u25B2 ' : isNeg ? '\u25BC ' : '';
+  ctx.fillText(arrow + chg + ' (24H)', 60, 244);
+
+  /* ── Score circle ── */
+  if (score) {
+    var cx = W - 160, cy = 140, r = 70;
+    /* outer ring */
+    ctx.beginPath();
+    ctx.arc(cx, cy, r, 0, Math.PI * 2);
+    ctx.strokeStyle = 'rgba(243,186,47,0.25)';
+    ctx.lineWidth = 6;
+    ctx.stroke();
+    /* score arc */
+    var pct = parseInt(score) / 100;
+    ctx.beginPath();
+    ctx.arc(cx, cy, r, -Math.PI / 2, -Math.PI / 2 + Math.PI * 2 * pct);
+    var arcColor = pct >= 0.6 ? '#00c896' : pct >= 0.35 ? '#f3ba2f' : '#ff4560';
+    ctx.strokeStyle = arcColor;
+    ctx.lineWidth = 6;
+    ctx.stroke();
+    /* score number */
+    ctx.fillStyle = '#ffffff';
+    ctx.font = 'bold 48px "DM Serif Display", Georgia, serif';
+    ctx.textAlign = 'center';
+    ctx.fillText(score, cx, cy + 14);
+    ctx.fillStyle = 'rgba(255,255,255,0.4)';
+    ctx.font = '16px "DM Sans", Arial, sans-serif';
+    ctx.fillText('/100', cx, cy + 40);
+    ctx.textAlign = 'left';
+  }
+
+  /* ── Separator line ── */
+  ctx.fillStyle = 'rgba(255,255,255,0.06)';
+  ctx.fillRect(60, 275, W - 120, 1);
+
+  /* ── Market data boxes ── */
+  var boxY = 300, boxH = 70, boxGap = 16;
+  var boxW = Math.min(200, (W - 120 - boxGap * (mktData.length - 1)) / Math.min(mktData.length, 5));
+  var visibleMkt = mktData.slice(0, 5);
+  visibleMkt.forEach(function(d, i) {
+    var bx = 60 + i * (boxW + boxGap);
+    /* box bg */
+    ctx.fillStyle = 'rgba(255,255,255,0.04)';
+    _roundRect(ctx, bx, boxY, boxW, boxH, 8);
+    ctx.fill();
+    /* border */
+    ctx.strokeStyle = 'rgba(255,255,255,0.08)';
+    ctx.lineWidth = 1;
+    _roundRect(ctx, bx, boxY, boxW, boxH, 8);
+    ctx.stroke();
+    /* label */
+    ctx.fillStyle = 'rgba(255,255,255,0.4)';
+    ctx.font = '11px "DM Sans", Arial, sans-serif';
+    ctx.fillText(d.label.toUpperCase(), bx + 12, boxY + 22);
+    /* value */
+    ctx.fillStyle = '#ffffff';
+    ctx.font = 'bold 16px "DM Sans", Arial, sans-serif';
+    /* truncate long values */
+    var dispVal = d.val.length > 14 ? d.val.substring(0, 13) + '\u2026' : d.val;
+    ctx.fillText(dispVal, bx + 12, boxY + 50);
+  });
+
+  /* ── Signal badges ── */
+  if (badges.length) {
+    var badgeY = 400;
+    ctx.fillStyle = 'rgba(255,255,255,0.35)';
+    ctx.font = '12px "DM Sans", Arial, sans-serif';
+    ctx.fillText('SIGNALS', 60, badgeY);
+    var bx2 = 60;
+    badgeY += 16;
+    badges.slice(0, 5).forEach(function(b) {
+      var tw = ctx.measureText(b).width + 24;
+      /* badge bg */
+      ctx.fillStyle = 'rgba(0,200,150,0.12)';
+      _roundRect(ctx, bx2, badgeY, tw, 32, 6);
+      ctx.fill();
+      ctx.strokeStyle = 'rgba(0,200,150,0.35)';
+      ctx.lineWidth = 1;
+      _roundRect(ctx, bx2, badgeY, tw, 32, 6);
+      ctx.stroke();
+      /* badge text */
+      ctx.fillStyle = '#00c896';
+      ctx.font = 'bold 13px "DM Sans", Arial, sans-serif';
+      ctx.fillText(b, bx2 + 12, badgeY + 21);
+      bx2 += tw + 10;
+    });
+  }
+
+  /* ── Footer: branding + URL ── */
+  ctx.fillStyle = 'rgba(255,255,255,0.06)';
+  ctx.fillRect(60, H - 90, W - 120, 1);
+
+  /* Rotator brand */
+  ctx.fillStyle = '#f3ba2f';
+  ctx.font = 'bold 26px "DM Serif Display", Georgia, serif';
+  ctx.fillText('ROTATOR', 60, H - 45);
+  ctx.fillStyle = 'rgba(255,255,255,0.35)';
+  ctx.font = '14px "DM Sans", Arial, sans-serif';
+  ctx.fillText('Real-time rotation signals & momentum scoring', 200, H - 45);
+
+  /* URL right-aligned */
+  ctx.fillStyle = 'rgba(243,186,47,0.6)';
+  ctx.font = '14px "DM Sans", Arial, sans-serif';
+  ctx.textAlign = 'right';
+  ctx.fillText('rotatortool-official.github.io', W - 60, H - 45);
+  ctx.textAlign = 'left';
+
+  /* ── Gold bottom accent ── */
+  ctx.fillStyle = gold;
+  ctx.fillRect(0, H - 3, W, 3);
+
+  /* ── Download / share ── */
+  try {
+    can.toBlob(function(blob) {
+      if (!blob) { _fallbackDownload(can, sym); return; }
+      /* Try Web Share API with image (mobile-friendly) */
+      if (navigator.share && navigator.canShare) {
+        var file = new File([blob], 'rotator-' + sym.toLowerCase() + '.png', { type: 'image/png' });
+        var shareData = { files: [file], title: sym + ' — Rotator Insight', text: sym + ' ' + price + ' ' + chg + '\nrotatortool-official.github.io?coin=' + encodeURIComponent(sym) };
+        if (navigator.canShare(shareData)) {
+          navigator.share(shareData).catch(function() { _fallbackDownload(can, sym); });
+          return;
+        }
+      }
+      _fallbackDownload(can, sym);
+    }, 'image/png');
+  } catch(e) {
+    _fallbackDownload(can, sym);
+  }
+}
+
+function _fallbackDownload(can, sym) {
+  var a = document.createElement('a');
+  a.download = 'rotator-' + sym.toLowerCase() + '.png';
+  a.href = can.toDataURL('image/png');
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+}
+
+/* Canvas rounded rect helper */
+function _roundRect(ctx, x, y, w, h, r) {
+  ctx.beginPath();
+  ctx.moveTo(x + r, y);
+  ctx.lineTo(x + w - r, y);
+  ctx.quadraticCurveTo(x + w, y, x + w, y + r);
+  ctx.lineTo(x + w, y + h - r);
+  ctx.quadraticCurveTo(x + w, y + h, x + w - r, y + h);
+  ctx.lineTo(x + r, y + h);
+  ctx.quadraticCurveTo(x, y + h, x, y + h - r);
+  ctx.lineTo(x, y + r);
+  ctx.quadraticCurveTo(x, y, x + r, y);
+  ctx.closePath();
+}
+
+/* ══════════════════════════════
    TOOLTIP SYSTEM (Smart Info Card)
 ══════════════════════════════ */
 var tipEl = null;
@@ -1873,10 +2131,13 @@ function showTip(title, body, x, y) {
   document.getElementById('rt-tip-title').innerHTML = title;
   document.getElementById('rt-tip-body').innerHTML  = body;
   t.classList.add('show');
-  var tw = 330, th = t.offsetHeight || 200;
+  var vw = window.innerWidth, vh = window.innerHeight;
+  var tw = Math.min(330, vw - 16), th = t.offsetHeight || 200;
+  t.style.maxWidth = tw + 'px';
   var lx = x + 16, ly = y + 16;
-  if (lx + tw > window.innerWidth - 12)  lx = x - tw - 10;
-  if (ly + th > window.innerHeight - 12) ly = Math.max(8, window.innerHeight - th - 12);
+  if (lx + tw > vw - 8)  lx = x - tw - 10;
+  if (lx < 8) lx = 8;
+  if (ly + th > vh - 8) ly = Math.max(8, vh - th - 8);
   t.style.left = lx + 'px'; t.style.top = ly + 'px';
 }
 
