@@ -56,6 +56,25 @@ function prog(p, m) {
   type();
 }
 
+/* ── Loading screen tips ─────────────────────────────────────── */
+var LOAD_TIPS = [
+  '"DCA and patience beats chasing moonshots every time."',
+  '"The best trade is often the one you don\'t make."',
+  '"Rotate into strength, not into hope."',
+  '"Time in the market beats timing the market."',
+  '"A portfolio that survives is a portfolio that thrives."',
+  '"Diversify across sectors, not just coins."',
+  '"Never invest more than you can afford to lose."',
+  '"Consistent small gains compound into big results."',
+  '"Zoom out. The 30D trend tells a clearer story than the 1H chart."',
+  '"Conviction without research is just gambling."'
+];
+(function showLoadTip() {
+  var el = document.getElementById('load-tip');
+  if (!el) return;
+  el.textContent = LOAD_TIPS[Math.floor(Math.random() * LOAD_TIPS.length)];
+})();
+
 /* ── Category-aware lazy loading state ────────────────────────── */
 var activeCategory   = 'l1';             /* default category on first load */
 var _loadedCategories = {};              /* cat → true once fetched */

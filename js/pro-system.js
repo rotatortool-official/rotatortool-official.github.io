@@ -13,8 +13,36 @@
 /* ── State (loaded from localStorage) ─────────────────────────── */
 var isPro = loadPro();
 
-function loadPro()  { return getRefData().pro; }
+function loadPro() {
+  var d = getRefData();
+  if (!d.pro) return false;
+  /* Check expiry if set */
+  if (d.pro_expires) {
+    var now = Date.now();
+    if (now > d.pro_expires) {
+      d.pro = false; d.pro_expires = null; saveRefData(d);
+      return false;
+    }
+  }
+  return true;
+}
 function savePro(v) { var d = getRefData(); d.pro = v; saveRefData(d); }
+function saveProWithExpiry(months) {
+  var d = getRefData();
+  d.pro = true;
+  d.pro_expires = Date.now() + (months * 30 * 24 * 60 * 60 * 1000);
+  saveRefData(d);
+}
+function getProDaysLeft() {
+  var d = getRefData();
+  if (!d.pro || !d.pro_expires) return -1; /* -1 = lifetime/referral */
+  var ms = d.pro_expires - Date.now();
+  return Math.max(0, Math.ceil(ms / (24 * 60 * 60 * 1000)));
+}
+function getProExpiry() {
+  var d = getRefData();
+  return d.pro_expires || null;
+}
 
 /* ── Referral system helpers ─────────────────────────────────── */
 function genId()      { return Math.random().toString(36).slice(2, 9); }
@@ -68,12 +96,36 @@ function updateTierBadge() {
   var pb = document.querySelector('.btn.pro-btn');
   var count = getRefData().refs.length;
   if (isPro) {
-    b.className = 'tier-badge pro'; b.textContent = '⚡ PRO · TOP 200';
-    if (pb) { pb.textContent = '⚡ PRO ACTIVE'; pb.style.opacity = '.6'; }
+    var daysLeft = getProDaysLeft();
+    var badgeText = '⚡ PRO · TOP 200';
+    if (daysLeft >= 0) badgeText = '⚡ PRO · ' + daysLeft + 'd left';
+    b.className = 'tier-badge pro'; b.textContent = badgeText;
+    if (pb) {
+      pb.textContent = daysLeft >= 0 ? '⚡ PRO · ' + daysLeft + 'd' : '⚡ PRO ACTIVE';
+      pb.style.opacity = '.6';
+    }
+    /* 3-day warning */
+    if (daysLeft >= 0 && daysLeft <= 3) showExpiryWarning(daysLeft);
   } else {
     b.className = 'tier-badge free'; b.textContent = 'FREE · TOP 200';
     if (pb) { pb.textContent = count > 0 ? '⚡ UNLOCK PRO (' + count + '/3)' : '⚡ UNLOCK PRO'; pb.style.opacity = ''; }
   }
+}
+
+/* ── Expiry warning (shown once per session) ────────────────── */
+var _expiryWarned = false;
+function showExpiryWarning(daysLeft) {
+  if (_expiryWarned) return;
+  _expiryWarned = true;
+  var msg = daysLeft === 0
+    ? '⚠ Your Pro expires today!'
+    : '⚠ Your Pro expires in ' + daysLeft + ' day' + (daysLeft > 1 ? 's' : '') + '.';
+  var t = document.createElement('div');
+  t.style.cssText = 'position:fixed;top:56px;left:50%;transform:translateX(-50%);background:var(--bg2);border:1px solid var(--amber);border-radius:6px;padding:14px 22px;font-family:IBM Plex Mono,monospace;font-size:12px;color:var(--amber);z-index:900;text-align:center;box-shadow:0 0 30px rgba(240,160,48,.15);letter-spacing:.06em;cursor:pointer;';
+  t.innerHTML = msg + '<br><span style="font-size:10px;color:var(--muted);margin-top:4px;display:block;">Click to renew your plan →</span>';
+  t.onclick = function() { t.remove(); openPro(); };
+  document.body.appendChild(t);
+  setTimeout(function() { if (t.parentNode) { t.style.transition = 'opacity .5s'; t.style.opacity = '0'; setTimeout(function() { t.remove(); }, 500); } }, 8000);
 }
 
 /* ── Pro modal ───────────────────────────────────────────────── */
@@ -86,10 +138,23 @@ function openPro() {
   var _ = (typeof t === 'function') ? t : function(k){ return k; };
 
   if (isPro) {
+    var daysLeft = getProDaysLeft();
+    var expiryHtml = '';
+    if (daysLeft >= 0) {
+      var expiryColor = daysLeft <= 3 ? 'var(--amber)' : daysLeft <= 7 ? 'var(--bnb)' : 'var(--green)';
+      expiryHtml = '<div style="margin-top:10px;background:var(--bg3);border:1px solid ' + expiryColor + '33;border-radius:4px;padding:10px 14px;text-align:center;">'
+        + '<div style="font-size:10px;color:var(--muted);letter-spacing:.12em;margin-bottom:4px;">SUBSCRIPTION</div>'
+        + '<div style="font-size:18px;font-weight:700;color:' + expiryColor + ';">' + daysLeft + ' day' + (daysLeft !== 1 ? 's' : '') + ' remaining</div>'
+        + (daysLeft <= 7 ? '<div style="margin-top:8px;"><a href="#" onclick="event.preventDefault();closeModal(\'pro-modal\');setTimeout(function(){openPro()},300);isPro=false;savePro(false);updateTierBadge();openPro();" style="font-size:10px;color:var(--bnb);text-decoration:none;font-weight:600;">Renew your plan →</a></div>' : '')
+        + '</div>';
+    } else {
+      expiryHtml = '<div style="margin-top:10px;background:var(--gd);border:1px solid rgba(0,200,150,.2);border-radius:4px;padding:8px 14px;text-align:center;font-size:11px;color:var(--green);font-weight:600;">Lifetime access (referral or code)</div>';
+    }
     body.innerHTML = '<div class="already-pro">'
       + '<div class="already-pro-icon">⚡</div>'
       + '<div class="already-pro-txt">' + _('pro_active') + '</div>'
       + '<div class="already-pro-sub">' + count + _('pro_active_sub_1') + '</div>'
+      + expiryHtml
       + '<div style="margin-top:14px;background:var(--bg3);border:1px solid var(--bdr2);border-radius:4px;padding:12px 14px;">'
         + '<div style="font-size:10px;color:var(--muted);letter-spacing:.12em;margin-bottom:8px;">' + _('pro_coming') + '</div>'
         + '<div style="font-size:11px;color:var(--text);line-height:2;">◈ <strong style="color:var(--bnb)">' + _('pro_coming_1') + '</strong> rotation tracker<br>◈ <strong style="color:var(--pro)">' + _('pro_coming_2') + '</strong> performance screener<br>◈ ' + _('pro_coming_3') + '</div>'
@@ -105,13 +170,23 @@ function openPro() {
       + '<button class="revoke-btn" onclick="revokePro()">' + _('pro_revoke') + '</button>'
       + '</div>';
   } else {
-    /* ── PRO PLANS ── */
+    /* ── PRO PLANS with feature details ── */
+    var planFeatures = [
+      ['Top 200 coins', 'All 10 categories', '5 holdings'],
+      ['Top 200 coins', 'All 10 categories', 'Unlimited holdings', '⚡ Insight Engine'],
+      ['Top 200 coins', 'All 10 categories', 'Unlimited holdings', '⚡ Insight Engine', '↔ Best Time to Swap', '💵 Stablecoin Yields']
+    ];
     var plansHtml = '<div class="pro-plans-row">';
-    PRO_PLANS.forEach(function(plan) {
-      plansHtml += '<a href="https://skrill.me/YourName/' + plan.price + '" target="_blank" rel="noopener" class="pro-plan-card" onclick="showTipScreen()">'
+    PRO_PLANS.forEach(function(plan, idx) {
+      var feats = planFeatures[idx] || planFeatures[planFeatures.length - 1];
+      var featHtml = feats.map(function(f) { return '<div style="font-size:9px;color:var(--text);line-height:1.6;">✓ ' + f + '</div>'; }).join('');
+      var isBest = idx === PRO_PLANS.length - 1;
+      plansHtml += '<a href="https://skrill.me/YourName/' + plan.price + '" target="_blank" rel="noopener" class="pro-plan-card' + (isBest ? ' pro-plan-best' : '') + '" onclick="showTipScreen()">'
+        + (isBest ? '<div class="pro-plan-best-tag">BEST VALUE</div>' : '')
         + '<div class="pro-plan-price">$' + plan.price + '</div>'
         + '<div class="pro-plan-dur">' + plan.label + '</div>'
         + '<div class="pro-plan-badge">' + plan.badge + '</div>'
+        + '<div style="margin-top:8px;border-top:1px solid var(--bdr);padding-top:8px;text-align:left;">' + featHtml + '</div>'
         + '</a>';
     });
     plansHtml += '</div>';
@@ -335,6 +410,17 @@ function restoreProFromKey() {
   }).catch(function() {
     err.style.color = 'var(--red)'; err.textContent = 'Connection error. Try again later.';
   });
+}
+
+/* ── Plan-based Pro activation (for Skrill/paid plans) ──────── */
+function activateProPlan(months) {
+  isPro = true;
+  saveProWithExpiry(months);
+  updateTierBadge();
+  if (typeof supaSavePro === 'function') supaSavePro(getMyId(), 'plan-' + months + 'mo');
+  if (typeof initCategoryLocks === 'function') initCategoryLocks();
+  updateProGates();
+  renderAll();
 }
 
 /* ── Pro feature gates ──────────────────────────────────────── */

@@ -206,6 +206,8 @@ body::before{content:'';position:fixed;inset:0;background:repeating-linear-gradi
 .pro-plan-price{font-size:22px;font-weight:800;color:var(--pro);letter-spacing:-.02em;line-height:1;}
 .pro-plan-dur{font-size:10px;color:var(--text);margin-top:4px;font-weight:600;letter-spacing:.06em;}
 .pro-plan-badge{font-size:8px;color:var(--muted);margin-top:6px;letter-spacing:.12em;text-transform:uppercase;padding:2px 8px;background:var(--bg4);border-radius:3px;}
+.pro-plan-best{border-color:var(--pro);position:relative;}
+.pro-plan-best-tag{position:absolute;top:-8px;left:50%;transform:translateX(-50%);font-size:7px;font-weight:800;letter-spacing:.12em;color:#fff;background:var(--pro);padding:2px 8px;border-radius:3px;white-space:nowrap;}
 
 .already-pro{text-align:center;padding:12px;}
 .already-pro-icon{font-size:28px;margin-bottom:8px;}
