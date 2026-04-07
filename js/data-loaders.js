@@ -1006,6 +1006,8 @@ async function doLoad() {
     await sleep(320);
     document.getElementById('loader').classList.add('gone');
     startAutoRefresh();
+    /* ── Open coin from shared link (?coin=BTC) ── */
+    _handleCoinDeepLink();
   } catch(e) {
     document.getElementById('lmsg').textContent = 'ERROR: ' + e.message;
     document.getElementById('lbf').style.background = 'var(--red)';
@@ -1507,9 +1509,26 @@ function openTileDetail(coinId, evt) {
   if (c.p7  <=-10) badges.push({t:'7D BREAKDOWN', cls:'bear'});
   if (c.p30 >= 20) badges.push({t:'30D UPTREND',  cls:'bull'});
   if (c.p30 <=-20) badges.push({t:'30D DOWNTREND',cls:'bear'});
-  document.getElementById('td-badges').innerHTML = badges.map(function(b) {
-    return '<span class="td-badge ' + b.cls + '">' + b.t + '</span>';
-  }).join('');
+  var badgesHtml = '';
+  if (isPro || badges.length <= 2) {
+    /* Pro: show all signals. Free: show all if 2 or fewer */
+    badgesHtml = badges.map(function(b) {
+      return '<span class="td-badge ' + b.cls + '">' + b.t + '</span>';
+    }).join('');
+  } else {
+    /* Free: show first 2 badges, blur the rest with a Pro unlock nudge */
+    badgesHtml = badges.slice(0, 2).map(function(b) {
+      return '<span class="td-badge ' + b.cls + '">' + b.t + '</span>';
+    }).join('');
+    var extraCount = badges.length - 2;
+    badgesHtml += '<span class="td-badge-blur-wrap" onclick="openPro()" title="Unlock all signals with Pro" style="cursor:pointer;display:inline-flex;align-items:center;gap:4px;">';
+    badges.slice(2).forEach(function(b) {
+      badgesHtml += '<span class="td-badge ' + b.cls + '" style="filter:blur(4px);pointer-events:none;user-select:none;">' + b.t + '</span>';
+    });
+    badgesHtml += '<span style="font-size:8px;color:var(--pro);font-weight:700;letter-spacing:.08em;margin-left:2px;">⚡ PRO</span>';
+    badgesHtml += '</span>';
+  }
+  document.getElementById('td-badges').innerHTML = badgesHtml;
 
   /* Insight Engine section — PRO only, show for holdings + watchlist coins */
   var insSec = document.getElementById('td-insight-sec');
@@ -1718,21 +1737,50 @@ function closeTileDetail() {
   _tdCoin = null;
 }
 
+/* ── Deep link: open coin detail from ?coin= URL param ──────── */
+function _handleCoinDeepLink() {
+  try {
+    var params = new URLSearchParams(window.location.search);
+    var coinParam = params.get('coin');
+    if (!coinParam) return;
+    /* Clean URL without reloading */
+    var cleanUrl = window.location.pathname + (params.get('ref') ? '?ref=' + params.get('ref') : '');
+    window.history.replaceState({}, '', cleanUrl || window.location.pathname);
+    /* Find coin by symbol (case insensitive) or ID */
+    var sym = coinParam.toUpperCase();
+    var c = coins.find(function(x) {
+      return x.sym === sym || x.id === coinParam.toLowerCase();
+    });
+    if (c) {
+      /* Small delay so the UI is fully settled */
+      setTimeout(function() { openTileDetail(c.id); }, 200);
+    }
+  } catch(e) { console.warn('Deep link error:', e); }
+}
+
 /* ── Share tile insight ─────────────────────────────────────── */
 function _shareText() {
   var sym  = (document.getElementById('td-sym')  || {}).textContent || '';
   var name = (document.getElementById('td-name') || {}).textContent || '';
   var prc  = (document.getElementById('td-price')|| {}).textContent || '';
   var chg  = (document.getElementById('td-price-chg') || {}).textContent || '';
+  var scoreEl = document.querySelector('#td-score-bars span');
+  var score = scoreEl ? scoreEl.textContent.trim() : '';
   var badgeEls = document.querySelectorAll('#td-badges .td-badge');
   var signals = [];
   badgeEls.forEach(function(b){ if(b.textContent) signals.push(b.textContent.trim()); });
   var arrow = chg.indexOf('+') === 0 ? '▲' : chg.indexOf('-') === 0 || chg.indexOf('−') === 0 ? '▼' : '◆';
-  var text = '📊 ' + sym + ' (' + name + ')  —  ' + prc + '\n'
-    + arrow + ' ' + chg + '\n';
-  if (signals.length) text += '⚡ Signals: ' + signals.join(' · ') + '\n';
-  text += '\nAnalyzed with Rotator — real-time rotation & momentum tracker\nhttps://rotatortool-official.github.io';
-  return { sym: sym, text: text, url: 'https://rotatortool-official.github.io' };
+  var coinUrl = 'https://rotatortool-official.github.io?coin=' + encodeURIComponent(sym);
+  var text = '━━━━━━━━━━━━━━━━\n'
+    + '📊  ' + sym + '  ·  ' + prc + '\n'
+    + arrow + ' ' + chg + '  ';
+  if (score) text += '·  Score: ' + score + '/100';
+  text += '\n';
+  if (signals.length) text += '⚡ ' + signals.join(' · ') + '\n';
+  text += '━━━━━━━━━━━━━━━━\n'
+    + '🔍 Full analysis → ' + coinUrl + '\n'
+    + 'Rotator — Free crypto rotation screener';
+  return { sym: sym, text: text, url: coinUrl };
 }
 
 function _copyToClip(text, btn) {

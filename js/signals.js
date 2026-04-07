@@ -171,7 +171,7 @@ function renderTopBars() {
     return '<div class="sig-tile sig-tile-empty" onclick="document.getElementById(\'coin-sel\')&&document.getElementById(\'coin-sel\').focus()" title="Add holdings to get signals">'
       + '<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;gap:4px;opacity:.5;padding:6px;text-align:center;">'
       + '<span style="font-size:16px;color:var(--green);line-height:1;">+</span>'
-      + '<span style="font-size:7px;letter-spacing:.04em;color:var(--muted);font-family:var(--font-ui);line-height:1.3;">Add holdings to receive signals</span>'
+      + '<span style="font-size:9px;letter-spacing:.04em;color:var(--muted);font-family:var(--font-ui);line-height:1.4;">Add holdings to receive signals</span>'
       + '</div></div>';
   }
 
@@ -179,8 +179,9 @@ function renderTopBars() {
   var worstAll = coins.slice().sort(function(a, b) { return a.p30 - b.p30; });
   var worstEl  = document.getElementById('worst-cards');
   if (isPro) {
-    worstEl.innerHTML = '<div class="sig-tiles-grid">'
-      + worstAll.slice(0, 4).map(function(c) { return sigTile(c, 'wrst'); }).join('') + '</div>';
+    var worstTiles = worstAll.slice(0, 4).map(function(c) { return sigTile(c, 'wrst'); }).join('');
+    for (var wp = worstAll.slice(0, 4).length; wp < 4; wp++) worstTiles += emptyPlaceholderTile();
+    worstEl.innerHTML = '<div class="sig-tiles-grid">' + worstTiles + '</div>';
   } else {
     var w3 = worstAll.slice(0, 2).map(function(c) { return sigTile(c, 'wrst'); }).join('');
     var wLocked = proUnlockTile('2 more in Pro') + emptyPlaceholderTile();
@@ -193,8 +194,9 @@ function renderTopBars() {
   var momEl   = document.getElementById('mom-cards');
   if (isPro) {
     if (momAll.length) {
-      momEl.innerHTML = '<div class="sig-tiles-grid">'
-        + momAll.slice(0, 4).map(function(c) { return sigTile(c, 'mom'); }).join('') + '</div>';
+      var momTiles = momAll.slice(0, 4).map(function(c) { return sigTile(c, 'mom'); }).join('');
+      for (var mp = momAll.slice(0, 4).length; mp < 4; mp++) momTiles += emptyPlaceholderTile();
+      momEl.innerHTML = '<div class="sig-tiles-grid">' + momTiles + '</div>';
     } else {
       momEl.innerHTML = '<div class="no-sug">Scanning \u2014 no coins above momentum threshold right now.</div>';
     }
@@ -266,12 +268,19 @@ function renderTopBars() {
   }
 
   /* Pro: full rotation signals */
-  if (!holdings.length) { sugEl.innerHTML = '<div class="no-sug">Add holdings above to see rotation signals.</div>'; return; }
+  if (!holdings.length) {
+    var emptyGrid = '';
+    for (var ep = 0; ep < 4; ep++) emptyGrid += emptyPlaceholderTile();
+    sugEl.innerHTML = '<div class="sig-tiles-grid">' + emptyGrid + '</div>';
+    return;
+  }
   if (!sells.length) { sugEl.innerHTML = '<div class="no-sug">Monitoring \u2014 no holdings strongly outperforming yet.</div>'; return; }
   if (!buys.length)  { sugEl.innerHTML = '<div class="no-sug">Scanning \u2014 no clear rotation targets right now.</div>'; return; }
   var pairs = [];
   for (var i = 0; i < Math.min(4, sells.length); i++) pairs.push({sell: sells[i], buy: buys[i % buys.length]});
-  sugEl.innerHTML = '<div class="sig-tiles-grid">' + pairs.map(function(p) { return sigRotTile(p.sell, p.buy); }).join('') + '</div>';
+  var rotHtml = pairs.map(function(p) { return sigRotTile(p.sell, p.buy); }).join('');
+  for (var rp = pairs.length; rp < 4; rp++) rotHtml += emptyPlaceholderTile();
+  sugEl.innerHTML = '<div class="sig-tiles-grid">' + rotHtml + '</div>';
 }
 
 /* ══════════════════════════════════════════════════════════════
