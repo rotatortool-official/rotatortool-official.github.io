@@ -122,6 +122,111 @@ function supaSaveReferral(referrerUid, referredUid) {
   });
 }
 
+/* ══════════════════════════════════════════════════════════════════
+   SHARED API CACHE  —  Prevents CoinGecko rate-limit bans
+
+   HOW IT WORKS:
+   ─────────────
+   Instead of every user hitting CoinGecko directly, the first user
+   to load fetches the data and writes it to the market_cache table.
+   All subsequent users within the TTL window read from Supabase
+   instead — fast and free of rate limits.
+
+   • supaCacheGet(key, ttlMs)  → returns cached data or null
+   • supaCacheSet(key, data)   → writes/updates cache entry
+══════════════════════════════════════════════════════════════════ */
+
+/**
+ * Read from shared Supabase cache.
+ * @param {string} key   — cache key (e.g. 'coins_markets_l1')
+ * @param {number} ttlMs — max age in ms (default 5 min)
+ * @returns {Promise<object|null>} cached data or null if stale/missing
+ */
+function supaCacheGet(key, ttlMs) {
+  ttlMs = ttlMs || 5 * 60 * 1000;
+  return supaRest('market_cache', 'GET', {
+    'cache_key': 'eq.' + key,
+    'select':    'data,updated_at',
+    'limit':     '1'
+  }).then(function(rows) {
+    if (!rows || !rows.length) return null;
+    var row = rows[0];
+    var age = Date.now() - new Date(row.updated_at).getTime();
+    if (age > ttlMs) return null; // stale
+    return row.data;
+  }).catch(function(e) {
+    console.warn('[SupaCache] read failed, will fetch from API:', e.message);
+    return null;
+  });
+}
+
+/**
+ * Write to shared Supabase cache (upsert).
+ * @param {string} key  — cache key
+ * @param {object} data — JSON-serializable data
+ */
+function supaCacheSet(key, data) {
+  return supaRest('market_cache', 'POST', {
+    cache_key:  key,
+    data:       data,
+    updated_at: new Date().toISOString()
+  }).catch(function(e) {
+    console.warn('[SupaCache] write failed (non-critical):', e.message);
+  });
+}
+
+/* ══════════════════════════════════════════════════════════════════
+   PRO REQUEST PIPELINE  —  Donation → Pro activation
+
+   HOW IT WORKS:
+   ─────────────
+   1. User donates crypto and clicks "I've sent payment"
+   2. Fills: amount, network, TX hash, contact (Telegram/Discord)
+   3. Request saved to pro_requests table (status: 'pending')
+   4. Admin (Daniel) checks wallet → verifies TX → sets status: 'approved'
+      AND flips is_pro=true in pro_users via dashboard
+   5. User's next page load → supaRestoreOnLoad() auto-activates Pro
+══════════════════════════════════════════════════════════════════ */
+
+/**
+ * Submit a Pro activation request after crypto donation.
+ * @param {object} req — { amount, network, tx_hash, contact }
+ * @returns {Promise<boolean>} true if saved successfully
+ */
+function supaSubmitProRequest(req) {
+  var uid = localStorage.getItem('rot_uid') || getMyId();
+  return supaRest('pro_requests', 'POST', {
+    rot_uid:  uid,
+    amount:   req.amount   || '',
+    network:  req.network  || '',
+    tx_hash:  req.tx_hash  || '',
+    contact:  req.contact  || '',
+    status:   'pending'
+  }).then(function(rows) {
+    return rows && rows.length > 0;
+  }).catch(function(e) {
+    console.warn('[Supabase] pro request failed:', e.message);
+    return false;
+  });
+}
+
+/**
+ * Check if user has a pending or approved request.
+ * @returns {Promise<object|null>} latest request or null
+ */
+function supaCheckProRequest() {
+  var uid = localStorage.getItem('rot_uid');
+  if (!uid) return Promise.resolve(null);
+  return supaRest('pro_requests', 'GET', {
+    'rot_uid':  'eq.' + uid,
+    'select':   'status,created_at',
+    'order':    'created_at.desc',
+    'limit':    '1'
+  }).then(function(rows) {
+    return rows && rows.length > 0 ? rows[0] : null;
+  }).catch(function() { return null; });
+}
+
 /* ── Auto-run on load ────────────────────────────────────────── */
 (function() {
   try { supaRestoreOnLoad(); } catch(e) {}

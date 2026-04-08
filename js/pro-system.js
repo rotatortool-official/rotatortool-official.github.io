@@ -217,9 +217,9 @@ function openPro() {
       + plansHtml
 
       /* ── OR use crypto ── */
-      + '<div style="text-align:center;margin:10px 0 6px;font-size:9px;color:var(--muted);letter-spacing:.12em;">— OR DONATE CRYPTO —</div>'
+      + '<div style="text-align:center;margin:10px 0 6px;font-size:9px;color:var(--muted);letter-spacing:.12em;">— OR PAY WITH CRYPTO —</div>'
       + '<div style="text-align:center;margin-bottom:10px;">'
-        + '<a href="#" onclick="closeModal(\'pro-modal\');openModal(\'donate-modal\');return false;" style="font-size:11px;color:var(--bnb);text-decoration:none;font-weight:600;">☕ Send USDT (TRC20) →</a>'
+        + '<a href="#" onclick="closeModal(\'pro-modal\');openModal(\'donate-modal\');return false;" style="font-size:11px;color:var(--bnb);text-decoration:none;font-weight:600;">☕ Send Crypto (USDT, BTC, SOL & more) →</a>'
       + '</div>'
 
       /* ── Free referral option ── */
@@ -412,6 +412,60 @@ function restoreProFromKey() {
     err.style.color = 'var(--red)'; err.textContent = 'Connection error. Try again later.';
   });
 }
+
+/* ── Submit Pro request after crypto donation ───────────────── */
+function submitProRequest() {
+  var network = document.getElementById('pr-network');
+  var amount  = document.getElementById('pr-amount');
+  var txhash  = document.getElementById('pr-txhash');
+  var contact = document.getElementById('pr-contact');
+  var status  = document.getElementById('pr-status');
+  if (!status) return;
+
+  /* Validation */
+  if (!network || !network.value) { status.style.color = 'var(--red)'; status.textContent = 'Please select a network.'; return; }
+  if (!txhash || !txhash.value.trim()) { status.style.color = 'var(--red)'; status.textContent = 'Please enter the TX hash or reference.'; return; }
+  if (!contact || !contact.value.trim()) { status.style.color = 'var(--red)'; status.textContent = 'Please enter your Telegram, Discord, or Email.'; return; }
+
+  status.style.color = 'var(--muted)'; status.textContent = 'Submitting...';
+
+  if (typeof supaSubmitProRequest !== 'function') {
+    status.style.color = 'var(--red)'; status.textContent = 'Service unavailable. Please try again later.';
+    return;
+  }
+
+  supaSubmitProRequest({
+    amount:   (amount ? amount.value.trim() : ''),
+    network:  network.value,
+    tx_hash:  txhash.value.trim(),
+    contact:  contact.value.trim()
+  }).then(function(ok) {
+    if (ok) {
+      /* Show success, hide form */
+      var form = document.getElementById('pro-request-form');
+      var pending = document.getElementById('pro-request-pending');
+      if (form) form.style.display = 'none';
+      if (pending) pending.style.display = 'block';
+      try { localStorage.setItem('rot_pro_requested', '1'); } catch(e) {}
+    } else {
+      status.style.color = 'var(--red)'; status.textContent = 'Failed to submit. Please try again.';
+    }
+  });
+}
+
+/* On load: if user already submitted a request, show pending state */
+(function() {
+  try {
+    if (localStorage.getItem('rot_pro_requested') === '1') {
+      setTimeout(function() {
+        var form = document.getElementById('pro-request-form');
+        var pending = document.getElementById('pro-request-pending');
+        if (form) form.style.display = 'none';
+        if (pending) pending.style.display = 'block';
+      }, 100);
+    }
+  } catch(e) {}
+})();
 
 /* ── Plan-based Pro activation (for Skrill/paid plans) ──────── */
 function activateProPlan(months) {

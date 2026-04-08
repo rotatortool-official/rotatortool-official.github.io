@@ -640,6 +640,38 @@ body::before{content:'';position:fixed;inset:0;background:repeating-linear-gradi
 .td-sh:hover{background:var(--bg4);border-color:var(--bdr2);color:var(--text);}
 .td-sh.copied{background:rgba(0,200,150,.15);border-color:rgba(0,200,150,.4);color:var(--green);}
 
+/* ═══ Viral Share Preview Modal ═══ */
+.viral-share-overlay{z-index:9999;}
+.viral-share-modal{position:relative;width:92%;max-width:420px;margin:auto;padding:22px 18px 18px;background:rgba(13,17,23,.85);backdrop-filter:blur(24px) saturate(1.4);-webkit-backdrop-filter:blur(24px) saturate(1.4);border:1px solid rgba(243,186,47,.2);border-radius:14px;box-shadow:0 24px 80px rgba(0,0,0,.6),0 0 40px rgba(243,186,47,.06);color:var(--text);animation:modalSlideIn .25s ease-out;}
+@keyframes modalSlideIn{from{opacity:0;transform:translateY(20px) scale(.97);}to{opacity:1;transform:translateY(0) scale(1);}}
+.viral-share-title{font-family:var(--font-display);font-size:16px;font-weight:700;color:var(--bnb);letter-spacing:.04em;margin-bottom:4px;}
+.viral-share-sub{font-size:10px;color:var(--muted);margin-bottom:14px;line-height:1.5;}
+.viral-share-preview{width:100%;border-radius:8px;overflow:hidden;border:1px solid rgba(255,255,255,.08);margin-bottom:14px;background:#0d1117;}
+.viral-share-preview img{width:100%;height:auto;display:block;}
+.viral-copy-wrap{background:rgba(255,255,255,.04);border:1px solid var(--bdr);border-radius:6px;padding:10px 12px;margin-bottom:12px;}
+.viral-copy-label{font-size:8px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);margin-bottom:6px;font-family:var(--font-display);}
+.viral-copy-text{font-size:11px;color:var(--text);line-height:1.6;white-space:pre-wrap;word-break:break-word;max-height:80px;overflow-y:auto;}
+.viral-copy-cycle{background:none;border:none;color:var(--bnb);font-size:9px;cursor:pointer;padding:4px 0 0;font-family:var(--font-ui);letter-spacing:.04em;opacity:.7;transition:opacity .15s;}
+.viral-copy-cycle:hover{opacity:1;}
+.viral-share-platforms{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-bottom:12px;}
+.viral-sh{display:flex;flex-direction:column;align-items:center;gap:4px;padding:10px 4px 8px;background:rgba(255,255,255,.05);border:1px solid var(--bdr);border-radius:6px;color:var(--muted);cursor:pointer;transition:all .15s;font-size:0;}
+.viral-sh svg{flex-shrink:0;}
+.viral-sh span{font-size:8px;letter-spacing:.06em;text-transform:uppercase;line-height:1;}
+.viral-sh:hover{background:rgba(243,186,47,.1);border-color:rgba(243,186,47,.3);color:var(--bnb);}
+.viral-sh.copied{background:rgba(0,200,150,.15);border-color:rgba(0,200,150,.4);color:var(--green);}
+.viral-actions{display:flex;gap:8px;}
+.viral-native-share,.viral-download-btn{flex:1;display:flex;align-items:center;justify-content:center;gap:8px;padding:10px 0;border-radius:6px;font-size:11px;font-weight:600;cursor:pointer;transition:all .18s;font-family:var(--font-display);letter-spacing:.04em;}
+.viral-native-share{background:linear-gradient(135deg,rgba(243,186,47,.2),rgba(243,186,47,.08));border:1px solid rgba(243,186,47,.4);color:var(--bnb);}
+.viral-native-share:hover{background:linear-gradient(135deg,rgba(243,186,47,.3),rgba(243,186,47,.15));box-shadow:0 0 16px rgba(243,186,47,.15);}
+.viral-download-btn{background:rgba(255,255,255,.05);border:1px solid var(--bdr);color:var(--muted);}
+.viral-download-btn:hover{background:rgba(255,255,255,.1);border-color:var(--bdr2);color:var(--text);}
+/* Light theme overrides */
+:root.light .viral-share-modal{background:rgba(255,252,240,.92);border-color:rgba(200,170,80,.3);box-shadow:0 24px 80px rgba(0,0,0,.15);}
+:root.light .viral-sh{background:rgba(255,248,220,.7);border-color:rgba(200,180,120,.25);color:rgba(100,80,40,.6);}
+:root.light .viral-sh:hover{background:rgba(245,235,200,.9);border-color:rgba(180,150,80,.4);color:rgba(80,60,20,.8);}
+:root.light .viral-copy-wrap{background:rgba(0,0,0,.03);border-color:rgba(200,180,120,.25);}
+:root.light .viral-download-btn{background:rgba(0,0,0,.04);border-color:rgba(200,180,120,.25);color:rgba(100,80,40,.6);}
+
 /* Close button */
 .td-close{position:sticky;top:0;float:right;z-index:10;background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.18);color:var(--text);font-size:18px;cursor:pointer;line-height:1;padding:5px 9px;transition:all .15s;border-radius:50%;margin:-6px -6px 4px 0;backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px);}
 .td-close:hover{color:#fff;background:rgba(255,69,96,.35);border-color:rgba(255,69,96,.5);}

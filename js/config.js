@@ -305,6 +305,7 @@ var VALID_CODES = [
   'ROT-2026-PRO05',
   'ROT-2026-DONOR',
   'ROT-2026-EARLY',
+  'ГЕМИЏИЈА',
   /* ↑ Add more codes here as donations come in */
 ];
 

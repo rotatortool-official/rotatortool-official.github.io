@@ -147,21 +147,49 @@ async function loadCoins(categoryOverride) {
   /* Deduplicate IDs (some may appear twice in the list) */
   var seen = {}; var uniqueIds = [];
   idsToFetch.forEach(function(id) { if (!seen[id]) { seen[id] = true; uniqueIds.push(id); } });
-  /* Split into batches of 50 for CoinGecko's per_page limit */
-  var batches = [];
-  for (var b = 0; b < uniqueIds.length; b += 50) {
-    batches.push(uniqueIds.slice(b, b + 50).join(','));
-  }
-  var baseUrl  = 'https://api.coingecko.com/api/v3/coins/markets'
-    + '?vs_currency=usd&order=market_cap_desc&per_page=50&page=1'
-    + '&sparkline=false&price_change_percentage=7d,14d,30d&include_24hr_vol=true';
 
-  prog(20, 'Fetching data for ' + uniqueIds.length + ' coins (' + batches.length + ' batches)…');
-  var results  = await Promise.all(
-    batches.map(function(ids) { return apiFetch(baseUrl + '&ids=' + ids); })
-  );
-  var rawData = [];
-  results.forEach(function(r) { if (Array.isArray(r)) rawData = rawData.concat(r); });
+  /* ── Supabase shared cache: try to read CoinGecko data from cloud first ──
+     This prevents rate-limit bans when many users load at the same time.
+     Only one user per 5 minutes actually hits CoinGecko; everyone else
+     gets the cached version from Supabase.
+  ──────────────────────────────────────────────────────────────────────── */
+  var cacheKey = 'cg_markets_' + cat;
+  var rawData  = [];
+  var usedCache = false;
+
+  if (typeof supaCacheGet === 'function') {
+    try {
+      prog(15, 'Checking shared cache…');
+      var cached = await supaCacheGet(cacheKey, 5 * 60 * 1000);
+      if (cached && Array.isArray(cached) && cached.length > 0) {
+        rawData   = cached;
+        usedCache = true;
+        prog(30, 'Loaded ' + rawData.length + ' coins from shared cache');
+      }
+    } catch(e) { console.warn('[SupaCache] read skipped:', e.message); }
+  }
+
+  if (!usedCache) {
+    /* Split into batches of 50 for CoinGecko's per_page limit */
+    var batches = [];
+    for (var b = 0; b < uniqueIds.length; b += 50) {
+      batches.push(uniqueIds.slice(b, b + 50).join(','));
+    }
+    var baseUrl  = 'https://api.coingecko.com/api/v3/coins/markets'
+      + '?vs_currency=usd&order=market_cap_desc&per_page=50&page=1'
+      + '&sparkline=false&price_change_percentage=7d,14d,30d&include_24hr_vol=true';
+
+    prog(20, 'Fetching data for ' + uniqueIds.length + ' coins (' + batches.length + ' batches)…');
+    var results  = await Promise.all(
+      batches.map(function(ids) { return apiFetch(baseUrl + '&ids=' + ids); })
+    );
+    results.forEach(function(r) { if (Array.isArray(r)) rawData = rawData.concat(r); });
+
+    /* Write fresh data to shared cache for other users */
+    if (rawData.length && typeof supaCacheSet === 'function') {
+      supaCacheSet(cacheKey, rawData); // fire-and-forget
+    }
+  }
   if (!rawData.length) throw new Error('CoinGecko data invalid');
 
   var fetchedCoins = rawData.map(function(c) {
@@ -223,6 +251,24 @@ async function loadCoins(categoryOverride) {
 var _macroData = {btcP7: null, goldP7: null, silverP7: null, oilP7: null, dxyP7: null, total3P7: null};
 
 async function loadMacroData() {
+  /* ── Try shared Supabase cache first ── */
+  if (typeof supaCacheGet === 'function') {
+    try {
+      var cached = await supaCacheGet('macro_data', 10 * 60 * 1000); // 10 min TTL
+      if (cached && cached.goldP7 != null) {
+        _macroData.goldP7    = cached.goldP7;
+        _macroData.silverP7  = cached.silverP7;
+        _macroData.oilP7     = cached.oilP7;
+        _macroData.dxyP7     = cached.dxyP7;
+        _macroData.total3P7  = cached.total3P7;
+        _macroData.total3Mcap = cached.total3Mcap;
+        var btcCoin = coins.find(function(c) { return c.id === 'bitcoin'; });
+        if (btcCoin) _macroData.btcP7 = btcCoin.p7;
+        return;
+      }
+    } catch(e) { console.warn('[SupaCache] macro read skipped:', e.message); }
+  }
+
   try {
     var goldUrl  = 'https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&ids=tether-gold&price_change_percentage=7d&per_page=1';
     var goldData = await apiFetch(goldUrl);
@@ -265,12 +311,35 @@ async function loadMacroData() {
         _macroData.total3Mcap = total3Now;
       }
     } catch(e3) { console.warn('Total3 fetch:', e3.message); }
+
+    /* Write macro data to shared cache for other users */
+    if (typeof supaCacheSet === 'function') {
+      supaCacheSet('macro_data', {
+        goldP7:     _macroData.goldP7,
+        silverP7:   _macroData.silverP7,
+        oilP7:      _macroData.oilP7,
+        dxyP7:      _macroData.dxyP7,
+        total3P7:   _macroData.total3P7,
+        total3Mcap: _macroData.total3Mcap
+      });
+    }
   } catch(e) { console.warn('Macro data:', e.message); }
 }
 
 /* ── Fear & Greed Index (used by Insight Engine) ─────────────── */
 window.fearGreed = { value: 50, label: 'Neutral' };
 async function loadFearGreed() {
+  /* Try shared cache first (15 min TTL — FnG updates daily) */
+  if (typeof supaCacheGet === 'function') {
+    try {
+      var cached = await supaCacheGet('fear_greed', 15 * 60 * 1000);
+      if (cached && cached.value) {
+        window.fearGreed = cached;
+        return;
+      }
+    } catch(e) { /* fall through to API */ }
+  }
+
   try {
     var data = await apiFetch('https://api.alternative.me/fng/?limit=1');
     if (data && data.data && data.data[0]) {
@@ -278,6 +347,9 @@ async function loadFearGreed() {
         value: parseInt(data.data[0].value) || 50,
         label: data.data[0].value_classification || 'Neutral'
       };
+      if (typeof supaCacheSet === 'function') {
+        supaCacheSet('fear_greed', window.fearGreed);
+      }
     }
   } catch(e) { console.warn('[FearGreed]', e.message); }
 }
@@ -2050,24 +2122,139 @@ function shareAsImage() {
   ctx.fillStyle = gold;
   ctx.fillRect(0, H - 3, W, 3);
 
-  /* ── Download / share ── */
+  /* ── Show viral share preview modal instead of direct download ── */
   try {
     can.toBlob(function(blob) {
       if (!blob) { _fallbackDownload(can, sym); return; }
-      /* Try Web Share API with image (mobile-friendly) */
-      if (navigator.share && navigator.canShare) {
-        var file = new File([blob], 'rotator-' + sym.toLowerCase() + '.png', { type: 'image/png' });
-        var shareData = { files: [file], title: sym + ' — Rotator Insight', text: sym + ' ' + price + ' ' + chg + '\nrotatortool-official.github.io?coin=' + encodeURIComponent(sym) };
-        if (navigator.canShare(shareData)) {
-          navigator.share(shareData).catch(function() { _fallbackDownload(can, sym); });
-          return;
-        }
+      _viralBlob = blob;
+      _viralSym  = sym;
+      _viralCanvas = can;
+      _viralCopyIdx = Math.floor(Math.random() * _viralCopyTemplates.length);
+
+      /* Set preview image */
+      var preview = document.getElementById('viral-share-preview');
+      if (preview) {
+        var url = URL.createObjectURL(blob);
+        preview.innerHTML = '<img src="' + url + '" alt="' + sym + ' share card">';
       }
-      _fallbackDownload(can, sym);
+
+      /* Set share message */
+      _updateViralCopy();
+
+      /* Show native share button if supported */
+      var nativeBtn = document.getElementById('viral-native-btn');
+      if (nativeBtn) {
+        var file = new File([blob], 'rotator-' + sym.toLowerCase() + '.png', { type: 'image/png' });
+        var canShare = navigator.share && navigator.canShare && navigator.canShare({ files: [file] });
+        nativeBtn.style.display = canShare ? 'flex' : 'none';
+      }
+
+      openModal('viral-share-modal');
     }, 'image/png');
   } catch(e) {
     _fallbackDownload(can, sym);
   }
+}
+
+/* ══════════════════════════════
+   VIRAL SHARE — Preview modal logic
+══════════════════════════════ */
+var _viralBlob   = null;
+var _viralSym    = '';
+var _viralCanvas = null;
+var _viralCopyIdx = 0;
+
+var _viralCopyTemplates = [
+  function(sym, score, chg, link) {
+    return '📊 ' + sym + ' scored ' + score + '/100 on Rotator — ' + chg + ' in 24H\n\nFull breakdown → ' + link;
+  },
+  function(sym, score, chg, link) {
+    return 'Found this setup on Rotator. Analytics don\'t lie. ' + sym + ' ' + chg + '\n\n🔍 ' + link;
+  },
+  function(sym, score, chg, link) {
+    return 'Level up your trading edge — ' + sym + ' is showing strong momentum (' + score + '/100)\n\n' + link + ' 🔥';
+  },
+  function(sym, score, chg, link) {
+    return sym + ' ' + chg + ' · Score: ' + score + '/100\nRotation signals + momentum scoring, all free.\n\n→ ' + link;
+  },
+  function(sym, score, chg, link) {
+    return '⚡ ' + sym + ' momentum alert — ' + score + '/100 composite score\n\nCheck the full analysis: ' + link;
+  }
+];
+
+function _getViralCopyData() {
+  var sym   = (document.getElementById('td-sym')  || {}).textContent || _viralSym || '';
+  var chg   = (document.getElementById('td-price-chg') || {}).textContent || '';
+  var scoreEl = document.querySelector('#td-score-bars span');
+  var score = scoreEl ? scoreEl.textContent.trim() : '?';
+  var link  = (typeof getMyReferralLink === 'function') ? getMyReferralLink() : 'https://rotatortool-official.github.io';
+  return { sym: sym, score: score, chg: chg, link: link };
+}
+
+function _updateViralCopy() {
+  var d = _getViralCopyData();
+  var tpl = _viralCopyTemplates[_viralCopyIdx % _viralCopyTemplates.length];
+  var text = tpl(d.sym, d.score, d.chg, d.link);
+  var el = document.getElementById('viral-copy-text');
+  if (el) el.textContent = text;
+}
+
+function cycleViralCopy() {
+  _viralCopyIdx = (_viralCopyIdx + 1) % _viralCopyTemplates.length;
+  _updateViralCopy();
+}
+
+function closeViralShare() {
+  closeModal('viral-share-modal');
+}
+
+function viralShareTo(platform) {
+  var d = _getViralCopyData();
+  var tpl = _viralCopyTemplates[_viralCopyIdx % _viralCopyTemplates.length];
+  var text = tpl(d.sym, d.score, d.chg, d.link);
+  var enc = encodeURIComponent(text);
+  var encUrl = encodeURIComponent(d.link);
+  var btn = event && event.currentTarget;
+
+  switch (platform) {
+    case 'copy':
+      _copyToClip(text, btn);
+      return;
+    case 'x':
+      window.open('https://x.com/intent/tweet?text=' + enc, '_blank', 'width=550,height=420');
+      break;
+    case 'telegram':
+      window.open('https://t.me/share/url?url=' + encUrl + '&text=' + enc, '_blank', 'width=550,height=420');
+      break;
+    case 'whatsapp':
+      window.open('https://wa.me/?text=' + enc, '_blank', 'width=550,height=420');
+      break;
+    case 'discord':
+      _copyToClip(text, btn);
+      return;
+    case 'messenger':
+      window.open('https://www.facebook.com/dialog/send?link=' + encUrl + '&app_id=966242223397117&redirect_uri=' + encUrl, '_blank', 'width=550,height=420');
+      break;
+    case 'reddit':
+      window.open('https://www.reddit.com/submit?title=' + encodeURIComponent('📊 ' + d.sym + ' — Rotator Signal') + '&url=' + encUrl, '_blank', 'width=800,height=600');
+      break;
+    case 'threads':
+      window.open('https://www.threads.net/intent/post?text=' + enc, '_blank', 'width=550,height=420');
+      break;
+  }
+}
+
+function viralNativeShare() {
+  if (!_viralBlob) return;
+  var d = _getViralCopyData();
+  var tpl = _viralCopyTemplates[_viralCopyIdx % _viralCopyTemplates.length];
+  var text = tpl(d.sym, d.score, d.chg, d.link);
+  var file = new File([_viralBlob], 'rotator-' + _viralSym.toLowerCase() + '.png', { type: 'image/png' });
+  navigator.share({ files: [file], title: d.sym + ' — Rotator Signal', text: text }).catch(function(){});
+}
+
+function viralDownload() {
+  if (_viralCanvas) _fallbackDownload(_viralCanvas, _viralSym);
 }
 
 function _fallbackDownload(can, sym) {
