@@ -143,15 +143,15 @@ function renderTiles() {
     /* ── Locked green + slots ── */
     var lockedCount = TOTAL_TILE_SLOTS - PRO_PROMO_SLOTS - FREE_HOLDINGS_LIMIT;
     for (var j = 0; j < lockedCount; j++) {
-      html += '<div class="tile-placeholder tile-placeholder-locked" onclick="openPro()" title="Unlock with Pro">'
-            + '<div class="ph-plus">+</div><div class="ph-lbl">Pro</div></div>';
+      html += '<div class="tile-placeholder tile-placeholder-locked" onclick="openPro()" title="Support & Unlock">'
+            + '<div class="ph-plus">+</div><div class="ph-lbl">☕</div></div>';
     }
     /* ── Purple Pro promo tiles (last 2) ── */
     for (var k = 0; k < PRO_PROMO_SLOTS; k++) {
       html += '<div class="tile-pro-promo" onclick="openPro()">'
-            + '<div class="pro-promo-thunder">⚡</div>'
+            + '<div class="pro-promo-thunder">☕</div>'
             + '<div class="pro-promo-title">Monitor Multiple<br>Assets at Once</div>'
-            + '<div class="pro-promo-sub">Up to 10 with Pro</div>'
+            + '<div class="pro-promo-sub">Up to 10 for Supporters</div>'
             + '</div>';
     }
   } else {

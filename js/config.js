@@ -322,11 +322,12 @@ var DONATION_LABEL   = 'monthly server costs';
 /* ══════════════════════════════════════════════════════════════════
    PRO TIER PLANS
    ──────────────
-   Donation-based Pro tiers. Each tier grants Pro for a duration.
-   Skrill links use these amounts. Codes bypass payment.
+   One-time contribution tiers. All unlock lifetime Pro.
+   Different amounts = different supporter levels, same features.
+   Codes bypass payment.
 ══════════════════════════════════════════════════════════════════ */
 var PRO_PLANS = [
-  { label: '1 Month',   price: 5,  months: 1,  badge: 'Starter' },
-  { label: '3 Months',  price: 10, months: 3,  badge: 'Supporter' },
-  { label: '6 Months',  price: 20, months: 6,  badge: 'Pro' }
+  { label: 'Small Tip',           price: 5,  months: 0, badge: 'Supporter' },
+  { label: 'Standard Support',    price: 15, months: 0, badge: 'Supporter' },
+  { label: 'Legendary Supporter', price: 50, months: 0, badge: 'Legend' }
 ];

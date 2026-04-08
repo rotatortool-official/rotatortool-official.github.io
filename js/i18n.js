@@ -26,7 +26,7 @@ en: {
     { q: 'Is this financial advice?',
       a: 'No. Rotator is strictly an informational tool. All scores and signals are based on historical price data. Past performance never guarantees future results. Always do your own research (DYOR) and consult a qualified financial advisor before making any investment decisions.' },
     { q: 'How do I unlock Pro?',
-      a: 'Pro is completely free \u2014 no payment needed. Share your personal referral link with 3 friends. When each friend opens your link and adds at least one holding, Pro unlocks automatically. Click \u26A1 UNLOCK PRO to get your link.' },
+      a: 'Pro is unlocked with a one-time contribution \u2014 no subscriptions, no recurring charges. Send any amount via crypto or card, submit the claim form, and Pro activates on your account for life. You can also redeem a Pro code if you have one.' },
     { q: 'Is my data safe? Do you store it?',
       a: 'Your holdings and preferences are stored only in your own browser (localStorage). We never collect, transmit, or store any personal data. There are no accounts, no logins, and no servers receiving your portfolio information.' },
     { q: 'Where does the price data come from?',
@@ -52,9 +52,9 @@ en: {
   don_note: '\u26A0 Send only USDT on TRC20 (Tron) network.<br>Wrong network = permanent loss. Always double-check.<br><br>Every contribution helps keep Rotator free for everyone. Thank you!',
 
   /* Unlock Pro tile */
-  pro_tile_title: 'Unlock Pro \u2014 Free',
-  pro_tile_sub: 'Share with 3 friends.<br>No payment. No subscription.',
-  pro_tile_btn: 'GET PRO FREE \u2192',
+  pro_tile_title: 'Support & Unlock Pro',
+  pro_tile_sub: 'One-time contribution.<br>Lifetime Pro access.',
+  pro_tile_btn: 'SUPPORT & UNLOCK \u2192',
   pro_feat_1: '10 crypto + 5 forex + 5 stocks',
   pro_feat_2: 'Full rotation signals',
   pro_feat_3: 'Sparkle animations on top tiles',
@@ -68,10 +68,10 @@ en: {
   pro_coming_2: 'Stock portfolio',
   pro_coming_3: 'Multi-asset dashboard \u2014 all your assets in one place',
   pro_revoke: 'Revoke pro access',
-  pro_modal_title: '\u26A1 Unlock Pro \u2014 Free',
-  pro_modal_sub_1: 'Share Rotator with ',
-  pro_modal_sub_2: '3 friends',
-  pro_modal_sub_3: ' and Pro unlocks automatically \u2014 no payment, no subscription, ever.',
+  pro_modal_title: '\u26A1 Support & Unlock Pro',
+  pro_modal_sub_1: 'One-time contribution for ',
+  pro_modal_sub_2: 'lifetime Pro',
+  pro_modal_sub_3: ' \u2014 no subscriptions, no recurring charges, ever.',
   pro_unlocks: 'What Pro Unlocks',
   pro_u1: '10 crypto holdings',
   pro_u2: '5 forex pairs',
@@ -88,8 +88,8 @@ en: {
   pro_free_all: '\u2713 Already free for everyone:',
   pro_free_list: 'Top 200 coins \u00B7 Stablecoin yields \u00B7 Forex pairs \u00B7 Stock screener \u00B7 3-layer scoring \u00B7 Rotation signals',
   pro_step1: 'Copy your referral link below',
-  pro_step2: 'Share it with <strong>3 friends</strong> \u2014 Discord, Twitter, WhatsApp, anywhere',
-  pro_step3: 'When they add their first holding, Pro unlocks <em>automatically</em>',
+  pro_step2: 'Share it with <strong>5 friends</strong> \u2014 Discord, Twitter, WhatsApp, anywhere',
+  pro_step3: 'When they use Rotator, Pro unlocks <em>automatically</em> (usually within a few hours)',
   pro_copy: 'COPY',
   pro_love: 'Love Rotator? ',
   pro_love_link: '\u2615 Support the project',
@@ -111,10 +111,10 @@ en: {
     { title: 'Your Holdings Panel',
       desc: '<div style="font-size:13px;line-height:1.85;">Track any coin with quantity and average buy price \u2014 all saved locally, <strong>no account needed</strong>.<br><br>'
         + 'Once added, the <strong style="color:var(--bnb);">Portfolio Signal</strong> box above scores your portfolio and flags which assets are lagging or outperforming.<br><br>'
-        + '<span style="font-size:11px;color:rgba(255,255,255,.6);">Free tier: <strong>2 crypto</strong> slots \u00B7 Pro: up to 10, plus full Rotation Signals \u2014 unlock free by sharing with 3 friends.</span></div>' },
+        + '<span style="font-size:11px;color:rgba(255,255,255,.6);">Free tier: <strong>2 crypto</strong> slots \u00B7 Pro: up to 10, plus full Rotation Signals \u2014 one-time contribution for lifetime access.</span></div>' },
     { title: 'Signal Center',
       desc: '<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:18px;font-size:13px;line-height:1.85;">'
-        + '<div style="border-left:3px solid #00bd8e;padding-left:12px;"><div style="font-size:9px;letter-spacing:.13em;color:rgba(0,200,150,.7);margin-bottom:6px;font-weight:700;">\u2191 ROTATION OPPS</div><div style="color:#00bd8e;font-size:16px;font-weight:700;margin-bottom:7px;">\u2191 Rotate</div><span style="color:rgba(200,220,210,.85);">Pairs from your holdings where rotating makes sense. The score gap shows how much one coin is outpacing another.</span><div style="margin-top:7px;font-size:10px;color:rgba(167,139,250,.9);font-weight:600;">\u26A1 Pro feature \u2014 unlock free</div></div>'
+        + '<div style="border-left:3px solid #00bd8e;padding-left:12px;"><div style="font-size:9px;letter-spacing:.13em;color:rgba(0,200,150,.7);margin-bottom:6px;font-weight:700;">\u2191 ROTATION OPPS</div><div style="color:#00bd8e;font-size:16px;font-weight:700;margin-bottom:7px;">\u2191 Rotate</div><span style="color:rgba(200,220,210,.85);">Pairs from your holdings where rotating makes sense. The score gap shows how much one coin is outpacing another.</span><div style="margin-top:7px;font-size:10px;color:rgba(167,139,250,.9);font-weight:600;">\u26A1 Supporters only</div></div>'
         + '<div style="border-left:3px solid #f0a030;padding-left:12px;"><div style="font-size:9px;letter-spacing:.13em;color:rgba(240,160,48,.7);margin-bottom:6px;font-weight:700;">\u26A1 HIGH MOMENTUM</div><div style="color:#f0a030;font-size:16px;font-weight:700;margin-bottom:7px;">\u26A1 Leading</div><span style="color:rgba(220,210,195,.85);">Top coins by composite score across all timeframes. Sustained strength \u2014 not single-week spikes. Click any tile for full breakdown.</span></div>'
         + '<div style="border-left:3px solid #f03e58;padding-left:12px;"><div style="font-size:9px;letter-spacing:.13em;color:rgba(240,62,88,.7);margin-bottom:6px;font-weight:700;">\u2193 WORST 30D</div><div style="color:#f03e58;font-size:16px;font-weight:700;margin-bottom:7px;">\u2193 Lagging</div><span style="color:rgba(220,200,200,.85);">Biggest 30-day losers. Potential bounce candidates \u2014 or assets to exit. Monitor or reduce exposure.</span></div>'
         + '</div>' },
@@ -130,7 +130,7 @@ en: {
         + '<span style="font-size:11px;color:rgba(255,255,255,.5);">Use the Swap Calculator to simulate exact amounts before executing on your exchange.</span></div>' },
     { title: "You're all set.",
       desc: '<div style="font-size:13px;line-height:1.85;">Data refreshes every 15 minutes automatically. Hit <strong>\u21BB REFRESH</strong> to force a fresh fetch at any time.<br><br>'
-        + '<strong style="color:var(--pro);">\u26A1 Unlock Pro free</strong> \u2014 share Rotator with 3 friends for up to 10 portfolio slots, full Rotation Signals, and the Swap Tool watchlist.<br><br>'
+        + '<strong style="color:var(--pro);">\u26A1 Support & Unlock Pro</strong> \u2014 one-time contribution for up to 10 portfolio slots, full Rotation Signals, and the Swap Tool watchlist.<br><br>'
         + 'Click the <strong>\u2699 gear icon</strong> (highlighted) to change language, toggle asset modes, or replay this tutorial.</div>' }
   ],
 
@@ -235,8 +235,8 @@ mk: {
   pro_free_all: '\u2713 \u0412\u0435\u045C\u0435 \u0431\u0435\u0441\u043F\u043B\u0430\u0442\u043D\u043E \u0437\u0430 \u0441\u0438\u0442\u0435:',
   pro_free_list: '\u0422\u043E\u043F 50 \u043C\u043E\u043D\u0435\u0442\u0438 \u00B7 \u0424\u043E\u0440\u0435\u043A\u0441 \u043F\u0430\u0440\u043E\u0432\u0438 \u00B7 \u0421\u043A\u0440\u0438\u043D\u0435\u0440 \u0437\u0430 \u0430\u043A\u0446\u0438\u0438 \u00B7 3-\u0441\u043B\u043E\u0458\u043D\u043E \u043E\u0446\u0435\u043D\u0443\u0432\u0430\u045A\u0435 \u00B7 \u0421\u0438\u0433\u043D\u0430\u043B\u0438 \u0437\u0430 \u0440\u043E\u0442\u0430\u0446\u0438\u0458\u0430',
   pro_step1: '\u041A\u043E\u043F\u0438\u0440\u0430\u0458\u0442\u0435 \u0433\u043E \u0432\u0430\u0448\u0438\u043E\u0442 \u043B\u0438\u043D\u043A \u043E\u0434\u0434\u043E\u043B\u0443',
-  pro_step2: '\u0421\u043F\u043E\u0434\u0435\u043B\u0435\u0442\u0435 \u0433\u043E \u0441\u043E <strong>3 \u043F\u0440\u0438\u0458\u0430\u0442\u0435\u043B\u0438</strong> \u2014 Discord, Twitter, WhatsApp, \u043A\u0430\u0434\u0435 \u0431\u0438\u043B\u043E',
-  pro_step3: '\u041A\u043E\u0433\u0430 \u045C\u0435 \u0434\u043E\u0434\u0430\u0434\u0430\u0442 \u043F\u0440\u0432\u043E \u0441\u0440\u0435\u0434\u0441\u0442\u0432\u043E, Pro \u0441\u0435 \u043E\u0442\u043A\u043B\u0443\u0447\u0443\u0432\u0430 <em>\u0430\u0432\u0442\u043E\u043C\u0430\u0442\u0441\u043A\u0438</em>',
+  pro_step2: '\u0421\u043F\u043E\u0434\u0435\u043B\u0435\u0442\u0435 \u0433\u043E \u0441\u043E <strong>5 \u043F\u0440\u0438\u0458\u0430\u0442\u0435\u043B\u0438</strong> \u2014 Discord, Twitter, WhatsApp, \u043A\u0430\u0434\u0435 \u0431\u0438\u043B\u043E',
+  pro_step3: '\u041A\u043E\u0433\u0430 \u045C\u0435 \u0433\u043E \u043A\u043E\u0440\u0438\u0441\u0442\u0430\u0442 Rotator, Pro \u0441\u0435 \u043E\u0442\u043A\u043B\u0443\u0447\u0443\u0432\u0430 <em>\u0430\u0432\u0442\u043E\u043C\u0430\u0442\u0441\u043A\u0438</em> (\u043E\u0431\u0438\u0447\u043D\u043E \u0437\u0430 \u043D\u0435\u043A\u043E\u043B\u043A\u0443 \u0447\u0430\u0441\u0430)',
   pro_copy: '\u041A\u041E\u041F\u0418\u0420\u0410\u0408',
   pro_love: '\u0413\u043E \u0441\u0430\u043A\u0430\u0442\u0435 Rotator? ',
   pro_love_link: '\u2615 \u041F\u043E\u0434\u0434\u0440\u0436\u0435\u0442\u0435 \u0433\u043E \u043F\u0440\u043E\u0435\u043A\u0442\u043E\u0442',

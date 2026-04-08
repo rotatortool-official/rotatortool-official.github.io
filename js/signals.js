@@ -155,13 +155,13 @@ function sigRotTile(sell, buy) {
 function renderTopBars() {
   var hSyms = holdings.map(function(h) { return h.sym; });
 
-  /* Helper: single ⚡ Pro unlock tile (one per column only) */
+  /* Helper: single supporter unlock tile (one per column only) */
   function proUnlockTile(msg) {
     return '<div class="sig-tile pro-locked" onclick="openPro()" style="cursor:pointer;'
       + 'display:flex;flex-direction:column;align-items:center;justify-content:center;'
       + 'gap:6px;min-height:88px;opacity:.85;">'
-      + '<span style="font-size:18px;">⚡</span>'
-      + '<span style="font-size:9px;font-weight:700;letter-spacing:.1em;color:var(--pro);">PRO</span>'
+      + '<span style="font-size:18px;">☕</span>'
+      + '<span style="font-size:9px;font-weight:700;letter-spacing:.1em;color:var(--bnb);">SUPPORTERS</span>'
       + '<span style="font-size:9px;color:var(--muted);text-align:center;line-height:1.4;">' + msg + '</span>'
       + '</div>';
   }
@@ -737,7 +737,7 @@ function renderTable() {
 
   if (!isPro && proCoins.length) {
     html += '<tr class="pro-upsell-row"><td colspan="9"><div class="pro-upsell-banner">'
-      + '<div class="pub-left"><span class="pub-icon">⚡</span><div><div class="pub-txt">+' + proCoins.length + ' more coins available in Pro</div><div class="pub-sub">Share your link with 3 friends to unlock — completely free</div></div></div>'
+      + '<div class="pub-left"><span class="pub-icon">⚡</span><div><div class="pub-txt">+' + proCoins.length + ' more coins available in Pro</div><div class="pub-sub">Share with 5 friends or pay $20 crypto — instant unlock</div></div></div>'
       + '<button class="pub-btn" onclick="openPro()">UNLOCK PRO →</button>'
       + '</div></td></tr>';
   }

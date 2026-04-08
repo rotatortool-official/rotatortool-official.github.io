@@ -188,7 +188,7 @@ Toggle function: `toggleCollapse(id)` in the inline `<script>` block.
 - **Skrill payment** with tiered buttons in donate modal and Pro modal
 - **Tip screen** appears after any payment with thank-you message about future development
 - **Pro codes** still work as alternative unlock method
-- **Referral system** still works (3 friends = free Pro)
+- **Referral system** still works (5 verified friends = free Pro, tracked via Supabase)
 - Plans configured in `config.js` → `PRO_PLANS` array
 
 ### Pro Feature Gates (FREE vs PRO)

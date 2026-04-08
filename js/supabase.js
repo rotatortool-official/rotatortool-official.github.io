@@ -111,14 +111,88 @@ function supaRecoverPro(inputUid) {
   });
 }
 
-/* ── Save referral to Supabase ───────────────────────────────── */
+/* ══════════════════════════════════════════════════════════════════
+   REFERRAL SYSTEM  —  Supabase-backed, anti-abuse
+
+   HOW IT WORKS:
+   ─────────────
+   1. User B clicks A's referral link → referral saved (credited: false)
+   2. User B loads coin data (proves real usage) → credited flipped to true
+   3. Count only referrals where credited=true AND created 1+ hour ago
+   4. Need 5 verified referrals to unlock Pro
+   This prevents: incognito-tab spam, bot clicks, drive-by visits
+══════════════════════════════════════════════════════════════════ */
+
+var REFERRAL_NEEDED = 5;
+var REFERRAL_TIME_GATE_MS = 60 * 60 * 1000; /* 1 hour */
+
+/**
+ * Save referral to Supabase (initially NOT credited).
+ * Credited flips to true only after the referred user loads data.
+ */
 function supaSaveReferral(referrerUid, referredUid) {
   return supaRest('referrals', 'POST', {
     referrer_uid: referrerUid,
     referred_uid: referredUid,
-    credited:     true
+    credited:     false
   }).catch(function(e) {
     console.warn('[Supabase] referral save failed:', e.message);
+  });
+}
+
+/**
+ * Activate the current user's referral (called after first data load).
+ * This proves the referred user actually used the app, not just clicked.
+ */
+function supaActivateMyReferral() {
+  var myUid = localStorage.getItem('rot_uid');
+  var from  = localStorage.getItem('rot_came_from');
+  if (!myUid || !from) return Promise.resolve();
+  if (localStorage.getItem('rot_ref_activated')) return Promise.resolve();
+
+  /* PATCH: set credited=true where referred_uid = me */
+  var url = SUPA_URL + '/rest/v1/referrals?referred_uid=eq.' + myUid;
+  return fetch(url, {
+    method: 'PATCH',
+    headers: {
+      'apikey':        SUPA_KEY,
+      'Authorization': 'Bearer ' + SUPA_KEY,
+      'Content-Type':  'application/json',
+      'Prefer':        'return=minimal'
+    },
+    body: JSON.stringify({ credited: true })
+  }).then(function() {
+    try { localStorage.setItem('rot_ref_activated', '1'); } catch(e) {}
+    console.log('[Supabase] referral activated for uid:', myUid);
+  }).catch(function(e) {
+    console.warn('[Supabase] referral activation failed:', e.message);
+  });
+}
+
+/**
+ * Count verified referrals for a user from Supabase.
+ * Only counts referrals where:
+ *   - credited = true (referred user actually loaded data)
+ *   - created_at is 1+ hour ago (time gate to prevent instant abuse)
+ * @param {string} uid — the referrer's rot_uid
+ * @returns {Promise<number>} count of verified unique referrals
+ */
+function supaCountReferrals(uid) {
+  var cutoff = new Date(Date.now() - REFERRAL_TIME_GATE_MS).toISOString();
+  return supaRest('referrals', 'GET', {
+    'referrer_uid': 'eq.' + uid,
+    'credited':     'eq.true',
+    'created_at':   'lt.' + cutoff,
+    'select':       'referred_uid'
+  }).then(function(rows) {
+    if (!rows) return 0;
+    /* Deduplicate referred_uids */
+    var seen = {};
+    rows.forEach(function(r) { seen[r.referred_uid] = true; });
+    return Object.keys(seen).length;
+  }).catch(function(e) {
+    console.warn('[Supabase] referral count failed:', e.message);
+    return 0;
   });
 }
 
@@ -176,21 +250,38 @@ function supaCacheSet(key, data) {
 }
 
 /* ══════════════════════════════════════════════════════════════════
-   PRO REQUEST PIPELINE  —  Donation → Pro activation
+   PRO REQUEST PIPELINE  —  Donation → Auto-verified Pro activation
 
    HOW IT WORKS:
    ─────────────
-   1. User donates crypto and clicks "I've sent payment"
-   2. Fills: amount, network, TX hash, contact (Telegram/Discord)
-   3. Request saved to pro_requests table (status: 'pending')
-   4. Admin (Daniel) checks wallet → verifies TX → sets status: 'approved'
-      AND flips is_pro=true in pro_users via dashboard
-   5. User's next page load → supaRestoreOnLoad() auto-activates Pro
+   1. User donates crypto and submits TX hash + network
+   2. tx-verify.js auto-verifies on blockchain (destination, amount, confirmed)
+   3. If valid → saved with status 'auto_approved', Pro activated instantly
+   4. Binance Pay → saved as 'pending' (off-chain, needs manual review)
+   5. TX hash uniqueness enforced — one hash = one Pro activation
 ══════════════════════════════════════════════════════════════════ */
 
 /**
+ * Check if a TX hash has already been submitted (any status).
+ * Prevents reuse of the same transaction.
+ * @param {string} txHash
+ * @returns {Promise<boolean>} true if already used
+ */
+function supaCheckTxHashUsed(txHash) {
+  return supaRest('pro_requests', 'GET', {
+    'tx_hash': 'eq.' + txHash,
+    'select':  'id',
+    'limit':   '1'
+  }).then(function(rows) {
+    return rows && rows.length > 0;
+  }).catch(function() {
+    return false; /* fail open — verification will still run */
+  });
+}
+
+/**
  * Submit a Pro activation request after crypto donation.
- * @param {object} req — { amount, network, tx_hash, contact }
+ * @param {object} req — { amount, network, tx_hash, contact, status }
  * @returns {Promise<boolean>} true if saved successfully
  */
 function supaSubmitProRequest(req) {
@@ -201,7 +292,7 @@ function supaSubmitProRequest(req) {
     network:  req.network  || '',
     tx_hash:  req.tx_hash  || '',
     contact:  req.contact  || '',
-    status:   'pending'
+    status:   req.status   || 'pending'
   }).then(function(rows) {
     return rows && rows.length > 0;
   }).catch(function(e) {

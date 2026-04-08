@@ -82,14 +82,36 @@ var TUT_STEPS = [
     arrow: 'right', pos: 'swap-tool', wide: false
   },
 
-  /* Step 6: All set — LAST STEP */
+  /* Step 6: How to unlock Pro */
+  {
+    target: '.pro-btn',
+    title: '⚡ How to Unlock Pro',
+    desc: '<div style="font-size:13px;line-height:1.85;">'
+        + '<strong style="color:var(--pro);">Pro</strong> unlocks 200 coins, all categories, Insight Engine, Swap Tool, and 10 portfolio slots.<br><br>'
+        + '<div style="background:var(--bg3);border:1px solid rgba(0,200,150,.2);border-radius:4px;padding:10px 12px;margin-bottom:10px;">'
+        + '<strong style="color:var(--green);">Option 1 — Crypto (instant, auto-verified)</strong><br>'
+        + '<span style="font-size:11px;">Send $20+ USDT/BNB/ETH → submit your TX hash → Pro activates in seconds. No manual review needed.</span>'
+        + '</div>'
+        + '<div style="background:var(--bg3);border:1px solid rgba(167,139,250,.2);border-radius:4px;padding:10px 12px;margin-bottom:10px;">'
+        + '<strong style="color:var(--pro);">Option 2 — Refer 5 friends</strong><br>'
+        + '<span style="font-size:11px;">Share your referral link. When 5 people join and use Rotator, Pro unlocks automatically. Verification usually takes a few hours.</span>'
+        + '</div>'
+        + '<div style="background:var(--bg3);border:1px solid var(--bdr2);border-radius:4px;padding:10px 12px;">'
+        + '<strong style="color:var(--muted);">Option 3 — Pro code</strong><br>'
+        + '<span style="font-size:11px;">Enter a code from giveaways or promotions.</span>'
+        + '</div>'
+        + '</div>',
+    arrow: 'top', pos: 'center', wide: false
+  },
+
+  /* Step 7: All set — LAST STEP */
   {
     target: '.settings-btn',
     title: "You're all set.",
     desc: '<div style="font-size:13px;line-height:1.85;">'
         + 'Data refreshes every 15 minutes automatically. Hit <strong>↻ REFRESH</strong> to force a fresh fetch at any time.<br><br>'
-        + '<strong style="color:var(--pro);">⚡ Unlock Pro free</strong> — share Rotator with 3 friends for up to 10 portfolio slots, full Rotation Signals, and the Swap Tool watchlist.<br><br>'
-        + 'Click the <strong>⚙ gear icon</strong> (highlighted) to change language, toggle asset modes, or replay this tutorial.'
+        + 'Click the <strong>⚙ gear icon</strong> (highlighted) to change language, toggle asset modes, or replay this tutorial.<br><br>'
+        + '<span style="font-size:11px;color:var(--muted);">Need help? Contact <a href="mailto:rotatortool@gmail.com" style="color:var(--bnb);text-decoration:none;">rotatortool@gmail.com</a></span>'
         + '</div>',
     arrow: 'right', pos: 'gear'
   }

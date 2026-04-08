@@ -1078,6 +1078,8 @@ async function doLoad() {
     await sleep(320);
     document.getElementById('loader').classList.add('gone');
     startAutoRefresh();
+    /* Activate referral: proves this user actually loaded data (anti-abuse) */
+    if (typeof supaActivateMyReferral === 'function') try { supaActivateMyReferral(); } catch(e) {}
   } catch(e) {
     document.getElementById('lmsg').textContent = 'ERROR: ' + e.message;
     document.getElementById('lbf').style.background = 'var(--red)';

@@ -61,20 +61,45 @@ function processIncomingRef() {
 function creditReferrer() {
   var from = localStorage.getItem('rot_came_from');
   if (!from || localStorage.getItem('rot_credited_' + from)) return;
+  var me = getMyId();
+
+  /* Save locally (backwards compat) */
   var key = 'rot_credit_for_' + from, ex = [];
   try { ex = JSON.parse(localStorage.getItem(key) || '[]'); } catch(e) {}
-  var me = getMyId(); if (ex.indexOf(me) < 0) { ex.push(me); localStorage.setItem(key, JSON.stringify(ex)); }
+  if (ex.indexOf(me) < 0) { ex.push(me); localStorage.setItem(key, JSON.stringify(ex)); }
   localStorage.setItem('rot_credited_' + from, '1');
+
+  /* Save to Supabase (verifiable, cross-device) */
+  if (typeof supaSaveReferral === 'function') {
+    supaSaveReferral(from, me);
+  }
 }
 
 function checkMyReferrals() {
+  var d = getRefData();
+
+  /* Check Supabase for verified referral count (async, non-blocking) */
+  var REF_NEEDED = (typeof REFERRAL_NEEDED !== 'undefined') ? REFERRAL_NEEDED : 5;
+  if (typeof supaCountReferrals === 'function' && !d.pro) {
+    supaCountReferrals(getMyId()).then(function(count) {
+      if (count >= REF_NEEDED && !isPro) {
+        isPro = true; savePro(true);
+        var dd = getRefData(); dd.pro = true; dd.refs = []; for (var i = 0; i < count; i++) dd.refs.push('supa-' + i); saveRefData(dd);
+        showProToast();
+        if (typeof supaSavePro === 'function') supaSavePro(getMyId(), 'referral');
+        updateTierBadge();
+        if (typeof initCategoryLocks === 'function') initCategoryLocks();
+        updateProGates();
+      }
+    });
+  }
+
+  /* Also check localStorage (fallback for same-browser referrals) */
   var key = 'rot_credit_for_' + getMyId(), cr = [];
   try { cr = JSON.parse(localStorage.getItem(key) || '[]'); } catch(e) {}
-  var d = getRefData();
   cr.forEach(function(u) { if (d.refs.indexOf(u) < 0) d.refs.push(u); });
-  if (d.refs.length >= 3 && !d.pro) {
+  if (d.refs.length >= REF_NEEDED && !d.pro) {
     d.pro = true; showProToast();
-    /* Sync to Supabase */
     if (typeof supaSavePro === 'function') supaSavePro(getMyId(), 'referral');
   }
   saveRefData(d); return d;
@@ -83,7 +108,7 @@ function checkMyReferrals() {
 function showProToast() {
   var t = document.createElement('div');
   t.style.cssText = 'position:fixed;top:56px;left:50%;transform:translateX(-50%);background:#1a2030;border:1px solid #a78bfa;border-radius:6px;padding:14px 22px;font-family:IBM Plex Mono,monospace;font-size:12px;color:#a78bfa;z-index:900;text-align:center;box-shadow:0 0 30px rgba(167,139,250,.2);letter-spacing:.06em;';
-  t.innerHTML = '⚡ PRO UNLOCKED — 3 friends joined!<br><span style="font-size:10px;color:#3e4d60;margin-top:4px;display:block;">All 200 coins + stablecoin yields available.</span>';
+  t.innerHTML = '⚡ PRO UNLOCKED — 5 friends joined!<br><span style="font-size:10px;color:#3e4d60;margin-top:4px;display:block;">All 200 coins + stablecoin yields available.</span>';
   document.body.appendChild(t);
   setTimeout(function() { t.style.transition = 'opacity .5s'; t.style.opacity = '0'; setTimeout(function() { t.remove(); }, 500); }, 4000);
   /* Start Pro tutorial after toast */
@@ -108,7 +133,8 @@ function updateTierBadge() {
     if (daysLeft >= 0 && daysLeft <= 3) showExpiryWarning(daysLeft);
   } else {
     b.className = 'tier-badge free'; b.textContent = 'FREE · TOP 200';
-    if (pb) { pb.textContent = count > 0 ? '⚡ UNLOCK PRO (' + count + '/3)' : '⚡ UNLOCK PRO'; pb.style.opacity = ''; }
+    var refNeeded = (typeof REFERRAL_NEEDED !== 'undefined') ? REFERRAL_NEEDED : 5;
+    if (pb) { pb.textContent = count > 0 ? '⚡ UNLOCK PRO (' + count + '/' + refNeeded + ')' : '⚡ UNLOCK PRO'; pb.style.opacity = ''; }
   }
 }
 
@@ -132,29 +158,17 @@ function showExpiryWarning(daysLeft) {
 function openPro() {
   var body  = document.getElementById('pro-modal-body');
   var d     = checkMyReferrals();
-  var count = d.refs.length, needed = 3, link = getMyReferralLink();
+  var count = d.refs.length, needed = (typeof REFERRAL_NEEDED !== 'undefined') ? REFERRAL_NEEDED : 5, link = getMyReferralLink();
   var pct   = Math.round(count / needed * 100);
 
   var _ = (typeof t === 'function') ? t : function(k){ return k; };
 
   if (isPro) {
-    var daysLeft = getProDaysLeft();
-    var expiryHtml = '';
-    if (daysLeft >= 0) {
-      var expiryColor = daysLeft <= 3 ? 'var(--amber)' : daysLeft <= 7 ? 'var(--bnb)' : 'var(--green)';
-      expiryHtml = '<div style="margin-top:10px;background:var(--bg3);border:1px solid ' + expiryColor + '33;border-radius:4px;padding:10px 14px;text-align:center;">'
-        + '<div style="font-size:10px;color:var(--muted);letter-spacing:.12em;margin-bottom:4px;">SUBSCRIPTION</div>'
-        + '<div style="font-size:18px;font-weight:700;color:' + expiryColor + ';">' + daysLeft + ' day' + (daysLeft !== 1 ? 's' : '') + ' remaining</div>'
-        + (daysLeft <= 7 ? '<div style="margin-top:8px;"><a href="#" onclick="event.preventDefault();closeModal(\'pro-modal\');setTimeout(function(){openPro()},300);isPro=false;savePro(false);updateTierBadge();openPro();" style="font-size:10px;color:var(--bnb);text-decoration:none;font-weight:600;">Renew your plan →</a></div>' : '')
-        + '</div>';
-    } else {
-      expiryHtml = '<div style="margin-top:10px;background:var(--gd);border:1px solid rgba(0,200,150,.2);border-radius:4px;padding:8px 14px;text-align:center;font-size:11px;color:var(--green);font-weight:600;">Lifetime access (referral or code)</div>';
-    }
     body.innerHTML = '<div class="already-pro">'
       + '<div class="already-pro-icon">⚡</div>'
-      + '<div class="already-pro-txt">' + _('pro_active') + '</div>'
-      + '<div class="already-pro-sub">' + count + _('pro_active_sub_1') + '</div>'
-      + expiryHtml
+      + '<div class="already-pro-txt">Thank You, Supporter!</div>'
+      + '<div class="already-pro-sub" style="color:var(--green);font-weight:600;">Pro is active — lifetime access unlocked</div>'
+      + '<div style="margin-top:10px;background:var(--gd);border:1px solid rgba(0,200,150,.2);border-radius:4px;padding:8px 14px;text-align:center;font-size:11px;color:var(--green);font-weight:600;">Lifetime Pro — your support keeps Rotator independent</div>'
       + '<div style="margin-top:14px;background:var(--bg3);border:1px solid var(--bdr2);border-radius:4px;padding:12px 14px;">'
         + '<div style="font-size:10px;color:var(--muted);letter-spacing:.12em;margin-bottom:8px;">' + _('pro_coming') + '</div>'
         + '<div style="font-size:11px;color:var(--text);line-height:2;">◈ <strong style="color:var(--bnb)">' + _('pro_coming_1') + '</strong> rotation tracker<br>◈ <strong style="color:var(--pro)">' + _('pro_coming_2') + '</strong> performance screener<br>◈ ' + _('pro_coming_3') + '</div>'
@@ -170,30 +184,8 @@ function openPro() {
       + '<button class="revoke-btn" onclick="revokePro()">' + _('pro_revoke') + '</button>'
       + '</div>';
   } else {
-    /* ── PRO PLANS with feature details ── */
-    var planFeatures = [
-      ['Top 200 coins', 'All 10 categories', '5 holdings'],
-      ['Top 200 coins', 'All 10 categories', '10 holdings', '⚡ Insight Engine'],
-      ['Top 200 coins', 'All 10 categories', '10 holdings', '⚡ Insight Engine', '↔ Best Time to Swap', '💵 Stablecoin Yields']
-    ];
-    var plansHtml = '<div class="pro-plans-row">';
-    PRO_PLANS.forEach(function(plan, idx) {
-      var feats = planFeatures[idx] || planFeatures[planFeatures.length - 1];
-      var featHtml = feats.map(function(f) { return '<div style="font-size:9px;color:var(--text);line-height:1.6;">✓ ' + f + '</div>'; }).join('');
-      var isBest = idx === PRO_PLANS.length - 1;
-      var skrillUrls = {5:'https://skrill.me/rq/Daniel/5/USD?key=Aw1OEJXlKgBA8JsQQUlWczzO64A',10:'https://skrill.me/rq/Daniel/10/USD?key=UioGmHInL3DGuPlwSNb7ur5flZr',20:'https://skrill.me/rq/Daniel/20/USD?key=ERwwyCSOLuNQd0mqjQew-P_YFPu'};
-      plansHtml += '<a href="' + (skrillUrls[plan.price] || ('https://skrill.me/rq/Daniel/' + plan.price + '/USD')) + '" target="_blank" rel="noopener" class="pro-plan-card' + (isBest ? ' pro-plan-best' : '') + '" onclick="showTipScreen()">'
-        + (isBest ? '<div class="pro-plan-best-tag">BEST VALUE</div>' : '')
-        + '<div class="pro-plan-price">$' + plan.price + '</div>'
-        + '<div class="pro-plan-dur">' + plan.label + '</div>'
-        + '<div class="pro-plan-badge">' + plan.badge + '</div>'
-        + '<div style="margin-top:8px;border-top:1px solid var(--bdr);padding-top:8px;text-align:left;">' + featHtml + '</div>'
-        + '</a>';
-    });
-    plansHtml += '</div>';
-
-    body.innerHTML = '<div class="modal-title">⚡ Unlock Pro</div>'
-      + '<div class="modal-sub">Support development and unlock the full power of Rotator.</div>'
+    body.innerHTML = '<div class="modal-title">⚡ Support the Project & Unlock Pro</div>'
+      + '<div class="modal-sub">No subscriptions. <strong>One-time contribution</strong> for lifetime Pro access.<br>The core tool stays free — Pro is your reward for supporting development.</div>'
 
       /* ── FREE vs PRO comparison ── */
       + '<div style="background:var(--bg3);border:1px solid rgba(167,139,250,.2);border-radius:4px;padding:12px 14px;margin-bottom:14px;">'
@@ -212,31 +204,41 @@ function openPro() {
         + '</div>'
       + '</div>'
 
-      /* ── Tier plan cards ── */
-      + '<div style="font-size:9px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);margin-bottom:8px;">CHOOSE YOUR PLAN</div>'
-      + plansHtml
-
-      /* ── OR use crypto ── */
-      + '<div style="text-align:center;margin:10px 0 6px;font-size:9px;color:var(--muted);letter-spacing:.12em;">— OR PAY WITH CRYPTO —</div>'
-      + '<div style="text-align:center;margin-bottom:10px;">'
-        + '<a href="#" onclick="closeModal(\'pro-modal\');openModal(\'donate-modal\');return false;" style="font-size:11px;color:var(--bnb);text-decoration:none;font-weight:600;">☕ Send Crypto (USDT, BTC, SOL & more) →</a>'
+      /* ── PRIMARY: Pay with Crypto ── */
+      + '<div style="font-size:9px;letter-spacing:.14em;text-transform:uppercase;color:var(--green);margin-bottom:8px;">PAY WITH CRYPTO — AUTO-VERIFIED, INSTANT PRO</div>'
+      + '<div style="background:linear-gradient(135deg,rgba(0,200,150,.06),rgba(0,200,150,.02));border:1px solid rgba(0,200,150,.2);border-radius:6px;padding:14px;margin-bottom:14px;">'
+        + '<div style="font-size:11px;color:var(--text);line-height:1.7;margin-bottom:10px;">Send <strong>$20+ USDT</strong> (or equivalent BNB/ETH) to any wallet below. Submit your TX hash and <strong>Pro activates instantly</strong> — fully automated, no waiting.</div>'
+        + '<div style="font-size:10px;color:var(--muted);margin-bottom:6px;">⬡ USDT · TRC20 (Tron)</div>'
+        + '<div style="font-size:9px;color:var(--text);word-break:break-all;background:var(--bg3);padding:6px 8px;border-radius:3px;margin-bottom:6px;font-family:monospace;">TGt3FQmv8AFPqbj6PnQGUAmemV9gDNm4bt</div>'
+        + '<div style="font-size:10px;color:var(--muted);margin-bottom:6px;">⬡ USDT / BNB · BEP20 (BSC) &nbsp;|&nbsp; USDT / ETH · ERC20</div>'
+        + '<div style="font-size:9px;color:var(--text);word-break:break-all;background:var(--bg3);padding:6px 8px;border-radius:3px;margin-bottom:6px;font-family:monospace;">0x507772f8714bca8e73a7984446edb59fea9bfba3</div>'
+        + '<div style="font-size:10px;color:var(--muted);margin-bottom:6px;">⬡ Binance Pay ID</div>'
+        + '<div style="font-size:9px;color:var(--text);word-break:break-all;background:var(--bg3);padding:6px 8px;border-radius:3px;margin-bottom:8px;font-family:monospace;">364154350</div>'
+        + '<a href="#" onclick="closeModal(\'pro-modal\');openModal(\'donate-modal\');return false;" style="display:block;text-align:center;font-size:11px;color:var(--green);text-decoration:none;font-weight:600;">View full donation page with copy buttons →</a>'
       + '</div>'
 
-      /* ── Free referral option ── */
-      + '<div class="pro-divider"></div>'
-      + '<div style="font-size:9px;letter-spacing:.14em;text-transform:uppercase;color:var(--green);margin-bottom:8px;">FREE OPTION — REFER 3 FRIENDS</div>'
-      + '<div class="pro-steps" id="ref-steps">'
-        + '<div class="pro-step"><div class="step-num">1</div><div class="step-txt">' + _('pro_step1') + '</div></div>'
-        + '<div class="pro-step"><div class="step-num">2</div><div class="step-txt">' + _('pro_step2') + '</div></div>'
-        + '<div class="pro-step"><div class="step-num">3</div><div class="step-txt">' + _('pro_step3') + '</div></div>'
-      + '</div>'
-      + '<div style="display:flex;gap:6px;margin-bottom:10px;">'
-        + '<input class="code-input" id="ref-link-display" value="' + link + '" readonly onclick="this.select()" style="font-size:10px;">'
-        + '<button class="code-btn" id="copy-ref-btn" onclick="copyRefLink()">' + _('pro_copy') + '</button>'
-      + '</div>'
-      + '<div style="font-size:10px;color:var(--muted);line-height:1.8;text-align:center;">'
-        + _('pro_progress') + '<strong style="color:var(--pro);">' + count + ' / ' + needed + _('pro_friends') + '</strong>' + _('pro_joined')
-        + (count > 0 ? '<div style="width:100%;height:3px;background:var(--bg4);border-radius:2px;margin-top:5px;"><div style="width:' + pct + '%;height:100%;background:var(--pro);border-radius:2px;transition:width .4s;"></div></div>' : '')
+      /* ── SECONDARY: Skrill (card) — donation only, does NOT unlock Pro ── */
+      + '<div style="font-size:9px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);margin-bottom:8px;">TIP JAR — SKRILL (CARD)</div>'
+      + '<div style="background:var(--bg3);border:1px solid var(--bdr2);border-radius:6px;padding:14px;margin-bottom:14px;">'
+        + '<div style="font-size:10px;color:var(--amber);margin-bottom:8px;line-height:1.6;font-weight:600;">Skrill tips support the project but do not unlock Pro.<br>For Pro, use crypto above — it\'s instant and auto-verified.</div>'
+        + '<div class="pro-plans-row">'
+          + '<a href="https://skrill.me/rq/Daniel/5/USD?key=Aw1OEJXlKgBA8JsQQUlWczzO64A" target="_blank" rel="noopener" class="pro-plan-card" onclick="showTipScreen()">'
+            + '<div class="pro-plan-price">$5</div>'
+            + '<div class="pro-plan-dur">Small Tip</div>'
+            + '<div class="pro-plan-badge" style="color:var(--muted);">Tip</div>'
+          + '</a>'
+          + '<a href="https://skrill.me/rq/Daniel/15/USD?key=UioGmHInL3DGuPlwSNb7ur5flZr" target="_blank" rel="noopener" class="pro-plan-card" onclick="showTipScreen()">'
+            + '<div class="pro-plan-price">$15</div>'
+            + '<div class="pro-plan-dur">Generous Tip</div>'
+            + '<div class="pro-plan-badge" style="color:var(--muted);">Tip</div>'
+          + '</a>'
+          + '<a href="https://skrill.me/rq/Daniel/50/USD?key=ERwwyCSOLuNQd0mqjQew-P_YFPu" target="_blank" rel="noopener" class="pro-plan-card" onclick="showTipScreen()">'
+            + '<div class="pro-plan-price">$50</div>'
+            + '<div class="pro-plan-dur">Legendary Tip</div>'
+            + '<div class="pro-plan-badge" style="color:var(--muted);">Tip</div>'
+          + '</a>'
+        + '</div>'
+        + '<div style="font-size:9px;color:var(--muted);text-align:center;margin-top:6px;">Donation only · Does not unlock Pro · Thank you for supporting Rotator!</div>'
       + '</div>'
 
       /* ── Pro code ── */
@@ -279,7 +281,7 @@ function checkProCode() {
 
   var valid = VALID_CODES.indexOf(code) >= 0;
   if (!valid) {
-    err.textContent = '❌ Invalid code. Check for typos or contact us.';
+    err.innerHTML = '❌ Invalid code. Check for typos or email <a href="mailto:rotatortool@gmail.com" style="color:var(--bnb);text-decoration:underline;">rotatortool@gmail.com</a>';
     inp.style.borderColor = 'var(--red)';
     return;
   }
@@ -413,7 +415,7 @@ function restoreProFromKey() {
   });
 }
 
-/* ── Submit Pro request after crypto donation ───────────────── */
+/* ── Submit Pro request after crypto donation (auto-verified) ── */
 function submitProRequest() {
   var network = document.getElementById('pr-network');
   var amount  = document.getElementById('pr-amount');
@@ -424,33 +426,78 @@ function submitProRequest() {
 
   /* Validation */
   if (!network || !network.value) { status.style.color = 'var(--red)'; status.textContent = 'Please select a network.'; return; }
-  if (!txhash || !txhash.value.trim()) { status.style.color = 'var(--red)'; status.textContent = 'Please enter the TX hash or reference.'; return; }
-  if (!contact || !contact.value.trim()) { status.style.color = 'var(--red)'; status.textContent = 'Please enter your Telegram, Discord, or Email.'; return; }
+  if (!txhash || !txhash.value.trim()) { status.style.color = 'var(--red)'; status.textContent = 'Please enter the TX hash.'; return; }
 
-  status.style.color = 'var(--muted)'; status.textContent = 'Submitting...';
+  var net = network.value;
+  var hash = txhash.value.trim();
+  var amt = amount ? amount.value.trim() : '';
+  var cont = contact ? contact.value.trim() : '';
 
-  if (typeof supaSubmitProRequest !== 'function') {
-    status.style.color = 'var(--red)'; status.textContent = 'Service unavailable. Please try again later.';
+  /* Binance Pay = manual (off-chain, can't auto-verify) */
+  if (net === 'Binance Pay') {
+    if (!cont) { status.style.color = 'var(--red)'; status.textContent = 'Binance Pay requires contact info for manual review.'; return; }
+    status.style.color = 'var(--muted)'; status.textContent = 'Submitting for manual review...';
+    supaSubmitProRequest({ amount: amt, network: net, tx_hash: hash, contact: cont, status: 'pending' })
+      .then(function(ok) {
+        if (ok) {
+          _showProRequestPending('Your Binance Pay request has been submitted. Manual review may take up to 24 hours. Pro will activate automatically once approved.');
+        } else {
+          status.style.color = 'var(--red)'; status.textContent = 'Failed to submit. Please try again.';
+        }
+      });
     return;
   }
 
-  supaSubmitProRequest({
-    amount:   (amount ? amount.value.trim() : ''),
-    network:  network.value,
-    tx_hash:  txhash.value.trim(),
-    contact:  contact.value.trim()
-  }).then(function(ok) {
-    if (ok) {
-      /* Show success, hide form */
-      var form = document.getElementById('pro-request-form');
-      var pending = document.getElementById('pro-request-pending');
-      if (form) form.style.display = 'none';
-      if (pending) pending.style.display = 'block';
-      try { localStorage.setItem('rot_pro_requested', '1'); } catch(e) {}
+  /* Auto-verify on blockchain (TRC20 / BEP20 / ERC20) */
+  if (typeof verifyTxHash !== 'function') {
+    status.style.color = 'var(--red)'; status.textContent = 'Verification service unavailable. Try again later.';
+    return;
+  }
+
+  status.style.color = 'var(--bnb)'; status.textContent = '⏳ Verifying transaction on ' + net + '...';
+
+  verifyTxHash(hash, net).then(function(result) {
+    if (result.valid) {
+      /* Save as auto_approved + activate Pro */
+      var verifiedAmt = '$' + result.amount.toFixed(2) + ' ' + result.token;
+      supaSubmitProRequest({ amount: verifiedAmt, network: net, tx_hash: hash, contact: cont, status: 'auto_approved' })
+        .then(function() {
+          /* Activate Pro locally + sync to Supabase */
+          isPro = true; savePro(true);
+          if (typeof supaSavePro === 'function') supaSavePro(getMyId(), 'donation-' + net);
+          updateTierBadge();
+          if (typeof initCategoryLocks === 'function') initCategoryLocks();
+          updateProGates();
+          renderAll();
+
+          /* Show success */
+          _showProRequestPending('⚡ Payment verified! ' + verifiedAmt + ' via ' + result.network + '. <strong style="color:var(--green);">Pro is now active — thank you!</strong>');
+          try { localStorage.setItem('rot_pro_requested', '1'); } catch(e) {}
+
+          /* Show toast */
+          var t = document.createElement('div');
+          t.style.cssText = 'position:fixed;top:56px;left:50%;transform:translateX(-50%);background:var(--bg2);border:1px solid var(--green);border-radius:6px;padding:14px 22px;font-family:IBM Plex Mono,monospace;font-size:12px;color:var(--green);z-index:900;text-align:center;box-shadow:0 0 30px rgba(0,200,150,.2);letter-spacing:.06em;';
+          t.innerHTML = '⚡ PRO UNLOCKED — Payment verified!<br><span style="font-size:10px;color:var(--muted);margin-top:4px;display:block;">' + verifiedAmt + ' confirmed on ' + result.network + '</span>';
+          document.body.appendChild(t);
+          setTimeout(function() { t.style.transition = 'opacity .5s'; t.style.opacity = '0'; setTimeout(function() { t.remove(); }, 500); }, 5000);
+          setTimeout(function() { if (typeof startProTutorial === 'function') startProTutorial(); }, 3000);
+        });
     } else {
-      status.style.color = 'var(--red)'; status.textContent = 'Failed to submit. Please try again.';
+      /* Verification failed — show reason */
+      status.style.color = 'var(--red)';
+      status.textContent = '❌ ' + result.reason;
     }
+  }).catch(function() {
+    status.style.color = 'var(--red)';
+    status.textContent = 'Verification error. Please try again in a moment.';
   });
+}
+
+function _showProRequestPending(msg) {
+  var form = document.getElementById('pro-request-form');
+  var pending = document.getElementById('pro-request-pending');
+  if (form) form.style.display = 'none';
+  if (pending) { pending.style.display = 'block'; pending.innerHTML = '<div style="font-size:11px;color:var(--green);line-height:1.7;text-align:center;">' + msg + '</div>'; }
 }
 
 /* On load: if user already submitted a request, show pending state */
@@ -467,12 +514,12 @@ function submitProRequest() {
   } catch(e) {}
 })();
 
-/* ── Plan-based Pro activation (for Skrill/paid plans) ──────── */
+/* ── Plan-based Pro activation (lifetime — one-time contribution) ── */
 function activateProPlan(months) {
   isPro = true;
-  saveProWithExpiry(months);
+  savePro(true); /* lifetime — no expiry */
   updateTierBadge();
-  if (typeof supaSavePro === 'function') supaSavePro(getMyId(), 'plan-' + months + 'mo');
+  if (typeof supaSavePro === 'function') supaSavePro(getMyId(), 'supporter');
   if (typeof initCategoryLocks === 'function') initCategoryLocks();
   updateProGates();
   renderAll();

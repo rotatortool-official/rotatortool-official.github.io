@@ -47,6 +47,10 @@
     <div style="margin-top:16px;padding:12px 14px;background:var(--bg3);border:1px solid var(--bdr2);border-radius:4px;font-size:11px;color:var(--muted);line-height:1.8;text-align:center;">
       ⚠ Rotator is an informational tool only. Nothing here constitutes financial advice. Always do your own research.
     </div>
+    <div style="margin-top:10px;font-size:11px;color:var(--muted);text-align:center;line-height:1.8;">
+      Business inquiries, Pro support, or feedback:<br>
+      <a href="mailto:rotatortool@gmail.com" style="color:var(--bnb);text-decoration:none;font-weight:600;letter-spacing:.04em;">rotatortool@gmail.com</a>
+    </div>
   </div>
 </div>
 
@@ -75,7 +79,7 @@
       </div>
       <div class="faq-item">
         <div class="faq-q">How do I unlock Pro?</div>
-        <div class="faq-a">Pro is completely free — no payment needed. Share your personal referral link with 3 friends. When each friend opens your link and adds at least one holding, Pro unlocks automatically. Click ⚡ UNLOCK PRO to get your link.</div>
+        <div class="faq-a">Pro is unlocked with a one-time contribution — no subscriptions, no recurring charges. Send any amount via crypto or card, submit the claim form, and Pro activates on your account for life. You can also redeem a Pro code if you have one.</div>
       </div>
       <div class="faq-item">
         <div class="faq-q">Is my data safe? Do you store it?</div>
@@ -121,7 +125,7 @@
       <p>Market data is sourced from third-party providers including CoinGecko, Binance, Alpha Vantage, Yahoo Finance, and Frankfurter (ECB). Rotator is not affiliated with any of these providers and does not guarantee the availability or accuracy of their data.</p>
 
       <h4>7. Pro Features & Donations</h4>
-      <p>Pro features may be unlocked via referrals or donation codes. Donations are voluntary and non-refundable. Pro features are provided "as is" and may change at any time without notice.</p>
+      <p>Pro features are unlocked via one-time contributions or Pro codes. Contributions are voluntary and non-refundable. Pro features are provided "as is" and may change at any time without notice.</p>
 
       <h4>8. Limitation of Liability</h4>
       <p>To the maximum extent permitted by law, Rotator and its creator shall not be liable for any direct, indirect, incidental, consequential, or special damages arising from your use of this Application, including but not limited to financial losses from investment decisions.</p>
@@ -161,7 +165,7 @@
       <p>Rotator does not use Google Analytics, Facebook Pixel, or any other analytics or tracking service. We do not track page views, clicks, or user behavior.</p>
 
       <h4>6. Referral Links</h4>
-      <p>The Pro referral system uses URL parameters to credit referrals. Referral data (a randomly generated ID) is stored only in localStorage on each user's device. No personal information is shared between referrer and referee.</p>
+      <p>The Pro referral system uses URL parameters to credit referrals. Referral data (a randomly generated user ID) is stored in our database to verify unique referrals across devices. No personal information is collected — only anonymous IDs are used to count referrals.</p>
 
       <h4>7. Donations</h4>
       <p>If you choose to donate via cryptocurrency, the transaction is processed entirely by the blockchain network. We do not collect your wallet address or transaction details beyond what is publicly visible on the blockchain.</p>
@@ -176,7 +180,7 @@
       <p>We may update this Privacy Policy from time to time. The "Last updated" date at the top will reflect the most recent revision.</p>
 
       <div style="margin-top:16px;padding:12px 14px;background:var(--bg3);border:1px solid var(--bdr2);border-radius:4px;font-size:11px;color:var(--muted);line-height:1.8;text-align:center;">
-        Questions? Reach out via the <a onclick="closeModal('privacy-modal')" style="color:var(--bnb);cursor:pointer;text-decoration:underline;">Contact</a> link in the footer.
+        Questions? Reach out at <a href="mailto:rotatortool@gmail.com" style="color:var(--bnb);text-decoration:underline;">rotatortool@gmail.com</a>
       </div>
     </div>
   </div>
@@ -468,7 +472,7 @@
     <div style="font-size:9px;letter-spacing:.14em;text-transform:uppercase;color:var(--green);margin-bottom:8px;display:flex;align-items:center;gap:6px;">
       <span style="font-size:8px;">●</span> Crypto Donation
     </div>
-    <div style="font-size:9px;color:var(--muted);text-align:center;margin-bottom:10px;">Donations unlock ⚡ Pro features. Send any amount — thank you for supporting Rotator!</div>
+    <div style="font-size:9px;color:var(--green);text-align:center;margin-bottom:10px;font-weight:600;">Send $20+ to unlock ⚡ Pro instantly — auto-verified on the blockchain!</div>
 
     <!-- USDT TRC20 -->
     <div class="network-tag">⬡ USDT · TRC20 (Tron)</div>
@@ -491,48 +495,45 @@
     <button class="copy-btn" id="copy-binance-btn" onclick="copyAddr('364154350','copy-binance-btn');showTipScreen()">COPY BINANCE ID</button>
 
     <div class="modal-note" style="margin-top:10px;">⚠ Always double-check the network before sending.<br>Wrong network = permanent loss.</div>
+    <div style="font-size:9px;color:var(--muted);text-align:center;margin-top:6px;">Need help? <a href="mailto:rotatortool@gmail.com" style="color:var(--bnb);text-decoration:none;">rotatortool@gmail.com</a></div>
 
     <!-- Claim Pro after payment -->
     <div style="margin-top:14px;background:linear-gradient(135deg,rgba(243,186,47,.08),rgba(243,186,47,.03));border:1px solid rgba(243,186,47,.25);border-radius:6px;padding:14px;">
-      <div style="font-size:9px;letter-spacing:.14em;text-transform:uppercase;color:var(--bnb);margin-bottom:8px;font-weight:700;">Already sent payment? Claim your Pro</div>
-      <div style="font-size:10px;color:var(--muted);line-height:1.6;margin-bottom:10px;">Fill this form after sending crypto. We'll verify your transaction and activate Pro on your account — usually within a few hours.</div>
+      <div style="font-size:9px;letter-spacing:.14em;text-transform:uppercase;color:var(--green);margin-bottom:8px;font-weight:700;">Already sent payment? Verify & activate Pro instantly</div>
+      <div style="font-size:10px;color:var(--muted);line-height:1.6;margin-bottom:10px;">Submit your TX hash below — we verify it automatically on the blockchain. If the payment is confirmed and $20+, <strong style="color:var(--green);">Pro activates instantly</strong>.</div>
       <div id="pro-request-form">
         <div style="display:flex;gap:6px;margin-bottom:6px;">
           <select id="pr-network" class="code-input" style="font-size:10px;text-transform:none;letter-spacing:normal;flex:1;padding:6px 8px;">
             <option value="">Network...</option>
-            <option value="TRC20">USDT TRC20</option>
-            <option value="BEP20">BEP20 (BSC)</option>
-            <option value="ERC20">ERC20 (Ethereum)</option>
-            <option value="Binance Pay">Binance Pay</option>
-            <option value="Skrill">Skrill</option>
-            <option value="Other">Other</option>
+            <option value="TRC20">USDT TRC20 (Tron)</option>
+            <option value="BEP20">USDT / BNB · BEP20 (BSC)</option>
+            <option value="ERC20">USDT / ETH · ERC20</option>
+            <option value="Binance Pay">Binance Pay (manual review)</option>
           </select>
           <input type="text" id="pr-amount" class="code-input" placeholder="Amount (e.g. 20 USDT)" style="font-size:10px;text-transform:none;letter-spacing:normal;flex:1;">
         </div>
-        <input type="text" id="pr-txhash" class="code-input" placeholder="TX hash or Binance Pay reference" style="font-size:10px;text-transform:none;letter-spacing:normal;width:100%;margin-bottom:6px;">
-        <input type="text" id="pr-contact" class="code-input" placeholder="Your Telegram, Discord or Email (so we can reach you)" style="font-size:10px;text-transform:none;letter-spacing:normal;width:100%;margin-bottom:8px;">
-        <button class="code-btn" onclick="submitProRequest()" style="width:100%;padding:9px;font-size:11px;letter-spacing:.08em;background:linear-gradient(135deg,rgba(243,186,47,.2),rgba(243,186,47,.08));border-color:rgba(243,186,47,.4);color:var(--bnb);">SUBMIT — CLAIM PRO</button>
+        <input type="text" id="pr-txhash" class="code-input" placeholder="TX hash (from your wallet or block explorer)" style="font-size:10px;text-transform:none;letter-spacing:normal;width:100%;margin-bottom:6px;">
+        <input type="text" id="pr-contact" class="code-input" placeholder="Contact (optional — Telegram/Discord/Email)" style="font-size:10px;text-transform:none;letter-spacing:normal;width:100%;margin-bottom:8px;">
+        <button class="code-btn" onclick="submitProRequest()" style="width:100%;padding:9px;font-size:11px;letter-spacing:.08em;background:linear-gradient(135deg,rgba(0,200,150,.2),rgba(0,200,150,.08));border-color:rgba(0,200,150,.4);color:var(--green);">VERIFY TX & ACTIVATE PRO</button>
         <div id="pr-status" style="font-size:10px;margin-top:6px;min-height:14px;text-align:center;"></div>
       </div>
-      <div id="pro-request-pending" style="display:none;text-align:center;">
-        <div style="font-size:11px;color:var(--green);font-weight:600;margin-bottom:4px;">Request submitted!</div>
-        <div style="font-size:10px;color:var(--muted);line-height:1.6;">We'll verify your transaction and activate Pro shortly. Pro activates automatically on your next visit — no action needed.</div>
-      </div>
+      <div id="pro-request-pending" style="display:none;text-align:center;"></div>
     </div>
 
-    <!-- Skrill (secondary) -->
+    <!-- Skrill (tip jar only — does NOT unlock Pro) -->
     <div style="font-size:9px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);margin:14px 0 8px;display:flex;align-items:center;gap:6px;">
-      <span style="font-size:8px;">○</span> Card Payment — Skrill
+      <span style="font-size:8px;">○</span> Tip Jar — Skrill (Card)
     </div>
+    <div style="font-size:10px;color:var(--amber);line-height:1.6;margin-bottom:8px;font-weight:600;text-align:center;">Skrill tips support development but do not unlock Pro.<br>For Pro, send crypto above — it's instant and auto-verified.</div>
     <div class="skrill-tier-row">
-      <a href="https://skrill.me/rq/Daniel/5/USD?key=Aw1OEJXlKgBA8JsQQUlWczzO64A" target="_blank" rel="noopener" class="skrill-btn" onclick="showTipScreen()"><div style="font-size:16px;font-weight:800;">$5</div><div style="font-size:8px;color:inherit;opacity:.7;margin-top:2px;">1 Month</div></a>
-      <a href="https://skrill.me/rq/Daniel/10/USD?key=UioGmHInL3DGuPlwSNb7ur5flZr" target="_blank" rel="noopener" class="skrill-btn" onclick="showTipScreen()"><div style="font-size:16px;font-weight:800;">$10</div><div style="font-size:8px;color:inherit;opacity:.7;margin-top:2px;">3 Months</div></a>
-      <a href="https://skrill.me/rq/Daniel/20/USD?key=ERwwyCSOLuNQd0mqjQew-P_YFPu" target="_blank" rel="noopener" class="skrill-btn" onclick="showTipScreen()"><div style="font-size:16px;font-weight:800;">$20</div><div style="font-size:8px;color:inherit;opacity:.7;margin-top:2px;">6 Months</div></a>
+      <a href="https://skrill.me/rq/Daniel/5/USD?key=Aw1OEJXlKgBA8JsQQUlWczzO64A" target="_blank" rel="noopener" class="skrill-btn" onclick="showTipScreen()"><div style="font-size:16px;font-weight:800;">$5</div><div style="font-size:8px;color:inherit;opacity:.7;margin-top:2px;">Tip</div></a>
+      <a href="https://skrill.me/rq/Daniel/10/USD?key=UioGmHInL3DGuPlwSNb7ur5flZr" target="_blank" rel="noopener" class="skrill-btn" onclick="showTipScreen()"><div style="font-size:16px;font-weight:800;">$10</div><div style="font-size:8px;color:inherit;opacity:.7;margin-top:2px;">Tip</div></a>
+      <a href="https://skrill.me/rq/Daniel/20/USD?key=ERwwyCSOLuNQd0mqjQew-P_YFPu" target="_blank" rel="noopener" class="skrill-btn" onclick="showTipScreen()"><div style="font-size:16px;font-weight:800;">$20</div><div style="font-size:8px;color:inherit;opacity:.7;margin-top:2px;">Tip</div></a>
     </div>
     <div class="skrill-custom-row">
       <span style="font-size:14px;color:var(--muted);font-weight:600;">$</span>
       <input type="number" id="skrill-custom-amount" class="code-input" placeholder="Custom" min="1" style="font-size:12px;width:70px;text-transform:none;letter-spacing:normal;text-align:center;">
-      <button class="skrill-btn skrill-custom-go" onclick="sendSkrill()">Donate via Skrill</button>
+      <button class="skrill-btn skrill-custom-go" onclick="sendSkrill()">Tip via Skrill</button>
     </div>
   </div>
 </div>
@@ -570,7 +571,7 @@
   <div style="font-size:11px;letter-spacing:.14em;color:#3e4d60;text-transform:uppercase;font-family:var(--font-ui);">Your Daily Asset Performance Tracker</div>
   <div style="width:110px;height:2px;background:#181f28;border-radius:1px;overflow:hidden;margin:6px 0;"><div style="height:100%;background:#f3ba2f;border-radius:1px;animation:loadBar 2.5s ease 0.5s both;"></div></div>
   <div style="font-size:10px;color:#3e4d60;letter-spacing:.1em;font-family:IBM Plex Mono,monospace;min-height:16px;" id="lmsg">INITIALIZING…</div>
-  <div id="load-tip" style="margin-top:14px;max-width:340px;text-align:center;font-size:11px;color:#5a6a7a;line-height:1.7;font-family:'DM Sans',sans-serif;font-style:italic;min-height:36px;"></div>
+  <div id="load-tip" style="margin-top:14px;max-width:400px;text-align:center;font-size:14px;color:#5a6a7a;line-height:1.7;font-family:'DM Sans',sans-serif;font-style:italic;min-height:42px;"></div>
   <a href="https://www.coingecko.com/en/api" target="_blank" rel="noopener" class="cg-attribution" style="margin-top:10px;display:inline-flex;align-items:center;gap:8px;text-decoration:none;opacity:.55;transition:opacity .2s;" onmouseenter="this.style.opacity='.85'" onmouseleave="this.style.opacity='.55'">
     <span style="font-size:11px;letter-spacing:.08em;color:#8899aa;font-family:'DM Sans',sans-serif;white-space:nowrap;">Price data provided by</span>
     <img src="coingecko-api-logo.svg" alt="CoinGecko API" style="height:18px;">
@@ -1017,9 +1018,9 @@
     <div class="swap-pro-gate" id="swap-pro-gate" style="display:none;">
       <div style="text-align:center;padding:20px 14px;">
         <div style="font-size:28px;margin-bottom:8px;">🔒</div>
-        <div style="font-size:12px;color:var(--text);font-weight:600;margin-bottom:4px;">Best Time to Swap is a Pro Feature</div>
-        <div style="font-size:10px;color:var(--muted);line-height:1.6;margin-bottom:12px;">Unlock support/resistance levels, ratio charts, and the swap calculator with Pro.</div>
-        <button class="code-btn" onclick="openPro()" style="font-size:11px;padding:8px 20px;">⚡ UNLOCK PRO</button>
+        <div style="font-size:12px;color:var(--text);font-weight:600;margin-bottom:4px;">Reserved for Project Supporters</div>
+        <div style="font-size:10px;color:var(--muted);line-height:1.6;margin-bottom:12px;">Support/resistance levels, ratio charts, and the swap calculator are unlocked with a one-time contribution. Help keep Rotator independent.</div>
+        <button class="code-btn" onclick="openPro()" style="font-size:11px;padding:8px 20px;">⚡ SUPPORT & UNLOCK</button>
       </div>
     </div>
     <!-- RATIO TRACKER -->
@@ -1257,7 +1258,7 @@
     <a class="footer-link" onclick="alert('How It Works — Coming soon')">HOW IT WORKS</a>
     <a class="footer-link" onclick="openModal('tos-modal')">TERMS</a>
     <a class="footer-link" onclick="openModal('privacy-modal')">PRIVACY</a>
-    <a class="footer-link" onclick="alert('Contact — Coming soon')">CONTACT</a>
+    <a class="footer-link" href="mailto:rotatortool@gmail.com">CONTACT</a>
     <a class="footer-link" onclick="openModal('donate-modal')">SUPPORT US</a>
   </div>
   <div class="footer-copy">© 2026 ROTATOR · NOT FINANCIAL ADVICE · <span style="color:var(--red);">DYOR</span></div>
@@ -1372,6 +1373,7 @@
   <script src="js/api-pool.js"></script>
   <script src="js/pro-system.js"></script>
   <script src="js/supabase.js"></script>
+  <script src="js/tx-verify.js"></script>
   <script src="js/i18n.js"></script>
   <script src="js/signals.js"></script>
   <script src="js/holdings.js"></script>
