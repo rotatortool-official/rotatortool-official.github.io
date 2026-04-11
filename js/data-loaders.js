@@ -1964,66 +1964,66 @@ function shareAsImage() {
   can.width = W; can.height = H;
   var ctx = can.getContext('2d');
 
-  /* ── Background: dark gradient ── */
+  /* ── Background: rich dark gradient ── */
   var bg = ctx.createLinearGradient(0, 0, W, H);
-  bg.addColorStop(0, '#0d1117');
-  bg.addColorStop(0.5, '#161b22');
-  bg.addColorStop(1, '#0d1117');
+  bg.addColorStop(0, '#080c12');
+  bg.addColorStop(0.4, '#0d1420');
+  bg.addColorStop(1, '#080c12');
   ctx.fillStyle = bg;
   ctx.fillRect(0, 0, W, H);
 
   /* subtle grid pattern */
-  ctx.strokeStyle = 'rgba(243,186,47,0.03)';
+  ctx.strokeStyle = 'rgba(243,186,47,0.025)';
   ctx.lineWidth = 1;
-  for (var gx = 0; gx < W; gx += 40) { ctx.beginPath(); ctx.moveTo(gx, 0); ctx.lineTo(gx, H); ctx.stroke(); }
-  for (var gy = 0; gy < H; gy += 40) { ctx.beginPath(); ctx.moveTo(0, gy); ctx.lineTo(W, gy); ctx.stroke(); }
+  for (var gx = 0; gx < W; gx += 50) { ctx.beginPath(); ctx.moveTo(gx, 0); ctx.lineTo(gx, H); ctx.stroke(); }
+  for (var gy = 0; gy < H; gy += 50) { ctx.beginPath(); ctx.moveTo(0, gy); ctx.lineTo(W, gy); ctx.stroke(); }
 
   /* ── Gold accent line at top ── */
   var gold = ctx.createLinearGradient(0, 0, W, 0);
   gold.addColorStop(0, 'rgba(243,186,47,0)');
-  gold.addColorStop(0.3, 'rgba(243,186,47,0.8)');
-  gold.addColorStop(0.7, 'rgba(243,186,47,0.8)');
+  gold.addColorStop(0.3, 'rgba(243,186,47,0.9)');
+  gold.addColorStop(0.7, 'rgba(243,186,47,0.9)');
   gold.addColorStop(1, 'rgba(243,186,47,0)');
   ctx.fillStyle = gold;
-  ctx.fillRect(0, 0, W, 3);
+  ctx.fillRect(0, 0, W, 4);
 
-  /* ── Glow circle behind symbol area ── */
-  var glow = ctx.createRadialGradient(160, 180, 0, 160, 180, 200);
-  glow.addColorStop(0, 'rgba(243,186,47,0.08)');
+  /* ── Large glow behind score area ── */
+  var glow = ctx.createRadialGradient(W - 180, 200, 0, W - 180, 200, 280);
+  glow.addColorStop(0, 'rgba(243,186,47,0.1)');
   glow.addColorStop(1, 'rgba(243,186,47,0)');
   ctx.fillStyle = glow;
-  ctx.fillRect(0, 0, 400, 400);
+  ctx.fillRect(W - 460, 0, 460, 460);
 
-  /* ── Symbol + Name header ── */
+  /* ── Symbol + Name header (bigger) ── */
   ctx.fillStyle = '#f3ba2f';
-  ctx.font = 'bold 52px "DM Sans", Arial, sans-serif';
-  ctx.fillText(sym, 60, 90);
+  ctx.font = 'bold 68px "IBM Plex Mono", monospace';
+  ctx.fillText(sym, 70, 100);
 
-  ctx.fillStyle = 'rgba(255,255,255,0.5)';
-  ctx.font = '22px "DM Sans", Arial, sans-serif';
-  ctx.fillText(name, 60, 122);
+  ctx.fillStyle = 'rgba(255,255,255,0.45)';
+  ctx.font = '26px "IBM Plex Mono", monospace';
+  ctx.fillText(name, 70, 138);
 
-  /* ── Price (big) ── */
+  /* ── Price (big and bold) ── */
   ctx.fillStyle = '#ffffff';
-  ctx.font = 'bold 56px "DM Serif Display", Georgia, serif';
-  ctx.fillText(price, 60, 200);
+  ctx.font = 'bold 72px "IBM Plex Mono", monospace';
+  ctx.fillText(price, 70, 230);
 
-  /* 24H change */
+  /* 24H change — large */
   var isPos = chg.indexOf('+') === 0;
   var isNeg = chg.indexOf('-') === 0 || chg.indexOf('\u2212') === 0;
   ctx.fillStyle = isPos ? '#00c896' : isNeg ? '#ff4560' : 'rgba(255,255,255,0.6)';
-  ctx.font = 'bold 28px "DM Sans", Arial, sans-serif';
+  ctx.font = 'bold 36px "IBM Plex Mono", monospace';
   var arrow = isPos ? '\u25B2 ' : isNeg ? '\u25BC ' : '';
-  ctx.fillText(arrow + chg + ' (24H)', 60, 244);
+  ctx.fillText(arrow + chg + ' (24H)', 70, 282);
 
-  /* ── Score circle ── */
+  /* ── Score circle (larger, bolder) ── */
   if (score) {
-    var cx = W - 160, cy = 140, r = 70;
-    /* outer ring */
+    var cx = W - 180, cy = 160, r = 90;
+    /* outer ring bg */
     ctx.beginPath();
     ctx.arc(cx, cy, r, 0, Math.PI * 2);
-    ctx.strokeStyle = 'rgba(243,186,47,0.25)';
-    ctx.lineWidth = 6;
+    ctx.strokeStyle = 'rgba(255,255,255,0.08)';
+    ctx.lineWidth = 8;
     ctx.stroke();
     /* score arc */
     var pct = parseInt(score) / 100;
@@ -2031,98 +2031,114 @@ function shareAsImage() {
     ctx.arc(cx, cy, r, -Math.PI / 2, -Math.PI / 2 + Math.PI * 2 * pct);
     var arcColor = pct >= 0.6 ? '#00c896' : pct >= 0.35 ? '#f3ba2f' : '#ff4560';
     ctx.strokeStyle = arcColor;
-    ctx.lineWidth = 6;
+    ctx.lineWidth = 8;
+    ctx.lineCap = 'round';
     ctx.stroke();
+    ctx.lineCap = 'butt';
     /* score number */
     ctx.fillStyle = '#ffffff';
-    ctx.font = 'bold 48px "DM Serif Display", Georgia, serif';
+    ctx.font = 'bold 64px "IBM Plex Mono", monospace';
     ctx.textAlign = 'center';
-    ctx.fillText(score, cx, cy + 14);
-    ctx.fillStyle = 'rgba(255,255,255,0.4)';
-    ctx.font = '16px "DM Sans", Arial, sans-serif';
-    ctx.fillText('/100', cx, cy + 40);
+    ctx.fillText(score, cx, cy + 20);
+    ctx.fillStyle = 'rgba(255,255,255,0.35)';
+    ctx.font = '20px "IBM Plex Mono", monospace';
+    ctx.fillText('/100', cx, cy + 52);
     ctx.textAlign = 'left';
   }
 
   /* ── Separator line ── */
-  ctx.fillStyle = 'rgba(255,255,255,0.06)';
-  ctx.fillRect(60, 275, W - 120, 1);
+  ctx.fillStyle = 'rgba(243,186,47,0.12)';
+  ctx.fillRect(70, 310, W - 140, 1);
 
-  /* ── Market data boxes ── */
-  var boxY = 300, boxH = 70, boxGap = 16;
-  var boxW = Math.min(200, (W - 120 - boxGap * (mktData.length - 1)) / Math.min(mktData.length, 5));
+  /* ── Signal badges (larger) ── */
+  if (badges.length) {
+    var badgeY = 340;
+    ctx.fillStyle = 'rgba(255,255,255,0.4)';
+    ctx.font = '16px "IBM Plex Mono", monospace';
+    ctx.fillText('SIGNALS', 70, badgeY);
+    var bx2 = 70;
+    badgeY += 22;
+    ctx.font = 'bold 18px "IBM Plex Mono", monospace';
+    badges.slice(0, 4).forEach(function(b) {
+      var tw = ctx.measureText(b).width + 32;
+      /* badge bg */
+      ctx.fillStyle = 'rgba(0,200,150,0.12)';
+      _roundRect(ctx, bx2, badgeY, tw, 40, 8);
+      ctx.fill();
+      ctx.strokeStyle = 'rgba(0,200,150,0.4)';
+      ctx.lineWidth = 1;
+      _roundRect(ctx, bx2, badgeY, tw, 40, 8);
+      ctx.stroke();
+      /* badge text */
+      ctx.fillStyle = '#00c896';
+      ctx.font = 'bold 18px "IBM Plex Mono", monospace';
+      ctx.fillText(b, bx2 + 16, badgeY + 27);
+      bx2 += tw + 14;
+    });
+  }
+
+  /* ── Market data boxes (larger fonts) ── */
+  var boxY = badges.length ? 420 : 340, boxH = 80, boxGap = 14;
   var visibleMkt = mktData.slice(0, 5);
+  var boxW = Math.min(200, (W - 140 - boxGap * (visibleMkt.length - 1)) / Math.min(visibleMkt.length, 5));
   visibleMkt.forEach(function(d, i) {
-    var bx = 60 + i * (boxW + boxGap);
+    var bx = 70 + i * (boxW + boxGap);
     /* box bg */
     ctx.fillStyle = 'rgba(255,255,255,0.04)';
     _roundRect(ctx, bx, boxY, boxW, boxH, 8);
     ctx.fill();
-    /* border */
     ctx.strokeStyle = 'rgba(255,255,255,0.08)';
     ctx.lineWidth = 1;
     _roundRect(ctx, bx, boxY, boxW, boxH, 8);
     ctx.stroke();
     /* label */
     ctx.fillStyle = 'rgba(255,255,255,0.4)';
-    ctx.font = '11px "DM Sans", Arial, sans-serif';
-    ctx.fillText(d.label.toUpperCase(), bx + 12, boxY + 22);
+    ctx.font = '14px "IBM Plex Mono", monospace';
+    ctx.fillText(d.label.toUpperCase(), bx + 14, boxY + 26);
     /* value */
     ctx.fillStyle = '#ffffff';
-    ctx.font = 'bold 16px "DM Sans", Arial, sans-serif';
-    /* truncate long values */
-    var dispVal = d.val.length > 14 ? d.val.substring(0, 13) + '\u2026' : d.val;
-    ctx.fillText(dispVal, bx + 12, boxY + 50);
+    ctx.font = 'bold 20px "IBM Plex Mono", monospace';
+    var dispVal = d.val.length > 12 ? d.val.substring(0, 11) + '\u2026' : d.val;
+    ctx.fillText(dispVal, bx + 14, boxY + 56);
   });
 
-  /* ── Signal badges ── */
-  if (badges.length) {
-    var badgeY = 400;
-    ctx.fillStyle = 'rgba(255,255,255,0.35)';
-    ctx.font = '12px "DM Sans", Arial, sans-serif';
-    ctx.fillText('SIGNALS', 60, badgeY);
-    var bx2 = 60;
-    badgeY += 16;
-    badges.slice(0, 5).forEach(function(b) {
-      var tw = ctx.measureText(b).width + 24;
-      /* badge bg */
-      ctx.fillStyle = 'rgba(0,200,150,0.12)';
-      _roundRect(ctx, bx2, badgeY, tw, 32, 6);
-      ctx.fill();
-      ctx.strokeStyle = 'rgba(0,200,150,0.35)';
-      ctx.lineWidth = 1;
-      _roundRect(ctx, bx2, badgeY, tw, 32, 6);
-      ctx.stroke();
-      /* badge text */
-      ctx.fillStyle = '#00c896';
-      ctx.font = 'bold 13px "DM Sans", Arial, sans-serif';
-      ctx.fillText(b, bx2 + 12, badgeY + 21);
-      bx2 += tw + 10;
-    });
-  }
+  /* ── CTA teaser — curiosity hook ── */
+  var ctaY = H - 120;
+  ctx.fillStyle = 'rgba(243,186,47,0.06)';
+  _roundRect(ctx, 70, ctaY, W - 140, 42, 6);
+  ctx.fill();
+  ctx.strokeStyle = 'rgba(243,186,47,0.2)';
+  ctx.lineWidth = 1;
+  _roundRect(ctx, 70, ctaY, W - 140, 42, 6);
+  ctx.stroke();
+  ctx.fillStyle = 'rgba(243,186,47,0.85)';
+  ctx.font = 'bold 18px "IBM Plex Mono", monospace';
+  ctx.textAlign = 'center';
+  ctx.fillText('Is your coin lagging or leading?  Find out free at Rotator', W / 2, ctaY + 28);
+  ctx.textAlign = 'left';
 
   /* ── Footer: branding + URL ── */
   ctx.fillStyle = 'rgba(255,255,255,0.06)';
-  ctx.fillRect(60, H - 90, W - 120, 1);
+  ctx.fillRect(70, H - 60, W - 140, 1);
 
   /* Rotator brand */
   ctx.fillStyle = '#f3ba2f';
-  ctx.font = 'bold 26px "DM Serif Display", Georgia, serif';
-  ctx.fillText('ROTATOR', 60, H - 45);
-  ctx.fillStyle = 'rgba(255,255,255,0.35)';
-  ctx.font = '14px "DM Sans", Arial, sans-serif';
-  ctx.fillText('Real-time rotation signals & momentum scoring', 200, H - 45);
+  ctx.font = 'bold 28px "IBM Plex Mono", monospace';
+  ctx.fillText('ROTATOR', 70, H - 25);
+  ctx.fillStyle = 'rgba(255,255,255,0.3)';
+  ctx.font = '16px "IBM Plex Mono", monospace';
+  ctx.fillText('Real-time rotation signals & momentum scoring', 230, H - 25);
 
   /* URL right-aligned */
-  ctx.fillStyle = 'rgba(243,186,47,0.6)';
-  ctx.font = '14px "DM Sans", Arial, sans-serif';
+  ctx.fillStyle = 'rgba(243,186,47,0.7)';
+  ctx.font = 'bold 16px "IBM Plex Mono", monospace';
   ctx.textAlign = 'right';
-  ctx.fillText('rotatortool-official.github.io', W - 60, H - 45);
+  ctx.fillText('rotatortool-official.github.io', W - 70, H - 25);
   ctx.textAlign = 'left';
 
   /* ── Gold bottom accent ── */
   ctx.fillStyle = gold;
-  ctx.fillRect(0, H - 3, W, 3);
+  ctx.fillRect(0, H - 4, W, 4);
 
   /* ── Show viral share preview modal instead of direct download ── */
   try {
