@@ -108,7 +108,7 @@ function checkMyReferrals() {
 function showProToast() {
   var t = document.createElement('div');
   t.style.cssText = 'position:fixed;top:56px;left:50%;transform:translateX(-50%);background:#1a2030;border:1px solid #a78bfa;border-radius:6px;padding:14px 22px;font-family:IBM Plex Mono,monospace;font-size:12px;color:#a78bfa;z-index:900;text-align:center;box-shadow:0 0 30px rgba(167,139,250,.2);letter-spacing:.06em;';
-  t.innerHTML = '⚡ PRO UNLOCKED — 5 friends joined!<br><span style="font-size:10px;color:#3e4d60;margin-top:4px;display:block;">All 200 coins + stablecoin yields available.</span>';
+  t.innerHTML = '⚡ PRO UNLOCKED — 5 friends joined!<br><span style="font-size:12px;color:#3e4d60;margin-top:4px;display:block;">All 200 coins + stablecoin yields available.</span>';
   document.body.appendChild(t);
   setTimeout(function() { t.style.transition = 'opacity .5s'; t.style.opacity = '0'; setTimeout(function() { t.remove(); }, 500); }, 4000);
   /* Start Pro tutorial after toast */
@@ -148,7 +148,7 @@ function showExpiryWarning(daysLeft) {
     : '⚠ Your Pro expires in ' + daysLeft + ' day' + (daysLeft > 1 ? 's' : '') + '.';
   var t = document.createElement('div');
   t.style.cssText = 'position:fixed;top:56px;left:50%;transform:translateX(-50%);background:var(--bg2);border:1px solid var(--amber);border-radius:6px;padding:14px 22px;font-family:IBM Plex Mono,monospace;font-size:12px;color:var(--amber);z-index:900;text-align:center;box-shadow:0 0 30px rgba(240,160,48,.15);letter-spacing:.06em;cursor:pointer;';
-  t.innerHTML = msg + '<br><span style="font-size:10px;color:var(--muted);margin-top:4px;display:block;">Click to renew your plan →</span>';
+  t.innerHTML = msg + '<br><span style="font-size:12px;color:var(--muted);margin-top:4px;display:block;">Click to renew your plan →</span>';
   t.onclick = function() { t.remove(); openPro(); };
   document.body.appendChild(t);
   setTimeout(function() { if (t.parentNode) { t.style.transition = 'opacity .5s'; t.style.opacity = '0'; setTimeout(function() { t.remove(); }, 500); } }, 8000);
@@ -168,16 +168,16 @@ function openPro() {
       + '<div class="already-pro-icon">⚡</div>'
       + '<div class="already-pro-txt">Thank You, Supporter!</div>'
       + '<div class="already-pro-sub" style="color:var(--green);font-weight:600;">Pro is active — lifetime access unlocked</div>'
-      + '<div style="margin-top:10px;background:var(--gd);border:1px solid rgba(0,200,150,.2);border-radius:4px;padding:8px 14px;text-align:center;font-size:11px;color:var(--green);font-weight:600;">Lifetime Pro — your support keeps Rotator independent</div>'
+      + '<div style="margin-top:10px;background:var(--gd);border:1px solid rgba(0,200,150,.2);border-radius:4px;padding:8px 14px;text-align:center;font-size:12px;color:var(--green);font-weight:600;">Lifetime Pro — your support keeps Rotator independent</div>'
       + '<div style="margin-top:14px;background:var(--bg3);border:1px solid var(--bdr2);border-radius:4px;padding:12px 14px;">'
-        + '<div style="font-size:10px;color:var(--muted);letter-spacing:.12em;margin-bottom:8px;">' + _('pro_coming') + '</div>'
-        + '<div style="font-size:11px;color:var(--text);line-height:2;">◈ <strong style="color:var(--bnb)">' + _('pro_coming_1') + '</strong> rotation tracker<br>◈ <strong style="color:var(--pro)">' + _('pro_coming_2') + '</strong> performance screener<br>◈ ' + _('pro_coming_3') + '</div>'
+        + '<div style="font-size:12px;color:var(--muted);letter-spacing:.12em;margin-bottom:8px;">' + _('pro_coming') + '</div>'
+        + '<div style="font-size:12px;color:var(--text);line-height:2;">◈ <strong style="color:var(--bnb)">' + _('pro_coming_1') + '</strong> rotation tracker<br>◈ <strong style="color:var(--pro)">' + _('pro_coming_2') + '</strong> performance screener<br>◈ ' + _('pro_coming_3') + '</div>'
       + '</div>'
       + '<div style="margin-top:14px;background:var(--bg3);border:1px solid var(--bdr2);border-radius:4px;padding:12px 14px;">'
-        + '<div style="font-size:10px;color:var(--muted);letter-spacing:.12em;margin-bottom:8px;">YOUR RECOVERY KEY</div>'
-        + '<div style="font-size:10px;color:var(--muted);line-height:1.6;margin-bottom:8px;">Save this key to restore Pro on another device or browser:</div>'
+        + '<div style="font-size:12px;color:var(--muted);letter-spacing:.12em;margin-bottom:8px;">YOUR RECOVERY KEY</div>'
+        + '<div style="font-size:12px;color:var(--muted);line-height:1.6;margin-bottom:8px;">Save this key to restore Pro on another device or browser:</div>'
         + '<div style="display:flex;gap:6px;">'
-          + '<input class="code-input" id="recovery-key-display" value="' + getMyId() + '" readonly onclick="this.select()" style="font-size:11px;font-weight:600;color:var(--pro);letter-spacing:.08em;">'
+          + '<input class="code-input" id="recovery-key-display" value="' + getMyId() + '" readonly onclick="this.select()" style="font-size:12px;font-weight:600;color:var(--pro);letter-spacing:.08em;">'
           + '<button class="code-btn" onclick="copyRecoveryKey()">COPY</button>'
         + '</div>'
       + '</div>'
@@ -190,10 +190,10 @@ function openPro() {
       /* ── FREE vs PRO comparison ── */
       + '<div style="background:var(--bg3);border:1px solid rgba(167,139,250,.2);border-radius:4px;padding:12px 14px;margin-bottom:14px;">'
         + '<div style="display:flex;gap:12px;margin-bottom:10px;">'
-          + '<div style="flex:1;font-size:10px;letter-spacing:.12em;color:var(--muted);text-transform:uppercase;">FREE</div>'
-          + '<div style="flex:1;font-size:10px;letter-spacing:.12em;color:var(--pro);text-transform:uppercase;text-align:right;">⚡ PRO</div>'
+          + '<div style="flex:1;font-size:12px;letter-spacing:.12em;color:var(--muted);text-transform:uppercase;">FREE</div>'
+          + '<div style="flex:1;font-size:12px;letter-spacing:.12em;color:var(--pro);text-transform:uppercase;text-align:right;">⚡ PRO</div>'
         + '</div>'
-        + '<div style="font-size:11px;color:var(--text);line-height:2.4;">'
+        + '<div style="font-size:12px;color:var(--text);line-height:2.4;">'
           + '<div style="display:flex;justify-content:space-between;"><span>Top 50 coins</span><span style="color:var(--pro);">Top 200 coins</span></div>'
           + '<div style="display:flex;justify-content:space-between;"><span>3 categories</span><span style="color:var(--pro);">All 10 categories</span></div>'
           + '<div style="display:flex;justify-content:space-between;"><span>2 holdings</span><span style="color:var(--pro);">10 holdings</span></div>'
@@ -205,22 +205,22 @@ function openPro() {
       + '</div>'
 
       /* ── PRIMARY: Pay with Crypto ── */
-      + '<div style="font-size:9px;letter-spacing:.14em;text-transform:uppercase;color:var(--green);margin-bottom:8px;">PAY WITH CRYPTO — AUTO-VERIFIED, INSTANT PRO</div>'
+      + '<div style="font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:var(--green);margin-bottom:8px;">PAY WITH CRYPTO — AUTO-VERIFIED, INSTANT PRO</div>'
       + '<div style="background:linear-gradient(135deg,rgba(0,200,150,.06),rgba(0,200,150,.02));border:1px solid rgba(0,200,150,.2);border-radius:6px;padding:14px;margin-bottom:14px;">'
-        + '<div style="font-size:11px;color:var(--text);line-height:1.7;margin-bottom:10px;">Send <strong>$20+ USDT</strong> (or equivalent BNB/ETH) to any wallet below. Submit your TX hash and <strong>Pro activates instantly</strong> — fully automated, no waiting.</div>'
-        + '<div style="font-size:10px;color:var(--muted);margin-bottom:6px;">⬡ USDT · TRC20 (Tron)</div>'
-        + '<div style="font-size:9px;color:var(--text);word-break:break-all;background:var(--bg3);padding:6px 8px;border-radius:3px;margin-bottom:6px;font-family:monospace;">TGt3FQmv8AFPqbj6PnQGUAmemV9gDNm4bt</div>'
-        + '<div style="font-size:10px;color:var(--muted);margin-bottom:6px;">⬡ USDT / BNB · BEP20 (BSC) &nbsp;|&nbsp; USDT / ETH · ERC20</div>'
-        + '<div style="font-size:9px;color:var(--text);word-break:break-all;background:var(--bg3);padding:6px 8px;border-radius:3px;margin-bottom:6px;font-family:monospace;">0x507772f8714bca8e73a7984446edb59fea9bfba3</div>'
-        + '<div style="font-size:10px;color:var(--muted);margin-bottom:6px;">⬡ Binance Pay ID</div>'
-        + '<div style="font-size:9px;color:var(--text);word-break:break-all;background:var(--bg3);padding:6px 8px;border-radius:3px;margin-bottom:8px;font-family:monospace;">364154350</div>'
-        + '<a href="#" onclick="closeModal(\'pro-modal\');openModal(\'donate-modal\');return false;" style="display:block;text-align:center;font-size:11px;color:var(--green);text-decoration:none;font-weight:600;">View full donation page with copy buttons →</a>'
+        + '<div style="font-size:12px;color:var(--text);line-height:1.7;margin-bottom:10px;">Send <strong>$20+ USDT</strong> (or equivalent BNB/ETH) to any wallet below. Submit your TX hash and <strong>Pro activates instantly</strong> — fully automated, no waiting.</div>'
+        + '<div style="font-size:12px;color:var(--muted);margin-bottom:6px;">⬡ USDT · TRC20 (Tron)</div>'
+        + '<div style="font-size:12px;color:var(--text);word-break:break-all;background:var(--bg3);padding:6px 8px;border-radius:3px;margin-bottom:6px;font-family:monospace;">TGt3FQmv8AFPqbj6PnQGUAmemV9gDNm4bt</div>'
+        + '<div style="font-size:12px;color:var(--muted);margin-bottom:6px;">⬡ USDT / BNB · BEP20 (BSC) &nbsp;|&nbsp; USDT / ETH · ERC20</div>'
+        + '<div style="font-size:12px;color:var(--text);word-break:break-all;background:var(--bg3);padding:6px 8px;border-radius:3px;margin-bottom:6px;font-family:monospace;">0x507772f8714bca8e73a7984446edb59fea9bfba3</div>'
+        + '<div style="font-size:12px;color:var(--muted);margin-bottom:6px;">⬡ Binance Pay ID</div>'
+        + '<div style="font-size:12px;color:var(--text);word-break:break-all;background:var(--bg3);padding:6px 8px;border-radius:3px;margin-bottom:8px;font-family:monospace;">364154350</div>'
+        + '<a href="#" onclick="closeModal(\'pro-modal\');openModal(\'donate-modal\');return false;" style="display:block;text-align:center;font-size:12px;color:var(--green);text-decoration:none;font-weight:600;">View full donation page with copy buttons →</a>'
       + '</div>'
 
       /* ── SECONDARY: Skrill (card) — donation only, does NOT unlock Pro ── */
-      + '<div style="font-size:9px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);margin-bottom:8px;">TIP JAR — SKRILL (CARD)</div>'
+      + '<div style="font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);margin-bottom:8px;">TIP JAR — SKRILL (CARD)</div>'
       + '<div style="background:var(--bg3);border:1px solid var(--bdr2);border-radius:6px;padding:14px;margin-bottom:14px;">'
-        + '<div style="font-size:10px;color:var(--amber);margin-bottom:8px;line-height:1.6;font-weight:600;">Skrill tips support the project but do not unlock Pro.<br>For Pro, use crypto above — it\'s instant and auto-verified.</div>'
+        + '<div style="font-size:12px;color:var(--amber);margin-bottom:8px;line-height:1.6;font-weight:600;">Skrill tips support the project but do not unlock Pro.<br>For Pro, use crypto above — it\'s instant and auto-verified.</div>'
         + '<div class="pro-plans-row">'
           + '<a href="https://skrill.me/rq/Daniel/5/USD?key=Aw1OEJXlKgBA8JsQQUlWczzO64A" target="_blank" rel="noopener" class="pro-plan-card" onclick="showTipScreen()">'
             + '<div class="pro-plan-price">$5</div>'
@@ -238,29 +238,29 @@ function openPro() {
             + '<div class="pro-plan-badge" style="color:var(--muted);">Tip</div>'
           + '</a>'
         + '</div>'
-        + '<div style="font-size:9px;color:var(--muted);text-align:center;margin-top:6px;">Donation only · Does not unlock Pro · Thank you for supporting Rotator!</div>'
+        + '<div style="font-size:12px;color:var(--muted);text-align:center;margin-top:6px;">Donation only · Does not unlock Pro · Thank you for supporting Rotator!</div>'
       + '</div>'
 
       /* ── Pro code ── */
       + '<div class="pro-divider"></div>'
       + '<div style="text-align:center;margin-top:6px;">'
-        + '<div style="font-size:10px;color:var(--muted);letter-spacing:.08em;margin-bottom:8px;">HAVE A PRO CODE?</div>'
+        + '<div style="font-size:12px;color:var(--muted);letter-spacing:.08em;margin-bottom:8px;">HAVE A PRO CODE?</div>'
         + '<div style="display:flex;gap:6px;">'
-          + '<input class="code-input" id="pro-code-input" placeholder="Enter your Pro code" style="font-size:11px;">'
+          + '<input class="code-input" id="pro-code-input" placeholder="Enter your Pro code" style="font-size:12px;">'
           + '<button class="code-btn" onclick="checkProCode()">REDEEM</button>'
         + '</div>'
-        + '<div id="pro-code-err" style="font-size:10px;margin-top:6px;min-height:14px;color:var(--red);"></div>'
+        + '<div id="pro-code-err" style="font-size:12px;margin-top:6px;min-height:14px;color:var(--red);"></div>'
       + '</div>'
 
       /* ── Recovery key ── */
       + '<div class="pro-divider"></div>'
       + '<div style="text-align:center;margin-top:6px;">'
-        + '<div style="font-size:10px;color:var(--muted);letter-spacing:.08em;margin-bottom:8px;">ALREADY HAVE PRO ON ANOTHER DEVICE?</div>'
+        + '<div style="font-size:12px;color:var(--muted);letter-spacing:.08em;margin-bottom:8px;">ALREADY HAVE PRO ON ANOTHER DEVICE?</div>'
         + '<div style="display:flex;gap:6px;">'
-          + '<input class="code-input" id="restore-key-input" placeholder="Enter your recovery key" style="font-size:11px;">'
+          + '<input class="code-input" id="restore-key-input" placeholder="Enter your recovery key" style="font-size:12px;">'
           + '<button class="code-btn" onclick="restoreProFromKey()">RESTORE</button>'
         + '</div>'
-        + '<div id="restore-err" style="font-size:10px;margin-top:6px;min-height:14px;"></div>'
+        + '<div id="restore-err" style="font-size:12px;margin-top:6px;min-height:14px;"></div>'
       + '</div>';
   }
 
@@ -307,7 +307,7 @@ function checkProCode() {
   /* Launch Pro tutorial after a brief welcome toast */
   var t = document.createElement('div');
   t.style.cssText = 'position:fixed;top:56px;left:50%;transform:translateX(-50%);background:var(--bg2);border:1px solid var(--pro);border-radius:6px;padding:14px 22px;font-family:IBM Plex Mono,monospace;font-size:12px;color:var(--pro);z-index:900;text-align:center;box-shadow:0 0 30px rgba(167,139,250,.2);letter-spacing:.06em;';
-  t.innerHTML = '⚡ PRO UNLOCKED — Welcome!<br><span style="font-size:10px;color:var(--muted);margin-top:4px;display:block;">Thank you for supporting Rotator ♥</span>';
+  t.innerHTML = '⚡ PRO UNLOCKED — Welcome!<br><span style="font-size:12px;color:var(--muted);margin-top:4px;display:block;">Thank you for supporting Rotator ♥</span>';
   document.body.appendChild(t);
   setTimeout(function() { t.style.transition = 'opacity .5s'; t.style.opacity = '0'; setTimeout(function() { t.remove(); }, 500); }, 3500);
   /* Start Pro tutorial after toast fades */
@@ -357,13 +357,13 @@ function renderDonationBar(containerId) {
   var barColor = pct >= 100 ? 'var(--green)' : pct >= 60 ? 'var(--amber)' : 'var(--bnb)';
   el.innerHTML =
     '<div style="margin-bottom:6px;display:flex;align-items:center;justify-content:space-between;">'
-    + '<span style="font-size:9px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);">Monthly Goal</span>'
-    + '<span style="font-size:10px;font-weight:700;color:' + barColor + ';">$' + DONATION_CURRENT + ' / $' + DONATION_GOAL + '</span>'
+    + '<span style="font-size:12px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);">Monthly Goal</span>'
+    + '<span style="font-size:12px;font-weight:700;color:' + barColor + ';">$' + DONATION_CURRENT + ' / $' + DONATION_GOAL + '</span>'
     + '</div>'
     + '<div style="height:4px;background:var(--bg4);border-radius:2px;overflow:hidden;margin-bottom:5px;">'
     + '<div style="width:' + pct + '%;height:100%;background:' + barColor + ';border-radius:2px;transition:width .6s ease;"></div>'
     + '</div>'
-    + '<div style="font-size:9px;color:var(--muted);">'
+    + '<div style="font-size:12px;color:var(--muted);">'
     + (pct >= 100 ? '<span style="color:var(--green);">✓ Goal reached this month!</span>'
                   : '<span style="color:' + barColor + ';">' + pct + '%</span> of ' + DONATION_LABEL)
     + '</div>';
@@ -477,7 +477,7 @@ function submitProRequest() {
           /* Show toast */
           var t = document.createElement('div');
           t.style.cssText = 'position:fixed;top:56px;left:50%;transform:translateX(-50%);background:var(--bg2);border:1px solid var(--green);border-radius:6px;padding:14px 22px;font-family:IBM Plex Mono,monospace;font-size:12px;color:var(--green);z-index:900;text-align:center;box-shadow:0 0 30px rgba(0,200,150,.2);letter-spacing:.06em;';
-          t.innerHTML = '⚡ PRO UNLOCKED — Payment verified!<br><span style="font-size:10px;color:var(--muted);margin-top:4px;display:block;">' + verifiedAmt + ' confirmed on ' + result.network + '</span>';
+          t.innerHTML = '⚡ PRO UNLOCKED — Payment verified!<br><span style="font-size:12px;color:var(--muted);margin-top:4px;display:block;">' + verifiedAmt + ' confirmed on ' + result.network + '</span>';
           document.body.appendChild(t);
           setTimeout(function() { t.style.transition = 'opacity .5s'; t.style.opacity = '0'; setTimeout(function() { t.remove(); }, 500); }, 5000);
           setTimeout(function() { if (typeof startProTutorial === 'function') startProTutorial(); }, 3000);
@@ -497,7 +497,7 @@ function _showProRequestPending(msg) {
   var form = document.getElementById('pro-request-form');
   var pending = document.getElementById('pro-request-pending');
   if (form) form.style.display = 'none';
-  if (pending) { pending.style.display = 'block'; pending.innerHTML = '<div style="font-size:11px;color:var(--green);line-height:1.7;text-align:center;">' + msg + '</div>'; }
+  if (pending) { pending.style.display = 'block'; pending.innerHTML = '<div style="font-size:12px;color:var(--green);line-height:1.7;text-align:center;">' + msg + '</div>'; }
 }
 
 /* On load: if user already submitted a request, show pending state */

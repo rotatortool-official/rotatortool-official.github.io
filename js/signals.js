@@ -138,7 +138,7 @@ function sigRotTile(sell, buy) {
     + '<div class="sig-tile-top">'
       + '<div class="sig-tile-ico"><img src="' + sell.image + '" alt="' + sell.sym + ' logo" loading="lazy" width="20" height="20" onerror="this.style.display=\'none\'"></div>'
       + '<span class="sig-tile-sym" style="color:var(--red);">'   + sell.sym + '</span>'
-      + '<span style="color:var(--muted);font-size:10px;">→</span>'
+      + '<span style="color:var(--muted);font-size:12px;">→</span>'
       + '<div class="sig-tile-ico"><img src="' + buy.image + '" alt="' + buy.sym + ' logo" loading="lazy" width="20" height="20" onerror="this.style.display=\'none\'"></div>'
       + '<span class="sig-tile-sym" style="color:var(--green);">' + buy.sym  + '</span>'
       + '<span class="sig-tile-badge rot">Δ' + delta + '</span>'
@@ -161,8 +161,8 @@ function renderTopBars() {
       + 'display:flex;flex-direction:column;align-items:center;justify-content:center;'
       + 'gap:6px;min-height:88px;opacity:.85;">'
       + '<span style="font-size:18px;">☕</span>'
-      + '<span style="font-size:9px;font-weight:700;letter-spacing:.1em;color:var(--bnb);">SUPPORTERS</span>'
-      + '<span style="font-size:9px;color:var(--muted);text-align:center;line-height:1.4;">' + msg + '</span>'
+      + '<span style="font-size:12px;font-weight:700;letter-spacing:.1em;color:var(--bnb);">SUPPORTERS</span>'
+      + '<span style="font-size:12px;color:var(--muted);text-align:center;line-height:1.4;">' + msg + '</span>'
       + '</div>';
   }
 
@@ -171,7 +171,7 @@ function renderTopBars() {
     return '<div class="sig-tile sig-tile-empty" onclick="document.getElementById(\'coin-sel\')&&document.getElementById(\'coin-sel\').focus()" title="Add holdings to get signals">'
       + '<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;gap:4px;opacity:.5;padding:6px;text-align:center;">'
       + '<span style="font-size:16px;color:var(--green);line-height:1;">+</span>'
-      + '<span style="font-size:9px;letter-spacing:.04em;color:var(--muted);font-family:var(--font-ui);line-height:1.4;">Add holdings to receive signals</span>'
+      + '<span style="font-size:12px;letter-spacing:.04em;color:var(--muted);font-family:var(--font-ui);line-height:1.4;">Add holdings to receive signals</span>'
       + '</div></div>';
   }
 
@@ -237,7 +237,7 @@ function renderTopBars() {
         + '<div class="sig-rot-blur">' + sigRotTile(sell, buy) + '</div>'
         + '<div class="sig-rot-lock-overlay">'
         + '<span style="font-size:14px;">⚡</span>'
-        + '<span style="font-size:9px;font-weight:700;letter-spacing:.09em;color:var(--pro);">PRO</span>'
+        + '<span style="font-size:12px;font-weight:700;letter-spacing:.09em;color:var(--pro);">PRO</span>'
         + '</div>'
         + '</div>';
     }
@@ -413,18 +413,24 @@ function computeInsights() {
     var rsi = kd ? kd.rsi : Math.round((1 - (c.r30 - 1) / Math.max(coins.length - 1, 1)) * 100);
     var rsiLabel = kd ? 'RSI(' + rsi.toFixed(0) + ')' : 'RSI~' + rsi;
 
-    if (rsi <= 30) {
+    if (rsi <= 25) {
       pts += 25;
       signals.push(rsiLabel + ' Oversold');
-    } else if (rsi <= 40) {
-      pts += 12;
+    } else if (rsi <= 38) {
+      pts += 14;
       signals.push(rsiLabel + ' Low Momentum');
-    } else if (rsi >= 75) {
+    } else if (rsi <= 45) {
+      pts += 6;
+      signals.push(rsiLabel + ' Cooling');
+    } else if (rsi >= 78) {
       pts -= 22;
       signals.push(rsiLabel + ' Overbought');
-    } else if (rsi >= 65) {
-      pts -= 8;
+    } else if (rsi >= 62) {
+      pts -= 10;
       signals.push(rsiLabel + ' Hot Zone');
+    } else if (rsi >= 55) {
+      pts -= 4;
+      signals.push(rsiLabel + ' Warming');
     }
 
     /* ── PILLAR 2: MACD Trend (real if klines, proxy if not) ── */
@@ -442,9 +448,16 @@ function computeInsights() {
         pts -= 5;
       }
     } else {
-      /* Proxy: compare p7 vs p14 */
-      if (c.p7 > c.p14 + 3) { pts += 15; signals.push('Momentum Accelerating'); }
-      else if (c.p7 < c.p14 - 3) { pts -= 12; signals.push('Momentum Decelerating'); }
+      /* Proxy: compare p7 vs p14 and p7 vs p30 */
+      var p7p14diff = (c.p7 || 0) - (c.p14 || 0);
+      var p7p30diff = (c.p7 || 0) - (c.p30 || 0);
+      if (p7p14diff > 5) { pts += 18; signals.push('Momentum Accelerating (+' + p7p14diff.toFixed(1) + '%)'); }
+      else if (p7p14diff > 1.5) { pts += 8; signals.push('Momentum Building'); }
+      else if (p7p14diff < -5) { pts -= 15; signals.push('Momentum Decelerating (' + p7p14diff.toFixed(1) + '%)'); }
+      else if (p7p14diff < -1.5) { pts -= 6; signals.push('Momentum Fading'); }
+      /* Extra signal: 30D trend divergence */
+      if (p7p30diff > 8) { pts += 10; signals.push('Recovery Trend (+' + p7p30diff.toFixed(1) + '% vs 30D)'); }
+      else if (p7p30diff < -8) { pts -= 8; signals.push('Weakening Trend (' + p7p30diff.toFixed(1) + '% vs 30D)'); }
     }
 
     /* ── PILLAR 3: Bollinger Bands Squeeze & Position (real if klines) ── */
@@ -492,9 +505,17 @@ function computeInsights() {
       } else if (volMcap > 0.20) {
         pts += 12;
         signals.push('High Liquidity Interest');
+      } else if (volMcap > 0.08 && priceStable) {
+        pts += 8;
+        signals.push('Moderate Volume Activity');
+      } else if (volMcap > 0.08) {
+        pts += 4;
       } else if (volMcap < 0.02 && c.mcap > 5e8) {
-        pts -= 8;
+        pts -= 10;
         signals.push('Low Liquidity (Large Cap)');
+      } else if (volMcap < 0.03) {
+        pts -= 5;
+        signals.push('Below-Average Volume');
       }
     }
 
@@ -534,16 +555,22 @@ function computeInsights() {
       pts += 28;
       signals.push('Hidden Strength vs BTC (' + (relStr >= 0 ? '+' : '') + relStr.toFixed(1) + '%)');
     } else if (relStr > 5) {
-      pts += 15;
+      pts += 18;
       signals.push('Outperforming BTC (+' + relStr.toFixed(1) + '%)');
+    } else if (relStr > 2) {
+      pts += 8;
+      signals.push('Slight Edge vs BTC (+' + relStr.toFixed(1) + '%)');
     } else if (relStr < -5) {
-      pts -= 15;
+      pts -= 18;
       signals.push('Underperforming BTC (' + relStr.toFixed(1) + '%)');
+    } else if (relStr < -2) {
+      pts -= 6;
+      signals.push('Lagging BTC (' + relStr.toFixed(1) + '%)');
     }
 
-    /* ── Normalise to 0–100 ── */
-    var maxPts = kd ? 176 : 128;  /* wider range when kline data enriches signals */
-    var minPts = kd ? -128 : -88;
+    /* ── Normalise to 0–100 (symmetric: 0 pts = 50) ── */
+    var maxPts = kd ? 176 : 140;
+    var minPts = kd ? -176 : -140;
     var raw    = Math.min(maxPts, Math.max(minPts, pts));
     var normalised = Math.round(((raw - minPts) / (maxPts - minPts)) * 100);
 
@@ -705,11 +732,11 @@ function renderTable() {
     var col24, col7, col14, col30, colScore;
     if (c.isStable) {
       stableTag = '<span class="htag" style="background:#2a6e4e;color:#8dffc0;margin-left:4px;">STABLE</span>';
-      var aprStr = '<span style="color:#8dffc0;font-size:11px;" title="Estimated DeFi lending/staking APR on ' + c.aprPlatform + '">' + c.apr.toFixed(1) + '% <span style="font-size:8px;opacity:.7;">APR</span></span>';
+      var aprStr = '<span style="color:#8dffc0;font-size:12px;" title="Estimated DeFi lending/staking APR on ' + c.aprPlatform + '">' + c.apr.toFixed(1) + '% <span style="font-size:12px;opacity:.7;">APR</span></span>';
       col24  = '<td class="pc">' + aprStr + '</td>';
-      col7   = '<td class="pc" style="text-align:center;"><span style="color:var(--muted);font-size:9px;" title="' + c.aprPlatform + '">' + c.aprPlatform.split(' / ')[0] + '</span></td>';
-      col14  = '<td class="pc" style="text-align:center;"><span style="color:var(--muted);font-size:9px;">~$1.00</span></td>';
-      col30  = '<td class="pc" style="text-align:center;"><span style="color:var(--muted);font-size:9px;">PEG</span></td>';
+      col7   = '<td class="pc" style="text-align:center;"><span style="color:var(--muted);font-size:12px;" title="' + c.aprPlatform + '">' + c.aprPlatform.split(' / ')[0] + '</span></td>';
+      col14  = '<td class="pc" style="text-align:center;"><span style="color:var(--muted);font-size:12px;">~$1.00</span></td>';
+      col30  = '<td class="pc" style="text-align:center;"><span style="color:var(--muted);font-size:12px;">PEG</span></td>';
       colScore = '<td class="r"><div class="sw"><span class="sv" style="color:#8dffc0;">YIELD</span></div></td>';
     } else if (isPro) {
       col24  = '<td class="pc">' + pctSpan(c.p24) + '</td>';
@@ -728,7 +755,7 @@ function renderTable() {
 
     return '<tr class="' + (isH ? 'held' : '') + (c.isStable ? ' stable-row' : '') + '" ' + tipData + ' onmouseenter="showRowTip(this,event)" onmouseleave="hideTip()" onclick="openTileDetail(\'' + c.id + '\',event)">'
       + '<td class="qa-cell">' + qaBtnHtml + '</td>'
-      + '<td style="color:var(--muted);font-size:10px;">' + (i+1) + '</td>'
+      + '<td style="color:var(--muted);font-size:12px;">' + (i+1) + '</td>'
       + '<td><div class="cc"><div class="ti"><img src="' + c.image + '" alt="' + c.sym + ' logo" loading="lazy" width="18" height="18" onerror="this.style.display=\'none\'"></div><div><div style="display:flex;align-items:center;"><span class="tsym">' + c.sym + '</span>' + (isH ? '<span class="htag">HELD</span>' : '') + stableTag + '</div><div class="tname">' + (c.name.length > 17 ? c.name.slice(0,15) + '…' : c.name) + '</div></div></div></td>'
       + '<td class="r price-col">' + fmtP(c.price) + '</td>'
       + col24 + col7 + col14 + col30 + colScore

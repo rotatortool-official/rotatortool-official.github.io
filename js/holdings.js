@@ -100,7 +100,7 @@ function renderTiles() {
     if (!c) {
       html += '<div class="tile"><div class="tile-top"><span class="tile-sym">' + h.sym + '</span>'
             + '<button class="tile-rm" onclick="removeHolding(\'' + h.sym + '\')">×</button></div>'
-            + '<div style="font-size:10px;color:var(--muted);">Unavailable</div></div>';
+            + '<div style="font-size:12px;color:var(--muted);">Unavailable</div></div>';
       return;
     }
     var pl = '', plC = '';
@@ -179,7 +179,7 @@ function renderTiles() {
 function renderSignal(hc) {
   var el = document.getElementById('sig-content');
   if (!hc || !hc.length) {
-    el.innerHTML = '<div style="font-size:11px;color:var(--muted);">Add holdings to see signal.</div>';
+    el.innerHTML = '<div style="font-size:12px;color:var(--muted);">Add holdings to see signal.</div>';
     return;
   }
   var avg      = hc.reduce(function(s, c) { return s + c.score; }, 0) / hc.length;
@@ -213,7 +213,7 @@ function renderSignal(hc) {
 
   /* DYOR warning only if any are lagging */
   if (under.length) {
-    h += '<div style="margin-top:6px;padding:5px 8px;background:rgba(255,69,96,.06);border:1px solid rgba(255,69,96,.2);border-radius:3px;font-size:9px;color:var(--muted);line-height:1.6;">'
+    h += '<div style="margin-top:6px;padding:5px 8px;background:rgba(255,69,96,.06);border:1px solid rgba(255,69,96,.2);border-radius:3px;font-size:12px;color:var(--muted);line-height:1.6;">'
        + '<span style="color:var(--red);font-weight:600;">⚠ DYOR:</span> A coin performing badly for months will not automatically recover because you bought it. Research before rotating capital. '
        + '<span style="color:var(--red);">Rotator is not responsible for your investment decisions.</span>'
        + '</div>';
@@ -252,7 +252,7 @@ function renderFxTiles() {
 
   if (!fxHoldings.length) {
     grid.innerHTML  = '<div class="empty-t">No forex pairs yet.<br>Add a pair above.</div>';
-    sigEl.innerHTML = '<div style="font-size:11px;color:var(--muted);">Add pairs to see signal.</div>';
+    sigEl.innerHTML = '<div style="font-size:12px;color:var(--muted);">Add pairs to see signal.</div>';
     return;
   }
 
@@ -276,7 +276,7 @@ function renderFxTiles() {
         + '<div class="tpf"><span class="tpf-l">30D%</span><span class="tpf-v ' + (p30d>=0?'up':'dn')  + '">' + (p30d>=0?'+':'')  + p30d.toFixed(2)  + '%</span></div>'
       + '</div>'
       + pl
-      + '<div class="tile-foot"><span class="tile-pl ' + (score>=65?'up':score<=35?'dn':'fl') + '" style="font-size:9px;">' + signal + '</span><span class="tile-scr ' + scC + '">' + score + '</span></div>'
+      + '<div class="tile-foot"><span class="tile-pl ' + (score>=65?'up':score<=35?'dn':'fl') + '" style="font-size:12px;">' + signal + '</span><span class="tile-scr ' + scC + '">' + score + '</span></div>'
       + '</div>';
   }).join('');
 
@@ -287,7 +287,7 @@ function renderFxTiles() {
       var avg  = held.reduce(function(s, f) { return s + f.score; }, 0) / held.length;
       var avgC = avg >= 65 ? 'var(--green)' : avg >= 45 ? 'var(--amber)' : 'var(--red)';
       sigEl.innerHTML = '<div class="sig-avg" style="color:' + avgC + ';">' + avg.toFixed(0) + '<span class="sig-avg-lbl">/ 100 avg score</span></div>'
-        + '<div style="font-size:11px;color:var(--muted);margin-top:4px;">Based on trend momentum, volatility position and RSI signal.</div>';
+        + '<div style="font-size:12px;color:var(--muted);margin-top:4px;">Based on trend momentum, volatility position and RSI signal.</div>';
     }
   }
 }
@@ -323,7 +323,7 @@ function renderStHoldings() {
 
   if (!stHoldings.length) {
     grid.innerHTML  = '<div class="empty-t">No stocks yet.<br>Add a stock above.</div>';
-    sigEl.innerHTML = '<div style="font-size:11px;color:var(--muted);">Add stocks to see signal.</div>';
+    sigEl.innerHTML = '<div style="font-size:12px;color:var(--muted);">Add stocks to see signal.</div>';
     return;
   }
 
@@ -355,7 +355,7 @@ function renderStHoldings() {
       var avg  = held.reduce(function(s, d) { return s + d.score; }, 0) / held.length;
       var avgC = avg >= 65 ? 'var(--green)' : avg >= 45 ? 'var(--amber)' : 'var(--red)';
       sigEl.innerHTML = '<div class="sig-avg" style="color:' + avgC + ';">' + avg.toFixed(0) + '<span class="sig-avg-lbl">/ 100 avg score</span></div>'
-        + '<div style="font-size:11px;color:var(--muted);margin-top:4px;">Based on 52-week range position and daily momentum.</div>';
+        + '<div style="font-size:12px;color:var(--muted);margin-top:4px;">Based on 52-week range position and daily momentum.</div>';
     }
   }
 }

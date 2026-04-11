@@ -31,7 +31,7 @@ var AV_KEYS = ['R9V24J5V7LCQYZMF'];
    (best of bad options) rather than crashing.
 ────────────────────────────────────────────────────────────────── */
 var _avCooldowns = {};   /* key → timestamp when cooldown expires */
-var _avCooldownMs = 65 * 1000;  /* 65 seconds — AV free tier resets per minute */
+var _avCooldownMs = 30 * 1000;  /* 30 seconds — AV free tier resets per minute */
 
 function getAVKey() {
   var now = Date.now();
@@ -191,9 +191,9 @@ async function apiFetch(url) {
   _pending[url] = (async function() {
     /* ── Proxy pool — add more here if needed ── */
     var ps = [
-      function(){ return fetch(url, {signal: AbortSignal.timeout(9000)}); },
-      function(){ return fetch('https://corsproxy.io/?' + encodeURIComponent(url), {signal: AbortSignal.timeout(11000)}); },
-      function(){ return fetch('https://api.allorigins.win/get?url=' + encodeURIComponent(url), {signal: AbortSignal.timeout(11000)}); }
+      function(){ return fetch(url, {signal: AbortSignal.timeout(5000)}); },
+      function(){ return fetch('https://corsproxy.io/?' + encodeURIComponent(url), {signal: AbortSignal.timeout(7000)}); },
+      function(){ return fetch('https://api.allorigins.win/get?url=' + encodeURIComponent(url), {signal: AbortSignal.timeout(7000)}); }
     ];
 
     var errs = [];

@@ -44,10 +44,10 @@
       The tool is <strong style="color:var(--green);">100% free, no account required</strong>, and runs entirely in your browser. Your holdings are stored locally — we never see your data.<br><br>
       <strong style="color:var(--pro);">Coming soon:</strong> Forex pairs, stock portfolio tracking, and a unified multi-asset dashboard so you can track all your investments in one place.
     </div>
-    <div style="margin-top:16px;padding:12px 14px;background:var(--bg3);border:1px solid var(--bdr2);border-radius:4px;font-size:11px;color:var(--muted);line-height:1.8;text-align:center;">
+    <div style="margin-top:16px;padding:12px 14px;background:var(--bg3);border:1px solid var(--bdr2);border-radius:4px;font-size:12px;color:var(--muted);line-height:1.8;text-align:center;">
       ⚠ Rotator is an informational tool only. Nothing here constitutes financial advice. Always do your own research.
     </div>
-    <div style="margin-top:10px;font-size:11px;color:var(--muted);text-align:center;line-height:1.8;">
+    <div style="margin-top:10px;font-size:12px;color:var(--muted);text-align:center;line-height:1.8;">
       Business inquiries, Pro support, or feedback:<br>
       <a href="mailto:rotatortool@gmail.com" style="color:var(--bnb);text-decoration:none;font-weight:600;letter-spacing:.04em;">rotatortool@gmail.com</a>
     </div>
@@ -133,7 +133,7 @@
       <h4>9. Changes to Terms</h4>
       <p>We reserve the right to update these Terms at any time. Continued use of the Application after changes constitutes acceptance of the updated Terms.</p>
 
-      <div style="margin-top:16px;padding:12px 14px;background:var(--bg3);border:1px solid var(--bdr2);border-radius:4px;font-size:11px;color:var(--muted);line-height:1.8;text-align:center;">
+      <div style="margin-top:16px;padding:12px 14px;background:var(--bg3);border:1px solid var(--bdr2);border-radius:4px;font-size:12px;color:var(--muted);line-height:1.8;text-align:center;">
         ROTATOR &copy; 2026 Daniel Stoilkovski &mdash; All Rights Reserved.
       </div>
     </div>
@@ -179,7 +179,7 @@
       <h4>10. Changes to This Policy</h4>
       <p>We may update this Privacy Policy from time to time. The "Last updated" date at the top will reflect the most recent revision.</p>
 
-      <div style="margin-top:16px;padding:12px 14px;background:var(--bg3);border:1px solid var(--bdr2);border-radius:4px;font-size:11px;color:var(--muted);line-height:1.8;text-align:center;">
+      <div style="margin-top:16px;padding:12px 14px;background:var(--bg3);border:1px solid var(--bdr2);border-radius:4px;font-size:12px;color:var(--muted);line-height:1.8;text-align:center;">
         Questions? Reach out at <a href="mailto:rotatortool@gmail.com" style="color:var(--bnb);text-decoration:underline;">rotatortool@gmail.com</a>
       </div>
     </div>
@@ -204,7 +204,7 @@
 <div id="settings-panel" class="tut-box arrow-right" style="display:none;width:330px;z-index:499;max-height:calc(100vh - 40px);overflow-y:auto;">
   <button class="modal-x" onclick="closeSettingsPanel()" style="position:absolute;top:10px;right:12px;">×</button>
   <div style="font-size:15px;font-weight:700;letter-spacing:.08em;margin-bottom:4px;padding-right:20px;">⚙ Settings</div>
-  <div style="font-size:11px;color:var(--muted);margin-bottom:14px;font-family:var(--font-ui);">Customize your Rotator experience.</div>
+  <div style="font-size:12px;color:var(--muted);margin-bottom:14px;font-family:var(--font-ui);">Customize your Rotator experience.</div>
   <div class="setting-row">
     <div><div class="setting-label">Language</div><div class="setting-sub">Choose your preferred language</div></div>
     <div class="lang-sel-modal">
@@ -239,7 +239,7 @@
     <button class="tut-btn primary" onclick="closeSettingsPanel();setTimeout(function(){var el=document.getElementById('ratio-section');if(el)el.scrollIntoView({behavior:'smooth'});setTimeout(function(){if(typeof startSwapTut==='function')startSwapTut();},600);},300)">START →</button>
   </div>
   <hr style="border:none;border-top:1px solid var(--bdr);margin:14px 0 10px;">
-  <div style="font-size:10px;letter-spacing:.14em;color:var(--muted);text-transform:uppercase;margin-bottom:8px;">Active Asset Modes</div>
+  <div style="font-size:12px;letter-spacing:.14em;color:var(--muted);text-transform:uppercase;margin-bottom:8px;">Active Asset Modes</div>
   <div class="setting-row" style="padding:7px 0;">
     <div><div class="setting-label">⧡ Crypto Screener</div><div class="setting-sub">Top 30–50 coins, live Binance data</div></div>
     <label class="toggle"><input type="checkbox" id="mode-crypto-toggle" checked onchange="toggleModeVisibility('crypto',this.checked)"><span class="toggle-slider"></span></label>
@@ -274,7 +274,7 @@
     </div>
     <div style="text-align:right;flex-shrink:0;">
       <div class="tdh-price" id="td-price"></div>
-      <div id="td-price-chg" style="font-size:11px;font-weight:600;margin-top:2px;"></div>
+      <div id="td-price-chg" style="font-size:12px;font-weight:600;margin-top:2px;"></div>
     </div>
   </div>
 
@@ -319,14 +319,14 @@
     <div class="td-section-title">Edit Holdings</div>
     <div style="display:flex;gap:8px;align-items:flex-end;">
       <div style="flex:1;">
-        <label style="font-size:9px;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;">Buy Price ($)</label>
+        <label style="font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;">Buy Price ($)</label>
         <input type="number" id="td-hold-avg" aria-label="Buy price" placeholder="0.00" step="any" min="0" style="width:100%;margin-top:3px;padding:6px 8px;background:var(--bg1);border:1px solid var(--bdr);border-radius:4px;color:var(--fg);font-size:12px;font-family:var(--font-mono);">
       </div>
       <div style="flex:1;">
-        <label style="font-size:9px;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;">Quantity</label>
+        <label style="font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;">Quantity</label>
         <input type="number" id="td-hold-qty" aria-label="Quantity" placeholder="0" step="any" min="0" style="width:100%;margin-top:3px;padding:6px 8px;background:var(--bg1);border:1px solid var(--bdr);border-radius:4px;color:var(--fg);font-size:12px;font-family:var(--font-mono);">
       </div>
-      <button id="td-hold-save" onclick="saveTileHolding()" style="padding:6px 14px;background:var(--green);color:#000;border:none;border-radius:4px;font-size:11px;font-weight:700;cursor:pointer;white-space:nowrap;">SAVE</button>
+      <button id="td-hold-save" onclick="saveTileHolding()" style="padding:6px 14px;background:var(--green);color:#000;border:none;border-radius:4px;font-size:12px;font-weight:700;cursor:pointer;white-space:nowrap;">SAVE</button>
     </div>
   </div>
 
@@ -430,7 +430,7 @@
     <div class="ah-selected-coin" id="ah-selected-coin">
       <div class="ah-coin-ico" id="ah-sel-ico"><img id="ah-sel-img" src="" alt=""></div>
       <span id="ah-sel-sym" style="font-size:13px;font-weight:700;font-family:var(--font-mono);"></span>
-      <span id="ah-sel-name" style="font-size:11px;color:var(--muted);flex:1;"></span>
+      <span id="ah-sel-name" style="font-size:12px;color:var(--muted);flex:1;"></span>
       <button class="ah-sel-clear" onclick="ahClearCoin()">×</button>
     </div>
     <div class="ah-coin-list" id="ah-coin-list"></div>
@@ -451,28 +451,28 @@
     <div id="donate-modal-goal" style="background:var(--bg3);border:1px solid var(--bdr2);border-radius:3px;padding:10px 14px;margin-bottom:12px;"></div>
 
     <div style="background:var(--bg3);border:1px solid var(--bdr2);border-radius:4px;padding:12px 14px;margin-bottom:16px;">
-      <div style="font-size:10px;letter-spacing:.14em;color:var(--muted);margin-bottom:10px;text-transform:uppercase;">Your donation helps build:</div>
+      <div style="font-size:12px;letter-spacing:.14em;color:var(--muted);margin-bottom:10px;text-transform:uppercase;">Your donation helps build:</div>
       <div style="display:flex;flex-direction:column;gap:7px;">
-        <div style="display:flex;align-items:center;gap:8px;font-size:11px;color:var(--text);">
+        <div style="display:flex;align-items:center;gap:8px;font-size:12px;color:var(--text);">
           <span style="color:var(--green);font-size:13px;">✓</span><span><strong style="color:var(--green)">Live now:</strong> 50 coins · Forex pairs · Stocks screener · 3-layer scoring</span>
         </div>
-        <div style="display:flex;align-items:center;gap:8px;font-size:11px;color:var(--text);">
+        <div style="display:flex;align-items:center;gap:8px;font-size:12px;color:var(--text);">
           <span style="color:var(--bnb);font-size:13px;">◈</span><span><strong style="color:var(--bnb)">Coming next:</strong> Rotation alerts · Advanced scoring breakdown · Mobile view</span>
         </div>
-        <div style="display:flex;align-items:center;gap:8px;font-size:11px;color:var(--text);">
+        <div style="display:flex;align-items:center;gap:8px;font-size:12px;color:var(--text);">
           <span style="color:var(--pro);font-size:13px;">◈</span><span><strong style="color:var(--pro)">Roadmap:</strong> API access · Watchlists · Multi-portfolio tracking</span>
         </div>
       </div>
     </div>
 
     <!-- Payment methods -->
-    <div style="font-size:9px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);margin-bottom:10px;">Payment Methods</div>
+    <div style="font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);margin-bottom:10px;">Payment Methods</div>
 
     <!-- Crypto (primary) -->
-    <div style="font-size:9px;letter-spacing:.14em;text-transform:uppercase;color:var(--green);margin-bottom:8px;display:flex;align-items:center;gap:6px;">
-      <span style="font-size:8px;">●</span> Crypto Donation
+    <div style="font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:var(--green);margin-bottom:8px;display:flex;align-items:center;gap:6px;">
+      <span style="font-size:12px;">●</span> Crypto Donation
     </div>
-    <div style="font-size:9px;color:var(--green);text-align:center;margin-bottom:10px;font-weight:600;">Send $20+ to unlock ⚡ Pro instantly — auto-verified on the blockchain!</div>
+    <div style="font-size:12px;color:var(--green);text-align:center;margin-bottom:10px;font-weight:600;">Send $20+ to unlock ⚡ Pro instantly — auto-verified on the blockchain!</div>
 
     <!-- USDT TRC20 -->
     <div class="network-tag">⬡ USDT · TRC20 (Tron)</div>
@@ -495,40 +495,40 @@
     <button class="copy-btn" id="copy-binance-btn" onclick="copyAddr('364154350','copy-binance-btn');showTipScreen()">COPY BINANCE ID</button>
 
     <div class="modal-note" style="margin-top:10px;">⚠ Always double-check the network before sending.<br>Wrong network = permanent loss.</div>
-    <div style="font-size:9px;color:var(--muted);text-align:center;margin-top:6px;">Need help? <a href="mailto:rotatortool@gmail.com" style="color:var(--bnb);text-decoration:none;">rotatortool@gmail.com</a></div>
+    <div style="font-size:12px;color:var(--muted);text-align:center;margin-top:6px;">Need help? <a href="mailto:rotatortool@gmail.com" style="color:var(--bnb);text-decoration:none;">rotatortool@gmail.com</a></div>
 
     <!-- Claim Pro after payment -->
     <div style="margin-top:14px;background:linear-gradient(135deg,rgba(243,186,47,.08),rgba(243,186,47,.03));border:1px solid rgba(243,186,47,.25);border-radius:6px;padding:14px;">
-      <div style="font-size:9px;letter-spacing:.14em;text-transform:uppercase;color:var(--green);margin-bottom:8px;font-weight:700;">Already sent payment? Verify & activate Pro instantly</div>
-      <div style="font-size:10px;color:var(--muted);line-height:1.6;margin-bottom:10px;">Submit your TX hash below — we verify it automatically on the blockchain. If the payment is confirmed and $20+, <strong style="color:var(--green);">Pro activates instantly</strong>.</div>
+      <div style="font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:var(--green);margin-bottom:8px;font-weight:700;">Already sent payment? Verify & activate Pro instantly</div>
+      <div style="font-size:12px;color:var(--muted);line-height:1.6;margin-bottom:10px;">Submit your TX hash below — we verify it automatically on the blockchain. If the payment is confirmed and $20+, <strong style="color:var(--green);">Pro activates instantly</strong>.</div>
       <div id="pro-request-form">
         <div style="display:flex;gap:6px;margin-bottom:6px;">
-          <select id="pr-network" class="code-input" style="font-size:10px;text-transform:none;letter-spacing:normal;flex:1;padding:6px 8px;">
+          <select id="pr-network" class="code-input" style="font-size:12px;text-transform:none;letter-spacing:normal;flex:1;padding:6px 8px;">
             <option value="">Network...</option>
             <option value="TRC20">USDT TRC20 (Tron)</option>
             <option value="BEP20">USDT / BNB · BEP20 (BSC)</option>
             <option value="ERC20">USDT / ETH · ERC20</option>
             <option value="Binance Pay">Binance Pay (manual review)</option>
           </select>
-          <input type="text" id="pr-amount" class="code-input" placeholder="Amount (e.g. 20 USDT)" style="font-size:10px;text-transform:none;letter-spacing:normal;flex:1;">
+          <input type="text" id="pr-amount" class="code-input" placeholder="Amount (e.g. 20 USDT)" style="font-size:12px;text-transform:none;letter-spacing:normal;flex:1;">
         </div>
-        <input type="text" id="pr-txhash" class="code-input" placeholder="TX hash (from your wallet or block explorer)" style="font-size:10px;text-transform:none;letter-spacing:normal;width:100%;margin-bottom:6px;">
-        <input type="text" id="pr-contact" class="code-input" placeholder="Contact (optional — Telegram/Discord/Email)" style="font-size:10px;text-transform:none;letter-spacing:normal;width:100%;margin-bottom:8px;">
-        <button class="code-btn" onclick="submitProRequest()" style="width:100%;padding:9px;font-size:11px;letter-spacing:.08em;background:linear-gradient(135deg,rgba(0,200,150,.2),rgba(0,200,150,.08));border-color:rgba(0,200,150,.4);color:var(--green);">VERIFY TX & ACTIVATE PRO</button>
-        <div id="pr-status" style="font-size:10px;margin-top:6px;min-height:14px;text-align:center;"></div>
+        <input type="text" id="pr-txhash" class="code-input" placeholder="TX hash (from your wallet or block explorer)" style="font-size:12px;text-transform:none;letter-spacing:normal;width:100%;margin-bottom:6px;">
+        <input type="text" id="pr-contact" class="code-input" placeholder="Contact (optional — Telegram/Discord/Email)" style="font-size:12px;text-transform:none;letter-spacing:normal;width:100%;margin-bottom:8px;">
+        <button class="code-btn" onclick="submitProRequest()" style="width:100%;padding:9px;font-size:12px;letter-spacing:.08em;background:linear-gradient(135deg,rgba(0,200,150,.2),rgba(0,200,150,.08));border-color:rgba(0,200,150,.4);color:var(--green);">VERIFY TX & ACTIVATE PRO</button>
+        <div id="pr-status" style="font-size:12px;margin-top:6px;min-height:14px;text-align:center;"></div>
       </div>
       <div id="pro-request-pending" style="display:none;text-align:center;"></div>
     </div>
 
     <!-- Skrill (tip jar only — does NOT unlock Pro) -->
-    <div style="font-size:9px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);margin:14px 0 8px;display:flex;align-items:center;gap:6px;">
-      <span style="font-size:8px;">○</span> Tip Jar — Skrill (Card)
+    <div style="font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);margin:14px 0 8px;display:flex;align-items:center;gap:6px;">
+      <span style="font-size:12px;">○</span> Tip Jar — Skrill (Card)
     </div>
-    <div style="font-size:10px;color:var(--amber);line-height:1.6;margin-bottom:8px;font-weight:600;text-align:center;">Skrill tips support development but do not unlock Pro.<br>For Pro, send crypto above — it's instant and auto-verified.</div>
+    <div style="font-size:12px;color:var(--amber);line-height:1.6;margin-bottom:8px;font-weight:600;text-align:center;">Skrill tips support development but do not unlock Pro.<br>For Pro, send crypto above — it's instant and auto-verified.</div>
     <div class="skrill-tier-row">
-      <a href="https://skrill.me/rq/Daniel/5/USD?key=Aw1OEJXlKgBA8JsQQUlWczzO64A" target="_blank" rel="noopener" class="skrill-btn" onclick="showTipScreen()"><div style="font-size:16px;font-weight:800;">$5</div><div style="font-size:8px;color:inherit;opacity:.7;margin-top:2px;">Tip</div></a>
-      <a href="https://skrill.me/rq/Daniel/10/USD?key=UioGmHInL3DGuPlwSNb7ur5flZr" target="_blank" rel="noopener" class="skrill-btn" onclick="showTipScreen()"><div style="font-size:16px;font-weight:800;">$10</div><div style="font-size:8px;color:inherit;opacity:.7;margin-top:2px;">Tip</div></a>
-      <a href="https://skrill.me/rq/Daniel/20/USD?key=ERwwyCSOLuNQd0mqjQew-P_YFPu" target="_blank" rel="noopener" class="skrill-btn" onclick="showTipScreen()"><div style="font-size:16px;font-weight:800;">$20</div><div style="font-size:8px;color:inherit;opacity:.7;margin-top:2px;">Tip</div></a>
+      <a href="https://skrill.me/rq/Daniel/5/USD?key=Aw1OEJXlKgBA8JsQQUlWczzO64A" target="_blank" rel="noopener" class="skrill-btn" onclick="showTipScreen()"><div style="font-size:16px;font-weight:800;">$5</div><div style="font-size:12px;color:inherit;opacity:.7;margin-top:2px;">Tip</div></a>
+      <a href="https://skrill.me/rq/Daniel/10/USD?key=UioGmHInL3DGuPlwSNb7ur5flZr" target="_blank" rel="noopener" class="skrill-btn" onclick="showTipScreen()"><div style="font-size:16px;font-weight:800;">$10</div><div style="font-size:12px;color:inherit;opacity:.7;margin-top:2px;">Tip</div></a>
+      <a href="https://skrill.me/rq/Daniel/20/USD?key=ERwwyCSOLuNQd0mqjQew-P_YFPu" target="_blank" rel="noopener" class="skrill-btn" onclick="showTipScreen()"><div style="font-size:16px;font-weight:800;">$20</div><div style="font-size:12px;color:inherit;opacity:.7;margin-top:2px;">Tip</div></a>
     </div>
     <div class="skrill-custom-row">
       <span style="font-size:14px;color:var(--muted);font-weight:600;">$</span>
@@ -544,14 +544,14 @@
     <button class="modal-x" onclick="closeModal('tip-modal')" aria-label="Close">×</button>
     <div style="font-size:36px;margin-bottom:8px;">♥</div>
     <div class="modal-title">Thank You!</div>
-    <div class="modal-sub" style="line-height:1.8;">Your donation ensures the future development of this tool and better quality of its products — faster API calls, more accurate live data, and new features.<br><br><span style="font-size:10px;color:var(--muted);">These improvements require a paid CoinGecko API. For now we go steady — your support gets us there.</span></div>
-    <div style="font-size:9px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);margin:14px 0 8px;">LEAVE AN EXTRA TIP</div>
+    <div class="modal-sub" style="line-height:1.8;">Your donation ensures the future development of this tool and better quality of its products — faster API calls, more accurate live data, and new features.<br><br><span style="font-size:12px;color:var(--muted);">These improvements require a paid CoinGecko API. For now we go steady — your support gets us there.</span></div>
+    <div style="font-size:12px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);margin:14px 0 8px;">LEAVE AN EXTRA TIP</div>
     <div class="skrill-tier-row" style="margin-bottom:12px;">
       <a href="https://skrill.me/rq/Daniel/5/USD?key=Aw1OEJXlKgBA8JsQQUlWczzO64A" target="_blank" rel="noopener" class="skrill-btn tip-btn">$2</a>
       <a href="https://skrill.me/rq/Daniel/5/USD?key=Aw1OEJXlKgBA8JsQQUlWczzO64A" target="_blank" rel="noopener" class="skrill-btn tip-btn">$5</a>
       <a href="https://skrill.me/rq/Daniel/10/USD?key=UioGmHInL3DGuPlwSNb7ur5flZr" target="_blank" rel="noopener" class="skrill-btn tip-btn">$10</a>
     </div>
-    <button class="code-btn" onclick="closeModal('tip-modal')" style="width:100%;margin-top:4px;padding:10px;font-size:11px;letter-spacing:.08em;">CLOSE</button>
+    <button class="code-btn" onclick="closeModal('tip-modal')" style="width:100%;margin-top:4px;padding:10px;font-size:12px;letter-spacing:.08em;">CLOSE</button>
   </div>
 </div>
 
@@ -568,12 +568,12 @@
 <!-- LOADER -->
 <div class="loader" id="loader">
   <canvas id="splash-c" width="420" height="140" style="display:block;margin-bottom:-10px;"></canvas>
-  <div style="font-size:11px;letter-spacing:.14em;color:#3e4d60;text-transform:uppercase;font-family:var(--font-ui);">Your Daily Asset Performance Tracker</div>
+  <div style="font-size:12px;letter-spacing:.14em;color:#3e4d60;text-transform:uppercase;font-family:var(--font-ui);">Your Daily Asset Performance Tracker</div>
   <div style="width:110px;height:2px;background:#181f28;border-radius:1px;overflow:hidden;margin:6px 0;"><div style="height:100%;background:#f3ba2f;border-radius:1px;animation:loadBar 2.5s ease 0.5s both;"></div></div>
-  <div style="font-size:10px;color:#3e4d60;letter-spacing:.1em;font-family:IBM Plex Mono,monospace;min-height:16px;" id="lmsg">INITIALIZING…</div>
+  <div style="font-size:12px;color:#3e4d60;letter-spacing:.1em;font-family:IBM Plex Mono,monospace;min-height:16px;" id="lmsg">INITIALIZING…</div>
   <div id="load-tip" style="margin-top:14px;max-width:400px;text-align:center;font-size:14px;color:#5a6a7a;line-height:1.7;font-family:'DM Sans',sans-serif;font-style:italic;min-height:42px;"></div>
   <a href="https://www.coingecko.com/en/api" target="_blank" rel="noopener" class="cg-attribution" style="margin-top:10px;display:inline-flex;align-items:center;gap:8px;text-decoration:none;opacity:.55;transition:opacity .2s;" onmouseenter="this.style.opacity='.85'" onmouseleave="this.style.opacity='.55'">
-    <span style="font-size:11px;letter-spacing:.08em;color:#8899aa;font-family:'DM Sans',sans-serif;white-space:nowrap;">Price data provided by</span>
+    <span style="font-size:12px;letter-spacing:.08em;color:#8899aa;font-family:'DM Sans',sans-serif;white-space:nowrap;">Price data provided by</span>
     <img src="coingecko-api-logo.svg" alt="CoinGecko API" style="height:18px;">
   </a>
 </div>
@@ -765,7 +765,7 @@
     <!-- PORTFOLIO SIGNAL: direct sidebar child — zero gap guaranteed -->
     <div class="sig-box" id="sig-box-crypto">
       <h2 class="sig-title">◈ Portfolio Signal</h2>
-      <div id="sig-content"><div style="font-size:11px;color:var(--muted);font-family:var(--font-ui);">Add holdings to see your signal.</div></div>
+      <div id="sig-content"><div style="font-size:12px;color:var(--muted);font-family:var(--font-ui);">Add holdings to see your signal.</div></div>
     </div>
 
     <!-- HOLDINGS — collapsible on mobile -->
@@ -791,7 +791,7 @@
       <div id="my-holdings-panel" style="display:flex;flex-direction:column;flex:1;min-height:0;">
         <div class="holdings-section-label">
           <span>MY HOLDINGS</span>
-          <span id="hcount" style="color:var(--bnb);font-size:9px;letter-spacing:.04em;"></span>
+          <span id="hcount" style="color:var(--bnb);font-size:12px;letter-spacing:.04em;"></span>
         </div>
         <div class="tiles-scroll"><div class="tiles-grid" id="tiles-grid"></div></div>
         <div style="padding:8px 12px;border-top:1px solid var(--bdr);flex-shrink:0;">
@@ -815,9 +815,9 @@
     <div id="holdings-forex" style="display:none;flex-direction:column;flex:1;overflow:hidden;">
       <div class="sig-box">
         <div class="sig-title">◈ Forex Signal</div>
-        <div id="fx-sig-content"><div style="font-size:11px;color:var(--muted);font-family:var(--font-ui);">Add pairs below to see your signal.</div></div>
+        <div id="fx-sig-content"><div style="font-size:12px;color:var(--muted);font-family:var(--font-ui);">Add pairs below to see your signal.</div></div>
       </div>
-      <div class="holdings-section-label"><span>MY HOLDINGS</span><span id="fx-hcount" style="color:var(--bnb);font-size:9px;letter-spacing:.04em;"></span></div>
+      <div class="holdings-section-label"><span>MY HOLDINGS</span><span id="fx-hcount" style="color:var(--bnb);font-size:12px;letter-spacing:.04em;"></span></div>
       <div class="tiles-scroll"><div class="tiles-grid" id="fx-tiles-grid"></div></div>
       <div class="phead"><div class="ptitle">Add Forex Pair</div></div>
       <div class="add-form">
@@ -846,9 +846,9 @@
     <div id="holdings-stocks" style="display:none;flex-direction:column;flex:1;overflow:hidden;">
       <div class="sig-box">
         <div class="sig-title">◈ Stock Signal</div>
-        <div id="st-sig-content"><div style="font-size:11px;color:var(--muted);font-family:var(--font-ui);">Add stocks below to see your signal.</div></div>
+        <div id="st-sig-content"><div style="font-size:12px;color:var(--muted);font-family:var(--font-ui);">Add stocks below to see your signal.</div></div>
       </div>
-      <div class="holdings-section-label"><span>MY HOLDINGS</span><span id="st-hcount" style="color:var(--bnb);font-size:9px;letter-spacing:.04em;"></span></div>
+      <div class="holdings-section-label"><span>MY HOLDINGS</span><span id="st-hcount" style="color:var(--bnb);font-size:12px;letter-spacing:.04em;"></span></div>
       <div class="tiles-scroll"><div class="tiles-grid" id="st-tiles-grid"></div></div>
       <div class="phead"><div class="ptitle">Add Stock</div></div>
       <div class="add-form">
@@ -944,7 +944,7 @@
       <div style="display:flex;align-items:center;justify-content:space-between;gap:6px;min-height:30px;padding-bottom:6px;">
         <h2 class="ptitle" id="tbl-title">PERFORMANCE LEADERBOARD</h2>
         <div style="display:flex;flex-direction:column;align-items:flex-end;gap:2px;flex-shrink:0;">
-          <div class="sort-hint" style="font-size:9px;color:var(--muted);letter-spacing:.08em;white-space:nowrap;">CLICK COLUMN HEADERS TO SORT</div>
+          <div class="sort-hint" style="font-size:12px;color:var(--muted);letter-spacing:.08em;white-space:nowrap;">CLICK COLUMN HEADERS TO SORT</div>
           <span id="last-updated-crypto"  class="last-upd-ts" style="display:none;"></span>
           <span id="last-updated-forex"   class="last-upd-ts" style="display:none;"></span>
           <span id="last-updated-stocks"  class="last-upd-ts" style="display:none;"></span>
@@ -976,7 +976,7 @@
             <th class="r sorted" id="th-7" onclick="setSort(7)" data-tip="Price change over 7 days. Click to sort.">7D%</th>
             <th class="r" id="th-14" onclick="setSort(14)" data-tip="Price change over 14 days. Click to sort.">14D%</th>
             <th class="r" id="th-30" onclick="setSort(30)" data-tip="Price change over 30 days. Click to sort.">30D%</th>
-            <th class="r" id="th-score" onclick="setSort(0)" data-tip="Composite score 0–100 combining 7D, 14D and 30D ranks. Higher = stronger momentum.">SCORE <span style="color:var(--muted);font-size:9px;cursor:help;" title="Score = 40% 7D rank + 35% 14D rank + 25% 30D rank. Adjusted for macro & tokenomics.">ⓘ</span></th>
+            <th class="r" id="th-score" onclick="setSort(0)" data-tip="Composite score 0–100 combining 7D, 14D and 30D ranks. Higher = stronger momentum.">SCORE <span style="color:var(--muted);font-size:12px;cursor:help;" title="Score = 40% 7D rank + 35% 14D rank + 25% 30D rank. Adjusted for macro & tokenomics.">ⓘ</span></th>
           </tr>
         </thead>
         <tbody id="tbody"></tbody>
@@ -1019,8 +1019,8 @@
       <div style="text-align:center;padding:20px 14px;">
         <div style="font-size:28px;margin-bottom:8px;">🔒</div>
         <div style="font-size:12px;color:var(--text);font-weight:600;margin-bottom:4px;">Reserved for Project Supporters</div>
-        <div style="font-size:10px;color:var(--muted);line-height:1.6;margin-bottom:12px;">Support/resistance levels, ratio charts, and the swap calculator are unlocked with a one-time contribution. Help keep Rotator independent.</div>
-        <button class="code-btn" onclick="openPro()" style="font-size:11px;padding:8px 20px;">⚡ SUPPORT & UNLOCK</button>
+        <div style="font-size:12px;color:var(--muted);line-height:1.6;margin-bottom:12px;">Support/resistance levels, ratio charts, and the swap calculator are unlocked with a one-time contribution. Help keep Rotator independent.</div>
+        <button class="code-btn" onclick="openPro()" style="font-size:12px;padding:8px 20px;">⚡ SUPPORT & UNLOCK</button>
       </div>
     </div>
     <!-- RATIO TRACKER -->
@@ -1145,7 +1145,7 @@
         <h2 class="rt-calc-title">⇄ SWAP CALCULATOR</h2>
 
         <div style="margin-bottom:10px;">
-          <label id="rt-calc-from-lbl" style="display:block;font-size:10px;letter-spacing:.1em;color:var(--muted);margin-bottom:6px;font-weight:600;">Amount</label>
+          <label id="rt-calc-from-lbl" style="display:block;font-size:12px;letter-spacing:.1em;color:var(--muted);margin-bottom:6px;font-weight:600;">Amount</label>
           <input type="number" id="rt-calc-amt" class="new-amount-input" aria-label="Swap amount" value="100" step="any" oninput="RatioTracker.calcSwap()" placeholder="Enter amount…">
         </div>
 
@@ -1264,7 +1264,7 @@
   <div class="footer-copy">© 2026 ROTATOR · NOT FINANCIAL ADVICE · <span style="color:var(--red);">DYOR</span></div>
   <div class="footer-disclaimer" style="display:flex;flex-direction:column;align-items:center;gap:8px;">
     <a href="https://www.coingecko.com/en/api" target="_blank" rel="noopener" style="display:inline-flex;align-items:center;gap:8px;text-decoration:none;opacity:.6;transition:opacity .2s;" onmouseenter="this.style.opacity='1'" onmouseleave="this.style.opacity='.6'">
-      <span style="font-size:11px;color:#8899aa;font-family:'DM Sans',sans-serif;">Data powered by</span>
+      <span style="font-size:12px;color:#8899aa;font-family:'DM Sans',sans-serif;">Data powered by</span>
       <img src="coingecko-api-logo.svg" alt="CoinGecko API" style="height:18px;">
     </a>
     <span>Market data also sourced from Frankfurter (ECB), Yahoo Finance and Alpha Vantage. All data is for informational purposes only. Past performance does not guarantee future results. Always conduct your own research before making any investment decision.</span>

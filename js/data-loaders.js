@@ -770,7 +770,7 @@ async function loadStocks() {
           }
         } catch(e) {}
       }));
-      if (b + batchSize < avStocks.length) await sleep(1000);
+      if (b + batchSize < avStocks.length) await sleep(300);
     }
     stocksData = results;
   }
@@ -844,7 +844,7 @@ function renderStocksTable() {
           + '<div class="at-name">' + s.name + '</div>'
         + '</div>'
       + '</div>'
-      + '<div class="at-price">' + (s.err ? '—' : priceStr) + '<span style="font-size:10px;font-weight:600;margin-left:5px;color:' + (s.chgPct>=0?'var(--green)':'var(--red)') + ';">' + (s.err?'':'(' + (s.chgPct>=0?'+':'') + s.chgPct.toFixed(2) + '%)') + '</span></div>'
+      + '<div class="at-price">' + (s.err ? '—' : priceStr) + '<span style="font-size:12px;font-weight:600;margin-left:5px;color:' + (s.chgPct>=0?'var(--green)':'var(--red)') + ';">' + (s.err?'':'(' + (s.chgPct>=0?'+':'') + s.chgPct.toFixed(2) + '%)') + '</span></div>'
       + '<div class="at-stats">'
         + '<div class="at-stat"><div class="at-stat-l">52W H</div><div class="at-stat-v bnb">' + (s.high52?'$'+s.high52.toFixed(0):'—') + '</div></div>'
         + '<div class="at-stat"><div class="at-stat-l">52W L</div><div class="at-stat-v bnb">'  + (s.low52?'$'+s.low52.toFixed(0):'—')  + '</div></div>'
@@ -869,7 +869,7 @@ function renderForexTable() {
         + '<div class="at-head"><div><div class="at-sym forex-sym">' + p.from + '/' + p.to + '</div>'
         + '<div class="at-name">' + p.name + '</div></div>'
         + '<span class="at-badge fx">⚡PRO</span></div>'
-        + '<div style="font-size:10px;color:var(--pro);margin-top:8px;letter-spacing:.06em;">UNLOCK FREE →</div>'
+        + '<div style="font-size:12px;color:var(--pro);margin-top:8px;letter-spacing:.06em;">UNLOCK FREE →</div>'
         + '</div>';
     }
     var isHeld  = fxHoldings.some(function(h) { return h.pair === p.from + '/' + p.to; });
@@ -898,7 +898,7 @@ function renderForexTable() {
         + '</div>'
         + '<div class="at-name">' + p.name + '</div>'
       + '</div></div>'
-      + '<div class="at-price">' + rateStr + '<span style="font-size:10px;font-weight:600;margin-left:5px;color:' + (p.chgPct>=0?'var(--green)':'var(--red)') + ';">' + dayStr + '</span></div>'
+      + '<div class="at-price">' + rateStr + '<span style="font-size:12px;font-weight:600;margin-left:5px;color:' + (p.chgPct>=0?'var(--green)':'var(--red)') + ';">' + dayStr + '</span></div>'
       + '<div class="at-stats">'
         + '<div class="at-stat"><div class="at-stat-l">7D</div><div class="at-stat-v '  + p7C  + '">' + (p7>=0?'+':'')  + p7.toFixed(2)  + '%</div></div>'
         + '<div class="at-stat"><div class="at-stat-l">30D</div><div class="at-stat-v ' + p30C + '">' + (p30>=0?'+':'') + p30.toFixed(2) + '%</div></div>'
@@ -1522,7 +1522,7 @@ function openTileDetail(coinId, evt) {
   document.getElementById('td-score-bars').innerHTML =
     '<div style="display:flex;align-items:baseline;gap:6px;margin-bottom:8px;">'
     + '<span style="font-size:26px;font-weight:700;color:' + scC + ';">' + c.score + '</span>'
-    + '<span style="font-size:10px;color:var(--muted);">/ 100 composite score</span></div>'
+    + '<span style="font-size:12px;color:var(--muted);">/ 100 composite score</span></div>'
     + [{l:'7D rank',v:c.r7},{l:'14D rank',v:c.r14},{l:'30D rank',v:c.r30}].map(function(b) {
       var pct = Math.round((1 - (b.v-1) / Math.max(coins.length-1,1)) * 100);
       var col = pct>=65?'var(--green)':pct>=40?'var(--amber)':'var(--red)';
@@ -1598,7 +1598,7 @@ function openTileDetail(coinId, evt) {
     badges.slice(2).forEach(function(b) {
       badgesHtml += '<span class="td-badge ' + b.cls + '" style="filter:blur(4px);pointer-events:none;user-select:none;">' + b.t + '</span>';
     });
-    badgesHtml += '<span style="font-size:8px;color:var(--pro);font-weight:700;letter-spacing:.08em;margin-left:2px;">⚡ PRO</span>';
+    badgesHtml += '<span style="font-size:12px;color:var(--pro);font-weight:700;letter-spacing:.08em;margin-left:2px;">⚡ PRO</span>';
     badgesHtml += '</span>';
   }
   document.getElementById('td-badges').innerHTML = badgesHtml;
@@ -1612,15 +1612,15 @@ function openTileDetail(coinId, evt) {
     var isTracked = hSyms.indexOf(c.sym) >= 0 || wSyms.indexOf(c.sym) >= 0;
     if (!isPro && isTracked) {
       insEl.innerHTML = '<div style="text-align:center;padding:10px 0;">'
-        + '<div style="font-size:10px;color:var(--muted);margin-bottom:6px;">Insight Engine is a Pro feature</div>'
-        + '<button class="code-btn" onclick="openPro()" style="font-size:10px;padding:6px 14px;">⚡ UNLOCK PRO</button>'
+        + '<div style="font-size:12px;color:var(--muted);margin-bottom:6px;">Insight Engine is a Pro feature</div>'
+        + '<button class="code-btn" onclick="openPro()" style="font-size:12px;padding:6px 14px;">⚡ UNLOCK PRO</button>'
         + '</div>';
       insSec.style.display = '';
     } else if (isTracked && c.insight) {
       var ins = c.insight;
       var insHtml = '<div class="td-insight-header">'
         + '<div class="insight-pulse ' + ins.color + ' td-insight-pulse"><span class="insight-dot"></span><span class="insight-lbl">' + ins.label + '</span></div>'
-        + '<span class="td-insight-score" style="color:' + (ins.score >= 65 ? 'var(--green)' : ins.score <= 35 ? 'var(--red)' : '#87CEEB') + ';">' + ins.score + '<span style="font-size:9px;color:var(--muted);"> / 100</span></span>'
+        + '<span class="td-insight-score" style="color:' + (ins.score >= 65 ? 'var(--green)' : ins.score <= 35 ? 'var(--red)' : '#87CEEB') + ';">' + ins.score + '<span style="font-size:12px;color:var(--muted);"> / 100</span></span>'
         + '</div>';
       if (ins.signals && ins.signals.length) {
         insHtml += '<div class="td-insight-signals">';
@@ -1713,7 +1713,7 @@ function openAssetDetail(assetType, id, evt) {
     document.getElementById('td-score-bars').innerHTML =
       '<div style="display:flex;align-items:baseline;gap:8px;margin-bottom:8px;">'
       +'<span style="font-size:28px;font-weight:700;color:'+scC+';">'+data.score+'</span>'
-      +'<span style="font-size:10px;color:var(--muted);">/ 100 momentum score</span></div>'
+      +'<span style="font-size:12px;color:var(--muted);">/ 100 momentum score</span></div>'
       +'<div class="td-bar-row"><span class="td-bar-lbl">52W pos</span>'
       +'<div class="td-bar-wrap"><div class="td-bar-fill" style="width:'+pos52+'%;background:'+pos52C+';"></div></div>'
       +'<span class="td-bar-val" style="color:'+pos52C+';">'+pos52+'%</span></div>'
@@ -1765,7 +1765,7 @@ function openAssetDetail(assetType, id, evt) {
     document.getElementById('td-score-bars').innerHTML =
       '<div style="display:flex;align-items:baseline;gap:8px;margin-bottom:8px;">'
       +'<span style="font-size:28px;font-weight:700;color:'+scC+';">'+data.score+'</span>'
-      +'<span style="font-size:10px;color:var(--muted);">/ 100 &nbsp;·&nbsp; RSI '+data.rsi+'</span></div>'
+      +'<span style="font-size:12px;color:var(--muted);">/ 100 &nbsp;·&nbsp; RSI '+data.rsi+'</span></div>'
       +'<div class="td-bar-row"><span class="td-bar-lbl">7D mom</span>'
       +'<div class="td-bar-wrap"><div class="td-bar-fill" style="width:'+Math.round(50+Math.min(Math.max(data.p7*12,-48),48))+'%;background:'+p7col+'"></div></div>'
       +'<span class="td-bar-val" style="color:'+p7col+';">'+(data.p7>=0?'+':'')+data.p7.toFixed(2)+'%</span></div>'
@@ -2408,7 +2408,7 @@ function _buildRowTip(row, cx, cy) {
 
   /* Holdings tag */
   if (held) {
-    body += '<div style="margin-top:6px;font-size:10px;color:var(--bnb);font-family:var(--font-ui);">✓ In your holdings</div>';
+    body += '<div style="margin-top:6px;font-size:12px;color:var(--bnb);font-family:var(--font-ui);">✓ In your holdings</div>';
   }
 
   showTip(sym + ' <span style="color:var(--muted);font-weight:300;">—</span> ' + name, body, cx, cy);

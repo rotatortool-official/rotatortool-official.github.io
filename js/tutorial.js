@@ -23,9 +23,9 @@ var TUT_STEPS = [
   {
     target: '#my-holdings-panel',
     title: 'Your Holdings Panel',
-    desc: '<div style="font-size:13px;line-height:1.85;">Track any coin with quantity and average buy price — all saved locally, <strong>no account needed</strong>.<br><br>'
+    desc: '<div style="font-size:14px;line-height:1.85;">Track any coin with quantity and average buy price — all saved locally, <strong>no account needed</strong>.<br><br>'
         + 'Once added, the <strong style="color:var(--bnb);">Portfolio Signal</strong> box above scores your portfolio and flags which assets are lagging or outperforming.<br><br>'
-        + '<span style="font-size:11px;color:rgba(255,255,255,.6);">Free tier: <strong>2 crypto</strong> slots · Pro: up to 10 holdings, Insight Engine, Best Time to Swap & more.</span></div>',
+        + '<span style="font-size:12px;color:rgba(255,255,255,.6);">Free tier: <strong>2 crypto</strong> slots · Pro: up to 10 holdings, Insight Engine, Best Time to Swap & more.</span></div>',
     arrow: 'left', pos: 'left-panel-right'
   },
 
@@ -33,20 +33,20 @@ var TUT_STEPS = [
   {
     target: '.neon-section',
     title: 'Signal Center',
-    desc: '<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:18px;font-size:13px;line-height:1.85;">'
+    desc: '<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:18px;font-size:14px;line-height:1.85;">'
         + '<div style="border-left:3px solid #00bd8e;padding-left:12px;">'
-          + '<div style="font-size:9px;letter-spacing:.13em;color:rgba(0,200,150,.7);margin-bottom:6px;font-weight:700;">↑ ROTATION OPPS</div>'
+          + '<div style="font-size:12px;letter-spacing:.13em;color:rgba(0,200,150,.7);margin-bottom:6px;font-weight:700;">↑ ROTATION OPPS</div>'
           + '<div style="color:#00bd8e;font-size:16px;font-weight:700;margin-bottom:7px;">↑ Rotate</div>'
           + '<span style="color:rgba(200,220,210,.85);">Pairs from your holdings where rotating makes sense. The score gap shows how much one coin is outpacing another.</span>'
-          + '<div style="margin-top:7px;font-size:10px;color:rgba(167,139,250,.9);font-weight:600;">⚡ Pro feature — unlock free</div>'
+          + '<div style="margin-top:7px;font-size:12px;color:rgba(167,139,250,.9);font-weight:600;">⚡ Pro feature — unlock free</div>'
         + '</div>'
         + '<div style="border-left:3px solid #f0a030;padding-left:12px;">'
-          + '<div style="font-size:9px;letter-spacing:.13em;color:rgba(240,160,48,.7);margin-bottom:6px;font-weight:700;">⚡ HIGH MOMENTUM</div>'
+          + '<div style="font-size:12px;letter-spacing:.13em;color:rgba(240,160,48,.7);margin-bottom:6px;font-weight:700;">⚡ HIGH MOMENTUM</div>'
           + '<div style="color:#f0a030;font-size:16px;font-weight:700;margin-bottom:7px;">⚡ Leading</div>'
           + '<span style="color:rgba(220,210,195,.85);">Top coins by composite score across all timeframes. Sustained strength — not single-week spikes. Click any tile for full breakdown.</span>'
         + '</div>'
         + '<div style="border-left:3px solid #f03e58;padding-left:12px;">'
-          + '<div style="font-size:9px;letter-spacing:.13em;color:rgba(240,62,88,.7);margin-bottom:6px;font-weight:700;">↓ WORST 30D</div>'
+          + '<div style="font-size:12px;letter-spacing:.13em;color:rgba(240,62,88,.7);margin-bottom:6px;font-weight:700;">↓ WORST 30D</div>'
           + '<div style="color:#f03e58;font-size:16px;font-weight:700;margin-bottom:7px;">↓ Lagging</div>'
           + '<span style="color:rgba(220,200,200,.85);">Biggest 30-day losers. Potential bounce candidates — or assets to exit. Monitor or reduce exposure.</span>'
         + '</div>'
@@ -58,7 +58,7 @@ var TUT_STEPS = [
   {
     target: '.leaderboard',
     title: 'Leaderboard — Scores — Disclaimer',
-    desc: '<div style="font-size:13px;line-height:1.85;">'
+    desc: '<div style="font-size:14px;line-height:1.85;">'
         + '<strong>200 coins</strong> (including stablecoins with APR yields) ranked across <strong style="color:#fff;">24H · 7D · 14D · 30D</strong>. Click any column header to sort. Click any row for a full score breakdown.<br><br>'
         + 'The <strong>Score</strong> combines three layers: <strong>L1</strong> Momentum rank · <strong>L2</strong> Relative strength vs BTC, Gold, Oil · <strong>L3</strong> Tokenomics quality<br><br>'
         + '<div style="background:rgba(255,69,96,.07);border:1px solid rgba(255,69,96,.3);border-radius:4px;padding:10px 12px;">'
@@ -73,11 +73,11 @@ var TUT_STEPS = [
   {
     target: '#ratio-section',
     title: '↔ Swap Tool — Best Time to Swap',
-    desc: '<div style="font-size:13px;line-height:1.85;">'
+    desc: '<div style="font-size:14px;line-height:1.85;">'
         + 'The <strong style="color:var(--bnb);">Swap Tool</strong> helps you find the <strong>optimal moment</strong> to swap one asset for another — by tracking the live price <strong>ratio</strong> between them over time.<br><br>'
         + 'Pick your <strong>FROM</strong> asset (what you hold) and <strong>TO</strong> asset (what you want). The ratio shows how many TO coins you get per 1 FROM coin right now.<br><br>'
         + 'When the ratio is near its <strong style="color:var(--green);">▲ Period Peak</strong>, you get maximum value. The range bar and chart show exactly where you are in the cycle.<br><br>'
-        + '<span style="font-size:11px;color:rgba(255,255,255,.5);">Use the Swap Calculator to simulate exact amounts before executing on your exchange.</span>'
+        + '<span style="font-size:12px;color:rgba(255,255,255,.5);">Use the Swap Calculator to simulate exact amounts before executing on your exchange.</span>'
         + '</div>',
     arrow: 'right', pos: 'swap-tool', wide: false
   },
@@ -86,19 +86,19 @@ var TUT_STEPS = [
   {
     target: '.pro-btn',
     title: '⚡ How to Unlock Pro',
-    desc: '<div style="font-size:13px;line-height:1.85;">'
+    desc: '<div style="font-size:14px;line-height:1.85;">'
         + '<strong style="color:var(--pro);">Pro</strong> unlocks 200 coins, all categories, Insight Engine, Swap Tool, and 10 portfolio slots.<br><br>'
         + '<div style="background:var(--bg3);border:1px solid rgba(0,200,150,.2);border-radius:4px;padding:10px 12px;margin-bottom:10px;">'
         + '<strong style="color:var(--green);">Option 1 — Crypto (instant, auto-verified)</strong><br>'
-        + '<span style="font-size:11px;">Send $20+ USDT/BNB/ETH → submit your TX hash → Pro activates in seconds. No manual review needed.</span>'
+        + '<span style="font-size:12px;">Send $20+ USDT/BNB/ETH → submit your TX hash → Pro activates in seconds. No manual review needed.</span>'
         + '</div>'
         + '<div style="background:var(--bg3);border:1px solid rgba(167,139,250,.2);border-radius:4px;padding:10px 12px;margin-bottom:10px;">'
         + '<strong style="color:var(--pro);">Option 2 — Refer 5 friends</strong><br>'
-        + '<span style="font-size:11px;">Share your referral link. When 5 people join and use Rotator, Pro unlocks automatically. Verification usually takes a few hours.</span>'
+        + '<span style="font-size:12px;">Share your referral link. When 5 people join and use Rotator, Pro unlocks automatically. Verification usually takes a few hours.</span>'
         + '</div>'
         + '<div style="background:var(--bg3);border:1px solid var(--bdr2);border-radius:4px;padding:10px 12px;">'
         + '<strong style="color:var(--muted);">Option 3 — Pro code</strong><br>'
-        + '<span style="font-size:11px;">Enter a code from giveaways or promotions.</span>'
+        + '<span style="font-size:12px;">Enter a code from giveaways or promotions.</span>'
         + '</div>'
         + '</div>',
     arrow: 'top', pos: 'center', wide: false
@@ -108,10 +108,10 @@ var TUT_STEPS = [
   {
     target: '.settings-btn',
     title: "You're all set.",
-    desc: '<div style="font-size:13px;line-height:1.85;">'
+    desc: '<div style="font-size:14px;line-height:1.85;">'
         + 'Data refreshes every 15 minutes automatically. Hit <strong>↻ REFRESH</strong> to force a fresh fetch at any time.<br><br>'
         + 'Click the <strong>⚙ gear icon</strong> (highlighted) to change language, toggle asset modes, or replay this tutorial.<br><br>'
-        + '<span style="font-size:11px;color:var(--muted);">Need help? Contact <a href="mailto:rotatortool@gmail.com" style="color:var(--bnb);text-decoration:none;">rotatortool@gmail.com</a></span>'
+        + '<span style="font-size:12px;color:var(--muted);">Need help? Contact <a href="mailto:rotatortool@gmail.com" style="color:var(--bnb);text-decoration:none;">rotatortool@gmail.com</a></span>'
         + '</div>',
     arrow: 'right', pos: 'gear'
   }
@@ -383,7 +383,7 @@ var PRO_TUT_STEPS = [
   {
     target: '.topbar',
     title: '⚡ Welcome to Pro!',
-    desc: '<div style="font-size:13px;line-height:1.85;">'
+    desc: '<div style="font-size:14px;line-height:1.85;">'
         + 'Thank you for supporting Rotator! You\'ve unlocked the full experience.<br><br>'
         + 'Let\'s quickly walk through <strong style="color:var(--pro);">what\'s new</strong> so you get the most out of your upgrade.'
         + '</div>',
@@ -394,7 +394,7 @@ var PRO_TUT_STEPS = [
   {
     target: '#cat-bar',
     title: 'All Categories Unlocked',
-    desc: '<div style="font-size:13px;line-height:1.85;">'
+    desc: '<div style="font-size:14px;line-height:1.85;">'
         + 'You now have access to <strong>all 10 categories</strong> — L2, AI, Gaming, RWA, Infra, and Stablecoins are all unlocked.<br><br>'
         + 'Each category filters the leaderboard to show sector-specific performance. Use this to spot <strong>sector rotation</strong> trends.'
         + '</div>',
@@ -405,7 +405,7 @@ var PRO_TUT_STEPS = [
   {
     target: '.leaderboard',
     title: 'Top 200 Coins',
-    desc: '<div style="font-size:13px;line-height:1.85;">'
+    desc: '<div style="font-size:14px;line-height:1.85;">'
         + 'The leaderboard now shows <strong>200 coins</strong> including stablecoins with live DeFi <strong style="color:#8dffc0;">APR yields</strong>.<br><br>'
         + 'More coins means more rotation opportunities and better coverage of emerging trends across sectors.'
         + '</div>',
@@ -416,16 +416,16 @@ var PRO_TUT_STEPS = [
   {
     target: '#td-insight-sec',
     title: '⚡ Insight Engine',
-    desc: '<div style="font-size:13px;line-height:1.85;">'
+    desc: '<div style="font-size:14px;line-height:1.85;">'
         + 'The <strong style="color:var(--pro);">Insight Engine</strong> gives you a 5-pillar forward-looking signal on any coin in your holdings or watchlist:<br><br>'
-        + '<div style="display:grid;gap:6px;font-size:11px;line-height:1.6;">'
+        + '<div style="display:grid;gap:6px;font-size:12px;line-height:1.6;">'
           + '<div><strong style="color:var(--green);">Momentum Reset</strong> — oversold/overbought detection</div>'
           + '<div><strong style="color:var(--bnb);">Liquidity Trap</strong> — volume vs market cap analysis</div>'
           + '<div><strong style="color:var(--pro);">Dilution Shield</strong> — token unlock risk assessment</div>'
           + '<div><strong style="color:#87CEEB;">Contrarian Sentiment</strong> — Fear & Greed signals</div>'
           + '<div><strong style="color:var(--green);">Relative Strength</strong> — performance vs BTC</div>'
         + '</div><br>'
-        + '<span style="font-size:11px;color:var(--muted);">Click any coin in your holdings to see its Insight score.</span>'
+        + '<span style="font-size:12px;color:var(--muted);">Click any coin in your holdings to see its Insight score.</span>'
         + '</div>',
     arrow: 'top', pos: 'center', wide: true
   },
@@ -434,11 +434,11 @@ var PRO_TUT_STEPS = [
   {
     target: '#ratio-section',
     title: '↔ Best Time to Swap',
-    desc: '<div style="font-size:13px;line-height:1.85;">'
+    desc: '<div style="font-size:14px;line-height:1.85;">'
         + 'The Swap Tool now shows <strong style="color:var(--green);">support and resistance levels</strong> on the ratio chart — green dashed lines marking the best swap zone.<br><br>'
         + '<strong>BEST SWAP ▲</strong> — when the ratio hits the <strong>resistance level</strong> (75th percentile), you get maximum value for your swap.<br><br>'
         + '<strong style="color:var(--bnb);">SUPPORT ▼</strong> — when the ratio drops to the <strong>support level</strong> (25th percentile), it may be better to wait.<br><br>'
-        + '<span style="font-size:11px;color:var(--muted);">Use the calculator below the chart to simulate exact amounts before executing.</span>'
+        + '<span style="font-size:12px;color:var(--muted);">Use the calculator below the chart to simulate exact amounts before executing.</span>'
         + '</div>',
     arrow: 'right', pos: 'swap-tool', wide: false
   },
@@ -447,7 +447,7 @@ var PRO_TUT_STEPS = [
   {
     target: '#my-holdings-panel',
     title: 'Pro Holdings (Up to 10)',
-    desc: '<div style="font-size:13px;line-height:1.85;">'
+    desc: '<div style="font-size:14px;line-height:1.85;">'
         + 'Your holdings limit has been raised to <strong>10 assets</strong>. Track your full portfolio with advanced insights on each coin.<br><br>'
         + 'The <strong style="color:var(--bnb);">Portfolio Signal</strong> improves with more data — it compares your holdings against each other and against the broader market to surface rotation opportunities.<br><br>'
         + '<strong>Full Rotation Signals</strong> — all 4 rotation pair slots are now unlocked in the Signal Center above.'
@@ -459,12 +459,12 @@ var PRO_TUT_STEPS = [
   {
     target: '.settings-btn',
     title: 'Save Your Recovery Key',
-    desc: '<div style="font-size:13px;line-height:1.85;">'
+    desc: '<div style="font-size:14px;line-height:1.85;">'
         + 'Your Pro status is <strong>synced to the cloud</strong>. To access it on another device or browser:<br><br>'
         + '<strong>1.</strong> Open Pro settings (click ⚡ in the top bar)<br>'
         + '<strong>2.</strong> Copy your <strong>Recovery Key</strong><br>'
         + '<strong>3.</strong> Paste it on the new device to restore Pro<br><br>'
-        + '<span style="font-size:11px;color:var(--muted);">You can replay this tutorial anytime from the ⚙ gear menu.</span>'
+        + '<span style="font-size:12px;color:var(--muted);">You can replay this tutorial anytime from the ⚙ gear menu.</span>'
         + '</div>',
     arrow: 'right', pos: 'gear'
   }

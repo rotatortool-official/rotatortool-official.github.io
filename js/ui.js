@@ -354,7 +354,7 @@ function ahmFilter() {
   var listEl = document.getElementById('ahm-coin-list');
   if (!listEl) return;
   if (!c.length) {
-    listEl.innerHTML = '<div style="padding:14px;font-size:11px;color:var(--muted);text-align:center;line-height:2;">⟳ Loading coin data…<br><span style="font-size:10px;opacity:.6;">Open the app first to fetch prices, then re-open this modal.</span></div>';
+    listEl.innerHTML = '<div style="padding:14px;font-size:12px;color:var(--muted);text-align:center;line-height:2;">⟳ Loading coin data…<br><span style="font-size:12px;opacity:.6;">Open the app first to fetch prices, then re-open this modal.</span></div>';
     return;
   }
   var filtered = q
@@ -366,14 +366,14 @@ function ahmFilter() {
     return '<div class="ahm-coin-item' + (sel ? ' selected' : '') + '" onclick="ahmSelect(\'' + coin.id + '\')">'
       + '<div class="ahm-coin-ico"><img src="' + coin.image + '" onerror="this.style.display=\'none\'"></div>'
       + '<div style="flex:1;min-width:0;">'
-        + '<div class="ahm-coin-name">' + coin.sym + ' <span style="font-weight:400;color:var(--muted);font-size:9px;">' + (coin.name||'') + '</span></div>'
+        + '<div class="ahm-coin-name">' + coin.sym + ' <span style="font-weight:400;color:var(--muted);font-size:12px;">' + (coin.name||'') + '</span></div>'
         + '<div class="ahm-coin-sub">$' + (coin.price ? (coin.price >= 1 ? coin.price.toFixed(2) : coin.price.toFixed(5)) : '—')
           + ' &nbsp;<span style="color:' + p24c + '">' + (coin.p24 >= 0 ? '+' : '') + (coin.p24||0).toFixed(1) + '% 24h</span></div>'
       + '</div>'
       + (sel ? '<span style="color:var(--bnb);font-size:12px;">✓</span>' : '')
       + '</div>';
   }).join('');
-  listEl.innerHTML = html || '<div style="padding:10px;font-size:11px;color:var(--muted);text-align:center;">No coins found for "' + q + '"</div>';
+  listEl.innerHTML = html || '<div style="padding:10px;font-size:12px;color:var(--muted);text-align:center;">No coins found for "' + q + '"</div>';
 }
 
 function ahmSelect(coinId) {
@@ -510,7 +510,7 @@ document.addEventListener('DOMContentLoaded', function() {
       var btn = document.createElement('button');
       btn.textContent = '? How it works';
       btn.className = 'swap-tut-btn';
-      btn.style.cssText = 'margin-left:auto;font-size:9px;padding:2px 8px;';
+      btn.style.cssText = 'margin-left:auto;font-size:12px;padding:2px 8px;';
       btn.onclick = startSwapTut;
       hdr.appendChild(btn);
     }

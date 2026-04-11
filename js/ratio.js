@@ -702,7 +702,7 @@ var RatioTracker = (function() {
     var q=($('rt-picker-search')||{value:''}).value.toLowerCase().trim();
     var list=$('rt-picker-list'); if(!list) return;
     var cArr=(typeof coins!=='undefined'&&Array.isArray(coins)&&coins.length)?coins:[];
-    if(!cArr.length){ list.innerHTML='<div style="padding:14px;text-align:center;font-size:11px;color:var(--muted);">Loading coins…</div>'; return; }
+    if(!cArr.length){ list.innerHTML='<div style="padding:14px;text-align:center;font-size:12px;color:var(--muted);">Loading coins…</div>'; return; }
     var filtered=q?cArr.filter(function(x){ return x.sym.toLowerCase().includes(q)||(x.name||'').toLowerCase().includes(q); }):cArr.slice(0,60);
     var curId=(_pickerMode==='from'?S.from:S.to);
     list.innerHTML=filtered.slice(0,60).map(function(coin){
