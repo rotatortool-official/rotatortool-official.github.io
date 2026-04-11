@@ -76,7 +76,7 @@ var LOAD_TIPS = [
 })();
 
 /* ── Category-aware lazy loading state ────────────────────────── */
-var activeCategory   = 'l1';             /* default category on first load */
+var activeCategory   = 'all';            /* default category on first load */
 var _loadedCategories = {};              /* cat → true once fetched */
 var _coinCache        = {};              /* coinId → coin object (merged across loads) */
 
@@ -1065,7 +1065,7 @@ async function doLoad() {
     }
   });
   try {
-    await loadCoins('l1');   prog(55, 'Scoring and ranking L1 coins…');  renderCoinSel();
+    await loadCoins('all');  prog(55, 'Scoring and ranking coins…');  renderCoinSel();
     await loadMacroData(); prog(80, 'Loading macro data — Gold, Oil…');
     await loadFearGreed(); prog(88, 'Fetching sentiment data…');
     prog(92, 'Almost ready — building your dashboard…');

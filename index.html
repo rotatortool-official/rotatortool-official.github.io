@@ -444,17 +444,18 @@
 
 <!-- DONATE MODAL -->
 <div class="overlay" id="donate-modal" onclick="if(event.target===this)closeModal('donate-modal')">
-  <div class="modal" style="padding-top:20px;">
+  <div class="modal" style="padding-top:20px;overflow:hidden;">
     <button class="modal-x" onclick="closeModal('donate-modal')" aria-label="Close">×</button>
     <div class="modal-title">☕ Support Rotator</div>
     <div class="modal-sub">Rotator is and always will be <strong style="color:var(--bnb)">100% free and ad-free</strong>. Your support directly funds new features and keeps the servers running.</div>
+    <div style="overflow-y:auto;-webkit-overflow-scrolling:touch;flex:1;padding-right:4px;">
     <div id="donate-modal-goal" style="background:var(--bg3);border:1px solid var(--bdr2);border-radius:3px;padding:10px 14px;margin-bottom:12px;"></div>
 
     <div style="background:var(--bg3);border:1px solid var(--bdr2);border-radius:4px;padding:12px 14px;margin-bottom:16px;">
       <div style="font-size:12px;letter-spacing:.14em;color:var(--muted);margin-bottom:10px;text-transform:uppercase;">Your donation helps build:</div>
       <div style="display:flex;flex-direction:column;gap:7px;">
         <div style="display:flex;align-items:center;gap:8px;font-size:12px;color:var(--text);">
-          <span style="color:var(--green);font-size:13px;">✓</span><span><strong style="color:var(--green)">Live now:</strong> 50 coins · Forex pairs · Stocks screener · 3-layer scoring</span>
+          <span style="color:var(--green);font-size:13px;">✓</span><span><strong style="color:var(--green)">Live now:</strong> 200 coins · Insight Engine · Best Time to Swap · Rotation Opportunities</span>
         </div>
         <div style="display:flex;align-items:center;gap:8px;font-size:12px;color:var(--text);">
           <span style="color:var(--bnb);font-size:13px;">◈</span><span><strong style="color:var(--bnb)">Coming next:</strong> Rotation alerts · Advanced scoring breakdown · Mobile view</span>
@@ -535,6 +536,7 @@
       <input type="number" id="skrill-custom-amount" class="code-input" placeholder="Custom" min="1" style="font-size:12px;width:70px;text-transform:none;letter-spacing:normal;text-align:center;">
       <button class="skrill-btn skrill-custom-go" onclick="sendSkrill()">Tip via Skrill</button>
     </div>
+    </div><!-- /scrollable body -->
   </div>
 </div>
 
@@ -777,7 +779,7 @@
       </div>
       <span class="collapse-chevron" id="chev-holdings">▼</span>
     </div>
-    <div class="collapse-body collapsed" id="cb-holdings">
+    <div class="collapse-body collapsed" id="cb-holdings" style="display:flex;flex-direction:column;flex:1;min-height:0;overflow:hidden;">
     <!-- CRYPTO HOLDINGS -->
     <div id="holdings-crypto" style="display:flex;flex-direction:column;flex:1;min-height:0;overflow:hidden;">
 
@@ -794,9 +796,6 @@
           <span id="hcount" style="color:var(--bnb);font-size:12px;letter-spacing:.04em;"></span>
         </div>
         <div class="tiles-scroll"><div class="tiles-grid" id="tiles-grid"></div></div>
-        <div style="padding:8px 12px;border-top:1px solid var(--bdr);flex-shrink:0;">
-          <button class="add-btn" onclick="openAddHoldingsModal('holdings')" style="margin-top:0;">+ ADD CRYPTO HOLDING</button>
-        </div>
       </div>
 
       <!-- WATCHLIST VIEW -->
@@ -952,8 +951,8 @@
       </div>
     </div>
     <div class="cat-bar" id="cat-bar">
-      <button class="cat-tab" data-cat="all" onclick="switchCategory('all')"><span class="cat-ico">🌐</span><span class="cat-lbl">ALL</span></button>
-      <button class="cat-tab active" data-cat="l1" onclick="switchCategory('l1')"><span class="cat-ico">⛓</span><span class="cat-lbl">L1</span></button>
+      <button class="cat-tab active" data-cat="all" onclick="switchCategory('all')"><span class="cat-ico">🌐</span><span class="cat-lbl">ALL</span></button>
+      <button class="cat-tab" data-cat="l1" onclick="switchCategory('l1')"><span class="cat-ico">⛓</span><span class="cat-lbl">L1</span></button>
       <button class="cat-tab" data-cat="defi" onclick="switchCategory('defi')"><span class="cat-ico">🏦</span><span class="cat-lbl">DEFI</span></button>
       <button class="cat-tab" data-cat="l2" onclick="switchCategory('l2')"><span class="cat-ico">🔗</span><span class="cat-lbl">L2</span></button>
       <button class="cat-tab" data-cat="meme" onclick="switchCategory('meme')"><span class="cat-ico">🐸</span><span class="cat-lbl">MEME</span></button>
@@ -1067,6 +1066,11 @@
           </div>
 
         </div><!-- /new-pair-grid -->
+
+        <!-- Pro hint for coin selection -->
+        <div id="swap-pro-hint" class="swap-pro-hint" style="text-align:center;padding:6px 0 2px;font-size:11px;color:var(--muted);display:none;">
+          🔒 <span style="color:var(--pro);cursor:pointer;font-weight:600;" onclick="openPro()">Unlock Pro</span> to choose your own coins
+        </div>
 
         <!-- Hidden selects — JS populates & reads these -->
         <select class="rt-ct-sel" id="rt-from" onchange="RatioTracker.onFromChange()" aria-hidden="true" tabindex="-1"></select>

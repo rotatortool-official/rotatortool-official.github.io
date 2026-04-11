@@ -194,12 +194,11 @@ function openPro() {
           + '<div style="flex:1;font-size:12px;letter-spacing:.12em;color:var(--pro);text-transform:uppercase;text-align:right;">⚡ PRO</div>'
         + '</div>'
         + '<div style="font-size:12px;color:var(--text);line-height:2.4;">'
-          + '<div style="display:flex;justify-content:space-between;"><span>Top 50 coins</span><span style="color:var(--pro);">Top 200 coins</span></div>'
-          + '<div style="display:flex;justify-content:space-between;"><span>3 categories</span><span style="color:var(--pro);">All 10 categories</span></div>'
           + '<div style="display:flex;justify-content:space-between;"><span>2 holdings</span><span style="color:var(--pro);">10 holdings</span></div>'
+          + '<div style="display:flex;justify-content:space-between;"><span>Default swap pair</span><span style="color:var(--pro);">Choose any swap pair</span></div>'
           + '<div style="display:flex;justify-content:space-between;"><span style="color:var(--muted);">—</span><span style="color:var(--pro);">⚡ Insight Engine</span></div>'
           + '<div style="display:flex;justify-content:space-between;"><span style="color:var(--muted);">—</span><span style="color:var(--pro);">↔ Best Time to Swap</span></div>'
-          + '<div style="display:flex;justify-content:space-between;"><span style="color:var(--muted);">—</span><span style="color:var(--pro);">💵 Stablecoin Yields</span></div>'
+          + '<div style="display:flex;justify-content:space-between;"><span style="color:var(--muted);">—</span><span style="color:var(--pro);">🔄 Rotation Opportunities</span></div>'
           + '<div style="display:flex;justify-content:space-between;"><span style="color:var(--muted);">—</span><span style="color:var(--pro);">📊 Score Breakdown</span></div>'
         + '</div>'
       + '</div>'
@@ -527,13 +526,14 @@ function activateProPlan(months) {
 
 /* ── Pro feature gates ──────────────────────────────────────── */
 function updateProGates() {
-  /* Swap tool gate */
+  /* Swap tool — always visible; only coin picker is Pro-gated */
   var swapGate = document.getElementById('swap-pro-gate');
   var swapBody = document.getElementById('ratio-section');
-  if (swapGate && swapBody) {
-    swapGate.style.display = isPro ? 'none' : 'block';
-    swapBody.style.display = isPro ? '' : 'none';
-  }
+  if (swapGate) swapGate.style.display = 'none';   /* never show full gate */
+  if (swapBody) swapBody.style.display = '';        /* always show tool */
+  /* Show/hide Pro hint for coin selection */
+  var swapHint = document.getElementById('swap-pro-hint');
+  if (swapHint) swapHint.style.display = isPro ? 'none' : 'block';
   /* Show Pro tutorial button in settings only for Pro users */
   var proTutRow = document.getElementById('pro-tut-setting');
   if (proTutRow) proTutRow.style.display = isPro ? '' : 'none';

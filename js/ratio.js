@@ -184,6 +184,7 @@ var RatioTracker = (function() {
     sel.appendChild(g2);
     var saved=loadPair();
     if(saved&&saved.from&&sel.querySelector('option[value="'+saved.from+'"]')) sel.value=saved.from;
+    else if(sel.querySelector('option[value="binancecoin"]')) sel.value='binancecoin';
     else if(holdIds.length) sel.value=holdIds[0];
     else sel.value=FREE_COINS[0];
     S.from=sel.value;
@@ -200,7 +201,7 @@ var RatioTracker = (function() {
     sel.appendChild(g);
     var saved=loadPair();
     if(saved&&saved.to&&saved.to!==skipId&&sel.querySelector('option[value="'+saved.to+'"]')) sel.value=saved.to;
-    else{ var d=['ethereum','solana','ondo-finance','bitcoin'].find(function(x){return x!==skipId;})||FREE_COINS.find(function(x){return x!==skipId;}); sel.value=d; }
+    else{ var d=['solana','ethereum','ondo-finance','bitcoin'].find(function(x){return x!==skipId;})||FREE_COINS.find(function(x){return x!==skipId;}); sel.value=d; }
     S.to=sel.value;
   }
 
@@ -658,6 +659,11 @@ var RatioTracker = (function() {
   var _pickerOpenTime = 0;
 
   function _openPicker(mode){
+    /* Pro gate: only Pro users can change coins */
+    if (typeof isPro !== 'undefined' && !isPro) {
+      if (typeof openPro === 'function') openPro();
+      return;
+    }
     _pickerMode = mode;
     var panel = $('rt-picker-panel'); if(!panel) return;
     var title = $('rt-picker-title'); if(title) title.textContent='Select '+mode.toUpperCase()+' asset';

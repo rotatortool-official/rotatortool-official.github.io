@@ -138,8 +138,8 @@ body::before{content:'';position:fixed;inset:0;background:repeating-linear-gradi
 #pro-modal .modal-x{top:10px;right:10px;}
 #pro-modal-body{overflow-y:auto;-webkit-overflow-scrolling:touch;flex:1;padding-right:4px;}
 .already-pro{margin-top:4px;}
-.modal-title{font-size:18px;font-weight:400;margin-bottom:6px;letter-spacing:.01em;font-family:var(--font-display);}
-.modal-sub{font-size:13px;color:var(--muted);margin-bottom:18px;line-height:1.9;font-family:var(--font-ui);}
+.modal-title{font-size:18px;font-weight:600;margin-bottom:6px;letter-spacing:.04em;font-family:var(--font-mono);}
+.modal-sub{font-size:13px;color:var(--muted);margin-bottom:18px;line-height:1.9;font-family:var(--font-mono);}
 
 /* donate modal */
 #donate-modal .modal{border:1px solid rgba(243,186,47,.28);box-shadow:0 0 40px rgba(243,186,47,.1);}
@@ -154,7 +154,7 @@ body::before{content:'';position:fixed;inset:0;background:repeating-linear-gradi
 .tip-btn{background:rgba(130,41,95,.08);border-color:rgba(130,41,95,.3);font-size:13px;padding:10px 12px;}
 
 /* Legal content (ToS + Privacy modals) */
-.legal-content{font-size:12px;color:rgba(200,215,230,.85);line-height:1.9;}
+.legal-content{font-size:12px;color:rgba(200,215,230,.85);line-height:1.9;font-family:var(--font-mono);}
 .legal-content h4{font-size:13px;font-weight:700;color:var(--text);margin:16px 0 6px;letter-spacing:.02em;}
 .legal-content p{margin:0 0 10px;}
 .legal-content strong{color:var(--text);}
@@ -294,7 +294,7 @@ body::before{content:'';position:fixed;inset:0;background:repeating-linear-gradi
 .tile-rm{background:none;border:none;color:var(--muted);cursor:pointer;font-size:15px;line-height:1;padding:0;flex-shrink:0;transition:color .15s;}
 .tile-rm:hover{color:var(--red);}
 .tile-price{font-size:12px;color:var(--text);margin-bottom:3px;font-weight:500;}
-.tile-perfs{display:flex;gap:3px;margin-bottom:3px;}
+.tile-perfs{display:flex;gap:3px;margin-bottom:3px;justify-content:flex-start;margin-right:auto;max-width:90%;}
 .tpf{display:flex;flex-direction:column;align-items:center;flex:1;background:var(--bg4);border-radius:4px;padding:3px 2px;}
 .tpf-l{font-size:12px;color:var(--muted);}
 .tpf-v{font-size:12px;font-weight:600;}
@@ -1029,16 +1029,16 @@ td.qa-cell{text-align:center;width:28px;padding:0 4px !important;}
 .setting-sub{font-size:12px;color:var(--muted);margin-top:2px;font-family:var(--font-ui);}
 
 /* ── FOOTER & MODALS — gold + white only ── */
-.faq-q{font-size:14px;font-weight:400;color:var(--bnb);margin-bottom:6px;letter-spacing:.01em;font-family:var(--font-display);}
-.faq-a{font-size:13px;color:var(--text);line-height:1.9;font-family:var(--font-ui);}
+.faq-q{font-size:14px;font-weight:600;color:var(--bnb);margin-bottom:6px;letter-spacing:.04em;font-family:var(--font-mono);}
+.faq-a{font-size:13px;color:var(--text);line-height:1.9;font-family:var(--font-mono);}
 
 /* ── FOOTER ── */
 .site-footer{background:var(--bg2);border-top:1px solid var(--bdr);padding:14px 20px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;flex-shrink:0;}
-.footer-links{display:flex;gap:18px;flex-wrap:wrap;justify-content:center;}
+.footer-links{display:flex;gap:14px;flex-wrap:nowrap;justify-content:center;}
 .footer-link{font-size:12px;color:var(--muted);text-decoration:none;letter-spacing:.08em;cursor:pointer;transition:color .15s;font-family:var(--font-ui);}
 .footer-link:hover{color:var(--text);}
 .footer-copy{font-size:12px;color:var(--muted);letter-spacing:.04em;text-align:center;font-family:var(--font-ui);line-height:1.8;}
-.footer-disclaimer{font-size:12px;color:rgba(90,110,133,.7);letter-spacing:.04em;text-align:center;font-family:var(--font-ui);line-height:1.7;max-width:600px;}
+.footer-disclaimer{font-size:12px;color:rgba(90,110,133,.7);letter-spacing:.04em;text-align:center;font-family:var(--font-ui);line-height:1.7;max-width:900px;}
 .loader{position:fixed;inset:0;background:var(--bg);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;z-index:600;transition:opacity .35s;}
 .loader.gone{opacity:0;pointer-events:none;}
 .lmsg{font-size:12px;color:var(--muted);letter-spacing:.1em;min-height:16px;}
