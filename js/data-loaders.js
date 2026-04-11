@@ -2432,6 +2432,8 @@ function _buildRowTip(row, cx, cy) {
 
 /* ══════════════════════════════
    SPLASH SCREEN LOGO ANIMATION
+   Palindrome showcase: O's orbit + each letter spins on Y-axis one at a time
+   Sequence: pause → O orbit → pause → R spin → T spin → A spin → T spin → R spin → pause → O orbit back → repeat
 ══════════════════════════════ */
 (function(){
   var canvas=document.getElementById('splash-c');
@@ -2440,12 +2442,33 @@ function _buildRowTip(row, cx, cy) {
   var CW=canvas.width,CH=canvas.height;
   var FS=52,FONT='bold '+FS+'px "IBM Plex Mono"';
   var BASE=112,GOLD='#f3ba2f',RED='#ff4560',GREEN='#00c896';
-  var fc=0,phase='pause1',pf=0,PAUSE=220,TRAVEL=180;
+  var fc=0,pf=0;
   var ra=Math.PI,ga=0;
-  var xR1,xO1,xT1,xA,xT2,xO2,xR2,s1x,s2x,sY,oCX,oCY,oRX,oRY,rdy=false;
+  var xR1,xO1,xT1,xA,xT2,xO2,xR2,wR,wO,wT,wA,s1x,s2x,sY,oCX,oCY,oRX,oRY,rdy=false;
+
+  /* Timing */
+  var PAUSE=160,TRAVEL=180,SPIN=60,SPIN_PAUSE=30;
+
+  /* Phase machine:
+     pause1 → travel1 (O orbit) → pause2 →
+     spinR1 → spR1 → spinT1 → spT1 → spinA → spA → spinT2 → spT2 → spinR2 → spR2 →
+     pause3 → travel2 (O orbit back) → repeat */
+  var PHASES=[
+    'pause1','travel1','pause2',
+    'spinR1','spR1','spinT1','spT1','spinA','spA','spinT2','spT2','spinR2','spR2',
+    'pause3','travel2'
+  ];
+  var pi=0;
+  function phase(){return PHASES[pi];}
+  function nextPhase(){pi=(pi+1)%PHASES.length;pf=0;}
+
+  /* Letter Y-axis spin state: which letter is spinning and its progress 0→1 */
+  var spinLetter='',spinP=0;
+
   function measure(){
     ctx.font=FONT;
-    var wR=ctx.measureText('R').width,wO=ctx.measureText('O').width,wT=ctx.measureText('T').width,wA=ctx.measureText('A').width;
+    wR=ctx.measureText('R').width;wO=ctx.measureText('O').width;
+    wT=ctx.measureText('T').width;wA=ctx.measureText('A').width;
     var tw=wR+wO+wT+wA+wT+wO+wR,sx=(CW-tw)/2;
     xR1=sx;xO1=xR1+wR;xT1=xO1+wO;xA=xT1+wT;xT2=xA+wA;xO2=xT2+wT;xR2=xO2+wO;
     s1x=xO1+wO/2;s2x=xO2+wO/2;sY=BASE-FS*0.36;
@@ -2454,22 +2477,73 @@ function _buildRowTip(row, cx, cy) {
   function ease(t){return t<0.5?2*t*t:-1+(4-2*t)*t;}
   function rpos(a){return{x:oCX+oRX*Math.cos(a),y:oCY-oRY*Math.sin(a)};}
   function gpos(a){return{x:oCX+oRX*Math.cos(a),y:oCY+oRY*Math.sin(a)};}
+
+  /* Draw a single letter with optional Y-axis spin (scaleX) */
+  function drawLetter(ch,x,y,color,scaleX,glow){
+    ctx.save();
+    var hw=ctx.measureText(ch).width/2;
+    ctx.translate(x+hw,y);
+    ctx.scale(scaleX,1);
+    ctx.translate(-hw,0);
+    ctx.fillStyle=color;
+    if(glow){ctx.shadowBlur=glow;ctx.shadowColor=color;}
+    ctx.textBaseline='alphabetic';ctx.textAlign='left';
+    ctx.fillText(ch,0,0);
+    ctx.restore();
+  }
+
   function frame(){
     if(!document.getElementById('loader')||document.getElementById('loader').classList.contains('gone')) return;
     if(!rdy){requestAnimationFrame(frame);return;}
     ctx.clearRect(0,0,CW,CH);
     var fi=Math.min(1,fc/30);fc++;pf++;
-    if(phase==='pause1'){ra=Math.PI;ga=0;if(pf>=PAUSE){phase='travel1';pf=0;}}
-    else if(phase==='travel1'){var p=ease(Math.min(pf/TRAVEL,1));ra=Math.PI-Math.PI*2*p;ga=Math.PI*2*p;if(pf>=TRAVEL){ra=-Math.PI;ga=Math.PI*2;phase='pause2';pf=0;}}
-    else if(phase==='pause2'){ra=0;ga=Math.PI;if(pf>=PAUSE){phase='travel2';pf=0;}}
-    else if(phase==='travel2'){var p=ease(Math.min(pf/TRAVEL,1));ra=-Math.PI+Math.PI*2*p;ga=Math.PI*2-Math.PI*2*p;if(pf>=TRAVEL){ra=Math.PI;ga=0;phase='pause1';pf=0;}}
-    var R=rpos(ra),G=gpos(ga),mov=(phase==='travel1'||phase==='travel2');
-    ctx.globalAlpha=fi;
-    ctx.font=FONT;ctx.textBaseline='alphabetic';ctx.textAlign='left';ctx.fillStyle=GOLD;ctx.shadowBlur=0;
-    ctx.fillText('R',xR1,BASE);ctx.fillText('T',xT1,BASE);ctx.fillText('A',xA,BASE);ctx.fillText('T',xT2,BASE);ctx.fillText('R',xR2,BASE);
+    ctx.globalAlpha=fi;ctx.font=FONT;ctx.shadowBlur=0;
+
+    var ph=phase();
+
+    /* ── O orbit logic ── */
+    if(ph==='pause1'){ra=Math.PI;ga=0;if(pf>=PAUSE)nextPhase();}
+    else if(ph==='travel1'){var p=ease(Math.min(pf/TRAVEL,1));ra=Math.PI-Math.PI*2*p;ga=Math.PI*2*p;if(pf>=TRAVEL)nextPhase();}
+    else if(ph==='pause2'){ra=0;ga=Math.PI;if(pf>=PAUSE)nextPhase();}
+    else if(ph==='pause3'){ra=0;ga=Math.PI;if(pf>=PAUSE)nextPhase();}
+    else if(ph==='travel2'){var p=ease(Math.min(pf/TRAVEL,1));ra=-Math.PI+Math.PI*2*p;ga=Math.PI*2-Math.PI*2*p;if(pf>=TRAVEL)nextPhase();}
+    /* ── Letter spin phases ── */
+    else if(ph==='spinR1'){spinLetter='R1';spinP=ease(Math.min(pf/SPIN,1));if(pf>=SPIN)nextPhase();}
+    else if(ph==='spR1'){spinLetter='';spinP=0;if(pf>=SPIN_PAUSE)nextPhase();}
+    else if(ph==='spinT1'){spinLetter='T1';spinP=ease(Math.min(pf/SPIN,1));if(pf>=SPIN)nextPhase();}
+    else if(ph==='spT1'){spinLetter='';spinP=0;if(pf>=SPIN_PAUSE)nextPhase();}
+    else if(ph==='spinA'){spinLetter='A';spinP=ease(Math.min(pf/SPIN,1));if(pf>=SPIN)nextPhase();}
+    else if(ph==='spA'){spinLetter='';spinP=0;if(pf>=SPIN_PAUSE)nextPhase();}
+    else if(ph==='spinT2'){spinLetter='T2';spinP=ease(Math.min(pf/SPIN,1));if(pf>=SPIN)nextPhase();}
+    else if(ph==='spT2'){spinLetter='';spinP=0;if(pf>=SPIN_PAUSE)nextPhase();}
+    else if(ph==='spinR2'){spinLetter='R2';spinP=ease(Math.min(pf/SPIN,1));if(pf>=SPIN)nextPhase();}
+    else if(ph==='spR2'){spinLetter='';spinP=0;if(pf>=SPIN_PAUSE)nextPhase();}
+
+    /* ── Calculate scaleX for spinning letter (full 360: 1→0→-1→0→1) ── */
+    var scX=function(id){
+      if(spinLetter!==id) return 1;
+      return Math.cos(spinP*Math.PI*2);
+    };
+
+    /* ── Glow for spinning letter ── */
+    var glw=function(id){
+      if(spinLetter!==id) return 0;
+      return 12*Math.sin(spinP*Math.PI);
+    };
+
+    /* ── Draw static letters with potential spin ── */
+    drawLetter('R',xR1,BASE,GOLD,scX('R1'),glw('R1'));
+    drawLetter('T',xT1,BASE,GOLD,scX('T1'),glw('T1'));
+    drawLetter('A',xA,BASE,GOLD,scX('A'),glw('A'));
+    drawLetter('T',xT2,BASE,GOLD,scX('T2'),glw('T2'));
+    drawLetter('R',xR2,BASE,GOLD,scX('R2'),glw('R2'));
+
+    /* ── Draw orbiting O's ── */
+    var mov=(ph==='travel1'||ph==='travel2');
+    var Rp=rpos(ra),Gp=gpos(ga);
     ctx.textBaseline='middle';ctx.textAlign='center';
-    ctx.shadowBlur=mov?16:8;ctx.shadowColor=GREEN;ctx.fillStyle=GREEN;ctx.fillText('O',G.x,G.y);
-    ctx.shadowBlur=mov?16:8;ctx.shadowColor=RED;ctx.fillStyle=RED;ctx.fillText('O',R.x,R.y);
+    ctx.shadowBlur=mov?16:8;ctx.shadowColor=GREEN;ctx.fillStyle=GREEN;ctx.fillText('O',Gp.x,Gp.y);
+    ctx.shadowBlur=mov?16:8;ctx.shadowColor=RED;ctx.fillStyle=RED;ctx.fillText('O',Rp.x,Rp.y);
     ctx.shadowBlur=0;ctx.globalAlpha=1;
     requestAnimationFrame(frame);
   }
@@ -2478,6 +2552,7 @@ function _buildRowTip(row, cx, cy) {
 
 /* ══════════════════════════════
    TOPBAR LOGO ANIMATION
+   Same palindrome spin as splash but smaller
 ══════════════════════════════ */
 (function(){
   function initLogo(){
@@ -2488,12 +2563,18 @@ function _buildRowTip(row, cx, cy) {
       var CW=canvas.width,CH=canvas.height;
       var FS=18,FONT='bold '+FS+'px "IBM Plex Mono"';
       var BASE=22,GOLD='#f3ba2f',RED='#ff4560',GREEN='#00c896';
-      var fc=0,phase='pause1',pf=0,PAUSE=200,TRAVEL=160;
+      var fc=0,pf=0;
+      var PAUSE=200,TRAVEL=160,SPIN=50,SPIN_PAUSE=25;
       var ra=Math.PI,ga=0;
-      var xR1,xO1,xT1,xA,xT2,xO2,xR2,s1x,s2x,sY,oCX,oCY,oRX,oRY,rdy=false;
+      var xR1,xO1,xT1,xA,xT2,xO2,xR2,wR,wO,wT,wA,s1x,s2x,sY,oCX,oCY,oRX,oRY,rdy=false;
+      var PHASES=['pause1','travel1','pause2','spinR1','spR1','spinT1','spT1','spinA','spA','spinT2','spT2','spinR2','spR2','pause3','travel2'];
+      var pi=0,spinLetter='',spinP=0;
+      function ph(){return PHASES[pi];}
+      function nxt(){pi=(pi+1)%PHASES.length;pf=0;}
       function measure(){
         ctx.font=FONT;
-        var wR=ctx.measureText('R').width,wO=ctx.measureText('O').width,wT=ctx.measureText('T').width,wA=ctx.measureText('A').width;
+        wR=ctx.measureText('R').width;wO=ctx.measureText('O').width;
+        wT=ctx.measureText('T').width;wA=ctx.measureText('A').width;
         var tw=wR+wO+wT+wA+wT+wO+wR,sx=(CW-tw)/2;
         xR1=sx;xO1=xR1+wR;xT1=xO1+wO;xA=xT1+wT;xT2=xA+wA;xO2=xT2+wT;xR2=xO2+wO;
         s1x=xO1+wO/2;s2x=xO2+wO/2;sY=BASE-FS*0.36;
@@ -2502,21 +2583,36 @@ function _buildRowTip(row, cx, cy) {
       function ease(t){return t<0.5?2*t*t:-1+(4-2*t)*t;}
       function rpos(a){return{x:oCX+oRX*Math.cos(a),y:oCY-oRY*Math.sin(a)};}
       function gpos(a){return{x:oCX+oRX*Math.cos(a),y:oCY+oRY*Math.sin(a)};}
+      function drawL(ch,x,y,color,scX,glw){
+        ctx.save();var hw=ctx.measureText(ch).width/2;
+        ctx.translate(x+hw,y);ctx.scale(scX,1);ctx.translate(-hw,0);
+        ctx.fillStyle=color;if(glw){ctx.shadowBlur=glw;ctx.shadowColor=color;}
+        ctx.textBaseline='alphabetic';ctx.textAlign='left';ctx.fillText(ch,0,0);ctx.restore();
+      }
       function frame(){
         if(!rdy){requestAnimationFrame(frame);return;}
         ctx.clearRect(0,0,CW,CH);
-        var fi=Math.min(1,fc/20);fc++;pf++;
-        if(phase==='pause1'){ra=Math.PI;ga=0;if(pf>=PAUSE){phase='travel1';pf=0;}}
-        else if(phase==='travel1'){var p=ease(Math.min(pf/TRAVEL,1));ra=Math.PI*(1-2*p);ga=Math.PI*2*p;if(pf>=TRAVEL){ra=-Math.PI;ga=Math.PI*2;phase='pause2';pf=0;}}
-        else if(phase==='pause2'){ra=0;ga=Math.PI;if(pf>=PAUSE){phase='travel2';pf=0;}}
-        else if(phase==='travel2'){var p=ease(Math.min(pf/TRAVEL,1));ra=-Math.PI+Math.PI*2*p;ga=Math.PI*2*(1-p);if(pf>=TRAVEL){ra=Math.PI;ga=0;phase='pause1';pf=0;}}
-        var R=rpos(ra),G=gpos(ga),mov=(phase==='travel1'||phase==='travel2');
-        ctx.globalAlpha=fi;
-        ctx.font=FONT;ctx.textBaseline='alphabetic';ctx.textAlign='left';ctx.fillStyle=GOLD;ctx.shadowBlur=0;
-        ctx.fillText('R',xR1,BASE);ctx.fillText('T',xT1,BASE);ctx.fillText('A',xA,BASE);ctx.fillText('T',xT2,BASE);ctx.fillText('R',xR2,BASE);
+        var fi=Math.min(1,fc/20);fc++;pf++;ctx.globalAlpha=fi;ctx.font=FONT;ctx.shadowBlur=0;
+        var p=ph();
+        if(p==='pause1'){ra=Math.PI;ga=0;if(pf>=PAUSE)nxt();}
+        else if(p==='travel1'){var e=ease(Math.min(pf/TRAVEL,1));ra=Math.PI*(1-2*e);ga=Math.PI*2*e;if(pf>=TRAVEL)nxt();}
+        else if(p==='pause2'){ra=0;ga=Math.PI;if(pf>=PAUSE)nxt();}
+        else if(p==='pause3'){ra=0;ga=Math.PI;if(pf>=PAUSE)nxt();}
+        else if(p==='travel2'){var e=ease(Math.min(pf/TRAVEL,1));ra=-Math.PI+Math.PI*2*e;ga=Math.PI*2*(1-e);if(pf>=TRAVEL)nxt();}
+        else if(p.indexOf('spin')===0){var id=p.slice(4);spinLetter=id;spinP=ease(Math.min(pf/SPIN,1));if(pf>=SPIN)nxt();}
+        else if(p.indexOf('sp')===0){spinLetter='';spinP=0;if(pf>=SPIN_PAUSE)nxt();}
+        var scX=function(id){return spinLetter!==id?1:Math.cos(spinP*Math.PI*2);};
+        var glw=function(id){return spinLetter!==id?0:6*Math.sin(spinP*Math.PI);};
+        drawL('R',xR1,BASE,GOLD,scX('R1'),glw('R1'));
+        drawL('T',xT1,BASE,GOLD,scX('T1'),glw('T1'));
+        drawL('A',xA,BASE,GOLD,scX('A'),glw('A'));
+        drawL('T',xT2,BASE,GOLD,scX('T2'),glw('T2'));
+        drawL('R',xR2,BASE,GOLD,scX('R2'),glw('R2'));
+        var mov=(p==='travel1'||p==='travel2');
+        var Rp=rpos(ra),Gp=gpos(ga);
         ctx.textBaseline='middle';ctx.textAlign='center';
-        ctx.shadowBlur=mov?8:4;ctx.shadowColor=GREEN;ctx.fillStyle=GREEN;ctx.fillText('O',G.x,G.y);
-        ctx.shadowBlur=mov?8:4;ctx.shadowColor=RED;ctx.fillStyle=RED;ctx.fillText('O',R.x,R.y);
+        ctx.shadowBlur=mov?8:4;ctx.shadowColor=GREEN;ctx.fillStyle=GREEN;ctx.fillText('O',Gp.x,Gp.y);
+        ctx.shadowBlur=mov?8:4;ctx.shadowColor=RED;ctx.fillStyle=RED;ctx.fillText('O',Rp.x,Rp.y);
         ctx.shadowBlur=0;ctx.globalAlpha=1;
         requestAnimationFrame(frame);
       }
