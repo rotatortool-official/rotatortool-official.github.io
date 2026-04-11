@@ -2325,6 +2325,8 @@ td.qa-cell{text-align:center;width:28px;padding:0 4px !important;}
 :root.light .td-close{color:rgba(160,130,60,.5);}
 :root.light .td-close:hover{color:rgba(140,80,30,.8);}
 :root.light .td-share-label{color:rgba(120,90,40,.65);}
+:root.light .td-share-card-btn{background:linear-gradient(135deg,rgba(180,140,30,.2),rgba(180,140,30,.08));border-color:rgba(160,120,20,.5);color:rgba(140,100,10,.9);}
+:root.light .td-share-card-btn:hover{background:linear-gradient(135deg,rgba(180,140,30,.35),rgba(180,140,30,.15));border-color:rgba(160,120,20,.7);box-shadow:0 0 14px rgba(180,140,30,.2);}
 :root.light .td-sh{background:rgba(255,248,220,.7);border-color:rgba(200,180,120,.25);color:rgba(100,80,40,.6);}
 :root.light .td-sh:hover{background:rgba(245,235,200,.9);border-color:rgba(180,150,80,.4);color:rgba(80,60,20,.8);}
 /* Score and data sections */

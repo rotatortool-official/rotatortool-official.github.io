@@ -1996,29 +1996,29 @@ function shareAsImage() {
 
   /* ── Symbol + Name header (bigger) ── */
   ctx.fillStyle = '#f3ba2f';
-  ctx.font = 'bold 68px "IBM Plex Mono", monospace';
-  ctx.fillText(sym, 70, 100);
+  ctx.font = 'bold 80px "IBM Plex Mono", monospace';
+  ctx.fillText(sym, 70, 105);
 
   ctx.fillStyle = 'rgba(255,255,255,0.45)';
-  ctx.font = '26px "IBM Plex Mono", monospace';
-  ctx.fillText(name, 70, 138);
+  ctx.font = '30px "IBM Plex Mono", monospace';
+  ctx.fillText(name, 70, 146);
 
   /* ── Price (big and bold) ── */
   ctx.fillStyle = '#ffffff';
-  ctx.font = 'bold 72px "IBM Plex Mono", monospace';
-  ctx.fillText(price, 70, 230);
+  ctx.font = 'bold 82px "IBM Plex Mono", monospace';
+  ctx.fillText(price, 70, 244);
 
   /* 24H change — large */
   var isPos = chg.indexOf('+') === 0;
   var isNeg = chg.indexOf('-') === 0 || chg.indexOf('\u2212') === 0;
   ctx.fillStyle = isPos ? '#00c896' : isNeg ? '#ff4560' : 'rgba(255,255,255,0.6)';
-  ctx.font = 'bold 36px "IBM Plex Mono", monospace';
+  ctx.font = 'bold 40px "IBM Plex Mono", monospace';
   var arrow = isPos ? '\u25B2 ' : isNeg ? '\u25BC ' : '';
-  ctx.fillText(arrow + chg + ' (24H)', 70, 282);
+  ctx.fillText(arrow + chg + ' (24H)', 70, 296);
 
   /* ── Score circle (larger, bolder) ── */
   if (score) {
-    var cx = W - 180, cy = 160, r = 90;
+    var cx = W - 180, cy = 175, r = 100;
     /* outer ring bg */
     ctx.beginPath();
     ctx.arc(cx, cy, r, 0, Math.PI * 2);
@@ -2037,22 +2037,22 @@ function shareAsImage() {
     ctx.lineCap = 'butt';
     /* score number */
     ctx.fillStyle = '#ffffff';
-    ctx.font = 'bold 64px "IBM Plex Mono", monospace';
+    ctx.font = 'bold 72px "IBM Plex Mono", monospace';
     ctx.textAlign = 'center';
-    ctx.fillText(score, cx, cy + 20);
+    ctx.fillText(score, cx, cy + 24);
     ctx.fillStyle = 'rgba(255,255,255,0.35)';
-    ctx.font = '20px "IBM Plex Mono", monospace';
-    ctx.fillText('/100', cx, cy + 52);
+    ctx.font = '22px "IBM Plex Mono", monospace';
+    ctx.fillText('/100', cx, cy + 56);
     ctx.textAlign = 'left';
   }
 
   /* ── Separator line ── */
   ctx.fillStyle = 'rgba(243,186,47,0.12)';
-  ctx.fillRect(70, 310, W - 140, 1);
+  ctx.fillRect(70, 320, W - 140, 1);
 
   /* ── Signal badges (larger) ── */
   if (badges.length) {
-    var badgeY = 340;
+    var badgeY = 350;
     ctx.fillStyle = 'rgba(255,255,255,0.4)';
     ctx.font = '16px "IBM Plex Mono", monospace';
     ctx.fillText('SIGNALS', 70, badgeY);
@@ -2078,7 +2078,7 @@ function shareAsImage() {
   }
 
   /* ── Market data boxes (larger fonts) ── */
-  var boxY = badges.length ? 420 : 340, boxH = 80, boxGap = 14;
+  var boxY = badges.length ? 430 : 350, boxH = 80, boxGap = 14;
   var visibleMkt = mktData.slice(0, 5);
   var boxW = Math.min(200, (W - 140 - boxGap * (visibleMkt.length - 1)) / Math.min(visibleMkt.length, 5));
   visibleMkt.forEach(function(d, i) {
