@@ -584,7 +584,12 @@ function renderMobResults(arr) {
     : '';
 }
 function handleSearchSelect(coinId) {
-  /* Load coin into swap ratio tracker */
+  /* Open coin detail card */
+  if (typeof coins !== 'undefined' && typeof openTileDetail === 'function') {
+    var c = coins.find(function(x) { return x.id === coinId; });
+    if (c) { openTileDetail(c); toggleTopbarSearch(false); toggleMobSearch(false); return; }
+  }
+  /* Fallback: load into swap tool */
   if (typeof RatioTracker !== 'undefined') {
     var fSel = document.getElementById('rt-from');
     if (fSel && fSel.querySelector('option[value="'+coinId+'"]')) {
@@ -592,9 +597,6 @@ function handleSearchSelect(coinId) {
       RatioTracker.onFromChange();
     }
   }
-  /* Scroll to swap section */
-  var sec = document.getElementById('ratio-section');
-  if (sec) sec.scrollIntoView({behavior:'smooth', block:'start'});
   toggleTopbarSearch(false);
   toggleMobSearch(false);
 }

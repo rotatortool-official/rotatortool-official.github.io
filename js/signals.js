@@ -817,6 +817,19 @@ function renderAll() {
       + (remMins > 0 ? ' · ↻ in ~' + remMins + 'm' : '');
   }
   renderDonationBar('sidebar-goal-left');
+  /* Signal Track Record — snapshot + render */
+  if (typeof SignalHistory !== 'undefined') {
+    SignalHistory.takeSnapshot();
+    SignalHistory.render();
+    /* Update accuracy badge */
+    var stats = SignalHistory.getAccuracyStats();
+    var badge = document.getElementById('str-accuracy-badge');
+    if (badge && stats) {
+      badge.textContent = stats.accuracy + '% accuracy';
+      badge.className = 'str-section-badge ' + (stats.accuracy >= 65 ? 'good' : stats.accuracy >= 50 ? 'mid' : 'low');
+      badge.style.display = '';
+    }
+  }
   document.getElementById('ts').textContent = 'UPDATED ' + now.toLocaleTimeString('en-US', {hour:'2-digit', minute:'2-digit', second:'2-digit'}) + suffix;
   /* Sync three-panel vertical alignment after every render */
   requestAnimationFrame(function() {
