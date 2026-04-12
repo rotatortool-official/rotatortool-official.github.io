@@ -818,22 +818,45 @@ document.addEventListener('DOMContentLoaded',function(){
   setTimeout(function(){RatioTracker.init();},120);
 });
 
-/* ── Share Rotation Success on X ── */
+/* ── Share Rotator ── */
 function shareRotation() {
-  var st = RatioTracker.getState();
-  var fromSym = st.from ? RatioTracker.lbl(st.from) : '?';
-  var toSym   = st.to   ? RatioTracker.lbl(st.to)   : '?';
+  var url   = 'https://rotatortool.github.io';
+  var title = 'Rotator — Free Crypto Rotation Screener';
+  var text  = 'Stop guessing when to swap. Rotator shows real-time rotation signals and momentum scores for 200+ coins — completely free.';
 
-  /* Get peak ratio from the UI */
-  var peakEl = document.getElementById('rt-peak-val');
-  var peakTxt = peakEl ? peakEl.textContent.trim() : '';
-
-  var text = 'I timed my ' + fromSym + ' → ' + toSym + ' rotation';
-  if (peakTxt && peakTxt !== '—') {
-    text += ' at ' + peakTxt + ' peak ratio';
+  /* Try native Web Share API first (mobile + modern browsers) */
+  if (navigator.share) {
+    navigator.share({ title: title, text: text, url: url }).catch(function(){});
+    return;
   }
-  text += ' using Rotator — the free crypto rotation screener.\n\nStop guessing when to swap. Let the data decide.\n\nhttps://rotatortool.github.io';
 
-  var url = 'https://x.com/intent/tweet?text=' + encodeURIComponent(text);
-  window.open(url, '_blank', 'width=600,height=400');
+  /* Desktop fallback: show a small share menu */
+  var existing = document.getElementById('share-menu');
+  if (existing) { existing.remove(); return; }
+
+  var encoded = encodeURIComponent(text + '\n' + url);
+  var menu = document.createElement('div');
+  menu.id = 'share-menu';
+  menu.className = 'share-menu';
+  menu.innerHTML =
+      '<button onclick="window.open(\'https://x.com/intent/tweet?text=' + encodeURIComponent(text + '\n\n' + url) + '\',\'_blank\',\'width=600,height=400\');document.getElementById(\'share-menu\').remove()">𝕏 Post on X</button>'
+    + '<button onclick="window.open(\'https://t.me/share/url?url=' + encodeURIComponent(url) + '&text=' + encodeURIComponent(text) + '\',\'_blank\',\'width=600,height=400\');document.getElementById(\'share-menu\').remove()">✈ Telegram</button>'
+    + '<button onclick="window.open(\'https://reddit.com/submit?url=' + encodeURIComponent(url) + '&title=' + encodeURIComponent(title) + '\',\'_blank\',\'width=600,height=600\');document.getElementById(\'share-menu\').remove()">◉ Reddit</button>'
+    + '<button onclick="navigator.clipboard.writeText(\'' + text.replace(/'/g,"\\'") + '\\n' + url + '\').then(function(){this.textContent=\'Copied!\';var s=this;setTimeout(function(){document.getElementById(\'share-menu\')&&document.getElementById(\'share-menu\').remove()},800)}.bind(this))">📋 Copy link</button>';
+
+  var btn = document.getElementById('share-rotator-btn');
+  var wrap = btn.closest('.rt-top-actions');
+  wrap.style.position = 'relative';
+  wrap.appendChild(menu);
+
+  /* Close on outside click */
+  setTimeout(function(){
+    document.addEventListener('click', function _close(e) {
+      var m = document.getElementById('share-menu');
+      if (m && !m.contains(e.target) && e.target.id !== 'share-rotator-btn') {
+        m.remove();
+        document.removeEventListener('click', _close);
+      }
+    });
+  }, 10);
 }

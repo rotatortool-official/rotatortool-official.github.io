@@ -24,7 +24,13 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>⬡</text></svg>">
+<link rel="icon" href="icon-192.png" type="image/png">
+<link rel="apple-touch-icon" href="icon-192.png">
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#0b0e13">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Rotator">
 
   <link rel="stylesheet" href="styles.css">
 </head>
@@ -1096,11 +1102,14 @@
         </div>
       </div>
 
-      <!-- ══ SAVE + REFRESH ACTIONS ══ -->
+      <!-- ══ SAVE + REFRESH + SHARE ACTIONS ══ -->
       <div class="rt-top-actions">
         <button class="rt-star-btn" id="rt-star-btn" title="Save pair">☆ Save pair</button>
         <button class="rt-refresh-btn" id="rt-refresh-btn" onclick="RatioTracker.loadAll()" title="Refresh">
           <span id="rt-spin-icon">↻</span> Refresh
+        </button>
+        <button class="rt-share-btn" id="share-rotator-btn" onclick="shareRotation()" title="Share Rotator">
+          <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/><polyline points="16 6 12 2 8 6"/><line x1="12" y1="2" x2="12" y2="15"/></svg> Share
         </button>
       </div>
 
@@ -1189,14 +1198,6 @@
           </div>
         </div>
       </div><!-- /rt-calc -->
-
-      <!-- ══ SHARE ROTATION SUCCESS ══ -->
-      <div class="rt-share-wrap">
-        <button class="rt-share-btn" id="rt-share-btn" onclick="shareRotation()" title="Share your rotation success on X">
-          <svg viewBox="0 0 24 24" width="14" height="14" fill="currentColor" style="flex-shrink:0;"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>
-          Share My Rotation
-        </button>
-      </div>
 
       <div class="rt-footer">Live data via CoinGecko · Not financial advice · Always verify before swapping</div>
 

@@ -1024,19 +1024,23 @@ td.qa-cell{text-align:center;width:28px;padding:0 4px !important;}
   background:var(--bg3);border:1px solid var(--bdr);
 }
 
-/* ── SHARE ROTATION BUTTON ── */
-.rt-share-wrap{padding:12px 10px 4px;text-align:center;}
-.rt-share-btn{
-  display:inline-flex;align-items:center;justify-content:center;gap:6px;
-  width:100%;padding:10px 16px;
-  background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);
-  border-radius:6px;color:var(--text);font-family:var(--font-ui);
-  font-size:12px;font-weight:500;letter-spacing:.06em;
-  cursor:pointer;transition:all .18s;
+/* ── SHARE MENU (dropdown from share button) ── */
+.share-menu{
+  position:absolute;bottom:100%;right:0;margin-bottom:6px;
+  background:var(--bg3);border:1px solid var(--bdr2);border-radius:8px;
+  box-shadow:0 8px 24px rgba(0,0,0,.4);
+  padding:4px;min-width:160px;z-index:50;
+  display:flex;flex-direction:column;
 }
-.rt-share-btn:hover{background:rgba(29,161,242,.12);border-color:rgba(29,161,242,.35);color:#1da1f2;}
-:root.light .rt-share-btn{background:rgba(0,0,0,.04);border-color:rgba(0,0,0,.1);color:var(--text);}
-:root.light .rt-share-btn:hover{background:rgba(29,161,242,.08);border-color:rgba(29,161,242,.3);color:#1a8cd8;}
+.share-menu button{
+  display:flex;align-items:center;gap:8px;
+  padding:8px 12px;background:none;border:none;
+  color:var(--text);font-family:var(--font-ui);font-size:12px;
+  cursor:pointer;border-radius:5px;text-align:left;white-space:nowrap;
+  transition:background .12s;
+}
+.share-menu button:hover{background:var(--w005);}
+:root.light .share-menu{background:var(--bg3);box-shadow:0 8px 24px rgba(0,0,0,.12);}
 
 /* ── SETTINGS MODAL ── */
 #settings-modal .modal{border:1px solid var(--bdr2);}
@@ -1750,7 +1754,8 @@ td.qa-cell{text-align:center;width:28px;padding:0 4px !important;}
 ══════════════════════════════════════════ */
 
 /* Top action bar */
-.rt-top-actions{display:flex;justify-content:flex-end;gap:5px;margin-bottom:8px;}
+.rt-top-actions{display:flex;gap:5px;margin-bottom:8px;}
+.rt-top-actions button{flex:1;justify-content:center;}
 .rt-pair-side{display:flex;align-items:center;gap:6px;background:var(--bg3);border:1px solid rgba(130,110,200,.2);border-radius:8px;padding:8px 10px;cursor:pointer;transition:border-color .15s;}
 .rt-pair-side:hover{border-color:rgba(130,110,200,.45);}
 .rt-coin-icon-lg{width:26px !important;height:26px !important;border-radius:50%;border:1px solid rgba(255,255,255,.1) !important;}
@@ -1801,6 +1806,8 @@ td.qa-cell{text-align:center;width:28px;padding:0 4px !important;}
 .rt-star-btn{background:rgba(243,186,47,.08);border:1px solid rgba(243,186,47,.25);color:rgba(243,186,47,.8);padding:5px 12px;font-size:12px;font-weight:600;cursor:pointer;border-radius:6px;transition:all .15s;font-family:var(--font-mono);letter-spacing:.05em;}
 .rt-star-btn:hover{border-color:var(--bnb);color:var(--bnb);background:var(--bnbd);}
 .rt-star-btn.rt-star-active{border-color:var(--bnb);color:var(--bnb);background:var(--bnbd);}
+.rt-share-btn{background:rgba(29,161,242,.08);border:1px solid rgba(29,161,242,.25);color:rgba(29,161,242,.8);padding:5px 12px;font-size:12px;font-weight:600;cursor:pointer;border-radius:6px;display:flex;align-items:center;gap:4px;transition:all .15s;font-family:var(--font-mono);letter-spacing:.05em;}
+.rt-share-btn:hover{border-color:rgba(29,161,242,.6);color:#1da1f2;background:rgba(29,161,242,.18);}
 
 /* Timeframe buttons */
 .rt-tf-btn{background:transparent;border:1px solid var(--bdr);color:var(--muted);padding:4px 11px;font-family:var(--font-mono);font-size:12px;letter-spacing:.08em;cursor:pointer;border-radius:6px;transition:all .15s;}
@@ -2702,6 +2709,7 @@ td.qa-cell{text-align:center;width:28px;padding:0 4px !important;}
 :root.light .rt-saved-chip       { background:var(--bg3); border-color:var(--bdr2); color:var(--text2); }
 :root.light .rt-star-btn         { background:rgba(180,130,0,.08); border-color:rgba(180,130,0,.3); color:rgba(180,130,0,.8); }
 :root.light .rt-refresh-btn      { background:rgba(100,80,200,.06); border-color:rgba(100,80,200,.2); color:var(--muted); }
+:root.light .rt-share-btn        { background:rgba(29,161,242,.06); border-color:rgba(29,161,242,.2); color:rgba(29,130,200,.8); }
 :root.light .rt-calc-ratio-line  { color:var(--muted); }
 :root.light .rt-calc-ratio-line span { color:var(--bnb); }
 :root.light .rt-tf-btn           { border-color:var(--bdr2); color:var(--muted); }
