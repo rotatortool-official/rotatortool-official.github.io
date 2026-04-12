@@ -587,7 +587,7 @@ function handleSearchSelect(coinId) {
   /* Open coin detail card */
   if (typeof coins !== 'undefined' && typeof openTileDetail === 'function') {
     var c = coins.find(function(x) { return x.id === coinId; });
-    if (c) { openTileDetail(c); toggleTopbarSearch(false); toggleMobSearch(false); return; }
+    if (c) { openTileDetail(c.id); toggleTopbarSearch(false); toggleMobSearch(false); return; }
   }
   /* Fallback: load into swap tool */
   if (typeof RatioTracker !== 'undefined') {

@@ -807,7 +807,9 @@ var RatioTracker = (function() {
     onFromChange:onFromChange, onToChange:onToChange, calcSwap:calcSwap,
     swapPair:swapPair,
     _loadFav:loadFavourite, _removeFav:removeFavourite,
-    _openPicker:_openPicker, _closePicker:_closePicker, _pickerFilter:_pickerFilter, _pickerSelect:_pickerSelect
+    _openPicker:_openPicker, _closePicker:_closePicker, _pickerFilter:_pickerFilter, _pickerSelect:_pickerSelect,
+    getState:function(){ return { from:S.from, to:S.to, fromPrice:S.fromPrice, toPrice:S.toPrice }; },
+    lbl:lbl
   };
 
 })();
@@ -815,3 +817,23 @@ var RatioTracker = (function() {
 document.addEventListener('DOMContentLoaded',function(){
   setTimeout(function(){RatioTracker.init();},120);
 });
+
+/* ── Share Rotation Success on X ── */
+function shareRotation() {
+  var st = RatioTracker.getState();
+  var fromSym = st.from ? RatioTracker.lbl(st.from) : '?';
+  var toSym   = st.to   ? RatioTracker.lbl(st.to)   : '?';
+
+  /* Get peak ratio from the UI */
+  var peakEl = document.getElementById('rt-peak-val');
+  var peakTxt = peakEl ? peakEl.textContent.trim() : '';
+
+  var text = 'I timed my ' + fromSym + ' → ' + toSym + ' rotation';
+  if (peakTxt && peakTxt !== '—') {
+    text += ' at ' + peakTxt + ' peak ratio';
+  }
+  text += ' using Rotator — the free crypto rotation screener.\n\nStop guessing when to swap. Let the data decide.\n\nhttps://rotatortool.github.io';
+
+  var url = 'https://x.com/intent/tweet?text=' + encodeURIComponent(text);
+  window.open(url, '_blank', 'width=600,height=400');
+}

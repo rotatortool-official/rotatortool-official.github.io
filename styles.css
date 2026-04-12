@@ -995,11 +995,12 @@ td.qa-cell{text-align:center;width:28px;padding:0 4px !important;}
   background:var(--bg2);border:1px solid rgba(243,186,47,.25);
   border-radius:6px;padding:14px 16px 12px;
   font-size:13px;color:var(--text);
-  line-height:1.6;max-width:320px;width:320px;
+  line-height:1.6;max-width:340px;width:340px;
   box-shadow:0 8px 32px rgba(0,0,0,.55),0 0 0 1px rgba(255,255,255,.03);
   pointer-events:none;opacity:0;
   transition:opacity .15s;
   font-family:var(--font-ui);
+  overflow:hidden;
 }
 .rt-tip.show{opacity:1;}
 .rt-tip-title{
@@ -1007,7 +1008,7 @@ td.qa-cell{text-align:center;width:28px;padding:0 4px !important;}
   letter-spacing:.01em;font-family:var(--font-display);
   border-bottom:1px solid var(--bdr);padding-bottom:8px;
 }
-.rt-tip-grid{display:grid;grid-template-columns:1fr 1fr;gap:6px 12px;margin-bottom:10px;}
+.rt-tip-grid{display:grid;grid-template-columns:1fr 1fr;gap:6px 12px;margin-bottom:10px;overflow:hidden;word-break:break-word;}
 .rt-tip-cell-l{font-size:12px;color:var(--muted);letter-spacing:.06em;text-transform:uppercase;font-family:var(--font-ui);margin-bottom:1px;}
 .rt-tip-cell-v{font-size:12px;font-weight:600;font-family:var(--font-mono);line-height:1.3;}
 .rt-tip-cell-v.up{color:var(--green);}
@@ -1022,6 +1023,20 @@ td.qa-cell{text-align:center;width:28px;padding:0 4px !important;}
   font-size:12px;line-height:1.5;font-family:var(--font-ui);
   background:var(--bg3);border:1px solid var(--bdr);
 }
+
+/* ── SHARE ROTATION BUTTON ── */
+.rt-share-wrap{padding:12px 10px 4px;text-align:center;}
+.rt-share-btn{
+  display:inline-flex;align-items:center;justify-content:center;gap:6px;
+  width:100%;padding:10px 16px;
+  background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);
+  border-radius:6px;color:var(--text);font-family:var(--font-ui);
+  font-size:12px;font-weight:500;letter-spacing:.06em;
+  cursor:pointer;transition:all .18s;
+}
+.rt-share-btn:hover{background:rgba(29,161,242,.12);border-color:rgba(29,161,242,.35);color:#1da1f2;}
+:root.light .rt-share-btn{background:rgba(0,0,0,.04);border-color:rgba(0,0,0,.1);color:var(--text);}
+:root.light .rt-share-btn:hover{background:rgba(29,161,242,.08);border-color:rgba(29,161,242,.3);color:#1a8cd8;}
 
 /* ── SETTINGS MODAL ── */
 #settings-modal .modal{border:1px solid var(--bdr2);}

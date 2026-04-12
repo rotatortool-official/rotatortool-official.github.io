@@ -2337,7 +2337,7 @@ function showTip(title, body, x, y) {
   document.getElementById('rt-tip-body').innerHTML  = body;
   t.classList.add('show');
   var vw = window.innerWidth, vh = window.innerHeight;
-  var tw = Math.min(330, vw - 16), th = t.offsetHeight || 200;
+  var tw = Math.min(340, vw - 16), th = t.offsetHeight || 200;
   t.style.maxWidth = tw + 'px';
   var lx = x + 16, ly = y + 16;
   if (lx + tw > vw - 8)  lx = x - tw - 10;
