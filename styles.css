@@ -2,14 +2,14 @@
   --bg:#0b0e13;--bg2:#0f1318;--bg3:#141920;--bg4:#1a2030;--bgz:#111620;
   --bdr:rgba(255,255,255,0.055);--bdr2:rgba(255,255,255,0.11);
   --text:#dce4f0;--muted:#5a6e85;--fg:#dce4f0;
-  --green:#00bd8e;--gd:rgba(0,189,142,0.12);
-  --red:#f03e58;--rd:rgba(240,62,88,0.12);
+  --green:#10b981;--gd:rgba(16,185,129,0.12);
+  --red:#ef4444;--rd:rgba(239,68,68,0.12);
   --amber:#f0a030;--ad:rgba(240,160,48,0.13);
   --bnb:#d4a428;--bnbd:rgba(243,186,47,0.09);
   --pro:#a78bfa;--prod:rgba(167,139,250,0.12);
-  --font-mono:'IBM Plex Mono',monospace;
-  --font-ui:'DM Sans',sans-serif;
-  --font-display:'DM Serif Display',Georgia,serif;
+  --font-mono:'Inter',sans-serif;
+  --font-ui:'Inter',sans-serif;
+  --font-display:'Inter',sans-serif;
   /* theme-aware overlays */
   --w005:rgba(255,255,255,.05);--w01:rgba(255,255,255,.1);--w015:rgba(255,255,255,.15);
   --b03:rgba(0,0,0,.3);--b05:rgba(0,0,0,.5);--b07:rgba(0,0,0,.7);
@@ -23,8 +23,8 @@
   --bg:#ddeaf6;--bg2:#d4e2f0;--bg3:#eef5fc;--bg4:#ccdaec;--bgz:#f8fafc;
   --bdr:rgba(0,0,0,0.09);--bdr2:rgba(0,0,0,0.15);
   --text:#111824;--muted:#3d5468;--fg:#111824;
-  --green:#008c60;--gd:rgba(0,140,96,0.12);
-  --red:#cc2840;--rd:rgba(204,40,64,0.12);
+  --green:#059669;--gd:rgba(5,150,105,0.12);
+  --red:#dc2626;--rd:rgba(220,38,38,0.12);
   --amber:#b87818;--ad:rgba(184,120,24,0.12);
   --bnb:#8a6610;--bnbd:rgba(138,102,16,0.10);
   --pro:#6a4dc0;--prod:rgba(106,77,192,0.12);
@@ -56,7 +56,7 @@
     touch-action:manipulation;
   }
 }
-html,body{height:100%;font-family:'IBM Plex Mono',monospace;background:var(--bg);color:var(--text);font-size:13px;line-height:1.4;}
+html,body{height:100%;font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);font-size:13px;line-height:1.4;}
 body::before{content:'';position:fixed;inset:0;background:repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(0,0,0,0.02) 2px,rgba(0,0,0,0.02) 4px);pointer-events:none;z-index:998;}
 :root.light body::before{display:none;}
 
@@ -702,17 +702,19 @@ body::before{content:'';position:fixed;inset:0;background:repeating-linear-gradi
 .leaderboard{flex:1;overflow-y:auto;min-height:0;}
 table{width:100%;border-collapse:collapse;}
 thead tr{background:var(--bg4);position:sticky;top:0;z-index:10;box-shadow:0 1px 0 var(--bdr2);}
-thead th{padding:10px 6px;text-align:left;font-size:12px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:rgba(180,195,215,.65);border-bottom:2px solid var(--bdr2);white-space:nowrap;cursor:pointer;user-select:none;}
+thead th{padding:8px 6px;text-align:left;font-size:10px;font-weight:500;letter-spacing:.06em;text-transform:uppercase;color:rgba(180,195,215,.4);border-bottom:1px solid var(--bdr);white-space:nowrap;cursor:pointer;user-select:none;}
 thead th:hover{color:var(--text);}
 thead th.sorted{color:var(--bnb);}
 thead th.sorted::after{content:' ▾';}
 thead th.r{text-align:right;}
 tbody tr:nth-child(odd){background:var(--bg);}
-tbody tr:nth-child(even){background:var(--bgz);}
+tbody tr:nth-child(even){background:rgba(255,255,255,0.02);}
+:root.light tbody tr:nth-child(even){background:rgba(0,0,0,0.02);}
 tbody tr{transition:background-color .15s ease-out;outline:1px solid transparent;}
-tbody tr.held:nth-child(odd){background:rgba(243,186,47,.035);}
-tbody tr.held:nth-child(even){background:rgba(243,186,47,.055);}
-tbody tr:hover{background:rgba(243,186,47,0.07) !important;cursor:pointer;box-shadow:inset 0 0 0 1px rgba(243,186,47,.12),0 0 12px rgba(243,186,47,.06);}
+tbody tr.held:nth-child(odd){background:rgba(243,186,47,.03);}
+tbody tr.held:nth-child(even){background:rgba(243,186,47,.045);}
+tbody tr:hover{background:rgba(255,255,255,0.04) !important;cursor:pointer;}
+:root.light tbody tr:hover{background:rgba(0,0,0,0.03) !important;}
 tbody tr{border-radius:6px;}
 
 /* ── ASSET MODE BAR ── */
@@ -771,16 +773,17 @@ tbody tr{border-radius:6px;}
 .tut-step-label{font-size:12px;letter-spacing:.18em;color:rgba(255,255,255,.85);margin-bottom:6px;text-transform:uppercase;font-family:var(--font-ui);}
 .tut-title{font-size:18px;font-weight:400;color:#ffffff;margin-bottom:10px;letter-spacing:.01em;font-family:var(--font-display);}
 #logo-c{image-rendering:crisp-edges;}
-tbody td{padding:9px 6px;font-size:13px;border-bottom:1px solid var(--bdr);white-space:nowrap;}
+tbody td{padding:7px 6px;font-size:13px;border-bottom:1px solid rgba(255,255,255,0.04);white-space:nowrap;}
+:root.light tbody td{border-bottom:1px solid rgba(0,0,0,0.04);}
 td.r{text-align:right;font-variant-numeric:tabular-nums;}
 td.pc{text-align:right;padding-left:2px;padding-right:2px;}
 .cc{display:flex;align-items:center;gap:8px;}
-.ti{width:24px;height:24px;border-radius:50%;overflow:hidden;background:var(--bg4);flex-shrink:0;}
+.ti{width:20px;height:20px;border-radius:50%;overflow:hidden;background:var(--bg4);flex-shrink:0;}
 .ti img{width:100%;height:100%;}
-.tsym{font-size:14px;font-weight:700;}
+.tsym{font-size:13px;font-weight:500;}
 .tname{font-size:12px;color:var(--muted);max-width:100px;overflow:hidden;text-overflow:ellipsis;font-family:var(--font-ui);opacity:.7;}
 .htag{font-size:12px;padding:1px 4px;border-radius:4px;background:var(--bnbd);color:var(--bnb);border:1px solid rgba(243,186,47,.2);margin-left:3px;letter-spacing:.04em;}
-.pct{font-weight:600;font-family:var(--font-mono);font-variant-numeric:tabular-nums;}
+.pct{font-weight:400;font-size:12px;font-family:var(--font-mono);font-variant-numeric:tabular-nums;}
 .pct.up{color:var(--green);}
 .pct.dn{color:var(--red);}
 .pct.fl{color:var(--muted);}
@@ -799,7 +802,7 @@ td.pc .pct{position:relative;z-index:1;}
 :root.light .pro-blur-cell:hover{background:rgba(10,126,90,.06) !important;}
 :root.light .pro-blur-wrap{opacity:.4;}
 .sw{display:flex;align-items:center;gap:5px;justify-content:flex-end;}
-.sv{font-size:15px;font-weight:700;}
+.sv{font-size:14px;font-weight:600;}
 .sb{width:32px;height:4px;background:var(--bg4);border-radius:3px;overflow:hidden;}
 .sbf{height:100%;border-radius:2px;}
 
@@ -1748,7 +1751,7 @@ td.qa-cell{text-align:center;width:28px;padding:0 4px !important;}
 }
 .rt-coin-sel option,.rt-coin-sel-lg option{
   background:var(--bg2);color:var(--text);
-  font-family:'IBM Plex Mono',monospace;
+  font-family:'Inter',sans-serif;
   font-size:12px;padding:4px 8px;
 }
 .rt-coin-sel optgroup,.rt-coin-sel-lg optgroup{

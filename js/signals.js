@@ -36,11 +36,7 @@ function fmtP(p) {
 }
 function pctSpan(v) {
   var c = v >= 0 ? 'pct up' : 'pct dn';
-  /* Heat-map tint: opacity scales with magnitude, capped at 0.18 */
-  var abs = Math.min(Math.abs(v), 50);
-  var opacity = (abs / 50 * 0.16 + 0.02).toFixed(3);
-  var heatColor = v >= 0 ? 'rgba(0,189,142,' + opacity + ')' : 'rgba(234,57,67,' + opacity + ')';
-  return '<span class="pct-heat" style="background:' + heatColor + '"></span><span class="' + c + '">' + (v >= 0 ? '+' : '') + v.toFixed(2) + '%</span>';
+  return '<span class="' + c + '">' + (v >= 0 ? '+' : '') + v.toFixed(2) + '%</span>';
 }
 /* ── BTC trend pill ──────────────────────────────────────────── */
 var _bearDismissed = false;
@@ -755,7 +751,7 @@ function renderTable() {
 
     return '<tr class="' + (isH ? 'held' : '') + (c.isStable ? ' stable-row' : '') + '" ' + tipData + ' onmouseenter="showRowTip(this,event)" onmouseleave="hideTip()" onclick="openTileDetail(\'' + c.id + '\',event)">'
       + '<td class="qa-cell">' + qaBtnHtml + '</td>'
-      + '<td style="color:var(--muted);font-size:12px;">' + (i+1) + '</td>'
+      + '<td style="color:var(--muted);font-size:11px;opacity:.5;">' + (i+1) + '</td>'
       + '<td><div class="cc"><div class="ti"><img src="' + c.image + '" alt="' + c.sym + ' logo" loading="lazy" width="18" height="18" onerror="this.style.display=\'none\'"></div><div><div style="display:flex;align-items:center;"><span class="tsym">' + c.sym + '</span>' + (isH ? '<span class="htag">HELD</span>' : '') + stableTag + '</div><div class="tname">' + (c.name.length > 17 ? c.name.slice(0,15) + '…' : c.name) + '</div></div></div></td>'
       + '<td class="r price-col">' + fmtP(c.price) + '</td>'
       + col24 + col7 + col14 + col30 + colScore
