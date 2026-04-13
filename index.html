@@ -1102,14 +1102,11 @@
         </div>
       </div>
 
-      <!-- ══ SAVE + REFRESH + SHARE ACTIONS ══ -->
+      <!-- ══ SAVE + REFRESH ACTIONS ══ -->
       <div class="rt-top-actions">
         <button class="rt-star-btn" id="rt-star-btn" title="Save pair">☆ Save pair</button>
         <button class="rt-refresh-btn" id="rt-refresh-btn" onclick="RatioTracker.loadAll()" title="Refresh">
           <span id="rt-spin-icon">↻</span> Refresh
-        </button>
-        <button class="rt-share-btn" id="share-rotator-btn" onclick="shareRotation()" title="Share Rotator">
-          <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/><polyline points="16 6 12 2 8 6"/><line x1="12" y1="2" x2="12" y2="15"/></svg> Share
         </button>
       </div>
 
@@ -1197,6 +1194,12 @@
             <input type="number" id="rt-calc-to-ov" aria-label="Override to price" placeholder="auto" step="any" oninput="RatioTracker.calcSwap()">
           </div>
         </div>
+
+        <!-- Share swap card -->
+        <button class="rt-swap-share-btn" id="rt-swap-share-btn" onclick="shareSwapCard()" title="Share your swap as an image">
+          <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/><polyline points="16 6 12 2 8 6"/><line x1="12" y1="2" x2="12" y2="15"/></svg>
+          Share Swap
+        </button>
       </div><!-- /rt-calc -->
 
       <div class="rt-footer">Live data via CoinGecko · Not financial advice · Always verify before swapping</div>

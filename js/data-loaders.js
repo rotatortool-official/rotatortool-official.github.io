@@ -1996,23 +1996,23 @@ function shareAsImage() {
 
   /* ── Symbol + Name header (bigger) ── */
   ctx.fillStyle = '#f3ba2f';
-  ctx.font = 'bold 80px "IBM Plex Mono", monospace';
+  ctx.font = 'bold 80px Inter, sans-serif';
   ctx.fillText(sym, 70, 105);
 
   ctx.fillStyle = 'rgba(255,255,255,0.45)';
-  ctx.font = '30px "IBM Plex Mono", monospace';
+  ctx.font = '30px Inter, sans-serif';
   ctx.fillText(name, 70, 146);
 
   /* ── Price (big and bold) ── */
   ctx.fillStyle = '#ffffff';
-  ctx.font = 'bold 82px "IBM Plex Mono", monospace';
+  ctx.font = 'bold 82px Inter, sans-serif';
   ctx.fillText(price, 70, 244);
 
   /* 24H change — large */
   var isPos = chg.indexOf('+') === 0;
   var isNeg = chg.indexOf('-') === 0 || chg.indexOf('\u2212') === 0;
   ctx.fillStyle = isPos ? '#00c896' : isNeg ? '#ff4560' : 'rgba(255,255,255,0.6)';
-  ctx.font = 'bold 40px "IBM Plex Mono", monospace';
+  ctx.font = 'bold 40px Inter, sans-serif';
   var arrow = isPos ? '\u25B2 ' : isNeg ? '\u25BC ' : '';
   ctx.fillText(arrow + chg + ' (24H)', 70, 296);
 
@@ -2037,11 +2037,11 @@ function shareAsImage() {
     ctx.lineCap = 'butt';
     /* score number */
     ctx.fillStyle = '#ffffff';
-    ctx.font = 'bold 72px "IBM Plex Mono", monospace';
+    ctx.font = 'bold 72px Inter, sans-serif';
     ctx.textAlign = 'center';
     ctx.fillText(score, cx, cy + 24);
     ctx.fillStyle = 'rgba(255,255,255,0.35)';
-    ctx.font = '22px "IBM Plex Mono", monospace';
+    ctx.font = '22px Inter, sans-serif';
     ctx.fillText('/100', cx, cy + 56);
     ctx.textAlign = 'left';
   }
@@ -2054,11 +2054,11 @@ function shareAsImage() {
   if (badges.length) {
     var badgeY = 350;
     ctx.fillStyle = 'rgba(255,255,255,0.4)';
-    ctx.font = '16px "IBM Plex Mono", monospace';
+    ctx.font = '16px Inter, sans-serif';
     ctx.fillText('SIGNALS', 70, badgeY);
     var bx2 = 70;
     badgeY += 22;
-    ctx.font = 'bold 18px "IBM Plex Mono", monospace';
+    ctx.font = 'bold 18px Inter, sans-serif';
     badges.slice(0, 4).forEach(function(b) {
       var tw = ctx.measureText(b).width + 32;
       /* badge bg */
@@ -2071,7 +2071,7 @@ function shareAsImage() {
       ctx.stroke();
       /* badge text */
       ctx.fillStyle = '#00c896';
-      ctx.font = 'bold 18px "IBM Plex Mono", monospace';
+      ctx.font = 'bold 18px Inter, sans-serif';
       ctx.fillText(b, bx2 + 16, badgeY + 27);
       bx2 += tw + 14;
     });
@@ -2093,11 +2093,11 @@ function shareAsImage() {
     ctx.stroke();
     /* label */
     ctx.fillStyle = 'rgba(255,255,255,0.4)';
-    ctx.font = '14px "IBM Plex Mono", monospace';
+    ctx.font = '14px Inter, sans-serif';
     ctx.fillText(d.label.toUpperCase(), bx + 14, boxY + 26);
     /* value */
     ctx.fillStyle = '#ffffff';
-    ctx.font = 'bold 20px "IBM Plex Mono", monospace';
+    ctx.font = 'bold 20px Inter, sans-serif';
     var dispVal = d.val.length > 12 ? d.val.substring(0, 11) + '\u2026' : d.val;
     ctx.fillText(dispVal, bx + 14, boxY + 56);
   });
@@ -2112,7 +2112,7 @@ function shareAsImage() {
   _roundRect(ctx, 70, ctaY, W - 140, 42, 6);
   ctx.stroke();
   ctx.fillStyle = 'rgba(243,186,47,0.85)';
-  ctx.font = 'bold 18px "IBM Plex Mono", monospace';
+  ctx.font = 'bold 18px Inter, sans-serif';
   ctx.textAlign = 'center';
   ctx.fillText('Is your coin lagging or leading?  Find out free at Rotator', W / 2, ctaY + 28);
   ctx.textAlign = 'left';
@@ -2123,15 +2123,15 @@ function shareAsImage() {
 
   /* Rotator brand */
   ctx.fillStyle = '#f3ba2f';
-  ctx.font = 'bold 28px "IBM Plex Mono", monospace';
+  ctx.font = 'bold 28px Inter, sans-serif';
   ctx.fillText('ROTATOR', 70, H - 25);
   ctx.fillStyle = 'rgba(255,255,255,0.3)';
-  ctx.font = '16px "IBM Plex Mono", monospace';
+  ctx.font = '16px Inter, sans-serif';
   ctx.fillText('Real-time rotation signals & momentum scoring', 230, H - 25);
 
   /* URL right-aligned */
   ctx.fillStyle = 'rgba(243,186,47,0.7)';
-  ctx.font = 'bold 16px "IBM Plex Mono", monospace';
+  ctx.font = 'bold 16px Inter, sans-serif';
   ctx.textAlign = 'right';
   ctx.fillText('rotatortool-official.github.io', W - 70, H - 25);
   ctx.textAlign = 'left';
@@ -2440,7 +2440,7 @@ function _buildRowTip(row, cx, cy) {
   if(!canvas) return;
   var ctx=canvas.getContext('2d');
   var CW=canvas.width,CH=canvas.height;
-  var FS=52,FONT='bold '+FS+'px "IBM Plex Mono"';
+  var FS=52,FONT='bold '+FS+'px Inter, sans-serif';
   var BASE=112,GOLD='#f3ba2f',RED='#ff4560',GREEN='#00c896';
   var fc=0,pf=0;
   var ra=Math.PI,ga=0;
@@ -2469,7 +2469,17 @@ function _buildRowTip(row, cx, cy) {
     ctx.font=FONT;
     wR=ctx.measureText('R').width;wO=ctx.measureText('O').width;
     wT=ctx.measureText('T').width;wA=ctx.measureText('A').width;
-    var tw=wR+wO+wT+wA+wT+wO+wR,sx=(CW-tw)/2;
+    var tw=wR+wO+wT+wA+wT+wO+wR;
+    /* If text is wider than canvas, shrink font */
+    if(tw>CW-30){
+      FS=Math.floor(FS*(CW-30)/tw);
+      FONT='bold '+FS+'px Inter, sans-serif';
+      ctx.font=FONT;
+      wR=ctx.measureText('R').width;wO=ctx.measureText('O').width;
+      wT=ctx.measureText('T').width;wA=ctx.measureText('A').width;
+      tw=wR+wO+wT+wA+wT+wO+wR;
+    }
+    var sx=(CW-tw)/2;
     xR1=sx;xO1=xR1+wR;xT1=xO1+wO;xA=xT1+wT;xT2=xA+wA;xO2=xT2+wT;xR2=xO2+wO;
     s1x=xO1+wO/2;s2x=xO2+wO/2;sY=BASE-FS*0.36;
     oCX=(s1x+s2x)/2;oCY=sY;oRX=(s2x-s1x)/2;oRY=52;rdy=true;
@@ -2561,7 +2571,7 @@ function _buildRowTip(row, cx, cy) {
       if(!canvas) return;
       var ctx=canvas.getContext('2d');
       var CW=canvas.width,CH=canvas.height;
-      var FS=18,FONT='bold '+FS+'px "IBM Plex Mono"';
+      var FS=18,FONT='bold '+FS+'px Inter, sans-serif';
       var BASE=22,GOLD='#f3ba2f',RED='#ff4560',GREEN='#00c896';
       var fc=0,pf=0;
       var PAUSE=200,TRAVEL=160,SPIN=50,SPIN_PAUSE=25;
@@ -2631,7 +2641,7 @@ function _buildRowTip(row, cx, cy) {
     if(!canvas) return;
     var ctx=canvas.getContext('2d');
     var CW=canvas.width,CH=canvas.height;
-    var FS=28,FONT='bold '+FS+'px "IBM Plex Mono"';
+    var FS=28,FONT='bold '+FS+'px Inter, sans-serif';
     var BASE=62,GOLD='#f3ba2f',RED='#ff4560',GREEN='#00c896';
     var fc=0,phase='pause1',pf=0,PAUSE=220,TRAVEL=180;
     var ra=Math.PI,ga=0;

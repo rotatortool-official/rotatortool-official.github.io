@@ -808,7 +808,7 @@ var RatioTracker = (function() {
     swapPair:swapPair,
     _loadFav:loadFavourite, _removeFav:removeFavourite,
     _openPicker:_openPicker, _closePicker:_closePicker, _pickerFilter:_pickerFilter, _pickerSelect:_pickerSelect,
-    getState:function(){ return { from:S.from, to:S.to, fromPrice:S.fromPrice, toPrice:S.toPrice }; },
+    getState:function(){ return { from:S.from, to:S.to, fromPrice:S.fromPrice, toPrice:S.toPrice, series:S.series||[] }; },
     lbl:lbl
   };
 
@@ -820,9 +820,9 @@ document.addEventListener('DOMContentLoaded',function(){
 
 /* ── Share Rotator ── */
 function shareRotation() {
-  var url   = 'https://rotatortool.github.io';
+  var url   = 'https://rotatortool-official.github.io';
   var title = 'Rotator — Free Crypto Rotation Screener';
-  var text  = 'Stop guessing when to swap. Rotator shows real-time rotation signals and momentum scores for 200+ coins — completely free.';
+  var text  = 'I use Rotator to time my crypto rotations — real-time signals and momentum scores for 200+ coins, completely free.\n\nStop guessing when to swap. Let the data decide.';
 
   /* Try native Web Share API first (mobile + modern browsers) */
   if (navigator.share) {
@@ -834,20 +834,18 @@ function shareRotation() {
   var existing = document.getElementById('share-menu');
   if (existing) { existing.remove(); return; }
 
-  var encoded = encodeURIComponent(text + '\n' + url);
   var menu = document.createElement('div');
   menu.id = 'share-menu';
   menu.className = 'share-menu';
   menu.innerHTML =
-      '<button onclick="window.open(\'https://x.com/intent/tweet?text=' + encodeURIComponent(text + '\n\n' + url) + '\',\'_blank\',\'width=600,height=400\');document.getElementById(\'share-menu\').remove()">𝕏 Post on X</button>'
-    + '<button onclick="window.open(\'https://t.me/share/url?url=' + encodeURIComponent(url) + '&text=' + encodeURIComponent(text) + '\',\'_blank\',\'width=600,height=400\');document.getElementById(\'share-menu\').remove()">✈ Telegram</button>'
-    + '<button onclick="window.open(\'https://reddit.com/submit?url=' + encodeURIComponent(url) + '&title=' + encodeURIComponent(title) + '\',\'_blank\',\'width=600,height=600\');document.getElementById(\'share-menu\').remove()">◉ Reddit</button>'
-    + '<button onclick="navigator.clipboard.writeText(\'' + text.replace(/'/g,"\\'") + '\\n' + url + '\').then(function(){this.textContent=\'Copied!\';var s=this;setTimeout(function(){document.getElementById(\'share-menu\')&&document.getElementById(\'share-menu\').remove()},800)}.bind(this))">📋 Copy link</button>';
+      '<button onclick="window.open(\'https://x.com/intent/tweet?text=' + encodeURIComponent(text + '\n\n' + url) + '\',\'_blank\',\'width=600,height=400\');document.getElementById(\'share-menu\').remove()">\uD835\uDD4F Post on X</button>'
+    + '<button onclick="window.open(\'https://t.me/share/url?url=' + encodeURIComponent(url) + '&text=' + encodeURIComponent(text) + '\',\'_blank\',\'width=600,height=400\');document.getElementById(\'share-menu\').remove()">\u2708 Telegram</button>'
+    + '<button onclick="window.open(\'https://reddit.com/submit?url=' + encodeURIComponent(url) + '&title=' + encodeURIComponent(title) + '\',\'_blank\',\'width=600,height=600\');document.getElementById(\'share-menu\').remove()">\u25C9 Reddit</button>'
+    + '<button onclick="navigator.clipboard.writeText(\'' + text.replace(/'/g,"\\'") + '\\n' + url + '\').then(function(){this.textContent=\'Copied!\';var s=this;setTimeout(function(){document.getElementById(\'share-menu\')&&document.getElementById(\'share-menu\').remove()},800)}.bind(this))">\uD83D\uDCCB Copy link</button>';
 
   var btn = document.getElementById('share-rotator-btn');
-  var wrap = btn.closest('.rt-top-actions');
-  wrap.style.position = 'relative';
-  wrap.appendChild(menu);
+  btn.parentElement.style.position = 'relative';
+  btn.parentElement.appendChild(menu);
 
   /* Close on outside click */
   setTimeout(function(){
@@ -859,4 +857,272 @@ function shareRotation() {
       }
     });
   }, 10);
+}
+
+/* ── Binance-style Swap Share Card ── */
+function shareSwapCard() {
+  var st = RatioTracker.getState();
+  if (!st.from || !st.to) return;
+  var fromSym = RatioTracker.lbl(st.from);
+  var toSym   = RatioTracker.lbl(st.to);
+
+  /* Read UI values */
+  var amtEl   = document.getElementById('rt-calc-amt');
+  var outEl   = document.getElementById('rt-calc-out');
+  var usdEl   = document.getElementById('rt-calc-usd-out');
+  var peakEl  = document.getElementById('rt-peak-val');
+  var nowEl   = document.getElementById('rt-now-ratio-val');
+  var badgeEl = document.getElementById('rt-badge');
+
+  var amount  = amtEl  ? amtEl.value : '100';
+  var output  = outEl  ? outEl.textContent.trim() : '—';
+  var usdVal  = usdEl  ? usdEl.textContent.trim() : '';
+  var peakR   = peakEl ? peakEl.textContent.trim() : '—';
+  var nowR    = nowEl  ? nowEl.textContent.trim()  : '—';
+  var badge   = badgeEl ? badgeEl.textContent.trim() : '';
+
+  var series  = st.series || [];
+
+  /* ── Canvas 1200×630 ── */
+  var W = 1200, H = 630;
+  var can = document.createElement('canvas');
+  can.width = W; can.height = H;
+  var ctx = can.getContext('2d');
+
+  /* Background gradient */
+  var bg = ctx.createLinearGradient(0, 0, W, H);
+  bg.addColorStop(0, '#080c12');
+  bg.addColorStop(0.5, '#0d1420');
+  bg.addColorStop(1, '#080c12');
+  ctx.fillStyle = bg;
+  ctx.fillRect(0, 0, W, H);
+
+  /* Grid pattern */
+  ctx.strokeStyle = 'rgba(243,186,47,0.02)';
+  ctx.lineWidth = 1;
+  for (var gx = 0; gx < W; gx += 60) { ctx.beginPath(); ctx.moveTo(gx, 0); ctx.lineTo(gx, H); ctx.stroke(); }
+  for (var gy = 0; gy < H; gy += 60) { ctx.beginPath(); ctx.moveTo(0, gy); ctx.lineTo(W, gy); ctx.stroke(); }
+
+  /* Gold top accent */
+  var gold = ctx.createLinearGradient(0, 0, W, 0);
+  gold.addColorStop(0, 'rgba(243,186,47,0)');
+  gold.addColorStop(0.3, 'rgba(243,186,47,0.9)');
+  gold.addColorStop(0.7, 'rgba(243,186,47,0.9)');
+  gold.addColorStop(1, 'rgba(243,186,47,0)');
+  ctx.fillStyle = gold;
+  ctx.fillRect(0, 0, W, 4);
+
+  /* ── Header: ROTATOR SWAP ── */
+  ctx.fillStyle = '#f3ba2f';
+  ctx.font = 'bold 24px Inter, sans-serif';
+  ctx.fillText('ROTATOR', 60, 50);
+  ctx.fillStyle = 'rgba(255,255,255,0.4)';
+  ctx.font = '24px Inter, sans-serif';
+  ctx.fillText('SWAP', 60 + ctx.measureText('ROTATOR  ').width, 50);
+
+  /* ── Pair title: FROM → TO ── */
+  ctx.fillStyle = '#ffffff';
+  ctx.font = 'bold 52px Inter, sans-serif';
+  ctx.fillText(fromSym, 60, 115);
+  ctx.fillStyle = 'rgba(243,186,47,0.7)';
+  ctx.font = '52px Inter, sans-serif';
+  var arrowX = 60 + ctx.measureText(fromSym + '  ').width;
+  ctx.fillText('→', arrowX, 115);
+  ctx.fillStyle = '#ffffff';
+  ctx.font = 'bold 52px Inter, sans-serif';
+  ctx.fillText(toSym, arrowX + ctx.measureText('→  ').width, 115);
+
+  /* ── Ratio badge (top right) ── */
+  if (badge) {
+    ctx.textAlign = 'right';
+    ctx.fillStyle = badge.indexOf('Unfavorable') >= 0 ? 'rgba(239,68,68,0.15)' : 'rgba(16,185,129,0.15)';
+    _roundRect(ctx, W - 300, 22, 240, 40, 8);
+    ctx.fill();
+    ctx.fillStyle = badge.indexOf('Unfavorable') >= 0 ? '#ef4444' : '#10b981';
+    ctx.font = 'bold 18px Inter, sans-serif';
+    ctx.fillText(badge, W - 75, 49);
+    ctx.textAlign = 'left';
+  }
+
+  /* ── Swap result box ── */
+  ctx.fillStyle = 'rgba(255,255,255,0.03)';
+  _roundRect(ctx, 60, 145, W - 120, 130, 12);
+  ctx.fill();
+  ctx.strokeStyle = 'rgba(243,186,47,0.12)';
+  ctx.lineWidth = 1;
+  _roundRect(ctx, 60, 145, W - 120, 130, 12);
+  ctx.stroke();
+
+  /* Amount sent */
+  ctx.fillStyle = 'rgba(255,255,255,0.45)';
+  ctx.font = '18px Inter, sans-serif';
+  ctx.fillText('AMOUNT', 90, 182);
+  ctx.fillStyle = '#ffffff';
+  ctx.font = 'bold 36px Inter, sans-serif';
+  ctx.fillText(amount + ' ' + fromSym, 90, 224);
+
+  /* You'd receive */
+  ctx.textAlign = 'right';
+  ctx.fillStyle = 'rgba(255,255,255,0.45)';
+  ctx.font = '18px Inter, sans-serif';
+  ctx.fillText("YOU'D RECEIVE", W - 90, 182);
+  ctx.fillStyle = '#10b981';
+  ctx.font = 'bold 36px Inter, sans-serif';
+  ctx.fillText(output, W - 90, 224);
+  if (usdVal) {
+    ctx.fillStyle = 'rgba(243,186,47,0.7)';
+    ctx.font = '20px Inter, sans-serif';
+    ctx.fillText(usdVal, W - 90, 254);
+  }
+  ctx.textAlign = 'left';
+
+  /* ── Ratio stats row ── */
+  var statY = 310;
+  var statBoxW = 180, statBoxH = 70;
+
+  /* Current ratio */
+  ctx.fillStyle = 'rgba(255,255,255,0.04)';
+  _roundRect(ctx, 60, statY, statBoxW, statBoxH, 8);
+  ctx.fill();
+  ctx.fillStyle = 'rgba(255,255,255,0.4)';
+  ctx.font = '14px Inter, sans-serif';
+  ctx.fillText('CURRENT RATIO', 78, statY + 24);
+  ctx.fillStyle = '#ffffff';
+  ctx.font = 'bold 26px Inter, sans-serif';
+  ctx.fillText(nowR, 78, statY + 56);
+
+  /* Peak ratio */
+  ctx.fillStyle = 'rgba(255,255,255,0.04)';
+  _roundRect(ctx, 260, statY, statBoxW, statBoxH, 8);
+  ctx.fill();
+  ctx.fillStyle = 'rgba(255,255,255,0.4)';
+  ctx.font = '14px Inter, sans-serif';
+  ctx.fillText('PERIOD PEAK', 278, statY + 24);
+  ctx.fillStyle = '#10b981';
+  ctx.font = 'bold 26px Inter, sans-serif';
+  ctx.fillText(peakR, 278, statY + 56);
+
+  /* ── Mini chart ── */
+  if (series.length > 2) {
+    var chartX = 500, chartY = statY - 10, chartW = W - 560 - 60, chartH = 90;
+    var vals = series.map(function(p) { return p.r; });
+    var minV = Math.min.apply(null, vals);
+    var maxV = Math.max.apply(null, vals);
+    var range = maxV - minV || 1;
+
+    /* Chart area bg */
+    ctx.fillStyle = 'rgba(255,255,255,0.02)';
+    _roundRect(ctx, chartX, chartY, chartW, chartH, 8);
+    ctx.fill();
+
+    /* Draw line */
+    ctx.beginPath();
+    ctx.strokeStyle = 'rgba(243,186,47,0.6)';
+    ctx.lineWidth = 2;
+    for (var si = 0; si < vals.length; si++) {
+      var px = chartX + (si / (vals.length - 1)) * chartW;
+      var py = chartY + chartH - ((vals[si] - minV) / range) * (chartH - 10) - 5;
+      if (si === 0) ctx.moveTo(px, py); else ctx.lineTo(px, py);
+    }
+    ctx.stroke();
+
+    /* Fill under line */
+    ctx.lineTo(chartX + chartW, chartY + chartH);
+    ctx.lineTo(chartX, chartY + chartH);
+    ctx.closePath();
+    ctx.fillStyle = 'rgba(243,186,47,0.06)';
+    ctx.fill();
+
+    /* Label */
+    ctx.fillStyle = 'rgba(255,255,255,0.3)';
+    ctx.font = '12px Inter, sans-serif';
+    ctx.fillText('RATIO HISTORY', chartX + 8, chartY + 16);
+  }
+
+  /* ── Viral CTA ── */
+  var ctaY = H - 150;
+  ctx.fillStyle = 'rgba(243,186,47,0.06)';
+  _roundRect(ctx, 60, ctaY, W - 120, 42, 6);
+  ctx.fill();
+  ctx.strokeStyle = 'rgba(243,186,47,0.2)';
+  ctx.lineWidth = 1;
+  _roundRect(ctx, 60, ctaY, W - 120, 42, 6);
+  ctx.stroke();
+  ctx.fillStyle = 'rgba(243,186,47,0.85)';
+  ctx.font = 'bold 18px Inter, sans-serif';
+  ctx.textAlign = 'center';
+  ctx.fillText('Stop guessing when to swap. Let the data decide — free at Rotator', W / 2, ctaY + 28);
+  ctx.textAlign = 'left';
+
+  /* ── Footer ── */
+  ctx.fillStyle = 'rgba(255,255,255,0.06)';
+  ctx.fillRect(60, H - 60, W - 120, 1);
+  ctx.fillStyle = '#f3ba2f';
+  ctx.font = 'bold 24px Inter, sans-serif';
+  ctx.fillText('ROTATOR', 60, H - 25);
+  ctx.fillStyle = 'rgba(255,255,255,0.3)';
+  ctx.font = '16px Inter, sans-serif';
+  ctx.fillText('Real-time rotation signals & swap calculator', 200, H - 25);
+  ctx.fillStyle = 'rgba(243,186,47,0.7)';
+  ctx.font = 'bold 16px Inter, sans-serif';
+  ctx.textAlign = 'right';
+  ctx.fillText('rotatortool-official.github.io', W - 60, H - 25);
+  ctx.textAlign = 'left';
+
+  /* Gold bottom accent */
+  ctx.fillStyle = gold;
+  ctx.fillRect(0, H - 4, W, 4);
+
+  /* ── Share via viral modal (reuse existing system) ── */
+  try {
+    can.toBlob(function(blob) {
+      if (!blob) return;
+
+      /* Populate the viral share modal */
+      _viralBlob = blob;
+      _viralSym  = fromSym + '-' + toSym;
+      _viralCanvas = can;
+
+      /* Set swap-specific viral copy templates temporarily */
+      var origTemplates = _viralCopyTemplates;
+      _viralCopyTemplates = [
+        function() { return 'I timed my ' + fromSym + ' \u2192 ' + toSym + ' rotation at ' + peakR + ' peak ratio using Rotator \u2014 the free crypto rotation screener.\n\nStop guessing when to swap. Let the data decide.\n\nhttps://rotatortool-official.github.io'; },
+        function() { return fromSym + ' \u2192 ' + toSym + ' swap: ' + amount + ' ' + fromSym + ' = ' + output + '\nCurrent ratio: ' + nowR + ' | Peak: ' + peakR + '\n\nTimed with Rotator \u2014 free rotation signals\nhttps://rotatortool-official.github.io'; },
+        function() { return '\u26A1 Swapped ' + fromSym + ' to ' + toSym + ' at the right time using Rotator.\n\nPeak ratio: ' + peakR + ' | Now: ' + nowR + '\n\nFree tool, no signup \u2192 https://rotatortool-official.github.io'; }
+      ];
+      _viralCopyIdx = 0;
+
+      var preview = document.getElementById('viral-share-preview');
+      if (preview) {
+        var url = URL.createObjectURL(blob);
+        preview.innerHTML = '<img src="' + url + '" alt="Swap share card">';
+      }
+      _updateViralCopy();
+
+      /* Override _getViralCopyData for swap context */
+      var origGetData = _getViralCopyData;
+      _getViralCopyData = function() {
+        return { sym: fromSym + '/' + toSym, score: nowR, chg: peakR, link: 'https://rotatortool-official.github.io' };
+      };
+
+      /* Show native share if supported */
+      var nativeBtn = document.getElementById('viral-native-btn');
+      if (nativeBtn) {
+        var file = new File([blob], 'rotator-swap-' + fromSym.toLowerCase() + '-' + toSym.toLowerCase() + '.png', { type: 'image/png' });
+        var canShare = navigator.share && navigator.canShare && navigator.canShare({ files: [file] });
+        nativeBtn.style.display = canShare ? 'flex' : 'none';
+      }
+
+      openModal('viral-share-modal');
+
+      /* Restore originals when modal closes */
+      var _origClose = closeViralShare;
+      closeViralShare = function() {
+        _viralCopyTemplates = origTemplates;
+        _getViralCopyData = origGetData;
+        closeViralShare = _origClose;
+        _origClose();
+      };
+    }, 'image/png');
+  } catch(e) {}
 }
