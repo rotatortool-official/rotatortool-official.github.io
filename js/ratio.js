@@ -1019,11 +1019,13 @@ function shareSwapCard() {
 
   /* ── Mini chart (wider, below swap box) ── */
   if (series.length > 2) {
-    var chartX = 50, chartY2 = 560, chartW = W - 100, chartH = 180;
+    var chartX = 50, chartY2 = 560, chartW = W - 100, chartH = 200;
     var vals = series.map(function(p) { return p.r; });
     var minV = Math.min.apply(null, vals);
     var maxV = Math.max.apply(null, vals);
     var range = maxV - minV || 1;
+    var peakIdx = vals.indexOf(maxV);
+    var lowIdx  = vals.indexOf(minV);
 
     /* Chart bg */
     ctx.fillStyle = 'rgba(255,255,255,0.02)';
@@ -1031,25 +1033,45 @@ function shareSwapCard() {
     ctx.fill();
 
     /* Chart label */
-    ctx.fillStyle = 'rgba(255,255,255,0.25)';
-    ctx.font = '14px Inter, sans-serif';
-    ctx.fillText('RATIO HISTORY', chartX + 14, chartY2 + 22);
+    ctx.fillStyle = 'rgba(255,255,255,0.3)';
+    ctx.font = 'bold 16px Inter, sans-serif';
+    ctx.fillText('RATIO HISTORY', chartX + 14, chartY2 + 24);
+
+    /* Support line (low) */
+    var supportY = chartY2 + chartH - 12 - ((minV - minV) / range) * (chartH - 44);
+    ctx.setLineDash([6, 4]);
+    ctx.strokeStyle = 'rgba(239,68,68,0.35)';
+    ctx.lineWidth = 1;
+    ctx.beginPath(); ctx.moveTo(chartX + 10, supportY); ctx.lineTo(chartX + chartW - 10, supportY); ctx.stroke();
+    /* Resistance line (peak) */
+    var resistY = chartY2 + chartH - 12 - ((maxV - minV) / range) * (chartH - 44);
+    ctx.strokeStyle = 'rgba(16,185,129,0.35)';
+    ctx.beginPath(); ctx.moveTo(chartX + 10, resistY); ctx.lineTo(chartX + chartW - 10, resistY); ctx.stroke();
+    ctx.setLineDash([]);
+
+    /* Support/resistance labels */
+    ctx.font = '12px Inter, sans-serif';
+    ctx.fillStyle = 'rgba(239,68,68,0.6)';
+    ctx.textAlign = 'right';
+    ctx.fillText('LOW ' + minV.toFixed(3) + 'x', chartX + chartW - 14, supportY - 4);
+    ctx.fillStyle = 'rgba(16,185,129,0.6)';
+    ctx.fillText('PEAK ' + maxV.toFixed(3) + 'x', chartX + chartW - 14, resistY + 14);
+    ctx.textAlign = 'left';
 
     /* Gradient fill under chart */
     ctx.beginPath();
     for (var si = 0; si < vals.length; si++) {
       var px = chartX + 10 + (si / (vals.length - 1)) * (chartW - 20);
-      var py = chartY2 + chartH - 10 - ((vals[si] - minV) / range) * (chartH - 40);
+      var py = chartY2 + chartH - 12 - ((vals[si] - minV) / range) * (chartH - 44);
       if (si === 0) ctx.moveTo(px, py); else ctx.lineTo(px, py);
     }
-    /* Save line end for stroke */
     var lastPx = chartX + 10 + ((vals.length - 1) / (vals.length - 1)) * (chartW - 20);
-    var lastPy = chartY2 + chartH - 10 - ((vals[vals.length - 1] - minV) / range) * (chartH - 40);
-    ctx.lineTo(chartX + chartW - 10, chartY2 + chartH - 10);
-    ctx.lineTo(chartX + 10, chartY2 + chartH - 10);
+    var lastPy = chartY2 + chartH - 12 - ((vals[vals.length - 1] - minV) / range) * (chartH - 44);
+    ctx.lineTo(chartX + chartW - 10, chartY2 + chartH - 12);
+    ctx.lineTo(chartX + 10, chartY2 + chartH - 12);
     ctx.closePath();
     var chartGrad = ctx.createLinearGradient(0, chartY2, 0, chartY2 + chartH);
-    chartGrad.addColorStop(0, 'rgba(243,186,47,0.12)');
+    chartGrad.addColorStop(0, 'rgba(243,186,47,0.15)');
     chartGrad.addColorStop(1, 'rgba(243,186,47,0)');
     ctx.fillStyle = chartGrad;
     ctx.fill();
@@ -1060,54 +1082,89 @@ function shareSwapCard() {
     ctx.lineWidth = 2.5;
     for (var si2 = 0; si2 < vals.length; si2++) {
       var px2 = chartX + 10 + (si2 / (vals.length - 1)) * (chartW - 20);
-      var py2 = chartY2 + chartH - 10 - ((vals[si2] - minV) / range) * (chartH - 40);
+      var py2 = chartY2 + chartH - 12 - ((vals[si2] - minV) / range) * (chartH - 44);
       if (si2 === 0) ctx.moveTo(px2, py2); else ctx.lineTo(px2, py2);
     }
     ctx.stroke();
 
-    /* Dot on last point */
-    ctx.beginPath();
-    ctx.arc(lastPx, lastPy, 5, 0, Math.PI * 2);
-    ctx.fillStyle = '#f3ba2f';
+    /* Peak marker (green dot) */
+    var peakPx = chartX + 10 + (peakIdx / (vals.length - 1)) * (chartW - 20);
+    var peakPy = chartY2 + chartH - 12 - ((maxV - minV) / range) * (chartH - 44);
+    ctx.beginPath(); ctx.arc(peakPx, peakPy, 5, 0, Math.PI * 2);
+    ctx.fillStyle = '#10b981'; ctx.fill();
+
+    /* Low marker (red dot) */
+    var lowPx = chartX + 10 + (lowIdx / (vals.length - 1)) * (chartW - 20);
+    var lowPy = chartY2 + chartH - 12;
+    ctx.beginPath(); ctx.arc(lowPx, lowPy, 5, 0, Math.PI * 2);
+    ctx.fillStyle = '#ef4444'; ctx.fill();
+
+    /* Current point (gold dot with glow) */
+    ctx.beginPath(); ctx.arc(lastPx, lastPy, 6, 0, Math.PI * 2);
+    ctx.fillStyle = '#f3ba2f'; ctx.fill();
+    ctx.beginPath(); ctx.arc(lastPx, lastPy, 10, 0, Math.PI * 2);
+    ctx.strokeStyle = 'rgba(243,186,47,0.3)'; ctx.lineWidth = 2; ctx.stroke();
+  }
+
+  /* ── Dynamic viral hook — gain vs low ── */
+  var viralY = 780;
+  if (series.length > 2) {
+    var _vals = series.map(function(p) { return p.r; });
+    var _low  = Math.min.apply(null, _vals);
+    var _now  = _vals[_vals.length - 1];
+    var gainPct = _low > 0 ? ((_now - _low) / _low * 100).toFixed(1) : '0';
+    var viralHooks = [
+      gainPct + '% more value vs period low — timed with Rotator',
+      'Locked in ' + gainPct + '% extra gains on this rotation',
+      'Swapped at ' + gainPct + '% above the worst entry point'
+    ];
+    var hookText = viralHooks[Math.floor(Math.random() * viralHooks.length)];
+
+    ctx.fillStyle = 'rgba(16,185,129,0.06)';
+    _roundRect(ctx, 50, viralY, W - 100, 52, 8);
     ctx.fill();
-    ctx.beginPath();
-    ctx.arc(lastPx, lastPy, 8, 0, Math.PI * 2);
-    ctx.strokeStyle = 'rgba(243,186,47,0.3)';
-    ctx.lineWidth = 2;
+    ctx.strokeStyle = 'rgba(16,185,129,0.2)';
+    ctx.lineWidth = 1;
+    _roundRect(ctx, 50, viralY, W - 100, 52, 8);
     ctx.stroke();
+    ctx.textAlign = 'center';
+    ctx.fillStyle = '#10b981';
+    ctx.font = 'bold 22px Inter, sans-serif';
+    ctx.fillText('⚡ ' + hookText, W / 2, viralY + 34);
+    ctx.textAlign = 'left';
   }
 
   /* ── CTA bar ── */
-  var ctaY = H - 170;
+  var ctaY = H - 160;
   ctx.fillStyle = 'rgba(243,186,47,0.06)';
-  _roundRect(ctx, 50, ctaY, W - 100, 66, 10);
+  _roundRect(ctx, 50, ctaY, W - 100, 76, 10);
   ctx.fill();
   ctx.strokeStyle = 'rgba(243,186,47,0.25)';
   ctx.lineWidth = 1.5;
-  _roundRect(ctx, 50, ctaY, W - 100, 66, 10);
+  _roundRect(ctx, 50, ctaY, W - 100, 76, 10);
   ctx.stroke();
   ctx.textAlign = 'center';
   ctx.fillStyle = 'rgba(243,186,47,0.9)';
-  ctx.font = 'bold 26px Inter, sans-serif';
-  ctx.fillText('Stop guessing when to swap.', W / 2, ctaY + 28);
-  ctx.fillStyle = 'rgba(255,255,255,0.65)';
-  ctx.font = 'bold 20px Inter, sans-serif';
-  ctx.fillText('Let the data decide — free at Rotator', W / 2, ctaY + 54);
+  ctx.font = 'bold 32px Inter, sans-serif';
+  ctx.fillText('Stop guessing when to swap.', W / 2, ctaY + 32);
+  ctx.fillStyle = 'rgba(255,255,255,0.7)';
+  ctx.font = 'bold 24px Inter, sans-serif';
+  ctx.fillText('Let the data decide — free at Rotator', W / 2, ctaY + 62);
   ctx.textAlign = 'left';
 
   /* ── Footer ── */
   ctx.fillStyle = 'rgba(255,255,255,0.06)';
-  ctx.fillRect(50, H - 70, W - 100, 1);
+  ctx.fillRect(50, H - 58, W - 100, 1);
   ctx.fillStyle = '#f3ba2f';
-  ctx.font = 'bold 26px Inter, sans-serif';
-  ctx.fillText('ROTATOR', 60, H - 30);
-  ctx.fillStyle = 'rgba(255,255,255,0.3)';
-  ctx.font = '16px Inter, sans-serif';
-  ctx.fillText('Real-time rotation signals & swap calculator', 210, H - 30);
+  ctx.font = 'bold 30px Inter, sans-serif';
+  ctx.fillText('ROTATOR', 60, H - 22);
+  ctx.fillStyle = 'rgba(255,255,255,0.35)';
+  ctx.font = '18px Inter, sans-serif';
+  ctx.fillText('Real-time rotation signals & swap calculator', 230, H - 22);
   ctx.fillStyle = 'rgba(243,186,47,0.7)';
-  ctx.font = 'bold 16px Inter, sans-serif';
+  ctx.font = 'bold 18px Inter, sans-serif';
   ctx.textAlign = 'right';
-  ctx.fillText('rotatortool-official.github.io', W - 60, H - 30);
+  ctx.fillText('rotatortool-official.github.io', W - 60, H - 22);
   ctx.textAlign = 'left';
 
   /* Bottom gold accent */

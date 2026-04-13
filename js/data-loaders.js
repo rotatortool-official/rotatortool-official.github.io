@@ -1519,7 +1519,7 @@ function openTileDetail(coinId, evt) {
 
   /* Score breakdown — tile grid with checkmarks */
   var scC = c.score >= 65 ? 'var(--green)' : c.score <= 35 ? 'var(--red)' : '#87CEEB';
-  var scHtml = '<div class="td-insight-header" style="margin-bottom:10px;">'
+  var scHtml = '<div class="td-insight-header" style="margin-bottom:6px;">'
     + '<div class="insight-pulse ' + (c.score >= 65 ? 'green' : c.score <= 35 ? 'red' : 'blue') + ' td-insight-pulse"><span class="insight-dot"></span><span class="insight-lbl">' + (c.score >= 65 ? 'BULLISH' : c.score <= 35 ? 'BEARISH' : 'NEUTRAL') + '</span></div>'
     + '<span class="td-insight-score" style="color:' + scC + ';">' + c.score + '<span style="font-size:12px;color:var(--muted);"> / 100</span></span>'
     + '</div>';
@@ -1532,8 +1532,8 @@ function openTileDetail(coinId, evt) {
     var hlCls = isGood ? ' highlight-good' : ' highlight-bad';
     scHtml += '<div class="signal-tile' + hlCls + '">'
       + '<span class="tile-icon ' + cls + '">' + icon + '</span>'
-      + '<div class="tile-body"><span class="tile-label">' + b.l + ' (' + Math.round(b.w*100) + '%)</span>'
-      + '<span class="tile-value ' + cls + '">#' + b.v + ' — top ' + pct + '%</span></div></div>';
+      + '<div class="tile-body"><span class="tile-label">' + b.l + '</span>'
+      + '<span class="tile-value ' + cls + '">#' + b.v + ' · top ' + pct + '%</span></div></div>';
   });
   /* Overall score tile */
   var scGood = c.score >= 50;
