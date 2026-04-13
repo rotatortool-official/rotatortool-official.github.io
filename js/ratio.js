@@ -1105,13 +1105,9 @@ function shareSwapCard() {
         return { sym: fromSym + '/' + toSym, score: nowR, chg: peakR, link: 'https://rotatortool-official.github.io' };
       };
 
-      /* Show native share if supported */
+      /* Always show share-with-image button */
       var nativeBtn = document.getElementById('viral-native-btn');
-      if (nativeBtn) {
-        var file = new File([blob], 'rotator-swap-' + fromSym.toLowerCase() + '-' + toSym.toLowerCase() + '.png', { type: 'image/png' });
-        var canShare = navigator.share && navigator.canShare && navigator.canShare({ files: [file] });
-        nativeBtn.style.display = canShare ? 'flex' : 'none';
-      }
+      if (nativeBtn) nativeBtn.style.display = 'flex';
 
       openModal('viral-share-modal');
 

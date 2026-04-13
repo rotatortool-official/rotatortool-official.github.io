@@ -649,4 +649,49 @@ document.addEventListener('DOMContentLoaded', function() {
   } catch(e) {}
 });
 
+/* ── PWA Install Prompt ── */
+var _deferredInstallPrompt = null;
+
+window.addEventListener('beforeinstallprompt', function(e) {
+  e.preventDefault();
+  _deferredInstallPrompt = e;
+  /* Show install buttons */
+  var mobBtn = document.getElementById('pwa-install-btn');
+  var setBtn = document.getElementById('pwa-install-setting');
+  if (mobBtn) mobBtn.style.display = '';
+  if (setBtn) setBtn.style.display = '';
+});
+
+function triggerPWAInstall() {
+  if (!_deferredInstallPrompt) {
+    /* Fallback: show manual instructions */
+    var isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
+    if (isIOS) {
+      alert('To install Rotator:\n\n1. Tap the Share button (box with arrow)\n2. Scroll down and tap "Add to Home Screen"\n3. Tap "Add"');
+    } else {
+      alert('To install Rotator:\n\nOpen browser menu (⋮) and tap "Add to Home Screen" or "Install App"');
+    }
+    return;
+  }
+  _deferredInstallPrompt.prompt();
+  _deferredInstallPrompt.userChoice.then(function(result) {
+    _deferredInstallPrompt = null;
+    /* Hide install buttons after choice */
+    var mobBtn = document.getElementById('pwa-install-btn');
+    var setBtn = document.getElementById('pwa-install-setting');
+    if (mobBtn) mobBtn.style.display = 'none';
+    if (setBtn) setBtn.style.display = 'none';
+  });
+}
+
+/* Hide install buttons if already installed as PWA */
+if (window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone) {
+  document.addEventListener('DOMContentLoaded', function() {
+    var mobBtn = document.getElementById('pwa-install-btn');
+    var setBtn = document.getElementById('pwa-install-setting');
+    if (mobBtn) mobBtn.style.display = 'none';
+    if (setBtn) setBtn.style.display = 'none';
+  });
+}
+
 /* ── Picker patch removed — ratio.js now owns the full open/close/listener lifecycle ── */

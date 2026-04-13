@@ -243,6 +243,10 @@
     <div><div class="setting-label">Swap Tool Tutorial</div><div class="setting-sub">Learn how to use the ratio swap calculator</div></div>
     <button class="tut-btn primary" onclick="closeSettingsPanel();setTimeout(function(){var el=document.getElementById('ratio-section');if(el)el.scrollIntoView({behavior:'smooth'});setTimeout(function(){if(typeof startSwapTut==='function')startSwapTut();},600);},300)">START →</button>
   </div>
+  <div class="setting-row pwa-install-setting" id="pwa-install-setting" style="display:none;">
+    <div><div class="setting-label">📲 Install App</div><div class="setting-sub">Add Rotator to your home screen for instant access</div></div>
+    <button class="tut-btn primary" onclick="triggerPWAInstall()">INSTALL</button>
+  </div>
   <hr style="border:none;border-top:1px solid var(--bdr);margin:14px 0 10px;">
   <div style="font-size:12px;letter-spacing:.14em;color:var(--muted);text-transform:uppercase;margin-bottom:8px;">Active Asset Modes</div>
   <div class="setting-row" style="padding:7px 0;">
@@ -1108,6 +1112,9 @@
         <button class="rt-refresh-btn" id="rt-refresh-btn" onclick="RatioTracker.loadAll()" title="Refresh">
           <span id="rt-spin-icon">↻</span> Refresh
         </button>
+        <button class="rt-share-btn" onclick="shareRotation()" title="Share Rotator">
+          <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/><polyline points="16 6 12 2 8 6"/><line x1="12" y1="2" x2="12" y2="15"/></svg> Share
+        </button>
       </div>
 
       <!-- Status + saved pairs -->
@@ -1355,6 +1362,9 @@
   </button>
   <button class="mob-more-item" onclick="openSettingsPanel(this);closeMobMore();">
     <span class="mmi-ico">⚙</span><span>Settings</span>
+  </button>
+  <button class="mob-more-item pwa-install-item" id="pwa-install-btn" onclick="triggerPWAInstall();closeMobMore();" style="display:none;">
+    <span class="mmi-ico">📲</span><span>Install App</span>
   </button>
   <div class="mob-more-divider"></div>
   <button class="mob-more-item" onclick="openModal('about-modal');closeMobMore();">

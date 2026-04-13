@@ -2159,13 +2159,9 @@ function shareAsImage() {
       /* Set share message */
       _updateViralCopy();
 
-      /* Show native share button if supported */
+      /* Always show share-with-image button */
       var nativeBtn = document.getElementById('viral-native-btn');
-      if (nativeBtn) {
-        var file = new File([blob], 'rotator-' + sym.toLowerCase() + '.png', { type: 'image/png' });
-        var canShare = navigator.share && navigator.canShare && navigator.canShare({ files: [file] });
-        nativeBtn.style.display = canShare ? 'flex' : 'none';
-      }
+      if (nativeBtn) nativeBtn.style.display = 'flex';
 
       openModal('viral-share-modal');
     }, 'image/png');
@@ -2234,6 +2230,13 @@ function viralShareTo(platform) {
   var encUrl = encodeURIComponent(d.link);
   var btn = event && event.currentTarget;
 
+  /* Auto-download image before opening platform (so user can attach it) */
+  var needsImage = ['x','telegram','whatsapp','messenger','reddit','threads'].indexOf(platform) >= 0;
+  if (needsImage && _viralCanvas) {
+    _fallbackDownload(_viralCanvas, _viralSym);
+    _showShareToast('Image saved — attach it to your post!');
+  }
+
   switch (platform) {
     case 'copy':
       _copyToClip(text, btn);
@@ -2249,17 +2252,31 @@ function viralShareTo(platform) {
       break;
     case 'discord':
       _copyToClip(text, btn);
+      if (_viralCanvas) _fallbackDownload(_viralCanvas, _viralSym);
+      _showShareToast('Text copied + image saved!');
       return;
     case 'messenger':
       window.open('https://www.facebook.com/dialog/send?link=' + encUrl + '&app_id=966242223397117&redirect_uri=' + encUrl, '_blank', 'width=550,height=420');
       break;
     case 'reddit':
-      window.open('https://www.reddit.com/submit?title=' + encodeURIComponent('📊 ' + d.sym + ' — Rotator Signal') + '&url=' + encUrl, '_blank', 'width=800,height=600');
+      window.open('https://www.reddit.com/submit?title=' + encodeURIComponent('\uD83D\uDCCA ' + d.sym + ' — Rotator Signal') + '&url=' + encUrl, '_blank', 'width=800,height=600');
       break;
     case 'threads':
       window.open('https://www.threads.net/intent/post?text=' + enc, '_blank', 'width=550,height=420');
       break;
   }
+}
+
+/* Brief toast notification for share actions */
+function _showShareToast(msg) {
+  var existing = document.getElementById('share-toast');
+  if (existing) existing.remove();
+  var toast = document.createElement('div');
+  toast.id = 'share-toast';
+  toast.textContent = msg;
+  toast.style.cssText = 'position:fixed;bottom:80px;left:50%;transform:translateX(-50%);background:rgba(243,186,47,0.95);color:#000;padding:10px 20px;border-radius:8px;font-size:13px;font-weight:600;font-family:Inter,sans-serif;z-index:9999;pointer-events:none;animation:toastIn .3s ease;';
+  document.body.appendChild(toast);
+  setTimeout(function(){ if (toast.parentNode) toast.remove(); }, 3000);
 }
 
 function viralNativeShare() {
@@ -2268,7 +2285,14 @@ function viralNativeShare() {
   var tpl = _viralCopyTemplates[_viralCopyIdx % _viralCopyTemplates.length];
   var text = tpl(d.sym, d.score, d.chg, d.link);
   var file = new File([_viralBlob], 'rotator-' + _viralSym.toLowerCase() + '.png', { type: 'image/png' });
-  navigator.share({ files: [file], title: d.sym + ' — Rotator Signal', text: text }).catch(function(){});
+  /* Try native share with image, fall back to download */
+  if (navigator.share && navigator.canShare && navigator.canShare({ files: [file] })) {
+    navigator.share({ files: [file], title: d.sym + ' — Rotator Signal', text: text }).catch(function(){});
+  } else {
+    /* Desktop: download image + copy text to clipboard */
+    if (_viralCanvas) _fallbackDownload(_viralCanvas, _viralSym);
+    if (navigator.clipboard) navigator.clipboard.writeText(text).catch(function(){});
+  }
 }
 
 function viralDownload() {
