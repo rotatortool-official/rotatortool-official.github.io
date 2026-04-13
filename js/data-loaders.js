@@ -1955,9 +1955,25 @@ function shareTo(platform) {
   }
 }
 
-/* ══════════════════════════════
-   SHARE-AS-IMAGE — Canvas card generator
-══════════════════════════════ */
+/* ══════════════════════════════════════════════════════════════════
+   SHARE CARD #1 — COIN / HOLDINGS share card (canvas image generator)
+   ──────────────────────────────────────────────────────────────────
+   File:     js/data-loaders.js
+   Function: shareAsImage()
+   Trigger:  "SNAPSHOT & SHARE" button in the coin detail modal
+   Context:  Leaderboard / Holdings / Watchlist — any coin tile detail
+   Card:     1200×630 (OG-compatible) — shows:
+               • Coin symbol, name, price, 24H change
+               • Score circle (X / 100) with colored arc
+               • Signal badges (STRONG MOM, 7D BREAKOUT, etc.)
+               • Market data boxes (MKT CAP, VOL, etc.)
+               • CTA hook + ROTATOR branding + referral URL
+   Modal:    Reuses viral-share-modal (#viral-share-modal)
+   Related:  _viralCopyTemplates[], _getViralCopyData(), _updateViralCopy()
+
+   ⚠ There is a SECOND share card for the Swap Calculator — see:
+      js/ratio.js → shareSwapCard()
+══════════════════════════════════════════════════════════════════ */
 function shareAsImage() {
   if (!_tdCoin) return;
   var c = _tdCoin;
@@ -1967,8 +1983,8 @@ function shareAsImage() {
   var name  = (document.getElementById('td-name') || {}).textContent || c.name || '';
   var price = (document.getElementById('td-price')|| {}).textContent || '';
   var chg   = (document.getElementById('td-price-chg') || {}).textContent || '';
-  var scoreEl = document.querySelector('#td-score-bars span');
-  var score   = scoreEl ? scoreEl.textContent.trim() : '';
+  var scoreEl = document.querySelector('#td-score-bars .td-insight-score');
+  var score   = scoreEl ? scoreEl.textContent.trim().split('/')[0].trim() : (c.score || '');
 
   /* badges */
   var badgeEls = document.querySelectorAll('#td-badges .td-badge');
@@ -2228,8 +2244,8 @@ var _viralCopyTemplates = [
 function _getViralCopyData() {
   var sym   = (document.getElementById('td-sym')  || {}).textContent || _viralSym || '';
   var chg   = (document.getElementById('td-price-chg') || {}).textContent || '';
-  var scoreEl = document.querySelector('#td-score-bars span');
-  var score = scoreEl ? scoreEl.textContent.trim() : '?';
+  var scoreEl = document.querySelector('#td-score-bars .td-insight-score');
+  var score = scoreEl ? scoreEl.textContent.trim().split('/')[0].trim() : (_tdCoin ? _tdCoin.score : '?');
   var link  = (typeof getMyReferralLink === 'function') ? getMyReferralLink() : 'https://rotatortool-official.github.io';
   return { sym: sym, score: score, chg: chg, link: link };
 }

@@ -859,7 +859,29 @@ function shareRotation() {
   }, 10);
 }
 
-/* ── Binance-style Swap Share Card ── */
+/* ══════════════════════════════════════════════════════════════════
+   SHARE CARD #2 — SWAP CALCULATOR share card (canvas image generator)
+   ──────────────────────────────────────────────────────────────────
+   File:     js/ratio.js
+   Function: shareSwapCard()
+   Trigger:  "Share" button in swap panel top actions (onclick)
+             "Share Swap" button inside swap calculator card
+   Context:  Swap Calculator — ratio tracking between two coins
+   Card:     1080×1080 (square, social-optimized) — shows:
+               • Pair title (FROM → TO) + badge (Great/Unfavorable)
+               • Current ratio (large display) + % of peak
+               • Swap result card (SEND amount → RECEIVE amount + USD)
+               • Mini ratio history chart with support/resistance lines,
+                 peak (green dot), low (red dot), current (gold dot)
+               • Dynamic viral hook (gain % vs period low)
+               • CTA hook + ROTATOR branding + referral URL
+   Modal:    Reuses viral-share-modal (#viral-share-modal)
+             Temporarily overrides _viralCopyTemplates with swap-specific
+             messages, restores originals when modal closes.
+
+   ⚠ There is a SECOND share card for Coin/Holdings — see:
+      js/data-loaders.js → shareAsImage()
+══════════════════════════════════════════════════════════════════ */
 function shareSwapCard() {
   var st = RatioTracker.getState();
   if (!st.from || !st.to) return;

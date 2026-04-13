@@ -350,6 +350,25 @@
   </div>
 </div>
 
+<!--
+  ══════════════════════════════════════════════════════════════
+  VIRAL SHARE MODAL — shared by TWO different share card generators:
+  ──────────────────────────────────────────────────────────────
+  CARD #1 — Coin / Holdings share card
+    Function:  shareAsImage()          (js/data-loaders.js)
+    Trigger:   "SNAPSHOT & SHARE" in coin detail modal
+    Canvas:    1200×630   Shows: score circle, badges, market data
+
+  CARD #2 — Swap Calculator share card
+    Function:  shareSwapCard()         (js/ratio.js)
+    Trigger:   "Share" button in swap panel top actions
+    Canvas:    1080×1080  Shows: ratio, chart, swap result, viral hook
+
+  Both generate a canvas PNG → blob → preview in this modal.
+  shareSwapCard() temporarily overrides _viralCopyTemplates
+  and restores them when the modal closes.
+  ══════════════════════════════════════════════════════════════
+-->
 <!-- VIRAL SHARE PREVIEW MODAL -->
 <div class="overlay viral-share-overlay" id="viral-share-modal" onclick="if(event.target===this)closeViralShare()">
   <div class="viral-share-modal">
@@ -1112,7 +1131,7 @@
         <button class="rt-refresh-btn" id="rt-refresh-btn" onclick="RatioTracker.loadAll()" title="Refresh">
           <span id="rt-spin-icon">↻</span> Refresh
         </button>
-        <button class="rt-share-btn" onclick="shareRotation()" title="Share Rotator">
+        <button class="rt-share-btn" onclick="shareSwapCard()" title="Share swap as image card">
           <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/><polyline points="16 6 12 2 8 6"/><line x1="12" y1="2" x2="12" y2="15"/></svg> Share
         </button>
       </div>
@@ -1421,5 +1440,11 @@
   <script src="js/ui.js"></script>
   <script src="js/signal-history.js"></script>
   <script src="js/data-loaders.js"></script>
+  <!-- Register Service Worker — required for PWA install prompt -->
+  <script>
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('/sw.js').catch(function() {});
+  }
+  </script>
 </body>
 </html>
