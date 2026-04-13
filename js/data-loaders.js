@@ -1517,19 +1517,32 @@ function openTileDetail(coinId, evt) {
   var badge = document.getElementById('td-type-badge');
   if (badge) { badge.textContent = 'CRYPTO'; badge.className = 'td-type-badge crypto'; }
 
-  /* Score breakdown */
-  var scC = c.score >= 65 ? 'var(--green)' : c.score <= 35 ? 'var(--red)' : 'var(--amber)';
-  document.getElementById('td-score-bars').innerHTML =
-    '<div style="display:flex;align-items:baseline;gap:6px;margin-bottom:8px;">'
-    + '<span style="font-size:26px;font-weight:700;color:' + scC + ';">' + c.score + '</span>'
-    + '<span style="font-size:12px;color:var(--muted);">/ 100 composite score</span></div>'
-    + [{l:'7D rank',v:c.r7},{l:'14D rank',v:c.r14},{l:'30D rank',v:c.r30}].map(function(b) {
-      var pct = Math.round((1 - (b.v-1) / Math.max(coins.length-1,1)) * 100);
-      var col = pct>=65?'var(--green)':pct>=40?'var(--amber)':'var(--red)';
-      return '<div class="td-bar-row"><span class="td-bar-lbl">' + b.l + '</span>'
-        + '<div class="td-bar-wrap"><div class="td-bar-fill" style="width:'+pct+'%;background:'+col+';"></div></div>'
-        + '<span class="td-bar-val" style="color:'+col+';">#'+b.v+'</span></div>';
-    }).join('');
+  /* Score breakdown — tile grid with checkmarks */
+  var scC = c.score >= 65 ? 'var(--green)' : c.score <= 35 ? 'var(--red)' : '#87CEEB';
+  var scHtml = '<div class="td-insight-header" style="margin-bottom:10px;">'
+    + '<div class="insight-pulse ' + (c.score >= 65 ? 'green' : c.score <= 35 ? 'red' : 'blue') + ' td-insight-pulse"><span class="insight-dot"></span><span class="insight-lbl">' + (c.score >= 65 ? 'BULLISH' : c.score <= 35 ? 'BEARISH' : 'NEUTRAL') + '</span></div>'
+    + '<span class="td-insight-score" style="color:' + scC + ';">' + c.score + '<span style="font-size:12px;color:var(--muted);"> / 100</span></span>'
+    + '</div>';
+  scHtml += '<div class="signal-tile-grid">';
+  [{l:'7D RANK',v:c.r7,w:0.40},{l:'14D RANK',v:c.r14,w:0.35},{l:'30D RANK',v:c.r30,w:0.25}].forEach(function(b) {
+    var pct = Math.round((1 - (b.v-1) / Math.max(coins.length-1,1)) * 100);
+    var isGood = pct >= 50;
+    var icon = isGood ? '✓' : '−';
+    var cls  = isGood ? 'good' : 'bad';
+    var hlCls = isGood ? ' highlight-good' : ' highlight-bad';
+    scHtml += '<div class="signal-tile' + hlCls + '">'
+      + '<span class="tile-icon ' + cls + '">' + icon + '</span>'
+      + '<div class="tile-body"><span class="tile-label">' + b.l + ' (' + Math.round(b.w*100) + '%)</span>'
+      + '<span class="tile-value ' + cls + '">#' + b.v + ' — top ' + pct + '%</span></div></div>';
+  });
+  /* Overall score tile */
+  var scGood = c.score >= 50;
+  scHtml += '<div class="signal-tile' + (scGood ? ' highlight-good' : ' highlight-bad') + '">'
+    + '<span class="tile-icon ' + (scGood ? 'good' : 'bad') + '">' + (scGood ? '✓' : '−') + '</span>'
+    + '<div class="tile-body"><span class="tile-label">COMPOSITE</span>'
+    + '<span class="tile-value ' + (scGood ? 'good' : 'bad') + '">' + c.score + ' / 100</span></div></div>';
+  scHtml += '</div>';
+  document.getElementById('td-score-bars').innerHTML = scHtml;
 
   /* Market data: mkt cap, vol, rank, ATH distance, 7D, 30D */
   var vol24 = c.volume24 || c.total_volume || null;
@@ -1586,12 +1599,14 @@ function openTileDetail(coinId, evt) {
   if (isPro || badges.length <= 2) {
     /* Pro: show all signals. Free: show all if 2 or fewer */
     badgesHtml = badges.map(function(b) {
-      return '<span class="td-badge ' + b.cls + '">' + b.t + '</span>';
+      var sign = b.cls === 'bull' ? '✓ ' : b.cls === 'bear' ? '− ' : '— ';
+      return '<span class="td-badge ' + b.cls + '">' + sign + b.t + '</span>';
     }).join('');
   } else {
     /* Free: show first 2 badges, blur the rest with a Pro unlock nudge */
     badgesHtml = badges.slice(0, 2).map(function(b) {
-      return '<span class="td-badge ' + b.cls + '">' + b.t + '</span>';
+      var sign = b.cls === 'bull' ? '✓ ' : b.cls === 'bear' ? '− ' : '— ';
+      return '<span class="td-badge ' + b.cls + '">' + sign + b.t + '</span>';
     }).join('');
     var extraCount = badges.length - 2;
     badgesHtml += '<span class="td-badge-blur-wrap" onclick="openPro()" title="Unlock all signals with Pro" style="cursor:pointer;display:inline-flex;align-items:center;gap:4px;">';
@@ -1623,19 +1638,30 @@ function openTileDetail(coinId, evt) {
         + '<span class="td-insight-score" style="color:' + (ins.score >= 65 ? 'var(--green)' : ins.score <= 35 ? 'var(--red)' : '#87CEEB') + ';">' + ins.score + '<span style="font-size:12px;color:var(--muted);"> / 100</span></span>'
         + '</div>';
       if (ins.signals && ins.signals.length) {
-        insHtml += '<div class="td-insight-signals">';
+        insHtml += '<div class="signal-tile-grid">';
         ins.signals.forEach(function(s) {
-          var cls = 'neut';
-          if (s.indexOf('Oversold') >= 0 || s.indexOf('Accumulation') >= 0 || s.indexOf('Hidden Strength') >= 0 || s.indexOf('Cleared') >= 0 || s.indexOf('Extreme Fear') >= 0 || s.indexOf('Outperforming') >= 0) cls = 'bull';
-          else if (s.indexOf('Overbought') >= 0 || s.indexOf('Dilution') >= 0 || s.indexOf('Greed') >= 0 || s.indexOf('Underperforming') >= 0 || s.indexOf('Low Liquidity') >= 0) cls = 'bear';
-          insHtml += '<div class="td-insight-pill ' + cls + '">' + s + '</div>';
+          var cls = 'neutral';
+          if (s.indexOf('Oversold') >= 0 || s.indexOf('Accumulation') >= 0 || s.indexOf('Hidden Strength') >= 0 || s.indexOf('Cleared') >= 0 || s.indexOf('Extreme Fear') >= 0 || s.indexOf('Outperforming') >= 0 || s.indexOf('Bullish Cross') >= 0 || s.indexOf('Accelerating') >= 0 || s.indexOf('Recovery') >= 0 || s.indexOf('BB Squeeze') >= 0) cls = 'good';
+          else if (s.indexOf('Overbought') >= 0 || s.indexOf('Dilution') >= 0 || s.indexOf('Greed') >= 0 || s.indexOf('Underperforming') >= 0 || s.indexOf('Low Liquidity') >= 0 || s.indexOf('Bearish Cross') >= 0 || s.indexOf('Decelerating') >= 0 || s.indexOf('Weakening') >= 0) cls = 'bad';
+          var icon = cls === 'good' ? '✓' : cls === 'bad' ? '−' : '—';
+          var hlCls = cls === 'good' ? ' highlight-good' : cls === 'bad' ? ' highlight-bad' : '';
+          insHtml += '<div class="signal-tile' + hlCls + '">'
+            + '<span class="tile-icon ' + cls + '">' + icon + '</span>'
+            + '<div class="tile-body"><span class="tile-value ' + cls + '">' + s + '</span></div></div>';
         });
         insHtml += '</div>';
       }
       var fgVal = window.fearGreed ? window.fearGreed.value : 50;
       var fgLbl = window.fearGreed ? window.fearGreed.label : 'Neutral';
-      var fgCls = fgVal < 25 ? 'bear' : fgVal < 40 ? 'bear' : fgVal > 80 ? 'bull' : fgVal > 65 ? 'bull' : 'neut';
-      insHtml += '<div class="td-insight-fg"><span class="td-insight-fg-lbl">FEAR & GREED</span><span class="td-insight-fg-val ' + fgCls + '">' + fgVal + ' — ' + fgLbl + '</span></div>';
+      var fgGood = fgVal <= 40;
+      var fgBad  = fgVal >= 75;
+      var fgCls  = fgGood ? 'good' : fgBad ? 'bad' : 'neutral';
+      var fgIcon = fgGood ? '✓' : fgBad ? '−' : '—';
+      var fgHl   = fgGood ? ' highlight-good' : fgBad ? ' highlight-bad' : '';
+      insHtml += '<div class="signal-tile' + fgHl + '" style="margin-top:2px;">'
+        + '<span class="tile-icon ' + fgCls + '">' + fgIcon + '</span>'
+        + '<div class="tile-body"><span class="tile-label">FEAR & GREED INDEX</span>'
+        + '<span class="tile-value ' + fgCls + '">' + fgVal + ' — ' + fgLbl + '</span></div></div>';
       insEl.innerHTML = insHtml;
       insSec.style.display = '';
     } else {
@@ -2054,25 +2080,25 @@ function shareAsImage() {
   if (badges.length) {
     var badgeY = 350;
     ctx.fillStyle = 'rgba(255,255,255,0.4)';
-    ctx.font = '16px Inter, sans-serif';
+    ctx.font = '18px Inter, sans-serif';
     ctx.fillText('SIGNALS', 70, badgeY);
     var bx2 = 70;
-    badgeY += 22;
-    ctx.font = 'bold 18px Inter, sans-serif';
+    badgeY += 24;
+    ctx.font = 'bold 22px Inter, sans-serif';
     badges.slice(0, 4).forEach(function(b) {
-      var tw = ctx.measureText(b).width + 32;
+      var tw = ctx.measureText(b).width + 36;
       /* badge bg */
       ctx.fillStyle = 'rgba(0,200,150,0.12)';
-      _roundRect(ctx, bx2, badgeY, tw, 40, 8);
+      _roundRect(ctx, bx2, badgeY, tw, 44, 8);
       ctx.fill();
       ctx.strokeStyle = 'rgba(0,200,150,0.4)';
       ctx.lineWidth = 1;
-      _roundRect(ctx, bx2, badgeY, tw, 40, 8);
+      _roundRect(ctx, bx2, badgeY, tw, 44, 8);
       ctx.stroke();
       /* badge text */
       ctx.fillStyle = '#00c896';
-      ctx.font = 'bold 18px Inter, sans-serif';
-      ctx.fillText(b, bx2 + 16, badgeY + 27);
+      ctx.font = 'bold 22px Inter, sans-serif';
+      ctx.fillText(b, bx2 + 18, badgeY + 30);
       bx2 += tw + 14;
     });
   }
@@ -2103,37 +2129,40 @@ function shareAsImage() {
   });
 
   /* ── CTA teaser — curiosity hook ── */
-  var ctaY = H - 120;
+  var ctaY = H - 140;
   ctx.fillStyle = 'rgba(243,186,47,0.06)';
-  _roundRect(ctx, 70, ctaY, W - 140, 42, 6);
+  _roundRect(ctx, 50, ctaY, W - 100, 76, 8);
   ctx.fill();
-  ctx.strokeStyle = 'rgba(243,186,47,0.2)';
-  ctx.lineWidth = 1;
-  _roundRect(ctx, 70, ctaY, W - 140, 42, 6);
+  ctx.strokeStyle = 'rgba(243,186,47,0.25)';
+  ctx.lineWidth = 1.5;
+  _roundRect(ctx, 50, ctaY, W - 100, 76, 8);
   ctx.stroke();
-  ctx.fillStyle = 'rgba(243,186,47,0.85)';
-  ctx.font = 'bold 18px Inter, sans-serif';
+  ctx.fillStyle = 'rgba(243,186,47,0.9)';
+  ctx.font = 'bold 34px Inter, sans-serif';
   ctx.textAlign = 'center';
-  ctx.fillText('Is your coin lagging or leading?  Find out free at Rotator', W / 2, ctaY + 28);
+  ctx.fillText('Is your coin lagging or leading?', W / 2, ctaY + 32);
+  ctx.font = 'bold 26px Inter, sans-serif';
+  ctx.fillStyle = 'rgba(255,255,255,0.7)';
+  ctx.fillText('Find out free at Rotator', W / 2, ctaY + 62);
   ctx.textAlign = 'left';
 
   /* ── Footer: branding + URL ── */
   ctx.fillStyle = 'rgba(255,255,255,0.06)';
-  ctx.fillRect(70, H - 60, W - 140, 1);
+  ctx.fillRect(70, H - 58, W - 140, 1);
 
   /* Rotator brand */
   ctx.fillStyle = '#f3ba2f';
-  ctx.font = 'bold 28px Inter, sans-serif';
-  ctx.fillText('ROTATOR', 70, H - 25);
-  ctx.fillStyle = 'rgba(255,255,255,0.3)';
-  ctx.font = '16px Inter, sans-serif';
-  ctx.fillText('Real-time rotation signals & momentum scoring', 230, H - 25);
+  ctx.font = 'bold 32px Inter, sans-serif';
+  ctx.fillText('ROTATOR', 70, H - 22);
+  ctx.fillStyle = 'rgba(255,255,255,0.35)';
+  ctx.font = '20px Inter, sans-serif';
+  ctx.fillText('Real-time rotation signals & momentum scoring', 250, H - 22);
 
   /* URL right-aligned */
   ctx.fillStyle = 'rgba(243,186,47,0.7)';
-  ctx.font = 'bold 16px Inter, sans-serif';
+  ctx.font = 'bold 20px Inter, sans-serif';
   ctx.textAlign = 'right';
-  ctx.fillText('rotatortool-official.github.io', W - 70, H - 25);
+  ctx.fillText('rotatortool-official.github.io', W - 70, H - 22);
   ctx.textAlign = 'left';
 
   /* ── Gold bottom accent ── */

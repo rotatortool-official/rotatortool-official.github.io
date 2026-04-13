@@ -883,195 +883,236 @@ function shareSwapCard() {
 
   var series  = st.series || [];
 
-  /* ── Canvas 1200×630 ── */
-  var W = 1200, H = 630;
+  /* ── Canvas 1080×1080 — Binance-style square card ── */
+  var W = 1080, H = 1080;
   var can = document.createElement('canvas');
   can.width = W; can.height = H;
   var ctx = can.getContext('2d');
 
-  /* Background gradient */
-  var bg = ctx.createLinearGradient(0, 0, W, H);
-  bg.addColorStop(0, '#080c12');
-  bg.addColorStop(0.5, '#0d1420');
-  bg.addColorStop(1, '#080c12');
+  /* ── Background: deep dark ── */
+  var bg = ctx.createLinearGradient(0, 0, 0, H);
+  bg.addColorStop(0, '#0b0e14');
+  bg.addColorStop(0.5, '#101722');
+  bg.addColorStop(1, '#0b0e14');
   ctx.fillStyle = bg;
   ctx.fillRect(0, 0, W, H);
 
-  /* Grid pattern */
-  ctx.strokeStyle = 'rgba(243,186,47,0.02)';
+  /* Subtle diagonal noise lines */
+  ctx.strokeStyle = 'rgba(243,186,47,0.015)';
   ctx.lineWidth = 1;
-  for (var gx = 0; gx < W; gx += 60) { ctx.beginPath(); ctx.moveTo(gx, 0); ctx.lineTo(gx, H); ctx.stroke(); }
-  for (var gy = 0; gy < H; gy += 60) { ctx.beginPath(); ctx.moveTo(0, gy); ctx.lineTo(W, gy); ctx.stroke(); }
+  for (var gi = -H; gi < W; gi += 40) { ctx.beginPath(); ctx.moveTo(gi, 0); ctx.lineTo(gi + H, H); ctx.stroke(); }
 
-  /* Gold top accent */
+  /* Top gold accent bar */
   var gold = ctx.createLinearGradient(0, 0, W, 0);
   gold.addColorStop(0, 'rgba(243,186,47,0)');
-  gold.addColorStop(0.3, 'rgba(243,186,47,0.9)');
-  gold.addColorStop(0.7, 'rgba(243,186,47,0.9)');
+  gold.addColorStop(0.2, 'rgba(243,186,47,0.9)');
+  gold.addColorStop(0.8, 'rgba(243,186,47,0.9)');
   gold.addColorStop(1, 'rgba(243,186,47,0)');
   ctx.fillStyle = gold;
-  ctx.fillRect(0, 0, W, 4);
+  ctx.fillRect(0, 0, W, 5);
 
-  /* ── Header: ROTATOR SWAP ── */
+  /* ── Header row: ROTATOR • SWAP ── */
   ctx.fillStyle = '#f3ba2f';
-  ctx.font = 'bold 24px Inter, sans-serif';
-  ctx.fillText('ROTATOR', 60, 50);
-  ctx.fillStyle = 'rgba(255,255,255,0.4)';
-  ctx.font = '24px Inter, sans-serif';
-  ctx.fillText('SWAP', 60 + ctx.measureText('ROTATOR  ').width, 50);
+  ctx.font = 'bold 28px Inter, sans-serif';
+  ctx.fillText('ROTATOR', 60, 60);
+  ctx.fillStyle = 'rgba(255,255,255,0.35)';
+  ctx.font = '20px Inter, sans-serif';
+  ctx.fillText('•  SWAP', 60 + ctx.measureText('ROTATOR  ').width, 60);
 
-  /* ── Pair title: FROM → TO ── */
-  ctx.fillStyle = '#ffffff';
-  ctx.font = 'bold 52px Inter, sans-serif';
-  ctx.fillText(fromSym, 60, 115);
-  ctx.fillStyle = 'rgba(243,186,47,0.7)';
-  ctx.font = '52px Inter, sans-serif';
-  var arrowX = 60 + ctx.measureText(fromSym + '  ').width;
-  ctx.fillText('→', arrowX, 115);
-  ctx.fillStyle = '#ffffff';
-  ctx.font = 'bold 52px Inter, sans-serif';
-  ctx.fillText(toSym, arrowX + ctx.measureText('→  ').width, 115);
-
-  /* ── Ratio badge (top right) ── */
+  /* ── Badge (top right) ── */
   if (badge) {
+    var isBad = badge.indexOf('Unfavorable') >= 0;
     ctx.textAlign = 'right';
-    ctx.fillStyle = badge.indexOf('Unfavorable') >= 0 ? 'rgba(239,68,68,0.15)' : 'rgba(16,185,129,0.15)';
-    _roundRect(ctx, W - 300, 22, 240, 40, 8);
+    var badgeW = ctx.measureText(badge).width + 40;
+    ctx.fillStyle = isBad ? 'rgba(239,68,68,0.12)' : 'rgba(16,185,129,0.12)';
+    _roundRect(ctx, W - 60 - badgeW, 35, badgeW, 38, 8);
     ctx.fill();
-    ctx.fillStyle = badge.indexOf('Unfavorable') >= 0 ? '#ef4444' : '#10b981';
+    ctx.strokeStyle = isBad ? 'rgba(239,68,68,0.3)' : 'rgba(16,185,129,0.3)';
+    ctx.lineWidth = 1;
+    _roundRect(ctx, W - 60 - badgeW, 35, badgeW, 38, 8);
+    ctx.stroke();
+    ctx.fillStyle = isBad ? '#ef4444' : '#10b981';
     ctx.font = 'bold 18px Inter, sans-serif';
-    ctx.fillText(badge, W - 75, 49);
+    ctx.fillText(badge, W - 75, 60);
     ctx.textAlign = 'left';
   }
 
-  /* ── Swap result box ── */
+  /* ── Large pair title ── */
+  ctx.fillStyle = '#ffffff';
+  ctx.font = 'bold 64px Inter, sans-serif';
+  ctx.fillText(fromSym, 60, 140);
+  ctx.fillStyle = 'rgba(243,186,47,0.6)';
+  ctx.font = '56px Inter, sans-serif';
+  var arrowX = 60 + ctx.measureText(fromSym + '  ').width;
+  ctx.fillText('→', arrowX, 140);
+  ctx.fillStyle = '#ffffff';
+  ctx.font = 'bold 64px Inter, sans-serif';
+  ctx.fillText(toSym, arrowX + ctx.measureText('→  ').width, 140);
+
+  /* ── Ratio change — Binance PnL style (big number) ── */
+  var ratioNow  = parseFloat(nowR)  || 0;
+  var ratioPeak = parseFloat(peakR) || 0;
+  var ratioPct  = ratioPeak > 0 ? ((ratioNow / ratioPeak) * 100).toFixed(1) : '—';
+  var isGoodRatio = ratioNow >= ratioPeak * 0.9;
+
+  /* Big glow behind ratio */
+  var glowCol = isGoodRatio ? 'rgba(16,185,129,0.08)' : 'rgba(239,68,68,0.06)';
+  var ratioGlow = ctx.createRadialGradient(W / 2, 260, 0, W / 2, 260, 300);
+  ratioGlow.addColorStop(0, glowCol);
+  ratioGlow.addColorStop(1, 'transparent');
+  ctx.fillStyle = ratioGlow;
+  ctx.fillRect(0, 160, W, 200);
+
+  /* Current ratio — huge display */
+  ctx.textAlign = 'center';
+  ctx.fillStyle = 'rgba(255,255,255,0.4)';
+  ctx.font = '22px Inter, sans-serif';
+  ctx.fillText('CURRENT RATIO', W / 2, 200);
+  ctx.fillStyle = isGoodRatio ? '#10b981' : '#ef4444';
+  ctx.font = 'bold 96px Inter, sans-serif';
+  ctx.fillText(nowR, W / 2, 290);
+  /* sub-label: vs peak */
+  ctx.fillStyle = 'rgba(255,255,255,0.35)';
+  ctx.font = '22px Inter, sans-serif';
+  ctx.fillText(ratioPct + '% of peak  (' + peakR + ')', W / 2, 325);
+  ctx.textAlign = 'left';
+
+  /* ── Swap result card ── */
+  var boxY = 370;
   ctx.fillStyle = 'rgba(255,255,255,0.03)';
-  _roundRect(ctx, 60, 145, W - 120, 130, 12);
+  _roundRect(ctx, 50, boxY, W - 100, 160, 14);
   ctx.fill();
-  ctx.strokeStyle = 'rgba(243,186,47,0.12)';
+  ctx.strokeStyle = 'rgba(255,255,255,0.06)';
   ctx.lineWidth = 1;
-  _roundRect(ctx, 60, 145, W - 120, 130, 12);
+  _roundRect(ctx, 50, boxY, W - 100, 160, 14);
   ctx.stroke();
 
-  /* Amount sent */
-  ctx.fillStyle = 'rgba(255,255,255,0.45)';
-  ctx.font = '18px Inter, sans-serif';
-  ctx.fillText('AMOUNT', 90, 182);
+  /* Send side */
+  ctx.fillStyle = 'rgba(255,255,255,0.4)';
+  ctx.font = '16px Inter, sans-serif';
+  ctx.fillText('SEND', 85, boxY + 36);
   ctx.fillStyle = '#ffffff';
-  ctx.font = 'bold 36px Inter, sans-serif';
-  ctx.fillText(amount + ' ' + fromSym, 90, 224);
+  ctx.font = 'bold 40px Inter, sans-serif';
+  ctx.fillText(amount + ' ' + fromSym, 85, boxY + 82);
 
-  /* You'd receive */
+  /* Divider arrow */
+  ctx.textAlign = 'center';
+  ctx.fillStyle = 'rgba(243,186,47,0.5)';
+  ctx.font = '36px Inter, sans-serif';
+  ctx.fillText('→', W / 2, boxY + 82);
+  ctx.textAlign = 'left';
+
+  /* Receive side */
   ctx.textAlign = 'right';
-  ctx.fillStyle = 'rgba(255,255,255,0.45)';
-  ctx.font = '18px Inter, sans-serif';
-  ctx.fillText("YOU'D RECEIVE", W - 90, 182);
+  ctx.fillStyle = 'rgba(255,255,255,0.4)';
+  ctx.font = '16px Inter, sans-serif';
+  ctx.fillText('RECEIVE', W - 85, boxY + 36);
   ctx.fillStyle = '#10b981';
-  ctx.font = 'bold 36px Inter, sans-serif';
-  ctx.fillText(output, W - 90, 224);
+  ctx.font = 'bold 40px Inter, sans-serif';
+  ctx.fillText(output, W - 85, boxY + 82);
   if (usdVal) {
-    ctx.fillStyle = 'rgba(243,186,47,0.7)';
-    ctx.font = '20px Inter, sans-serif';
-    ctx.fillText(usdVal, W - 90, 254);
+    ctx.fillStyle = 'rgba(243,186,47,0.65)';
+    ctx.font = '22px Inter, sans-serif';
+    ctx.fillText(usdVal, W - 85, boxY + 118);
   }
   ctx.textAlign = 'left';
 
-  /* ── Ratio stats row ── */
-  var statY = 310;
-  var statBoxW = 180, statBoxH = 70;
-
-  /* Current ratio */
-  ctx.fillStyle = 'rgba(255,255,255,0.04)';
-  _roundRect(ctx, 60, statY, statBoxW, statBoxH, 8);
-  ctx.fill();
-  ctx.fillStyle = 'rgba(255,255,255,0.4)';
-  ctx.font = '14px Inter, sans-serif';
-  ctx.fillText('CURRENT RATIO', 78, statY + 24);
-  ctx.fillStyle = '#ffffff';
-  ctx.font = 'bold 26px Inter, sans-serif';
-  ctx.fillText(nowR, 78, statY + 56);
-
-  /* Peak ratio */
-  ctx.fillStyle = 'rgba(255,255,255,0.04)';
-  _roundRect(ctx, 260, statY, statBoxW, statBoxH, 8);
-  ctx.fill();
-  ctx.fillStyle = 'rgba(255,255,255,0.4)';
-  ctx.font = '14px Inter, sans-serif';
-  ctx.fillText('PERIOD PEAK', 278, statY + 24);
-  ctx.fillStyle = '#10b981';
-  ctx.font = 'bold 26px Inter, sans-serif';
-  ctx.fillText(peakR, 278, statY + 56);
-
-  /* ── Mini chart ── */
+  /* ── Mini chart (wider, below swap box) ── */
   if (series.length > 2) {
-    var chartX = 500, chartY = statY - 10, chartW = W - 560 - 60, chartH = 90;
+    var chartX = 50, chartY2 = 560, chartW = W - 100, chartH = 180;
     var vals = series.map(function(p) { return p.r; });
     var minV = Math.min.apply(null, vals);
     var maxV = Math.max.apply(null, vals);
     var range = maxV - minV || 1;
 
-    /* Chart area bg */
+    /* Chart bg */
     ctx.fillStyle = 'rgba(255,255,255,0.02)';
-    _roundRect(ctx, chartX, chartY, chartW, chartH, 8);
+    _roundRect(ctx, chartX, chartY2, chartW, chartH, 10);
     ctx.fill();
 
-    /* Draw line */
+    /* Chart label */
+    ctx.fillStyle = 'rgba(255,255,255,0.25)';
+    ctx.font = '14px Inter, sans-serif';
+    ctx.fillText('RATIO HISTORY', chartX + 14, chartY2 + 22);
+
+    /* Gradient fill under chart */
     ctx.beginPath();
-    ctx.strokeStyle = 'rgba(243,186,47,0.6)';
-    ctx.lineWidth = 2;
     for (var si = 0; si < vals.length; si++) {
-      var px = chartX + (si / (vals.length - 1)) * chartW;
-      var py = chartY + chartH - ((vals[si] - minV) / range) * (chartH - 10) - 5;
+      var px = chartX + 10 + (si / (vals.length - 1)) * (chartW - 20);
+      var py = chartY2 + chartH - 10 - ((vals[si] - minV) / range) * (chartH - 40);
       if (si === 0) ctx.moveTo(px, py); else ctx.lineTo(px, py);
+    }
+    /* Save line end for stroke */
+    var lastPx = chartX + 10 + ((vals.length - 1) / (vals.length - 1)) * (chartW - 20);
+    var lastPy = chartY2 + chartH - 10 - ((vals[vals.length - 1] - minV) / range) * (chartH - 40);
+    ctx.lineTo(chartX + chartW - 10, chartY2 + chartH - 10);
+    ctx.lineTo(chartX + 10, chartY2 + chartH - 10);
+    ctx.closePath();
+    var chartGrad = ctx.createLinearGradient(0, chartY2, 0, chartY2 + chartH);
+    chartGrad.addColorStop(0, 'rgba(243,186,47,0.12)');
+    chartGrad.addColorStop(1, 'rgba(243,186,47,0)');
+    ctx.fillStyle = chartGrad;
+    ctx.fill();
+
+    /* Line stroke */
+    ctx.beginPath();
+    ctx.strokeStyle = '#f3ba2f';
+    ctx.lineWidth = 2.5;
+    for (var si2 = 0; si2 < vals.length; si2++) {
+      var px2 = chartX + 10 + (si2 / (vals.length - 1)) * (chartW - 20);
+      var py2 = chartY2 + chartH - 10 - ((vals[si2] - minV) / range) * (chartH - 40);
+      if (si2 === 0) ctx.moveTo(px2, py2); else ctx.lineTo(px2, py2);
     }
     ctx.stroke();
 
-    /* Fill under line */
-    ctx.lineTo(chartX + chartW, chartY + chartH);
-    ctx.lineTo(chartX, chartY + chartH);
-    ctx.closePath();
-    ctx.fillStyle = 'rgba(243,186,47,0.06)';
+    /* Dot on last point */
+    ctx.beginPath();
+    ctx.arc(lastPx, lastPy, 5, 0, Math.PI * 2);
+    ctx.fillStyle = '#f3ba2f';
     ctx.fill();
-
-    /* Label */
-    ctx.fillStyle = 'rgba(255,255,255,0.3)';
-    ctx.font = '12px Inter, sans-serif';
-    ctx.fillText('RATIO HISTORY', chartX + 8, chartY + 16);
+    ctx.beginPath();
+    ctx.arc(lastPx, lastPy, 8, 0, Math.PI * 2);
+    ctx.strokeStyle = 'rgba(243,186,47,0.3)';
+    ctx.lineWidth = 2;
+    ctx.stroke();
   }
 
-  /* ── Viral CTA ── */
-  var ctaY = H - 150;
+  /* ── CTA bar ── */
+  var ctaY = H - 170;
   ctx.fillStyle = 'rgba(243,186,47,0.06)';
-  _roundRect(ctx, 60, ctaY, W - 120, 42, 6);
+  _roundRect(ctx, 50, ctaY, W - 100, 66, 10);
   ctx.fill();
-  ctx.strokeStyle = 'rgba(243,186,47,0.2)';
-  ctx.lineWidth = 1;
-  _roundRect(ctx, 60, ctaY, W - 120, 42, 6);
+  ctx.strokeStyle = 'rgba(243,186,47,0.25)';
+  ctx.lineWidth = 1.5;
+  _roundRect(ctx, 50, ctaY, W - 100, 66, 10);
   ctx.stroke();
-  ctx.fillStyle = 'rgba(243,186,47,0.85)';
-  ctx.font = 'bold 18px Inter, sans-serif';
   ctx.textAlign = 'center';
-  ctx.fillText('Stop guessing when to swap. Let the data decide — free at Rotator', W / 2, ctaY + 28);
+  ctx.fillStyle = 'rgba(243,186,47,0.9)';
+  ctx.font = 'bold 26px Inter, sans-serif';
+  ctx.fillText('Stop guessing when to swap.', W / 2, ctaY + 28);
+  ctx.fillStyle = 'rgba(255,255,255,0.65)';
+  ctx.font = 'bold 20px Inter, sans-serif';
+  ctx.fillText('Let the data decide — free at Rotator', W / 2, ctaY + 54);
   ctx.textAlign = 'left';
 
   /* ── Footer ── */
   ctx.fillStyle = 'rgba(255,255,255,0.06)';
-  ctx.fillRect(60, H - 60, W - 120, 1);
+  ctx.fillRect(50, H - 70, W - 100, 1);
   ctx.fillStyle = '#f3ba2f';
-  ctx.font = 'bold 24px Inter, sans-serif';
-  ctx.fillText('ROTATOR', 60, H - 25);
+  ctx.font = 'bold 26px Inter, sans-serif';
+  ctx.fillText('ROTATOR', 60, H - 30);
   ctx.fillStyle = 'rgba(255,255,255,0.3)';
   ctx.font = '16px Inter, sans-serif';
-  ctx.fillText('Real-time rotation signals & swap calculator', 200, H - 25);
+  ctx.fillText('Real-time rotation signals & swap calculator', 210, H - 30);
   ctx.fillStyle = 'rgba(243,186,47,0.7)';
   ctx.font = 'bold 16px Inter, sans-serif';
   ctx.textAlign = 'right';
-  ctx.fillText('rotatortool-official.github.io', W - 60, H - 25);
+  ctx.fillText('rotatortool-official.github.io', W - 60, H - 30);
   ctx.textAlign = 'left';
 
-  /* Gold bottom accent */
+  /* Bottom gold accent */
   ctx.fillStyle = gold;
-  ctx.fillRect(0, H - 4, W, 4);
+  ctx.fillRect(0, H - 5, W, 5);
 
   /* ── Share via viral modal (reuse existing system) ── */
   try {
