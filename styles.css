@@ -1156,6 +1156,9 @@ td.qa-cell{text-align:center;width:28px;padding:0 4px !important;}
 }
 .str-share-btn{background:rgba(243,186,47,.1);border:1px solid rgba(243,186,47,.3);color:var(--bnb);font-size:11px;font-weight:700;letter-spacing:.06em;padding:5px 12px;border-radius:4px;cursor:pointer;font-family:var(--font-mono);transition:all .15s;}
 .str-share-btn:hover{background:rgba(243,186,47,.2);border-color:var(--bnb);}
+.str-public-link{margin-top:10px;text-align:center;font-family:var(--font-mono);font-size:11px;letter-spacing:.04em;}
+.str-public-link a{color:var(--bnb);text-decoration:none;padding:6px 10px;border:1px solid rgba(243,186,47,.25);border-radius:4px;transition:all .15s;display:inline-block;}
+.str-public-link a:hover{background:rgba(243,186,47,.1);border-color:var(--bnb);}
 
 /* ── FOOTER & MODALS — gold + white only ── */
 .faq-q{font-size:14px;font-weight:600;color:var(--bnb);margin-bottom:6px;letter-spacing:.04em;font-family:var(--font-mono);}

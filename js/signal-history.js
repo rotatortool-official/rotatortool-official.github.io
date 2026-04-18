@@ -321,6 +321,11 @@ var SignalHistory = (function() {
     var stats  = getAccuracyStats();
     var hist   = loadHistory();
 
+    /* Public track-record page link — shown in every render state */
+    var publicLink = '<div class="str-public-link">'
+      + '<a href="track-record.html" target="_blank" rel="noopener">'
+      + 'View the full public track record →</a></div>';
+
     /* Not enough data yet */
     if (!hist.length || hist.length < 2) {
       container.innerHTML = '<div class="str-empty">'
@@ -328,7 +333,8 @@ var SignalHistory = (function() {
         + '<div style="font-size:12px;color:var(--muted);line-height:1.7;">'
         + 'Signal tracking started. Come back in 7 days to see how our signals performed.'
         + '<br>Snapshots saved: <strong style="color:var(--bnb);">' + hist.length + '</strong> / 7 needed'
-        + '</div></div>';
+        + '</div></div>'
+        + publicLink;
       container.style.display = '';
       return;
     }
@@ -338,7 +344,8 @@ var SignalHistory = (function() {
         + '<div style="font-size:16px;margin-bottom:6px;">⏳</div>'
         + '<div style="font-size:12px;color:var(--muted);line-height:1.7;">'
         + 'Tracking ' + hist.length + ' days of signals. Results appear after 7 days.'
-        + '</div></div>';
+        + '</div></div>'
+        + publicLink;
       container.style.display = '';
       return;
     }
@@ -394,6 +401,8 @@ var SignalHistory = (function() {
       });
       html += '</div>';
     }
+
+    html += publicLink;
 
     container.innerHTML = html;
     container.style.display = '';
