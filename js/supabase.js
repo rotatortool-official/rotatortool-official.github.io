@@ -47,13 +47,66 @@ function supaRest(table, method, params) {
 }
 
 /* ── Save Pro status to Supabase ─────────────────────────────── */
+/* DEPRECATED: direct writes to pro_users are no longer permitted
+   (RLS + REVOKE enforce this since Step 0b). Pro is now granted only
+   through the SECURITY DEFINER RPCs:
+     • redeem_pro_code()         — for Pro-code redemption
+     • grant_pro_via_referrals() — for the 5-referral unlock
+     • grant_pro_via_tx()        — for verified crypto donations
+   This shim is kept as a no-op so older code paths don't throw. */
 function supaSavePro(uid, proCode) {
-  return supaRest('pro_users', 'POST', {
-    rot_uid:   uid,
-    pro_code:  proCode || 'referral',
-    is_pro:    true
+  return Promise.resolve();
+}
+
+/* ── Grant Pro via verified referral count (server-side check) ── */
+function supaGrantProViaReferrals(uid) {
+  var url = SUPA_URL + '/rest/v1/rpc/grant_pro_via_referrals';
+  return fetch(url, {
+    method: 'POST',
+    headers: {
+      'apikey':        SUPA_KEY,
+      'Authorization': 'Bearer ' + SUPA_KEY,
+      'Content-Type':  'application/json'
+    },
+    body: JSON.stringify({ p_uid: uid })
+  }).then(function(r) {
+    if (!r.ok) throw new Error('rpc ' + r.status);
+    return r.json();
+  }).then(function(result) {
+    if (result && typeof result.ok === 'boolean') return result;
+    return { ok: false, reason: 'invalid', count: 0 };
   }).catch(function(e) {
-    console.warn('[Supabase] save failed, Pro still works locally:', e.message);
+    console.warn('[Supabase] grant_pro_via_referrals failed:', e.message);
+    return { ok: false, reason: 'offline', count: 0 };
+  });
+}
+
+/* ── Grant Pro via verified crypto TX (server-side replay guard) ── */
+function supaGrantProViaTx(uid, txHash, network, amountText, contact) {
+  var url = SUPA_URL + '/rest/v1/rpc/grant_pro_via_tx';
+  return fetch(url, {
+    method: 'POST',
+    headers: {
+      'apikey':        SUPA_KEY,
+      'Authorization': 'Bearer ' + SUPA_KEY,
+      'Content-Type':  'application/json'
+    },
+    body: JSON.stringify({
+      p_uid:     uid,
+      p_tx_hash: txHash,
+      p_network: network || '',
+      p_amount:  amountText || '',
+      p_contact: contact || ''
+    })
+  }).then(function(r) {
+    if (!r.ok) throw new Error('rpc ' + r.status);
+    return r.json();
+  }).then(function(result) {
+    if (result && typeof result.ok === 'boolean') return result;
+    return { ok: false, reason: 'invalid' };
+  }).catch(function(e) {
+    console.warn('[Supabase] grant_pro_via_tx failed:', e.message);
+    return { ok: false, reason: 'offline' };
   });
 }
 
@@ -115,11 +168,12 @@ function supaRestoreOnLoad() {
   var uid = localStorage.getItem('rot_uid');
   if (!uid) return;
 
-  /* Already Pro locally? Make sure it's saved to Supabase too */
-  if (isPro) {
-    supaSavePro(uid, 'local-sync');
-    return;
-  }
+  /* Already Pro locally? Nothing to do — we can no longer push a
+     local-only Pro flag to the server (that was a forgery vector,
+     closed in Step 0b). If the server doesn't know about this uid
+     the user will just have local Pro on this device until they
+     redeem a code / tx / referrals. */
+  if (isPro) return;
 
   /* Not Pro locally — check Supabase */
   supaCheckPro(uid).then(function(hasPro) {

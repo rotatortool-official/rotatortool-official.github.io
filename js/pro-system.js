@@ -77,16 +77,21 @@ function creditReferrer() {
 
 function checkMyReferrals() {
   var d = getRefData();
-
-  /* Check Supabase for verified referral count (async, non-blocking) */
   var REF_NEEDED = (typeof REFERRAL_NEEDED !== 'undefined') ? REFERRAL_NEEDED : 5;
-  if (typeof supaCountReferrals === 'function' && !d.pro) {
-    supaCountReferrals(getMyId()).then(function(count) {
-      if (count >= REF_NEEDED && !isPro) {
+
+  /* Ask the server to count + grant in one atomic check.
+     Step 0b: only the grant_pro_via_referrals RPC can set is_pro=true.
+     The client cannot forge a count by padding localStorage. */
+  if (typeof supaGrantProViaReferrals === 'function' && !d.pro) {
+    supaGrantProViaReferrals(getMyId()).then(function(res) {
+      if (res && res.ok && !isPro) {
         isPro = true; savePro(true);
-        var dd = getRefData(); dd.pro = true; dd.refs = []; for (var i = 0; i < count; i++) dd.refs.push('supa-' + i); saveRefData(dd);
+        var count = res.count || REF_NEEDED;
+        var dd = getRefData();
+        dd.pro = true; dd.refs = [];
+        for (var i = 0; i < count; i++) dd.refs.push('supa-' + i);
+        saveRefData(dd);
         showProToast();
-        if (typeof supaSavePro === 'function') supaSavePro(getMyId(), 'referral');
         updateTierBadge();
         if (typeof initCategoryLocks === 'function') initCategoryLocks();
         updateProGates();
@@ -94,14 +99,14 @@ function checkMyReferrals() {
     });
   }
 
-  /* Also check localStorage (fallback for same-browser referrals) */
+  /* localStorage path is now display-only — we merge credited uids
+     into d.refs so the "(N/5)" counter UI still reflects same-browser
+     referrals, but Pro itself can only be granted by the server RPC
+     above. Any forged localStorage entry won't survive the server
+     count. */
   var key = 'rot_credit_for_' + getMyId(), cr = [];
   try { cr = JSON.parse(localStorage.getItem(key) || '[]'); } catch(e) {}
   cr.forEach(function(u) { if (d.refs.indexOf(u) < 0) d.refs.push(u); });
-  if (d.refs.length >= REF_NEEDED && !d.pro) {
-    d.pro = true; showProToast();
-    if (typeof supaSavePro === 'function') supaSavePro(getMyId(), 'referral');
-  }
   saveRefData(d); return d;
 }
 
@@ -320,11 +325,12 @@ function checkProCode() {
       return;
     }
 
-    /* Server confirmed the redeem — activate Pro */
+    /* Server confirmed the redeem — activate Pro locally.
+       The RPC already wrote pro_users (Step 0b), so we don't need
+       a separate supaSavePro call here. */
     isPro = true; savePro(true);
     updateTierBadge();
     if (res.reason === 'redeemed') incrementDonationCount();
-    if (typeof supaSavePro === 'function') supaSavePro(uid, code);
     closeModal('pro-modal');
     renderAll();
 
@@ -481,36 +487,55 @@ function submitProRequest() {
   status.style.color = 'var(--bnb)'; status.textContent = '⏳ Verifying transaction on ' + net + '...';
 
   verifyTxHash(hash, net).then(function(result) {
-    if (result.valid) {
-      /* Save as auto_approved + activate Pro */
-      var verifiedAmt = '$' + result.amount.toFixed(2) + ' ' + result.token;
-      supaSubmitProRequest({ amount: verifiedAmt, network: net, tx_hash: hash, contact: cont, status: 'auto_approved' })
-        .then(function() {
-          /* Activate Pro locally + sync to Supabase */
-          isPro = true; savePro(true);
-          if (typeof supaSavePro === 'function') supaSavePro(getMyId(), 'donation-' + net);
-          updateTierBadge();
-          if (typeof initCategoryLocks === 'function') initCategoryLocks();
-          updateProGates();
-          renderAll();
-
-          /* Show success */
-          _showProRequestPending('⚡ Payment verified! ' + verifiedAmt + ' via ' + result.network + '. <strong style="color:var(--green);">Pro is now active — thank you!</strong>');
-          try { localStorage.setItem('rot_pro_requested', '1'); } catch(e) {}
-
-          /* Show toast */
-          var t = document.createElement('div');
-          t.style.cssText = 'position:fixed;top:56px;left:50%;transform:translateX(-50%);background:var(--bg2);border:1px solid var(--green);border-radius:6px;padding:14px 22px;font-family:IBM Plex Mono,monospace;font-size:12px;color:var(--green);z-index:900;text-align:center;box-shadow:0 0 30px rgba(0,200,150,.2);letter-spacing:.06em;';
-          t.innerHTML = '⚡ PRO UNLOCKED — Payment verified!<br><span style="font-size:12px;color:var(--muted);margin-top:4px;display:block;">' + verifiedAmt + ' confirmed on ' + result.network + '</span>';
-          document.body.appendChild(t);
-          setTimeout(function() { t.style.transition = 'opacity .5s'; t.style.opacity = '0'; setTimeout(function() { t.remove(); }, 500); }, 5000);
-          setTimeout(function() { if (typeof startProTutorial === 'function') startProTutorial(); }, 3000);
-        });
-    } else {
+    if (!result.valid) {
       /* Verification failed — show reason */
       status.style.color = 'var(--red)';
       status.textContent = '❌ ' + result.reason;
+      return;
     }
+
+    /* Client-side chain check passed. Ask the server to atomically
+       record the pro_request (auto_approved) + upsert pro_users.
+       The RPC enforces one-tx_hash-one-Pro replay protection. */
+    var verifiedAmt = '$' + result.amount.toFixed(2) + ' ' + result.token;
+    var uid = getMyId();
+
+    if (typeof supaGrantProViaTx !== 'function') {
+      status.style.color = 'var(--red)';
+      status.textContent = 'Activation service unavailable. Please reload and try again.';
+      return;
+    }
+
+    supaGrantProViaTx(uid, hash, net, verifiedAmt, cont).then(function(res) {
+      if (!res.ok) {
+        status.style.color = 'var(--red)';
+        if (res.reason === 'tx_used') {
+          status.textContent = '❌ This TX hash has already been used to activate Pro.';
+        } else if (res.reason === 'offline') {
+          status.textContent = '❌ Could not reach the activation server. Please try again in a moment.';
+        } else {
+          status.textContent = '❌ Activation failed. Please contact support with your TX hash.';
+        }
+        return;
+      }
+
+      /* Server confirmed — activate Pro locally */
+      isPro = true; savePro(true);
+      updateTierBadge();
+      if (typeof initCategoryLocks === 'function') initCategoryLocks();
+      updateProGates();
+      renderAll();
+
+      _showProRequestPending('⚡ Payment verified! ' + verifiedAmt + ' via ' + result.network + '. <strong style="color:var(--green);">Pro is now active — thank you!</strong>');
+      try { localStorage.setItem('rot_pro_requested', '1'); } catch(e) {}
+
+      var t = document.createElement('div');
+      t.style.cssText = 'position:fixed;top:56px;left:50%;transform:translateX(-50%);background:var(--bg2);border:1px solid var(--green);border-radius:6px;padding:14px 22px;font-family:IBM Plex Mono,monospace;font-size:12px;color:var(--green);z-index:900;text-align:center;box-shadow:0 0 30px rgba(0,200,150,.2);letter-spacing:.06em;';
+      t.innerHTML = '⚡ PRO UNLOCKED — Payment verified!<br><span style="font-size:12px;color:var(--muted);margin-top:4px;display:block;">' + verifiedAmt + ' confirmed on ' + result.network + '</span>';
+      document.body.appendChild(t);
+      setTimeout(function() { t.style.transition = 'opacity .5s'; t.style.opacity = '0'; setTimeout(function() { t.remove(); }, 500); }, 5000);
+      setTimeout(function() { if (typeof startProTutorial === 'function') startProTutorial(); }, 3000);
+    });
   }).catch(function() {
     status.style.color = 'var(--red)';
     status.textContent = 'Verification error. Please try again in a moment.';
@@ -538,12 +563,14 @@ function _showProRequestPending(msg) {
   } catch(e) {}
 })();
 
-/* ── Plan-based Pro activation (lifetime — one-time contribution) ── */
+/* ── Plan-based Pro activation (lifetime — one-time contribution) ──
+   NOTE: currently unreferenced. Kept only so existing Skrill callbacks
+   (if wired up later) can still flip local Pro. Cloud-side Pro now
+   requires one of the verified paths (code / referral / TX RPC). */
 function activateProPlan(months) {
   isPro = true;
   savePro(true); /* lifetime — no expiry */
   updateTierBadge();
-  if (typeof supaSavePro === 'function') supaSavePro(getMyId(), 'supporter');
   if (typeof initCategoryLocks === 'function') initCategoryLocks();
   updateProGates();
   renderAll();
