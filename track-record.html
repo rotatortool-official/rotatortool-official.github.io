@@ -1,0 +1,445 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>ROTATOR — Signal Track Record</title>
+<meta name="description" content="Every signal Rotator has called, tracked and published. No cherry-picking.">
+
+<!-- Open Graph / Twitter card -->
+<meta property="og:title" content="Rotator Signal Track Record">
+<meta property="og:description" content="Every rotation signal, tracked and published. No cherry-picking.">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://rotatortool-official.github.io/track-record.html">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Rotator Signal Track Record">
+<meta name="twitter:description" content="Every rotation signal, tracked and published. No cherry-picking.">
+
+<link rel="icon" href="favicon.ico">
+<style>
+:root{
+  --bg:#05080c; --bg2:#0a0f17; --bg3:#0f1620; --bg4:#18212e;
+  --bdr:rgba(255,255,255,.06); --bdr2:rgba(255,255,255,.09);
+  --text:#e6eaf0; --muted:#7a8699;
+  --green:#00c896; --red:#ff4560; --bnb:#f3ba2f; --amber:#ffb347;
+  --pro:#a78bfa;
+  --font-mono:'IBM Plex Mono',ui-monospace,Menlo,monospace;
+  --font-ui:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{background:var(--bg);color:var(--text);font-family:var(--font-ui);-webkit-font-smoothing:antialiased;}
+body{min-height:100vh;display:flex;flex-direction:column;}
+a{color:inherit;text-decoration:none}
+.wrap{max-width:1100px;margin:0 auto;width:100%;padding:0 20px;}
+
+/* ── Header ─────────────────────────────────────────────── */
+.topbar{border-bottom:1px solid var(--bdr);background:var(--bg2);padding:14px 0;}
+.topbar-inner{display:flex;align-items:center;justify-content:space-between;gap:16px;}
+.logo{font-family:var(--font-mono);font-size:20px;font-weight:800;letter-spacing:.06em;color:var(--bnb);}
+.logo .dot-g{color:var(--green)} .logo .dot-r{color:var(--red)}
+.back-btn{font-size:12px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);
+  padding:8px 14px;border:1px solid var(--bdr2);border-radius:4px;transition:all .15s;}
+.back-btn:hover{background:var(--bg3);color:var(--text);border-color:rgba(243,186,47,.4);}
+
+/* ── Hero ──────────────────────────────────────────────── */
+.hero{text-align:center;padding:50px 0 40px;border-bottom:1px solid var(--bdr);}
+.hero-kicker{font-family:var(--font-mono);font-size:12px;letter-spacing:.24em;color:var(--bnb);margin-bottom:12px;}
+.hero h1{font-family:var(--font-mono);font-size:clamp(28px,5vw,48px);font-weight:800;letter-spacing:.04em;margin-bottom:10px;}
+.hero-sub{color:var(--muted);font-size:15px;max-width:580px;margin:0 auto 30px;line-height:1.5;}
+.acc-box{display:inline-flex;flex-direction:column;align-items:center;padding:28px 48px;
+  background:var(--bg2);border:1px solid var(--bdr2);border-radius:8px;min-width:280px;}
+.acc-big{font-family:var(--font-mono);font-size:72px;font-weight:800;line-height:1;letter-spacing:-.02em;}
+.acc-lbl{font-size:12px;letter-spacing:.16em;text-transform:uppercase;color:var(--muted);margin-top:8px;}
+.acc-detail{margin-top:18px;font-family:var(--font-mono);font-size:13px;color:var(--muted);}
+.acc-detail .sep{opacity:.4;margin:0 8px;}
+.acc-detail .ok{color:var(--green)} .acc-detail .bad{color:var(--red)}
+.window-pill{display:inline-block;margin-top:18px;padding:4px 12px;
+  background:rgba(243,186,47,.08);border:1px solid rgba(243,186,47,.2);border-radius:3px;
+  font-family:var(--font-mono);font-size:11px;letter-spacing:.1em;color:var(--bnb);}
+
+/* ── Section ───────────────────────────────────────────── */
+.section{padding:40px 0;}
+.section-hdr{display:flex;justify-content:space-between;align-items:baseline;
+  margin-bottom:20px;padding-bottom:10px;border-bottom:1px solid var(--bdr);}
+.section-title{font-family:var(--font-mono);font-size:14px;letter-spacing:.2em;text-transform:uppercase;color:var(--bnb);}
+.section-count{font-family:var(--font-mono);font-size:12px;color:var(--muted);}
+
+/* ── Call cards ───────────────────────────────────────── */
+.grid{display:grid;gap:12px;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));}
+.card{background:var(--bg2);border:1px solid var(--bdr);border-radius:6px;
+  padding:14px 16px;transition:border-color .15s,transform .15s;}
+.card:hover{border-color:var(--bdr2);transform:translateY(-1px);}
+.card.win{border-left:3px solid var(--green)}
+.card.miss{border-left:3px solid var(--red)}
+.card-top{display:flex;align-items:center;gap:8px;margin-bottom:10px;}
+.card-sym{font-family:var(--font-mono);font-size:18px;font-weight:800;letter-spacing:.04em;color:var(--bnb);}
+.card-signal{font-family:var(--font-mono);font-size:10px;letter-spacing:.08em;padding:2px 6px;border-radius:3px;}
+.card-signal.bull{background:rgba(0,200,150,.12);color:var(--green);border:1px solid rgba(0,200,150,.3);}
+.card-signal.bear{background:rgba(255,69,96,.12);color:var(--red);border:1px solid rgba(255,69,96,.3);}
+.card-age{margin-left:auto;font-family:var(--font-mono);font-size:11px;color:var(--muted);}
+.card-prices{display:flex;align-items:center;gap:8px;font-family:var(--font-mono);font-size:14px;margin-bottom:8px;}
+.card-prices .arrow{color:var(--muted);opacity:.6;}
+.card-change{font-family:var(--font-mono);font-size:22px;font-weight:800;}
+.card-change.up{color:var(--green)} .card-change.down{color:var(--red)}
+.card-proof{font-family:var(--font-mono);font-size:11px;color:var(--muted);margin-top:8px;letter-spacing:.02em;}
+
+/* ── Empty / Loading ──────────────────────────────────── */
+.status{text-align:center;padding:50px 20px;color:var(--muted);}
+.status-icon{font-size:42px;margin-bottom:16px;}
+.status h3{font-family:var(--font-mono);font-size:16px;letter-spacing:.12em;color:var(--text);margin-bottom:10px;}
+.status p{font-size:14px;line-height:1.6;max-width:480px;margin:0 auto;}
+
+/* ── Footer CTA ───────────────────────────────────────── */
+.cta{text-align:center;padding:50px 0;border-top:1px solid var(--bdr);background:var(--bg2);}
+.cta h2{font-family:var(--font-mono);font-size:clamp(18px,3vw,24px);letter-spacing:.06em;margin-bottom:12px;}
+.cta p{color:var(--muted);margin-bottom:24px;font-size:14px;}
+.cta-btn{display:inline-block;padding:14px 28px;background:var(--bnb);color:#000;font-family:var(--font-mono);
+  font-size:13px;font-weight:800;letter-spacing:.14em;text-transform:uppercase;border-radius:4px;transition:all .15s;}
+.cta-btn:hover{transform:translateY(-1px);box-shadow:0 6px 20px rgba(243,186,47,.3);}
+
+/* ── Footer ───────────────────────────────────────────── */
+.footer{padding:20px 0;font-family:var(--font-mono);font-size:11px;color:var(--muted);text-align:center;letter-spacing:.06em;}
+.footer a{color:var(--bnb);}
+.disclaimer{max-width:720px;margin:0 auto 10px;line-height:1.5;opacity:.8;}
+
+@media (max-width:700px){
+  .hero{padding:30px 0 24px;}
+  .acc-box{padding:22px 28px;min-width:0;width:100%;}
+  .acc-big{font-size:56px;}
+  .section{padding:28px 0;}
+  .card{padding:12px 14px;}
+}
+</style>
+</head>
+<body>
+
+<header class="topbar">
+  <div class="wrap topbar-inner">
+    <a href="/" class="logo">R<span class="dot-g">O</span>TAT<span class="dot-r">O</span>R</a>
+    <a href="/" class="back-btn">← Back to app</a>
+  </div>
+</header>
+
+<section class="hero">
+  <div class="wrap">
+    <div class="hero-kicker">◆ SIGNAL TRACK RECORD</div>
+    <h1>Every call, tracked.</h1>
+    <p class="hero-sub">
+      Rotator snapshots its top bullish and lagging signals every day. After 7 days, we compare the call to the actual price. The result is published here — wins and misses both.
+    </p>
+    <div id="accuracy-box" class="acc-box">
+      <div class="acc-big" id="acc-pct">—</div>
+      <div class="acc-lbl">Signal Accuracy</div>
+      <div class="acc-detail" id="acc-detail">Loading…</div>
+    </div>
+    <div>
+      <span class="window-pill" id="window-pill">Last 30 days</span>
+    </div>
+  </div>
+</section>
+
+<main class="wrap">
+
+  <section class="section">
+    <div class="section-hdr">
+      <span class="section-title">🟢 Wins — Calls that confirmed</span>
+      <span class="section-count" id="wins-count"></span>
+    </div>
+    <div id="wins-grid" class="grid"></div>
+    <div id="wins-empty"></div>
+  </section>
+
+  <section class="section">
+    <div class="section-hdr">
+      <span class="section-title">🔴 Misses — Where we were wrong</span>
+      <span class="section-count" id="miss-count"></span>
+    </div>
+    <div id="miss-grid" class="grid"></div>
+    <div id="miss-empty"></div>
+  </section>
+
+</main>
+
+<section class="cta">
+  <div class="wrap">
+    <h2>See what's rotating right now</h2>
+    <p>Live signals across 200+ coins, updated continuously. Free forever.</p>
+    <a href="/" class="cta-btn">Open Rotator →</a>
+  </div>
+</section>
+
+<footer class="footer">
+  <div class="wrap">
+    <div class="disclaimer">
+      Track record reflects Rotator's own scoring system (7-day price change after each snapshot). A signal is "confirmed" when price moves 2% or more in the signalled direction. Not financial advice — DYOR before any trade.
+    </div>
+    <div>ROTATOR © 2026 · <a href="/">rotatortool-official.github.io</a></div>
+  </div>
+</footer>
+
+<script>
+/* ──────────────────────────────────────────────────────────────
+   Standalone track-record renderer.
+   Reads signal_snapshots from Supabase + current prices from
+   CoinGecko, computes accuracy, renders wins & misses.
+   No dependencies on the main app — this page is deep-linkable.
+─────────────────────────────────────────────────────────────── */
+(function() {
+  var SUPA_URL = 'https://wyvwycatgexpbugzkdfw.supabase.co';
+  var SUPA_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Ind5dnd5Y2F0Z2V4cGJ1Z3prZGZ3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU0ODcwNTAsImV4cCI6MjA5MTA2MzA1MH0.msUPOUjd1iZwuG6SxFlhr-0xYPt6fqTUy5iOYnf8Z20';
+
+  var WINDOW_DAYS        = 30;
+  var CONFIRM_DAYS_MIN   = 7;    /* snapshot must be 7+ days old to be evaluated */
+  var CONFIRM_THRESHOLD  = 2;    /* % move in signalled direction to count as confirmed */
+  var MAX_CARDS_PER_LIST = 12;
+
+  /* ── Price formatter ───────────────────────────────────── */
+  function fmtP(p) {
+    if (p == null || isNaN(p)) return '—';
+    if (p >= 1000) return '$' + p.toLocaleString('en-US', {maximumFractionDigits: 0});
+    if (p >= 1)    return '$' + p.toFixed(2);
+    if (p >= 0.01) return '$' + p.toFixed(4);
+    return '$' + Number(p).toPrecision(4);
+  }
+
+  /* ── Fetch snapshots from Supabase ─────────────────────── */
+  function fetchSnapshots() {
+    var cutoff = new Date(Date.now() - WINDOW_DAYS * 864e5);
+    var cutoffStr = cutoff.getFullYear() + '-'
+                  + String(cutoff.getMonth() + 1).padStart(2, '0') + '-'
+                  + String(cutoff.getDate()).padStart(2, '0');
+    var url = SUPA_URL + '/rest/v1/signal_snapshots'
+      + '?snap_date=gte.' + cutoffStr
+      + '&select=snap_date,coin_id,coin_sym,coin_name,signal_type,signal_label,score,price'
+      + '&order=snap_date.asc';
+    return fetch(url, {
+      headers: { 'apikey': SUPA_KEY, 'Authorization': 'Bearer ' + SUPA_KEY }
+    }).then(function(r) { if (!r.ok) throw new Error('snap ' + r.status); return r.json(); });
+  }
+
+  /* ── Fetch current prices (top 250 covers our universe). ─
+     CoinGecko is rate-limited so we fall back to Supabase's
+     shared market_cache on failure. */
+  function fetchCurrentPrices() {
+    var cgUrl = 'https://api.coingecko.com/api/v3/coins/markets'
+      + '?vs_currency=usd&order=market_cap_desc&per_page=250&page=1&sparkline=false';
+    return fetch(cgUrl)
+      .then(function(r) { if (!r.ok) throw new Error('cg ' + r.status); return r.json(); })
+      .then(function(rows) {
+        var map = {};
+        rows.forEach(function(c) { map[c.id] = Number(c.current_price); });
+        return map;
+      })
+      .catch(function() {
+        /* Fallback to Supabase market_cache — any cached coins_markets_* row */
+        var url = SUPA_URL + '/rest/v1/market_cache'
+          + '?select=data,updated_at&order=updated_at.desc&limit=5';
+        return fetch(url, {
+          headers: { 'apikey': SUPA_KEY, 'Authorization': 'Bearer ' + SUPA_KEY }
+        }).then(function(r) { return r.ok ? r.json() : []; })
+          .then(function(rows) {
+            var map = {};
+            (rows || []).forEach(function(row) {
+              if (Array.isArray(row.data)) {
+                row.data.forEach(function(c) {
+                  if (c && c.id && c.current_price && !map[c.id]) map[c.id] = Number(c.current_price);
+                });
+              }
+            });
+            return map;
+          }).catch(function() { return {}; });
+      });
+  }
+
+  /* ── Evaluate snapshots → wins/misses lists + stats ────── */
+  function evaluate(snaps, priceMap) {
+    var wins = [], misses = [];
+    var tBull = 0, cBull = 0, tLag = 0, cLag = 0;
+    var now = new Date();
+
+    snaps.forEach(function(r) {
+      var snapDate = new Date(r.snap_date + 'T00:00:00');
+      var daysAgo = Math.round((now - snapDate) / 864e5);
+      if (daysAgo < CONFIRM_DAYS_MIN) return;
+
+      var priceThen = r.price != null ? Number(r.price) : null;
+      var priceNow  = priceMap[r.coin_id];
+      if (!priceThen || !priceNow) return;
+
+      var change = ((priceNow - priceThen) / priceThen) * 100;
+      var rounded = Math.round(change * 10) / 10;
+
+      var record = {
+        id: r.coin_id, sym: r.coin_sym, name: r.coin_name || '',
+        signal: r.signal_label || '', score: r.score != null ? Number(r.score) : null,
+        date: r.snap_date, daysAgo: daysAgo,
+        priceThen: priceThen, priceNow: priceNow,
+        change: rounded, type: r.signal_type
+      };
+
+      var correct;
+      if (r.signal_type === 'bullish') {
+        tBull++;
+        correct = change >= CONFIRM_THRESHOLD;
+        if (change > 0) cBull++;
+      } else if (r.signal_type === 'lagging') {
+        tLag++;
+        correct = change <= -CONFIRM_THRESHOLD;
+        if (change < 0) cLag++;
+      } else {
+        return;
+      }
+      record.correct = correct;
+      (correct ? wins : misses).push(record);
+    });
+
+    /* Deduplicate by coin (keep the most impressive move per coin). */
+    function dedupe(list, descending) {
+      list.sort(function(a, b) {
+        return descending ? Math.abs(b.change) - Math.abs(a.change)
+                          : Math.abs(a.change) - Math.abs(b.change);
+      });
+      var seen = {};
+      return list.filter(function(x) {
+        if (seen[x.id]) return false;
+        seen[x.id] = true;
+        return true;
+      });
+    }
+
+    wins   = dedupe(wins,   true);
+    misses = dedupe(misses, true);
+
+    var total   = tBull + tLag;
+    var correct = cBull + cLag;
+    var acc = total > 0 ? Math.round((correct / total) * 100) : null;
+
+    return {
+      wins: wins, misses: misses,
+      stats: { total: total, correct: correct, accuracy: acc,
+               bullTotal: tBull, bullCorrect: cBull,
+               lagTotal: tLag, lagCorrect: cLag }
+    };
+  }
+
+  /* ── DOM helpers ───────────────────────────────────────── */
+  function el(tag, attrs, children) {
+    var e = document.createElement(tag);
+    Object.keys(attrs || {}).forEach(function(k) {
+      if (k === 'className') e.className = attrs[k];
+      else if (k === 'textContent') e.textContent = attrs[k];
+      else e.setAttribute(k, attrs[k]);
+    });
+    (children || []).forEach(function(c) { e.appendChild(c); });
+    return e;
+  }
+
+  function renderCard(r) {
+    var isBull = r.type === 'bullish';
+    var card = el('div', { className: 'card ' + (r.correct ? 'win' : 'miss') });
+    card.innerHTML =
+      '<div class="card-top">'
+    +   '<span class="card-sym">' + escape(r.sym) + '</span>'
+    +   '<span class="card-signal ' + (isBull ? 'bull' : 'bear') + '">'
+    +     escape(r.signal || (isBull ? 'BULLISH' : 'LAGGING'))
+    +   '</span>'
+    +   '<span class="card-age">' + r.daysAgo + 'd ago</span>'
+    + '</div>'
+    + '<div class="card-prices">'
+    +   '<span>' + fmtP(r.priceThen) + '</span>'
+    +   '<span class="arrow">→</span>'
+    +   '<span>' + fmtP(r.priceNow) + '</span>'
+    + '</div>'
+    + '<div class="card-change ' + (r.change >= 0 ? 'up' : 'down') + '">'
+    +   (r.change >= 0 ? '+' : '') + r.change + '%'
+    + '</div>'
+    + '<div class="card-proof">'
+    +   'Flagged as ' + escape(r.signal || (isBull ? 'BULLISH' : 'LAGGING'))
+    +   (r.score != null ? ' (score ' + r.score + ')' : '')
+    +   ' — ' + (r.correct ? 'confirmed ✓' : 'did not confirm')
+    + '</div>';
+    return card;
+  }
+
+  function escape(s) {
+    return String(s == null ? '' : s)
+      .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+  }
+
+  /* ── Render ────────────────────────────────────────────── */
+  function render(result) {
+    var stats = result.stats;
+    var pct  = document.getElementById('acc-pct');
+    var det  = document.getElementById('acc-detail');
+    var box  = document.getElementById('accuracy-box');
+
+    if (stats.accuracy == null) {
+      pct.textContent = '—';
+      det.innerHTML = 'Tracking signals. Results appear after signals reach 7 days old.';
+      box.style.opacity = '.6';
+    } else {
+      pct.textContent = stats.accuracy + '%';
+      pct.style.color = stats.accuracy >= 65 ? 'var(--green)'
+                      : stats.accuracy >= 50 ? 'var(--bnb)' : 'var(--red)';
+      det.innerHTML =
+        '<span>' + stats.correct + ' of ' + stats.total + ' confirmed</span>'
+      + '<span class="sep">·</span>'
+      + '<span class="ok">Bullish ' + stats.bullCorrect + '/' + stats.bullTotal + '</span>'
+      + '<span class="sep">·</span>'
+      + '<span class="bad">Lagging ' + stats.lagCorrect + '/' + stats.lagTotal + '</span>';
+    }
+
+    function fill(gridId, emptyId, countId, list, emptyMsg) {
+      var grid  = document.getElementById(gridId);
+      var empty = document.getElementById(emptyId);
+      var count = document.getElementById(countId);
+      grid.innerHTML = '';
+      empty.innerHTML = '';
+      count.textContent = list.length ? list.length + (list.length === 1 ? ' call' : ' calls') : '';
+      if (!list.length) {
+        empty.innerHTML = '<div class="status"><div class="status-icon">⏳</div>'
+                        + '<h3>Nothing to show yet</h3>'
+                        + '<p>' + emptyMsg + '</p></div>';
+        return;
+      }
+      list.slice(0, MAX_CARDS_PER_LIST).forEach(function(r) { grid.appendChild(renderCard(r)); });
+    }
+
+    fill('wins-grid',  'wins-empty',  'wins-count',
+         result.wins,   'Signals reach the wins list once they move ≥2% in the direction we flagged, 7+ days after being called.');
+    fill('miss-grid',  'miss-empty',  'miss-count',
+         result.misses, 'No confirmed misses yet in this window. This list is published alongside the wins for honest accounting.');
+  }
+
+  function showError(msg) {
+    var pct = document.getElementById('acc-pct');
+    var det = document.getElementById('acc-detail');
+    pct.textContent = '—';
+    det.textContent = msg;
+    document.getElementById('wins-empty').innerHTML =
+      '<div class="status"><div class="status-icon">⚠️</div>'
+      + '<h3>Could not load data</h3><p>' + escape(msg) + '</p></div>';
+  }
+
+  /* ── Go ────────────────────────────────────────────────── */
+  Promise.all([fetchSnapshots(), fetchCurrentPrices()])
+    .then(function(vals) {
+      var snaps = vals[0] || [];
+      var priceMap = vals[1] || {};
+      if (!snaps.length) {
+        var pct = document.getElementById('acc-pct');
+        pct.textContent = '—';
+        document.getElementById('acc-detail').innerHTML =
+          'No snapshots yet. Come back after the first few days of tracking.';
+        return;
+      }
+      var result = evaluate(snaps, priceMap);
+      render(result);
+    })
+    .catch(function(e) {
+      showError(e && e.message ? e.message : 'Network error');
+    });
+})();
+</script>
+</body>
+</html>
