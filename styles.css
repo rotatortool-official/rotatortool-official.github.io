@@ -2179,6 +2179,12 @@ td.qa-cell{text-align:center;width:28px;padding:0 4px !important;}
 /* Desktop: force all collapse-body visible regardless of collapsed class */
 @media(min-width:701px){
   .collapse-body.collapsed{max-height:none !important;opacity:1 !important;pointer-events:auto !important;overflow:visible !important;}
+  /* Signal Track Record is the exception — on desktop it lives above
+     the leaderboard in the centre column and MUST collapse so it
+     doesn't push the table down. Its header stays visible, and its
+     body honours the collapsed class like on mobile. */
+  #ch-trackrecord{display:flex;}
+  #cb-trackrecord.collapsed{max-height:0 !important;opacity:0 !important;pointer-events:none !important;overflow:hidden !important;}
 }
 
 /* Mobile portrait: show collapsible headers, collapse sections by default */
