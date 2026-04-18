@@ -421,6 +421,7 @@ var SignalHistory = (function() {
     var proven = getProvenSignals();
     var p = proven.find(function(x) { return x.id === coinId; });
     if (!p) return;
+    if (window.Analytics) Analytics.track('Share', { source: 'told-you-so', coin: p.sym, signal: p.type });
 
     var W = 1200, H = 630;
     var can = document.createElement('canvas');

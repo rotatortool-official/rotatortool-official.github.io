@@ -86,6 +86,7 @@ function checkMyReferrals() {
     supaGrantProViaReferrals(getMyId()).then(function(res) {
       if (res && res.ok && !isPro) {
         isPro = true; savePro(true);
+        if (window.Analytics) Analytics.track('Pro Unlocked', { method: 'referral' });
         var count = res.count || REF_NEEDED;
         var dd = getRefData();
         dd.pro = true; dd.refs = [];
@@ -161,6 +162,7 @@ function showExpiryWarning(daysLeft) {
 
 /* ── Pro modal ───────────────────────────────────────────────── */
 function openPro() {
+  if (window.Analytics) Analytics.track('Pro Modal Opened');
   var body  = document.getElementById('pro-modal-body');
   var d     = checkMyReferrals();
   var count = d.refs.length, needed = (typeof REFERRAL_NEEDED !== 'undefined') ? REFERRAL_NEEDED : 5, link = getMyReferralLink();
@@ -186,6 +188,22 @@ function openPro() {
           + '<button class="code-btn" onclick="copyRecoveryKey()">COPY</button>'
         + '</div>'
       + '</div>'
+      + '<div class="refx-section" style="margin-top:14px;">'
+        + '<div class="refx-hdr">'
+          + '<span class="refx-title">💜 SHARE ROTATOR WITH FRIENDS</span>'
+        + '</div>'
+        + '<div class="refx-sub">Rotator stays independent because supporters like you spread the word. Share the love:</div>'
+        + '<div class="refx-row">'
+          + '<input class="refx-link" value="' + link + '" readonly onclick="this.select()">'
+          + '<button class="refx-copy" id="copy-ref-btn" onclick="copyRefLink()">COPY</button>'
+        + '</div>'
+        + '<div class="refx-channels">'
+          + '<button class="refx-ch refx-ch-x"  onclick="shareReferral(\'x\')">𝕏 Post</button>'
+          + '<button class="refx-ch refx-ch-tg" onclick="shareReferral(\'telegram\')">✈ Telegram</button>'
+          + '<button class="refx-ch refx-ch-wa" onclick="shareReferral(\'whatsapp\')">💬 WhatsApp</button>'
+          + '<button class="refx-ch refx-ch-rd" onclick="shareReferral(\'reddit\')">◉ Reddit</button>'
+        + '</div>'
+      + '</div>'
       + '<button class="revoke-btn" onclick="revokePro()">' + _('pro_revoke') + '</button>'
       + '</div>';
   } else {
@@ -205,6 +223,26 @@ function openPro() {
           + '<div style="display:flex;justify-content:space-between;"><span style="color:var(--muted);">—</span><span style="color:var(--pro);">↔ Best Time to Swap</span></div>'
           + '<div style="display:flex;justify-content:space-between;"><span style="color:var(--muted);">—</span><span style="color:var(--pro);">🔄 Rotation Opportunities</span></div>'
           + '<div style="display:flex;justify-content:space-between;"><span style="color:var(--muted);">—</span><span style="color:var(--pro);">📊 Score Breakdown</span></div>'
+        + '</div>'
+      + '</div>'
+
+      /* ── Viral: Invite 5 friends → Pro free ── */
+      + '<div class="refx-section">'
+        + '<div class="refx-hdr">'
+          + '<span class="refx-title">🎁 INVITE ' + needed + ' FRIENDS → UNLOCK PRO FREE</span>'
+          + '<span class="refx-count">' + count + '/' + needed + '</span>'
+        + '</div>'
+        + '<div class="refx-bar"><div class="refx-bar-fill" style="width:' + Math.min(100, pct) + '%;"></div></div>'
+        + '<div class="refx-sub">' + (count >= needed ? 'You\'ve hit the goal — refresh to unlock Pro.' : 'Share your link. When ' + (needed - count) + ' more friends open Rotator through it, Pro unlocks for life.') + '</div>'
+        + '<div class="refx-row">'
+          + '<input class="refx-link" id="refx-link" value="' + link + '" readonly onclick="this.select()">'
+          + '<button class="refx-copy" id="copy-ref-btn" onclick="copyRefLink()">COPY</button>'
+        + '</div>'
+        + '<div class="refx-channels">'
+          + '<button class="refx-ch refx-ch-x"  onclick="shareReferral(\'x\')">𝕏 Post</button>'
+          + '<button class="refx-ch refx-ch-tg" onclick="shareReferral(\'telegram\')">✈ Telegram</button>'
+          + '<button class="refx-ch refx-ch-wa" onclick="shareReferral(\'whatsapp\')">💬 WhatsApp</button>'
+          + '<button class="refx-ch refx-ch-rd" onclick="shareReferral(\'reddit\')">◉ Reddit</button>'
         + '</div>'
       + '</div>'
 
@@ -329,6 +367,7 @@ function checkProCode() {
        The RPC already wrote pro_users (Step 0b), so we don't need
        a separate supaSavePro call here. */
     isPro = true; savePro(true);
+    if (window.Analytics) Analytics.track('Pro Unlocked', { method: 'code' });
     updateTierBadge();
     if (res.reason === 'redeemed') incrementDonationCount();
     closeModal('pro-modal');
@@ -349,6 +388,28 @@ function copyRefLink() {
   var done = function() { btn.textContent = '✓ COPIED!'; btn.classList.add('ok'); setTimeout(function() { btn.textContent = 'COPY REFERRAL LINK'; btn.classList.remove('ok'); }, 2500); };
   if (navigator.clipboard) { navigator.clipboard.writeText(link).then(done).catch(done); }
   else { var t = document.createElement('textarea'); t.value = link; document.body.appendChild(t); t.select(); document.execCommand('copy'); document.body.removeChild(t); done(); }
+  if (window.Analytics) Analytics.track('Share', { source: 'referral', channel: 'copy' });
+}
+
+/* ── Pre-composed share intents for the referral link ────────── */
+function shareReferral(channel) {
+  var link = getMyReferralLink();
+  var text = 'I\'ve been using Rotator to find which crypto is rotating before the crowd — real-time signals, momentum scoring, and a public track record. Free to try:';
+  var title = 'Rotator — Crypto Rotation Screener';
+  var url;
+  if (channel === 'x') {
+    url = 'https://x.com/intent/tweet?text=' + encodeURIComponent(text + '\n\n' + link);
+  } else if (channel === 'telegram') {
+    url = 'https://t.me/share/url?url=' + encodeURIComponent(link) + '&text=' + encodeURIComponent(text);
+  } else if (channel === 'whatsapp') {
+    url = 'https://wa.me/?text=' + encodeURIComponent(text + ' ' + link);
+  } else if (channel === 'reddit') {
+    url = 'https://reddit.com/submit?url=' + encodeURIComponent(link) + '&title=' + encodeURIComponent(title);
+  } else {
+    return;
+  }
+  window.open(url, '_blank', 'noopener,width=600,height=500');
+  if (window.Analytics) Analytics.track('Share', { source: 'referral', channel: channel });
 }
 
 function revokePro() {
@@ -521,6 +582,7 @@ function submitProRequest() {
 
       /* Server confirmed — activate Pro locally */
       isPro = true; savePro(true);
+      if (window.Analytics) Analytics.track('Pro Unlocked', { method: 'tx', network: result.network });
       updateTierBadge();
       if (typeof initCategoryLocks === 'function') initCategoryLocks();
       updateProGates();

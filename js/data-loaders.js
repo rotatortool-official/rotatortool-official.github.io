@@ -1977,6 +1977,7 @@ function shareTo(platform) {
 function shareAsImage() {
   if (!_tdCoin) return;
   var c = _tdCoin;
+  if (window.Analytics) Analytics.track('Share', { source: 'coin-detail', coin: c.symbol || c.sym || '' });
 
   /* ── Gather visible data from the detail panel ── */
   var sym   = (document.getElementById('td-sym')  || {}).textContent || c.sym || '';

@@ -887,6 +887,7 @@ function shareSwapCard() {
   if (!st.from || !st.to) return;
   var fromSym = RatioTracker.lbl(st.from);
   var toSym   = RatioTracker.lbl(st.to);
+  if (window.Analytics) Analytics.track('Share', { source: 'swap', pair: fromSym + '/' + toSym });
 
   /* Read UI values */
   var amtEl   = document.getElementById('rt-calc-amt');

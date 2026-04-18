@@ -181,6 +181,7 @@ function supaRestoreOnLoad() {
       isPro = true;
       savePro(true);
       updateTierBadge();
+      if (window.Analytics) Analytics.track('Pro Unlocked', { method: 'cloud-restore' });
       console.log('[Supabase] Pro restored from cloud for uid:', uid);
     }
   });
@@ -198,6 +199,7 @@ function supaRecoverPro(inputUid) {
       isPro = true;
       savePro(true);
       updateTierBadge();
+      if (window.Analytics) Analytics.track('Pro Unlocked', { method: 'recovery' });
       return true;
     }
     return false;
