@@ -10,7 +10,7 @@ Each file has ONE job. Edit the right file for what you want to change.
 
 | File | What it controls | Edit when you want to... |
 |------|-----------------|--------------------------|
-| `js/config.js` | Coin lists, forex pairs, stocks, Pro codes, donation goal, Pro tier plans | Add/remove assets, add new Pro codes, update donation target, change Pro pricing |
+| `js/config.js` | Coin lists, forex pairs, stocks, donation goal, Pro tier plans | Add/remove assets, update donation target, change Pro pricing |
 | `js/api-pool.js` | Fetch logic, proxy rotation, caching, AV keys | Add API keys, change cache times, add a new proxy |
 | `js/pro-system.js` | Referral system, Pro modal, tier badge, Pro feature gates, Skrill helpers | Change Pro modal wording, referral count, locked features, payment links |
 | `js/signals.js` | Rotation tiles, leaderboard, scoring engine, category locks | Change signal thresholds, scoring weights, free/pro category list |
@@ -47,13 +47,17 @@ Each file has ONE job. Edit the right file for what you want to change.
 ## 🔧 Most common edits
 
 ### Add a new Pro code
-Open `js/config.js`, find `VALID_CODES`, add a string:
-```js
-var VALID_CODES = [
-  'ROT-2026-ALPHA',
-  'ROT-2026-YOURNEWCODE',  // ← add here
-];
+Codes live in Supabase, **not** in `config.js` (moved server-side so they
+can't be extracted from page source). Open the Supabase SQL editor and run:
+```sql
+INSERT INTO pro_codes (code, note)
+  VALUES ('ROT-2026-YOURNEWCODE', 'who you gave it to');
 ```
+To revoke a code:
+```sql
+UPDATE pro_codes SET active = false WHERE code = 'ROT-2026-XXX';
+```
+First-time setup: run `sql/pro_codes_table.sql` once in the Supabase SQL editor.
 
 ### Update donation progress bar
 Open `js/config.js`, change:

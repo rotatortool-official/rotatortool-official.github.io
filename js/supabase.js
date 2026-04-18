@@ -57,6 +57,45 @@ function supaSavePro(uid, proCode) {
   });
 }
 
+/* ── Server-side Pro code redemption ─────────────────────────── */
+/**
+ * Redeem a Pro code via the Supabase RPC (server validates).
+ * Codes are NOT shipped to the browser — the full code list lives
+ * only in the pro_codes table, locked from the anon role. This
+ * function is the only way for the client to check a code.
+ *
+ * @param   {string} code — user-entered code (any case; server normalises)
+ * @param   {string} uid  — this device's rot_uid
+ * @returns {Promise<{ok:boolean, reason:string}>}
+ *   ok=true,  reason='redeemed'       — first-time successful redeem
+ *   ok=true,  reason='already_yours'  — same uid re-activating (re-install)
+ *   ok=false, reason='invalid'        — unknown code
+ *   ok=false, reason='inactive'       — revoked by admin
+ *   ok=false, reason='used'           — consumed by a different device
+ *   ok=false, reason='offline'        — network / Supabase unreachable
+ */
+function supaRedeemProCode(code, uid) {
+  var url = SUPA_URL + '/rest/v1/rpc/redeem_pro_code';
+  return fetch(url, {
+    method: 'POST',
+    headers: {
+      'apikey':        SUPA_KEY,
+      'Authorization': 'Bearer ' + SUPA_KEY,
+      'Content-Type':  'application/json'
+    },
+    body: JSON.stringify({ p_code: code, p_uid: uid })
+  }).then(function(r) {
+    if (!r.ok) throw new Error('rpc ' + r.status);
+    return r.json();
+  }).then(function(result) {
+    if (result && typeof result.ok === 'boolean') return result;
+    return { ok: false, reason: 'invalid' };
+  }).catch(function(e) {
+    console.warn('[Supabase] code redemption failed:', e.message);
+    return { ok: false, reason: 'offline' };
+  });
+}
+
 /* ── Check if uid has Pro in Supabase ────────────────────────── */
 function supaCheckPro(uid) {
   return supaRest('pro_users', 'GET', {

@@ -6,7 +6,8 @@
    • ADD/REMOVE COINS:        Edit FREE_COINS list
    • ADD/REMOVE FOREX PAIRS:  Edit FOREX_PAIRS list (set pro:true to lock behind Pro)
    • ADD/REMOVE STOCKS:       Edit STOCKS_LIST
-   • ADD PRO CODES:           Add a string to VALID_CODES
+   • ADD PRO CODES:           Run an INSERT in Supabase (pro_codes table) —
+                              codes live server-side, see sql/pro_codes_table.sql
    • UPDATE DONATION GOAL:    Change DONATION_GOAL and DONATION_CURRENT
    • UPDATE TOKENOMICS:       Edit TOKENOMICS_DB
 ══════════════════════════════════════════════════════════════════ */
@@ -286,28 +287,26 @@ var TOKENOMICS_DB = {
 };
 
 /* ══════════════════════════════════════════════════════════════════
-   PRO DONATION CODES
-   ──────────────────
-   Each code can only be used ONCE per device.
-   To add a new code: add a string to the array below.
-   To revoke: remove it (devices that already used it keep Pro
-              until they clear their browser storage).
+   PRO DONATION CODES — now server-side
+   ────────────────────────────────────
+   Codes live in the Supabase `pro_codes` table and are validated by
+   the redeem_pro_code() RPC. They are NEVER shipped to the browser,
+   so View Source cannot leak them. Single-use is enforced server-side
+   (a code consumed on device A cannot be redeemed on device B).
+
+   First-time setup: run sql/pro_codes_table.sql in the Supabase SQL
+   editor. That script also seeds the legacy ROT-2026-* codes so any
+   already-handed-out code keeps working.
+
+   Add a new code:
+     INSERT INTO pro_codes (code, note)
+       VALUES ('ROT-2026-NEWCODE', 'who it went to');
+
+   Revoke a code:
+     UPDATE pro_codes SET active = false WHERE code = 'ROT-2026-XXX';
+
    Format convention: ROT-YEAR-XXXXX
 ══════════════════════════════════════════════════════════════════ */
-var VALID_CODES = [
-  'ROT-2026-ALPHA',
-  'ROT-2026-BETA1',
-  'ROT-2026-BETA2',
-  'ROT-2026-PRO01',
-  'ROT-2026-PRO02',
-  'ROT-2026-PRO03',
-  'ROT-2026-PRO04',
-  'ROT-2026-PRO05',
-  'ROT-2026-DONOR',
-  'ROT-2026-EARLY',
-  'ГЕМИЏИЈА',
-  /* ↑ Add more codes here as donations come in */
-];
 
 /* ══════════════════════════════════════════════════════════════════
    DONATION GOAL TRACKER

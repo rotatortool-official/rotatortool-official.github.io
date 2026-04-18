@@ -271,46 +271,71 @@ function openPro() {
 }
 
 /* ── Pro code redemption ─────────────────────────────────────── */
+/* Codes are validated server-side by the redeem_pro_code() RPC in
+   Supabase (see sql/pro_codes_table.sql). The full code list is
+   never shipped to the browser, so View Source cannot reveal it. */
 function checkProCode() {
   var inp = document.getElementById('pro-code-input');
   var err = document.getElementById('pro-code-err');
+  var btn = inp && inp.parentNode ? inp.parentNode.querySelector('.code-btn') : null;
   if (!inp || !err) return;
+
   var code = (inp.value || '').trim().toUpperCase();
   if (!code) { err.textContent = 'Please enter a code.'; return; }
 
-  var valid = VALID_CODES.indexOf(code) >= 0;
-  if (!valid) {
-    err.innerHTML = '❌ Invalid code. Check for typos or email <a href="mailto:rotatortool@gmail.com" style="color:var(--bnb);text-decoration:underline;">rotatortool@gmail.com</a>';
-    inp.style.borderColor = 'var(--red)';
+  if (typeof supaRedeemProCode !== 'function') {
+    err.textContent = 'Code service unavailable. Please reload and try again.';
     return;
   }
 
-  var usedKey = 'rot_used_code_' + code;
-  try {
-    if (localStorage.getItem(usedKey) === '1') {
-      err.textContent = '⚠ This code has already been used on this device.';
-      inp.style.borderColor = 'var(--amber)';
+  var uid = (typeof getMyId === 'function' ? getMyId() : null)
+         || localStorage.getItem('rot_uid');
+  if (!uid) {
+    err.textContent = 'Could not identify this device. Please reload the page.';
+    return;
+  }
+
+  /* Block double-submit while the RPC is in flight */
+  err.textContent = '';
+  inp.style.borderColor = '';
+  if (btn) { btn.disabled = true; btn.textContent = 'CHECKING…'; }
+  var restoreBtn = function() {
+    if (btn) { btn.disabled = false; btn.textContent = 'REDEEM'; }
+  };
+
+  supaRedeemProCode(code, uid).then(function(res) {
+    restoreBtn();
+
+    if (!res.ok) {
+      inp.style.borderColor = 'var(--red)';
+      if (res.reason === 'used') {
+        err.textContent = '⚠ This code has already been redeemed on another device.';
+      } else if (res.reason === 'inactive') {
+        err.textContent = '⚠ This code is no longer active.';
+      } else if (res.reason === 'offline') {
+        err.textContent = '⚠ Could not reach the server. Check your connection and try again.';
+      } else {
+        err.innerHTML = '❌ Invalid code. Check for typos or email <a href="mailto:rotatortool@gmail.com" style="color:var(--bnb);text-decoration:underline;">rotatortool@gmail.com</a>';
+      }
       return;
     }
-  } catch(e) {}
 
-  try { localStorage.setItem(usedKey, '1'); } catch(e) {}
-  isPro = true; savePro(true);
-  updateTierBadge();
-  incrementDonationCount();
-  /* Sync to Supabase */
-  if (typeof supaSavePro === 'function') supaSavePro(getMyId(), code);
-  closeModal('pro-modal');
-  renderAll();
+    /* Server confirmed the redeem — activate Pro */
+    isPro = true; savePro(true);
+    updateTierBadge();
+    if (res.reason === 'redeemed') incrementDonationCount();
+    if (typeof supaSavePro === 'function') supaSavePro(uid, code);
+    closeModal('pro-modal');
+    renderAll();
 
-  /* Launch Pro tutorial after a brief welcome toast */
-  var t = document.createElement('div');
-  t.style.cssText = 'position:fixed;top:56px;left:50%;transform:translateX(-50%);background:var(--bg2);border:1px solid var(--pro);border-radius:6px;padding:14px 22px;font-family:IBM Plex Mono,monospace;font-size:12px;color:var(--pro);z-index:900;text-align:center;box-shadow:0 0 30px rgba(167,139,250,.2);letter-spacing:.06em;';
-  t.innerHTML = '⚡ PRO UNLOCKED — Welcome!<br><span style="font-size:12px;color:var(--muted);margin-top:4px;display:block;">Thank you for supporting Rotator ♥</span>';
-  document.body.appendChild(t);
-  setTimeout(function() { t.style.transition = 'opacity .5s'; t.style.opacity = '0'; setTimeout(function() { t.remove(); }, 500); }, 3500);
-  /* Start Pro tutorial after toast fades */
-  setTimeout(function() { if (typeof startProTutorial === 'function') startProTutorial(); }, 2000);
+    /* Launch Pro tutorial after a brief welcome toast */
+    var t = document.createElement('div');
+    t.style.cssText = 'position:fixed;top:56px;left:50%;transform:translateX(-50%);background:var(--bg2);border:1px solid var(--pro);border-radius:6px;padding:14px 22px;font-family:IBM Plex Mono,monospace;font-size:12px;color:var(--pro);z-index:900;text-align:center;box-shadow:0 0 30px rgba(167,139,250,.2);letter-spacing:.06em;';
+    t.innerHTML = '⚡ PRO UNLOCKED — Welcome!<br><span style="font-size:12px;color:var(--muted);margin-top:4px;display:block;">Thank you for supporting Rotator ♥</span>';
+    document.body.appendChild(t);
+    setTimeout(function() { t.style.transition = 'opacity .5s'; t.style.opacity = '0'; setTimeout(function() { t.remove(); }, 500); }, 3500);
+    setTimeout(function() { if (typeof startProTutorial === 'function') startProTutorial(); }, 2000);
+  });
 }
 
 function copyRefLink() {
