@@ -343,6 +343,109 @@ function supaCacheSet(key, data) {
 }
 
 /* ══════════════════════════════════════════════════════════════════
+   SIGNAL TRACK RECORD  —  Shared, server-verified daily snapshots
+
+   HOW IT WORKS:
+   ─────────────
+   Instead of each browser maintaining its own localStorage history
+   (empty for new visitors, spoofable), one row-per-(day, coin, type)
+   is stored in signal_snapshots.
+     • First client of the day calls record_daily_snapshot() — wins.
+     • Subsequent calls are no-ops (UNIQUE + ON CONFLICT DO NOTHING).
+     • Everyone reads the same authoritative history via SELECT.
+     • snap_date is stamped CURRENT_DATE server-side — no backdating.
+   localStorage is kept as an offline fallback only.
+══════════════════════════════════════════════════════════════════ */
+
+/**
+ * Submit today's top-bullish + top-lagging rows. Server decides the
+ * date and ignores the call if today's rows already exist.
+ * @param {Array<object>} rows — each row must have { coin_id, coin_sym,
+ *   signal_type: 'bullish'|'lagging', signal_label, extras, score,
+ *   price, p24, p7, p30 }. coin_name optional.
+ * @returns {Promise<{ok:boolean, reason:string, count:number}>}
+ */
+function supaRecordSignalSnapshot(rows) {
+  var url = SUPA_URL + '/rest/v1/rpc/record_daily_snapshot';
+  return fetch(url, {
+    method: 'POST',
+    headers: {
+      'apikey':        SUPA_KEY,
+      'Authorization': 'Bearer ' + SUPA_KEY,
+      'Content-Type':  'application/json'
+    },
+    body: JSON.stringify({ p_rows: rows })
+  }).then(function(r) {
+    if (!r.ok) throw new Error('rpc ' + r.status);
+    return r.json();
+  }).then(function(result) {
+    if (result && typeof result.ok === 'boolean') return result;
+    return { ok: false, reason: 'invalid', count: 0 };
+  }).catch(function(e) {
+    console.warn('[Supabase] record_daily_snapshot failed:', e.message);
+    return { ok: false, reason: 'offline', count: 0 };
+  });
+}
+
+/**
+ * Load the last `days` days of shared signal snapshots.
+ * Returned array mirrors the legacy localStorage shape so
+ * signal-history.js can consume it without further transformation:
+ *   [{ date:'YYYY-MM-DD', bullish:[...], lagging:[...] }, ...]
+ * Ordered oldest → newest.
+ * @param {number} days — window size (default 30)
+ * @returns {Promise<Array<object>>}
+ */
+function supaLoadSignalHistory(days) {
+  days = days || 30;
+  var cutoff = new Date(Date.now() - days * 24 * 60 * 60 * 1000);
+  var cutoffDate = cutoff.getFullYear() + '-'
+                 + String(cutoff.getMonth() + 1).padStart(2, '0') + '-'
+                 + String(cutoff.getDate()).padStart(2, '0');
+
+  return supaRest('signal_snapshots', 'GET', {
+    'snap_date': 'gte.' + cutoffDate,
+    'select':    'snap_date,coin_id,coin_sym,coin_name,signal_type,'
+               + 'signal_label,extras,score,price,p24,p7,p30',
+    'order':     'snap_date.asc'
+  }).then(function(rows) {
+    if (!rows || !rows.length) return [];
+
+    /* Group rows by date */
+    var byDate = {};
+    rows.forEach(function(r) {
+      var d = r.snap_date;
+      if (!byDate[d]) byDate[d] = { date: d, bullish: [], lagging: [] };
+      var entry = {
+        id:      r.coin_id,
+        sym:     r.coin_sym,
+        name:    r.coin_name || '',
+        price:   r.price != null ? Number(r.price) : null,
+        score:   r.score != null ? Number(r.score) : null,
+        signal:  r.signal_label || '',
+        extras:  r.extras || [],
+        p24:     r.p24 != null ? Number(r.p24) : null,
+        p7:      r.p7  != null ? Number(r.p7)  : null,
+        p30:     r.p30 != null ? Number(r.p30) : null
+      };
+      if (r.signal_type === 'bullish')      byDate[d].bullish.push(entry);
+      else if (r.signal_type === 'lagging') byDate[d].lagging.push(entry);
+    });
+
+    /* Preserve score ordering within each day */
+    Object.keys(byDate).forEach(function(d) {
+      byDate[d].bullish.sort(function(a, b) { return (b.score || 0) - (a.score || 0); });
+      byDate[d].lagging.sort(function(a, b) { return (a.score || 0) - (b.score || 0); });
+    });
+
+    return Object.keys(byDate).sort().map(function(d) { return byDate[d]; });
+  }).catch(function(e) {
+    console.warn('[Supabase] load signal history failed:', e.message);
+    return [];
+  });
+}
+
+/* ══════════════════════════════════════════════════════════════════
    PRO REQUEST PIPELINE  —  Donation → Auto-verified Pro activation
 
    HOW IT WORKS:

@@ -145,7 +145,7 @@ function newToggleAdvanced() {
 
   /* On load: restore saved state (open sections that user previously opened) */
   document.addEventListener('DOMContentLoaded', function() {
-    var ids = ['hot', 'swap', 'promo', 'support', 'holdings'];
+    var ids = ['hot', 'swap', 'promo', 'support', 'holdings', 'trackrecord'];
     ids.forEach(function(id) {
       if (state[id] === 'open') {
         var hdr  = document.getElementById('ch-' + id);

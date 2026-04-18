@@ -14,10 +14,18 @@
 var SignalHistory = (function() {
 
   var LS_KEY = 'rot_signal_history';
+  var LS_DATE_KEY = 'rot_signal_history_posted';  /* last YYYY-MM-DD we posted */
   var MAX_DAYS = 30;
+
+  /* ── In-memory cache of the server history (source of truth). ──
+     Populated by loadServerHistory() on module init. Until it
+     resolves, loadHistory() falls back to localStorage so the UI
+     has something to render immediately. */
+  var _serverHistory = null;
 
   /* ── Load / Save ── */
   function loadHistory() {
+    if (_serverHistory && _serverHistory.length) return _serverHistory;
     try {
       var raw = localStorage.getItem(LS_KEY);
       return raw ? JSON.parse(raw) : [];
@@ -31,6 +39,21 @@ var SignalHistory = (function() {
       hist = hist.slice(-15);
       try { localStorage.setItem(LS_KEY, JSON.stringify(hist)); } catch(e2) {}
     }
+  }
+
+  /* ── Fetch shared snapshots from Supabase; re-render when ready. ── */
+  function loadServerHistory() {
+    if (typeof supaLoadSignalHistory !== 'function') return Promise.resolve([]);
+    return supaLoadSignalHistory(MAX_DAYS).then(function(hist) {
+      if (hist && hist.length) {
+        _serverHistory = hist;
+        /* Mirror to localStorage as offline fallback */
+        saveHistory(hist);
+      }
+      /* Trigger a re-render if the track record container is present */
+      try { render(); } catch(e) {}
+      return hist;
+    });
   }
 
   /* ── Get today's date key (YYYY-MM-DD) ── */
@@ -105,6 +128,44 @@ var SignalHistory = (function() {
     /* Trim to MAX_DAYS */
     if (hist.length > MAX_DAYS) hist = hist.slice(-MAX_DAYS);
     saveHistory(hist);
+
+    /* Push to Supabase once per day (first client of the day wins;
+       the server ignores subsequent calls via ON CONFLICT DO NOTHING). */
+    postSnapshotToServer(today, topBull, topLag);
+  }
+
+  /* ── Push today's snapshot to Supabase. ────────────────────────
+     Guards against re-posting within the same browser session/day.
+     The server is also idempotent (first-writer-wins), so extra
+     calls are safe but wasteful. */
+  function postSnapshotToServer(today, topBull, topLag) {
+    if (typeof supaRecordSignalSnapshot !== 'function') return;
+    try {
+      if (localStorage.getItem(LS_DATE_KEY) === today) return;
+    } catch(e) {}
+
+    var rows = [];
+    topBull.forEach(function(e) {
+      rows.push({
+        coin_id: e.id, coin_sym: e.sym, coin_name: e.name,
+        signal_type: 'bullish', signal_label: e.signal, extras: e.extras || [],
+        score: e.score, price: e.price, p24: e.p24, p7: e.p7, p30: e.p30
+      });
+    });
+    topLag.forEach(function(e) {
+      rows.push({
+        coin_id: e.id, coin_sym: e.sym, coin_name: e.name,
+        signal_type: 'lagging', signal_label: e.signal, extras: e.extras || [],
+        score: e.score, price: e.price, p24: e.p24, p7: e.p7, p30: e.p30
+      });
+    });
+    if (!rows.length) return;
+
+    supaRecordSignalSnapshot(rows).then(function(result) {
+      if (result && result.ok) {
+        try { localStorage.setItem(LS_DATE_KEY, today); } catch(e) {}
+      }
+    });
   }
 
   /* ── Compare past signals with current prices ── */
@@ -504,7 +565,22 @@ var SignalHistory = (function() {
     shareProven: shareProven,
     getProvenSignals: getProvenSignals,
     getAccuracyStats: getAccuracyStats,
-    loadHistory: loadHistory
+    loadHistory: loadHistory,
+    loadServerHistory: loadServerHistory
   };
 
+})();
+
+/* Fetch shared snapshots from Supabase as soon as the app loads, so
+   new visitors see the authoritative track record instead of their
+   own (empty) localStorage history. Falls through silently offline. */
+(function() {
+  function kick() {
+    try { SignalHistory.loadServerHistory(); } catch(e) {}
+  }
+  if (document.readyState === 'complete' || document.readyState === 'interactive') {
+    setTimeout(kick, 0);
+  } else {
+    document.addEventListener('DOMContentLoaded', kick);
+  }
 })();
