@@ -379,6 +379,9 @@ var SignalHistory = (function() {
     /* Push to Supabase once per day (first client of the day wins;
        the server ignores subsequent calls via ON CONFLICT DO NOTHING). */
     postSnapshotToServer(today, topBull, topLag);
+
+    /* Capture today's rotation pairs alongside the bullish/lagging tops. */
+    try { takeRotationSnapshot(); } catch(e) {}
   }
 
   /* ── Push today's snapshot to Supabase. ────────────────────────
@@ -584,6 +587,223 @@ var SignalHistory = (function() {
     };
   }
 
+  /* ══════════════════════════════════════════════════════════════
+     ROTATION-PAIR SCORING  (A → B)
+     A rotation call is "right" when, after the confirm window, the
+     to-coin outperformed the from-coin by ROTATION_THRESHOLD %.
+     This captures the win-win the user described:
+       · B up, A down               → BIG WIN  (great rotation)
+       · B up, A up but B more      → WIN      (better deployment)
+       · Both down, A more than B   → WIN      (avoided bigger loss)
+       · A up, B down               → MISS     (rotation hurt)
+     Verdicts use the same peak-window cache (best-high for A as the
+     "missed gain", worst-low for B as the "downside risk") — but for
+     spread we use closing prices at window-end (avoid double-counting
+     extremes that didn't co-occur). */
+  var _rotationCache = null;   /* server pull cache */
+  var _rotationLocal = (function() {
+    try { return JSON.parse(localStorage.getItem('rot_rotation_history') || '[]'); }
+    catch(e) { return []; }
+  })();
+
+  function _saveRotationLocal() {
+    try { localStorage.setItem('rot_rotation_history', JSON.stringify(_rotationLocal.slice(-MAX_DAYS))); } catch(e) {}
+  }
+
+  function loadRotationHistory() {
+    if (_rotationCache && _rotationCache.length) return _rotationCache;
+    return _rotationLocal;
+  }
+
+  function loadServerRotationHistory() {
+    if (typeof supaLoadRotationHistory !== 'function') return Promise.resolve([]);
+    return supaLoadRotationHistory(MAX_DAYS).then(function(rows) {
+      if (rows && rows.length) {
+        _rotationCache = rows;
+        _rotationLocal = rows;
+        _saveRotationLocal();
+        try { render(); } catch(e) {}
+      }
+      return rows || [];
+    });
+  }
+
+  /* Build today's rotation pairs from current dashboard state and
+     post once per day to the server. Mirrors takeSnapshot's design. */
+  function takeRotationSnapshot() {
+    if (typeof coins === 'undefined' || !Array.isArray(coins) || coins.length < 10) return;
+    var today = dateKey();
+    try {
+      if (localStorage.getItem(LS_ROT_DATE_KEY) === today) return;
+    } catch(e) {}
+
+    /* Source: dashboard's own rotation logic — top scorers paired with
+       bottom scorers, optionally filtered by holdings if present. */
+    var hSyms = (typeof holdings !== 'undefined' && holdings.length)
+      ? holdings.map(function(h) { return h.sym; }) : [];
+    var sells, buys;
+    if (hSyms.length) {
+      var held = coins.filter(function(c) { return hSyms.indexOf(c.sym) >= 0; });
+      sells = held.filter(function(c) { return c.score >= 62; })
+                  .sort(function(a, b) { return b.score - a.score; });
+      buys  = coins.filter(function(c) { return hSyms.indexOf(c.sym) < 0 && c.score <= 38; })
+                   .sort(function(a, b) { return a.score - b.score; });
+    }
+    /* Fallback: cross-coin pairs (top scorers → bottom scorers). */
+    if (!sells || !sells.length || !buys || !buys.length) {
+      sells = coins.filter(_isValidCandidate)
+                   .sort(function(a, b) { return b.score - a.score; })
+                   .slice(0, 5);
+      buys  = coins.filter(_isValidCandidate)
+                   .sort(function(a, b) { return a.score - b.score; })
+                   .slice(0, 5);
+    }
+
+    var pairs = [];
+    var pairCount = Math.min(5, sells.length, buys.length);
+    for (var i = 0; i < pairCount; i++) {
+      var s = sells[i], b = buys[i];
+      if (!s || !b || s.id === b.id) continue;
+      pairs.push({
+        from_id: s.id, from_sym: s.sym,
+        from_price: s.price, from_score: s.score,
+        to_id: b.id, to_sym: b.sym,
+        to_price: b.price, to_score: b.score,
+        source: 'dashboard'
+      });
+    }
+    if (!pairs.length) return;
+
+    /* Mirror to localStorage (so single-user view survives offline) */
+    _rotationLocal.push({ date: today, pairs: pairs });
+    _saveRotationLocal();
+
+    if (typeof supaRecordRotationSnapshot === 'function') {
+      supaRecordRotationSnapshot(pairs).then(function(res) {
+        if (res && res.ok) {
+          try { localStorage.setItem(LS_ROT_DATE_KEY, today); } catch(e) {}
+        }
+      });
+    }
+  }
+
+  /* For each historical rotation pair, look up peak verdicts for both
+     legs and classify the outcome. */
+  function getRotationProvenSignals() {
+    var hist = loadRotationHistory();
+    if (!hist.length) return [];
+    var priceMap = {};
+    if (typeof coins !== 'undefined' && coins.length) {
+      coins.forEach(function(c) { priceMap[c.id] = c.price; });
+    }
+    var results = [];
+    var now = new Date();
+
+    hist.forEach(function(snap) {
+      var pairs = snap.pairs || (snap.pair ? [snap.pair] : []);
+      var snapDate = snap.date;
+      var snapTs = new Date(snapDate + 'T00:00:00').getTime();
+      var daysAgo = Math.round((now - snapTs) / 864e5);
+      if (daysAgo < CONFIRM_DAYS_MIN) return;
+
+      pairs.forEach(function(p) {
+        if (!p.from_price || !p.to_price) return;
+        /* For the from-coin we want "what would they have lost by holding"
+           → prefer the worst-low (down move avoided). For to-coin we want
+           "what did the rotation deliver" → best-high. */
+        var fromPeak = _lookupPeak({ id: p.from_id, sym: p.from_sym, price: p.from_price }, snapDate);
+        var toPeak   = _lookupPeak({ id: p.to_id,   sym: p.to_sym,   price: p.to_price   }, snapDate);
+        var fromChange, toChange;
+        if (fromPeak) {
+          /* For the FROM coin, the realised change for the holder who
+             didn't rotate is roughly the close — but we don't have that
+             cheap. Approximate as the avg of best-high and worst-low,
+             which centres around the path's midpoint. */
+          fromChange = (fromPeak.bestChange + fromPeak.worstChange) / 2;
+        } else {
+          var cpf = priceMap[p.from_id];
+          if (!cpf) return;
+          fromChange = ((cpf - p.from_price) / p.from_price) * 100;
+        }
+        if (toPeak) {
+          toChange = (toPeak.bestChange + toPeak.worstChange) / 2;
+        } else {
+          var cpt = priceMap[p.to_id];
+          if (!cpt) return;
+          toChange = ((cpt - p.to_price) / p.to_price) * 100;
+        }
+        var spread = toChange - fromChange;
+        var correct = spread >= ROTATION_THRESHOLD;
+
+        /* Outcome classification */
+        var outcome;
+        if      (toChange >  0 && fromChange <  0) outcome = 'BIG WIN';
+        else if (toChange >  0 && fromChange >= 0 && spread >= 0) outcome = 'WIN';
+        else if (toChange <= 0 && fromChange <= 0 && spread >= 0) outcome = 'AVOIDED LOSS';
+        else if (toChange <  0 && fromChange >  0) outcome = 'MISS';
+        else outcome = correct ? 'WIN' : 'MISS';
+
+        results.push({
+          date: snapDate, daysAgo: daysAgo,
+          fromSym: p.from_sym, toSym: p.to_sym,
+          fromId: p.from_id,   toId: p.to_id,
+          fromChange: Math.round(fromChange * 10) / 10,
+          toChange:   Math.round(toChange   * 10) / 10,
+          spread:     Math.round(spread     * 10) / 10,
+          outcome: outcome, correct: correct
+        });
+      });
+    });
+
+    /* Most impressive spreads first */
+    results.sort(function(a, b) { return Math.abs(b.spread) - Math.abs(a.spread); });
+    /* Dedupe by pair, keep best */
+    var seen = {};
+    return results.filter(function(r) {
+      var k = r.fromId + '>' + r.toId;
+      if (seen[k]) return false;
+      seen[k] = true;
+      return true;
+    }).slice(0, 6);
+  }
+
+  function getRotationAccuracyStats() {
+    var hist = loadRotationHistory();
+    if (!hist.length) return null;
+    var priceMap = {};
+    if (typeof coins !== 'undefined' && coins.length) {
+      coins.forEach(function(c) { priceMap[c.id] = c.price; });
+    }
+    var total = 0, correct = 0;
+    var now = new Date();
+    hist.forEach(function(snap) {
+      var pairs = snap.pairs || (snap.pair ? [snap.pair] : []);
+      var snapDate = snap.date;
+      var daysAgo = Math.round((now - new Date(snapDate + 'T00:00:00')) / 864e5);
+      if (daysAgo < CONFIRM_DAYS_MIN) return;
+      pairs.forEach(function(p) {
+        if (!p.from_price || !p.to_price) return;
+        var fromPeak = _lookupPeak({ id: p.from_id, sym: p.from_sym, price: p.from_price }, snapDate);
+        var toPeak   = _lookupPeak({ id: p.to_id,   sym: p.to_sym,   price: p.to_price   }, snapDate);
+        var fromChange, toChange;
+        if (fromPeak) fromChange = (fromPeak.bestChange + fromPeak.worstChange) / 2;
+        else {
+          var cpf = priceMap[p.from_id]; if (!cpf) return;
+          fromChange = ((cpf - p.from_price) / p.from_price) * 100;
+        }
+        if (toPeak) toChange = (toPeak.bestChange + toPeak.worstChange) / 2;
+        else {
+          var cpt = priceMap[p.to_id]; if (!cpt) return;
+          toChange = ((cpt - p.to_price) / p.to_price) * 100;
+        }
+        total++;
+        if ((toChange - fromChange) >= ROTATION_THRESHOLD) correct++;
+      });
+    });
+    if (!total) return null;
+    return { total: total, correct: correct, accuracy: Math.round((correct / total) * 100) };
+  }
+
   /* ── Format price ── */
   function fmtP(p) {
     if (p >= 1000) return '$' + p.toLocaleString('en-US', {maximumFractionDigits: 0});
@@ -687,6 +907,38 @@ var SignalHistory = (function() {
           + '</div>'
           + '</div>';
       });
+      html += '</div>';
+    }
+
+    /* ── Rotation pair wins ── */
+    if (rotProven.length || rotStats) {
+      html += '<div class="str-rot-block">'
+        + '<div class="str-rot-title">Rotation Calls'
+        + (rotStats ? ' <span class="str-rot-pct">' + rotStats.accuracy + '% — ' + rotStats.correct + '/' + rotStats.total + '</span>' : '')
+        + '</div>';
+      if (rotProven.length) {
+        html += '<div class="str-rot-list">';
+        rotProven.forEach(function(r) {
+          var spreadColor = r.spread >= 0 ? 'var(--green)' : 'var(--red)';
+          var spreadStr = (r.spread >= 0 ? '+' : '') + r.spread + '%';
+          var outcomeColor = r.correct
+            ? (r.outcome === 'BIG WIN' ? 'var(--green)' : r.outcome === 'AVOIDED LOSS' ? 'var(--bnb)' : 'var(--green)')
+            : 'var(--red)';
+          html += '<div class="str-rot-item">'
+            + '<div class="str-rot-row">'
+            + '<span class="str-rot-pair"><strong>' + r.fromSym + '</strong> → <strong>' + r.toSym + '</strong></span>'
+            + '<span class="str-rot-outcome" style="color:' + outcomeColor + ';">' + r.outcome + '</span>'
+            + '<span class="str-rot-ago">' + r.daysAgo + 'd</span>'
+            + '</div>'
+            + '<div class="str-rot-row str-rot-detail">'
+            + '<span>' + r.fromSym + ' ' + (r.fromChange >= 0 ? '+' : '') + r.fromChange + '%</span>'
+            + '<span style="color:var(--muted);">vs</span>'
+            + '<span>' + r.toSym + ' ' + (r.toChange >= 0 ? '+' : '') + r.toChange + '%</span>'
+            + '<span style="color:' + spreadColor + ';">spread ' + spreadStr + '</span>'
+            + '</div></div>';
+        });
+        html += '</div>';
+      }
       html += '</div>';
     }
 
@@ -864,7 +1116,13 @@ var SignalHistory = (function() {
     getProvenSignals: getProvenSignals,
     getAccuracyStats: getAccuracyStats,
     loadHistory: loadHistory,
-    loadServerHistory: loadServerHistory
+    loadServerHistory: loadServerHistory,
+    /* Rotation-pair scoring (server-synced) */
+    takeRotationSnapshot:        takeRotationSnapshot,
+    loadRotationHistory:         loadRotationHistory,
+    loadServerRotationHistory:   loadServerRotationHistory,
+    getRotationProvenSignals:    getRotationProvenSignals,
+    getRotationAccuracyStats:    getRotationAccuracyStats
   };
 
 })();
@@ -875,6 +1133,7 @@ var SignalHistory = (function() {
 (function() {
   function kick() {
     try { SignalHistory.loadServerHistory(); } catch(e) {}
+    try { SignalHistory.loadServerRotationHistory(); } catch(e) {}
   }
   if (document.readyState === 'complete' || document.readyState === 'interactive') {
     setTimeout(kick, 0);
