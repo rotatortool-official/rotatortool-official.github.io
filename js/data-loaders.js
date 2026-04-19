@@ -1625,7 +1625,44 @@ function openTileDetail(coinId, evt) {
     var hSyms = holdings.map(function(h) { return h.sym; });
     var wSyms = (typeof watchlist !== 'undefined') ? watchlist : [];
     var isTracked = hSyms.indexOf(c.sym) >= 0 || wSyms.indexOf(c.sym) >= 0;
-    if (!isPro && isTracked) {
+    /* Free user: try yesterday's server snapshot. Falls back to the
+       old paywall if the snapshot service is offline or empty. */
+    var yi = (window.yesterdayInsights && window.yesterdayInsights.map)
+              ? window.yesterdayInsights.map[c.id] : null;
+    if (!isPro && isTracked && yi && yi.insight) {
+      var ydate = window.yesterdayInsights.date || '';
+      var ins = yi.insight;
+      var sc = typeof ins.score === 'number' ? ins.score : 0;
+      var scColor = sc >= 65 ? 'var(--green)' : sc <= 35 ? 'var(--red)' : '#87CEEB';
+      var dlHtml = '<div class="td-delayed-banner">'
+        + '<span class="td-delayed-tag">24H DELAYED</span>'
+        + '<span class="td-delayed-sub">Snapshot from ' + ydate + ' · Pro sees today\'s live</span>'
+        + '</div>'
+        + '<div class="td-insight-header">'
+        + '<div class="insight-pulse ' + (ins.color || 'neutral') + ' td-insight-pulse"><span class="insight-dot"></span><span class="insight-lbl">' + (ins.label || '—') + '</span></div>'
+        + '<span class="td-insight-score" style="color:' + scColor + ';">' + sc + '<span style="font-size:12px;color:var(--muted);"> / 100</span></span>'
+        + '</div>';
+      if (Array.isArray(ins.signals) && ins.signals.length) {
+        dlHtml += '<div class="signal-tile-grid">';
+        ins.signals.forEach(function(s) {
+          var cls = 'neutral';
+          if (s.indexOf('Oversold') >= 0 || s.indexOf('Accumulation') >= 0 || s.indexOf('Hidden Strength') >= 0 || s.indexOf('Cleared') >= 0 || s.indexOf('Extreme Fear') >= 0 || s.indexOf('Outperforming') >= 0 || s.indexOf('Bullish Cross') >= 0 || s.indexOf('Accelerating') >= 0 || s.indexOf('Recovery') >= 0 || s.indexOf('BB Squeeze') >= 0) cls = 'good';
+          else if (s.indexOf('Overbought') >= 0 || s.indexOf('Dilution') >= 0 || s.indexOf('Greed') >= 0 || s.indexOf('Underperforming') >= 0 || s.indexOf('Low Liquidity') >= 0 || s.indexOf('Bearish Cross') >= 0 || s.indexOf('Decelerating') >= 0 || s.indexOf('Weakening') >= 0) cls = 'bad';
+          var icon = cls === 'good' ? '✓' : cls === 'bad' ? '−' : '—';
+          var hlCls = cls === 'good' ? ' highlight-good' : cls === 'bad' ? ' highlight-bad' : '';
+          dlHtml += '<div class="signal-tile' + hlCls + '">'
+            + '<span class="tile-icon ' + cls + '">' + icon + '</span>'
+            + '<div class="tile-body"><span class="tile-value ' + cls + '">' + s + '</span></div></div>';
+        });
+        dlHtml += '</div>';
+      }
+      dlHtml += '<div class="td-delayed-cta">'
+        + '<div class="td-delayed-cta-txt">Today\'s insight is already live for Pro users.</div>'
+        + '<button class="code-btn" onclick="openPro()" style="font-size:12px;padding:6px 14px;">⚡ UNLOCK TODAY\'S SIGNAL</button>'
+        + '</div>';
+      insEl.innerHTML = dlHtml;
+      insSec.style.display = '';
+    } else if (!isPro && isTracked) {
       insEl.innerHTML = '<div style="text-align:center;padding:10px 0;">'
         + '<div style="font-size:12px;color:var(--muted);margin-bottom:6px;">Insight Engine is a Pro feature</div>'
         + '<button class="code-btn" onclick="openPro()" style="font-size:12px;padding:6px 14px;">⚡ UNLOCK PRO</button>'

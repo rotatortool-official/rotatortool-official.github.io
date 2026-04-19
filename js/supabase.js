@@ -448,6 +448,97 @@ function supaLoadSignalHistory(days) {
 }
 
 /* ══════════════════════════════════════════════════════════════════
+   INSIGHT SNAPSHOTS  —  24h-delayed Insight Engine for free users
+
+   Pro users see today's live compute; free users see the row the
+   server stamped with CURRENT_DATE yesterday. First-writer-of-day
+   wins, subsequent clients no-op (see sql/insight_snapshots_table.sql).
+   ══════════════════════════════════════════════════════════════════ */
+
+/**
+ * Submit today's insights (one row per coin). Server stamps the date
+ * and ignores the call if today's rows already exist.
+ * @param {Array<object>} rows — each row: { coin_id, coin_sym, insight, price }
+ *   where `insight` is the { score, label, color, signals[], tooltip } object.
+ * @returns {Promise<{ok:boolean, reason:string, count:number}>}
+ */
+function supaRecordInsights(rows) {
+  var url = SUPA_URL + '/rest/v1/rpc/record_daily_insights';
+  return fetch(url, {
+    method: 'POST',
+    headers: {
+      'apikey':        SUPA_KEY,
+      'Authorization': 'Bearer ' + SUPA_KEY,
+      'Content-Type':  'application/json'
+    },
+    body: JSON.stringify({ p_rows: rows })
+  }).then(function(r) {
+    if (!r.ok) throw new Error('rpc ' + r.status);
+    return r.json();
+  }).then(function(result) {
+    if (result && typeof result.ok === 'boolean') return result;
+    return { ok: false, reason: 'invalid', count: 0 };
+  }).catch(function(e) {
+    console.warn('[Supabase] record_daily_insights failed:', e.message);
+    return { ok: false, reason: 'offline', count: 0 };
+  });
+}
+
+/**
+ * Load yesterday's insight snapshots, keyed by coin_id for O(1) lookup.
+ * If yesterday has no rows (e.g. first day of deployment), falls back
+ * to the most-recent past day that does have rows.
+ * @returns {Promise<{date:string|null, map:Object<string,object>}>}
+ */
+function supaLoadYesterdayInsights() {
+  /* Ask for up to 7 days back in one query so we have a fallback if
+     yesterday is empty (e.g. first day after launch). */
+  var cutoff = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
+  var cutoffDate = cutoff.getFullYear() + '-'
+                 + String(cutoff.getMonth() + 1).padStart(2, '0') + '-'
+                 + String(cutoff.getDate()).padStart(2, '0');
+
+  return supaRest('insight_snapshots', 'GET', {
+    'snap_date': 'gte.' + cutoffDate,
+    'select':    'snap_date,coin_id,coin_sym,insight,price',
+    'order':     'snap_date.desc'
+  }).then(function(rows) {
+    if (!rows || !rows.length) return { date: null, map: {} };
+
+    /* Today's date in the browser's local timezone — used to skip
+       any rows stamped "today" (Pro users would see them live anyway,
+       and free users should only ever see yesterday or older). */
+    var now = new Date();
+    var todayStr = now.getFullYear() + '-'
+                 + String(now.getMonth() + 1).padStart(2, '0') + '-'
+                 + String(now.getDate()).padStart(2, '0');
+
+    /* Find the most recent snap_date that is NOT today. */
+    var pickDate = null;
+    for (var i = 0; i < rows.length; i++) {
+      if (rows[i].snap_date !== todayStr) { pickDate = rows[i].snap_date; break; }
+    }
+    if (!pickDate) return { date: null, map: {} };
+
+    /* Build map of that day's rows only. */
+    var map = {};
+    rows.forEach(function(r) {
+      if (r.snap_date === pickDate && r.coin_id && r.insight) {
+        map[r.coin_id] = {
+          insight: r.insight,
+          price:   r.price != null ? Number(r.price) : null,
+          sym:     r.coin_sym || ''
+        };
+      }
+    });
+    return { date: pickDate, map: map };
+  }).catch(function(e) {
+    console.warn('[Supabase] load yesterday insights failed:', e.message);
+    return { date: null, map: {} };
+  });
+}
+
+/* ══════════════════════════════════════════════════════════════════
    PRO REQUEST PIPELINE  —  Donation → Auto-verified Pro activation
 
    HOW IT WORKS:
@@ -514,6 +605,75 @@ function supaCheckProRequest() {
   }).then(function(rows) {
     return rows && rows.length > 0 ? rows[0] : null;
   }).catch(function() { return null; });
+}
+
+/* ══════════════════════════════════════════════════════════════════
+   UNIFIED MARKET DATA  —  Cross-asset cache (crypto + stocks + forex)
+
+   Populated by the `sync-market-data` Edge Function every 12h via
+   pg_cron. Frontend reads from here to render the "Global Top Movers"
+   widget without hitting any external APIs client-side.
+   See: 28mart/sql/unified_market_data_table.sql
+═══════════════════════════════════════════════════════════════════ */
+
+/**
+ * Fetch latest rows from `unified_market_data_latest` (view of the most
+ * recent row per asset_type+symbol, last 48h only).
+ * @param {string} [assetType] — 'crypto' | 'stock' | 'forex' | undefined (all)
+ * @returns {Promise<Array<object>>} rows or [] on error
+ */
+function supaGetUnifiedMarket(assetType) {
+  var params = {
+    'select': 'asset_type,symbol,name,price,change_24h,source_name,last_updated,metadata',
+    'order':  'change_24h.desc.nullslast',
+    'limit':  '500'
+  };
+  if (assetType) params.asset_type = 'eq.' + assetType;
+  return supaRest('unified_market_data_latest', 'GET', params).catch(function(e) {
+    console.warn('[Supabase] unified market fetch failed:', e.message);
+    return [];
+  });
+}
+
+/**
+ * Get the top N gainers + top N losers across all asset classes.
+ * De-dupes by (asset_type, symbol) — prefers Binance > CoinGecko for crypto.
+ * @param {number} limit — gainers/losers to return each (default 5)
+ * @returns {Promise<{gainers:Array, losers:Array, updatedAt:string|null}>}
+ */
+function supaGetTopMovers(limit) {
+  limit = limit || 5;
+  return supaGetUnifiedMarket().then(function(rows) {
+    if (!rows || !rows.length) return { gainers: [], losers: [], updatedAt: null };
+
+    /* Deduplicate by (asset_type, symbol) — keep one source per asset. */
+    var sourceRank = { binance: 1, coingecko: 2, yahoo: 3, xfra: 4 };
+    var seen = {};
+    rows.forEach(function(r) {
+      if (r.change_24h == null || r.price == null) return;
+      var k = r.asset_type + '|' + r.symbol;
+      var existing = seen[k];
+      var curRank   = sourceRank[r.source_name] || 9;
+      var prevRank  = existing ? (sourceRank[existing.source_name] || 9) : 999;
+      if (!existing || curRank < prevRank) seen[k] = r;
+    });
+
+    var unique = Object.keys(seen).map(function(k) { return seen[k]; });
+    var sortedDesc = unique.slice().sort(function(a, b) { return (b.change_24h || 0) - (a.change_24h || 0); });
+    var sortedAsc  = unique.slice().sort(function(a, b) { return (a.change_24h || 0) - (b.change_24h || 0); });
+
+    /* Pick freshest timestamp for "last updated" display */
+    var maxTs = null;
+    unique.forEach(function(r) {
+      if (!maxTs || r.last_updated > maxTs) maxTs = r.last_updated;
+    });
+
+    return {
+      gainers:   sortedDesc.slice(0, limit),
+      losers:    sortedAsc.slice(0, limit),
+      updatedAt: maxTs
+    };
+  });
 }
 
 /* ── Auto-run on load ────────────────────────────────────────── */

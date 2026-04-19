@@ -587,6 +587,85 @@ function computeInsights() {
   });
 }
 
+/* ══════════════════════════════════════════════════════════════════
+   Daily insight snapshot sync.
+
+   Twofold job, runs lazily from renderAll():
+     1. POST current insights to insight_snapshots — first-writer-of-day
+        wins (server enforces via ON CONFLICT DO NOTHING).
+     2. For free users: GET yesterday's snapshot map so the coin detail
+        panel can render yesterday's insight instead of a hard paywall.
+
+   All runs are gated by a session key (sessionStorage + in-memory) so
+   opening the app in two tabs doesn't spam the RPC.
+   ══════════════════════════════════════════════════════════════════ */
+window.yesterdayInsights = window.yesterdayInsights || { date: null, map: {} };
+var _insightSyncStarted = false;
+
+function maybeSyncInsightSnapshots() {
+  if (_insightSyncStarted) return;
+  if (!coins || !coins.length) return;
+  /* Make sure at least one coin has an insight computed — otherwise
+     computeInsights hasn't run yet (e.g. very first boot frame). */
+  var hasAny = coins.some(function(c) { return c.insight && typeof c.insight.score === 'number'; });
+  if (!hasAny) return;
+  _insightSyncStarted = true;
+
+  /* ── 1. Post today's insights (session-guarded — once per tab) ── */
+  postTodaysInsights();
+
+  /* ── 2. Fetch yesterday's snapshot for free users only ── */
+  if (!isPro && typeof supaLoadYesterdayInsights === 'function') {
+    supaLoadYesterdayInsights().then(function(res) {
+      window.yesterdayInsights = res || { date: null, map: {} };
+      /* If a coin detail panel is open, re-render its insight section. */
+      if (typeof _tdCoin !== 'undefined' && _tdCoin && typeof openTileDetail === 'function') {
+        try { openTileDetail(_tdCoin); } catch (e) {}
+      }
+    });
+  }
+}
+
+function postTodaysInsights() {
+  if (typeof supaRecordInsights !== 'function') return;
+  /* Session guard — one post per tab per day. */
+  var today = new Date();
+  var dStr  = today.getFullYear() + '-'
+            + String(today.getMonth() + 1).padStart(2, '0') + '-'
+            + String(today.getDate()).padStart(2, '0');
+  var postedKey = 'rot_insights_posted';
+  try {
+    if (sessionStorage.getItem(postedKey) === dStr) return;
+  } catch (e) {}
+
+  var rows = [];
+  coins.forEach(function(c) {
+    if (!c || !c.insight || typeof c.insight.score !== 'number') return;
+    rows.push({
+      coin_id:  c.id,
+      coin_sym: c.sym,
+      price:    c.price != null ? c.price : null,
+      insight: {
+        score:   c.insight.score,
+        label:   c.insight.label,
+        color:   c.insight.color,
+        signals: Array.isArray(c.insight.signals) ? c.insight.signals.slice(0, 12) : [],
+        tooltip: c.insight.tooltip || ''
+      }
+    });
+  });
+  if (!rows.length) return;
+
+  /* Small delay so we don't fight the initial render for CPU. */
+  setTimeout(function() {
+    supaRecordInsights(rows).then(function(res) {
+      if (res && res.ok) {
+        try { sessionStorage.setItem(postedKey, dStr); } catch (e) {}
+      }
+    });
+  }, 1200);
+}
+
 /* ── Toggle watchlist from the leaderboard eye icon ────────── */
 function toggleWatch(sym, btn) {
   if (typeof watchlist === 'undefined') return;
@@ -792,6 +871,7 @@ function setSort(tf) {
 var _klinesFetched = false;
 function renderAll() {
   computeInsights();
+  maybeSyncInsightSnapshots();
   renderBTC(); renderTiles(); renderTopBars(); renderTable(); renderCoinSel(); updateTierBadge(); if (typeof initCategoryLocks === 'function') initCategoryLocks(); if (typeof updateProGates === 'function') updateProGates();
   /* Async: fetch Binance klines for holdings to enrich Insight Engine */
   if (holdings.length && !_klinesFetched) {
