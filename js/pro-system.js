@@ -539,68 +539,47 @@ function submitProRequest() {
     return;
   }
 
-  /* Auto-verify on blockchain (TRC20 / BEP20 / ERC20) */
-  if (typeof verifyTxHash !== 'function') {
+  /* Server-side verify + activate (TRC20 / BEP20 / ERC20).
+     Edge Function re-runs the chain check with a trusted runtime and
+     calls grant_pro_via_tx itself — the client no longer self-reports
+     "verified". Replay protection (one-tx_hash-one-Pro) is enforced
+     inside the RPC. */
+  if (typeof verifyAndActivateTx !== 'function') {
     status.style.color = 'var(--red)'; status.textContent = 'Verification service unavailable. Try again later.';
     return;
   }
 
   status.style.color = 'var(--bnb)'; status.textContent = '⏳ Verifying transaction on ' + net + '...';
 
-  verifyTxHash(hash, net).then(function(result) {
-    if (!result.valid) {
-      /* Verification failed — show reason */
+  verifyAndActivateTx(hash, net, getMyId(), cont).then(function(res) {
+    if (!res.ok) {
       status.style.color = 'var(--red)';
-      status.textContent = '❌ ' + result.reason;
-      return;
-    }
-
-    /* Client-side chain check passed. Ask the server to atomically
-       record the pro_request (auto_approved) + upsert pro_users.
-       The RPC enforces one-tx_hash-one-Pro replay protection. */
-    var verifiedAmt = '$' + result.amount.toFixed(2) + ' ' + result.token;
-    var uid = getMyId();
-
-    if (typeof supaGrantProViaTx !== 'function') {
-      status.style.color = 'var(--red)';
-      status.textContent = 'Activation service unavailable. Please reload and try again.';
-      return;
-    }
-
-    supaGrantProViaTx(uid, hash, net, verifiedAmt, cont).then(function(res) {
-      if (!res.ok) {
-        status.style.color = 'var(--red)';
-        if (res.reason === 'tx_used') {
-          status.textContent = '❌ This TX hash has already been used to activate Pro.';
-        } else if (res.reason === 'offline') {
-          status.textContent = '❌ Could not reach the activation server. Please try again in a moment.';
-        } else {
-          status.textContent = '❌ Activation failed. Please contact support with your TX hash.';
-        }
-        return;
+      if (res.reason === 'tx_used') {
+        status.textContent = '❌ This TX hash has already been used to activate Pro.';
+      } else {
+        status.textContent = '❌ ' + res.reason;
       }
+      return;
+    }
 
-      /* Server confirmed — activate Pro locally */
-      isPro = true; savePro(true);
-      if (window.Analytics) Analytics.track('Pro Unlocked', { method: 'tx', network: result.network });
-      updateTierBadge();
-      if (typeof initCategoryLocks === 'function') initCategoryLocks();
-      updateProGates();
-      renderAll();
+    /* Server confirmed — activate Pro locally */
+    var verifiedAmt = '$' + res.amount.toFixed(2) + ' ' + res.token;
+    isPro = true; savePro(true);
+    if (window.Analytics) Analytics.track('Pro Unlocked', { method: 'tx', network: res.network });
+    updateTierBadge();
+    if (typeof initCategoryLocks === 'function') initCategoryLocks();
+    updateProGates();
+    renderAll();
 
-      _showProRequestPending('⚡ Payment verified! ' + verifiedAmt + ' via ' + result.network + '. <strong style="color:var(--green);">Pro is now active — thank you!</strong>');
-      try { localStorage.setItem('rot_pro_requested', '1'); } catch(e) {}
+    _showProRequestPending('⚡ Payment verified! ' + verifiedAmt + ' via ' + res.network + '. <strong style="color:var(--green);">Pro is now active — thank you!</strong>');
+    try { localStorage.setItem('rot_pro_requested', '1'); } catch(e) {}
 
-      var t = document.createElement('div');
-      t.style.cssText = 'position:fixed;top:56px;left:50%;transform:translateX(-50%);background:var(--bg2);border:1px solid var(--green);border-radius:6px;padding:14px 22px;font-family:IBM Plex Mono,monospace;font-size:12px;color:var(--green);z-index:900;text-align:center;box-shadow:0 0 30px rgba(0,200,150,.2);letter-spacing:.06em;';
-      t.innerHTML = '⚡ PRO UNLOCKED — Payment verified!<br><span style="font-size:12px;color:var(--muted);margin-top:4px;display:block;">' + verifiedAmt + ' confirmed on ' + result.network + '</span>';
-      document.body.appendChild(t);
-      setTimeout(function() { t.style.transition = 'opacity .5s'; t.style.opacity = '0'; setTimeout(function() { t.remove(); }, 500); }, 5000);
-      setTimeout(function() { if (typeof startProTutorial === 'function') startProTutorial(); }, 3000);
-    });
-  }).catch(function() {
-    status.style.color = 'var(--red)';
-    status.textContent = 'Verification error. Please try again in a moment.';
+    var t = document.createElement('div');
+    t.style.cssText = 'position:fixed;top:56px;left:50%;transform:translateX(-50%);background:var(--bg2);border:1px solid var(--green);border-radius:6px;padding:14px 22px;font-family:IBM Plex Mono,monospace;font-size:12px;color:var(--green);z-index:900;text-align:center;box-shadow:0 0 30px rgba(0,200,150,.2);letter-spacing:.06em;';
+    t.innerHTML = '⚡ PRO UNLOCKED — Payment verified!<br><span style="font-size:12px;color:var(--muted);margin-top:4px;display:block;">' + verifiedAmt + ' confirmed on ' + res.network + '</span>';
+    document.body.appendChild(t);
+    setTimeout(function() { t.style.transition = 'opacity .5s'; t.style.opacity = '0'; setTimeout(function() { t.remove(); }, 500); }, 5000);
+    setTimeout(function() { if (typeof startProTutorial === 'function') startProTutorial(); }, 3000);
   });
 }
 

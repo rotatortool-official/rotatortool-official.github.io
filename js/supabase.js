@@ -52,7 +52,8 @@ function supaRest(table, method, params) {
    through the SECURITY DEFINER RPCs:
      • redeem_pro_code()         — for Pro-code redemption
      • grant_pro_via_referrals() — for the 5-referral unlock
-     • grant_pro_via_tx()        — for verified crypto donations
+     • grant_pro_via_tx()        — called only from the verify-tx
+                                   Edge Function (server-trusted).
    This shim is kept as a no-op so older code paths don't throw. */
 function supaSavePro(uid, proCode) {
   return Promise.resolve();
@@ -81,34 +82,10 @@ function supaGrantProViaReferrals(uid) {
   });
 }
 
-/* ── Grant Pro via verified crypto TX (server-side replay guard) ── */
-function supaGrantProViaTx(uid, txHash, network, amountText, contact) {
-  var url = SUPA_URL + '/rest/v1/rpc/grant_pro_via_tx';
-  return fetch(url, {
-    method: 'POST',
-    headers: {
-      'apikey':        SUPA_KEY,
-      'Authorization': 'Bearer ' + SUPA_KEY,
-      'Content-Type':  'application/json'
-    },
-    body: JSON.stringify({
-      p_uid:     uid,
-      p_tx_hash: txHash,
-      p_network: network || '',
-      p_amount:  amountText || '',
-      p_contact: contact || ''
-    })
-  }).then(function(r) {
-    if (!r.ok) throw new Error('rpc ' + r.status);
-    return r.json();
-  }).then(function(result) {
-    if (result && typeof result.ok === 'boolean') return result;
-    return { ok: false, reason: 'invalid' };
-  }).catch(function(e) {
-    console.warn('[Supabase] grant_pro_via_tx failed:', e.message);
-    return { ok: false, reason: 'offline' };
-  });
-}
+/* Note: supaGrantProViaTx was removed — grant_pro_via_tx is now only
+   callable by the service_role key inside the verify-tx Edge Function.
+   The frontend calls that function via verifyAndActivateTx() in
+   tx-verify.js, which handles chain check + Pro activation atomically. */
 
 /* ── Server-side Pro code redemption ─────────────────────────── */
 /**
@@ -550,23 +527,9 @@ function supaLoadYesterdayInsights() {
    5. TX hash uniqueness enforced — one hash = one Pro activation
 ══════════════════════════════════════════════════════════════════ */
 
-/**
- * Check if a TX hash has already been submitted (any status).
- * Prevents reuse of the same transaction.
- * @param {string} txHash
- * @returns {Promise<boolean>} true if already used
- */
-function supaCheckTxHashUsed(txHash) {
-  return supaRest('pro_requests', 'GET', {
-    'tx_hash': 'eq.' + txHash,
-    'select':  'id',
-    'limit':   '1'
-  }).then(function(rows) {
-    return rows && rows.length > 0;
-  }).catch(function() {
-    return false; /* fail open — verification will still run */
-  });
-}
+/* Note: supaCheckTxHashUsed was removed — replay protection lives in
+   grant_pro_via_tx (returns reason='tx_used'), called by the verify-tx
+   Edge Function after the on-chain check. */
 
 /**
  * Submit a Pro activation request after crypto donation.
