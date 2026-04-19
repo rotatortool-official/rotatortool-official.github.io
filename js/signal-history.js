@@ -15,7 +15,20 @@ var SignalHistory = (function() {
 
   var LS_KEY = 'rot_signal_history';
   var LS_DATE_KEY = 'rot_signal_history_posted';  /* last YYYY-MM-DD we posted */
+  var LS_ROT_DATE_KEY = 'rot_rotation_history_posted';
+  var LS_PEAK_KEY = 'rot_peak_verdicts';          /* cached peak-window verdicts */
   var MAX_DAYS = 30;
+
+  /* ── Scoring window tunables ──────────────────────────────────
+     CONFIRM_DAYS_MIN — earliest day the window starts being checked.
+     PEAK_WINDOW_DAYS — latest day we consider for peak/trough lookup.
+     CONFIRM_THRESHOLD — min absolute % change to count as confirmed.
+     A call is locked in as soon as the best price in the window crosses
+     the threshold; current price beyond that does NOT retro-demote it. */
+  var CONFIRM_DAYS_MIN   = 7;
+  var PEAK_WINDOW_DAYS   = 14;
+  var CONFIRM_THRESHOLD  = 2;
+  var ROTATION_THRESHOLD = 2;   /* rotation: spread between to-change and from-change, in % */
 
   /* ── In-memory cache of the server history (source of truth). ──
      Populated by loadServerHistory() on module init. Until it
@@ -62,6 +75,144 @@ var SignalHistory = (function() {
     return dt.getFullYear() + '-' + String(dt.getMonth()+1).padStart(2,'0') + '-' + String(dt.getDate()).padStart(2,'0');
   }
 
+  /* ══════════════════════════════════════════════════════════════
+     PEAK-CAPTURE SCORING
+     Binance daily klines → max(high) / min(low) inside the confirm
+     window. A call is "correct" if the best move inside the window
+     crossed CONFIRM_THRESHOLD, regardless of today's price. Solves the
+     retroactive-bad problem: a good call at day 7 stays good even if
+     momentum fades by day 20. Falls back to current-price comparison
+     when klines are unavailable (coins not on Binance, offline, etc).
+  ══════════════════════════════════════════════════════════════ */
+  var _dailyKlineCache = {};   /* sym → { ts, candles } */
+  var _dailyKlineTTL   = 60 * 60 * 1000;  /* 1h */
+  var _dailyKlinePend  = {};   /* sym → in-flight promise (dedupes parallel calls) */
+  var _peakVerdicts    = {};   /* "YYYY-MM-DD|coin_id" → {bestChange, worstChange, ...} */
+  var _peakWarmStarted = false;
+  var _peakWarmDone    = false;
+
+  /* Restore persisted verdict cache so re-opening the app doesn't
+     re-query Binance for calls that already have a locked verdict. */
+  try {
+    var _savedPeak = localStorage.getItem(LS_PEAK_KEY);
+    if (_savedPeak) _peakVerdicts = JSON.parse(_savedPeak) || {};
+  } catch(e) { _peakVerdicts = {}; }
+
+  function _savePeakVerdicts() {
+    try { localStorage.setItem(LS_PEAK_KEY, JSON.stringify(_peakVerdicts)); } catch(e) {}
+  }
+
+  function _fetchDailyKlines(sym) {
+    var now = Date.now();
+    var cached = _dailyKlineCache[sym];
+    if (cached && (now - cached.ts) < _dailyKlineTTL) return Promise.resolve(cached.candles);
+    if (_dailyKlinePend[sym]) return _dailyKlinePend[sym];
+    var pair = sym + 'USDT';
+    var url = 'https://api.binance.com/api/v3/klines?symbol=' + pair + '&interval=1d&limit=30';
+    var p = fetch(url)
+      .then(function(r) { return r.ok ? r.json() : null; })
+      .then(function(data) {
+        if (!Array.isArray(data) || !data.length) { _dailyKlineCache[sym] = { ts: now, candles: null }; return null; }
+        var candles = data.map(function(k) {
+          return {
+            openTime: +k[0],
+            high:  parseFloat(k[2]),
+            low:   parseFloat(k[3]),
+            close: parseFloat(k[4])
+          };
+        });
+        _dailyKlineCache[sym] = { ts: now, candles: candles };
+        return candles;
+      })
+      .catch(function() { _dailyKlineCache[sym] = { ts: now, candles: null }; return null; })
+      .then(function(out) { delete _dailyKlinePend[sym]; return out; });
+    _dailyKlinePend[sym] = p;
+    return p;
+  }
+
+  /* Compute best/worst change for one snapshot entry in the confirm window.
+     Returns null if no kline data — caller falls back to current-price. */
+  function _computePeakVerdict(entry, snapDateStr) {
+    var snapTs = new Date(snapDateStr + 'T00:00:00').getTime();
+    var windowStart = snapTs + 864e5;                        /* day +1 */
+    var windowEnd   = snapTs + PEAK_WINDOW_DAYS * 864e5;     /* day +14 */
+    var nowTs = Date.now();
+    if (windowEnd > nowTs) windowEnd = nowTs;
+    if (windowStart >= windowEnd) return Promise.resolve(null);
+    return _fetchDailyKlines(entry.sym).then(function(candles) {
+      if (!candles || !candles.length) return null;
+      var win = candles.filter(function(c) { return c.openTime >= windowStart && c.openTime <= windowEnd; });
+      if (!win.length) return null;
+      var bestHigh = win[0].high, worstLow = win[0].low;
+      for (var i = 1; i < win.length; i++) {
+        if (win[i].high > bestHigh) bestHigh = win[i].high;
+        if (win[i].low  < worstLow) worstLow = win[i].low;
+      }
+      var pt = entry.price;
+      if (!pt || pt <= 0) return null;
+      return {
+        bestHigh:       bestHigh,
+        worstLow:       worstLow,
+        bestChange:     Math.round(((bestHigh - pt) / pt) * 1000) / 10,   /* one decimal */
+        worstChange:    Math.round(((worstLow - pt) / pt) * 1000) / 10,
+        windowDaysUsed: Math.min(PEAK_WINDOW_DAYS, Math.round((nowTs - snapTs) / 864e5)),
+        candleCount:    win.length,
+        computedAt:     nowTs
+      };
+    });
+  }
+
+  /* Background warm-up: iterate snapshots, fetch klines, cache verdicts.
+     Triggers a re-render on completion so the UI picks up the new numbers.
+     Runs at most once per session; each (date, coin) is only fetched once. */
+  function _warmPeakCache() {
+    if (_peakWarmStarted) return Promise.resolve();
+    _peakWarmStarted = true;
+    var hist = loadHistory();
+    if (!hist.length) { _peakWarmDone = true; return Promise.resolve(); }
+
+    var now = new Date();
+    var tasks = [];
+    hist.forEach(function(snap) {
+      var daysAgo = Math.round((now - new Date(snap.date + 'T00:00:00')) / 864e5);
+      if (daysAgo < CONFIRM_DAYS_MIN) return;   /* too fresh — not scored yet */
+      var entries = (snap.bullish || []).concat(snap.lagging || []);
+      entries.forEach(function(entry) {
+        if (!entry || !entry.id || !entry.sym || !entry.price) return;
+        var key = snap.date + '|' + entry.id;
+        if (_peakVerdicts[key]) return;   /* already cached */
+        tasks.push({ snap: snap, entry: entry, key: key });
+      });
+    });
+
+    if (!tasks.length) { _peakWarmDone = true; return Promise.resolve(); }
+
+    /* Batch of 5 concurrent with a 50ms pause between batches to stay
+       well under Binance's 1200 req/min limit. */
+    return new Promise(function(resolve) {
+      var BATCH = 5;
+      function step(i) {
+        if (i >= tasks.length) {
+          _peakWarmDone = true;
+          _savePeakVerdicts();
+          try { render(); } catch(e) {}
+          return resolve();
+        }
+        var batch = tasks.slice(i, i + BATCH);
+        Promise.all(batch.map(function(t) {
+          return _computePeakVerdict(t.entry, t.snap.date).then(function(v) {
+            if (v) _peakVerdicts[t.key] = v;
+          });
+        })).then(function() { setTimeout(function() { step(i + BATCH); }, 50); });
+      }
+      step(0);
+    });
+  }
+
+  function _lookupPeak(entry, snapDate) {
+    return _peakVerdicts[snapDate + '|' + entry.id] || null;
+  }
+
   /* ── Determine signal label for a coin ── */
   function getSignalLabel(c) {
     if (c.score >= 70) return 'STRONG MOM';
@@ -81,6 +232,77 @@ var SignalHistory = (function() {
     return extras;
   }
 
+  /* ══════════════════════════════════════════════════════════════
+     PREDICTIVE FILTERS — pre-snapshot quality gates.
+     Raw score alone is noisy. We layer in:
+       · Volume/mcap liquidity gate (dead coins rarely follow through)
+       · BTC relative-strength overlay (alts tracking BTC → less signal)
+       · Insight Engine agreement (when available for holdings/watchlist)
+       · Dilution risk (heavy unlocks cap bullish upside)
+     A `confidence` score reorders the top-10 without touching the public
+     `score` field that the leaderboard displays.
+  ══════════════════════════════════════════════════════════════ */
+  function _btcCoin() {
+    if (typeof coins === 'undefined' || !Array.isArray(coins)) return null;
+    return coins.find(function(c) { return c.id === 'bitcoin'; }) || null;
+  }
+
+  function _volMcap(c) {
+    if (!c.volume24 || !c.mcap || c.mcap <= 0) return 0;
+    return c.volume24 / c.mcap;
+  }
+
+  function _confidenceScore(c, kind) {
+    var base = c.score || 50;
+    var bonus = 0;
+    var vm = _volMcap(c);
+    var btc = _btcCoin();
+    var btc24 = btc ? (btc.p24 || 0) : 0;
+    var relStr = (c.p24 || 0) - btc24;
+    var circ = c.circulating_supply || 0;
+    var maxS = c.max_supply || 0;
+    var unlockRatio = (circ && maxS > 0) ? circ / maxS : -1;
+
+    if (kind === 'bullish') {
+      /* Liquidity: real turnover → real breakout */
+      if (vm >= 0.10)      bonus += 6;
+      else if (vm >= 0.05) bonus += 3;
+      else if (vm < 0.02)  bonus -= 8;
+      /* Short-term confirmation: p7 must be positive for a bullish call */
+      if ((c.p7 || 0) > 0) bonus += 2;
+      else                 bonus -= 4;
+      /* Insight Engine cross-check (only holdings/watchlist have it) */
+      if (c.insight && typeof c.insight.score === 'number') {
+        if (c.insight.score >= 65)      bonus += 6;
+        else if (c.insight.score <= 35) bonus -= 10;
+      }
+      /* BTC-relative: true strength is beating BTC on the day */
+      if (relStr >= 3)       bonus += 3;
+      else if (relStr <= -3) bonus -= 3;
+      /* Don't bullish-call coins with heavy upcoming supply unlocks */
+      if (unlockRatio >= 0 && unlockRatio < 0.25) bonus -= 6;
+    } else { /* lagging */
+      /* Lagging signals prefer thin-liquidity, weak momentum,
+         and BTC-underperforming coins. */
+      if (vm < 0.02)          bonus += 3;
+      if ((c.p7 || 0) < 0)    bonus += 2;
+      else                    bonus -= 3;
+      if (c.insight && typeof c.insight.score === 'number') {
+        if (c.insight.score <= 35)      bonus += 6;
+        else if (c.insight.score >= 65) bonus -= 8;
+      }
+      if (relStr <= -3)       bonus += 2;
+    }
+    return base + bonus;
+  }
+
+  function _isValidCandidate(c) {
+    if (!c || c.score == null || c.isStable) return false;
+    if (c.p7 == null || c.p30 == null) return false;
+    if (!c.price || c.price <= 0) return false;
+    return true;
+  }
+
   /* ── Take daily snapshot ── */
   function takeSnapshot() {
     if (typeof coins === 'undefined' || !Array.isArray(coins) || coins.length < 10) return;
@@ -91,33 +313,58 @@ var SignalHistory = (function() {
     /* Don't snapshot twice on the same day */
     if (hist.length && hist[hist.length - 1].date === today) return;
 
-    /* Sort by score — top 10 bullish, top 10 lagging */
-    var sorted = coins.filter(function(c) { return c.score != null && !c.isStable; })
-                      .sort(function(a, b) { return b.score - a.score; });
+    var btc = _btcCoin();
+    var btc24 = btc ? (btc.p24 || 0) : 0;
+    var btcBleeding = btc24 < -3;
 
-    var topBull = sorted.slice(0, 10).map(function(c) {
+    /* ── Build candidate pool with predictive filters ── */
+    var bullCandidates = coins.filter(function(c) {
+      if (!_isValidCandidate(c)) return false;
+      var vm = _volMcap(c);
+      /* Kill dead-liquidity large caps — they don't actually move */
+      if (vm < 0.015 && c.mcap > 1e8) return false;
+      /* When BTC is bleeding, only take coins showing real relative strength */
+      if (btcBleeding && (c.p24 || 0) <= 0) return false;
+      return true;
+    });
+    bullCandidates.sort(function(a, b) {
+      return _confidenceScore(b, 'bullish') - _confidenceScore(a, 'bullish');
+    });
+
+    var lagCandidates = coins.filter(_isValidCandidate);
+    lagCandidates.sort(function(a, b) {
+      return _confidenceScore(a, 'lagging') - _confidenceScore(b, 'lagging');
+    });
+
+    /* Emergency fallback: if filters killed the pool, retry unfiltered so
+       we always produce a snapshot. */
+    if (bullCandidates.length < 10) {
+      bullCandidates = coins.filter(_isValidCandidate)
+                            .sort(function(a, b) { return b.score - a.score; });
+    }
+    if (lagCandidates.length < 10) {
+      lagCandidates = coins.filter(_isValidCandidate)
+                            .sort(function(a, b) { return a.score - b.score; });
+    }
+
+    function _mapEntry(c, kind) {
+      var extras = getExtraSignals(c);
+      /* Mark high-conviction picks so the UI can render a badge. */
+      var conf = _confidenceScore(c, kind);
+      if ((conf - (c.score || 50)) >= 8) extras.push('HIGH CONVICTION');
       return {
         id: c.id, sym: c.sym, name: c.name || '',
         price: c.price, score: c.score,
         signal: getSignalLabel(c),
-        extras: getExtraSignals(c),
+        extras: extras,
         p24: Math.round(c.p24 * 100) / 100,
         p7: Math.round(c.p7 * 100) / 100,
         p30: Math.round(c.p30 * 100) / 100
       };
-    });
+    }
 
-    var topLag = sorted.slice(-10).reverse().map(function(c) {
-      return {
-        id: c.id, sym: c.sym, name: c.name || '',
-        price: c.price, score: c.score,
-        signal: getSignalLabel(c),
-        extras: getExtraSignals(c),
-        p24: Math.round(c.p24 * 100) / 100,
-        p7: Math.round(c.p7 * 100) / 100,
-        p30: Math.round(c.p30 * 100) / 100
-      };
-    });
+    var topBull = bullCandidates.slice(0, 10).map(function(c) { return _mapEntry(c, 'bullish'); });
+    var topLag  = lagCandidates.slice(0, 10).map(function(c) { return _mapEntry(c, 'lagging'); });
 
     hist.push({
       date: today,
@@ -168,14 +415,22 @@ var SignalHistory = (function() {
     });
   }
 
-  /* ── Compare past signals with current prices ── */
+  /* ── Compare past signals with peak-window (fallback: current price) ──
+     For each snapshot ≥CONFIRM_DAYS_MIN old, we prefer the peak-capture
+     verdict: best high inside the 14-day window for bullish, worst low
+     for lagging. A call that hit +15% at day 8 stays "confirmed" even
+     if the coin is back to flat today. Current-price comparison is
+     only used when Binance daily klines aren't available for the coin. */
   function getProvenSignals() {
     var hist = loadHistory();
-    if (!hist.length || typeof coins === 'undefined' || !coins.length) return [];
+    if (!hist.length) return [];
 
-    /* Build current price map */
+    /* Build current price map (fallback only). Coins list may be empty
+       on very first load; peak verdicts still work without it. */
     var priceMap = {};
-    coins.forEach(function(c) { priceMap[c.id] = c.price; });
+    if (typeof coins !== 'undefined' && coins.length) {
+      coins.forEach(function(c) { priceMap[c.id] = c.price; });
+    }
 
     var proven = [];
     var now = new Date();
@@ -184,59 +439,65 @@ var SignalHistory = (function() {
       var snapDate = new Date(snap.date + 'T00:00:00');
       var daysAgo = Math.round((now - snapDate) / (1000 * 60 * 60 * 24));
 
-      /* Only show signals that are 7+ days old */
-      if (daysAgo < 7) return;
+      /* Only show signals that are CONFIRM_DAYS_MIN+ days old */
+      if (daysAgo < CONFIRM_DAYS_MIN) return;
 
-      /* Check bullish signals — did they go up? */
+      /* Bullish — correct if best high in window ≥ +threshold */
       snap.bullish.forEach(function(entry) {
-        var currentPrice = priceMap[entry.id];
-        if (!currentPrice || !entry.price) return;
-
-        var change = ((currentPrice - entry.price) / entry.price) * 100;
-        var correct = change > 2; /* At least +2% to count as correct */
-
+        if (!entry.price) return;
+        var peak = _lookupPeak(entry, snap.date);
+        var change, priceNow, usedPeak = false;
+        if (peak) {
+          change = peak.bestChange;
+          priceNow = peak.bestHigh;
+          usedPeak = true;
+        } else {
+          var currentPrice = priceMap[entry.id];
+          if (!currentPrice) return;
+          change = ((currentPrice - entry.price) / entry.price) * 100;
+          priceNow = currentPrice;
+        }
+        var correct = change >= CONFIRM_THRESHOLD;
         if (correct) {
           proven.push({
-            id: entry.id,
-            sym: entry.sym,
-            name: entry.name,
-            signal: entry.signal,
-            extras: entry.extras || [],
-            date: snap.date,
-            daysAgo: daysAgo,
-            priceThen: entry.price,
-            priceNow: currentPrice,
+            id: entry.id, sym: entry.sym, name: entry.name,
+            signal: entry.signal, extras: entry.extras || [],
+            date: snap.date, daysAgo: daysAgo,
+            priceThen: entry.price, priceNow: priceNow,
             scoreThen: entry.score,
             change: Math.round(change * 10) / 10,
-            type: 'bullish',
-            correct: true
+            type: 'bullish', correct: true,
+            source: usedPeak ? 'peak' : 'current'
           });
         }
       });
 
-      /* Check lagging signals — did they stay lagging or recover? (confirm lagging = correct) */
+      /* Lagging — correct if worst low in window ≤ -threshold */
       snap.lagging.forEach(function(entry) {
-        var currentPrice = priceMap[entry.id];
-        if (!currentPrice || !entry.price) return;
-
-        var change = ((currentPrice - entry.price) / entry.price) * 100;
-        var correct = change < -2; /* Still dropping = lagging signal was correct */
-
+        if (!entry.price) return;
+        var peak = _lookupPeak(entry, snap.date);
+        var change, priceNow, usedPeak = false;
+        if (peak) {
+          change = peak.worstChange;
+          priceNow = peak.worstLow;
+          usedPeak = true;
+        } else {
+          var currentPrice = priceMap[entry.id];
+          if (!currentPrice) return;
+          change = ((currentPrice - entry.price) / entry.price) * 100;
+          priceNow = currentPrice;
+        }
+        var correct = change <= -CONFIRM_THRESHOLD;
         if (correct) {
           proven.push({
-            id: entry.id,
-            sym: entry.sym,
-            name: entry.name,
-            signal: entry.signal,
-            extras: entry.extras || [],
-            date: snap.date,
-            daysAgo: daysAgo,
-            priceThen: entry.price,
-            priceNow: currentPrice,
+            id: entry.id, sym: entry.sym, name: entry.name,
+            signal: entry.signal, extras: entry.extras || [],
+            date: snap.date, daysAgo: daysAgo,
+            priceThen: entry.price, priceNow: priceNow,
             scoreThen: entry.score,
             change: Math.round(change * 10) / 10,
-            type: 'lagging',
-            correct: true
+            type: 'lagging', correct: true,
+            source: usedPeak ? 'peak' : 'current'
           });
         }
       });
@@ -256,36 +517,53 @@ var SignalHistory = (function() {
     return proven.slice(0, 8); /* Top 8 proven signals */
   }
 
-  /* ── Get accuracy stats ── */
+  /* ── Get accuracy stats (peak-capture, falls back to current price) ── */
   function getAccuracyStats() {
     var hist = loadHistory();
-    if (!hist.length || typeof coins === 'undefined' || !coins.length) return null;
+    if (!hist.length) return null;
 
     var priceMap = {};
-    coins.forEach(function(c) { priceMap[c.id] = c.price; });
+    if (typeof coins !== 'undefined' && coins.length) {
+      coins.forEach(function(c) { priceMap[c.id] = c.price; });
+    }
 
     var now = new Date();
     var totalBull = 0, correctBull = 0, totalLag = 0, correctLag = 0;
+    var peakCovered = 0, currentCovered = 0;
 
     hist.forEach(function(snap) {
       var snapDate = new Date(snap.date + 'T00:00:00');
       var daysAgo = Math.round((now - snapDate) / (1000 * 60 * 60 * 24));
-      if (daysAgo < 7) return;
+      if (daysAgo < CONFIRM_DAYS_MIN) return;
 
       snap.bullish.forEach(function(entry) {
-        var cp = priceMap[entry.id];
-        if (!cp || !entry.price) return;
+        if (!entry.price) return;
+        var peak = _lookupPeak(entry, snap.date);
+        var change;
+        if (peak) { change = peak.bestChange; peakCovered++; }
+        else {
+          var cp = priceMap[entry.id];
+          if (!cp) return;
+          change = ((cp - entry.price) / entry.price) * 100;
+          currentCovered++;
+        }
         totalBull++;
-        var change = ((cp - entry.price) / entry.price) * 100;
-        if (change > 0) correctBull++;
+        if (change >= CONFIRM_THRESHOLD) correctBull++;
       });
 
       snap.lagging.forEach(function(entry) {
-        var cp = priceMap[entry.id];
-        if (!cp || !entry.price) return;
+        if (!entry.price) return;
+        var peak = _lookupPeak(entry, snap.date);
+        var change;
+        if (peak) { change = peak.worstChange; peakCovered++; }
+        else {
+          var cp = priceMap[entry.id];
+          if (!cp) return;
+          change = ((cp - entry.price) / entry.price) * 100;
+          currentCovered++;
+        }
         totalLag++;
-        var change = ((cp - entry.price) / entry.price) * 100;
-        if (change < 0) correctLag++;
+        if (change <= -CONFIRM_THRESHOLD) correctLag++;
       });
     });
 
@@ -300,7 +578,9 @@ var SignalHistory = (function() {
       bullTotal: totalBull,
       bullCorrect: correctBull,
       lagTotal: totalLag,
-      lagCorrect: correctLag
+      lagCorrect: correctLag,
+      peakCovered: peakCovered,
+      currentCovered: currentCovered
     };
   }
 
@@ -317,9 +597,17 @@ var SignalHistory = (function() {
     var container = document.getElementById('signal-track-record');
     if (!container) return;
 
+    /* Kick off async peak-capture warmup on first render. When it
+       finishes, it calls render() again so the UI reflects the locked
+       verdicts instead of the current-price fallback. */
+    if (!_peakWarmStarted) _warmPeakCache();
+
     var proven = getProvenSignals();
     var stats  = getAccuracyStats();
     var hist   = loadHistory();
+
+    var rotProven = (typeof getRotationProvenSignals === 'function') ? getRotationProvenSignals() : [];
+    var rotStats  = (typeof getRotationAccuracyStats  === 'function') ? getRotationAccuracyStats()  : null;
 
     /* Public track-record page link — shown in every render state */
     var publicLink = '<div class="str-public-link">'
