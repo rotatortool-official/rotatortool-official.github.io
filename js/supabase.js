@@ -439,6 +439,72 @@ function supaLoadSignalHistory(days) {
  *   where `insight` is the { score, label, color, signals[], tooltip } object.
  * @returns {Promise<{ok:boolean, reason:string, count:number}>}
  */
+
+/**
+ * Record today's rotation pairs (A → B). First-writer-of-the-day wins
+ * per (snap_date, from_id, to_id). Server stamps snap_date itself.
+ * @param {Array<Object>} rows — each: { from_id, from_sym, from_price, from_score, to_id, to_sym, to_price, to_score, source? }
+ * @returns {Promise<{ok:boolean, reason:string, count:number}>}
+ */
+function supaRecordRotationSnapshot(rows) {
+  var url = SUPA_URL + '/rest/v1/rpc/record_rotation_snapshot';
+  return fetch(url, {
+    method: 'POST',
+    headers: {
+      'apikey':        SUPA_KEY,
+      'Authorization': 'Bearer ' + SUPA_KEY,
+      'Content-Type':  'application/json'
+    },
+    body: JSON.stringify({ p_rows: rows })
+  }).then(function(r) {
+    if (!r.ok) throw new Error('rpc ' + r.status);
+    return r.json();
+  }).then(function(result) {
+    if (result && typeof result.ok === 'boolean') return result;
+    return { ok: false, reason: 'invalid', count: 0 };
+  }).catch(function(e) {
+    console.warn('[Supabase] record_rotation_snapshot failed:', e.message);
+    return { ok: false, reason: 'offline', count: 0 };
+  });
+}
+
+/**
+ * Load shared rotation snapshots, grouped by date so signal-history.js
+ * can apply peak-capture verdicts to each leg.
+ */
+function supaLoadRotationHistory(days) {
+  days = days || 30;
+  var cutoff = new Date(Date.now() - days * 24 * 60 * 60 * 1000);
+  var cutoffDate = cutoff.getFullYear() + '-'
+                 + String(cutoff.getMonth() + 1).padStart(2, '0') + '-'
+                 + String(cutoff.getDate()).padStart(2, '0');
+
+  return supaRest('rotation_snapshots', 'GET', {
+    'snap_date': 'gte.' + cutoffDate,
+    'select':    'snap_date,from_id,from_sym,from_price,from_score,to_id,to_sym,to_price,to_score,source',
+    'order':     'snap_date.asc'
+  }).then(function(rows) {
+    if (!rows || !rows.length) return [];
+    var byDate = {};
+    rows.forEach(function(r) {
+      var d = r.snap_date;
+      if (!byDate[d]) byDate[d] = { date: d, pairs: [] };
+      byDate[d].pairs.push({
+        from_id:    r.from_id,
+        from_sym:   r.from_sym,
+        from_price: r.from_price != null ? Number(r.from_price) : null,
+        from_score: r.from_score != null ? Number(r.from_score) : null,
+        to_id:      r.to_id,
+        to_sym:     r.to_sym,
+        to_price:   r.to_price != null ? Number(r.to_price) : null,
+        to_score:   r.to_score != null ? Number(r.to_score) : null,
+        source:     r.source || 'dashboard'
+      });
+    });
+    return Object.keys(byDate).sort().map(function(k) { return byDate[k]; });
+  }).catch(function() { return []; });
+}
+
 function supaRecordInsights(rows) {
   var url = SUPA_URL + '/rest/v1/rpc/record_daily_insights';
   return fetch(url, {

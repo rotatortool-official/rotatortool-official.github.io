@@ -742,6 +742,18 @@ body::before{content:'';position:fixed;inset:0;background:repeating-linear-gradi
 
 .tbl-head{padding:0 14px;min-height:38px;border-bottom:1px solid var(--bdr2);background:var(--bg3);display:flex;align-items:center;justify-content:space-between;gap:6px;flex-shrink:0;position:relative;}
 .last-upd-ts{font-size:12px;color:var(--muted);letter-spacing:.06em;font-family:var(--font-ui);}
+/* ── Merged single-row header: title + categories + sort hint ── */
+.tbl-head.tbl-head-merged{min-height:48px;padding:6px 14px;gap:14px;flex-wrap:nowrap;justify-content:flex-start;}
+.tbl-head-merged .ptitle{flex-shrink:0;white-space:nowrap;}
+.cat-bar.cat-bar-inline{flex:1;min-width:0;background:transparent;border-bottom:none;padding:0;justify-content:flex-start;}
+.tbl-head-meta{display:flex;flex-direction:column;align-items:flex-end;gap:2px;flex-shrink:0;margin-top:18px;}
+.tbl-head-meta .sort-hint{font-size:11px;color:var(--muted);letter-spacing:.08em;white-space:nowrap;}
+@media(max-width:1100px){
+  .tbl-head.tbl-head-merged{flex-wrap:wrap;}
+  .tbl-head-merged .ptitle{order:1;}
+  .tbl-head-merged .tbl-head-meta{order:2;margin-top:0;flex-direction:row;align-items:center;gap:8px;margin-left:auto;}
+  .cat-bar.cat-bar-inline{order:3;flex-basis:100%;justify-content:flex-start;overflow-x:auto;margin-top:4px;}
+}
 .tf-tabs{display:flex;gap:3px;}
 .tf-tab{background:none;border:1px solid var(--bdr);color:var(--muted);font-family:inherit;font-size:12px;padding:2px 8px;cursor:pointer;border-radius:var(--card-radius);letter-spacing:.08em;transition:all .15s;}
 .tf-tab.active{border-color:var(--bnb);color:var(--bnb);background:var(--bnbd);}
@@ -1210,6 +1222,20 @@ td.qa-cell{text-align:center;width:28px;padding:0 4px !important;}
 .str-public-link{margin-top:10px;text-align:center;font-family:var(--font-mono);font-size:11px;letter-spacing:.04em;}
 .str-public-link a{color:var(--bnb);text-decoration:none;padding:6px 10px;border:1px solid rgba(243,186,47,.25);border-radius:4px;transition:all .15s;display:inline-block;}
 .str-public-link a:hover{background:rgba(243,186,47,.1);border-color:var(--bnb);}
+
+/* ── Rotation pair wins (relative-performance scoring) ── */
+.str-rot-block{margin-top:12px;padding-top:10px;border-top:1px solid var(--bdr);}
+.str-rot-title{font-size:11px;font-weight:700;letter-spacing:.1em;color:var(--muted);text-transform:uppercase;margin-bottom:8px;font-family:var(--font-mono);}
+.str-rot-pct{color:var(--bnb);font-weight:600;margin-left:6px;}
+.str-rot-list{display:flex;flex-direction:column;gap:5px;}
+.str-rot-item{padding:7px 9px;background:var(--bg2);border:1px solid var(--bdr);border-radius:4px;font-family:var(--font-mono);}
+.str-rot-row{display:flex;align-items:center;gap:8px;flex-wrap:wrap;font-size:11px;}
+.str-rot-pair{flex:1;font-size:12px;color:var(--text);}
+.str-rot-pair strong{color:var(--bnb);}
+.str-rot-outcome{font-weight:700;letter-spacing:.05em;font-size:10px;}
+.str-rot-ago{color:var(--muted);font-size:10px;}
+.str-rot-detail{color:var(--muted);margin-top:3px;font-size:10px;}
+.str-rot-detail span{white-space:nowrap;}
 
 /* ── FOOTER & MODALS — gold + white only ── */
 .faq-q{font-size:14px;font-weight:600;color:var(--bnb);margin-bottom:6px;letter-spacing:.04em;font-family:var(--font-mono);}

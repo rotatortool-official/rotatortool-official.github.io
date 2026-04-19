@@ -193,8 +193,12 @@ a{color:inherit;text-decoration:none}
 
   var WINDOW_DAYS        = 30;
   var CONFIRM_DAYS_MIN   = 7;    /* snapshot must be 7+ days old to be evaluated */
+  var PEAK_WINDOW_DAYS   = 14;   /* upper bound of the confirm window for peak-capture */
   var CONFIRM_THRESHOLD  = 2;    /* % move in signalled direction to count as confirmed */
   var MAX_CARDS_PER_LIST = 12;
+  var KLINE_TTL_MS       = 60 * 60 * 1000;
+  var KLINE_BATCH_SIZE   = 5;
+  var KLINE_BATCH_PAUSE  = 80;
 
   /* ── Price formatter ───────────────────────────────────── */
   function fmtP(p) {
@@ -254,10 +258,95 @@ a{color:inherit;text-decoration:none}
       });
   }
 
+  /* ── Peak-capture helpers ────────────────────────────────
+     For each snapshot we fetch 30 days of Binance daily klines and
+     pick the best high (bullish) or worst low (lagging) inside the
+     [snap+1d, snap+14d] window. A call is locked in as confirmed
+     once the window crosses CONFIRM_THRESHOLD — current price
+     drifting back later does NOT retro-demote the call.
+     Coins that don't trade on Binance silently fall back to the
+     current-price comparison so we never lose coverage. */
+  var _klineCache = {};
+  var _klinePend  = {};
+
+  function fetchDailyKlines(sym) {
+    var now = Date.now();
+    var cached = _klineCache[sym];
+    if (cached && (now - cached.ts) < KLINE_TTL_MS) return Promise.resolve(cached.candles);
+    if (_klinePend[sym]) return _klinePend[sym];
+    var url = 'https://api.binance.com/api/v3/klines?symbol=' + sym + 'USDT&interval=1d&limit=30';
+    var p = fetch(url)
+      .then(function(r) { return r.ok ? r.json() : null; })
+      .then(function(data) {
+        if (!Array.isArray(data) || !data.length) {
+          _klineCache[sym] = { ts: now, candles: null };
+          return null;
+        }
+        var candles = data.map(function(k) {
+          return {
+            openTime: +k[0],
+            high: parseFloat(k[2]),
+            low:  parseFloat(k[3])
+          };
+        });
+        _klineCache[sym] = { ts: now, candles: candles };
+        return candles;
+      })
+      .catch(function() { _klineCache[sym] = { ts: now, candles: null }; return null; })
+      .then(function(out) { delete _klinePend[sym]; return out; });
+    _klinePend[sym] = p;
+    return p;
+  }
+
+  function peakInWindow(candles, snapDateStr) {
+    if (!candles || !candles.length) return null;
+    var snapTs = new Date(snapDateStr + 'T00:00:00').getTime();
+    var winStart = snapTs + 864e5;
+    var winEnd   = Math.min(snapTs + PEAK_WINDOW_DAYS * 864e5, Date.now());
+    if (winStart >= winEnd) return null;
+    var bestHigh = null, worstLow = null;
+    for (var i = 0; i < candles.length; i++) {
+      var c = candles[i];
+      if (c.openTime < winStart || c.openTime > winEnd) continue;
+      if (bestHigh == null || c.high > bestHigh) bestHigh = c.high;
+      if (worstLow == null || c.low  < worstLow) worstLow = c.low;
+    }
+    if (bestHigh == null) return null;
+    return { bestHigh: bestHigh, worstLow: worstLow };
+  }
+
+  /* Pre-fetch klines in batches before evaluating, so the per-snap
+     lookup is synchronous against the cache. */
+  function warmKlines(snaps) {
+    var symbols = {};
+    var now = new Date();
+    snaps.forEach(function(r) {
+      var snapDate = new Date(r.snap_date + 'T00:00:00');
+      var daysAgo = Math.round((now - snapDate) / 864e5);
+      if (daysAgo < CONFIRM_DAYS_MIN) return;
+      if (r.coin_sym) symbols[r.coin_sym] = true;
+    });
+    var list = Object.keys(symbols);
+    if (!list.length) return Promise.resolve();
+    return new Promise(function(resolve) {
+      var i = 0;
+      function step() {
+        if (i >= list.length) return resolve();
+        var batch = list.slice(i, i + KLINE_BATCH_SIZE);
+        i += KLINE_BATCH_SIZE;
+        Promise.all(batch.map(fetchDailyKlines)).then(function() {
+          setTimeout(step, KLINE_BATCH_PAUSE);
+        });
+      }
+      step();
+    });
+  }
+
   /* ── Evaluate snapshots → wins/misses lists + stats ────── */
   function evaluate(snaps, priceMap) {
     var wins = [], misses = [];
     var tBull = 0, cBull = 0, tLag = 0, cLag = 0;
+    var peakCovered = 0, fallbackCovered = 0;
     var now = new Date();
 
     snaps.forEach(function(r) {
@@ -266,10 +355,27 @@ a{color:inherit;text-decoration:none}
       if (daysAgo < CONFIRM_DAYS_MIN) return;
 
       var priceThen = r.price != null ? Number(r.price) : null;
-      var priceNow  = priceMap[r.coin_id];
-      if (!priceThen || !priceNow) return;
+      if (!priceThen) return;
 
-      var change = ((priceNow - priceThen) / priceThen) * 100;
+      var change, priceNow, usedPeak = false;
+      var cached = _klineCache[r.coin_sym];
+      var peak = (cached && cached.candles) ? peakInWindow(cached.candles, r.snap_date) : null;
+
+      if (peak) {
+        usedPeak = true;
+        if (r.signal_type === 'bullish') {
+          priceNow = peak.bestHigh;
+          change = ((peak.bestHigh - priceThen) / priceThen) * 100;
+        } else {
+          priceNow = peak.worstLow;
+          change = ((peak.worstLow - priceThen) / priceThen) * 100;
+        }
+      } else {
+        priceNow = priceMap[r.coin_id];
+        if (!priceNow) return;
+        change = ((priceNow - priceThen) / priceThen) * 100;
+      }
+
       var rounded = Math.round(change * 10) / 10;
 
       var record = {
@@ -277,18 +383,20 @@ a{color:inherit;text-decoration:none}
         signal: r.signal_label || '', score: r.score != null ? Number(r.score) : null,
         date: r.snap_date, daysAgo: daysAgo,
         priceThen: priceThen, priceNow: priceNow,
-        change: rounded, type: r.signal_type
+        change: rounded, type: r.signal_type,
+        source: usedPeak ? 'peak' : 'current'
       };
+      if (usedPeak) peakCovered++; else fallbackCovered++;
 
       var correct;
       if (r.signal_type === 'bullish') {
         tBull++;
         correct = change >= CONFIRM_THRESHOLD;
-        if (change > 0) cBull++;
+        if (correct) cBull++;
       } else if (r.signal_type === 'lagging') {
         tLag++;
         correct = change <= -CONFIRM_THRESHOLD;
-        if (change < 0) cLag++;
+        if (correct) cLag++;
       } else {
         return;
       }
@@ -321,7 +429,8 @@ a{color:inherit;text-decoration:none}
       wins: wins, misses: misses,
       stats: { total: total, correct: correct, accuracy: acc,
                bullTotal: tBull, bullCorrect: cBull,
-               lagTotal: tLag, lagCorrect: cLag }
+               lagTotal: tLag, lagCorrect: cLag,
+               peakCovered: peakCovered, fallbackCovered: fallbackCovered }
     };
   }
 
@@ -436,8 +545,12 @@ a{color:inherit;text-decoration:none}
           'No snapshots yet. Come back after the first few days of tracking.';
         return;
       }
-      var result = evaluate(snaps, priceMap);
-      render(result);
+      /* Render current-price-only result first for fast paint, then
+         warm Binance klines and re-render with the locked verdicts. */
+      render(evaluate(snaps, priceMap));
+      return warmKlines(snaps).then(function() {
+        render(evaluate(snaps, priceMap));
+      });
     })
     .catch(function(e) {
       showError(e && e.message ? e.message : 'Network error');
