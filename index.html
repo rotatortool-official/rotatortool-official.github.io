@@ -1315,13 +1315,13 @@
 
 <footer class="site-footer">
   <div class="footer-links">
-    <a class="footer-link" onclick="openModal('about-modal')">ABOUT US</a>
-    <a class="footer-link" onclick="openModal('faq-modal')">FAQ</a>
-    <a class="footer-link" onclick="alert('How It Works — Coming soon')">HOW IT WORKS</a>
-    <a class="footer-link" onclick="openModal('tos-modal')">TERMS</a>
-    <a class="footer-link" onclick="openModal('privacy-modal')">PRIVACY</a>
-    <a class="footer-link" href="mailto:rotatortool@gmail.com">CONTACT</a>
-    <a class="footer-link" onclick="openModal('donate-modal')">SUPPORT US</a>
+    <a class="footer-link" href="#" role="button" onclick="event.preventDefault();openModal('about-modal');return false;">ABOUT US</a>
+    <a class="footer-link" href="#" role="button" onclick="event.preventDefault();openModal('faq-modal');return false;">FAQ</a>
+    <a class="footer-link" href="#" role="button" onclick="event.preventDefault();alert('How It Works — Coming soon');return false;">HOW IT WORKS</a>
+    <a class="footer-link" href="#" role="button" onclick="event.preventDefault();openModal('tos-modal');return false;">TERMS</a>
+    <a class="footer-link" href="#" role="button" onclick="event.preventDefault();openModal('privacy-modal');return false;">PRIVACY</a>
+    <a class="footer-link" href="mailto:rotatortool@gmail.com" onclick="(function(e){var em='rotatortool@gmail.com';var ok=false;try{if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(em);ok=true;}}catch(_){} setTimeout(function(){if(!document.hidden){alert('Contact us at:\n\n'+em+(ok?'\n\n(email address copied to clipboard)':''));}},350);})(event);">CONTACT</a>
+    <a class="footer-link" href="#" role="button" onclick="event.preventDefault();openModal('donate-modal');return false;">SUPPORT US</a>
   </div>
   <div class="footer-copy">© 2026 ROTATOR · NOT FINANCIAL ADVICE · <span style="color:var(--red);">DYOR</span></div>
   <div class="footer-disclaimer" style="display:flex;flex-direction:column;align-items:center;gap:8px;">
