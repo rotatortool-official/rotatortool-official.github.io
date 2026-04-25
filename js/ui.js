@@ -300,7 +300,7 @@ function renderWatchlist() {
     if (!coin) return '<div class="tile-placeholder" title="' + sym + ' (loading…)"><div class="ph-plus">' + sym + '</div><div class="ph-lbl">Loading</div></div>';
     var glw = coin.score >= 65 ? 'glow-g' : coin.score >= 40 ? 'glow-a' : 'glow-r';
     return '<div class="tile ' + glw + '" style="cursor:pointer;" onclick="openTileDetail(\'' + coin.id + '\',event)" title="' + coin.name + '">'
-      + '<div class="tile-top"><div class="tile-ico"><img src="' + coin.image + '" onerror="this.style.display=\'none\'"></div>'
+      + '<div class="tile-top"><div class="tile-ico"><img src="' + coin.image + '" alt="' + coin.sym + ' logo" loading="lazy" width="22" height="22" onerror="this.style.display=\'none\'"></div>'
       + '<span class="tile-sym">' + coin.sym + '</span>'
       + '<button class="tile-rm" onclick="event.stopPropagation();removeFromWatchlist(\'' + sym + '\')">×</button></div>'
       + '<div class="tile-price">' + (typeof fmtP !== 'undefined' ? fmtP(coin.price) : '$'+coin.price) + '</div>'

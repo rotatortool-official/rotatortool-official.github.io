@@ -12,7 +12,7 @@ Each file has ONE job. Edit the right file for what you want to change.
 |------|-----------------|--------------------------|
 | `js/config.js` | Coin lists, forex pairs, stocks, donation goal, Pro tier plans | Add/remove assets, update donation target, change Pro pricing |
 | `js/api-pool.js` | Fetch logic, proxy rotation, caching, AV keys | Add API keys, change cache times, add a new proxy |
-| `js/pro-system.js` | Referral system, Pro modal, tier badge, Pro feature gates, Skrill helpers | Change Pro modal wording, referral count, locked features, payment links |
+| `js/pro-system.js` | Referral system, Pro modal, tier badge, Pro feature gates, Telegram Pro-gate | Change Pro modal wording, referral count, locked features, community links |
 | `js/signals.js` | Rotation tiles, leaderboard, scoring engine, category locks | Change signal thresholds, scoring weights, free/pro category list |
 | `js/holdings.js` | Holdings panels (crypto/forex/stocks) + portfolio signals | Change tile appearance, P&L display, holdings limits (5 free / unlimited Pro) |
 | `js/tutorial.js` | Onboarding tutorial steps | Edit tutorial text, add/remove steps |
@@ -82,8 +82,8 @@ Open `js/signals.js`, find `FREE_CATEGORIES`:
 var FREE_CATEGORIES = ['all', 'l1', 'defi', 'meme', 'demo'];
 ```
 
-### Change Skrill payment links
-Search for `skrill.me/YourName` in `index.html` and `js/pro-system.js` — replace `YourName` with your actual Skrill username
+### Change community channel links
+Search for `t.me/rotatortool` in `index.html` and `js/pro-system.js` — replace with your own Telegram channel handle. The Discord button is a placeholder (Coming soon) — wire it up the same way once you have a server.
 
 ### Add an Alpha Vantage key (so stocks don't fail)
 Open `js/api-pool.js`, find `AV_KEYS`:
@@ -188,10 +188,10 @@ Toggle function: `toggleCollapse(id)` in the inline `<script>` block.
 ## ✅ Features added (April 2026 session)
 
 ### Pro Tier System (donation-based)
-- **3 Pro plans**: $5/1 month, $10/3 months, $20/6 months
-- **Skrill payment** with tiered buttons in donate modal and Pro modal
-- **Tip screen** appears after any payment with thank-you message about future development
+- **Crypto-only donations** — USDT (TRC20/BEP20/ERC20), BNB, ETH, Binance Pay; Pro auto-activates via TX-hash verification
+- **Tip screen** appears after donation with thank-you message about future development
 - **Pro codes** still work as alternative unlock method
+- **Community channels** — Telegram signals channel (Pro-only access via `joinTelegram()` gate) and Discord placeholder
 - **Referral system** still works (5 verified friends = free Pro, tracked via Supabase)
 - Plans configured in `config.js` → `PRO_PLANS` array
 
@@ -259,4 +259,4 @@ Toggle function: `toggleCollapse(id)` in the inline `<script>` block.
 
 ---
 
-*ROTATOR © 2026 Daniel Stoilkovski — All Rights Reserved*
+*ROTATOR © 2026 — All Rights Reserved*

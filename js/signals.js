@@ -812,27 +812,27 @@ function renderTable() {
       col7   = '<td class="pc" style="text-align:center;"><span style="color:var(--muted);font-size:12px;" title="' + c.aprPlatform + '">' + c.aprPlatform.split(' / ')[0] + '</span></td>';
       col14  = '<td class="pc" style="text-align:center;"><span style="color:var(--muted);font-size:12px;">~$1.00</span></td>';
       col30  = '<td class="pc" style="text-align:center;"><span style="color:var(--muted);font-size:12px;">PEG</span></td>';
-      colScore = '<td class="r"><div class="sw"><span class="sv" style="color:#8dffc0;">YIELD</span></div></td>';
+      colScore = '<td class="r" data-label="SCORE"><div class="sw"><span class="sv" style="color:#8dffc0;">YIELD</span></div></td>';
     } else if (isPro) {
-      col24  = '<td class="pc">' + pctSpan(c.p24) + '</td>';
-      col7   = '<td class="pc">' + pctSpan(c.p7)  + '</td>';
-      col14  = '<td class="pc">' + pctSpan(c.p14) + '</td>';
-      col30  = '<td class="pc">' + pctSpan(c.p30) + '</td>';
-      colScore = '<td class="r"><div class="sw"><span class="sv" style="color:' + scC + ';">' + sc + '</span><div class="sb"><div class="sbf" style="width:' + Math.max(2, sc) + '%;background:' + scC + ';"></div></div></div></td>';
+      col24  = '<td class="pc" data-label="24H">' + pctSpan(c.p24) + '</td>';
+      col7   = '<td class="pc" data-label="7D">' + pctSpan(c.p7)  + '</td>';
+      col14  = '<td class="pc" data-label="14D">' + pctSpan(c.p14) + '</td>';
+      col30  = '<td class="pc" data-label="30D">' + pctSpan(c.p30) + '</td>';
+      colScore = '<td class="r" data-label="SCORE"><div class="sw"><span class="sv" style="color:' + scC + ';">' + sc + '</span><div class="sb"><div class="sbf" style="width:' + Math.max(2, sc) + '%;background:' + scC + ';"></div></div></div></td>';
     } else {
       /* Free users: all % columns visible, only Score gated */
-      col24  = '<td class="pc">' + pctSpan(c.p24) + '</td>';
-      col7   = '<td class="pc">' + pctSpan(c.p7)  + '</td>';
-      col14  = '<td class="pc">' + pctSpan(c.p14) + '</td>';
-      col30  = '<td class="pc">' + pctSpan(c.p30) + '</td>';
-      colScore = '<td class="r pro-blur-cell" onclick="event.stopPropagation();openPro()" title="Unlock Rotator Score with Pro"><div class="pro-blur-wrap"><div class="sw"><span class="sv" style="color:var(--muted);">' + sc + '</span><div class="sb"><div class="sbf" style="width:' + Math.max(2, sc) + '%;background:var(--muted);"></div></div></div></div><span class="pro-blur-lock">🔒</span></td>';
+      col24  = '<td class="pc" data-label="24H">' + pctSpan(c.p24) + '</td>';
+      col7   = '<td class="pc" data-label="7D">' + pctSpan(c.p7)  + '</td>';
+      col14  = '<td class="pc" data-label="14D">' + pctSpan(c.p14) + '</td>';
+      col30  = '<td class="pc" data-label="30D">' + pctSpan(c.p30) + '</td>';
+      colScore = '<td class="r pro-blur-cell" data-label="SCORE" onclick="event.stopPropagation();openPro()" title="Unlock Rotator Score with Pro"><div class="pro-blur-wrap"><div class="sw"><span class="sv" style="color:var(--muted);">' + sc + '</span><div class="sb"><div class="sbf" style="width:' + Math.max(2, sc) + '%;background:var(--muted);"></div></div></div></div><span class="pro-blur-lock">🔒</span></td>';
     }
 
     return '<tr class="' + (isH ? 'held' : '') + (c.isStable ? ' stable-row' : '') + '" ' + tipData + ' onmouseenter="showRowTip(this,event)" onmouseleave="hideTip()" onclick="openTileDetail(\'' + c.id + '\',event)">'
       + '<td class="qa-cell">' + qaBtnHtml + '</td>'
       + '<td style="color:var(--muted);font-size:11px;opacity:.5;">' + (i+1) + '</td>'
       + '<td><div class="cc"><div class="ti"><img src="' + c.image + '" alt="' + c.sym + ' logo" loading="lazy" width="18" height="18" onerror="this.style.display=\'none\'"></div><div><div style="display:flex;align-items:center;"><span class="tsym">' + c.sym + '</span>' + (isH ? '<span class="htag">HELD</span>' : '') + stableTag + '</div><div class="tname">' + (c.name.length > 17 ? c.name.slice(0,15) + '…' : c.name) + '</div></div></div></td>'
-      + '<td class="r price-col">' + fmtP(c.price) + '</td>'
+      + '<td class="r price-col" data-label="PRICE">' + fmtP(c.price) + '</td>'
       + col24 + col7 + col14 + col30 + colScore
       + '</tr>';
   }).join('');

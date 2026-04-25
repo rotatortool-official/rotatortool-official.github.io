@@ -259,28 +259,20 @@ function openPro() {
         + '<a href="#" onclick="closeModal(\'pro-modal\');openModal(\'donate-modal\');return false;" style="display:block;text-align:center;font-size:12px;color:var(--green);text-decoration:none;font-weight:600;">View full donation page with copy buttons →</a>'
       + '</div>'
 
-      /* ── SECONDARY: Skrill (card) — donation only, does NOT unlock Pro ── */
-      + '<div style="font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);margin-bottom:8px;">TIP JAR — SKRILL (CARD)</div>'
+      /* ── SECONDARY: Community channels (Telegram = Pro signals, Discord placeholder) ── */
+      + '<div style="font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);margin-bottom:8px;">COMMUNITY &amp; SIGNALS</div>'
       + '<div style="background:var(--bg3);border:1px solid var(--bdr2);border-radius:6px;padding:14px;margin-bottom:14px;">'
-        + '<div style="font-size:12px;color:var(--amber);margin-bottom:8px;line-height:1.6;font-weight:600;">Skrill tips support the project but do not unlock Pro.<br>For Pro, use crypto above — it\'s instant and auto-verified.</div>'
-        + '<div class="pro-plans-row">'
-          + '<a href="https://skrill.me/rq/Daniel/5/USD?key=Aw1OEJXlKgBA8JsQQUlWczzO64A" target="_blank" rel="noopener" class="pro-plan-card" onclick="showTipScreen()">'
-            + '<div class="pro-plan-price">$5</div>'
-            + '<div class="pro-plan-dur">Small Tip</div>'
-            + '<div class="pro-plan-badge" style="color:var(--muted);">Tip</div>'
+        + '<div style="font-size:12px;color:var(--muted);margin-bottom:8px;line-height:1.6;">Pro members get access to the private <strong style="color:var(--pro);">Telegram signals channel</strong>. Discord coming soon.</div>'
+        + '<div class="community-tier-row">'
+          + '<a href="https://t.me/rotatortool" target="_blank" rel="noopener" class="community-btn community-btn-tg" data-pro-only="1" onclick="return joinTelegram(event)">'
+            + '<div style="font-size:14px;font-weight:800;">Telegram</div>'
+            + '<div style="font-size:12px;color:inherit;opacity:.75;margin-top:2px;">⚡ Pro signals</div>'
           + '</a>'
-          + '<a href="https://skrill.me/rq/Daniel/15/USD?key=UioGmHInL3DGuPlwSNb7ur5flZr" target="_blank" rel="noopener" class="pro-plan-card" onclick="showTipScreen()">'
-            + '<div class="pro-plan-price">$15</div>'
-            + '<div class="pro-plan-dur">Generous Tip</div>'
-            + '<div class="pro-plan-badge" style="color:var(--muted);">Tip</div>'
-          + '</a>'
-          + '<a href="https://skrill.me/rq/Daniel/50/USD?key=ERwwyCSOLuNQd0mqjQew-P_YFPu" target="_blank" rel="noopener" class="pro-plan-card" onclick="showTipScreen()">'
-            + '<div class="pro-plan-price">$50</div>'
-            + '<div class="pro-plan-dur">Legendary Tip</div>'
-            + '<div class="pro-plan-badge" style="color:var(--muted);">Tip</div>'
+          + '<a href="#" class="community-btn community-btn-dc community-btn-soon" onclick="event.preventDefault();return false;" aria-disabled="true">'
+            + '<div style="font-size:14px;font-weight:800;">Discord</div>'
+            + '<div style="font-size:12px;color:inherit;opacity:.75;margin-top:2px;">Coming soon</div>'
           + '</a>'
         + '</div>'
-        + '<div style="font-size:12px;color:var(--muted);text-align:center;margin-top:6px;">Donation only · Does not unlock Pro · Thank you for supporting Rotator!</div>'
       + '</div>'
 
       /* ── Pro code ── */
@@ -604,19 +596,6 @@ function _showProRequestPending(msg) {
   } catch(e) {}
 })();
 
-/* ── Plan-based Pro activation (lifetime — one-time contribution) ──
-   NOTE: currently unreferenced. Kept only so existing Skrill callbacks
-   (if wired up later) can still flip local Pro. Cloud-side Pro now
-   requires one of the verified paths (code / referral / TX RPC). */
-function activateProPlan(months) {
-  isPro = true;
-  savePro(true); /* lifetime — no expiry */
-  updateTierBadge();
-  if (typeof initCategoryLocks === 'function') initCategoryLocks();
-  updateProGates();
-  renderAll();
-}
-
 /* ── Pro feature gates ──────────────────────────────────────── */
 function updateProGates() {
   /* Swap tool — always visible; only coin picker is Pro-gated */
@@ -632,16 +611,17 @@ function updateProGates() {
   if (proTutRow) proTutRow.style.display = isPro ? '' : 'none';
 }
 
-/* ── Skrill helpers ──────────────────────────────────────────── */
-function sendSkrill() {
-  var amount = document.getElementById('skrill-custom-amount').value;
-  if (!amount || amount < 1) { document.getElementById('skrill-custom-amount').style.borderColor = 'var(--red)'; return; }
-  document.getElementById('skrill-custom-amount').style.borderColor = '';
-  var skrillUrls = {5:'https://skrill.me/rq/Daniel/5/USD?key=Aw1OEJXlKgBA8JsQQUlWczzO64A',10:'https://skrill.me/rq/Daniel/10/USD?key=UioGmHInL3DGuPlwSNb7ur5flZr',20:'https://skrill.me/rq/Daniel/20/USD?key=ERwwyCSOLuNQd0mqjQew-P_YFPu'};
-  /* Pick the closest tier link, or default to the $5 link */
-  var url = skrillUrls[+amount] || (amount >= 15 ? skrillUrls[20] : amount >= 8 ? skrillUrls[10] : skrillUrls[5]);
-  window.open(url, '_blank');
-  showTipScreen();
+/* ── Telegram (Pro-gated) ────────────────────────────────────── */
+function joinTelegram(ev) {
+  if (!isPro) {
+    if (ev && ev.preventDefault) ev.preventDefault();
+    if (window.Analytics) Analytics.track('Telegram Gate Blocked');
+    closeModal('donate-modal');
+    openPro();
+    return false;
+  }
+  if (window.Analytics) Analytics.track('Telegram Channel Opened');
+  return true;
 }
 
 function showTipScreen() {
