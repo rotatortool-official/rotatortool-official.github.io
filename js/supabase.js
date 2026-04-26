@@ -403,6 +403,7 @@ function supaLoadSignalHistory(days) {
         score:   r.score != null ? Number(r.score) : null,
         signal:  r.signal_label || '',
         extras:  r.extras || [],
+        mcap:    r.mcap != null ? Number(r.mcap) : 0,
         p24:     r.p24 != null ? Number(r.p24) : null,
         p7:      r.p7  != null ? Number(r.p7)  : null,
         p30:     r.p30 != null ? Number(r.p30) : null

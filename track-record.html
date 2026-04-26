@@ -232,7 +232,7 @@ a{color:inherit;text-decoration:none}
                   + String(cutoff.getDate()).padStart(2, '0');
     var url = SUPA_URL + '/rest/v1/signal_snapshots'
       + '?snap_date=gte.' + cutoffStr
-      + '&select=snap_date,coin_id,coin_sym,coin_name,signal_type,signal_label,score,price'
+      + '&select=snap_date,coin_id,coin_sym,coin_name,signal_type,signal_label,score,price,mcap'
       + '&order=snap_date.asc';
     return fetch(url, {
       headers: { 'apikey': SUPA_KEY, 'Authorization': 'Bearer ' + SUPA_KEY }
