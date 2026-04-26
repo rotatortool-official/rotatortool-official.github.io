@@ -80,6 +80,140 @@ function renderBTC() {
 }
 
 /* ══════════════════════════════════════════════════════════════
+   ADAPTIVE THRESHOLDS + HYSTERESIS + MEAN-REVERSION GATE
+   ──────────────────────────────────────────────────────────────
+   Three small accuracy nudges, applied as a single zone classifier:
+
+   1. Adaptive bands: BTC>MA200 → SELL band raised (don't cut winners
+      too early); BTC<MA200 → BUY band lowered (don't catch knives).
+   2. Hysteresis deadband: once a coin enters BUY/SELL, it must cross
+      50 (not just the entry band) to flip — kills churn from coins
+      that hover near 38/62.
+   3. Mean-reversion gate on BUY: only call BUY when 30D drawdown is
+      in the reversion sweet spot (-40% .. -3%). Tails are usually
+      broken markets, not buys.
+
+   The base thresholds (38/62) are still the public/visible ones; the
+   adjustments shift the actual signal trigger. Per-coin zone state
+   is mirrored to localStorage so hysteresis survives reloads.
+══════════════════════════════════════════════════════════════ */
+var _SIG_BUY_BASE  = 38;
+var _SIG_SELL_BASE = 62;
+var _SIG_DEADBAND  = 50;
+
+var _lastZone = {};
+try {
+  var _zRaw = localStorage.getItem('rot_last_zone');
+  if (_zRaw) _lastZone = JSON.parse(_zRaw) || {};
+} catch (e) {}
+
+function _adaptiveThresholds() {
+  if (btcMA200 && btcPrice) {
+    if (btcPrice > btcMA200) return { buy: 38, sell: 66 }; /* bull: hold winners */
+    return { buy: 34, sell: 58 };                           /* bear: skip knives */
+  }
+  return { buy: _SIG_BUY_BASE, sell: _SIG_SELL_BASE };
+}
+
+function _passesMeanRevGate(c) {
+  var p30 = (c && typeof c.p30 === 'number') ? c.p30 : 0;
+  return p30 <= -3 && p30 >= -40;
+}
+
+/* Lightweight forward-looking proxy for ALL coins — used by the zone
+   classifier so we can dampen rotation calls when this disagrees with
+   the rotation score. The full Insight Engine in computeInsights() is
+   richer but only runs on holdings/watchlist (kline rate-limit cost);
+   this version uses fields computeScores has already populated, so it's
+   free to compute everywhere.
+
+   Returns 0–100 where:
+     ≥65 → forward-looking bullish (oversold/accumulating/accelerating)
+     ≤35 → forward-looking bearish (overbought/distribution/decelerating)
+*/
+function _quickInsight(c) {
+  if (!c) return 50;
+  var pts = 0;
+  var p7   = c.p7  || 0;
+  var p14  = c.p14 || 0;
+  var p30  = c.p30 || 0;
+
+  /* Momentum acceleration: p7 outperforming p14 = momentum building */
+  var accel = p7 - p14;
+  if      (accel >  5)   pts += 15;
+  else if (accel >  1.5) pts += 6;
+  else if (accel < -5)   pts -= 15;
+  else if (accel < -1.5) pts -= 6;
+
+  /* Recovery vs 30D: short-term lift while still drawn-down = reversion */
+  var recovery = p7 - p30;
+  if      (recovery >  8) pts += 10;
+  else if (recovery < -8) pts -= 8;
+
+  /* Volume × stability: high turnover at flat price = accumulation */
+  var vm = (c.volume24 && c.mcap) ? c.volume24 / c.mcap : 0;
+  var stable24 = Math.abs(c.p24 || 0) < 3;
+  if      (vm > 0.20 && stable24)        pts += 20;
+  else if (vm > 0.20)                    pts += 10;
+  else if (vm < 0.02 && c.mcap > 5e8)    pts -= 12;
+
+  /* RSI-style proxy from intra-list 30D rank */
+  if (c.r30 && typeof coins !== 'undefined' && coins.length > 1) {
+    var rsiProxy = (1 - (c.r30 - 1) / Math.max(coins.length - 1, 1)) * 100;
+    if      (rsiProxy <= 25) pts += 18;   /* oversold */
+    else if (rsiProxy >= 75) pts -= 18;   /* overbought */
+  }
+
+  var max = 65, min = -65;
+  var raw = Math.min(max, Math.max(min, pts));
+  return Math.round(((raw - min) / (max - min)) * 100);
+}
+
+/* Classify every coin's zone with hysteresis + adaptive bands.
+   Sets c._zone ∈ {'buy','sell','neutral'} and persists to localStorage. */
+function _classifyZones() {
+  if (typeof coins === 'undefined' || !coins.length) return;
+  var th = _adaptiveThresholds();
+  coins.forEach(function(c) {
+    if (!c || c.isStable || c.dataComplete === false) { c._zone = 'neutral'; return; }
+
+    /* Step 3: Insight↔rotation cross-link.
+       Prefer the rich Insight Engine score when present (holdings/watchlist),
+       fall back to _quickInsight for everything else. If the forward-looking
+       signal strongly disagrees with the rotation score, pull the effective
+       score back toward neutral (50) so the zone classifier won't trigger.
+         · ins ≥65 (bullish ahead) but rot ≥55 (rotation says sell) → dampen sell
+         · ins ≤35 (bearish ahead) but rot ≤45 (rotation says buy)  → dampen buy
+       Never crosses 50 — only neutralizes the contradiction. */
+    var s = c.score;
+    var ins = (c.insight && typeof c.insight.score === 'number')
+                ? c.insight.score : _quickInsight(c);
+    if      (ins >= 65 && s >= 55) s = Math.max(50, s - 6);
+    else if (ins <= 35 && s <= 45) s = Math.min(50, s + 6);
+    c._effectiveScore = s;
+    c._quickIns = ins;
+
+    var prev = _lastZone[c.id];
+    var z;
+    if      (s <= th.buy)                                 z = 'buy';
+    else if (s >= th.sell)                                z = 'sell';
+    else if (prev === 'buy'  && s < _SIG_DEADBAND)        z = 'buy';   /* deadband hold */
+    else if (prev === 'sell' && s > _SIG_DEADBAND)        z = 'sell';
+    else                                                  z = 'neutral';
+    _lastZone[c.id] = z;
+    c._zone = z;
+  });
+  try { localStorage.setItem('rot_last_zone', JSON.stringify(_lastZone)); } catch (e) {}
+}
+
+/* Exposed for signal-history.js (rotation snapshot uses the same gates). */
+window.RotZones = {
+  classify: _classifyZones,
+  passesMeanRevGate: _passesMeanRevGate,
+  adaptiveThresholds: _adaptiveThresholds
+};
+
+/* ══════════════════════════════════════════════════════════════
    INVESTMENT OPPORTUNITIES (top signal bar)
    Three columns: Rotation Opps | High Momentum | Worst 30D
 ══════════════════════════════════════════════════════════════ */
@@ -149,6 +283,7 @@ function sigRotTile(sell, buy) {
 
 /* Render all three signal columns */
 function renderTopBars() {
+  _classifyZones();
   var hSyms = holdings.map(function(h) { return h.sym; });
 
   /* Helper: single supporter unlock tile (one per column only) */
@@ -211,8 +346,8 @@ function renderTopBars() {
 
   /* Compute real rotation pairs regardless of tier */
   var held  = coins.filter(function(c) { return hSyms.indexOf(c.sym) >= 0; });
-  var sells = held.filter(function(c)  { return c.score >= 62; }).sort(function(a, b) { return b.score - a.score; });
-  var buys  = coins.filter(function(c) { return hSyms.indexOf(c.sym) < 0 && c.score <= 38; }).sort(function(a, b) { return a.score - b.score; });
+  var sells = held.filter(function(c)  { return c._zone === 'sell'; }).sort(function(a, b) { return b.score - a.score; });
+  var buys  = coins.filter(function(c) { return hSyms.indexOf(c.sym) < 0 && c._zone === 'buy' && _passesMeanRevGate(c); }).sort(function(a, b) { return a.score - b.score; });
 
   /* Fallback pairs from all coins when no holdings exist (free preview) */
   var allSells = coins.slice().sort(function(a, b) { return b.score - a.score; });

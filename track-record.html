@@ -174,9 +174,13 @@ a{color:inherit;text-decoration:none}
 <footer class="footer">
   <div class="wrap">
     <div class="disclaimer">
-      Track record reflects Rotator's own scoring system (7-day price change after each snapshot). A signal is "confirmed" when price moves 2% or more in the signalled direction. Not financial advice — DYOR before any trade.
+      Track record reflects Rotator's v2 scoring engine, active from 2026-04-26. A signal is "confirmed" when price clears a market-cap-aware threshold within 7–14 days (1.5% mega · 2% large · 3% mid · 5% small/micro). Once a signal hits its target inside the window, the call is locked in and cannot be retroactively demoted by later price moves. Not financial advice — DYOR before any trade.
     </div>
-    <div>ROTATOR © 2026 · <a href="/">rotatortool-official.github.io</a></div>
+    <div style="margin-top:10px;display:flex;justify-content:center;gap:14px;flex-wrap:wrap;">
+      <span><span style="color:#22c55e;">•</span> Powered by <a href="https://www.coingecko.com" target="_blank" rel="noopener">CoinGecko</a></span>
+      <span><span style="color:#5eead4;">•</span> On-chain by <a href="https://www.geckoterminal.com" target="_blank" rel="noopener">GeckoTerminal</a></span>
+    </div>
+    <div style="margin-top:10px;">ROTATOR © 2026 · <a href="/">rotatortool-official.github.io</a></div>
   </div>
 </footer>
 
@@ -194,7 +198,18 @@ a{color:inherit;text-decoration:none}
   var WINDOW_DAYS        = 30;
   var CONFIRM_DAYS_MIN   = 7;    /* snapshot must be 7+ days old to be evaluated */
   var PEAK_WINDOW_DAYS   = 14;   /* upper bound of the confirm window for peak-capture */
-  var CONFIRM_THRESHOLD  = 2;    /* % move in signalled direction to count as confirmed */
+  var CONFIRM_THRESHOLD  = 2;    /* legacy fallback when mcap unknown */
+  var STATS_FROM_DATE    = '2026-04-26';  /* v2 engine reset — pre-cutoff snapshots not graded */
+
+  /* Vol-normalized confirmation by mcap tier (mirrors signal-history.js).
+     Falls back to CONFIRM_THRESHOLD when mcap is unavailable on the row. */
+  function confirmThresholdFor(mcap) {
+    if (!mcap || mcap <= 0) return CONFIRM_THRESHOLD;
+    if (mcap >= 30e9) return 1.5;
+    if (mcap >=  3e9) return 2;
+    if (mcap >= 300e6) return 3;
+    return 5;
+  }
   var MAX_CARDS_PER_LIST = 12;
   var KLINE_TTL_MS       = 60 * 60 * 1000;
   var KLINE_BATCH_SIZE   = 5;
@@ -227,34 +242,41 @@ a{color:inherit;text-decoration:none}
   /* ── Fetch current prices (top 250 covers our universe). ─
      CoinGecko is rate-limited so we fall back to Supabase's
      shared market_cache on failure. */
+  /* Returns { priceMap: {id: price}, mcapMap: {id: mcap} } so evaluate()
+     can pick a market-cap-aware confirmation threshold per coin. */
   function fetchCurrentPrices() {
     var cgUrl = 'https://api.coingecko.com/api/v3/coins/markets'
       + '?vs_currency=usd&order=market_cap_desc&per_page=250&page=1&sparkline=false';
     return fetch(cgUrl)
       .then(function(r) { if (!r.ok) throw new Error('cg ' + r.status); return r.json(); })
       .then(function(rows) {
-        var map = {};
-        rows.forEach(function(c) { map[c.id] = Number(c.current_price); });
-        return map;
+        var priceMap = {}, mcapMap = {};
+        rows.forEach(function(c) {
+          priceMap[c.id] = Number(c.current_price);
+          mcapMap[c.id]  = Number(c.market_cap) || 0;
+        });
+        return { priceMap: priceMap, mcapMap: mcapMap };
       })
       .catch(function() {
-        /* Fallback to Supabase market_cache — any cached coins_markets_* row */
         var url = SUPA_URL + '/rest/v1/market_cache'
           + '?select=data,updated_at&order=updated_at.desc&limit=5';
         return fetch(url, {
           headers: { 'apikey': SUPA_KEY, 'Authorization': 'Bearer ' + SUPA_KEY }
         }).then(function(r) { return r.ok ? r.json() : []; })
           .then(function(rows) {
-            var map = {};
+            var priceMap = {}, mcapMap = {};
             (rows || []).forEach(function(row) {
               if (Array.isArray(row.data)) {
                 row.data.forEach(function(c) {
-                  if (c && c.id && c.current_price && !map[c.id]) map[c.id] = Number(c.current_price);
+                  if (c && c.id && c.current_price && !priceMap[c.id]) {
+                    priceMap[c.id] = Number(c.current_price);
+                    mcapMap[c.id]  = Number(c.market_cap) || 0;
+                  }
                 });
               }
             });
-            return map;
-          }).catch(function() { return {}; });
+            return { priceMap: priceMap, mcapMap: mcapMap };
+          }).catch(function() { return { priceMap: {}, mcapMap: {} }; });
       });
   }
 
@@ -343,13 +365,15 @@ a{color:inherit;text-decoration:none}
   }
 
   /* ── Evaluate snapshots → wins/misses lists + stats ────── */
-  function evaluate(snaps, priceMap) {
+  function evaluate(snaps, priceMap, mcapMap) {
+    mcapMap = mcapMap || {};
     var wins = [], misses = [];
     var tBull = 0, cBull = 0, tLag = 0, cLag = 0;
     var peakCovered = 0, fallbackCovered = 0;
     var now = new Date();
 
     snaps.forEach(function(r) {
+      if (!r.snap_date || r.snap_date < STATS_FROM_DATE) return;   /* v2 cutoff */
       var snapDate = new Date(r.snap_date + 'T00:00:00');
       var daysAgo = Math.round((now - snapDate) / 864e5);
       if (daysAgo < CONFIRM_DAYS_MIN) return;
@@ -388,14 +412,15 @@ a{color:inherit;text-decoration:none}
       };
       if (usedPeak) peakCovered++; else fallbackCovered++;
 
+      var thr = confirmThresholdFor(r.mcap || mcapMap[r.coin_id]);
       var correct;
       if (r.signal_type === 'bullish') {
         tBull++;
-        correct = change >= CONFIRM_THRESHOLD;
+        correct = change >= thr;
         if (correct) cBull++;
       } else if (r.signal_type === 'lagging') {
         tLag++;
-        correct = change <= -CONFIRM_THRESHOLD;
+        correct = change <= -thr;
         if (correct) cLag++;
       } else {
         return;
@@ -537,7 +562,9 @@ a{color:inherit;text-decoration:none}
   Promise.all([fetchSnapshots(), fetchCurrentPrices()])
     .then(function(vals) {
       var snaps = vals[0] || [];
-      var priceMap = vals[1] || {};
+      var pricePack = vals[1] || { priceMap: {}, mcapMap: {} };
+      var priceMap = pricePack.priceMap || {};
+      var mcapMap  = pricePack.mcapMap  || {};
       if (!snaps.length) {
         var pct = document.getElementById('acc-pct');
         pct.textContent = '—';
@@ -547,9 +574,9 @@ a{color:inherit;text-decoration:none}
       }
       /* Render current-price-only result first for fast paint, then
          warm Binance klines and re-render with the locked verdicts. */
-      render(evaluate(snaps, priceMap));
+      render(evaluate(snaps, priceMap, mcapMap));
       return warmKlines(snaps).then(function() {
-        render(evaluate(snaps, priceMap));
+        render(evaluate(snaps, priceMap, mcapMap));
       });
     })
     .catch(function(e) {

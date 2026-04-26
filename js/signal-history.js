@@ -27,8 +27,46 @@ var SignalHistory = (function() {
      the threshold; current price beyond that does NOT retro-demote it. */
   var CONFIRM_DAYS_MIN   = 7;
   var PEAK_WINDOW_DAYS   = 14;
-  var CONFIRM_THRESHOLD  = 2;
+  var CONFIRM_THRESHOLD  = 2;   /* legacy fallback when mcap unavailable */
   var ROTATION_THRESHOLD = 2;   /* rotation: spread between to-change and from-change, in % */
+
+  /* Hard cutoff: snapshots dated before STATS_FROM_DATE are excluded from
+     accuracy stats and the proven-signals list. We're rebooting accuracy
+     measurement on top of the v2 scoring engine (adaptive thresholds +
+     hysteresis + mean-rev gate + insight cross-link + vol-normalized
+     confirmation). Old snapshots are still stored, but they don't count
+     toward what we publish. To extend or move the cutoff, edit this date. */
+  var STATS_FROM_DATE = '2026-04-26';
+
+  function _passesCutoff(dateStr) {
+    return typeof dateStr === 'string' && dateStr >= STATS_FROM_DATE;
+  }
+
+  /* Step 4: Volatility-normalized confirmation by mcap tier.
+     A 2% move on BTC in a week is a real signal; a 2% move on a
+     small-cap is intraday noise. Tier the threshold so accuracy
+     reflects what's a meaningful move FOR THAT ASSET. */
+  function _confirmThresholdForMcap(mcap) {
+    if (!mcap || mcap <= 0) return CONFIRM_THRESHOLD;
+    if (mcap >= 30e9) return 1.5;   /* mega: BTC, ETH */
+    if (mcap >=  3e9) return 2;     /* large */
+    if (mcap >= 300e6) return 3;    /* mid */
+    return 5;                       /* small/micro: noise floor */
+  }
+
+  /* Look up an entry's mcap — prefer what was stored at snapshot time
+     (added by _mapEntry), fall back to the live coins[] mcap by id.
+     Returns 0 if neither is available; caller falls back to CONFIRM_THRESHOLD. */
+  function _entryMcap(entry) {
+    if (entry && typeof entry.mcap === 'number' && entry.mcap > 0) return entry.mcap;
+    if (typeof coins === 'undefined' || !coins.length) return 0;
+    var c = coins.find(function(x) { return x.id === entry.id; });
+    return (c && c.mcap) ? c.mcap : 0;
+  }
+
+  function _confirmThresholdForEntry(entry) {
+    return _confirmThresholdForMcap(_entryMcap(entry));
+  }
 
   /* ── In-memory cache of the server history (source of truth). ──
      Populated by loadServerHistory() on module init. Until it
@@ -213,6 +251,38 @@ var SignalHistory = (function() {
     return _peakVerdicts[snapDate + '|' + entry.id] || null;
   }
 
+  /* Lock-in: once a signal has cleared its threshold (peak data OR
+     current price), persist a verdict so a later price retracement
+     can't retroactively flip the call to "wrong". This is the fix for
+     "we were right April 15→20 but on April 21 price corrected" —
+     the win belongs to the window we predicted, not to today's price.
+     Only writes a NEW lock; pre-existing peak verdicts are never
+     overwritten (those are the authoritative kline-derived ones). */
+  var _lockDirty = false;
+  function _maybeLockInVerdict(entry, snapDate, kind, change) {
+    var key = snapDate + '|' + entry.id;
+    if (_peakVerdicts[key]) return;   /* already have a real peak verdict */
+    var lock = {
+      lockedAt:    Date.now(),
+      source:      'current-lock',
+      kind:        kind,
+      bestChange:  kind === 'bullish' ? change : 0,
+      worstChange: kind === 'lagging' ? change : 0,
+      bestHigh:    kind === 'bullish' ? entry.price * (1 + change/100) : entry.price,
+      worstLow:    kind === 'lagging' ? entry.price * (1 + change/100) : entry.price
+    };
+    _peakVerdicts[key] = lock;
+    _lockDirty = true;
+    /* Debounce: flush all locks captured in this render pass to LS once. */
+    if (typeof _flushLocksTimer === 'undefined' || !_flushLocksTimer) {
+      _flushLocksTimer = setTimeout(function() {
+        if (_lockDirty) { _savePeakVerdicts(); _lockDirty = false; }
+        _flushLocksTimer = null;
+      }, 250);
+    }
+  }
+  var _flushLocksTimer = null;
+
   /* ── Determine signal label for a coin ── */
   function getSignalLabel(c) {
     if (c.score >= 70) return 'STRONG MOM';
@@ -298,6 +368,11 @@ var SignalHistory = (function() {
 
   function _isValidCandidate(c) {
     if (!c || c.score == null || c.isStable) return false;
+    /* dataComplete guard mirrors computeScores() — never snapshot a coin
+       whose 7d/14d/30d history was missing at fetch time, otherwise the
+       public track record would credit/blame us for calls we couldn't
+       legitimately make. */
+    if (c.dataComplete === false) return false;
     if (c.p7 == null || c.p30 == null) return false;
     if (!c.price || c.price <= 0) return false;
     return true;
@@ -318,6 +393,7 @@ var SignalHistory = (function() {
     var btcBleeding = btc24 < -3;
 
     /* ── Build candidate pool with predictive filters ── */
+    var _rz = (typeof window !== 'undefined' && window.RotZones) || null;
     var bullCandidates = coins.filter(function(c) {
       if (!_isValidCandidate(c)) return false;
       var vm = _volMcap(c);
@@ -325,6 +401,9 @@ var SignalHistory = (function() {
       if (vm < 0.015 && c.mcap > 1e8) return false;
       /* When BTC is bleeding, only take coins showing real relative strength */
       if (btcBleeding && (c.p24 || 0) <= 0) return false;
+      /* Mean-reversion gate: bullish picks should be pull-backs in the
+         -3% .. -40% 30D band. Tails are usually broken markets. */
+      if (_rz && !_rz.passesMeanRevGate(c)) return false;
       return true;
     });
     bullCandidates.sort(function(a, b) {
@@ -357,6 +436,7 @@ var SignalHistory = (function() {
         price: c.price, score: c.score,
         signal: getSignalLabel(c),
         extras: extras,
+        mcap: c.mcap || 0,   /* Step 4: stored so vol-normalized threshold survives reloads */
         p24: Math.round(c.p24 * 100) / 100,
         p7: Math.round(c.p7 * 100) / 100,
         p30: Math.round(c.p30 * 100) / 100
@@ -399,14 +479,16 @@ var SignalHistory = (function() {
       rows.push({
         coin_id: e.id, coin_sym: e.sym, coin_name: e.name,
         signal_type: 'bullish', signal_label: e.signal, extras: e.extras || [],
-        score: e.score, price: e.price, p24: e.p24, p7: e.p7, p30: e.p30
+        score: e.score, price: e.price, mcap: e.mcap || 0,
+        p24: e.p24, p7: e.p7, p30: e.p30
       });
     });
     topLag.forEach(function(e) {
       rows.push({
         coin_id: e.id, coin_sym: e.sym, coin_name: e.name,
         signal_type: 'lagging', signal_label: e.signal, extras: e.extras || [],
-        score: e.score, price: e.price, p24: e.p24, p7: e.p7, p30: e.p30
+        score: e.score, price: e.price, mcap: e.mcap || 0,
+        p24: e.p24, p7: e.p7, p30: e.p30
       });
     });
     if (!rows.length) return;
@@ -439,6 +521,7 @@ var SignalHistory = (function() {
     var now = new Date();
 
     hist.forEach(function(snap) {
+      if (!_passesCutoff(snap.date)) return;
       var snapDate = new Date(snap.date + 'T00:00:00');
       var daysAgo = Math.round((now - snapDate) / (1000 * 60 * 60 * 24));
 
@@ -460,8 +543,9 @@ var SignalHistory = (function() {
           change = ((currentPrice - entry.price) / entry.price) * 100;
           priceNow = currentPrice;
         }
-        var correct = change >= CONFIRM_THRESHOLD;
+        var correct = change >= _confirmThresholdForEntry(entry);
         if (correct) {
+          if (!usedPeak) _maybeLockInVerdict(entry, snap.date, 'bullish', change);
           proven.push({
             id: entry.id, sym: entry.sym, name: entry.name,
             signal: entry.signal, extras: entry.extras || [],
@@ -490,8 +574,9 @@ var SignalHistory = (function() {
           change = ((currentPrice - entry.price) / entry.price) * 100;
           priceNow = currentPrice;
         }
-        var correct = change <= -CONFIRM_THRESHOLD;
+        var correct = change <= -_confirmThresholdForEntry(entry);
         if (correct) {
+          if (!usedPeak) _maybeLockInVerdict(entry, snap.date, 'lagging', change);
           proven.push({
             id: entry.id, sym: entry.sym, name: entry.name,
             signal: entry.signal, extras: entry.extras || [],
@@ -535,6 +620,7 @@ var SignalHistory = (function() {
     var peakCovered = 0, currentCovered = 0;
 
     hist.forEach(function(snap) {
+      if (!_passesCutoff(snap.date)) return;   /* exclude pre-v2-engine snapshots */
       var snapDate = new Date(snap.date + 'T00:00:00');
       var daysAgo = Math.round((now - snapDate) / (1000 * 60 * 60 * 24));
       if (daysAgo < CONFIRM_DAYS_MIN) return;
@@ -551,7 +637,11 @@ var SignalHistory = (function() {
           currentCovered++;
         }
         totalBull++;
-        if (change >= CONFIRM_THRESHOLD) correctBull++;
+        var thr = _confirmThresholdForEntry(entry);
+        if (change >= thr) {
+          correctBull++;
+          _maybeLockInVerdict(entry, snap.date, 'bullish', change);
+        }
       });
 
       snap.lagging.forEach(function(entry) {
@@ -566,7 +656,11 @@ var SignalHistory = (function() {
           currentCovered++;
         }
         totalLag++;
-        if (change <= -CONFIRM_THRESHOLD) correctLag++;
+        var thrL = _confirmThresholdForEntry(entry);
+        if (change <= -thrL) {
+          correctLag++;
+          _maybeLockInVerdict(entry, snap.date, 'lagging', change);
+        }
       });
     });
 
@@ -642,11 +736,18 @@ var SignalHistory = (function() {
     var hSyms = (typeof holdings !== 'undefined' && holdings.length)
       ? holdings.map(function(h) { return h.sym; }) : [];
     var sells, buys;
+    /* Use the shared zone classifier from signals.js so the rotation
+       snapshot uses the same adaptive thresholds + hysteresis +
+       mean-rev gate as the live UI. Falls back to legacy cuts if the
+       classifier hasn't run yet (very first frame). */
+    var rz = (typeof window !== 'undefined' && window.RotZones) || null;
+    function _isSellSide(c)  { return rz ? c._zone === 'sell' : c.score >= 62; }
+    function _isBuySide(c)   { return rz ? (c._zone === 'buy' && rz.passesMeanRevGate(c)) : c.score <= 38; }
     if (hSyms.length) {
       var held = coins.filter(function(c) { return hSyms.indexOf(c.sym) >= 0; });
-      sells = held.filter(function(c) { return c.score >= 62; })
+      sells = held.filter(_isSellSide)
                   .sort(function(a, b) { return b.score - a.score; });
-      buys  = coins.filter(function(c) { return hSyms.indexOf(c.sym) < 0 && c.score <= 38; })
+      buys  = coins.filter(function(c) { return hSyms.indexOf(c.sym) < 0 && _isBuySide(c); })
                    .sort(function(a, b) { return a.score - b.score; });
     }
     /* Fallback: cross-coin pairs (top scorers → bottom scorers). */
@@ -700,6 +801,7 @@ var SignalHistory = (function() {
     var now = new Date();
 
     hist.forEach(function(snap) {
+      if (!_passesCutoff(snap.date)) return;
       var pairs = snap.pairs || (snap.pair ? [snap.pair] : []);
       var snapDate = snap.date;
       var snapTs = new Date(snapDate + 'T00:00:00').getTime();
@@ -777,6 +879,7 @@ var SignalHistory = (function() {
     var total = 0, correct = 0;
     var now = new Date();
     hist.forEach(function(snap) {
+      if (!_passesCutoff(snap.date)) return;
       var pairs = snap.pairs || (snap.pair ? [snap.pair] : []);
       var snapDate = snap.date;
       var daysAgo = Math.round((now - new Date(snapDate + 'T00:00:00')) / 864e5);
@@ -834,31 +937,52 @@ var SignalHistory = (function() {
       + '<a href="track-record.html" target="_blank" rel="noopener">'
       + 'View the full public track record →</a></div>';
 
+    /* Engine-v2 reset notice — explains why the accuracy number may
+       look low (no signals are old enough to grade yet). */
+    var resetBadge = '<div class="str-reset-badge" style="font-family:var(--font-mono);font-size:10px;letter-spacing:.08em;color:var(--muted);text-align:center;padding:6px 0 10px;opacity:.85;">'
+      + 'STATS RESET ' + STATS_FROM_DATE.replace(/-/g,'·') + ' — SCORING ENGINE v2 ACTIVE'
+      + '</div>';
+
+    /* Data attribution — required by CoinGecko brand guidelines and
+       consistent with the Telegram bot footer (project_geckoterminal
+       _dex_filter memory). */
+    var attribution = '<div class="str-attribution" style="font-family:var(--font-mono);font-size:10px;letter-spacing:.06em;color:var(--muted);text-align:center;padding:8px 0 4px;opacity:.7;display:flex;justify-content:center;gap:14px;flex-wrap:wrap;">'
+      + '<span><span style="color:var(--green);">•</span> Powered by <a href="https://www.coingecko.com" target="_blank" rel="noopener" style="color:var(--muted);">CoinGecko</a></span>'
+      + '<span><span style="color:#5eead4;">•</span> On-chain by <a href="https://www.geckoterminal.com" target="_blank" rel="noopener" style="color:var(--muted);">GeckoTerminal</a></span>'
+      + '</div>';
+
+    /* Count snapshots that pass the v2 cutoff — what stats actually use */
+    var qualifyingSnaps = hist.filter(function(s) { return _passesCutoff(s.date); }).length;
+
     /* Not enough data yet */
-    if (!hist.length || hist.length < 2) {
-      container.innerHTML = '<div class="str-empty">'
+    if (!hist.length || qualifyingSnaps < 2) {
+      container.innerHTML = resetBadge
+        + '<div class="str-empty">'
         + '<div style="font-size:16px;margin-bottom:6px;">📊</div>'
         + '<div style="font-size:12px;color:var(--muted);line-height:1.7;">'
-        + 'Signal tracking started. Come back in 7 days to see how our signals performed.'
-        + '<br>Snapshots saved: <strong style="color:var(--bnb);">' + hist.length + '</strong> / 7 needed'
+        + 'Tracking from scratch on the v2 engine. Come back in 7 days to see how our signals performed.'
+        + '<br>Snapshots since reset: <strong style="color:var(--bnb);">' + qualifyingSnaps + '</strong> / 7 needed'
         + '</div></div>'
-        + publicLink;
+        + publicLink
+        + attribution;
       container.style.display = '';
       return;
     }
 
-    if (hist.length >= 2 && !proven.length && !stats) {
-      container.innerHTML = '<div class="str-empty">'
+    if (qualifyingSnaps >= 2 && !proven.length && !stats) {
+      container.innerHTML = resetBadge
+        + '<div class="str-empty">'
         + '<div style="font-size:16px;margin-bottom:6px;">⏳</div>'
         + '<div style="font-size:12px;color:var(--muted);line-height:1.7;">'
-        + 'Tracking ' + hist.length + ' days of signals. Results appear after 7 days.'
+        + 'Tracking ' + qualifyingSnaps + ' days of signals on the v2 engine. Results appear after 7 days.'
         + '</div></div>'
-        + publicLink;
+        + publicLink
+        + attribution;
       container.style.display = '';
       return;
     }
 
-    var html = '';
+    var html = resetBadge;
 
     /* ── Accuracy header ── */
     if (stats) {
@@ -942,7 +1066,7 @@ var SignalHistory = (function() {
       html += '</div>';
     }
 
-    html += publicLink;
+    html += publicLink + attribution;
 
     container.innerHTML = html;
     container.style.display = '';

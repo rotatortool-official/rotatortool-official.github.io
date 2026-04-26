@@ -385,7 +385,7 @@ function supaLoadSignalHistory(days) {
   return supaRest('signal_snapshots', 'GET', {
     'snap_date': 'gte.' + cutoffDate,
     'select':    'snap_date,coin_id,coin_sym,coin_name,signal_type,'
-               + 'signal_label,extras,score,price,p24,p7,p30',
+               + 'signal_label,extras,score,price,mcap,p24,p7,p30',
     'order':     'snap_date.asc'
   }).then(function(rows) {
     if (!rows || !rows.length) return [];

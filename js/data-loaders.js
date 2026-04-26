@@ -196,14 +196,24 @@ async function loadCoins(categoryOverride) {
     /* Prefer Binance for real-time price + 24H — it updates every second vs CoinGecko's 60s */
     var bnb = _binancePrices[c.symbol.toUpperCase()];
     var stable = (typeof STABLECOINS !== 'undefined') && STABLECOINS[c.id];
+    /* Data-completeness flag — see computeScores() in this file for why it matters.
+       Newly-listed coins frequently lack 30d (or 14d) % data; without this flag
+       the `|| 0` fallback below would let them pass as "0% change" and rank
+       mid-pack in r30, then computeScores would treat them as legitimate
+       rotation candidates despite us having no real history. */
+    var raw7  = c.price_change_percentage_7d_in_currency;
+    var raw14 = c.price_change_percentage_14d_in_currency;
+    var raw30 = c.price_change_percentage_30d_in_currency;
+    var dataComplete = raw7 != null && raw14 != null && raw30 != null;
     return {
       id: c.id, sym: c.symbol.toUpperCase(), name: c.name,
       price:  bnb ? bnb.price  : c.current_price,
       image:  (c.image || '').replace(/\/small\//, '/large/'), mcap: c.market_cap, rank: 0,
       p24:    bnb ? bnb.p24    : (c.price_change_percentage_24h || 0),
-      p7:     c.price_change_percentage_7d_in_currency  || 0,
-      p14:    c.price_change_percentage_14d_in_currency || 0,
-      p30:    c.price_change_percentage_30d_in_currency || 0,
+      p7:     raw7  || 0,
+      p14:    raw14 || 0,
+      p30:    raw30 || 0,
+      dataComplete: dataComplete,
       volume24: bnb ? bnb.volume : (c.total_volume || 0),
       circulating_supply: c.circulating_supply || 0,
       max_supply: c.max_supply || null,
@@ -356,8 +366,12 @@ async function loadFearGreed() {
 
 /* ── Score engine (3 layers) ─────────────────────────────────── */
 function computeScores() {
-  /* Exclude stablecoins from scoring — they get APR display instead */
-  var scorable = coins.filter(function(c) { return !c.isStable; });
+  /* Exclude stablecoins (APR display) AND coins with incomplete % data —
+     a freshly-listed coin without 14D/30D history would otherwise rank
+     mid-pack on r14/r30 (since p14/p30 default to 0) and inflate its
+     rotation score, repeatedly surfacing as a "buy zone" candidate
+     despite us having no real basis to score it. */
+  var scorable = coins.filter(function(c) { return !c.isStable && c.dataComplete !== false; });
   var n = Math.max(scorable.length - 1, 1);
 
   /* LAYER 1: Intra-list rank (0–40 pts) */
@@ -366,8 +380,14 @@ function computeScores() {
     sorted.forEach(function(c, i) { c['r' + k.slice(1)] = i + 1; });
   });
 
-  /* Set stablecoin scores to 0 (they use APR display) */
-  coins.forEach(function(c) { if (c.isStable) { c.score = 0; c.r7 = 0; c.r14 = 0; c.r30 = 0; } });
+  /* Set stablecoin AND incomplete-data scores to 0 — they're rendered but
+     not part of the rotation leaderboard. The detail modal can surface the
+     dataComplete flag separately if we want a "🆕 New listing" badge later. */
+  coins.forEach(function(c) {
+    if (c.isStable || c.dataComplete === false) {
+      c.score = 0; c.r7 = 0; c.r14 = 0; c.r30 = 0;
+    }
+  });
 
   scorable.forEach(function(c) {
     /* Weighted rank (lower rank# = better) */
