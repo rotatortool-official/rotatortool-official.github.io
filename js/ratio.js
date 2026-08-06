@@ -255,7 +255,15 @@ var RatioTracker = (function() {
       S.fromPrice=fc.usd; S.toPrice=tc.usd;
       S.fromChg=fc.chg;   S.toChg=tc.chg;
     } else {
-      var raw=await apiFetch('https://api.coingecko.com/api/v3/simple/price?vs_currencies=usd&include_24hr_change=true&ids='+f+','+t);
+      var priceCacheKey='ratio_price_'+[f,t].sort().join('_');
+      var raw=null;
+      if(typeof supaCacheGet==='function'){
+        try{ raw=await supaCacheGet(priceCacheKey, 5*60*1000); }catch(e){}
+      }
+      if(!raw){
+        raw=await apiFetch('https://api.coingecko.com/api/v3/simple/price?vs_currencies=usd&include_24hr_change=true&ids='+f+','+t);
+        if(raw&&typeof supaCacheSet==='function') supaCacheSet(priceCacheKey, raw);
+      }
       var fo=raw[f],to=raw[t];
       if(!fo||fo.usd===undefined) throw new Error(lbl(f)+' price missing');
       if(!to||to.usd===undefined) throw new Error(lbl(t)+' price missing');
@@ -297,10 +305,27 @@ var RatioTracker = (function() {
     setTfDisabled(true);
     try{
       var base='https://api.coingecko.com/api/v3/coins/',sfx='/market_chart?vs_currency=usd&days='+d;
-      var rawF=await apiFetch(base+f+sfx),fp=rawF&&rawF.prices;
+      var chartTtl=10*60*1000; /* 10 min shared TTL, matches doLoad's macro cache */
+
+      var fCacheKey='ratio_chart_'+f+'_'+d;
+      var rawF=null;
+      if(typeof supaCacheGet==='function'){ try{ rawF=await supaCacheGet(fCacheKey, chartTtl); }catch(e){} }
+      if(!rawF){
+        rawF=await apiFetch(base+f+sfx);
+        if(rawF&&typeof supaCacheSet==='function') supaCacheSet(fCacheKey, rawF);
+      }
+      var fp=rawF&&rawF.prices;
       if(!fp) throw new Error(lbl(f)+' chart missing');
-      await (typeof sleep==='function'?sleep(400):new Promise(function(r){setTimeout(r,400);}));
-      var rawT=await apiFetch(base+t+sfx),tp=rawT&&rawT.prices;
+
+      var tCacheKey='ratio_chart_'+t+'_'+d;
+      var rawT=null;
+      if(typeof supaCacheGet==='function'){ try{ rawT=await supaCacheGet(tCacheKey, chartTtl); }catch(e){} }
+      if(!rawT){
+        await (typeof sleep==='function'?sleep(400):new Promise(function(r){setTimeout(r,400);}));
+        rawT=await apiFetch(base+t+sfx);
+        if(rawT&&typeof supaCacheSet==='function') supaCacheSet(tCacheKey, rawT);
+      }
+      var tp=rawT&&rawT.prices;
       if(!tp) throw new Error(lbl(t)+' chart missing');
       var len=Math.min(fp.length,tp.length),series=[];
       for(var i=0;i<len;i++) if(tp[i][1]>0) series.push({t:fp[i][0],r:fp[i][1]/tp[i][1]});

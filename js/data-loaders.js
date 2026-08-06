@@ -1101,8 +1101,11 @@ async function doLoad() {
     /* Activate referral: proves this user actually loaded data (anti-abuse) */
     if (typeof supaActivateMyReferral === 'function') try { supaActivateMyReferral(); } catch(e) {}
   } catch(e) {
-    document.getElementById('lmsg').textContent = 'ERROR: ' + e.message;
-    document.getElementById('lbf').style.background = 'var(--red)';
+    var lmsg = document.getElementById('lmsg');
+    if (lmsg) lmsg.textContent = 'ERROR: ' + e.message;
+    var lbf = document.getElementById('lbf');
+    if (lbf) lbf.style.background = 'var(--red)';
+    console.error('[doLoad]', e);
   }
   busy = false;
 }
