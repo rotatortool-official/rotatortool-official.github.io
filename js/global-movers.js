@@ -13,13 +13,12 @@
 
   var ASSET_ICON = {
     crypto: '◆',
-    stock:  '▲',
-    forex:  '⇄'
+    stock:  '▲'
+    /* forex removed — site is crypto + bStocks only now */
   };
 
   function fmtPrice(p, assetType) {
     if (p == null) return '—';
-    if (assetType === 'forex') return Number(p).toFixed(4);
     if (p >= 1000) return Number(p).toLocaleString('en-US', { maximumFractionDigits: 2 });
     if (p >= 1)    return Number(p).toFixed(2);
     if (p >= 0.01) return Number(p).toFixed(4);
@@ -79,7 +78,7 @@
     });
   }
 
-  /* Public API — exposed so renderAll() or setMode() can force a refresh. */
+  /* Public API — exposed so renderAll() can force a refresh. */
   window.GlobalMovers = { load: load, render: render };
 
   /* Initial load once DOM is ready */

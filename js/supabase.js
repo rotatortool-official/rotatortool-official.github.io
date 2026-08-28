@@ -676,6 +676,13 @@ function supaGetTopMovers(limit) {
   return supaGetUnifiedMarket().then(function(rows) {
     if (!rows || !rows.length) return { gainers: [], losers: [], updatedAt: null };
 
+    /* Forex removed from the site (see rotator-bstocks-migration-plan.md) —
+       drop any forex rows that may still be sitting in unified_market_data
+       so the ticker only ever shows crypto + bStocks, even before the
+       sync-market-data Edge Function itself stops writing forex rows. */
+    rows = rows.filter(function(r) { return r.asset_type !== 'forex'; });
+    if (!rows.length) return { gainers: [], losers: [], updatedAt: null };
+
     /* Deduplicate by (asset_type, symbol) — keep one source per asset. */
     var sourceRank = { binance: 1, coingecko: 2, yahoo: 3, xfra: 4 };
     var seen = {};

@@ -251,19 +251,6 @@
     <button class="tut-btn primary" onclick="triggerPWAInstall()">INSTALL</button>
   </div>
   <hr style="border:none;border-top:1px solid var(--bdr);margin:14px 0 10px;">
-  <div style="font-size:12px;letter-spacing:.14em;color:var(--muted);text-transform:uppercase;margin-bottom:8px;">Active Asset Modes</div>
-  <div class="setting-row" style="padding:7px 0;">
-    <div><div class="setting-label">⧡ Crypto Screener</div><div class="setting-sub">Top 30–50 coins, live Binance data</div></div>
-    <label class="toggle"><input type="checkbox" id="mode-crypto-toggle" checked onchange="toggleModeVisibility('crypto',this.checked)"><span class="toggle-slider"></span></label>
-  </div>
-  <div class="setting-row" style="padding:7px 0;">
-    <div><div class="setting-label">💱 Forex Pairs</div><div class="setting-sub">Major pairs, Gold, WTI Oil</div></div>
-    <label class="toggle"><input type="checkbox" id="mode-forex-toggle" checked onchange="toggleModeVisibility('forex',this.checked)"><span class="toggle-slider"></span></label>
-  </div>
-  <div class="setting-row" style="padding:7px 0;">
-    <div><div class="setting-label">📈 Stocks &amp; Indices</div><div class="setting-sub">S&amp;P 500, NASDAQ, large caps</div></div>
-    <label class="toggle"><input type="checkbox" id="mode-stocks-toggle" checked onchange="toggleModeVisibility('stocks',this.checked)"><span class="toggle-slider"></span></label>
-  </div>
 </div>
 
 <!-- TILE DETAIL PANEL -->
@@ -629,21 +616,8 @@
     <span class="mob-gear-icon">⚙</span>
   </div>
 
-  <!-- ── LANDSCAPE: inline category buttons (hidden by default, shown via CSS) ── -->
-  <div class="land-mode-bar" style="display:none;">
-    <button class="asset-mode-btn active" onclick="setMode('crypto')" id="lm-crypto">
-      <div class="am-logo"><span style="font-size:12px;">₿</span></div>
-      <span class="am-label">CRYPTO</span>
-    </button>
-    <button class="asset-mode-btn" onclick="setMode('forex')" id="lm-forex">
-      <div class="am-logo">💱</div>
-      <span class="am-label">FOREX</span>
-    </button>
-    <button class="asset-mode-btn" onclick="setMode('stocks')" id="lm-stocks">
-      <div class="am-logo">S&P</div>
-      <span class="am-label">STOCKS</span>
-    </button>
-  </div>
+  <!-- LANDSCAPE mode bar removed — single crypto+bStocks view, nothing to switch between.
+       See rotator-bstocks-migration-plan.md. -->
 
   <!-- ── DESKTOP: original layout ── -->
   <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;" class="topbar-desktop-left">
@@ -757,27 +731,11 @@
 </div>
 
 <main>
-<h1 class="sr-only">Rotator — Real-Time Crypto, Forex & Stock Rotation Screener</h1>
+<h1 class="sr-only">Rotator — Real-Time Crypto &amp; Tokenized Stock Rotation Screener</h1>
 <div class="root">
 
-  <!-- LEFT: Holdings (mode-aware) -->
+  <!-- LEFT: Holdings -->
   <div class="sidebar">
-    <!-- Mode switcher -->
-    <div class="asset-mode-bar">
-      <button class="asset-mode-btn active" id="am-crypto" onclick="setMode('crypto')" title="Crypto Screener">
-        <div class="am-logo"><img src="https://assets.coingecko.com/coins/images/1/thumb/bitcoin.png" alt="₿" loading="lazy" width="32" height="32" onerror="this.style.display='none'"></div>
-        <span class="am-label">CRYPTO</span>
-      </button>
-      <button class="asset-mode-btn" id="am-forex" onclick="setMode('forex')" title="Forex Pairs">
-        <div class="am-logo">💱</div>
-        <span class="am-label">FOREX</span>
-      </button>
-      <button class="asset-mode-btn" id="am-stocks" onclick="setMode('stocks')" title="Stocks &amp; Indices">
-        <div class="am-logo" style="background:#c41e3a;color:#fff;font-size:7px;font-weight:900;font-family:Arial,sans-serif;">S&amp;P</div>
-        <span class="am-label">STOCKS</span>
-      </button>
-    </div>
-
     <!-- PORTFOLIO SIGNAL: direct sidebar child — zero gap guaranteed -->
     <div class="sig-box" id="sig-box-crypto">
       <h2 class="sig-title">◈ Portfolio Signal</h2>
@@ -794,7 +752,7 @@
       <span class="collapse-chevron" id="chev-holdings">▼</span>
     </div>
     <div class="collapse-body collapsed" id="cb-holdings" style="display:flex;flex-direction:column;flex:1;min-height:0;overflow:hidden;">
-    <!-- CRYPTO HOLDINGS -->
+    <!-- HOLDINGS — crypto + bStocks share one panel; both live in coins[] now -->
     <div id="holdings-crypto" style="display:flex;flex-direction:column;flex:1;min-height:0;overflow:hidden;">
 
       <!-- Dual view tabs -->
@@ -823,85 +781,8 @@
         </div>
       </div>
     </div>
-
-    <!-- FOREX HOLDINGS -->
-    <div id="holdings-forex" style="display:none;flex-direction:column;flex:1;overflow:hidden;">
-      <div class="sig-box">
-        <div class="sig-title">◈ Forex Signal</div>
-        <div id="fx-sig-content"><div style="font-size:12px;color:var(--muted);font-family:var(--font-ui);">Add pairs below to see your signal.</div></div>
-      </div>
-      <div class="holdings-section-label"><span>MY HOLDINGS</span><span id="fx-hcount" style="color:var(--bnb);font-size:12px;letter-spacing:.04em;"></span></div>
-      <div class="tiles-scroll"><div class="tiles-grid" id="fx-tiles-grid"></div></div>
-      <div class="phead"><div class="ptitle">Add Forex Pair</div></div>
-      <div class="add-form">
-        <div class="frow"><span class="flbl">PAIR</span>
-          <select id="fx-sel" aria-label="Select forex pair">
-            <option value="">Select…</option>
-            <option value="EUR/USD">EUR/USD — Euro / US Dollar</option>
-            <option value="GBP/USD">GBP/USD — British Pound</option>
-            <option value="USD/JPY">USD/JPY — Japanese Yen</option>
-            <option value="USD/CHF">USD/CHF — Swiss Franc</option>
-            <option value="AUD/USD">AUD/USD — Australian Dollar</option>
-            <option value="USD/CAD">USD/CAD — Canadian Dollar</option>
-            <option value="NZD/USD">NZD/USD — New Zealand Dollar</option>
-            <option value="EUR/GBP">EUR/GBP — Euro / Pound</option>
-            <option value="EUR/JPY">EUR/JPY — Euro / Yen</option>
-            <option value="GBP/JPY">GBP/JPY — Pound / Yen</option>
-          </select>
-        </div>
-        <div class="frow"><span class="flbl">SIZE</span><input type="number" id="fx-qty" aria-label="Lot size" placeholder="lot size" min="0" step="any"></div>
-        <div class="frow"><span class="flbl">ENTRY</span><input type="number" id="fx-entry" aria-label="Entry rate" placeholder="entry rate" min="0" step="any"></div>
-        <button class="add-btn" onclick="addForexHolding()">+ ADD FOREX PAIR</button>
-      </div>
-    </div>
-
-    <!-- STOCKS HOLDINGS -->
-    <div id="holdings-stocks" style="display:none;flex-direction:column;flex:1;overflow:hidden;">
-      <div class="sig-box">
-        <div class="sig-title">◈ Stock Signal</div>
-        <div id="st-sig-content"><div style="font-size:12px;color:var(--muted);font-family:var(--font-ui);">Add stocks below to see your signal.</div></div>
-      </div>
-      <div class="holdings-section-label"><span>MY HOLDINGS</span><span id="st-hcount" style="color:var(--bnb);font-size:12px;letter-spacing:.04em;"></span></div>
-      <div class="tiles-scroll"><div class="tiles-grid" id="st-tiles-grid"></div></div>
-      <div class="phead"><div class="ptitle">Add Stock</div></div>
-      <div class="add-form">
-        <div class="frow"><span class="flbl">TICKER</span>
-          <select id="st-sel" aria-label="Select stock">
-            <option value="">Select…</option>
-            <optgroup label="Indices">
-              <option value="^GSPC">S&amp;P 500</option>
-              <option value="^IXIC">NASDAQ</option>
-              <option value="^DJI">DOW JONES</option>
-              <option value="^RUT">RUSSELL 2000</option>
-              <option value="^FTSE">FTSE 100</option>
-              <option value="^GDAXI">DAX</option>
-              <option value="^N225">NIKKEI 225</option>
-            </optgroup>
-            <optgroup label="Stocks">
-              <option value="AAPL">AAPL — Apple</option>
-              <option value="MSFT">MSFT — Microsoft</option>
-              <option value="NVDA">NVDA — NVIDIA</option>
-              <option value="AMD">AMD — AMD</option>
-              <option value="TSLA">TSLA — Tesla</option>
-              <option value="AMZN">AMZN — Amazon</option>
-              <option value="GOOGL">GOOGL — Alphabet</option>
-              <option value="META">META — Meta</option>
-              <option value="JPM">JPM — JPMorgan</option>
-              <option value="V">V — Visa</option>
-              <option value="BRK-B">BRK-B — Berkshire</option>
-              <option value="INTC">INTC — Intel</option>
-              <option value="PLTR">PLTR — Palantir</option>
-              <option value="COIN">COIN — Coinbase</option>
-              <option value="MSTR">MSTR — MicroStrategy</option>
-            </optgroup>
-          </select>
-        </div>
-        <div class="frow"><span class="flbl">SHARES</span><input type="number" id="st-qty" aria-label="Number of shares" placeholder="shares" min="0" step="any"></div>
-        <div class="frow"><span class="flbl">AVG $</span><input type="number" id="st-avg" aria-label="Average buy price" placeholder="avg buy price" min="0" step="any"></div>
-        <button class="add-btn" onclick="addStockHolding()">+ ADD STOCK</button>
-      </div>
-    </div>
     </div><!-- /cb-holdings -->
+
 
     <!-- SUPPORT CARD — collapsible on mobile -->
     <div class="collapse-hdr holdings" id="ch-support" onclick="toggleCollapse('support')">
@@ -997,13 +878,12 @@
         <button class="cat-tab" data-cat="rwa" onclick="switchCategory('rwa')"><span class="cat-ico">🏠</span><span class="cat-lbl">RWA</span></button>
         <button class="cat-tab" data-cat="infra" onclick="switchCategory('infra')"><span class="cat-ico">🛠</span><span class="cat-lbl">INFRA</span></button>
         <button class="cat-tab" data-cat="stable" onclick="switchCategory('stable')"><span class="cat-ico">💵</span><span class="cat-lbl">STABLE</span></button>
+        <button class="cat-tab" data-cat="stocks" onclick="switchCategory('stocks')"><span class="cat-ico">🏛</span><span class="cat-lbl">STOCKS</span></button>
         <button class="cat-tab demo-tab" data-cat="demo" onclick="switchCategory('demo')"><span class="cat-ico">🎯</span><span class="cat-lbl">DEMO</span></button>
       </div>
       <div class="tbl-head-meta">
         <div class="sort-hint">CLICK COLUMN HEADERS TO SORT</div>
         <span id="last-updated-crypto"  class="last-upd-ts" style="display:none;"></span>
-        <span id="last-updated-forex"   class="last-upd-ts" style="display:none;"></span>
-        <span id="last-updated-stocks"  class="last-upd-ts" style="display:none;"></span>
       </div>
     </div>
     <div class="leaderboard" id="crypto-panel">
@@ -1018,25 +898,11 @@
             <th class="r sorted" id="th-7" onclick="setSort(7)" data-tip="Price change over 7 days. Click to sort.">7D%</th>
             <th class="r" id="th-14" onclick="setSort(14)" data-tip="Price change over 14 days. Click to sort.">14D%</th>
             <th class="r" id="th-30" onclick="setSort(30)" data-tip="Price change over 30 days. Click to sort.">30D%</th>
-            <th class="r" id="th-score" onclick="setSort(0)" data-tip="Composite score 0–100 combining 7D, 14D and 30D ranks. Higher = stronger momentum.">SCORE <span style="color:var(--muted);font-size:12px;cursor:help;" title="Score = 40% 7D rank + 35% 14D rank + 25% 30D rank. Adjusted for macro & tokenomics.">ⓘ</span></th>
+            <th class="r" id="th-score" onclick="setSort(0)" data-tip="Composite score 0–100 combining 7D, 14D and 30D ranks. Higher = stronger momentum. bStock rows show a partial momentum-only score (max 70) — see STOCKS tab tooltip.">SCORE <span style="color:var(--muted);font-size:12px;cursor:help;" title="Score = 40% 7D rank + 35% 14D rank + 25% 30D rank. Adjusted for macro & tokenomics. bStocks: momentum-only partial score, no tokenomics applies.">ⓘ</span></th>
           </tr>
         </thead>
         <tbody id="tbody"></tbody>
       </table>
-    </div>
-    <div class="leaderboard" id="forex-panel" style="display:none;">
-      <div id="forex-loading">
-        <div class="loading-source-msg" id="forex-source-msg">⟳ Pulling live rates from Frankfurter (ECB) → ExchangeRate.host (30-day history) → ER-API — aggregating for accurate 7D/30D scoring…</div>
-        <div class="asset-tiles-wrap forex-grid" id="forex-skel-grid"></div>
-      </div>
-      <div id="forex-tiles" class="asset-tiles-wrap forex-grid"></div>
-    </div>
-    <div class="leaderboard" id="stocks-panel" style="display:none;">
-      <div id="stocks-loading">
-        <div class="loading-source-msg" id="stocks-source-msg">⟳ Pulling data from Yahoo Finance → Financial Modeling Prep → Alpha Vantage → Twelve Data — trying multiple sources for best coverage…</div>
-        <div class="asset-tiles-wrap stocks-grid" id="stocks-skel-grid"></div>
-      </div>
-      <div id="stocks-tiles" class="asset-tiles-wrap stocks-grid" style="display:none;"></div>
     </div>
 
     <!-- RATIO TRACKER moved to right panel -->
@@ -1362,14 +1228,11 @@
 <div class="mob-more-backdrop" id="mob-more-backdrop" onclick="closeMobMore()"></div>
 <div class="mob-more-menu" id="mob-more-menu">
   <div class="mob-more-title">Menu</div>
-  <button class="mob-more-item" id="mm-crypto" onclick="mobNav('crypto');closeMobMore();">
+  <button class="mob-more-item" id="mm-crypto" onclick="mobNav('all');closeMobMore();">
     <span class="mmi-ico">₿</span><span>Crypto Screener</span>
   </button>
-  <button class="mob-more-item" id="mm-forex" onclick="mobNav('forex');closeMobMore();">
-    <span class="mmi-ico">💱</span><span>Forex Pairs</span>
-  </button>
   <button class="mob-more-item" id="mm-stocks" onclick="mobNav('stocks');closeMobMore();">
-    <span class="mmi-ico">📈</span><span>Stocks & Indices</span>
+    <span class="mmi-ico">🏛</span><span>bStocks</span>
   </button>
   <div class="mob-more-divider"></div>
   <button class="mob-more-item" onclick="document.getElementById('signal-track-record').scrollIntoView({behavior:'smooth'});closeMobMore();">

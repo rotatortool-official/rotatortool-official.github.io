@@ -1,43 +1,30 @@
 /* ══════════════════════════════════════════════════════════════════
-   data-loaders.js  —  All data fetching, scoring, mode switching
-                        & the sparkle animation
-   
+   data-loaders.js  —  All data fetching, scoring & the sparkle animation
+
    HOW TO EDIT THIS FILE:
    ──────────────────────
    • CHANGE SCORING WEIGHTS:
        In computeScores() find the three LAYERS:
        L1 = intra-list rank:  adjust the 0.25 / 0.30 / 0.45 weights
        L2 = macro strength:   adjust the 0.35/0.25/0.10/0.10 core + 0.10 DXY + 0.10 Total3 weights
-       L3 = tokenomics:       adjust supplyPts / deflPts / unlockPts values
-   
+       L3 = tokenomics:       adjust supplyPts / deflPts / unlockPts values (crypto only — bStocks skip L3)
+
    • CHANGE AUTO-REFRESH INTERVAL:
        Find startAutoRefresh() and change 15*60*1000 (= 15 minutes)
-   
-   • ADD A NEW DATA SOURCE FOR STOCKS:
-       In loadStocks() add a new fallback block after the Yahoo/FMP/AV blocks.
-   
-   • ADD A NEW FOREX DATA SOURCE:
-       In loadForex() add a new fallback block after the frankfurter/ER-API blocks.
+
+   • ADD/REMOVE bSTOCKS:
+       Edit BSTOCK_LIST in config.js. Data itself comes from
+       unified_market_data (Supabase) via loadBstocks() below — see the
+       sync-market-data Edge Function for the write side.
+
+   Site is crypto (+ bStocks) only now — FOREX/STOCKS as separate modes,
+   Yahoo Finance, Alpha Vantage, Frankfurter, ER-API and the whole
+   mode-switching UI (setMode/asset-mode-bar/#forex-panel/#stocks-panel)
+   were removed. See rotator-bstocks-migration-plan.md.
 ══════════════════════════════════════════════════════════════════ */
 
 /* ── Shared runtime state ─────────────────────────────────────── */
-var forexData    = [];
-var stocksData   = [];
-var forexLoaded  = false;
-var stocksLoaded = false;
-var currentMode  = 'crypto';
-var busy         = false;
-
-/* Which modes are enabled (persisted) */
-var _modeEnabled = {crypto:true, forex:true, stocks:true};
-(function() {
-  try {
-    var saved = JSON.parse(localStorage.getItem('rot_modes') || '{}');
-    ['crypto','forex','stocks'].forEach(function(m) { if (saved[m] === false) _modeEnabled[m] = false; });
-  } catch(e) {}
-})();
-
-function saveModePrefs() { try { localStorage.setItem('rot_modes', JSON.stringify(_modeEnabled)); } catch(e) {} }
+var busy = false;
 
 /* ══════════════════════════════════════════════════════════════
    CRYPTO — loadCoins + BTC MA200
@@ -366,15 +353,16 @@ async function loadFearGreed() {
 
 /* ── Score engine (3 layers) ─────────────────────────────────── */
 function computeScores() {
-  /* Exclude stablecoins (APR display) AND coins with incomplete % data —
-     a freshly-listed coin without 14D/30D history would otherwise rank
-     mid-pack on r14/r30 (since p14/p30 default to 0) and inflate its
-     rotation score, repeatedly surfacing as a "buy zone" candidate
-     despite us having no real basis to score it. */
-  var scorable = coins.filter(function(c) { return !c.isStable && c.dataComplete !== false; });
+  /* Exclude stablecoins (APR display), bStocks (scored separately below —
+     UNLOCK/SENT tokenomics has no meaning for equities), and coins with
+     incomplete % data — a freshly-listed coin without 14D/30D history
+     would otherwise rank mid-pack on r14/r30 (since p14/p30 default to 0)
+     and inflate its rotation score, repeatedly surfacing as a "buy zone"
+     candidate despite us having no real basis to score it. */
+  var scorable = coins.filter(function(c) { return !c.isStable && !c.isStock && c.dataComplete !== false; });
   var n = Math.max(scorable.length - 1, 1);
 
-  /* LAYER 1: Intra-list rank (0–40 pts) */
+  /* LAYER 1: Intra-list rank (0–40 pts) — crypto peer group only */
   ['p7','p14','p30'].forEach(function(k) {
     var sorted = scorable.slice().sort(function(a, b) { return b[k] - a[k]; });
     sorted.forEach(function(c, i) { c['r' + k.slice(1)] = i + 1; });
@@ -389,6 +377,13 @@ function computeScores() {
     }
   });
 
+  var btcP7    = _macroData.btcP7    != null ? _macroData.btcP7    : (coins.find(function(x){ return x.id==='bitcoin'; }) || {p7:0}).p7;
+  var goldP7   = _macroData.goldP7   != null ? _macroData.goldP7   : 2;
+  var silvP7   = _macroData.silverP7 != null ? _macroData.silverP7 : 1.5;
+  var oilP7    = _macroData.oilP7    != null ? _macroData.oilP7    : 1;
+  var dxyP7    = _macroData.dxyP7    != null ? _macroData.dxyP7    : 0;
+  var total3P7 = _macroData.total3P7 != null ? _macroData.total3P7 : 0;
+
   scorable.forEach(function(c) {
     /* Weighted rank (lower rank# = better) */
     var wAvg   = (c.r7 * 0.25 + c.r14 * 0.30 + c.r30 * 0.45);
@@ -397,12 +392,6 @@ function computeScores() {
     /* LAYER 2: Macro relative strength vs BTC/Gold/Silver/Oil + DXY/Total3 (0–30 pts)
        DXY inverse: rising dollar is headwind for crypto, so we ADD dxy strength (coin benefits when DXY falls)
        Total3: rising altcoin market = tailwind, coin benefits when outperforming total3 */
-    var btcP7    = _macroData.btcP7    != null ? _macroData.btcP7    : (coins.find(function(x){ return x.id==='bitcoin'; }) || {p7:0}).p7;
-    var goldP7   = _macroData.goldP7   != null ? _macroData.goldP7   : 2;
-    var silvP7   = _macroData.silverP7 != null ? _macroData.silverP7 : 1.5;
-    var oilP7    = _macroData.oilP7    != null ? _macroData.oilP7    : 1;
-    var dxyP7    = _macroData.dxyP7    != null ? _macroData.dxyP7    : 0;
-    var total3P7 = _macroData.total3P7 != null ? _macroData.total3P7 : 0;
     /* Core: vs traditional assets (60% weight) */
     var coreDelta = (c.p7 - btcP7)*0.35 + (c.p7 - goldP7)*0.25 + (c.p7 - silvP7)*0.10 + (c.p7 - oilP7)*0.10;
     /* DXY headwind: if DXY rose 2%, all crypto gets -2 pts penalty; coin-specific edge stays in coreDelta (10% weight) */
@@ -412,7 +401,7 @@ function computeScores() {
     var delta  = coreDelta + dxyDelta + t3Delta;
     var layer2 = Math.min(30, Math.max(0, Math.round(15 + Math.min(Math.max(delta * 0.9, -15), 15))));
 
-    /* LAYER 3: Tokenomics quality (−50 to +30 pts) */
+    /* LAYER 3: Tokenomics quality (−50 to +30 pts) — crypto only */
     var tkx      = TOKENOMICS_DB[c.id] || {deflation:'none', unlockRisk:'medium'};
     var supplyPts = 0;
     if (c.circulating_supply && c.max_supply && c.max_supply > 0) {
@@ -430,599 +419,149 @@ function computeScores() {
     c.score = Math.min(100, Math.max(-50, Math.round(layer1 + layer2 + layer3)));
     c.scoreBreakdown = {layer1, layer2, layer3, supplyPts, deflPts, unlockPts, dxyP7: dxyP7, total3P7: total3P7};
   });
+
+  /* ── bStocks: partial score, own peer group, no Layer 3 ──────────
+     Ship-first version per the migration plan: MCAP + momentum only,
+     no fabricated unlock/sentiment number. Ranked against OTHER bStocks
+     (not crypto) so a modest-momentum stock isn't buried under a
+     pumping memecoin's rank. Max attainable is 70 (40+30), not 100 —
+     intentionally not rescaled to look comparable to a full crypto
+     score; the UI labels this a partial score (see signals.js). */
+  var stockScorable = coins.filter(function(c) { return c.isStock && c.dataComplete !== false; });
+  var sn = Math.max(stockScorable.length - 1, 1);
+  ['p7','p14','p30'].forEach(function(k) {
+    var sorted = stockScorable.slice().sort(function(a, b) { return b[k] - a[k]; });
+    sorted.forEach(function(c, i) { c['r' + k.slice(1)] = i + 1; });
+  });
+  coins.forEach(function(c) { if (c.isStock && c.dataComplete === false) { c.score = 0; c.r7 = 0; c.r14 = 0; c.r30 = 0; } });
+  stockScorable.forEach(function(c) {
+    var wAvg   = (c.r7 * 0.25 + c.r14 * 0.30 + c.r30 * 0.45);
+    var layer1 = Math.round((1 - (wAvg - 1) / sn) * 40);
+    var coreDelta = (c.p7 - btcP7) * 0.5 + (c.p7 - goldP7) * 0.5; /* simpler macro compare for equities */
+    var layer2 = Math.min(30, Math.max(0, Math.round(15 + Math.min(Math.max(coreDelta * 0.9, -15), 15))));
+    c.score = Math.max(0, Math.round(layer1 + layer2));
+    c.scoreBreakdown = {layer1: layer1, layer2: layer2, layer3: null, partial: true};
+  });
 }
 
 /* ══════════════════════════════════════════════════════════════
-   FOREX — loadForex
+   bSTOCKS — Binance tokenized equities, merged into coins[]
+   Replaces the old loadForex()/loadStocks() client-side fetch chains
+   (Yahoo Finance / FMP / Alpha Vantage / Twelve Data / Frankfurter /
+   ER-API — all removed, see rotator-bstocks-migration-plan.md).
+
+   bStock rows are fetched from `unified_market_data` (asset_type='stock',
+   source_name='binance'), the same server-side-synced table that already
+   feeds the ticker tape in global-movers.js. The sync-market-data Edge
+   Function (Supabase) is the sole writer — this is a read-only call,
+   same pattern as everything else in this file, no client-side Binance
+   fetch and therefore no CORS exposure.
+
+   Rows are pushed into the SAME coins[] array crypto uses, tagged
+   isStock:true and COIN_CATEGORIES[id]='stocks', so the existing
+   category-tab filter, sort columns, holdings, and watchlist code in
+   signals.js / holdings.js all work on them without a parallel code path.
 ══════════════════════════════════════════════════════════════ */
-function calcRSI(closes, period) {
-  if (!closes || closes.length < period + 1) return 50;
-  var gains = 0, losses = 0;
-  for (var i = closes.length - period; i < closes.length; i++) {
-    var d = closes[i] - closes[i-1];
-    if (d >= 0) gains += d; else losses -= d;
-  }
-  var avgG = gains / period, avgL = losses / period;
-  if (avgL === 0) return 100;
-  return Math.round(100 - (100 / (1 + avgG / avgL)));
-}
+var bstocksLoaded = false;
 
-function calcForexScore(closes) {
-  if (!closes || closes.length < 2) return {score:50, rsi:50, signal:'NO DATA', sigC:'var(--muted)', p7:0, p30:0};
-  var latest  = closes[closes.length - 1];
-  var p7base  = closes.length >= 8  ? closes[closes.length - 8]  : closes[0];
-  var p30base = closes.length >= 22 ? closes[closes.length - 22] : closes[0];
-  var chg7  = p7base  ? ((latest - p7base)  / p7base  * 100) : 0;
-  var chg30 = p30base ? ((latest - p30base) / p30base * 100) : 0;
-  var mom7  = Math.round(50 + Math.min(Math.max(chg7  * 12, -48), 48));
-  var mom30 = Math.round(50 + Math.min(Math.max(chg30 *  7, -48), 48));
-  var rsiVal = calcRSI(closes, Math.min(14, closes.length - 1));
-  var score  = Math.min(100, Math.max(0, Math.round(mom7*0.40 + mom30*0.35 + rsiVal*0.25)));
-  var signal, sigC;
-  if      (rsiVal >= 70 && chg7 > 0) { signal = 'OVERBOUGHT'; sigC = 'var(--red)';   }
-  else if (rsiVal <= 30 && chg7 < 0) { signal = 'OVERSOLD';   sigC = 'var(--green)'; }
-  else if (score >= 65)               { signal = 'BULLISH';    sigC = 'var(--green)'; }
-  else if (score <= 35)               { signal = 'BEARISH';    sigC = 'var(--red)';   }
-  else                                { signal = 'NEUTRAL';    sigC = 'var(--muted)'; }
-  return {score, rsi:rsiVal, signal, sigC, p7:chg7, p30:chg30};
-}
+async function loadBstocks() {
+  prog(50, 'Fetching bStock data…');
+  try {
+    var rows = null;
 
-async function loadForex() {
-  var loading = document.getElementById('forex-loading');
-  loading.style.display = 'block';
-  forexData = [];
-
-  /* Inject skeleton tiles immediately */
-  var skelGrid = document.getElementById('forex-skel-grid');
-  if (skelGrid) {
-    var pairCount = isPro ? FOREX_PAIRS.length : FOREX_PAIRS.filter(function(p){return !p.pro;}).length;
-    skelGrid.innerHTML = Array(Math.max(pairCount, 6)).fill(0).map(function() {
-      return '<div class="asset-tile skel-asset-tile">'
-        + '<div class="skel-asset-head"><div class="skel skel-asset-sym"></div><div class="skel skel-asset-name"></div></div>'
-        + '<div class="skel skel-asset-price"></div>'
-        + '<div class="skel-asset-stats"><div class="skel skel-asset-stat"></div><div class="skel skel-asset-stat"></div><div class="skel skel-asset-stat"></div></div>'
-        + '</div>';
-    }).join('');
-  }
-
-  var pairsToLoad = isPro ? FOREX_PAIRS : FOREX_PAIRS.filter(function(p) { return !p.pro; });
-  var rateHistory = {};
-
-  /* Group standard ISO pairs by base to minimise API calls */
-  var bases = {};
-  pairsToLoad.forEach(function(p) {
-    if (p.from === 'XAU' || p.from === 'XTI') return; /* handled separately */
-    if (!bases[p.from]) bases[p.from] = [];
-    if (bases[p.from].indexOf(p.to) < 0) bases[p.from].push(p.to);
-  });
-
-  var startDate = dateOffset(-60); /* 60 days covers weekends + holidays */
-
-  /* ── Primary source: Frankfurter (ECB data, free, no key) ── */
-  var frankfurterFailed = false;
-  await Promise.all(Object.keys(bases).map(async function(base) {
-    try {
-      var url  = 'https://api.frankfurter.app/' + startDate + '..?from=' + base + '&to=' + bases[base].join(',');
-      var data = await apiFetch(url);
-      if (data && data.rates && Object.keys(data.rates).length > 0) {
-        var dates    = Object.keys(data.rates).sort();
-        var quoteArr = {};
-        dates.forEach(function(d) {
-          var dayRates = data.rates[d] || {};
-          Object.keys(dayRates).forEach(function(q) {
-            if (!quoteArr[q]) quoteArr[q] = [];
-            quoteArr[q].push(dayRates[q]);
-          });
-        });
-        rateHistory[base] = quoteArr;
-      } else { frankfurterFailed = true; }
-    } catch(e) { console.warn('Frankfurter failed for ' + base + ':', e.message); frankfurterFailed = true; }
-  }));
-
-  /* ── Fallback: exchangerate.host — real 30-day timeseries, free, no key ── */
-  if (frankfurterFailed || Object.keys(rateHistory).length < Object.keys(bases).length) {
-    var endDate   = new Date().toISOString().slice(0, 10);
-    var startDate30 = dateOffset(-35); /* 35 days covers weekends + holidays */
-    await Promise.all(Object.keys(bases).map(async function(base) {
-      if (rateHistory[base] && Object.keys(rateHistory[base]).length > 0) return; /* already have it */
+    /* Shared Supabase cache first (5 min TTL, same as crypto) */
+    if (typeof supaCacheGet === 'function') {
       try {
-        /* exchangerate.host timeseries: free, CORS-safe, real ECB/market data */
-        var url  = 'https://api.exchangerate.host/timeseries?start_date=' + startDate30
-          + '&end_date=' + endDate + '&base=' + base + '&symbols=' + bases[base].join(',');
-        var data = await apiFetch(url);
-        if (data && data.success && data.rates && Object.keys(data.rates).length > 0) {
-          var dates    = Object.keys(data.rates).sort();
-          var quoteArr = {};
-          dates.forEach(function(d) {
-            var dayRates = data.rates[d] || {};
-            Object.keys(dayRates).forEach(function(q) {
-              if (!quoteArr[q]) quoteArr[q] = [];
-              quoteArr[q].push(dayRates[q]);
-            });
-          });
-          rateHistory[base] = quoteArr;
-        }
-      } catch(e) { console.warn('exchangerate.host failed for ' + base + ':', e.message); }
-    }));
-  }
-
-  /* ── Last resort: open.er-api.com (single spot rate only — minimal history) ── */
-  if (Object.keys(rateHistory).length < Object.keys(bases).length) {
-    try {
-      var erData = await apiFetch('https://open.er-api.com/v6/latest/USD');
-      if (erData && erData.rates) {
-        Object.keys(bases).forEach(function(base) {
-          if (rateHistory[base] && Object.keys(rateHistory[base]).length > 0) return;
-          var baseInUSD = erData.rates[base];
-          if (!baseInUSD) return;
-          if (!rateHistory[base]) rateHistory[base] = {};
-          bases[base].forEach(function(quote) {
-            if (rateHistory[base][quote] && rateHistory[base][quote].length > 0) return;
-            var quoteInUSD = erData.rates[quote];
-            if (!quoteInUSD) return;
-            var rate = quoteInUSD / baseInUSD;
-            /* Build a minimal 2-point array — scores will be low-confidence but not crash */
-            rateHistory[base][quote] = [rate * 0.999, rate];
-          });
-        });
-      }
-    } catch(e) { console.warn('ER-API last-resort failed:', e.message); }
-  }
-
-  /* ── Build forexData from history ── */
-  var results = pairsToLoad.map(function(pair) {
-    /* XAU (gold) / XTI (oil) — use macro data already loaded */
-    if (pair.from === 'XAU' || pair.from === 'XTI') {
-      if (pair.from === 'XAU' && _macroData.goldP7 != null) {
-        var gp7   = _macroData.goldP7;
-        var score = Math.round(50 + Math.min(Math.max(gp7 * 8, -45), 45));
-        var signal = score >= 65 ? 'BULLISH' : score <= 35 ? 'BEARISH' : 'NEUTRAL';
-        var sigC   = score >= 65 ? 'var(--green)' : score <= 35 ? 'var(--red)' : 'var(--muted)';
-        return {from:pair.from, to:pair.to, name:pair.name, pro:pair.pro, rate:0, chg:0, chgPct:gp7, score, rsi:50, signal, sigC, p7:gp7, p30:0};
-      }
-      return {from:pair.from, to:pair.to, name:pair.name, pro:pair.pro, rate:0, chg:0, chgPct:0, score:50, rsi:50, signal:'N/A', sigC:'var(--muted)', p7:0, p30:0};
+        rows = await supaCacheGet('bstock_rows', 5 * 60 * 1000);
+      } catch (e) { console.warn('[SupaCache] bstock read skipped:', e.message); }
     }
 
-    var hist = rateHistory[pair.from] && rateHistory[pair.from][pair.to];
-    if (hist && hist.length >= 2) {
-      var latest = hist[hist.length - 1], prev = hist[hist.length - 2];
-      var chg    = latest - prev, chgPct = prev ? ((chg / prev) * 100) : 0;
-      var scored = calcForexScore(hist);
-      return {from:pair.from, to:pair.to, name:pair.name, pro:pair.pro,
-        rate:latest, chg, chgPct, score:scored.score, rsi:scored.rsi, signal:scored.signal,
-        sigC:scored.sigC, p7:scored.p7, p30:scored.p30};
-    }
-    return {from:pair.from, to:pair.to, name:pair.name, pro:pair.pro,
-      rate:0, chg:0, chgPct:0, score:0, rsi:50, signal:'—', sigC:'var(--muted)', p7:0, p30:0, err:true};
-  });
-
-  forexData = results.filter(Boolean);
-
-  /* Append locked Pro pair stubs for free users */
-  if (!isPro) {
-    FOREX_PAIRS.filter(function(p) { return p.pro; }).forEach(function(p) {
-      forexData.push({from:p.from, to:p.to, name:p.name, pro:true, locked:true,
-        rate:0, chg:0, chgPct:0, score:0, rsi:50, signal:'PRO', sigC:'var(--pro)'});
-    });
-  }
-
-  forexLoaded = true;
-  _setLastUpdated('forex');
-  loading.style.display = 'none';
-  var fxTiles = document.getElementById('forex-tiles');
-  if (fxTiles) fxTiles.style.display = '';
-  renderForexTable();
-  renderFxTiles();
-}
-
-/* ══════════════════════════════════════════════════════════════
-   STOCKS — loadStocks
-══════════════════════════════════════════════════════════════ */
-/* ── Item 8: Enhanced stock scorer — uses 7D + 30D when available ──
-   The original scorer only used 52-week range position + today's %chg.
-   We now add 7D and 30D momentum when history data is available,
-   matching the quality of the crypto scorer.
-──────────────────────────────────────────────────────────────── */
-function calcStockScore(price, high52, low52, chgPct, p7, p30) {
-  var range  = high52 - low52;
-  /* 52-week position (0–100): where in the yearly range the price sits */
-  var pos    = range > 0 ? Math.round(((price - low52) / range) * 100) : 50;
-  /* Today's momentum (-40 to +40) */
-  var mom1d  = Math.min(Math.max(chgPct * 5, -40), 40);
-
-  if (p7 !== undefined && p30 !== undefined) {
-    /* Full 3-timeframe scorer (matches crypto scorer quality) */
-    var mom7d  = Math.min(Math.max((p7  || 0) * 3, -40), 40);
-    var mom30d = Math.min(Math.max((p30 || 0) * 1.5, -40), 40);
-    /* Weights: range 35% + 7D 30% + 30D 25% + 1D 10% */
-    return Math.min(100, Math.max(0, Math.round(
-      pos * 0.35 + (50 + mom7d) * 0.30 + (50 + mom30d) * 0.25 + (50 + mom1d) * 0.10
-    )));
-  }
-  /* Fallback: original 2-factor scorer when history unavailable */
-  return Math.min(100, Math.max(0, Math.round(pos * 0.6 + (50 + mom1d) * 0.4)));
-}
-
-/* Fetch Yahoo Finance chart for a single symbol — used to get 7D/30D history */
-async function fetchStockHistory(sym) {
-  try {
-    var url  = 'https://query1.finance.yahoo.com/v8/finance/chart/' + encodeURIComponent(sym)
-      + '?interval=1d&range=35d';
-    var data = await apiFetch(url);
-    var closes = data && data.chart && data.chart.result && data.chart.result[0]
-      && data.chart.result[0].indicators && data.chart.result[0].indicators.quote
-      && data.chart.result[0].indicators.quote[0] && data.chart.result[0].indicators.quote[0].close;
-    if (!closes || closes.length < 8) return null;
-    var latest = closes[closes.length - 1];
-    var w1     = closes[closes.length - 6]  || closes[0];
-    var m1     = closes[closes.length - 22] || closes[0];
-    return {
-      p7:  w1  ? ((latest - w1)  / w1  * 100) : 0,
-      p30: m1  ? ((latest - m1)  / m1  * 100) : 0
-    };
-  } catch(e) { return null; }
-}
-
-async function fetchStocksYahoo(syms) {
-  var url = 'https://query1.finance.yahoo.com/v7/finance/quote?symbols=' + encodeURIComponent(syms.join(','))
-    + '&fields=shortName,regularMarketPrice,regularMarketChange,regularMarketChangePercent,fiftyTwoWeekHigh,fiftyTwoWeekLow';
-  var data = await apiFetch(url);
-  return (data && data.quoteResponse && data.quoteResponse.result) || [];
-}
-
-async function fetchStockAV(avSym) {
-  var url  = 'https://www.alphavantage.co/query?function=GLOBAL_QUOTE&symbol=' + avSym + '&apikey=' + getAVKey();
-  var data = await apiFetch(url);
-  var q    = data && data['Global Quote'];
-  if (!q || !q['05. price']) return null;
-  var price   = parseFloat(q['05. price']) || 0;
-  var chg     = parseFloat(q['09. change']) || 0;
-  var chgPct  = parseFloat((q['10. change percent'] || '0').replace('%','')) || 0;
-  var high52  = price * 1.35; /* rough fallback — AV GLOBAL_QUOTE doesn't include 52w */
-  var low52   = price * 0.65;
-  return {price, chg, chgPct, high52, low52};
-}
-
-async function loadStocks() {
-  var loading = document.getElementById('stocks-loading');
-  loading.style.display = 'block';
-  stocksData = [];
-  var yahooOk = false;
-
-  /* Inject skeleton tiles immediately */
-  var skelGrid = document.getElementById('stocks-skel-grid');
-  if (skelGrid) {
-    skelGrid.innerHTML = Array(STOCKS_LIST.length).fill(0).map(function() {
-      return '<div class="asset-tile skel-asset-tile">'
-        + '<div class="skel-asset-head"><div class="skel skel-asset-sym"></div><div class="skel skel-asset-name"></div></div>'
-        + '<div class="skel skel-asset-price"></div>'
-        + '<div class="skel-asset-stats"><div class="skel skel-asset-stat"></div><div class="skel skel-asset-stat"></div><div class="skel skel-asset-stat"></div></div>'
-        + '</div>';
-    }).join('');
-  }
-
-  /* ── Primary: Yahoo Finance (all symbols in one request) ── */
-  try {
-    var allSyms = STOCKS_LIST.map(function(s) { return s.sym; });
-    var quotes  = await fetchStocksYahoo(allSyms);
-    if (quotes.length > 0) {
-      stocksData = STOCKS_LIST.map(function(s) {
-        var q = quotes.find(function(r) { return r.symbol === s.sym; });
-        if (!q) return {sym:s.sym, name:s.name, type:s.type, av:s.av, price:0, chg:0, chgPct:0, high52:0, low52:0, score:0, err:true};
-        var price  = q.regularMarketPrice || 0;
-        var high52 = q.fiftyTwoWeekHigh   || price * 1.3;
-        var low52  = q.fiftyTwoWeekLow    || price * 0.7;
-        /* Item 8: include 7D/30D from Yahoo's own quote fields when available */
-        var p7  = q.regularMarketChangePercentWeekly  || undefined;
-        var p30 = q.regularMarketChangePercentMonthly || undefined;
-        return {sym:s.sym, name:q.shortName||s.name, type:s.type, av:s.av,
-          price, chg:q.regularMarketChange||0, chgPct:q.regularMarketChangePercent||0,
-          high52, low52, p7, p30,
-          score:calcStockScore(price, high52, low52, q.regularMarketChangePercent||0, p7, p30)};
+    /* Cache miss — read unified_market_data directly (read-only, RLS: public select) */
+    if (!rows || !Array.isArray(rows) || !rows.length) {
+      rows = await supaRest('unified_market_data', 'GET', {
+        'asset_type':  'eq.stock',
+        'source_name': 'eq.binance',
+        'select':      'symbol,name,price,change_24h,metadata,last_updated',
+        'order':       'symbol.asc'
       });
-      yahooOk = true;
-
-      /* Item 8: Fetch 35-day history for top 8 stocks to get real 7D/30D data.
-         We limit to 8 to stay inside free-tier rate limits. Runs in background. */
-      var need7d = stocksData.filter(function(s) { return !s.err && s.p7 === undefined; }).slice(0, 8);
-      if (need7d.length) {
-        Promise.all(need7d.map(async function(s) {
-          var hist = await fetchStockHistory(s.sym);
-          if (hist) {
-            var idx = stocksData.findIndex(function(r) { return r.sym === s.sym; });
-            if (idx >= 0) {
-              stocksData[idx].p7    = hist.p7;
-              stocksData[idx].p30   = hist.p30;
-              stocksData[idx].score = calcStockScore(
-                stocksData[idx].price, stocksData[idx].high52, stocksData[idx].low52,
-                stocksData[idx].chgPct, hist.p7, hist.p30
-              );
-            }
-          }
-        })).then(function() { renderStocksTable(); }); /* re-render when history arrives */
+      if (Array.isArray(rows) && rows.length && typeof supaCacheSet === 'function') {
+        supaCacheSet('bstock_rows', rows); // fire-and-forget
       }
     }
-  } catch(e) { console.warn('Yahoo stocks failed:', e.message); }
 
-  /* ── Fallback 1: Financial Modeling Prep (free, no key, CORS-friendly) ── */
-  if (!yahooOk) {
-    var sMsg = document.getElementById('stocks-source-msg');
-    if (sMsg) sMsg.textContent = '⟳ Yahoo Finance unavailable — pulling from Financial Modeling Prep…';
-    loading.textContent = 'LOADING VIA FMP…';
-    try {
-      var fmpSyms = STOCKS_LIST.map(function(s) { return s.av || s.sym; }).filter(Boolean).join(',');
-      var fmpData = await apiFetch('https://financialmodelingprep.com/api/v3/quote/' + encodeURIComponent(fmpSyms) + '?apikey=demo');
-      if (Array.isArray(fmpData) && fmpData.length > 0) {
-        stocksData = STOCKS_LIST.map(function(s) {
-          var q = fmpData.find(function(r) { return r.symbol === (s.av || s.sym); });
-          if (!q) return {sym:s.sym, name:s.name, type:s.type, av:s.av, price:0, chg:0, chgPct:0, high52:0, low52:0, score:0, err:true};
-          var price  = q.price || 0, high52 = q.yearHigh || price*1.3, low52 = q.yearLow || price*0.7;
-          return {sym:s.sym, name:q.name||s.name, type:s.type, av:s.av,
-            price, chg:q.change||0, chgPct:q.changesPercentage||0, high52, low52,
-            score:calcStockScore(price, high52, low52, q.changesPercentage||0)};
-        });
-        yahooOk = true;
-      }
-    } catch(e) { console.warn('FMP fallback failed:', e.message); }
-  }
+    if (!Array.isArray(rows) || !rows.length) {
+      console.warn('[bStocks] no rows returned from unified_market_data yet');
+      bstocksLoaded = true;
+      return;
+    }
 
-  /* ── Fallback 2: Alpha Vantage (rate-limited — rotates keys on 429) ── */
-  if (!yahooOk) {
-    var sMsg2 = document.getElementById('stocks-source-msg');
-    if (sMsg2) sMsg2.textContent = '⟳ Fetching from Alpha Vantage — this may take a moment due to rate limits…';
-    loading.textContent = 'LOADING VIA ALPHA VANTAGE…';
-    var results = STOCKS_LIST.map(function(s) {
-      return {sym:s.sym, name:s.name, type:s.type, av:s.av, price:0, chg:0, chgPct:0, high52:0, low52:0, score:0, err:true};
+    rows.forEach(function(r) {
+      var meta = r.metadata || {};
+      var id   = 'bstock_' + r.symbol;
+      var listing = BSTOCK_LIST.find(function(b) { return b.sym === r.symbol; });
+
+      var bcoin = {
+        id: id, sym: r.symbol, name: r.name || (listing && listing.name) || r.symbol,
+        price: r.price != null ? parseFloat(r.price) : 0,
+        image: '', mcap: meta.mcap || 0, rank: 0,
+        p24: r.change_24h != null ? parseFloat(r.change_24h) : 0,
+        p7:  meta.p7  != null ? parseFloat(meta.p7)  : 0,
+        p14: meta.p14 != null ? parseFloat(meta.p14) : 0,
+        p30: meta.p30 != null ? parseFloat(meta.p30) : 0,
+        /* Only require 24h + 7D — klines cron may not backfill 14D on first run */
+        dataComplete: (r.change_24h != null && meta.p7 != null),
+        volume24: meta.volume24 || 0,
+        circulating_supply: 0, max_supply: null,
+        ath: 0, ath_change_pct: 0,
+        score: 0, r7: 0, r14: 0, r30: 0, isPro: false,
+        isStable: false, isStock: true,
+        apr: 0, aprPlatform: ''
+      };
+
+      _coinCache[id] = bcoin;
+      COIN_CATEGORIES[id] = 'stocks'; /* registers the row with the STOCKS tab */
     });
-    var avStocks  = STOCKS_LIST.filter(function(s) { return s.av; });
-    var batchSize = 5;
-    for (var b = 0; b < avStocks.length; b += batchSize) {
-      var batch = avStocks.slice(b, b + batchSize);
-      await Promise.all(batch.map(async function(s) {
-        try {
-          var q = await fetchStockAV(s.av);
-          if (!q) { q = await fetchStockAV((rotateAVKey(), s.av)); } /* rotate key on failure */
-          if (q) {
-            var idx = results.findIndex(function(r) { return r.sym === s.sym; });
-            if (idx >= 0) results[idx] = Object.assign(results[idx], q, {
-              name: s.name, err: false, score: calcStockScore(q.price, q.high52, q.low52, q.chgPct, undefined, undefined)
-            });
-          }
-        } catch(e) {}
-      }));
-      if (b + batchSize < avStocks.length) await sleep(300);
-    }
-    stocksData = results;
+
+    /* Rebuild coins[] from cache so bStock rows are included alongside crypto */
+    coins = [];
+    Object.keys(_coinCache).forEach(function(cid) { coins.push(_coinCache[cid]); });
+    coins.sort(function(a, b) { return b.mcap - a.mcap; });
+    coins.forEach(function(c, i) { c.rank = i + 1; });
+
+    bstocksLoaded = true;
+    computeScores();
+    window.coins = coins;
+  } catch (e) {
+    console.warn('[bStocks] load failed:', e.message);
+    bstocksLoaded = true; /* don't retry-loop forever on a hard failure */
   }
-
-  /* ── Fallback 3: Twelve Data — free tier, bulk quote endpoint ── */
-  if (!yahooOk) {
-    var sMsg3 = document.getElementById('stocks-source-msg');
-    if (sMsg3) sMsg3.textContent = '⟳ Trying Twelve Data bulk quotes…';
-    loading.textContent = 'LOADING VIA TWELVE DATA…';
-    try {
-      /* Free tier: 800 credits/day, bulk quote = 1 credit per symbol */
-      var tdSyms = STOCKS_LIST.map(function(s) {
-        /* Twelve Data uses clean symbols — strip ^ from indices */
-        return (s.av || s.sym).replace('^', '');
-      }).join(',');
-      var tdUrl  = 'https://api.twelvedata.com/quote?symbol=' + encodeURIComponent(tdSyms)
-        + '&apikey=demo'; /* 'demo' key works for up to ~8 symbols; swap for real key when available */
-      var tdData = await apiFetch(tdUrl);
-      if (tdData && typeof tdData === 'object' && !tdData.message) {
-        /* Twelve Data returns { AAPL: {...}, MSFT: {...} } for multi-symbol requests */
-        var tdResults = STOCKS_LIST.map(function(s) {
-          var key = (s.av || s.sym).replace('^', '');
-          var q   = tdData[key] || tdData;
-          if (!q || q.status === 'error' || !q.close) {
-            return {sym:s.sym, name:s.name, type:s.type, av:s.av,
-              price:0, chg:0, chgPct:0, high52:0, low52:0, score:0, err:true};
-          }
-          var price  = parseFloat(q.close)               || 0;
-          var chgPct = parseFloat(q.percent_change)       || 0;
-          var chg    = parseFloat(q.change)               || 0;
-          var high52 = parseFloat(q.fifty_two_week && q.fifty_two_week.high) || price * 1.3;
-          var low52  = parseFloat(q.fifty_two_week && q.fifty_two_week.low)  || price * 0.7;
-          return {sym:s.sym, name:q.name||s.name, type:s.type, av:s.av,
-            price, chg, chgPct, high52, low52,
-            score: calcStockScore(price, high52, low52, chgPct)};
-        });
-        if (tdResults.some(function(r) { return !r.err; })) {
-          stocksData = tdResults;
-          yahooOk    = true;
-        }
-      }
-    } catch(e) { console.warn('Twelve Data fallback failed:', e.message); }
-  }
-
-  stocksLoaded = true;
-  _setLastUpdated('stocks');
-  loading.style.display = 'none';
-  var stTiles = document.getElementById('stocks-tiles');
-  if (stTiles) stTiles.style.display = '';
-  renderStocksTable();
-  renderStHoldings();
-}
-
-/* Stocks tile grid (market screener) */
-function renderStocksTable() {
-  var grid = document.getElementById('stocks-tiles');
-  if (!grid || !stocksData.length) return;
-  grid.innerHTML = stocksData.map(function(s) {
-    var scC    = s.score >= 65 ? 'var(--green)' : s.score <= 35 ? 'var(--red)' : 'var(--amber)';
-    var dayC   = s.chgPct > 0.01 ? 'up' : s.chgPct < -0.01 ? 'dn' : 'fl';
-    var isBig  = s.price >= 1000;
-    var priceStr = isBig ? '$' + s.price.toLocaleString('en-US', {maximumFractionDigits:0}) : '$' + (s.price||0).toFixed(2);
-    var glowCls  = s.score >= 65 ? 'score-hi' : s.score <= 35 ? 'score-lo' : '';
-    return '<div class="asset-tile type-' + s.type + ' ' + glowCls + '" onclick="openAssetDetail(\'stock\',\'' + s.sym + '\',event)" title="Click for details">'
-      + '<div class="at-head">'
-        + '<div style="min-width:0;flex:1;">'
-          + '<div style="display:flex;align-items:center;gap:4px;">'
-            + '<span class="at-sym">' + s.sym + '</span>'
-            + '<span class="at-badge ' + (s.type==='index'?'idx':'stk') + '">' + (s.type==='index'?'INDEX':'STOCK') + '</span>'
-          + '</div>'
-          + '<div class="at-name">' + s.name + '</div>'
-        + '</div>'
-      + '</div>'
-      + '<div class="at-price">' + (s.err ? '—' : priceStr) + '<span style="font-size:12px;font-weight:600;margin-left:5px;color:' + (s.chgPct>=0?'var(--green)':'var(--red)') + ';">' + (s.err?'':'(' + (s.chgPct>=0?'+':'') + s.chgPct.toFixed(2) + '%)') + '</span></div>'
-      + '<div class="at-stats">'
-        + '<div class="at-stat"><div class="at-stat-l">52W H</div><div class="at-stat-v bnb">' + (s.high52?'$'+s.high52.toFixed(0):'—') + '</div></div>'
-        + '<div class="at-stat"><div class="at-stat-l">52W L</div><div class="at-stat-v bnb">'  + (s.low52?'$'+s.low52.toFixed(0):'—')  + '</div></div>'
-        + '<div class="at-stat"><div class="at-stat-l">SCR</div><div class="at-stat-v" style="color:' + scC + ';">' + s.score + '</div></div>'
-      + '</div>'
-      + '<div class="at-foot">'
-        + '<span class="at-signal ' + (s.score>=65?'bull':s.score<=35?'bear':'neu') + '">' + (s.score>=65?'MOMENTUM':s.score<=35?'LAGGING':'NEUTRAL') + '</span>'
-        + '<span class="at-score" style="color:' + scC + ';">' + s.score + '</span>'
-      + '</div>'
-      + '</div>';
-  }).join('');
-}
-
-/* Forex tile grid (market screener) — full version (already in holdings for held tiles) */
-function renderForexTable() {
-  var grid = document.getElementById('forex-tiles');
-  if (!grid) return;
-  if (!forexData.length) { grid.innerHTML = '<div class="no-sug">No forex data yet.</div>'; return; }
-  grid.innerHTML = forexData.map(function(p) {
-    if (p.locked) {
-      return '<div class="asset-tile type-forex" style="opacity:.5;cursor:pointer;" onclick="openPro()" title="Pro feature">'
-        + '<div class="at-head"><div><div class="at-sym forex-sym">' + p.from + '/' + p.to + '</div>'
-        + '<div class="at-name">' + p.name + '</div></div>'
-        + '<span class="at-badge fx">⚡PRO</span></div>'
-        + '<div style="font-size:12px;color:var(--pro);margin-top:8px;letter-spacing:.06em;">UNLOCK FREE →</div>'
-        + '</div>';
-    }
-    var isHeld  = fxHoldings.some(function(h) { return h.pair === p.from + '/' + p.to; });
-    var isJPY   = p.to === 'JPY' || p.to === 'MXN';
-    var dec     = isJPY ? 3 : 5;
-    var rateStr = p.rate ? p.rate.toFixed(dec) : '—';
-    var scC     = p.score >= 65 ? 'var(--green)' : p.score <= 35 ? 'var(--red)' : 'var(--amber)';
-    var dayC    = p.chgPct > 0.001 ? 'up' : p.chgPct < -0.001 ? 'dn' : 'fl';
-    var dayStr  = p.chgPct ? (p.chgPct>=0?'+':'') + p.chgPct.toFixed(3) + '%' : '—';
-    var p7  = p.p7  || 0, p7C  = p7  > 0.001 ? 'up' : p7  < -0.001 ? 'dn' : 'fl';
-    var p30 = p.p30 || 0, p30C = p30 > 0.001 ? 'up' : p30 < -0.001 ? 'dn' : 'fl';
-    var isCom   = p.from==='XAU' || p.from==='XTI' || p.from==='XAG';
-    var typeCls = isCom ? 'type-commodity' : 'type-forex';
-    var badgeCls = isCom ? 'cmd' : 'fx', badgeTxt = isCom ? 'CMDTY' : 'FOREX';
-    var sigCls  = p.signal==='BULLISH'||p.signal==='OVERSOLD' ? 'bull'
-                : p.signal==='BEARISH'||p.signal==='OVERBOUGHT' ? 'bear' : 'neu';
-    var glowCls = p.score >= 65 ? 'score-hi' : p.score <= 35 ? 'score-lo' : '';
-    var fxId = p.from + '/' + p.to;
-    return '<div class="asset-tile ' + typeCls + ' ' + glowCls + (isHeld ? ' held' : '')
-      + '" onclick="openAssetDetail(\'forex\',\'' + fxId + '\',event)" title="Click for details">'
-      + '<div class="at-head"><div style="min-width:0;flex:1;">'
-        + '<div style="display:flex;align-items:center;gap:4px;">'
-          + '<span class="at-sym forex-sym">' + p.from + '<span style="color:var(--muted);font-weight:400;">/</span>' + p.to + '</span>'
-          + '<span class="at-badge ' + badgeCls + '">' + badgeTxt + '</span>'
-          + (isHeld ? '<span class="at-held-tag">HELD</span>' : '')
-        + '</div>'
-        + '<div class="at-name">' + p.name + '</div>'
-      + '</div></div>'
-      + '<div class="at-price">' + rateStr + '<span style="font-size:12px;font-weight:600;margin-left:5px;color:' + (p.chgPct>=0?'var(--green)':'var(--red)') + ';">' + dayStr + '</span></div>'
-      + '<div class="at-stats">'
-        + '<div class="at-stat"><div class="at-stat-l">7D</div><div class="at-stat-v '  + p7C  + '">' + (p7>=0?'+':'')  + p7.toFixed(2)  + '%</div></div>'
-        + '<div class="at-stat"><div class="at-stat-l">30D</div><div class="at-stat-v ' + p30C + '">' + (p30>=0?'+':'') + p30.toFixed(2) + '%</div></div>'
-        + '<div class="at-stat"><div class="at-stat-l">RSI</div><div class="at-stat-v ' + (p.rsi>=70?'dn':p.rsi<=30?'up':'fl') + '">' + p.rsi + '</div></div>'
-      + '</div>'
-      + '<div class="at-foot">'
-        + '<span class="at-signal ' + sigCls + '">' + p.signal + '</span>'
-        + '<div style="display:flex;align-items:center;gap:4px;">'
-          + '<div style="width:28px;height:3px;background:var(--bg3);border-radius:2px;overflow:hidden;">'
-            + '<div style="width:' + p.score + '%;height:100%;background:' + scC + ';border-radius:2px;"></div>'
-          + '</div>'
-          + '<span class="at-score" style="color:' + scC + ';">' + p.score + '</span>'
-        + '</div>'
-      + '</div>'
-      + '</div>';
-  }).join('');
-}
-
-/* ══════════════════════════════════════════════════════════════
-   MODE SWITCHER
-══════════════════════════════════════════════════════════════ */
-function toggleModeVisibility(mode, on) {
-  _modeEnabled[mode] = on;
-  saveModePrefs();
-  var btn = document.getElementById('am-' + mode);
-  if (btn) btn.style.display = on ? '' : 'none';
-  if (!on && currentMode === mode) {
-    var fallback = ['crypto','forex','stocks'].find(function(m) { return _modeEnabled[m]; });
-    if (fallback) setMode(fallback);
-  }
-  var chk = document.getElementById('mode-' + mode + '-toggle');
-  if (chk) chk.checked = on;
-}
-
-function setMode(mode) {
-  if (!_modeEnabled[mode]) return;
-  currentMode = mode;
-  ['crypto','forex','stocks'].forEach(function(m) {
-    var b = document.getElementById('am-' + m);
-    if (b) b.classList.toggle('active', m === mode);
-    var lb = document.getElementById('lm-' + m);
-    if (lb) lb.classList.toggle('active', m === mode);
-    var h = document.getElementById('holdings-' + m);
-    if (h) h.style.display = m === mode ? (m === 'crypto' ? '' : 'flex') : 'none';
-    /* Show crypto sig-box only in crypto mode — it's a direct sidebar sibling */
-    var cryptoSig = document.getElementById('sig-box-crypto');
-    if (cryptoSig) cryptoSig.style.display = mode === 'crypto' ? '' : 'none';
-    /* Item 9: show only the active mode's last-updated stamp */
-    var ts = document.getElementById('last-updated-' + m);
-    if (ts) ts.style.display = m === mode && _lastUpdated[m] ? '' : 'none';
-  });
-  document.getElementById('crypto-panel').style.display = mode === 'crypto' ? '' : 'none';
-  document.getElementById('forex-panel').style.display  = mode === 'forex'  ? '' : 'none';
-  document.getElementById('stocks-panel').style.display = mode === 'stocks' ? '' : 'none';
-  var catBar = document.getElementById('cat-bar');
-  if (catBar) catBar.style.display = mode === 'crypto' ? '' : 'none';
-  var sortTabs = document.getElementById('sort-tabs');
-  if (sortTabs) sortTabs.style.display = mode === 'crypto' ? '' : 'none';
-  var titles = {crypto:'PERFORMANCE LEADERBOARD', forex:'FOREX PAIRS', stocks:'MARKET SCREENER'};
-  document.getElementById('tbl-title').textContent = titles[mode];
-  if (mode === 'forex'  && !forexLoaded)  loadForex();
-  if (mode === 'stocks' && !stocksLoaded) loadStocks();
-  requestAnimationFrame(function() { syncPanelAlignment(); });
-}
-
-function applyModePrefs() {
-  ['crypto','forex','stocks'].forEach(function(m) {
-    var btn = document.getElementById('am-' + m);
-    var chk = document.getElementById('mode-' + m + '-toggle');
-    if (!_modeEnabled[m] && btn) btn.style.display = 'none';
-    if (chk) chk.checked = _modeEnabled[m];
-  });
 }
 
 /* ══════════════════════════════════════════════════════════════
    LOAD / REFRESH / AUTO-REFRESH
-   • Refreshes ALL active tabs (crypto + forex if loaded + stocks if loaded)
-   • Pauses automatically while the browser tab is hidden (Tab Visibility API)
-   • Per-mode last-updated timestamps shown in each panel header
+   Single-view now — no mode switcher. Crypto + bStocks share one
+   table, one refresh cycle. Pauses automatically while the browser
+   tab is hidden (Tab Visibility API).
 ══════════════════════════════════════════════════════════════ */
 
-/* Per-mode last-updated timestamps (ms epoch) */
-var _lastUpdated = {crypto: 0, forex: 0, stocks: 0};
+var _lastUpdated = 0; /* single shared timestamp, crypto + bStocks */
 
-function _setLastUpdated(mode) {
-  _lastUpdated[mode] = Date.now();
-  _renderLastUpdated(mode);
+function _setLastUpdated() {
+  _lastUpdated = Date.now();
+  _renderLastUpdated();
 }
 
-function _renderLastUpdated(mode) {
-  var el = document.getElementById('last-updated-' + mode);
+function _renderLastUpdated() {
+  var el = document.getElementById('last-updated-crypto');
   if (!el) return;
-  var t = _lastUpdated[mode];
-  if (!t) { el.style.display = 'none'; el.textContent = ''; return; }
-  var mins = Math.floor((Date.now() - t) / 60000);
+  if (!_lastUpdated) { el.style.display = 'none'; el.textContent = ''; return; }
+  var mins = Math.floor((Date.now() - _lastUpdated) / 60000);
   el.textContent = mins < 1 ? 'updated just now' : 'updated ' + mins + 'm ago';
-  /* Only show if this mode is currently active */
-  el.style.display = (currentMode === mode) ? '' : 'none';
+  el.style.display = '';
 }
 
-/* Tick the "X mins ago" labels every minute */
-setInterval(function() {
-  ['crypto','forex','stocks'].forEach(_renderLastUpdated);
-}, 60000);
+/* Tick the "X mins ago" label every minute */
+setInterval(_renderLastUpdated, 60000);
 
 var _autoRefreshTimer = null;
 var _tabHidden = false;
@@ -1032,32 +571,22 @@ document.addEventListener('visibilitychange', function() {
   _tabHidden = document.hidden;
   if (!_tabHidden) {
     /* Tab just became visible — refresh immediately if stale (>14 min) */
-    var stale = Date.now() - (_lastUpdated.crypto || 0) > 14 * 60 * 1000;
+    var stale = Date.now() - _lastUpdated > 14 * 60 * 1000;
     if (!busy && stale) doRefresh();
   }
 });
 
-/* ── Item 7: Market hours awareness ─────────────────────────────
-   Returns true when refreshing would be pointless:
-   • Forex: weekends UTC (Sat 22:00 → Sun 22:00 approx)
-   • Stocks: weekends + outside 13:30–20:00 UTC (NYSE hours)
-   Crypto never closes.
-──────────────────────────────────────────────────────────────── */
-function isMarketClosed(mode) {
-  if (mode === 'crypto') return false;
+/* ── bStock market-hours awareness ──────────────────────────────
+   Binance itself trades bStocks ~24/5, but the underlying equity price
+   only truly updates during NYSE hours — re-fetching outside that
+   window just re-reads the same stale close. Skip the extra call then.
+   Weekends: fully closed either way. */
+function isStockMarketClosed() {
   var now = new Date();
   var day = now.getUTCDay();   /* 0=Sun … 6=Sat */
   var hm  = now.getUTCHours() * 60 + now.getUTCMinutes();
-  if (mode === 'forex') {
-    if (day === 6 && hm >= 22 * 60) return true;
-    if (day === 0 && hm <  22 * 60) return true;
-    return false;
-  }
-  if (mode === 'stocks') {
-    if (day === 0 || day === 6) return true;
-    if (hm < 13 * 60 + 30 || hm > 20 * 60) return true;
-    return false;
-  }
+  if (day === 0 || day === 6) return true;
+  if (hm < 13 * 60 + 30 || hm > 20 * 60) return true;
   return false;
 }
 
@@ -1085,14 +614,14 @@ async function doLoad() {
     }
   });
   try {
-    await loadCoins('all');  prog(55, 'Scoring and ranking coins…');  renderCoinSel();
+    await loadCoins('all');  prog(50, 'Scoring and ranking coins…');  renderCoinSel();
+    await loadBstocks();     prog(65, 'Fetching bStock data…');
     await loadMacroData(); prog(80, 'Loading macro data — Gold, Oil…');
     await loadFearGreed(); prog(88, 'Fetching sentiment data…');
     prog(92, 'Almost ready — building your dashboard…');
-    applyModePrefs();
     renderAll();         prog(100, 'All done! This free tool is built by one person — thanks for your patience ♥');
     window.coins = coins; /* keep window.coins fresh for search/modal */
-    _setLastUpdated('crypto');
+    _setLastUpdated();
     var tsEl = document.getElementById('last-updated-crypto');
     if (tsEl) tsEl.style.display = '';
     await sleep(320);
@@ -1119,20 +648,12 @@ async function doRefresh() {
   try {
     /* Always refresh crypto — re-fetch all loaded categories */
     await loadCoins(_loadedCategories['all'] ? 'all' : activeCategory);
+
+    /* Refresh bStocks unless NYSE is closed — no point re-reading a stale close */
+    if (!isStockMarketClosed()) await loadBstocks();
+
     renderAll();
-    _setLastUpdated('crypto');
-
-    /* Refresh forex if it has already been loaded (user visited tab) */
-    if (forexLoaded && !isMarketClosed('forex')) {
-      await loadForex();
-      _setLastUpdated('forex');
-    }
-
-    /* Refresh stocks if already loaded and market may be open */
-    if (stocksLoaded && !isMarketClosed('stocks')) {
-      await loadStocks();
-      _setLastUpdated('stocks');
-    }
+    _setLastUpdated();
   } catch(e) { console.error(e); }
   if (tsEl) setTimeout(function() { tsEl.style.color = ''; }, 600);
   busy = false;
@@ -1229,9 +750,12 @@ function _mobOpenAndScroll(sectionId, btnId) {
   }, wasCollapsed ? 350 : 0);
 }
 
-function mobNav(mode) {
+/* mobNav(cat) — mobile "More" menu now just jumps to the table and
+   filters by category ('all' or 'stocks'), since there's only one
+   table/mode. Replaces the old crypto/forex/stocks setMode() calls. */
+function mobNav(cat) {
   closeMobMore();
-  setMode(mode);
+  if (typeof switchCategory === 'function') switchCategory(cat);
   var tbl = document.querySelector('.tbl-head');
   if (tbl) _mobScrollTo(tbl);
 }
@@ -1435,15 +959,6 @@ document.addEventListener('keydown', function(e) {
   if (e.key === 'Escape') { closeModal('donate-modal'); closeModal('pro-modal'); closeSettingsPanel(); }
 });
 
-/* ── Asset tile click delegation ─────────────────────────────── */
-document.addEventListener('click', function(e) {
-  var tile = e.target.closest('[data-assettype]');
-  if (!tile) return;
-  var type = tile.getAttribute('data-assettype');
-  var id   = tile.getAttribute('data-assetid');
-  if (type && id) openAssetDetail(type, id, e);
-});
-
 /* ── Entry point ─────────────────────────────────────────────── */
 doLoad().then(function() { initTutorial(); syncPanelAlignment(); _handleCoinDeepLink(); });
 
@@ -1454,7 +969,6 @@ doLoad().then(function() { initTutorial(); syncPanelAlignment(); _handleCoinDeep
 function syncPanelAlignment() {
   var neon      = document.querySelector('.neon-section');
   var spacer    = document.getElementById('ad-panel-neon-spacer');
-  var modeBar   = document.querySelector('.asset-mode-bar');
   var sigBox    = document.querySelector('.sig-box');
   if (!neon) return;
   var isDesktop = window.innerWidth > 900;
@@ -1463,13 +977,11 @@ function syncPanelAlignment() {
   if (spacer) spacer.style.height = isDesktop ? neon.offsetHeight + 'px' : '0px';
 
   /* Left sidebar: add top padding to sig-box so Portfolio Signal
-     aligns with the tbl-head (neon-section bottom) */
-  if (sigBox && modeBar) {
+     aligns with the tbl-head (neon-section bottom). No mode bar to
+     subtract anymore — sig-box is the first sidebar child directly. */
+  if (sigBox) {
     if (isDesktop) {
-      var modeBarH = modeBar.offsetHeight || 0;
-      var needed   = neon.offsetHeight - modeBarH;
-      /* clamp so it never goes negative */
-      sigBox.style.marginTop = Math.max(0, needed) + 'px';
+      sigBox.style.marginTop = Math.max(0, neon.offsetHeight) + 'px';
     } else {
       sigBox.style.marginTop = '';
     }
@@ -1478,8 +990,12 @@ function syncPanelAlignment() {
 window.addEventListener('resize', function() { syncPanelAlignment(); });
 
 /* ══════════════════════════════════════════════════════════════
-   TILE DETAIL PANEL — openTileDetail / openAssetDetail
-   Shared redesigned card for crypto, forex and stocks.
+   TILE DETAIL PANEL — openTileDetail
+   Shared card for crypto AND bStocks (both live in coins[] now —
+   see loadBstocks() above). openAssetDetail()/openAssetDetail-only
+   forex+stock branch removed; holdings.js still needs its two calls
+   to the old openAssetDetail('stock'/'forex', …) repointed at
+   openTileDetail(id, evt) — see follow-up note.
 ══════════════════════════════════════════════════════════════ */
 var _tdCoin = null;
 
@@ -1760,131 +1276,6 @@ function saveTileHolding() {
     /* Flash save button green */
     var btn = document.getElementById('td-hold-save');
     if (btn) { btn.textContent = '✓ SAVED'; setTimeout(function() { btn.textContent = 'SAVE'; }, 1500); }
-  }
-}
-
-function openAssetDetail(assetType, id, evt) {
-  if (evt) evt.stopPropagation();
-  var panel = document.getElementById('td-panel');
-  if (!panel) return;
-  var icoEl = document.getElementById('td-ico');
-
-  /* Hide supply section for non-crypto */
-  var supSec = document.getElementById('td-supply-sec');
-  if (supSec) supSec.style.display = 'none';
-
-  /* Clear 24H sub-label */
-  var p24chgEl = document.getElementById('td-price-chg');
-  if (p24chgEl) { p24chgEl.textContent = ''; }
-
-  if (assetType === 'stock') {
-    var data = stocksData.find(function(s) { return s.sym === id; });
-    if (!data) return;
-    icoEl.src = ''; icoEl.style.display = 'none';
-    document.getElementById('td-sym').textContent   = data.sym;
-    document.getElementById('td-name').textContent  = data.name;
-    document.getElementById('td-price').textContent = data.price >= 1000
-      ? '$' + data.price.toLocaleString('en-US', {maximumFractionDigits:0})
-      : '$' + data.price.toFixed(2);
-    var badge = document.getElementById('td-type-badge');
-    if (badge) { badge.textContent = data.type === 'index' ? 'INDEX' : 'STOCK'; badge.className = 'td-type-badge ' + (data.type === 'index' ? 'index' : 'stock'); }
-
-    var dayC = data.chgPct >= 0 ? 'up' : 'dn';
-    if (p24chgEl) { p24chgEl.textContent = (data.chgPct>=0?'+':'')+data.chgPct.toFixed(2)+'% today'; p24chgEl.style.color = data.chgPct>=0?'var(--green)':'var(--red)'; }
-
-    var range = data.high52 - data.low52;
-    var pos52 = range > 0 ? Math.round(((data.price - data.low52) / range) * 100) : 50;
-    var pos52C = pos52>=65?'var(--green)':pos52>=40?'var(--amber)':'var(--red)';
-    var scC    = data.score>=65?'var(--green)':data.score<=35?'var(--red)':'var(--amber)';
-    document.getElementById('td-score-bars').innerHTML =
-      '<div style="display:flex;align-items:baseline;gap:8px;margin-bottom:8px;">'
-      +'<span style="font-size:28px;font-weight:700;color:'+scC+';">'+data.score+'</span>'
-      +'<span style="font-size:12px;color:var(--muted);">/ 100 momentum score</span></div>'
-      +'<div class="td-bar-row"><span class="td-bar-lbl">52W pos</span>'
-      +'<div class="td-bar-wrap"><div class="td-bar-fill" style="width:'+pos52+'%;background:'+pos52C+';"></div></div>'
-      +'<span class="td-bar-val" style="color:'+pos52C+';">'+pos52+'%</span></div>'
-      +'<div class="td-bar-row"><span class="td-bar-lbl">Momentum</span>'
-      +'<div class="td-bar-wrap"><div class="td-bar-fill" style="width:'+Math.max(2,data.score)+'%;background:'+scC+';"></div></div>'
-      +'<span class="td-bar-val" style="color:'+scC+';">'+data.score+'</span></div>';
-
-    var mktEl = document.getElementById('td-market');
-    mktEl.innerHTML =
-      '<div class="td-cell"><div class="td-cell-l">CHANGE $</div><div class="td-cell-v '+dayC+'">'+(data.chg>=0?'+$':'−$')+Math.abs(data.chg).toFixed(2)+'</div></div>'
-      +'<div class="td-cell"><div class="td-cell-l">52W HIGH</div><div class="td-cell-v bnb">$'+data.high52.toFixed(2)+'</div></div>'
-      +'<div class="td-cell"><div class="td-cell-l">52W LOW</div><div class="td-cell-v bnb">$'+data.low52.toFixed(2)+'</div></div>'
-      +'<div class="td-cell"><div class="td-cell-l">FROM 52W L</div><div class="td-cell-v '+(data.price>data.low52?'up':'dn')+'">'
-      +(range>0?((data.price-data.low52)/data.low52*100).toFixed(1):0)+'%</div></div>';
-    mktEl.style.gridTemplateColumns = 'repeat(2,1fr)';
-
-    var badges = [];
-    if (data.score >= 65)   badges.push({t:'STRONG MOM', c:'bull'});
-    else if (data.score<=35) badges.push({t:'WEAK MOM',  c:'bear'});
-    else                    badges.push({t:'NEUTRAL',    c:'neu'});
-    if (data.chgPct >=  2) badges.push({t:'DAY SURGE', c:'bull'});
-    if (data.chgPct <= -2) badges.push({t:'DAY DROP',  c:'bear'});
-    if (pos52 >= 85) badges.push({t:'NEAR 52W HIGH', c:'bull'});
-    if (pos52 <= 15) badges.push({t:'NEAR 52W LOW',  c:'bear'});
-    if (data.type === 'index') badges.push({t:'INDEX', c:'neu'});
-    document.getElementById('td-badges').innerHTML = badges.map(function(b) {
-      return '<span class="td-badge '+b.c+'">'+b.t+'</span>';
-    }).join('');
-
-  } else if (assetType === 'forex') {
-    var parts = id.split('/');
-    var data = forexData.find(function(f) { return f.from===parts[0] && f.to===parts[1]; });
-    if (!data || data.locked) return;
-    var isJPY = data.to==='JPY' || data.to==='MXN';
-    var dec = isJPY ? 3 : 5;
-    icoEl.style.display = 'none';
-    document.getElementById('td-sym').textContent   = data.from + '/' + data.to;
-    document.getElementById('td-name').textContent  = data.name;
-    document.getElementById('td-price').textContent = data.rate ? data.rate.toFixed(dec) : '—';
-    var badge = document.getElementById('td-type-badge');
-    if (badge) { badge.textContent = 'FOREX'; badge.className = 'td-type-badge forex'; }
-
-    var dayC = data.chgPct>0.001?'up':data.chgPct<-0.001?'dn':'fl';
-    if (p24chgEl) { p24chgEl.textContent = (data.chgPct>=0?'+':'')+data.chgPct.toFixed(3)+'% today'; p24chgEl.style.color = data.chgPct>=0?'var(--green)':'var(--red)'; }
-
-    var scC = data.score>=65?'var(--green)':data.score<=35?'var(--red)':'var(--amber)';
-    var p7col  = data.p7>=0?'var(--green)':'var(--red)';
-    var p30col = data.p30>=0?'var(--green)':'var(--red)';
-    document.getElementById('td-score-bars').innerHTML =
-      '<div style="display:flex;align-items:baseline;gap:8px;margin-bottom:8px;">'
-      +'<span style="font-size:28px;font-weight:700;color:'+scC+';">'+data.score+'</span>'
-      +'<span style="font-size:12px;color:var(--muted);">/ 100 &nbsp;·&nbsp; RSI '+data.rsi+'</span></div>'
-      +'<div class="td-bar-row"><span class="td-bar-lbl">7D mom</span>'
-      +'<div class="td-bar-wrap"><div class="td-bar-fill" style="width:'+Math.round(50+Math.min(Math.max(data.p7*12,-48),48))+'%;background:'+p7col+'"></div></div>'
-      +'<span class="td-bar-val" style="color:'+p7col+';">'+(data.p7>=0?'+':'')+data.p7.toFixed(2)+'%</span></div>'
-      +'<div class="td-bar-row"><span class="td-bar-lbl">30D trend</span>'
-      +'<div class="td-bar-wrap"><div class="td-bar-fill" style="width:'+Math.round(50+Math.min(Math.max(data.p30*7,-48),48))+'%;background:'+p30col+'"></div></div>'
-      +'<span class="td-bar-val" style="color:'+p30col+';">'+(data.p30>=0?'+':'')+data.p30.toFixed(2)+'%</span></div>'
-      +'<div class="td-bar-row"><span class="td-bar-lbl">Score</span>'
-      +'<div class="td-bar-wrap"><div class="td-bar-fill" style="width:'+data.score+'%;background:'+scC+'"></div></div>'
-      +'<span class="td-bar-val" style="color:'+scC+';">'+data.score+'</span></div>';
-
-    var mktEl = document.getElementById('td-market');
-    mktEl.innerHTML =
-      '<div class="td-cell"><div class="td-cell-l">BASE</div><div class="td-cell-v bnb">'+data.from+'</div></div>'
-      +'<div class="td-cell"><div class="td-cell-l">QUOTE</div><div class="td-cell-v bnb">'+data.to+'</div></div>'
-      +'<div class="td-cell"><div class="td-cell-l">RSI-14</div><div class="td-cell-v '+(data.rsi>=70?'dn':data.rsi<=30?'up':'fl')+'">'+data.rsi+'</div></div>'
-      +'<div class="td-cell"><div class="td-cell-l">7D%</div><div class="td-cell-v '+(data.p7>=0?'up':'dn')+'">'+(data.p7>=0?'+':'')+data.p7.toFixed(2)+'%</div></div>'
-      +'<div class="td-cell"><div class="td-cell-l">30D%</div><div class="td-cell-v '+(data.p30>=0?'up':'dn')+'">'+(data.p30>=0?'+':'')+data.p30.toFixed(2)+'%</div></div>'
-      +'<div class="td-cell"><div class="td-cell-l">SIGNAL</div><div class="td-cell-v" style="color:'+data.sigC+';">'+data.signal+'</div></div>';
-    mktEl.style.gridTemplateColumns = 'repeat(3,1fr)';
-
-    var badges = [];
-    if (data.signal==='BULLISH')     badges.push({t:'BULLISH',    c:'bull'});
-    else if (data.signal==='BEARISH') badges.push({t:'BEARISH',   c:'bear'});
-    else if (data.signal==='OVERBOUGHT') badges.push({t:'OVERBOUGHT',c:'ob'});
-    else if (data.signal==='OVERSOLD')   badges.push({t:'OVERSOLD',  c:'os'});
-    else badges.push({t:'NEUTRAL', c:'neu'});
-    if (data.rsi >= 70) badges.push({t:'RSI HIGH',   c:'bear'});
-    if (data.rsi <= 30) badges.push({t:'RSI LOW',    c:'bull'});
-    if (data.p7 >=  1) badges.push({t:'7D RISING',  c:'bull'});
-    if (data.p7 <= -1) badges.push({t:'7D FALLING', c:'bear'});
-    document.getElementById('td-badges').innerHTML = badges.map(function(b) {
-      return '<span class="td-badge '+b.c+'">'+b.t+'</span>';
-    }).join('');
   }
 }
 

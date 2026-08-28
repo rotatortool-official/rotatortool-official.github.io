@@ -306,8 +306,10 @@ function renderTopBars() {
       + '</div></div>';
   }
 
-  /* ── Column 3: Worst 30D — 2 free / 4 Pro ── */
-  var worstAll = coins.slice().sort(function(a, b) { return a.p30 - b.p30; });
+  /* ── Column 3: Worst 30D — 2 free / 4 Pro ──
+     bStocks excluded — separate scoring model (momentum-only, no
+     tokenomics), not directly comparable to crypto rotation signals. */
+  var worstAll = coins.slice().filter(function(c) { return !c.isStock; }).sort(function(a, b) { return a.p30 - b.p30; });
   var worstEl  = document.getElementById('worst-cards');
   if (isPro) {
     var worstTiles = worstAll.slice(0, 4).map(function(c) { return sigTile(c, 'wrst'); }).join('');
@@ -320,7 +322,7 @@ function renderTopBars() {
   }
 
   /* ── Column 2: High Momentum — 1 free / 6 Pro ── */
-  var momAll  = coins.slice().filter(function(c) { return c.score >= 60; })
+  var momAll  = coins.slice().filter(function(c) { return c.score >= 60 && !c.isStock; })
                              .sort(function(a, b) { return b.score - a.score; });
   var momEl   = document.getElementById('mom-cards');
   if (isPro) {
@@ -344,14 +346,15 @@ function renderTopBars() {
   /* ── Column 1: Rotation Opportunities — 1 free (real, unblurred) / 5 blurred+locked Pro ── */
   var sugEl = document.getElementById('sug-cards');
 
-  /* Compute real rotation pairs regardless of tier */
-  var held  = coins.filter(function(c) { return hSyms.indexOf(c.sym) >= 0; });
+  /* Compute real rotation pairs regardless of tier — bStocks excluded,
+     rotation logic (tokenomics-aware buy/sell zones) doesn't apply to equities. */
+  var held  = coins.filter(function(c) { return hSyms.indexOf(c.sym) >= 0 && !c.isStock; });
   var sells = held.filter(function(c)  { return c._zone === 'sell'; }).sort(function(a, b) { return b.score - a.score; });
-  var buys  = coins.filter(function(c) { return hSyms.indexOf(c.sym) < 0 && c._zone === 'buy' && _passesMeanRevGate(c); }).sort(function(a, b) { return a.score - b.score; });
+  var buys  = coins.filter(function(c) { return hSyms.indexOf(c.sym) < 0 && !c.isStock && c._zone === 'buy' && _passesMeanRevGate(c); }).sort(function(a, b) { return a.score - b.score; });
 
   /* Fallback pairs from all coins when no holdings exist (free preview) */
-  var allSells = coins.slice().sort(function(a, b) { return b.score - a.score; });
-  var allBuys  = coins.slice().sort(function(a, b) { return a.score - b.score; });
+  var allSells = coins.slice().filter(function(c) { return !c.isStock; }).sort(function(a, b) { return b.score - a.score; });
+  var allBuys  = coins.slice().filter(function(c) { return !c.isStock; }).sort(function(a, b) { return a.score - b.score; });
 
   if (!isPro) {
     /* Build up to 4 real pairs — from holdings if available, else from all coins */
@@ -905,7 +908,11 @@ function renderTable() {
   if (activeCategory === 'demo') {
     catCoins = coins.filter(function(c) { return DEMO_IDS.indexOf(c.id) >= 0; });
   } else if (activeCategory === 'all') {
-    catCoins = coins.slice();
+    /* 'ALL' means all crypto — bStocks are a separate filterable category
+       (see migration plan Step 2), not blended into the crypto leaderboard. */
+    catCoins = coins.filter(function(c) { return !c.isStock; });
+  } else if (activeCategory === 'stocks') {
+    catCoins = coins.filter(function(c) { return c.isStock; });
   } else {
     catCoins = coins.filter(function(c) { return (COIN_CATEGORIES[c.id] || 'other') === activeCategory; });
   }
@@ -937,7 +944,7 @@ function renderTable() {
       ? '<button class="qa-btn held" title="In holdings" onclick="event.stopPropagation()">✓</button>'
       : '<button class="qa-btn watch-eye' + (isW ? ' watching' : '') + '" title="' + (isW ? 'Watching' : 'Add to watchlist') + '" onclick="event.stopPropagation();toggleWatch(\'' + c.sym + '\',this)">' + eyeSvg + '</button>';
 
-    /* ── Stablecoin APR display ── */
+    /* ── Stablecoin APR display / bStock badge ── */
     var stableTag = '';
     var col24, col7, col14, col30, colScore;
     if (c.isStable) {
@@ -948,6 +955,18 @@ function renderTable() {
       col14  = '<td class="pc" style="text-align:center;"><span style="color:var(--muted);font-size:12px;">~$1.00</span></td>';
       col30  = '<td class="pc" style="text-align:center;"><span style="color:var(--muted);font-size:12px;">PEG</span></td>';
       colScore = '<td class="r" data-label="SCORE"><div class="sw"><span class="sv" style="color:#8dffc0;">YIELD</span></div></td>';
+    } else if (c.isStock) {
+      /* bStock rows: honest partial score — momentum only, no tokenomics
+         (UNLOCK %/whale SENT are meaningless for equities). Badge makes
+         clear these are tokenized certificates, not crypto — see the
+         migration plan's Step 2 note on Binance's own risk disclosures
+         (liquidity, issuer, custody, broker risk). */
+      stableTag = '<span class="htag" style="background:#3a2a6e;color:#c0a8ff;margin-left:4px;" title="Binance bStock — a tokenized certificate tracking the price of ' + c.name + ', not direct share ownership.">🏛 STOCK</span>';
+      col24  = '<td class="pc" data-label="24H">' + pctSpan(c.p24) + '</td>';
+      col7   = '<td class="pc" data-label="7D">'  + pctSpan(c.p7)  + '</td>';
+      col14  = '<td class="pc" data-label="14D">' + pctSpan(c.p14) + '</td>';
+      col30  = '<td class="pc" data-label="30D">' + pctSpan(c.p30) + '</td>';
+      colScore = '<td class="r" data-label="SCORE" title="Partial score: momentum only (max 70). No tokenomics data applies to equities — not directly comparable to a crypto score."><div class="sw"><span class="sv" style="color:' + scC + ';">' + sc + '</span><div class="sb"><div class="sbf" style="width:' + Math.max(2, sc) + '%;background:' + scC + ';"></div></div><span style="font-size:12px;color:var(--muted);margin-left:3px;">MOM</span></div></td>';
     } else if (isPro) {
       col24  = '<td class="pc" data-label="24H">' + pctSpan(c.p24) + '</td>';
       col7   = '<td class="pc" data-label="7D">' + pctSpan(c.p7)  + '</td>';
@@ -963,7 +982,7 @@ function renderTable() {
       colScore = '<td class="r pro-blur-cell" data-label="SCORE" onclick="event.stopPropagation();openPro()" title="Unlock Rotator Score with Pro"><div class="pro-blur-wrap"><div class="sw"><span class="sv" style="color:var(--muted);">' + sc + '</span><div class="sb"><div class="sbf" style="width:' + Math.max(2, sc) + '%;background:var(--muted);"></div></div></div></div><span class="pro-blur-lock">🔒</span></td>';
     }
 
-    return '<tr class="' + (isH ? 'held' : '') + (c.isStable ? ' stable-row' : '') + '" ' + tipData + ' onmouseenter="showRowTip(this,event)" onmouseleave="hideTip()" onclick="openTileDetail(\'' + c.id + '\',event)">'
+    return '<tr class="' + (isH ? 'held' : '') + (c.isStable ? ' stable-row' : '') + (c.isStock ? ' stock-row' : '') + '" ' + tipData + ' onmouseenter="showRowTip(this,event)" onmouseleave="hideTip()" onclick="openTileDetail(\'' + c.id + '\',event)">'
       + '<td class="qa-cell">' + qaBtnHtml + '</td>'
       + '<td style="color:var(--muted);font-size:11px;opacity:.5;">' + (i+1) + '</td>'
       + '<td><div class="cc"><div class="ti"><img src="' + c.image + '" alt="' + c.sym + ' logo" loading="lazy" width="18" height="18" onerror="this.style.display=\'none\'"></div><div><div style="display:flex;align-items:center;"><span class="tsym">' + c.sym + '</span>' + (isH ? '<span class="htag">HELD</span>' : '') + stableTag + '</div><div class="tname">' + (c.name.length > 17 ? c.name.slice(0,15) + '…' : c.name) + '</div></div></div></td>'

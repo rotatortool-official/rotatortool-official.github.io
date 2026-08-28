@@ -4,8 +4,8 @@
    HOW TO EDIT THIS FILE:
    ──────────────────────
    • ADD/REMOVE COINS:        Edit FREE_COINS list
-   • ADD/REMOVE FOREX PAIRS:  Edit FOREX_PAIRS list (set pro:true to lock behind Pro)
-   • ADD/REMOVE STOCKS:       Edit STOCKS_LIST
+   • ADD/REMOVE bSTOCKS:      Edit BSTOCK_LIST (Binance tokenized equities —
+                              forex removed, see rotator-bstocks-migration-plan.md)
    • ADD PRO CODES:           Run an INSERT in Supabase (pro_codes table) —
                               codes live server-side, see sql/pro_codes_table.sql
    • UPDATE DONATION GOAL:    Change DONATION_GOAL and DONATION_CURRENT
@@ -140,7 +140,9 @@ var COIN_CATEGORIES = {
   'gemini-dollar':'stable','usdd':'stable'
 };
 
-/* Category display config — order matters for tab rendering */
+/* Category display config — order matters for tab rendering.
+   'stocks' filters to bStock rows only, same tab row as crypto categories
+   (not a separate top-nav mode — see migration plan Step 2). */
 var CATEGORY_LIST = [
   {key:'all',    label:'ALL',     icon:'🌐'},
   {key:'l1',     label:'L1',      icon:'⛓'},
@@ -151,16 +153,24 @@ var CATEGORY_LIST = [
   {key:'gaming', label:'GAMING',  icon:'🎮'},
   {key:'rwa',    label:'RWA',     icon:'🏠'},
   {key:'infra',  label:'INFRA',   icon:'🛠'},
-  {key:'stable', label:'STABLE',  icon:'💵'}
+  {key:'stable', label:'STABLE',  icon:'💵'},
+  {key:'stocks', label:'STOCKS',  icon:'🏛'}
 ];
 
-/* Get coin IDs for a specific category (or all if 'all') */
+/* Get coin IDs for a specific category (or all if 'all').
+   NOTE: 'all' intentionally excludes 'stocks' — bStocks are fetched and
+   scored separately (loadBstocks() in data-loaders.js) and merged into
+   the shared coins[] array with COIN_CATEGORIES[id]='stocks' set at
+   fetch time, since they're not present in FREE_COINS (that list is
+   CoinGecko coin IDs only). The STOCKS tab reads coins[] like any other
+   category tab — see renderTable() in signals.js. */
 function getCategoryCoins(cat) {
-  if (cat === 'all') return FREE_COINS;
+  if (cat === 'all')    return FREE_COINS;
+  if (cat === 'stocks') return []; /* populated dynamically, not from FREE_COINS */
   return FREE_COINS.filter(function(id) { return (COIN_CATEGORIES[id] || 'other') === cat; });
 }
 
-function getActiveCoins() { return FREE_COINS; } /* All 200 always available */
+function getActiveCoins() { return FREE_COINS; } /* All 200 crypto coins always available */
 
 /* ── Stablecoin APR database ────────────────────────────────────── */
 /* Approximate lending/staking APR (%) for stablecoins.              */
@@ -180,55 +190,69 @@ var STABLECOINS = {
 
 function isStablecoin(coinId) { return STABLECOINS.hasOwnProperty(coinId); }
 
-/* ── Forex pairs ─────────────────────────────────────────────────── */
-/* Set pro:true to lock a pair behind Pro tier                        */
-var FOREX_PAIRS = [
-  {from:'EUR', to:'USD', name:'Euro / US Dollar',               pro:false},
-  {from:'GBP', to:'USD', name:'British Pound / US Dollar',      pro:false},
-  {from:'USD', to:'JPY', name:'US Dollar / Japanese Yen',       pro:false},
-  {from:'USD', to:'CHF', name:'US Dollar / Swiss Franc',        pro:false},
-  {from:'AUD', to:'USD', name:'Australian Dollar / US Dollar',  pro:false},
-  {from:'USD', to:'CAD', name:'US Dollar / Canadian Dollar',    pro:false},
-  {from:'NZD', to:'USD', name:'New Zealand Dollar / US Dollar', pro:false},
-  {from:'EUR', to:'GBP', name:'Euro / British Pound',           pro:false},
-  {from:'EUR', to:'JPY', name:'Euro / Japanese Yen',            pro:false},
-  {from:'GBP', to:'JPY', name:'British Pound / Japanese Yen',   pro:false},
-  {from:'XAU', to:'USD', name:'Gold / US Dollar',               pro:true},
-  {from:'XTI', to:'USD', name:'WTI Crude Oil / USD',            pro:true},
-  {from:'EUR', to:'CHF', name:'Euro / Swiss Franc',             pro:true},
-  {from:'USD', to:'MXN', name:'US Dollar / Mexican Peso',       pro:true},
-  {from:'USD', to:'SGD', name:'US Dollar / Singapore Dollar',   pro:true}
-];
+/* Forex pairs removed — site is crypto (+ bStocks) only going forward.
+   See rotator-bstocks-migration-plan.md. loadForex()/calcForexScore()/
+   #forex-panel/FOREX nav tab removed in the same pass as this file. */
 
-/* ── Stocks & Indices list ───────────────────────────────────────── */
-/* av: Alpha Vantage symbol (null = not available on AV free tier)   */
-var STOCKS_LIST = [
-  /* Indices */
-  {sym:'^GSPC',  name:'S&P 500',         type:'index', av:'SPY'},
-  {sym:'^IXIC',  name:'NASDAQ',           type:'index', av:'QQQ'},
-  {sym:'^DJI',   name:'Dow Jones',        type:'index', av:'DIA'},
-  {sym:'^RUT',   name:'Russell 2000',     type:'index', av:'IWM'},
-  {sym:'^FTSE',  name:'FTSE 100',         type:'index', av:null},
-  {sym:'^GDAXI', name:'DAX',              type:'index', av:null},
-  {sym:'^N225',  name:'Nikkei 225',       type:'index', av:null},
-  /* US Large Caps */
-  {sym:'AAPL',   name:'Apple',            type:'stock', av:'AAPL'},
-  {sym:'MSFT',   name:'Microsoft',        type:'stock', av:'MSFT'},
-  {sym:'NVDA',   name:'NVIDIA',           type:'stock', av:'NVDA'},
-  {sym:'TSLA',   name:'Tesla',            type:'stock', av:'TSLA'},
-  {sym:'AMZN',   name:'Amazon',           type:'stock', av:'AMZN'},
-  {sym:'GOOGL',  name:'Alphabet',         type:'stock', av:'GOOGL'},
-  {sym:'META',   name:'Meta Platforms',   type:'stock', av:'META'},
-  {sym:'JPM',    name:'JPMorgan Chase',   type:'stock', av:'JPM'},
-  {sym:'V',      name:'Visa',             type:'stock', av:'V'},
-  {sym:'BRK-B',  name:'Berkshire B',      type:'stock', av:'BRK-B'},
-  /* High-growth / AI */
-  {sym:'AMD',    name:'AMD',              type:'stock', av:'AMD'},
-  {sym:'INTC',   name:'Intel',            type:'stock', av:'INTC'},
-  {sym:'PLTR',   name:'Palantir',         type:'stock', av:'PLTR'},
-  {sym:'COIN',   name:'Coinbase',         type:'stock', av:'COIN'},
-  {sym:'MSTR',   name:'MicroStrategy',    type:'stock', av:'MSTR'}
+/* ── bStocks (Binance tokenized equities) ──────────────────────────
+   Replaces the old Yahoo/AlphaVantage STOCKS_LIST + FOREX_PAIRS.
+   No indices — Binance bStocks are single-name tokenized certificates
+   only, there is no bStock for "S&P 500" etc.
+   • sym:      display ticker, also the id used inside coins[] as
+               'bstock_' + sym and inside COIN_CATEGORIES.
+   • binance:  the actual Binance trading symbol synced into
+               unified_market_data (asset_type='stock', source_name='binance').
+   Maintained manually — update when Binance announces new bStock listings,
+   do NOT auto-discover from exchangeInfo (risks false-positive symbol matches).
+────────────────────────────────────────────────────────────────────── */
+var BSTOCK_LIST = [
+  /* Confirmed live tickers — sourced from Binance's own launch/expansion
+     announcements and dividend notices (name+ticker explicitly paired in
+     the source, not guessed from the company name). Binance's bStocks
+     roster has grown to 46+ listings as of late Aug 2026 and keeps
+     growing in batches — this covers every one I could confirm with a
+     direct source citation, not the full current roster. Verify against
+     Binance's live bStocks markets page or exchangeInfo before shipping,
+     and add any missing ones the same way (sym / name / binance symbol). */
+  {sym:'AAPL',  name:'Apple',                binance:'AAPLBUSDT'},
+  {sym:'MSFT',  name:'Microsoft',            binance:'MSFTBUSDT'},
+  {sym:'NVDA',  name:'NVIDIA',               binance:'NVDABUSDT'},
+  {sym:'TSLA',  name:'Tesla',                binance:'TSLABUSDT'},
+  {sym:'AMZN',  name:'Amazon',               binance:'AMZNBUSDT'},
+  {sym:'META',  name:'Meta Platforms',       binance:'METABUSDT'},
+  {sym:'AMD',   name:'AMD',                  binance:'AMDBUSDT'},
+  {sym:'INTC',  name:'Intel',                binance:'INTCBUSDT'},
+  {sym:'PLTR',  name:'Palantir',             binance:'PLTRBUSDT'},
+  {sym:'MSTR',  name:'Strategy',             binance:'MSTRBUSDT'}, /* formerly MicroStrategy */
+  {sym:'CRCL',  name:'Circle Internet Group',binance:'CRCLBUSDT'},
+  {sym:'MU',    name:'Micron Technology',    binance:'MUBUSDT'},
+  {sym:'SNDK',  name:'Sandisk',              binance:'SNDKBUSDT'},
+  {sym:'SPCX',  name:'SpaceX',               binance:'SPCXBUSDT'},
+  {sym:'LITE',  name:'Lumentum',             binance:'LITEBUSDT'},
+  {sym:'AMAT',  name:'Applied Materials',    binance:'AMATBUSDT'},
+  {sym:'DELL',  name:'Dell',                 binance:'DELLBUSDT'},
+  {sym:'BE',    name:'Bloom Energy',         binance:'BEBUSDT'},
+  {sym:'FLNC',  name:'Fluence Energy',       binance:'FLNCBUSDT'},
+  {sym:'GS',    name:'Goldman Sachs',        binance:'GSBUSDT'},
+  {sym:'PYPL',  name:'PayPal',               binance:'PYPLBUSDT'},
+  {sym:'IBM',   name:'IBM',                  binance:'IBMBUSDT'},
+  {sym:'HOOD',  name:'Robinhood',            binance:'HOODBUSDT'},
+  {sym:'DJT',   name:'Trump Media & Technology Group', binance:'DJTBUSDT'}
+  /* Named in Binance's own July batch coverage but ticker not confirmed
+     by a direct source citation — left out rather than guessed:
+     Coinbase, Alphabet, Nokia. Add once you've confirmed COINB/GOOGLB/
+     NOKB (or whatever the real symbols turn out to be) actually exist. */
 ];
+/* Deliberately excluded — Binance also lists sector/index ETFs and a
+   LEVERAGED INVERSE ETF as bStocks (QQQB/Invesco QQQ, SMHB/VanEck
+   Semiconductor, EWYB/iShares MSCI South Korea, and SOXSB/Direxion
+   Semiconductor Bear 3X — a 3x short fund, a materially different risk
+   profile from a single stock). The original migration plan said no
+   indices/funds, single-name equities only — this list honors that.
+   If you want funds included, they need their OWN badge/tooltip (not
+   "STOCK") and should NOT run through the same momentum-only partial
+   scorer as single names, since a 3x leveraged product's "momentum"
+   isn't comparable to an unlevered one. Treat as a separate follow-up. */
 
 /* ── Tokenomics database ─────────────────────────────────────────── */
 /* deflation: 'full'=active burn | 'partial'=some burn | 'fixed'=hard cap | 'none'=inflation */

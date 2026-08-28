@@ -13,7 +13,7 @@ var TUT_STEPS = [
   {
     target: '.topbar',
     title: 'Welcome to ROTATOR',
-    desc: '<strong>Rotator</strong> is a daily performance tracker for crypto, forex and stocks. It measures price momentum across <strong>24H, 7D, 14D and 30D</strong> and surfaces opportunities to improve portfolio performance over time.<br><br>'
+    desc: '<strong>Rotator</strong> is a daily performance tracker for crypto (plus tokenized bStocks). It measures price momentum across <strong>24H, 7D, 14D and 30D</strong> and surfaces opportunities to improve portfolio performance over time.<br><br>'
         + '<strong>What is rotation?</strong> If you hold two assets and one has fallen 17% while the other only fell 5%, rotating part of the weaker position into the stronger one recovers value without adding capital. Over time, compounding these small adjustments significantly improves performance.<br><br>'
         + '<strong>Multi-timeframe scoring</strong> surfaces sustained trends, not just recent noise. A coin ranked highly across 7D, 14D <em>and</em> 30D is behaving very differently from one that just had a single good week.',
     arrow: 'top', pos: 'center', wide: true

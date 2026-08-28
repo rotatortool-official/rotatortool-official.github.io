@@ -1,34 +1,56 @@
 /* ══════════════════════════════════════════════════════════════════
-   holdings.js  —  Holdings panels + Portfolio Signal for all 3 modes
-   
+   holdings.js  —  Holdings panel + Portfolio Signal
+
+   Crypto and bStocks share ONE holdings model now — bStocks live in
+   the same coins[] array as crypto (see loadBstocks() in
+   data-loaders.js) and match by .sym exactly like any coin, so
+   renderTiles()/addHolding()/removeHolding() below work unchanged
+   for both. Separate fxHoldings/stHoldings arrays, and the FOREX/
+   STOCKS holdings panels that used them, are removed — forex is
+   dropped entirely, stock holdings are migrated into the unified
+   `holdings` array on first load (see migrateStockHoldings() below)
+   so existing users don't lose their saved positions.
+
    HOW TO EDIT THIS FILE:
    ──────────────────────
-   • CHANGE HOW TILES LOOK:     Edit renderTiles() / renderFxTiles() /
-                                 renderStHoldings()
-   • CHANGE PORTFOLIO SIGNAL:   Edit renderSignal() (crypto),
-                                 renderFxTiles() signal block (forex),
-                                 renderStHoldings() signal block (stocks)
-   • ADD/REMOVE TILE FIELDS:    Find the html+= block inside each
-                                 render function and add/remove lines
+   • CHANGE HOW TILES LOOK:     Edit renderTiles()
+   • CHANGE PORTFOLIO SIGNAL:   Edit renderSignal()
+   • ADD/REMOVE TILE FIELDS:    Find the html+= block inside
+                                 renderTiles() and add/remove lines
 ══════════════════════════════════════════════════════════════════ */
 
 /* ── State ───────────────────────────────────────────────────── */
 var holdings   = loadH();
-var fxHoldings = loadFxH();
-var stHoldings = loadStH();
 var sparkStop  = {};
 
-/* ── Crypto holdings persistence ─────────────────────────────── */
+/* ── Crypto (+ bStock) holdings persistence ──────────────────── */
 function loadH()  { try { return JSON.parse(localStorage.getItem('rot_h5') || '[]'); } catch(e) { return []; } }
 function saveH()  { try { localStorage.setItem('rot_h5', JSON.stringify(holdings)); } catch(e) {} }
 
-/* ── Forex holdings persistence ──────────────────────────────── */
-function loadFxH() { try { return JSON.parse(localStorage.getItem('rot_fx_h') || '[]'); } catch(e) { return []; } }
-function saveFxH() { try { localStorage.setItem('rot_fx_h', JSON.stringify(fxHoldings)); } catch(e) {} }
+/* ── One-time migration: fold old stock holdings (rot_st_h) into the
+   unified holdings array, then remove the old key. Old forex holdings
+   (rot_fx_h) are simply dropped — forex was removed from the site, so
+   there's nothing meaningful to migrate them onto. Symbols match
+   directly (e.g. 'AAPL') since BSTOCK_LIST reuses the same tickers the
+   old STOCKS_LIST used, so this is a straight carry-over, not a remap. */
+(function migrateStockHoldings() {
+  try {
+    var raw = localStorage.getItem('rot_st_h');
+    if (!raw) return;
+    var oldStocks = JSON.parse(raw);
+    if (Array.isArray(oldStocks) && oldStocks.length) {
+      oldStocks.forEach(function(h) {
+        if (!h || !h.sym) return;
+        var exists = holdings.some(function(x) { return x.sym === h.sym; });
+        if (!exists) holdings.push({sym: h.sym, qty: h.qty || null, avg: h.avg || null});
+      });
+      saveH();
+    }
+    localStorage.removeItem('rot_st_h');
+    localStorage.removeItem('rot_fx_h'); /* cleanup only — forex not migrated */
+  } catch (e) { console.warn('[migrateStockHoldings] skipped:', e.message); }
+})();
 
-/* ── Stocks holdings persistence ─────────────────────────────── */
-function loadStH() { try { return JSON.parse(localStorage.getItem('rot_st_h') || '[]'); } catch(e) { return []; } }
-function saveStH() { try { localStorage.setItem('rot_st_h', JSON.stringify(stHoldings)); } catch(e) {} }
 
 /* ════════════════════════════════
    CRYPTO HOLDINGS
@@ -219,143 +241,4 @@ function renderSignal(hc) {
        + '</div>';
   }
   el.innerHTML = h;
-}
-
-/* ════════════════════════════════
-   FOREX HOLDINGS
-════════════════════════════════ */
-function addForexHolding() {
-  var pair  = document.getElementById('fx-sel').value;
-  var qty   = parseFloat(document.getElementById('fx-qty').value) || null;
-  var entry = parseFloat(document.getElementById('fx-entry').value) || null;
-  if (!pair) return;
-  var idx = fxHoldings.findIndex(function(h) { return h.pair === pair; });
-  if (idx >= 0) fxHoldings[idx] = {pair, qty, entry};
-  else fxHoldings.push({pair, qty, entry});
-  saveFxH();
-  document.getElementById('fx-sel').value   = '';
-  document.getElementById('fx-qty').value   = '';
-  document.getElementById('fx-entry').value = '';
-  renderFxTiles(); renderForexTable();
-}
-
-function removeFxHolding(pair) {
-  fxHoldings = fxHoldings.filter(function(h) { return h.pair !== pair; });
-  saveFxH(); renderFxTiles(); renderForexTable();
-}
-
-function renderFxTiles() {
-  var grid  = document.getElementById('fx-tiles-grid');
-  var sigEl = document.getElementById('fx-sig-content');
-  var fxHcEl = document.getElementById('fx-hcount');
-  if (fxHcEl) fxHcEl.textContent = fxHoldings.length ? fxHoldings.length + (fxHoldings.length === 1 ? ' pair' : ' pairs') : '';
-
-  if (!fxHoldings.length) {
-    grid.innerHTML  = '<div class="empty-t">No forex pairs yet.<br>Add a pair above.</div>';
-    sigEl.innerHTML = '<div style="font-size:12px;color:var(--muted);">Add pairs to see signal.</div>';
-    return;
-  }
-
-  grid.innerHTML = fxHoldings.map(function(h) {
-    var d      = forexData.find(function(f) { return f.from + '/' + f.to === h.pair; });
-    var rate   = d ? d.rate : 0;
-    var chgPct = d ? d.chgPct : 0;
-    var score  = d ? d.score : 0;
-    var signal = d ? d.signal : '—';
-    var pl = '';
-    if (h.qty && h.entry && rate) { var profit = (rate - h.entry) * h.qty; var plC = profit >= 0 ? 'up' : 'dn'; pl = '<div class="tile-pl ' + plC + '">' + (profit >= 0 ? '+' : '') + profit.toFixed(2) + ' pts</div>'; }
-    var scC = score >= 65 ? 'hi' : score >= 45 ? 'md' : 'lo';
-    var glw = score >= 65 ? 'glow-g' : score >= 45 ? 'glow-a' : 'glow-r';
-    var p7d = d ? d.p7 : 0, p30d = d ? d.p30 : 0;
-    return '<div class="tile ' + glw + '" onclick="openAssetDetail(\'forex\',\'' + h.pair + '\',event)" style="cursor:pointer;" title="Click for details">'
-      + '<div class="tile-top"><span class="tile-sym" style="color:var(--bnb);">' + h.pair + '</span><button class="tile-rm" onclick="event.stopPropagation();removeFxHolding(\'' + h.pair + '\')">×</button></div>'
-      + '<div class="tile-price">' + (rate ? rate.toFixed(5) : '—') + '</div>'
-      + '<div class="tile-perfs">'
-        + '<div class="tpf"><span class="tpf-l">DAY%</span><span class="tpf-v ' + (chgPct>=0?'up':'dn') + '">' + (chgPct>=0?'+':'') + chgPct.toFixed(3) + '%</span></div>'
-        + '<div class="tpf"><span class="tpf-l">7D%</span><span  class="tpf-v ' + (p7d>=0?'up':'dn')   + '">' + (p7d>=0?'+':'')   + p7d.toFixed(2)   + '%</span></div>'
-        + '<div class="tpf"><span class="tpf-l">30D%</span><span class="tpf-v ' + (p30d>=0?'up':'dn')  + '">' + (p30d>=0?'+':'')  + p30d.toFixed(2)  + '%</span></div>'
-      + '</div>'
-      + pl
-      + '<div class="tile-foot"><span class="tile-pl ' + (score>=65?'up':score<=35?'dn':'fl') + '" style="font-size:12px;">' + signal + '</span><span class="tile-scr ' + scC + '">' + score + '</span></div>'
-      + '</div>';
-  }).join('');
-
-  /* Forex signal summary */
-  if (forexData.length) {
-    var held = fxHoldings.map(function(h) { return forexData.find(function(f) { return f.from + '/' + f.to === h.pair; }); }).filter(Boolean);
-    if (held.length) {
-      var avg  = held.reduce(function(s, f) { return s + f.score; }, 0) / held.length;
-      var avgC = avg >= 65 ? 'var(--green)' : avg >= 45 ? 'var(--amber)' : 'var(--red)';
-      sigEl.innerHTML = '<div class="sig-avg" style="color:' + avgC + ';">' + avg.toFixed(0) + '<span class="sig-avg-lbl">/ 100 avg score</span></div>'
-        + '<div style="font-size:12px;color:var(--muted);margin-top:4px;">Based on trend momentum, volatility position and RSI signal.</div>';
-    }
-  }
-}
-
-/* ════════════════════════════════
-   STOCKS HOLDINGS
-════════════════════════════════ */
-function addStockHolding() {
-  var sym = document.getElementById('st-sel').value;
-  var qty = parseFloat(document.getElementById('st-qty').value) || null;
-  var avg = parseFloat(document.getElementById('st-avg').value) || null;
-  if (!sym) return;
-  var idx = stHoldings.findIndex(function(h) { return h.sym === sym; });
-  if (idx >= 0) stHoldings[idx] = {sym, qty, avg};
-  else stHoldings.push({sym, qty, avg});
-  saveStH();
-  document.getElementById('st-sel').value = '';
-  document.getElementById('st-qty').value = '';
-  document.getElementById('st-avg').value = '';
-  renderStHoldings();
-}
-
-function removeStHolding(sym) {
-  stHoldings = stHoldings.filter(function(h) { return h.sym !== sym; });
-  saveStH(); renderStHoldings();
-}
-
-function renderStHoldings() {
-  var grid  = document.getElementById('st-tiles-grid');
-  var sigEl = document.getElementById('st-sig-content');
-  var stHcEl = document.getElementById('st-hcount');
-  if (stHcEl) stHcEl.textContent = stHoldings.length ? stHoldings.length + (stHoldings.length === 1 ? ' stock' : ' stocks') : '';
-
-  if (!stHoldings.length) {
-    grid.innerHTML  = '<div class="empty-t">No stocks yet.<br>Add a stock above.</div>';
-    sigEl.innerHTML = '<div style="font-size:12px;color:var(--muted);">Add stocks to see signal.</div>';
-    return;
-  }
-
-  grid.innerHTML = stHoldings.map(function(h) {
-    var d      = stocksData.find(function(s) { return s.sym === h.sym; });
-    var price  = d ? d.price : 0;
-    var chgPct = d ? d.chgPct : 0;
-    var score  = d ? d.score : 0;
-    var pl = '';
-    if (h.qty && h.avg && price) { var profit = (price - h.avg) * h.qty; var plC = profit >= 0 ? 'up' : 'dn'; pl = '<div class="tile-pl ' + plC + '">' + (profit >= 0 ? '+' : '-') + '$' + Math.abs(profit).toLocaleString('en-US', {maximumFractionDigits:0}) + '</div>'; }
-    var scC = score >= 65 ? 'hi' : score >= 45 ? 'md' : 'lo';
-    var glw = score >= 65 ? 'glow-g' : score >= 45 ? 'glow-a' : 'glow-r';
-    return '<div class="tile ' + glw + '" onclick="openAssetDetail(\'stock\',\'' + h.sym + '\',event)" style="cursor:pointer;" title="Click for details">'
-      + '<div class="tile-top"><span class="tile-sym">' + h.sym + '</span><button class="tile-rm" onclick="event.stopPropagation();removeStHolding(\'' + h.sym + '\')">×</button></div>'
-      + '<div class="tile-price">' + (price ? '$' + price.toFixed(2) : '—') + '</div>'
-      + '<div class="tile-perfs">'
-        + '<div class="tpf"><span class="tpf-l">TODAY</span><span class="tpf-v ' + (chgPct>=0?'up':'dn') + '">' + (chgPct>=0?'+':'') + chgPct.toFixed(2) + '%</span></div>'
-        + '<div class="tpf"><span class="tpf-l">SCORE</span><span class="tpf-v ' + (score>=65?'up':score<=35?'dn':'fl') + '">' + score + '</span></div>'
-      + '</div>'
-      + pl
-      + '<div class="tile-foot"><span></span><span class="tile-scr ' + scC + '">' + score + '</span></div>'
-      + '</div>';
-  }).join('');
-
-  /* Stocks signal summary */
-  if (stocksData.length) {
-    var held = stHoldings.map(function(h) { return stocksData.find(function(s) { return s.sym === h.sym; }); }).filter(Boolean);
-    if (held.length) {
-      var avg  = held.reduce(function(s, d) { return s + d.score; }, 0) / held.length;
-      var avgC = avg >= 65 ? 'var(--green)' : avg >= 45 ? 'var(--amber)' : 'var(--red)';
-      sigEl.innerHTML = '<div class="sig-avg" style="color:' + avgC + ';">' + avg.toFixed(0) + '<span class="sig-avg-lbl">/ 100 avg score</span></div>'
-        + '<div style="font-size:12px;color:var(--muted);margin-top:4px;">Based on 52-week range position and daily momentum.</div>';
-    }
-  }
 }
