@@ -969,7 +969,7 @@ function renderTable() {
          clear these are tokenized certificates, not crypto — see the
          migration plan's Step 2 note on Binance's own risk disclosures
          (liquidity, issuer, custody, broker risk). */
-      stableTag = '<span class="htag" style="background:#3a2a6e;color:#c0a8ff;margin-left:4px;" title="Binance bStock — a tokenized certificate tracking the price of ' + c.name + ', not direct share ownership.">🏛 STOCK</span>';
+      stableTag = '<span class="htag" style="background:transparent;color:var(--muted);border:1px solid var(--bdr);margin-left:4px;font-weight:400;" title="Binance bStock — a tokenized certificate tracking the price of ' + c.name + ', not direct share ownership.">🏛 stock</span>';
       col24  = '<td class="pc" data-label="24H">' + pctSpan(c.p24) + '</td>';
       col7   = '<td class="pc" data-label="7D">'  + pctSpan(c.p7)  + '</td>';
       col14  = '<td class="pc" data-label="14D">' + pctSpan(c.p14) + '</td>';

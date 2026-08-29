@@ -464,6 +464,26 @@ function computeScores() {
 ══════════════════════════════════════════════════════════════ */
 var bstocksLoaded = false;
 
+/* ── Generated fallback icon for bStock rows ─────────────────────
+   No live crypto-style logo source exists for these — CoinGecko only
+   covers crypto, and both realistic third-party company-logo APIs are
+   dead ends for a no-signup static site: Clearbit's free Logo API was
+   sunset Dec 8 2025, and its suggested replacement (Logo.dev) requires
+   a signed-up API token in the URL, not a drop-in anonymous endpoint.
+   Generates a small inline SVG (as a data: URI, zero network request,
+   can never 404) — a colored circle with the ticker's first 1-2 letters,
+   using the same purple accent as the 🏛 STOCK badge in signals.js so
+   it reads as visually consistent with that tag. */
+function _bstockIconDataUri(sym) {
+  var initials = sym.length <= 2 ? sym : sym.slice(0, 2);
+  var svg = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 40 40">'
+    + '<circle cx="20" cy="20" r="20" fill="#3a2a6e"/>'
+    + '<text x="20" y="26" font-family="Arial,Helvetica,sans-serif" font-size="15" '
+    + 'font-weight="700" fill="#c0a8ff" text-anchor="middle">' + initials + '</text>'
+    + '</svg>';
+  return 'data:image/svg+xml,' + encodeURIComponent(svg);
+}
+
 async function loadBstocks() {
   prog(50, 'Fetching bStock data…');
   try {
@@ -503,7 +523,7 @@ async function loadBstocks() {
       var bcoin = {
         id: id, sym: r.symbol, name: r.name || (listing && listing.name) || r.symbol,
         price: r.price != null ? parseFloat(r.price) : 0,
-        image: '', mcap: meta.mcap || 0, rank: 0,
+        image: _bstockIconDataUri(r.symbol), mcap: meta.mcap || 0, rank: 0,
         p24: r.change_24h != null ? parseFloat(r.change_24h) : 0,
         p7:  meta.p7  != null ? parseFloat(meta.p7)  : 0,
         p14: meta.p14 != null ? parseFloat(meta.p14) : 0,
