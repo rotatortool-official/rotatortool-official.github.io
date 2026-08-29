@@ -512,8 +512,16 @@ async function _fetchKlines(sym) {
 
 /* ── Fetch klines for all holdings (called after data load) ── */
 async function fetchInsightKlines() {
-  var hSyms = holdings.map(function(h) { return h.sym; });
-  var wSyms = (typeof watchlist !== 'undefined') ? watchlist : [];
+  /* Skip bStocks entirely — this hits api.binance.com directly from the
+     browser (sym + 'USDT'), the exact CORS problem the whole bStocks
+     migration moved server-side to avoid (see loadBstocks() in
+     data-loaders.js). A stock's momentum data already comes from
+     unified_market_data; there's no RSI/MACD/Bollinger equivalent for
+     bStocks yet, so these rows just won't have the extra Insight stats
+     for now rather than throwing a guaranteed-to-fail request. */
+  var stockSyms = (typeof coins !== 'undefined') ? coins.filter(function(c) { return c.isStock; }).map(function(c) { return c.sym; }) : [];
+  var hSyms = holdings.map(function(h) { return h.sym; }).filter(function(s) { return stockSyms.indexOf(s) < 0; });
+  var wSyms = (typeof watchlist !== 'undefined') ? watchlist.filter(function(s) { return stockSyms.indexOf(s) < 0; }) : [];
   var targetSyms = hSyms.concat(wSyms.filter(function(s) { return hSyms.indexOf(s) < 0; }));
   /* Fetch in parallel, max 10 to respect rate limits */
   var batch = targetSyms.slice(0, 10);

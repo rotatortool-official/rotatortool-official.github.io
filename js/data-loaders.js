@@ -616,6 +616,7 @@ async function doLoad() {
   try {
     await loadCoins('all');  prog(50, 'Scoring and ranking coins…');  renderCoinSel();
     await loadBstocks();     prog(65, 'Fetching bStock data…');
+    if (typeof pruneStaleHoldings === 'function') pruneStaleHoldings();
     await loadMacroData(); prog(80, 'Loading macro data — Gold, Oil…');
     await loadFearGreed(); prog(88, 'Fetching sentiment data…');
     prog(92, 'Almost ready — building your dashboard…');

@@ -38,9 +38,18 @@ function saveH()  { try { localStorage.setItem('rot_h5', JSON.stringify(holdings
     var raw = localStorage.getItem('rot_st_h');
     if (!raw) return;
     var oldStocks = JSON.parse(raw);
+    /* Only migrate symbols that still exist as a real bStock — the old
+       STOCKS_LIST included index ETF proxies (^GSPC, ^IXIC, ^DJI, etc.)
+       that BSTOCK_LIST deliberately dropped (Binance has no index
+       bStocks). Carrying those over verbatim leaves a holding tile that
+       can never resolve to a coin — see pruneStaleHoldings() below for
+       the belt-and-braces cleanup that also catches anyone who already
+       migrated before this check existed. */
+    var validSyms = (typeof BSTOCK_LIST !== 'undefined') ? BSTOCK_LIST.map(function(b) { return b.sym; }) : [];
     if (Array.isArray(oldStocks) && oldStocks.length) {
       oldStocks.forEach(function(h) {
         if (!h || !h.sym) return;
+        if (validSyms.indexOf(h.sym) < 0) return; /* dropped ticker (e.g. an index) — skip */
         var exists = holdings.some(function(x) { return x.sym === h.sym; });
         if (!exists) holdings.push({sym: h.sym, qty: h.qty || null, avg: h.avg || null});
       });
@@ -50,6 +59,28 @@ function saveH()  { try { localStorage.setItem('rot_h5', JSON.stringify(holdings
     localStorage.removeItem('rot_fx_h'); /* cleanup only — forex not migrated */
   } catch (e) { console.warn('[migrateStockHoldings] skipped:', e.message); }
 })();
+
+/* ── Belt-and-braces cleanup: drop any holding whose symbol no longer
+   resolves to a real coin. Catches:
+   • Users who already ran the OLD migrateStockHoldings() before the
+     BSTOCK_LIST check above existed (e.g. an already-saved '^GSPC'
+     holding from before this fix — that ticker will never appear in
+     coins[] since Binance has no index bStocks).
+   • Any coin/bStock that gets delisted from FREE_COINS/BSTOCK_LIST
+     in the future — general robustness, not just this migration.
+   Called from doLoad() in data-loaders.js once coins[] (crypto +
+   bStocks) is fully populated — calling it any earlier would wrongly
+   prune everything, since coins[] starts empty. */
+function pruneStaleHoldings() {
+  if (!Array.isArray(coins) || !coins.length) return; /* not populated yet — don't prune blind */
+  var validSyms = coins.map(function(c) { return c.sym; });
+  var before = holdings.length;
+  holdings = holdings.filter(function(h) { return validSyms.indexOf(h.sym) >= 0; });
+  if (holdings.length !== before) {
+    console.info('[pruneStaleHoldings] removed ' + (before - holdings.length) + ' holding(s) with no matching coin (e.g. a dropped index ticker)');
+    saveH();
+  }
+}
 
 
 /* ════════════════════════════════
