@@ -55,9 +55,25 @@ function renderBTC() {
   var mobInner = document.getElementById('mob-btc-inner');
   var mobTxt   = document.getElementById('mob-btc-txt');
   if (!btcMA200 || !btcPrice) return;
+
+  /* Transparency: when BTC's real Mayer Multiple is pushing scoring into
+     the 'stretched'/'oversold' tier (see _adaptiveThresholds() in this
+     file), show the actual number in the pill's tooltip rather than
+     silently shifting buy/sell bands behind the scenes. Score changes
+     that aren't explainable erode trust in the score. */
+  var cycleLabel = (typeof _btcCycleLabel === 'function') ? _btcCycleLabel() : null;
+  var mm = (typeof marketCycleData !== 'undefined' && marketCycleData.BTC) ? marketCycleData.BTC.mayer_multiple : null;
+  var cycleTip = '';
+  if (mm != null) {
+    cycleTip = ' — Mayer Multiple ' + mm.toFixed(2) + '×'
+      + (cycleLabel === 'stretched' ? ' (historically stretched — buy threshold tightened)'
+        : cycleLabel === 'oversold' ? ' (historically oversold — buy threshold loosened)'
+        : ' (neutral zone)');
+  }
+
   if (btcPrice > btcMA200) {
-    if (pill)    pill.className = 'btc-pill bull';
-    if (pillTxt) pillTxt.textContent = 'BTC UPTREND ▲';
+    if (pill)    { pill.className = 'btc-pill bull'; pill.title = 'BTC above its 200-day average' + cycleTip; }
+    if (pillTxt) pillTxt.textContent = 'BTC UPTREND ▲' + (cycleLabel === 'stretched' ? ' 🔥' : '');
     if (mobInner) mobInner.className = 'mob-btc-cell bull';
     if (mobTxt)   mobTxt.textContent = '▲ BTC';
     document.getElementById('bear-banner').classList.remove('show');
@@ -66,8 +82,8 @@ function renderBTC() {
     /* No bear banner → show scale tip directly */
     _showScaleBannerIfNeeded();
   } else {
-    if (pill)    pill.className = 'btc-pill bear';
-    if (pillTxt) pillTxt.textContent = 'BTC DOWNTREND ▼';
+    if (pill)    { pill.className = 'btc-pill bear'; pill.title = 'BTC below its 200-day average' + cycleTip; }
+    if (pillTxt) pillTxt.textContent = 'BTC DOWNTREND ▼' + (cycleLabel === 'oversold' ? ' 🧊' : '');
     if (mobInner) mobInner.className = 'mob-btc-cell';
     if (mobTxt)   mobTxt.textContent = '▼ BTC';
     if (!_bearDismissed) {
@@ -109,6 +125,27 @@ try {
 
 function _adaptiveThresholds() {
   if (btcMA200 && btcPrice) {
+    /* BTC's own Mayer Multiple label (real, calibrated to BTC's history —
+       see _btcCycleLabel() in data-loaders.js) adds a third tier on top
+       of the plain bull/bear split below. This ONLY applies to BTC —
+       ETH/BNB/SOL/XRP/PAXG's Mayer Multiples are shown in the UI as raw
+       ratios but never touch scoring, since no calibrated bands exist
+       for them (see sync-market-cycle Edge Function comments). */
+    var cycleLabel = (typeof _btcCycleLabel === 'function') ? _btcCycleLabel() : null;
+    if (cycleLabel === 'stretched') {
+      /* Market historically overheated (BTC Mayer Multiple ≥ 2.4×) — be
+         MORE cautious about new buys, keep the same "let winners run"
+         sell discipline as plain bull, since exiting early near a real
+         top is its own mistake. */
+      return { buy: 32, sell: 66 };
+    }
+    if (cycleLabel === 'oversold') {
+      /* Market historically stretched to the downside (BTC Mayer
+         Multiple ≤ 0.8×) — loosen the buy band a bit further than plain
+         bear, since this zone has historically been accumulation
+         territory rather than a falling knife. */
+      return { buy: 38, sell: 58 };
+    }
     if (btcPrice > btcMA200) return { buy: 38, sell: 66 }; /* bull: hold winners */
     return { buy: 34, sell: 58 };                           /* bear: skip knives */
   }

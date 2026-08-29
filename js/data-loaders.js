@@ -226,17 +226,23 @@ async function loadCoins(categoryOverride) {
   coins.sort(function(a, b) { return b.mcap - a.mcap; });
   coins.forEach(function(c, i) { c.rank = i + 1; });
 
-  /* Derive BTC MA200 signal from coins data already fetched — no extra API call needed.
-     We use BTC’s 30D return to estimate whether price is above or below its trailing average:
-     if BTC rose in the last 30 days, the trailing average is below current price (bull).
-     if BTC fell in the last 30 days, the trailing average is above current price (bear).
-     This gives an accurate bull/bear signal without a separate 200-day OHLCV call.          */
+  /* BTC price + MA200. Real value comes from loadMarketCycle() (server-side,
+     computed from actual 200-day daily closes — see sync-market-cycle Edge
+     Function). Until that first successful fetch lands (e.g. very first
+     page load before loadMarketCycle() has resolved), fall back to the old
+     30-day-return estimate so the bull/bear pill isn't just blank —
+     clearly worse than the real thing, but better than nothing for a few
+     seconds. marketCycleData.BTC.mayer_multiple, once available, is the
+     real, honest ratio the estimate could never provide. */
   var btcCoin = coins.find(function(c) { return c.id === 'bitcoin'; });
   if (btcCoin) {
     btcPrice = btcCoin.price;
-    var p30frac = (btcCoin.p30 || 0) / 100;
-    /* Conservative estimate: trailing avg ≈ current / (1 + half the 30D move) */
-    btcMA200 = btcPrice / (1 + p30frac * 0.5);
+    if (marketCycleData.BTC && marketCycleData.BTC.ma200) {
+      btcMA200 = marketCycleData.BTC.ma200;
+    } else {
+      var p30frac = (btcCoin.p30 || 0) / 100;
+      btcMA200 = btcPrice / (1 + p30frac * 0.5); /* fallback estimate only */
+    }
   }
 
   computeScores();
@@ -322,6 +328,58 @@ async function loadMacroData() {
     }
   } catch(e) { console.warn('Macro data:', e.message); }
 }
+
+/* ── Market Cycle (real MA200 + Mayer Multiple) ──────────────────
+   Read-only — the sync-market-cycle Edge Function is the sole writer
+   (see supabase/functions/sync-market-cycle/index.ts + sql/
+   sync_market_cycle_cron.sql). This just reads the latest row per
+   symbol out of `market_cycle`, same pattern as loadBstocks() reading
+   unified_market_data.
+
+   marketCycleData.BTC.mayer_multiple is the ONLY one with a calibrated
+   "Stretched/Neutral/Oversold" label attached (see _btcCycleLabel()
+   below and its use in computeScores()) — the 2.4×/0.8× bands are
+   specific to Bitcoin's own multi-year history. ETH/BNB/SOL/XRP/PAXG
+   show their real ratio in the UI but deliberately get NO qualitative
+   label — applying BTC's bands to them would be presenting a guess as
+   a validated fact. */
+var marketCycleData = {}; /* keyed by symbol: 'BTC','ETH','BNB','SOL','XRP','PAXG' */
+
+async function loadMarketCycle() {
+  try {
+    var rows = null;
+    if (typeof supaCacheGet === 'function') {
+      try { rows = await supaCacheGet('market_cycle_rows', 60 * 60 * 1000); /* 1hr TTL — updates once/day anyway */ }
+      catch (e) { console.warn('[SupaCache] market_cycle read skipped:', e.message); }
+    }
+    if (!rows || !Array.isArray(rows) || !rows.length) {
+      rows = await supaRest('market_cycle', 'GET', {
+        'select': 'symbol,name,price,ma200,mayer_multiple,sample_size,computed_at'
+      });
+      if (Array.isArray(rows) && rows.length && typeof supaCacheSet === 'function') {
+        supaCacheSet('market_cycle_rows', rows);
+      }
+    }
+    if (Array.isArray(rows)) {
+      rows.forEach(function(r) { marketCycleData[r.symbol] = r; });
+    }
+  } catch (e) {
+    console.warn('[loadMarketCycle] failed:', e.message);
+    /* Non-fatal — loadCoins()'s btcMA200 fallback estimate covers this */
+  }
+}
+
+/* BTC's Mayer Multiple label — the ONLY asset with calibrated bands.
+   2.4× / 0.8× are historically-observed cycle top/bottom levels specific
+   to Bitcoin's own price history, not a generic rule of thumb. */
+function _btcCycleLabel() {
+  var mm = marketCycleData.BTC && marketCycleData.BTC.mayer_multiple;
+  if (mm == null) return null;
+  if (mm >= 2.4) return 'stretched';
+  if (mm <= 0.8) return 'oversold';
+  return 'neutral';
+}
+
 
 /* ── Fear & Greed Index (used by Insight Engine) ─────────────── */
 window.fearGreed = { value: 50, label: 'Neutral' };
@@ -634,6 +692,7 @@ async function doLoad() {
     }
   });
   try {
+    await loadMarketCycle(); /* must resolve before loadCoins() so real btcMA200 is available */
     await loadCoins('all');  prog(50, 'Scoring and ranking coins…');  renderCoinSel();
     await loadBstocks();     prog(65, 'Fetching bStock data…');
     if (typeof pruneStaleHoldings === 'function') pruneStaleHoldings();
@@ -667,6 +726,8 @@ async function doRefresh() {
   var tsEl = document.getElementById('ts');
   if (tsEl) tsEl.style.color = 'var(--bnb)';
   try {
+    await loadMarketCycle(); /* cheap — 1hr cache TTL, real MA200 barely moves anyway */
+
     /* Always refresh crypto — re-fetch all loaded categories */
     await loadCoins(_loadedCategories['all'] ? 'all' : activeCategory);
 
