@@ -1204,6 +1204,40 @@ function openTileDetail(coinId, evt) {
     supSec.style.display = '';
   }
 
+  /* Market Cycle section — only for the 6 assets sync-market-cycle
+     tracks (BTC/ETH/BNB/SOL/XRP/PAXG). Hidden entirely for every other
+     coin, since there's no real MA200 data for them — showing nothing
+     is honest, showing a fabricated number wouldn't be. */
+  var cycleSec = document.getElementById('td-cycle-sec');
+  var cycleEl  = document.getElementById('td-cycle');
+  var cycleRow = (typeof marketCycleData !== 'undefined') ? marketCycleData[c.sym] : null;
+  if (cycleSec && cycleEl && cycleRow && cycleRow.mayer_multiple != null) {
+    var mm = cycleRow.mayer_multiple;
+    var isBTC = c.sym === 'BTC';
+    var label = null, labelC = 'var(--muted)';
+    if (isBTC) {
+      /* Only BTC has historically-calibrated bands — see _btcCycleLabel()
+         in data-loaders.js. Everything else stays a raw ratio, no label. */
+      var cl = (typeof _btcCycleLabel === 'function') ? _btcCycleLabel() : null;
+      if (cl === 'stretched') { label = 'STRETCHED'; labelC = 'var(--red)'; }
+      else if (cl === 'oversold') { label = 'OVERSOLD'; labelC = 'var(--green)'; }
+      else if (cl === 'neutral') { label = 'NEUTRAL'; labelC = 'var(--muted)'; }
+    }
+    var mmColor = mm >= 1 ? 'up' : 'dn';
+    cycleEl.innerHTML =
+      '<div class="td-cell"><div class="td-cell-l">MAYER MULTIPLE</div><div class="td-cell-v '+mmColor+'">'+mm.toFixed(3)+'×</div></div>'
+      +'<div class="td-cell"><div class="td-cell-l">200D AVG</div><div class="td-cell-v bnb">'+fmtP(cycleRow.ma200)+'</div></div>'
+      + (label
+        ? '<div class="td-cell"><div class="td-cell-l">CYCLE STATE</div><div class="td-cell-v" style="color:'+labelC+';">'+label+'</div></div>'
+        : isBTC
+          ? '<div class="td-cell"><div class="td-cell-l">CYCLE STATE</div><div class="td-cell-v" style="color:var(--muted);">—</div></div>'
+          : '<div class="td-cell"><div class="td-cell-l">CYCLE STATE</div><div class="td-cell-v" style="color:var(--muted);font-size:12px;" title="No historically-calibrated stretched/oversold bands exist for '+c.sym+' yet. Only Bitcoin Mayer Multiple has been validated against its own multi-year history.">n/a for '+c.sym+'</div></div>');
+    cycleEl.style.gridTemplateColumns = 'repeat(3,1fr)';
+    cycleSec.style.display = '';
+  } else if (cycleSec) {
+    cycleSec.style.display = 'none';
+  }
+
   /* Signal badges */
   var badges = [];
   if (c.score >= 70)      badges.push({t:'STRONG MOM', cls:'bull'});
