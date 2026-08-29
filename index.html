@@ -301,6 +301,16 @@
     <div class="td-mkt-grid" id="td-supply"></div>
   </div>
 
+  <!-- Market Cycle — only shown for BTC/ETH/BNB/SOL/XRP/PAXG, the 6
+       assets sync-market-cycle actually tracks (see data-loaders.js
+       loadMarketCycle()). Real 200-day-average Mayer Multiple; only BTC
+       gets a qualitative label, the rest show the raw ratio only —
+       no calibrated thresholds exist for them, see index.ts comments. -->
+  <div class="td-section" id="td-cycle-sec" style="display:none;">
+    <div class="td-section-title">Market Cycle</div>
+    <div class="td-mkt-grid" id="td-cycle"></div>
+  </div>
+
   <!-- Signal badges -->
   <div class="td-section" id="td-signals-sec">
     <div class="td-section-title">Signals</div>
