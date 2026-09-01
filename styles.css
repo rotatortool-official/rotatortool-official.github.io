@@ -78,6 +78,16 @@ body::before{content:'';position:fixed;inset:0;background:repeating-linear-gradi
 .topbar-r{display:flex;align-items:center;gap:2px;justify-content:flex-end;flex-shrink:0;}
 /* ── Topbar search ── */
 .topbar-search-wrap{position:relative;display:flex;align-items:center;}
+
+/* Inline table-header search — same dropdown/results pattern as the
+   topbar search, just a compact always-visible input instead of an
+   icon-triggered one. Lives in the COIN column header. */
+.table-search-wrap{position:relative;width:100%;}
+.table-search-input{width:100%;max-width:180px;background:var(--bg3);border:1px solid var(--bdr);border-radius:5px;color:var(--text);font-family:inherit;font-size:12px;font-weight:400;text-transform:none;letter-spacing:normal;padding:6px 10px;outline:none;box-sizing:border-box;}
+.table-search-input::placeholder{color:var(--muted);text-transform:none;letter-spacing:normal;}
+.table-search-input:focus{border-color:var(--bnb);}
+.table-search-dropdown{left:0;right:auto;width:280px;}
+:root.light .table-search-input{background:var(--bg3);color:var(--text);}
 .topbar-search-btn{background:transparent;border:none;color:var(--muted);width:34px;height:34px;display:flex;align-items:center;justify-content:center;cursor:pointer;border-radius:8px;transition:background .15s,color .15s;padding:0;flex-shrink:0;}
 .topbar-search-btn:hover{background:var(--bg4);color:var(--text);}
 .topbar-search-dropdown{position:absolute;top:calc(100% + 6px);right:0;width:300px;background:var(--bg2);border:1px solid var(--bdr2);border-radius:6px;box-shadow:0 8px 32px rgba(0,0,0,.5);z-index:200;overflow:hidden;}

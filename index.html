@@ -902,7 +902,17 @@
           <tr>
             <th style="width:28px;"></th>
             <th style="width:22px;">#</th>
-            <th>COIN</th>
+            <th style="position:relative;">
+              <div class="table-search-wrap" id="table-search-wrap">
+                <input type="text" id="table-search-input" class="table-search-input"
+                  placeholder="🔍 Search coin…" autocomplete="off"
+                  oninput="handleTableSearch(this.value)"
+                  onkeydown="if(event.key==='Escape'){this.value='';handleTableSearch('');this.blur();}">
+                <div class="table-search-dropdown topbar-search-dropdown" id="table-search-dropdown" style="display:none;">
+                  <div class="topbar-search-results" id="table-search-results"></div>
+                </div>
+              </div>
+            </th>
             <th class="r price-col" data-tip="Current market price in USD">PRICE</th>
             <th class="r" id="th-24" onclick="setSort(24)" data-tip="Price change in the last 24 hours">24H%</th>
             <th class="r sorted" id="th-7" onclick="setSort(7)" data-tip="Price change over 7 days. Click to sort.">7D%</th>
