@@ -40,9 +40,26 @@ function supaRest(table, method, params) {
     opts.headers['Prefer'] = 'return=representation,resolution=merge-duplicates';
   }
 
+  /* Hard timeout — a plain fetch() with no AbortController can hang
+     forever on a dropped connection or slow cold start, and a hung
+     Promise can't be caught by try/catch (catch only fires on
+     REJECTION, not on something that never settles). Any caller that
+     awaits this in a sequential chain — e.g. doLoad() — would freeze
+     the entire page load if one single request never came back.
+     10s is generous for a normal Supabase REST call; this only bites
+     when something is actually stuck. */
+  var controller = (typeof AbortController !== 'undefined') ? new AbortController() : null;
+  if (controller) opts.signal = controller.signal;
+  var timeoutId = controller ? setTimeout(function() { controller.abort(); }, 10000) : null;
+
   return fetch(url, opts).then(function(r) {
+    if (timeoutId) clearTimeout(timeoutId);
     if (!r.ok) throw new Error('Supabase ' + r.status);
     return r.json();
+  }).catch(function(e) {
+    if (timeoutId) clearTimeout(timeoutId);
+    if (e && e.name === 'AbortError') throw new Error('Supabase request timed out (' + table + ')');
+    throw e;
   });
 }
 

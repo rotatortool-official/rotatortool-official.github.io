@@ -543,6 +543,37 @@ document.addEventListener('click', function(e) {
   if (wrap && !wrap.contains(e.target)) toggleTopbarSearch(false);
 }, true);
 
+function handleTableSearch(q) {
+  q = (q||'').toLowerCase().trim();
+  var dd = document.getElementById('table-search-dropdown');
+  if (!q) { if (dd) dd.style.display = 'none'; renderTableResults([]); return; }
+  if (dd) dd.style.display = 'block';
+  var cArr = (window.coins && Array.isArray(window.coins)) ? window.coins
+           : (typeof coins !== 'undefined' && Array.isArray(coins)) ? coins : [];
+  if (!cArr.length) {
+    renderTableResults([{sym:'Loading…',name:'Coin data not ready yet',id:'',image:'',p24:0}]);
+    return;
+  }
+  var filtered = cArr.filter(function(c) {
+    return (c.sym||'').toLowerCase().includes(q) || (c.name||'').toLowerCase().includes(q);
+  }).slice(0, 14);
+  renderTableResults(filtered);
+}
+function renderTableResults(arr) {
+  var el = document.getElementById('table-search-results');
+  if (!el) return;
+  if (!arr.length) { el.innerHTML = '<div class="topbar-search-empty">No results found</div>'; return; }
+  el.innerHTML = arr.map(_searchItemHTML).join('');
+}
+/* Close table-header search on outside click / Escape-then-blur already
+   handled inline; this covers clicking anywhere else on the page. */
+document.addEventListener('click', function(e) {
+  var wrap = document.getElementById('table-search-wrap');
+  var dd   = document.getElementById('table-search-dropdown');
+  if (!wrap || !dd || dd.style.display === 'none') return;
+  if (!wrap.contains(e.target)) dd.style.display = 'none';
+}, true);
+
 function handleTopbarSearch(q) {
   q = (q||'').toLowerCase().trim();
   if (!q) { renderTopbarResults([]); renderMobResults([]); return; }
@@ -584,10 +615,16 @@ function renderMobResults(arr) {
     : '';
 }
 function handleSearchSelect(coinId) {
+  var closeTableSearch = function() {
+    var dd = document.getElementById('table-search-dropdown');
+    var inp = document.getElementById('table-search-input');
+    if (dd) dd.style.display = 'none';
+    if (inp) inp.value = '';
+  };
   /* Open coin detail card */
   if (typeof coins !== 'undefined' && typeof openTileDetail === 'function') {
     var c = coins.find(function(x) { return x.id === coinId; });
-    if (c) { openTileDetail(c.id); toggleTopbarSearch(false); toggleMobSearch(false); return; }
+    if (c) { openTileDetail(c.id); toggleTopbarSearch(false); toggleMobSearch(false); closeTableSearch(); return; }
   }
   /* Fallback: load into swap tool */
   if (typeof RatioTracker !== 'undefined') {
@@ -599,6 +636,7 @@ function handleSearchSelect(coinId) {
   }
   toggleTopbarSearch(false);
   toggleMobSearch(false);
+  closeTableSearch();
 }
 
 /* ── Theme: patch after deferred scripts load ─── */
