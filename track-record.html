@@ -83,6 +83,51 @@ a{color:inherit;text-decoration:none}
 .card-change.up{color:var(--green)} .card-change.down{color:var(--red)}
 .card-proof{font-family:var(--font-mono);font-size:11px;color:var(--muted);margin-top:8px;letter-spacing:.02em;}
 
+/* ── Search bar ───────────────────────────────────────── */
+.search-wrap{max-width:420px;margin:20px auto 0;position:relative;}
+.search-input{width:100%;background:var(--bg2);border:1px solid var(--bdr2);border-radius:6px;
+  color:var(--text);font-family:var(--font-mono);font-size:14px;padding:11px 14px 11px 38px;outline:none;}
+.search-input::placeholder{color:var(--muted);}
+.search-input:focus{border-color:var(--bnb);}
+.search-icon{position:absolute;left:13px;top:50%;transform:translateY(-50%);color:var(--muted);pointer-events:none;font-size:14px;}
+.search-clear{position:absolute;right:10px;top:50%;transform:translateY(-50%);color:var(--muted);
+  cursor:pointer;font-size:16px;display:none;padding:4px;}
+.search-active .search-clear{display:block;}
+
+/* ── Rotation cards ───────────────────────────────────── */
+.rot-card{background:var(--bg2);border:1px solid var(--bdr);border-radius:6px;
+  padding:14px 16px;transition:border-color .15s,transform .15s;cursor:pointer;}
+.rot-card:hover{border-color:var(--bdr2);transform:translateY(-1px);}
+.rot-card.win{border-left:3px solid var(--green)}
+.rot-card.miss{border-left:3px solid var(--red)}
+.rot-card.pending{border-left:3px solid var(--muted);opacity:.7;}
+.rot-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;}
+.rot-pair{font-family:var(--font-mono);font-size:15px;font-weight:800;display:flex;align-items:center;gap:6px;}
+.rot-from{color:var(--red);} .rot-to{color:var(--green);}
+.rot-arrow{color:var(--muted);opacity:.6;font-size:13px;}
+.rot-age{font-family:var(--font-mono);font-size:11px;color:var(--muted);}
+.rot-scores{display:flex;gap:14px;font-family:var(--font-mono);font-size:11px;color:var(--muted);margin-bottom:8px;}
+.rot-scores b{color:var(--text);}
+.rot-spread{font-family:var(--font-mono);font-size:22px;font-weight:800;}
+.rot-spread.up{color:var(--green)} .rot-spread.down{color:var(--red)} .rot-spread.pending{color:var(--muted);font-size:14px;}
+.rot-verdict{font-family:var(--font-mono);font-size:11px;color:var(--muted);margin-top:6px;}
+
+/* ── Detail modal ─────────────────────────────────────── */
+.modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:500;
+  align-items:center;justify-content:center;padding:20px;}
+.modal-overlay.show{display:flex;}
+.modal-box{background:var(--bg2);border:1px solid var(--bdr2);border-radius:10px;
+  max-width:480px;width:100%;padding:26px;position:relative;}
+.modal-close{position:absolute;top:14px;right:14px;color:var(--muted);cursor:pointer;font-size:20px;}
+.modal-close:hover{color:var(--text);}
+.modal-share-preview{margin:16px 0;border-radius:6px;overflow:hidden;border:1px solid var(--bdr);}
+.modal-share-preview img{width:100%;display:block;}
+.modal-btn{display:block;width:100%;text-align:center;padding:12px;background:var(--bnb);color:#000;
+  font-family:var(--font-mono);font-weight:800;font-size:13px;letter-spacing:.1em;text-transform:uppercase;
+  border:none;border-radius:5px;cursor:pointer;margin-top:8px;}
+.modal-btn:hover{opacity:.9;}
+.modal-btn.secondary{background:var(--bg3);color:var(--text);border:1px solid var(--bdr2);}
+
 /* ── Empty / Loading ──────────────────────────────────── */
 .status{text-align:center;padding:50px 20px;color:var(--muted);}
 .status-icon{font-size:42px;margin-bottom:16px;}
@@ -138,10 +183,25 @@ a{color:inherit;text-decoration:none}
     <div>
       <span class="window-pill" id="window-pill">Last 30 days</span>
     </div>
+    <div class="search-wrap" id="search-wrap">
+      <span class="search-icon">🔍</span>
+      <input type="text" class="search-input" id="search-input" placeholder="Search by coin symbol or name…" autocomplete="off">
+      <span class="search-clear" id="search-clear">✕</span>
+    </div>
   </div>
 </section>
 
 <main class="wrap">
+
+  <section class="section">
+    <div class="section-hdr">
+      <span class="section-title">🔁 Rotation Calls — Strong asset → Weak asset</span>
+      <span class="section-count" id="rot-count"></span>
+    </div>
+    <div id="rot-acc-line" style="font-family:var(--font-mono);font-size:12px;color:var(--muted);margin-bottom:16px;"></div>
+    <div id="rot-grid" class="grid"></div>
+    <div id="rot-empty"></div>
+  </section>
 
   <section class="section">
     <div class="section-hdr">
@@ -162,6 +222,17 @@ a{color:inherit;text-decoration:none}
   </section>
 
 </main>
+
+<!-- Rotation call detail / share modal -->
+<div class="modal-overlay" id="rot-modal">
+  <div class="modal-box">
+    <span class="modal-close" id="rot-modal-close">✕</span>
+    <div id="rot-modal-body"></div>
+    <div class="modal-share-preview" id="rot-modal-preview"></div>
+    <button class="modal-btn" id="rot-modal-download">⬇ Download image</button>
+    <button class="modal-btn secondary" id="rot-modal-copy">📋 Copy call as text</button>
+  </div>
+</div>
 
 <section class="cta">
   <div class="wrap">
@@ -197,6 +268,7 @@ a{color:inherit;text-decoration:none}
 
   var WINDOW_DAYS        = 30;
   var CONFIRM_DAYS_MIN   = 7;    /* snapshot must be 7+ days old to be evaluated */
+  var ROTATION_THRESHOLD = 2;    /* rotation: spread between to-change and from-change, in % — mirrors js/signal-history.js */
   var PEAK_WINDOW_DAYS   = 14;   /* upper bound of the confirm window for peak-capture */
   var CONFIRM_THRESHOLD  = 2;    /* legacy fallback when mcap unknown */
   var STATS_FROM_DATE    = '2026-04-26';  /* v2 engine reset — pre-cutoff snapshots not graded */
@@ -239,9 +311,86 @@ a{color:inherit;text-decoration:none}
     }).then(function(r) { if (!r.ok) throw new Error('snap ' + r.status); return r.json(); });
   }
 
-  /* ── Fetch current prices (top 250 covers our universe). ─
-     CoinGecko is rate-limited so we fall back to Supabase's
-     shared market_cache on failure. */
+  /* ── Fetch rotation snapshots from Supabase ────────────────
+     Table + Edge Function (sync-rotation-snapshot) added after
+     discovering the original client-side recording path never actually
+     worked — the table/RPC it relied on didn't exist. This reads real
+     data going forward from whenever that fix shipped. */
+  function fetchRotationSnapshots() {
+    var cutoff = new Date(Date.now() - WINDOW_DAYS * 864e5);
+    var cutoffStr = cutoff.getFullYear() + '-'
+                  + String(cutoff.getMonth() + 1).padStart(2, '0') + '-'
+                  + String(cutoff.getDate()).padStart(2, '0');
+    var url = SUPA_URL + '/rest/v1/rotation_snapshots'
+      + '?snap_date=gte.' + cutoffStr
+      + '&select=snap_date,from_id,from_sym,from_price,from_score,to_id,to_sym,to_price,to_score,source'
+      + '&order=snap_date.desc,from_score.desc';
+    return fetch(url, {
+      headers: { 'apikey': SUPA_KEY, 'Authorization': 'Bearer ' + SUPA_KEY }
+    }).then(function(r) { if (!r.ok) throw new Error('rotation ' + r.status); return r.json(); })
+      .catch(function() { return []; }); /* non-fatal — page still shows single-coin sections */
+  }
+
+  /* ── Evaluate rotation pairs ─────────────────────────────────
+     Simple then-vs-now comparison, NOT the peak/trough-average proxy
+     the live dashboard widget uses internally — that approach has a
+     known honesty concern (flagged separately, fix pending). This is
+     simpler and, in the meantime, more straightforward: the price
+     someone would actually see checking today, not an average of a
+     best-case peak and a worst-case trough that may never have
+     coincided with any real moment. Same CONFIRM_DAYS_MIN/ROTATION_
+     THRESHOLD rules as the rest of the site for consistency. */
+  function evaluateRotation(snaps, priceMap) {
+    var evaluated = [], pending = [];
+    snaps.forEach(function(s) {
+      var snapTs = new Date(s.snap_date + 'T00:00:00Z').getTime();
+      var daysAgo = Math.floor((Date.now() - snapTs) / 864e5);
+      var fromNow = priceMap[s.from_id], toNow = priceMap[s.to_id];
+      var row = {
+        snap_date: s.snap_date, daysAgo: daysAgo,
+        fromId: s.from_id, fromSym: s.from_sym, fromPriceThen: s.from_price, fromScore: s.from_score,
+        toId: s.to_id, toSym: s.to_sym, toPriceThen: s.to_price, toScore: s.to_score,
+        fromPriceNow: fromNow, toPriceNow: toNow
+      };
+      if (daysAgo < CONFIRM_DAYS_MIN || fromNow == null || toNow == null) { pending.push(row); return; }
+      var fromChange = ((fromNow - s.from_price) / s.from_price) * 100;
+      var toChange   = ((toNow   - s.to_price)   / s.to_price)   * 100;
+      row.fromChange = Math.round(fromChange * 10) / 10;
+      row.toChange   = Math.round(toChange   * 10) / 10;
+      row.spread     = Math.round((toChange - fromChange) * 10) / 10;
+      row.correct    = row.spread >= ROTATION_THRESHOLD;
+      evaluated.push(row);
+    });
+    var correct = evaluated.filter(function(r) { return r.correct; }).length;
+    return {
+      evaluated: evaluated, pending: pending,
+      stats: { total: evaluated.length, correct: correct,
+        accuracy: evaluated.length ? Math.round(correct / evaluated.length * 100) : null }
+    };
+  }
+
+  function renderRotationCard(r) {
+    var isPending = r.correct === undefined;
+    var cls = isPending ? 'pending' : (r.correct ? 'win' : 'miss');
+    var card = el('div', { className: 'rot-card ' + cls });
+    card.dataset.searchText = (r.fromSym + ' ' + r.toSym).toLowerCase();
+    var spreadHtml = isPending
+      ? '<div class="rot-spread pending">Pending — evaluates ' + (CONFIRM_DAYS_MIN - r.daysAgo > 0 ? 'in ' + (CONFIRM_DAYS_MIN - r.daysAgo) + 'd' : 'soon') + '</div>'
+      : '<div class="rot-spread ' + (r.spread >= 0 ? 'up' : 'down') + '">' + (r.spread >= 0 ? '+' : '') + r.spread + '% spread</div>';
+    card.innerHTML =
+      '<div class="rot-top">'
+    +   '<span class="rot-pair"><span class="rot-from">' + escape(r.fromSym) + '</span>'
+    +     '<span class="rot-arrow">→</span><span class="rot-to">' + escape(r.toSym) + '</span></span>'
+    +   '<span class="rot-age">' + r.daysAgo + 'd ago</span>'
+    + '</div>'
+    + '<div class="rot-scores">Called: <b>' + escape(r.fromSym) + ' ' + r.fromScore + '</b> vs <b>' + escape(r.toSym) + ' ' + r.toScore + '</b></div>'
+    + spreadHtml
+    + '<div class="rot-verdict">' + (isPending ? 'Not old enough to grade yet' : (r.correct ? 'Confirmed ✓ — spread ≥ ' + ROTATION_THRESHOLD + '%' : 'Did not confirm')) + '</div>';
+    card.addEventListener('click', function() { openRotationModal(r); });
+    return card;
+  }
+
+
   /* Returns { priceMap: {id: price}, mcapMap: {id: mcap} } so evaluate()
      can pick a market-cap-aware confirmation threshold per coin. */
   function fetchCurrentPrices() {
@@ -503,6 +652,158 @@ a{color:inherit;text-decoration:none}
       .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
   }
 
+  /* ── Rotation detail modal + share image ──────────────────── */
+  function _roundRect(ctx, x, y, w, h, r) {
+    ctx.beginPath();
+    ctx.moveTo(x + r, y);
+    ctx.arcTo(x + w, y, x + w, y + h, r);
+    ctx.arcTo(x + w, y + h, x, y + h, r);
+    ctx.arcTo(x, y + h, x, y, r);
+    ctx.arcTo(x, y, x + w, y, r);
+    ctx.closePath();
+  }
+
+  function generateRotationShareImage(r) {
+    var W = 1200, H = 630;
+    var can = document.createElement('canvas');
+    can.width = W; can.height = H;
+    var ctx = can.getContext('2d');
+    var isPending = r.correct === undefined;
+
+    var bg = ctx.createLinearGradient(0, 0, W, H);
+    bg.addColorStop(0, '#080c12'); bg.addColorStop(0.4, '#0d1420'); bg.addColorStop(1, '#080c12');
+    ctx.fillStyle = bg; ctx.fillRect(0, 0, W, H);
+
+    ctx.strokeStyle = 'rgba(243,186,47,0.025)'; ctx.lineWidth = 1;
+    for (var gx = 0; gx < W; gx += 50) { ctx.beginPath(); ctx.moveTo(gx, 0); ctx.lineTo(gx, H); ctx.stroke(); }
+    for (var gy = 0; gy < H; gy += 50) { ctx.beginPath(); ctx.moveTo(0, gy); ctx.lineTo(W, gy); ctx.stroke(); }
+
+    var gold = ctx.createLinearGradient(0, 0, W, 0);
+    gold.addColorStop(0, 'rgba(243,186,47,0)'); gold.addColorStop(0.3, 'rgba(243,186,47,0.9)');
+    gold.addColorStop(0.7, 'rgba(243,186,47,0.9)'); gold.addColorStop(1, 'rgba(243,186,47,0)');
+    ctx.fillStyle = gold; ctx.fillRect(0, 0, W, 4);
+
+    var badgeColor = isPending ? '#7a8699' : (r.correct ? '#00c896' : '#ff4560');
+    var badgeText  = isPending ? '⏳ PENDING' : (r.correct ? '🟢 CALLED IT' : '🔴 MISSED');
+    ctx.fillStyle = isPending ? 'rgba(122,134,153,.12)' : (r.correct ? 'rgba(0,200,150,.12)' : 'rgba(255,69,96,.12)');
+    _roundRect(ctx, 60, 40, 260, 50, 8); ctx.fill();
+    ctx.strokeStyle = badgeColor; ctx.lineWidth = 2;
+    _roundRect(ctx, 60, 40, 260, 50, 8); ctx.stroke();
+    ctx.fillStyle = badgeColor;
+    ctx.font = 'bold 26px "IBM Plex Mono", monospace';
+    ctx.fillText(badgeText, 80, 74);
+
+    ctx.fillStyle = 'rgba(255,255,255,0.4)'; ctx.font = '22px "IBM Plex Mono", monospace';
+    ctx.textAlign = 'right'; ctx.fillText(r.daysAgo + ' days ago', W - 70, 74); ctx.textAlign = 'left';
+
+    /* Pair */
+    ctx.fillStyle = '#ff4560'; ctx.font = 'bold 64px "IBM Plex Mono", monospace';
+    ctx.fillText(r.fromSym, 70, 165);
+    ctx.fillStyle = 'rgba(243,186,47,0.6)'; ctx.font = '42px "IBM Plex Mono", monospace';
+    ctx.fillText('→', 70 + ctx.measureText(r.fromSym).width + 340, 155);
+    ctx.fillStyle = '#00c896'; ctx.font = 'bold 64px "IBM Plex Mono", monospace';
+    ctx.fillText(r.toSym, W - 70 - ctx.measureText(r.toSym).width, 165);
+
+    ctx.fillStyle = 'rgba(255,255,255,0.4)'; ctx.font = '22px "IBM Plex Mono", monospace';
+    ctx.fillText('Score ' + r.fromScore, 70, 200);
+    ctx.textAlign = 'right'; ctx.fillText('Score ' + r.toScore, W - 70, 200); ctx.textAlign = 'left';
+
+    if (!isPending) {
+      var spreadStr = (r.spread >= 0 ? '+' : '') + r.spread + '%';
+      ctx.fillStyle = 'rgba(255,255,255,0.5)'; ctx.font = '22px "IBM Plex Mono", monospace';
+      ctx.textAlign = 'center'; ctx.fillText('SPREAD', W / 2, 290);
+      ctx.fillStyle = r.spread >= 0 ? '#00c896' : '#ff4560'; ctx.font = 'bold 84px "IBM Plex Mono", monospace';
+      ctx.fillText(spreadStr, W / 2, 380);
+      ctx.fillStyle = 'rgba(255,255,255,0.4)'; ctx.font = '20px "IBM Plex Mono", monospace';
+      ctx.fillText(r.fromSym + ' ' + (r.fromChange >= 0 ? '+' : '') + r.fromChange + '%   vs   ' + r.toSym + ' ' + (r.toChange >= 0 ? '+' : '') + r.toChange + '%', W / 2, 420);
+      ctx.textAlign = 'left';
+    } else {
+      ctx.fillStyle = 'rgba(255,255,255,0.5)'; ctx.font = 'bold 30px "IBM Plex Mono", monospace';
+      ctx.textAlign = 'center'; ctx.fillText('Result pending — check back after ' + CONFIRM_DAYS_MIN + ' days', W / 2, 350);
+      ctx.textAlign = 'left';
+    }
+
+    ctx.fillStyle = 'rgba(243,186,47,0.06)';
+    _roundRect(ctx, 70, 475, W - 140, 42, 6); ctx.fill();
+    ctx.strokeStyle = 'rgba(243,186,47,0.2)'; ctx.lineWidth = 1;
+    _roundRect(ctx, 70, 475, W - 140, 42, 6); ctx.stroke();
+    ctx.fillStyle = 'rgba(243,186,47,0.85)'; ctx.font = 'bold 18px "IBM Plex Mono", monospace';
+    ctx.textAlign = 'center';
+    ctx.fillText('Free rotation signals at Rotator — see what\'s next', W / 2, 502);
+    ctx.textAlign = 'left';
+
+    ctx.fillStyle = 'rgba(255,255,255,0.06)'; ctx.fillRect(70, H - 60, W - 140, 1);
+    ctx.fillStyle = '#f3ba2f'; ctx.font = 'bold 28px "IBM Plex Mono", monospace';
+    ctx.fillText('ROTATOR', 70, H - 25);
+    ctx.fillStyle = 'rgba(243,186,47,0.7)'; ctx.font = 'bold 16px "IBM Plex Mono", monospace';
+    ctx.textAlign = 'right'; ctx.fillText('rotatortool-official.github.io', W - 70, H - 25); ctx.textAlign = 'left';
+
+    ctx.fillStyle = gold; ctx.fillRect(0, H - 4, W, 4);
+    return can;
+  }
+
+  var _rotModalBlob = null, _rotModalText = '';
+  function openRotationModal(r) {
+    var isPending = r.correct === undefined;
+    var body = document.getElementById('rot-modal-body');
+    body.innerHTML =
+      '<div style="font-family:var(--font-mono);font-size:20px;font-weight:800;margin-bottom:6px;">'
+    +   '<span style="color:var(--red);">' + escape(r.fromSym) + '</span> → <span style="color:var(--green);">' + escape(r.toSym) + '</span>'
+    + '</div>'
+    + '<div style="font-family:var(--font-mono);font-size:12px;color:var(--muted);">Called ' + r.daysAgo + ' days ago on ' + r.snap_date
+    +   ' — ' + escape(r.fromSym) + ' scored ' + r.fromScore + ', ' + escape(r.toSym) + ' scored ' + r.toScore + '</div>';
+
+    var can = generateRotationShareImage(r);
+    can.toBlob(function(blob) {
+      _rotModalBlob = blob;
+      var url = URL.createObjectURL(blob);
+      document.getElementById('rot-modal-preview').innerHTML = '<img src="' + url + '" alt="' + escape(r.fromSym) + ' to ' + escape(r.toSym) + ' rotation call">';
+    }, 'image/png');
+
+    _rotModalText = isPending
+      ? 'Rotator flagged rotating ' + r.fromSym + ' → ' + r.toSym + ' ' + r.daysAgo + ' days ago. Result pending. Free signals: https://rotatortool-official.github.io/'
+      : 'Rotator flagged rotating ' + r.fromSym + ' → ' + r.toSym + ' ' + r.daysAgo + ' days ago. Spread: ' + (r.spread >= 0 ? '+' : '') + r.spread + '% (' + (r.correct ? 'confirmed' : 'missed') + '). Free signals: https://rotatortool-official.github.io/';
+
+    document.getElementById('rot-modal').classList.add('show');
+  }
+
+  document.getElementById('rot-modal-close').addEventListener('click', function() {
+    document.getElementById('rot-modal').classList.remove('show');
+  });
+  document.getElementById('rot-modal').addEventListener('click', function(e) {
+    if (e.target.id === 'rot-modal') document.getElementById('rot-modal').classList.remove('show');
+  });
+  document.getElementById('rot-modal-download').addEventListener('click', function() {
+    if (!_rotModalBlob) return;
+    var a = document.createElement('a');
+    a.href = URL.createObjectURL(_rotModalBlob);
+    a.download = 'rotator-call.png';
+    a.click();
+  });
+  document.getElementById('rot-modal-copy').addEventListener('click', function(e) {
+    navigator.clipboard.writeText(_rotModalText).then(function() {
+      var btn = e.target; var orig = btn.textContent;
+      btn.textContent = '✓ Copied'; setTimeout(function() { btn.textContent = orig; }, 1500);
+    });
+  });
+
+  /* ── Search — filters all three grids (wins/misses/rotation) live ── */
+  document.getElementById('search-input').addEventListener('input', function() {
+    var q = this.value.toLowerCase().trim();
+    document.getElementById('search-wrap').classList.toggle('search-active', !!q);
+    ['wins-grid', 'miss-grid', 'rot-grid'].forEach(function(gridId) {
+      var grid = document.getElementById(gridId);
+      Array.prototype.forEach.call(grid.children, function(card) {
+        var text = card.dataset.searchText || card.textContent.toLowerCase();
+        card.style.display = (!q || text.indexOf(q) >= 0) ? '' : 'none';
+      });
+    });
+  });
+  document.getElementById('search-clear').addEventListener('click', function() {
+    var input = document.getElementById('search-input');
+    input.value = ''; input.dispatchEvent(new Event('input'));
+  });
+
   /* ── Render ────────────────────────────────────────────── */
   function render(result) {
     var stats = result.stats;
@@ -559,12 +860,44 @@ a{color:inherit;text-decoration:none}
   }
 
   /* ── Go ────────────────────────────────────────────────── */
-  Promise.all([fetchSnapshots(), fetchCurrentPrices()])
+  function renderRotation(result) {
+    var evalList = result.evaluated, pendingList = result.pending;
+    var stats = result.stats;
+    var accLine = document.getElementById('rot-acc-line');
+    if (stats.accuracy == null) {
+      accLine.textContent = pendingList.length
+        ? pendingList.length + ' call' + (pendingList.length === 1 ? '' : 's') + ' recorded, none old enough to grade yet (needs ' + CONFIRM_DAYS_MIN + '+ days).'
+        : 'No rotation calls recorded yet.';
+    } else {
+      accLine.innerHTML = '<b style="color:' + (stats.accuracy >= 50 ? 'var(--green)' : 'var(--red)') + ';">' + stats.accuracy + '%</b> spread accuracy ('
+        + stats.correct + ' of ' + stats.total + ' confirmed, spread ≥ ' + ROTATION_THRESHOLD + '%)'
+        + (pendingList.length ? ' · ' + pendingList.length + ' more pending' : '');
+    }
+
+    var grid  = document.getElementById('rot-grid');
+    var empty = document.getElementById('rot-empty');
+    var all = evalList.concat(pendingList).sort(function(a, b) { return b.daysAgo - a.daysAgo; });
+    grid.innerHTML = '';
+    empty.innerHTML = '';
+    document.getElementById('rot-count').textContent = all.length ? all.length + (all.length === 1 ? ' call' : ' calls') : '';
+    if (!all.length) {
+      empty.innerHTML = '<div class="status"><div class="status-icon">⏳</div><h3>Nothing to show yet</h3>'
+        + '<p>Rotation calls are recorded daily. Check back soon.</p></div>';
+      return;
+    }
+    all.slice(0, MAX_CARDS_PER_LIST * 2).forEach(function(r) { grid.appendChild(renderRotationCard(r)); });
+  }
+
+  Promise.all([fetchSnapshots(), fetchCurrentPrices(), fetchRotationSnapshots()])
     .then(function(vals) {
       var snaps = vals[0] || [];
       var pricePack = vals[1] || { priceMap: {}, mcapMap: {} };
       var priceMap = pricePack.priceMap || {};
       var mcapMap  = pricePack.mcapMap  || {};
+      var rotSnaps = vals[2] || [];
+
+      renderRotation(evaluateRotation(rotSnaps, priceMap));
+
       if (!snaps.length) {
         var pct = document.getElementById('acc-pct');
         pct.textContent = '—';
