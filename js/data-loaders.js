@@ -1165,6 +1165,78 @@ function openTileDetail(coinId, evt) {
   scHtml += '</div>';
   document.getElementById('td-score-bars').innerHTML = scHtml;
 
+  /* Score Breakdown — the actual layer1/layer2/layer3 numbers behind
+     the composite, in plain language. Was already computed every render
+     (c.scoreBreakdown) but never displayed — a score someone might put
+     real money behind should be inspectable, not a black box. */
+  var bdSec = document.getElementById('td-breakdown-sec');
+  var bdEl  = document.getElementById('td-breakdown');
+  if (bdSec && bdEl && c.scoreBreakdown) {
+    var bd = c.scoreBreakdown;
+    var l1c = bd.layer1 >= 20 ? 'up' : 'dn';
+    var l2c = bd.layer2 >= 15 ? 'up' : 'dn';
+    bdEl.innerHTML =
+      '<div class="td-cell" title="Rank vs every other tracked coin on 7D/14D/30D momentum, weighted 25/30/45%. Higher = stronger relative recent momentum.">'
+      +'<div class="td-cell-l">MOMENTUM</div><div class="td-cell-v '+l1c+'">'+bd.layer1+' / 40</div></div>'
+      +'<div class="td-cell" title="Relative strength vs BTC, Gold, Silver, Oil, DXY and the broader alt market (Total3) over 7D. Higher = outperforming the macro backdrop, not just the crypto market.">'
+      +'<div class="td-cell-l">MACRO STRENGTH</div><div class="td-cell-v '+l2c+'">'+bd.layer2+' / 30</div></div>'
+      + (bd.partial
+        ? '<div class="td-cell" title="No tokenomics data applies to equities — see the bStock badge tooltip. This is a partial score (max 70), not directly comparable to a crypto composite.">'
+          +'<div class="td-cell-l">TOKENOMICS</div><div class="td-cell-v" style="color:var(--muted);">n/a (stock)</div></div>'
+        : '<div class="td-cell" title="Supply issuance schedule, deflationary mechanics, and unlock/vesting risk. Can be negative — bad tokenomics actively subtracts from the score, it is not just a neutral add-on.">'
+          +'<div class="td-cell-l">TOKENOMICS</div><div class="td-cell-v '+(bd.layer3>=0?'up':'dn')+'">'+(bd.layer3>=0?'+':'')+bd.layer3+' / 30</div></div>');
+    bdEl.style.gridTemplateColumns = 'repeat(3,1fr)';
+    bdSec.style.display = '';
+
+    /* Honest scope disclosure — shown once, directly under the numbers
+       that could most easily be over-trusted. Not hidden in a tooltip:
+       this is the kind of thing someone deciding whether to deploy real
+       capital should not have to go hunting for. */
+    var scopeNote = document.getElementById('td-breakdown-scope');
+    if (!scopeNote) {
+      scopeNote = document.createElement('div');
+      scopeNote.id = 'td-breakdown-scope';
+      scopeNote.style.cssText = 'font-size:11px;color:var(--muted);line-height:1.5;margin-top:8px;padding:8px 10px;background:rgba(255,255,255,.015);border-radius:6px;';
+      bdSec.appendChild(scopeNote);
+    }
+    scopeNote.innerHTML = 'This score measures 7–30 day price momentum, macro relative strength, and (for crypto) supply/unlock mechanics. '
+      + 'It is <b>not</b> a security audit, a long-term valuation, a usage/TVL metric, or sentiment analysis — none of those are measured here. '
+      + 'A high score means "strong recent relative momentum with reasonable tokenomics", not "guaranteed future profit". DYOR beyond this tool before deploying capital.';
+  } else if (bdSec) {
+    bdSec.style.display = 'none';
+  }
+
+  /* Liquidity — 24h volume ÷ market cap. Deliberately kept OUT of the
+     composite score (it's a risk/exit-ability flag, not a momentum
+     signal) but shown prominently since it directly protects against a
+     real, common way to lose money: buying into a position you can't
+     actually exit without moving the price against yourself. Thresholds
+     below are a reasonable heuristic (typical liquid large-caps turn
+     over several % of mcap daily; sub-1-2% is a real thin-liquidity
+     warning sign), not a precise scientific boundary — said plainly in
+     the tooltip rather than presented as exact science. */
+  var liqSec = document.getElementById('td-liquidity-sec');
+  var liqEl  = document.getElementById('td-liquidity');
+  if (liqSec && liqEl) {
+    var vol = c.volume24 || c.total_volume || null;
+    var mc  = c.mcap || null;
+    if (vol != null && mc && mc > 0) {
+      var ratio = (vol / mc) * 100;
+      var liqLabel, liqColor, liqNote;
+      if (ratio >= 8)      { liqLabel = 'HEALTHY';    liqColor = 'var(--green)'; liqNote = 'Plenty of daily turnover relative to size — exiting a normal position should not move the price much.'; }
+      else if (ratio >= 2) { liqLabel = 'MODERATE';   liqColor = 'var(--amber)'; liqNote = 'Workable liquidity, but a large order could move the price. Consider position size.'; }
+      else                 { liqLabel = 'THIN ⚠';     liqColor = 'var(--red)';   liqNote = 'Low turnover relative to market cap — exiting even a modest position may be difficult without moving the price against yourself.'; }
+      liqEl.innerHTML =
+        '<div class="td-cell"><div class="td-cell-l">24H VOL / MCAP</div><div class="td-cell-v" style="color:'+liqColor+';">'+ratio.toFixed(2)+'%</div></div>'
+        +'<div class="td-cell" title="'+liqNote+' Heuristic thresholds (8%+ / 2-8% / under 2%), not a precise scientific boundary — always check the actual order book before sizing a position.">'
+        +'<div class="td-cell-l">ASSESSMENT</div><div class="td-cell-v" style="color:'+liqColor+';">'+liqLabel+'</div></div>';
+      liqEl.style.gridTemplateColumns = 'repeat(2,1fr)';
+      liqSec.style.display = '';
+    } else {
+      liqSec.style.display = 'none';
+    }
+  }
+
   /* Market data: mkt cap, vol, rank, ATH distance, 7D, 30D */
   var vol24 = c.volume24 || c.total_volume || null;
   var athPct = c.ath_change_pct || 0;
