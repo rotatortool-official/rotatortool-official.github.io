@@ -458,33 +458,14 @@ function supaLoadSignalHistory(days) {
  * @returns {Promise<{ok:boolean, reason:string, count:number}>}
  */
 
-/**
- * Record today's rotation pairs (A → B). First-writer-of-the-day wins
- * per (snap_date, from_id, to_id). Server stamps snap_date itself.
- * @param {Array<Object>} rows — each: { from_id, from_sym, from_price, from_score, to_id, to_sym, to_price, to_score, source? }
- * @returns {Promise<{ok:boolean, reason:string, count:number}>}
- */
-function supaRecordRotationSnapshot(rows) {
-  var url = SUPA_URL + '/rest/v1/rpc/record_rotation_snapshot';
-  return fetch(url, {
-    method: 'POST',
-    headers: {
-      'apikey':        SUPA_KEY,
-      'Authorization': 'Bearer ' + SUPA_KEY,
-      'Content-Type':  'application/json'
-    },
-    body: JSON.stringify({ p_rows: rows })
-  }).then(function(r) {
-    if (!r.ok) throw new Error('rpc ' + r.status);
-    return r.json();
-  }).then(function(result) {
-    if (result && typeof result.ok === 'boolean') return result;
-    return { ok: false, reason: 'invalid', count: 0 };
-  }).catch(function(e) {
-    console.warn('[Supabase] record_rotation_snapshot failed:', e.message);
-    return { ok: false, reason: 'offline', count: 0 };
-  });
-}
+/* supaRecordRotationSnapshot() removed — called an RPC (record_rotation_
+   snapshot) that never existed in the database; every invocation was
+   silently swallowed by its own .catch(). Rotation pairs are now
+   recorded server-side, once daily, by the sync-rotation-snapshot Edge
+   Function (see supabase/functions/sync-rotation-snapshot/index.ts +
+   sql/sync_rotation_snapshot_cron.sql) — reliable regardless of whether
+   any visitor loads the site that day. supaLoadRotationHistory() below
+   is unaffected; it only ever read, never wrote. */
 
 /**
  * Load shared rotation snapshots, grouped by date so signal-history.js

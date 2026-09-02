@@ -460,8 +460,13 @@ var SignalHistory = (function() {
        the server ignores subsequent calls via ON CONFLICT DO NOTHING). */
     postSnapshotToServer(today, topBull, topLag);
 
-    /* Capture today's rotation pairs alongside the bullish/lagging tops. */
-    try { takeRotationSnapshot(); } catch(e) {}
+    /* Rotation pairs are now recorded server-side, once daily, by the
+       sync-rotation-snapshot Edge Function — see sql/sync_rotation_
+       snapshot_cron.sql. The client-side equivalent that used to run
+       here (takeRotationSnapshot()) called an RPC/table that turned
+       out never to have existed; every call was silently lost. Removed
+       rather than left as dead weight — loadServerRotationHistory()
+       below still reads the (now real) data this produces. */
   }
 
   /* ── Push today's snapshot to Supabase. ────────────────────────
@@ -720,72 +725,6 @@ var SignalHistory = (function() {
       }
       return rows || [];
     });
-  }
-
-  /* Build today's rotation pairs from current dashboard state and
-     post once per day to the server. Mirrors takeSnapshot's design. */
-  function takeRotationSnapshot() {
-    if (typeof coins === 'undefined' || !Array.isArray(coins) || coins.length < 10) return;
-    var today = dateKey();
-    try {
-      if (localStorage.getItem(LS_ROT_DATE_KEY) === today) return;
-    } catch(e) {}
-
-    /* Source: dashboard's own rotation logic — top scorers paired with
-       bottom scorers, optionally filtered by holdings if present. */
-    var hSyms = (typeof holdings !== 'undefined' && holdings.length)
-      ? holdings.map(function(h) { return h.sym; }) : [];
-    var sells, buys;
-    /* Use the shared zone classifier from signals.js so the rotation
-       snapshot uses the same adaptive thresholds + hysteresis +
-       mean-rev gate as the live UI. Falls back to legacy cuts if the
-       classifier hasn't run yet (very first frame). */
-    var rz = (typeof window !== 'undefined' && window.RotZones) || null;
-    function _isSellSide(c)  { return rz ? c._zone === 'sell' : c.score >= 62; }
-    function _isBuySide(c)   { return rz ? (c._zone === 'buy' && rz.passesMeanRevGate(c)) : c.score <= 38; }
-    if (hSyms.length) {
-      var held = coins.filter(function(c) { return hSyms.indexOf(c.sym) >= 0; });
-      sells = held.filter(_isSellSide)
-                  .sort(function(a, b) { return b.score - a.score; });
-      buys  = coins.filter(function(c) { return hSyms.indexOf(c.sym) < 0 && _isBuySide(c); })
-                   .sort(function(a, b) { return a.score - b.score; });
-    }
-    /* Fallback: cross-coin pairs (top scorers → bottom scorers). */
-    if (!sells || !sells.length || !buys || !buys.length) {
-      sells = coins.filter(_isValidCandidate)
-                   .sort(function(a, b) { return b.score - a.score; })
-                   .slice(0, 5);
-      buys  = coins.filter(_isValidCandidate)
-                   .sort(function(a, b) { return a.score - b.score; })
-                   .slice(0, 5);
-    }
-
-    var pairs = [];
-    var pairCount = Math.min(5, sells.length, buys.length);
-    for (var i = 0; i < pairCount; i++) {
-      var s = sells[i], b = buys[i];
-      if (!s || !b || s.id === b.id) continue;
-      pairs.push({
-        from_id: s.id, from_sym: s.sym,
-        from_price: s.price, from_score: s.score,
-        to_id: b.id, to_sym: b.sym,
-        to_price: b.price, to_score: b.score,
-        source: 'dashboard'
-      });
-    }
-    if (!pairs.length) return;
-
-    /* Mirror to localStorage (so single-user view survives offline) */
-    _rotationLocal.push({ date: today, pairs: pairs });
-    _saveRotationLocal();
-
-    if (typeof supaRecordRotationSnapshot === 'function') {
-      supaRecordRotationSnapshot(pairs).then(function(res) {
-        if (res && res.ok) {
-          try { localStorage.setItem(LS_ROT_DATE_KEY, today); } catch(e) {}
-        }
-      });
-    }
   }
 
   /* For each historical rotation pair, look up peak verdicts for both
