@@ -311,6 +311,23 @@
     <div class="td-mkt-grid" id="td-cycle"></div>
   </div>
 
+  <!-- Score Breakdown — the three layers behind the composite SCORE,
+       previously computed (c.scoreBreakdown) but never shown anywhere.
+       An honest score should be inspectable, not a black-box number. -->
+  <div class="td-section" id="td-breakdown-sec" style="display:none;">
+    <div class="td-section-title">Score Breakdown</div>
+    <div class="td-mkt-grid" id="td-breakdown"></div>
+  </div>
+
+  <!-- Liquidity — 24h volume vs market cap, a basic but real signal for
+       "can I actually exit this position without moving the price
+       myself". Not part of the composite score (deliberately — this is
+       a risk flag, not a momentum input), always shown when data exists. -->
+  <div class="td-section" id="td-liquidity-sec" style="display:none;">
+    <div class="td-section-title">Liquidity</div>
+    <div class="td-mkt-grid" id="td-liquidity"></div>
+  </div>
+
   <!-- Signal badges -->
   <div class="td-section" id="td-signals-sec">
     <div class="td-section-title">Signals</div>
@@ -1200,6 +1217,7 @@
     <a class="footer-link" href="#" role="button" onclick="event.preventDefault();alert('How It Works — Coming soon');return false;">HOW IT WORKS</a>
     <a class="footer-link" href="#" role="button" onclick="event.preventDefault();openModal('tos-modal');return false;">TERMS</a>
     <a class="footer-link" href="#" role="button" onclick="event.preventDefault();openModal('privacy-modal');return false;">PRIVACY</a>
+    <a class="footer-link" href="api.html">API</a>
     <a class="footer-link" href="mailto:rotatortool@gmail.com" onclick="(function(e){var em='rotatortool@gmail.com';var ok=false;try{if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(em);ok=true;}}catch(_){} setTimeout(function(){if(!document.hidden){alert('Contact us at:\n\n'+em+(ok?'\n\n(email address copied to clipboard)':''));}},350);})(event);">CONTACT</a>
     <a class="footer-link" href="#" role="button" onclick="event.preventDefault();openModal('donate-modal');return false;">SUPPORT US</a>
   </div>

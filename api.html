@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>ROTATOR — Public API</title>
+<meta name="description" content="Free, public, read-only API for Rotator's crypto and tokenized-stock momentum data, tokenomics scoring, and published call history. No key, no signup, no rate-limit tier.">
+<link rel="icon" href="favicon.ico">
+<style>
+:root{
+  --bg:#05080c; --bg2:#0a0f17; --bg3:#0f1620; --bg4:#18212e;
+  --bdr:rgba(255,255,255,.06); --bdr2:rgba(255,255,255,.09);
+  --text:#e6eaf0; --muted:#7a8699;
+  --green:#00c896; --red:#ff4560; --bnb:#f3ba2f; --amber:#ffb347;
+  --font-mono:'IBM Plex Mono',ui-monospace,Menlo,monospace;
+  --font-ui:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{background:var(--bg);color:var(--text);font-family:var(--font-ui);-webkit-font-smoothing:antialiased;}
+a{color:var(--bnb);text-decoration:none}
+a:hover{text-decoration:underline}
+.wrap{max-width:900px;margin:0 auto;width:100%;padding:0 20px;}
+.topbar{border-bottom:1px solid var(--bdr);background:var(--bg2);padding:14px 0;}
+.topbar-inner{display:flex;align-items:center;justify-content:space-between;gap:16px;max-width:900px;margin:0 auto;padding:0 20px;}
+.logo{font-family:var(--font-mono);font-size:20px;font-weight:800;letter-spacing:.06em;color:var(--bnb);}
+.logo .dot-g{color:var(--green)} .logo .dot-r{color:var(--red)}
+.back-btn{font-size:12px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);
+  padding:8px 14px;border:1px solid var(--bdr2);border-radius:4px;}
+.back-btn:hover{background:var(--bg3);color:var(--text);text-decoration:none;}
+.hero{padding:44px 0 30px;border-bottom:1px solid var(--bdr);}
+.hero-kicker{font-family:var(--font-mono);font-size:12px;letter-spacing:.24em;color:var(--bnb);margin-bottom:12px;}
+.hero h1{font-family:var(--font-mono);font-size:clamp(26px,4.5vw,40px);font-weight:800;letter-spacing:.02em;margin-bottom:14px;}
+.hero p{color:var(--muted);font-size:15px;max-width:640px;line-height:1.6;margin-bottom:10px;}
+.badge-row{display:flex;gap:8px;flex-wrap:wrap;margin-top:16px;}
+.badge{font-family:var(--font-mono);font-size:11px;letter-spacing:.06em;padding:5px 10px;border-radius:4px;
+  background:rgba(0,200,150,.1);color:var(--green);border:1px solid rgba(0,200,150,.25);}
+main{padding:36px 0 60px;}
+.section{margin-bottom:44px;}
+.section-title{font-family:var(--font-mono);font-size:13px;letter-spacing:.16em;text-transform:uppercase;color:var(--bnb);margin-bottom:6px;}
+.section-desc{color:var(--muted);font-size:14px;line-height:1.6;margin-bottom:16px;max-width:680px;}
+.endpoint{background:var(--bg2);border:1px solid var(--bdr);border-radius:8px;padding:20px 22px;margin-bottom:14px;}
+.endpoint-name{font-family:var(--font-mono);font-size:15px;font-weight:700;color:var(--text);margin-bottom:4px;}
+.endpoint-desc{font-size:13px;color:var(--muted);line-height:1.5;margin-bottom:14px;}
+.codebox{background:var(--bg);border:1px solid var(--bdr);border-radius:6px;padding:12px 14px;
+  font-family:var(--font-mono);font-size:12.5px;color:#a8e6c8;overflow-x:auto;white-space:pre;margin-bottom:12px;}
+table{width:100%;border-collapse:collapse;font-family:var(--font-mono);font-size:12px;margin-top:10px;}
+th{text-align:left;color:var(--muted);font-weight:600;padding:6px 10px 6px 0;border-bottom:1px solid var(--bdr);letter-spacing:.04em;}
+td{padding:7px 10px 7px 0;border-bottom:1px solid var(--bdr);color:var(--text);}
+td.col-field{color:var(--bnb);}
+td.col-type{color:var(--muted);}
+.limits-box{background:rgba(255,179,71,.06);border:1px solid rgba(255,179,71,.2);border-radius:6px;padding:14px 16px;font-size:13px;color:var(--muted);line-height:1.6;}
+.limits-box b{color:var(--amber);}
+.warn-box{background:rgba(255,69,96,.06);border:1px solid rgba(255,69,96,.2);border-radius:6px;padding:14px 16px;font-size:13px;color:var(--muted);line-height:1.6;margin-top:20px;}
+.warn-box b{color:var(--red);}
+footer{border-top:1px solid var(--bdr);padding:24px 0;text-align:center;font-family:var(--font-mono);font-size:11px;color:var(--muted);}
+</style>
+</head>
+<body>
+
+<header class="topbar">
+  <div class="topbar-inner">
+    <a href="/" class="logo">R<span class="dot-g">O</span>TAT<span class="dot-r">O</span>R</a>
+    <a href="/" class="back-btn">← Back to app</a>
+  </div>
+</header>
+
+<section class="hero">
+  <div class="wrap">
+    <div class="hero-kicker">◆ PUBLIC API</div>
+    <h1>Read-only. Free. No key required.</h1>
+    <p>Every endpoint below is the exact same data Rotator's own frontend reads — nothing held back, nothing behind a paywall or signup. This page exists so both human developers and AI agents can query it directly instead of scraping the UI.</p>
+    <p>All endpoints are standard <a href="https://postgrest.org/en/stable/references/api.html" target="_blank" rel="noopener">PostgREST</a> — plain HTTPS GET requests, JSON responses, filterable and sortable via query params.</p>
+    <div class="badge-row">
+      <span class="badge">No API key</span>
+      <span class="badge">No rate-limit tier</span>
+      <span class="badge">Read-only (write attempts are rejected)</span>
+    </div>
+  </div>
+</section>
+
+<main class="wrap">
+
+  <div class="section">
+    <div class="section-title">Authentication</div>
+    <div class="section-desc">
+      Every request needs the public anon key below as both the <code>apikey</code> header and a Bearer token — this is the same key already embedded in Rotator's own frontend JavaScript (visible to anyone via browser devtools), not a secret. It grants read-only access; Row Level Security on every table below rejects any insert/update/delete attempt regardless of what key is used.
+    </div>
+    <div class="codebox">apikey: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Ind5dnd5Y2F0Z2V4cGJ1Z3prZGZ3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU0ODcwNTAsImV4cCI6MjA5MTA2MzA1MH0.msUPOUjd1iZwuG6SxFlhr-0xYPt6fqTUy5iOYnf8Z20
+Authorization: Bearer &lt;same value as apikey&gt;</div>
+    <div class="section-desc">Base URL: <code>https://wyvwycatgexpbugzkdfw.supabase.co/rest/v1/</code></div>
+  </div>
+
+  <div class="section">
+    <div class="section-title">Endpoints</div>
+
+    <div class="endpoint">
+      <div class="endpoint-name">GET /unified_market_data</div>
+      <div class="endpoint-desc">Live price + 24h change for every tracked bStock (tokenized equity). Crypto's live feed is client-cached rather than persisted here — see signal_snapshots below for crypto's daily historical record instead.</div>
+      <div class="codebox">curl "https://wyvwycatgexpbugzkdfw.supabase.co/rest/v1/unified_market_data?asset_type=eq.stock&select=*" \
+  -H "apikey: &lt;anon key above&gt;"</div>
+      <table>
+        <tr><th>field</th><th>type</th><th>notes</th></tr>
+        <tr><td class="col-field">asset_type</td><td class="col-type">text</td><td>'stock' (crypto is tracked separately, client-side)</td></tr>
+        <tr><td class="col-field">symbol</td><td class="col-type">text</td><td>display ticker, e.g. 'AAPL'</td></tr>
+        <tr><td class="col-field">name</td><td class="col-type">text</td><td>company name</td></tr>
+        <tr><td class="col-field">price</td><td class="col-type">numeric</td><td>USD</td></tr>
+        <tr><td class="col-field">change_24h</td><td class="col-type">numeric</td><td>percent</td></tr>
+        <tr><td class="col-field">source_name</td><td class="col-type">text</td><td>'binance' — these are Binance bStocks (tokenized certificates, not direct share ownership)</td></tr>
+        <tr><td class="col-field">metadata</td><td class="col-type">jsonb</td><td>{p7, p14, p30, volume24, binance_symbol}</td></tr>
+        <tr><td class="col-field">last_updated</td><td class="col-type">timestamptz</td><td>synced once daily</td></tr>
+      </table>
+    </div>
+
+    <div class="endpoint">
+      <div class="endpoint-name">GET /market_cycle</div>
+      <div class="endpoint-desc">Real 200-day moving average + Mayer Multiple (price ÷ MA200) for BTC, ETH, BNB, SOL, XRP, PAXG. <b style="color:var(--amber);">Only BTC has calibrated stretched/oversold bands</b> — the 2.4×/0.8× thresholds are specific to Bitcoin's own multi-year price history. Treat the other five as raw ratios, not verdicts.</div>
+      <div class="codebox">curl "https://wyvwycatgexpbugzkdfw.supabase.co/rest/v1/market_cycle?select=*" \
+  -H "apikey: &lt;anon key above&gt;"</div>
+      <table>
+        <tr><th>field</th><th>type</th><th>notes</th></tr>
+        <tr><td class="col-field">symbol</td><td class="col-type">text</td><td>'BTC','ETH','BNB','SOL','XRP','PAXG'</td></tr>
+        <tr><td class="col-field">price</td><td class="col-type">numeric</td><td>USD, as of last sync</td></tr>
+        <tr><td class="col-field">ma200</td><td class="col-type">numeric</td><td>real average of actual daily closes, not an estimate</td></tr>
+        <tr><td class="col-field">mayer_multiple</td><td class="col-type">numeric</td><td>price / ma200</td></tr>
+        <tr><td class="col-field">sample_size</td><td class="col-type">integer</td><td>how many daily closes actually went into ma200 — true 200-day only when this = 200</td></tr>
+        <tr><td class="col-field">computed_at</td><td class="col-type">timestamptz</td><td>synced once daily</td></tr>
+      </table>
+    </div>
+
+    <div class="endpoint">
+      <div class="endpoint-name">GET /rotation_snapshots</div>
+      <div class="endpoint-desc">Every "rotate strong asset → weak asset" call Rotator has published, one row per pair per day, computed server-side using the exact same scoring formula as the live dashboard (momentum rank + macro relative strength + tokenomics). A call needs 7+ days of age before it's meaningful to grade — compare from_price/to_price against current prices yourself, or see the searchable, pre-graded version at <a href="track-record.html">/track-record.html</a>.</div>
+      <div class="codebox">curl "https://wyvwycatgexpbugzkdfw.supabase.co/rest/v1/rotation_snapshots?order=snap_date.desc&limit=20" \
+  -H "apikey: &lt;anon key above&gt;"</div>
+      <table>
+        <tr><th>field</th><th>type</th><th>notes</th></tr>
+        <tr><td class="col-field">snap_date</td><td class="col-type">date</td><td>the day this call was made</td></tr>
+        <tr><td class="col-field">from_id / from_sym</td><td class="col-type">text</td><td>the "rotate out of" coin (CoinGecko id / ticker)</td></tr>
+        <tr><td class="col-field">from_price / from_score</td><td class="col-type">numeric</td><td>price and composite score at call time</td></tr>
+        <tr><td class="col-field">to_id / to_sym</td><td class="col-type">text</td><td>the "rotate into" coin</td></tr>
+        <tr><td class="col-field">to_price / to_score</td><td class="col-type">numeric</td><td>price and composite score at call time</td></tr>
+        <tr><td class="col-field">source</td><td class="col-type">text</td><td>always 'sync-rotation-snapshot' — a server-side cron, immune to whether anyone visited the site that day</td></tr>
+      </table>
+    </div>
+
+    <div class="endpoint">
+      <div class="endpoint-name">GET /signal_snapshots</div>
+      <div class="endpoint-desc">Rotator's longest-running, most complete published record — daily bullish/lagging single-coin calls since 2026-04-18. This is the real historical dataset behind the "Signal Track Record" accuracy figure shown on the main site.</div>
+      <div class="codebox">curl "https://wyvwycatgexpbugzkdfw.supabase.co/rest/v1/signal_snapshots?snap_date=gte.2026-08-01&order=snap_date.desc" \
+  -H "apikey: &lt;anon key above&gt;"</div>
+      <table>
+        <tr><th>field</th><th>type</th><th>notes</th></tr>
+        <tr><td class="col-field">snap_date</td><td class="col-type">date</td><td></td></tr>
+        <tr><td class="col-field">coin_id / coin_sym / coin_name</td><td class="col-type">text</td><td></td></tr>
+        <tr><td class="col-field">signal_type</td><td class="col-type">text</td><td>'bullish' or 'lagging'</td></tr>
+        <tr><td class="col-field">signal_label</td><td class="col-type">text</td><td>display label at call time</td></tr>
+        <tr><td class="col-field">score</td><td class="col-type">numeric</td><td>composite score at call time</td></tr>
+        <tr><td class="col-field">price / p24 / p7 / p30</td><td class="col-type">numeric</td><td>price and momentum at call time</td></tr>
+        <tr><td class="col-field">mcap</td><td class="col-type">numeric</td><td>used for market-cap-aware confirmation thresholds — see track-record.html methodology</td></tr>
+      </table>
+    </div>
+
+  </div>
+
+  <div class="section">
+    <div class="section-title">Rate limits &amp; fair use</div>
+    <div class="limits-box">
+      No API key tiers, no published hard rate limit — this runs on Supabase's free-tier infrastructure alongside the live site, so <b>be reasonable</b>: cache responses client-side (all of this updates once daily at most), avoid polling faster than every few minutes, and avoid parallel bulk-scraping. If you're building something that needs a real SLA or higher volume, <a href="/#" onclick="event.preventDefault();alert('Contact us via the CONTACT link on the main site.');">reach out</a> before you build against this at scale.
+    </div>
+  </div>
+
+  <div class="warn-box">
+    <b>Scope, stated plainly:</b> nothing on this page or the underlying scoring is a security audit, a long-term valuation, a usage/TVL metric, or sentiment analysis. The composite scores measure 7–30 day price momentum, macro relative strength, and (for crypto) supply/unlock mechanics — nothing else. A high score means "strong recent relative momentum with reasonable tokenomics", not "guaranteed future profit". This is not financial advice; nothing here, machine-readable or not, should be the sole basis for deploying capital.
+  </div>
+
+</main>
+
+<footer>
+  <div class="wrap">© 2026 ROTATOR · NOT FINANCIAL ADVICE · <a href="/">rotatortool-official.github.io</a></div>
+</footer>
+
+</body>
+</html>
