@@ -288,6 +288,73 @@ function sigTile(c, kind) {
 }
 
 /* Rotation opportunity tile (sell→buy pair) */
+/* ── Standalone "what should I buy" suggestion tile ──────────────
+   Unlike sigRotTile (which always pairs a sell with a buy), this shows
+   ONE buy-zone candidate on its own — for the very common case of
+   someone with no holdings yet asking "what should I buy", where
+   forcing a "sell X for Y" framing makes no sense (there's nothing to
+   sell). Only ever built from real zone-classified buy candidates
+   (_zone==='buy' && passesMeanRevGate), never a raw top/bottom score
+   sort — see the fix in renderTopBars() below. */
+function buySuggestTile(c) {
+  var sent = (c.p24 || 0) * 0.4 + (c.p7 || 0) * 0.6;
+  var sentLabel = sent >= 0 ? 'BULL' : 'BEAR';
+  var sentCls   = sent >= 0 ? 'up' : 'dn';
+  var circ = c.circulating_supply || 0, maxS = c.max_supply || 0;
+  var unlock = (circ && maxS > 0) ? Math.round((circ / maxS) * 100) + '%' : '∞';
+  return '<div class="sig-tile rot" onclick="openTileDetail(\'' + c.id + '\',event)" title="Click for details">'
+    + '<div class="sig-tile-top">'
+      + '<div class="sig-tile-ico"><img src="' + c.image + '" alt="' + c.sym + ' logo" loading="lazy" width="20" height="20" onerror="this.style.display=\'none\'"></div>'
+      + '<span class="sig-tile-sym" style="color:var(--green);">' + c.sym + '</span>'
+      + '<span class="sig-tile-badge rot" style="background:rgba(0,200,150,.12);color:var(--green);">BUY ZONE</span>'
+    + '</div>'
+    + '<div class="sig-tile-stats">'
+      + '<div class="sig-stat"><span class="sig-stat-l">SCORE</span><span class="sig-stat-v am">' + c.score + '</span></div>'
+      + '<div class="sig-stat"><span class="sig-stat-l">SENT</span><span class="sig-stat-v ' + sentCls + '">' + sentLabel + '</span></div>'
+      + '<div class="sig-stat"><span class="sig-stat-l">UNLOCK</span><span class="sig-stat-v am">' + unlock + '</span></div>'
+    + '</div>'
+    + '</div>';
+}
+
+/* ── "Told you so" proof line — real proven calls, not a promise ──
+   Reuses SignalHistory.getProvenSignals(), which is already wired to
+   real server data (signal_snapshots, 99+ days of history) via
+   loadServerHistory() on page load — this is not local-browser-only
+   anecdote, it's the same published record shown on track-record.html.
+   Shows at most 1 recent proof, since the point is credibility, not
+   a wall of self-congratulation next to a buy suggestion. */
+function provenProofLine() {
+  if (typeof SignalHistory === 'undefined') return '';
+  var proven = SignalHistory.getProvenSignals();
+  if (!proven || !proven.length) return '';
+  var p = proven[0]; /* already sorted most-recent-relevant by getProvenSignals() */
+  var changeStr = (p.change >= 0 ? '+' : '') + p.change + '%';
+  return '<div class="proof-line" onclick="if(typeof SignalHistory!==\'undefined\')SignalHistory.shareProven(\'' + p.id + '\')" title="Click to share this call">'
+    + '<span style="color:var(--green);">✓ Told you so —</span> '
+    + p.daysAgo + 'd ago we flagged <b>' + p.sym + '</b> at ' + fmtP(p.priceThen)
+    + ', now ' + fmtP(p.priceNow) + ' (<span style="color:' + (p.change >= 0 ? 'var(--green)' : 'var(--red)') + ';">' + changeStr + '</span>)'
+    + '</div>';
+}
+
+/* ── Standalone "consider taking profit" tile — for a HELD coin in
+   sell-zone with NO forced rotation target. Preserves capital framing,
+   not a rotation plan: "this is overheated, consider trimming" without
+   pretending there's a specific place to put the proceeds. */
+function takeProfitTile(c) {
+  return '<div class="sig-tile rot" onclick="openTileDetail(\'' + c.id + '\',event)" title="Click for details">'
+    + '<div class="sig-tile-top">'
+      + '<div class="sig-tile-ico"><img src="' + c.image + '" alt="' + c.sym + ' logo" loading="lazy" width="20" height="20" onerror="this.style.display=\'none\'"></div>'
+      + '<span class="sig-tile-sym" style="color:var(--red);">' + c.sym + '</span>'
+      + '<span class="sig-tile-badge rot" style="background:rgba(255,69,96,.12);color:var(--red);">TAKE PROFIT</span>'
+    + '</div>'
+    + '<div class="sig-tile-stats">'
+      + '<div class="sig-stat"><span class="sig-stat-l">SCORE</span><span class="sig-stat-v am">' + c.score + '</span></div>'
+      + '<div class="sig-stat"><span class="sig-stat-l">30D</span><span class="sig-stat-v ' + (c.p30 >= 0 ? 'up' : 'dn') + '">' + (c.p30 >= 0 ? '+' : '') + c.p30.toFixed(1) + '%</span></div>'
+    + '</div>'
+    + '<div style="font-size:11px;color:var(--muted);margin-top:6px;line-height:1.4;">Held &amp; overheated — no rotation target implied, just preserve some gains.</div>'
+    + '</div>';
+}
+
 function sigRotTile(sell, buy) {
   var delta = sell.score - buy.score;
 
@@ -389,23 +456,45 @@ function renderTopBars() {
   var sells = held.filter(function(c)  { return c._zone === 'sell'; }).sort(function(a, b) { return b.score - a.score; });
   var buys  = coins.filter(function(c) { return hSyms.indexOf(c.sym) < 0 && !c.isStock && c._zone === 'buy' && _passesMeanRevGate(c); }).sort(function(a, b) { return a.score - b.score; });
 
-  /* Fallback pairs from all coins when no holdings exist (free preview) */
-  var allSells = coins.slice().filter(function(c) { return !c.isStock; }).sort(function(a, b) { return b.score - a.score; });
-  var allBuys  = coins.slice().filter(function(c) { return !c.isStock; }).sort(function(a, b) { return a.score - b.score; });
+  /* Fallback candidates from all coins when no holdings exist —
+     REAL zone-classified buy candidates only. The old version also
+     built a fake "sell" side from unrelated market data and forced
+     everyone with no holdings into a "sell X for Y" framing even
+     though they held neither — replaced below with genuine mixed-type
+     tiles (pair / take-profit / standalone buy) that reflect what's
+     actually true for the visitor. */
+  var allBuys  = coins.slice().filter(function(c) { return !c.isStock && c._zone === 'buy' && _passesMeanRevGate(c); }).sort(function(a, b) { return a.score - b.score; });
 
   if (!isPro) {
-    /* Build up to 4 real pairs — from holdings if available, else from all coins */
-    var previewSells = (sells.length && buys.length) ? sells : allSells;
-    var previewBuys  = (sells.length && buys.length) ? buys  : allBuys;
-    var previewPairs = [];
-    for (var pi = 0; pi < Math.min(4, previewSells.length); pi++) {
-      previewPairs.push({ sell: previewSells[pi], buy: previewBuys[pi % previewBuys.length] });
+    /* Build up to 4 real tiles — genuinely mixed types, not a forced
+       "sell X for Y" shape:
+       • held sell-zone coin + real buy target available  -> rotation pair
+       • held sell-zone coin, NO qualifying buy target     -> standalone
+         take-profit tile (the real signal, not discarded for a fake pair)
+       • no held sell-zone coins at all                    -> standalone
+         buy suggestions (the actual "what should I buy" answer) */
+    var previewTiles = [];
+    if (sells.length) {
+      sells.forEach(function(s, i) {
+        if (i < buys.length) previewTiles.push({ type: 'pair', sell: s, buy: buys[i] });
+        else previewTiles.push({ type: 'profit', c: s });
+      });
+    }
+    if (!previewTiles.length) {
+      allBuys.slice(0, 4).forEach(function(b) { previewTiles.push({ type: 'buy', c: b }); });
+    }
+    previewTiles = previewTiles.slice(0, 4);
+
+    function tileHtmlFor(t) {
+      if (t.type === 'pair') return sigRotTile(t.sell, t.buy);
+      if (t.type === 'profit') return takeProfitTile(t.c);
+      return buySuggestTile(t.c);
     }
 
     /* Helper: blurred tile with a centred lock overlay, clicking opens Pro modal */
-    function blurLockedTile(sell, buy) {
+    function blurLockedTile(t) {
       return '<div class="sig-rot-locked" onclick="openPro()" title="Unlock with Pro">'
-        + '<div class="sig-rot-blur">' + sigRotTile(sell, buy) + '</div>'
+        + '<div class="sig-rot-blur">' + tileHtmlFor(t) + '</div>'
         + '<div class="sig-rot-lock-overlay">'
         + '<span style="font-size:14px;">⚡</span>'
         + '<span style="font-size:12px;font-weight:700;letter-spacing:.09em;color:var(--pro);">PRO</span>'
@@ -414,13 +503,13 @@ function renderTopBars() {
     }
 
     var gridHtml = '';
-    previewPairs.forEach(function(p, idx) {
+    previewTiles.forEach(function(t, idx) {
       if (idx === 0) {
         /* First tile: real, fully visible, clickable for detail */
-        gridHtml += sigRotTile(p.sell, p.buy);
+        gridHtml += tileHtmlFor(t);
       } else if (idx === 1) {
         /* Second tile: single Pro unlock tile */
-        gridHtml += proUnlockTile('unlock pairs');
+        gridHtml += proUnlockTile('unlock more');
       } else {
         /* Remaining tiles: plain placeholders */
         gridHtml += emptyPlaceholderTile();
@@ -428,30 +517,41 @@ function renderTopBars() {
     });
 
     /* Always pad to exactly 4 slots with plain placeholders */
-    var filledCount = previewPairs.length;
-    if (filledCount === 1) gridHtml += proUnlockTile('unlock pairs');
+    var filledCount = previewTiles.length;
+    if (filledCount === 1) gridHtml += proUnlockTile('unlock more');
     for (var pad = Math.max(filledCount, 2); pad < 4; pad++) {
       gridHtml += emptyPlaceholderTile();
     }
 
-    sugEl.innerHTML = '<div class="sig-tiles-grid">' + gridHtml + '</div>';
+    sugEl.innerHTML = '<div class="sig-tiles-grid">' + gridHtml + '</div>' + provenProofLine();
     return;
   }
 
-  /* Pro: full rotation signals */
-  if (!holdings.length) {
-    var emptyGrid = '';
-    for (var ep = 0; ep < 4; ep++) emptyGrid += emptyPlaceholderTile();
-    sugEl.innerHTML = '<div class="sig-tiles-grid">' + emptyGrid + '</div>';
+  /* Pro: full signals — genuinely mixed types, same logic as the free
+     tier above but showing up to 4 real tiles instead of 1. */
+  var proTiles = [];
+  if (sells.length) {
+    sells.forEach(function(s, i) {
+      if (i < buys.length) proTiles.push({ type: 'pair', sell: s, buy: buys[i] });
+      else proTiles.push({ type: 'profit', c: s });
+    });
+  }
+  if (!proTiles.length) {
+    allBuys.slice(0, 4).forEach(function(b) { proTiles.push({ type: 'buy', c: b }); });
+  }
+  proTiles = proTiles.slice(0, 4);
+
+  if (!proTiles.length) {
+    sugEl.innerHTML = '<div class="no-sug">Scanning — no buy-zone or sell-zone signals right now.</div>';
     return;
   }
-  if (!sells.length) { sugEl.innerHTML = '<div class="no-sug">Monitoring \u2014 no holdings strongly outperforming yet.</div>'; return; }
-  if (!buys.length)  { sugEl.innerHTML = '<div class="no-sug">Scanning \u2014 no clear rotation targets right now.</div>'; return; }
-  var pairs = [];
-  for (var i = 0; i < Math.min(4, sells.length); i++) pairs.push({sell: sells[i], buy: buys[i % buys.length]});
-  var rotHtml = pairs.map(function(p) { return sigRotTile(p.sell, p.buy); }).join('');
-  for (var rp = pairs.length; rp < 4; rp++) rotHtml += emptyPlaceholderTile();
-  sugEl.innerHTML = '<div class="sig-tiles-grid">' + rotHtml + '</div>';
+  var rotHtml = proTiles.map(function(t) {
+    if (t.type === 'pair') return sigRotTile(t.sell, t.buy);
+    if (t.type === 'profit') return takeProfitTile(t.c);
+    return buySuggestTile(t.c);
+  }).join('');
+  for (var rp = proTiles.length; rp < 4; rp++) rotHtml += emptyPlaceholderTile();
+  sugEl.innerHTML = '<div class="sig-tiles-grid">' + rotHtml + '</div>' + provenProofLine();
 }
 
 /* ══════════════════════════════════════════════════════════════
