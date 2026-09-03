@@ -67,21 +67,36 @@ a{color:inherit;text-decoration:none}
 /* ── Call cards ───────────────────────────────────────── */
 .grid{display:grid;gap:12px;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));}
 .card{background:var(--bg2);border:1px solid var(--bdr);border-radius:6px;
-  padding:14px 16px;transition:border-color .15s,transform .15s;}
+  padding:14px 16px;transition:border-color .15s,transform .15s;cursor:pointer;
+  position:relative;overflow:hidden;}
 .card:hover{border-color:var(--bdr2);transform:translateY(-1px);}
 .card.win{border-left:3px solid var(--green)}
 .card.miss{border-left:3px solid var(--red)}
-.card-top{display:flex;align-items:center;gap:8px;margin-bottom:10px;}
+.card.pending{border-left:3px solid var(--muted);opacity:.75;}
+.card-top{display:flex;align-items:center;gap:8px;margin-bottom:10px;position:relative;z-index:1;}
 .card-sym{font-family:var(--font-mono);font-size:18px;font-weight:800;letter-spacing:.04em;color:var(--bnb);}
 .card-signal{font-family:var(--font-mono);font-size:10px;letter-spacing:.08em;padding:2px 6px;border-radius:3px;}
 .card-signal.bull{background:rgba(0,200,150,.12);color:var(--green);border:1px solid rgba(0,200,150,.3);}
 .card-signal.bear{background:rgba(255,69,96,.12);color:var(--red);border:1px solid rgba(255,69,96,.3);}
+.card-signal.pending{background:rgba(122,134,153,.12);color:var(--muted);border:1px solid rgba(122,134,153,.3);}
 .card-age{margin-left:auto;font-family:var(--font-mono);font-size:11px;color:var(--muted);}
-.card-prices{display:flex;align-items:center;gap:8px;font-family:var(--font-mono);font-size:14px;margin-bottom:8px;}
+.card-prices{display:flex;align-items:center;gap:8px;font-family:var(--font-mono);font-size:14px;margin-bottom:8px;position:relative;z-index:1;}
 .card-prices .arrow{color:var(--muted);opacity:.6;}
-.card-change{font-family:var(--font-mono);font-size:22px;font-weight:800;}
-.card-change.up{color:var(--green)} .card-change.down{color:var(--red)}
-.card-proof{font-family:var(--font-mono);font-size:11px;color:var(--muted);margin-top:8px;letter-spacing:.02em;}
+.card-change{font-family:var(--font-mono);font-size:22px;font-weight:800;position:relative;z-index:1;}
+.card-change.up{color:var(--green)} .card-change.down{color:var(--red)} .card-change.pending{color:var(--muted);font-size:14px;font-weight:600;}
+.card-proof{font-family:var(--font-mono);font-size:11px;color:var(--muted);margin-top:8px;letter-spacing:.02em;position:relative;z-index:1;}
+
+/* ── Watermark arrows — decorative, behind content, low-opacity.
+   Win = rising diagonal line (growth). Miss = jagged downward zigzag
+   (volatility/decline). Both baked into the shareable canvas image
+   too, not just the on-page card — see generateShareImage(). ── */
+.card-watermark{position:absolute;inset:0;pointer-events:none;opacity:.14;z-index:0;}
+.card.win .card-watermark{color:var(--green);}
+.card.miss .card-watermark{color:var(--red);}
+
+/* ── Swap arrow for rotation-pair cards — red flowing into green,
+   replaces the plain "→" text arrow used elsewhere. ── */
+.swap-arrow{flex-shrink:0;}
 
 /* ── Search bar ───────────────────────────────────────── */
 .search-wrap{max-width:420px;margin:20px auto 0;position:relative;}
@@ -93,24 +108,6 @@ a{color:inherit;text-decoration:none}
 .search-clear{position:absolute;right:10px;top:50%;transform:translateY(-50%);color:var(--muted);
   cursor:pointer;font-size:16px;display:none;padding:4px;}
 .search-active .search-clear{display:block;}
-
-/* ── Rotation cards ───────────────────────────────────── */
-.rot-card{background:var(--bg2);border:1px solid var(--bdr);border-radius:6px;
-  padding:14px 16px;transition:border-color .15s,transform .15s;cursor:pointer;}
-.rot-card:hover{border-color:var(--bdr2);transform:translateY(-1px);}
-.rot-card.win{border-left:3px solid var(--green)}
-.rot-card.miss{border-left:3px solid var(--red)}
-.rot-card.pending{border-left:3px solid var(--muted);opacity:.7;}
-.rot-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;}
-.rot-pair{font-family:var(--font-mono);font-size:15px;font-weight:800;display:flex;align-items:center;gap:6px;}
-.rot-from{color:var(--red);} .rot-to{color:var(--green);}
-.rot-arrow{color:var(--muted);opacity:.6;font-size:13px;}
-.rot-age{font-family:var(--font-mono);font-size:11px;color:var(--muted);}
-.rot-scores{display:flex;gap:14px;font-family:var(--font-mono);font-size:11px;color:var(--muted);margin-bottom:8px;}
-.rot-scores b{color:var(--text);}
-.rot-spread{font-family:var(--font-mono);font-size:22px;font-weight:800;}
-.rot-spread.up{color:var(--green)} .rot-spread.down{color:var(--red)} .rot-spread.pending{color:var(--muted);font-size:14px;}
-.rot-verdict{font-family:var(--font-mono);font-size:11px;color:var(--muted);margin-top:6px;}
 
 /* ── Detail modal ─────────────────────────────────────── */
 .modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:500;
@@ -238,7 +235,7 @@ a{color:inherit;text-decoration:none}
   <div class="wrap">
     <h2>See what's rotating right now</h2>
     <p>Live signals across 200+ coins, updated continuously. Free forever.</p>
-    <a href="/" class="cta-btn">Open Rotator →</a>
+    <a href="/" class="cta-btn" id="open-rotator-btn">Open Rotator →</a>
   </div>
 </section>
 
@@ -372,23 +369,31 @@ a{color:inherit;text-decoration:none}
   function renderRotationCard(r) {
     var isPending = r.correct === undefined;
     var cls = isPending ? 'pending' : (r.correct ? 'win' : 'miss');
-    var card = el('div', { className: 'rot-card ' + cls });
+    var card = el('div', { className: 'card ' + cls });
     card.dataset.searchText = (r.fromSym + ' ' + r.toSym).toLowerCase();
-    var spreadHtml = isPending
-      ? '<div class="rot-spread pending">Pending — evaluates ' + (CONFIRM_DAYS_MIN - r.daysAgo > 0 ? 'in ' + (CONFIRM_DAYS_MIN - r.daysAgo) + 'd' : 'soon') + '</div>'
-      : '<div class="rot-spread ' + (r.spread >= 0 ? 'up' : 'down') + '">' + (r.spread >= 0 ? '+' : '') + r.spread + '% spread</div>';
+    var watermark = isPending ? '' : (r.correct ? risingArrowSvg() : zigzagArrowSvg());
+    var signalHtml = isPending
+      ? '<span class="card-signal pending">PENDING</span>'
+      : '<span class="card-signal ' + (r.correct ? 'bull' : 'bear') + '">' + (r.correct ? 'CONFIRMED' : 'MISSED') + '</span>';
+    var changeHtml = isPending
+      ? '<div class="card-change pending">Evaluates ' + (CONFIRM_DAYS_MIN - r.daysAgo > 0 ? 'in ' + (CONFIRM_DAYS_MIN - r.daysAgo) + 'd' : 'soon') + '</div>'
+      : '<div class="card-change ' + (r.spread >= 0 ? 'up' : 'down') + '">' + (r.spread >= 0 ? '+' : '') + r.spread + '% spread</div>';
     card.innerHTML =
-      '<div class="rot-top">'
-    +   '<span class="rot-pair"><span class="rot-from">' + escape(r.fromSym) + '</span>'
-    +     '<span class="rot-arrow">→</span><span class="rot-to">' + escape(r.toSym) + '</span></span>'
-    +   '<span class="rot-age">' + r.daysAgo + 'd ago</span>'
+      watermark
+    + '<div class="card-top">'
+    +   '<span class="card-sym" style="color:var(--red);">' + escape(r.fromSym) + '</span>'
+    +   swapArrowSvg()
+    +   '<span class="card-sym" style="color:var(--green);">' + escape(r.toSym) + '</span>'
+    +   signalHtml
+    +   '<span class="card-age">' + r.daysAgo + 'd ago</span>'
     + '</div>'
-    + '<div class="rot-scores">Called: <b>' + escape(r.fromSym) + ' ' + r.fromScore + '</b> vs <b>' + escape(r.toSym) + ' ' + r.toScore + '</b></div>'
-    + spreadHtml
-    + '<div class="rot-verdict">' + (isPending ? 'Not old enough to grade yet' : (r.correct ? 'Confirmed ✓ — spread ≥ ' + ROTATION_THRESHOLD + '%' : 'Did not confirm')) + '</div>';
+    + '<div class="card-prices">Called: <b>' + escape(r.fromSym) + ' ' + r.fromScore + '</b>&nbsp;vs&nbsp;<b>' + escape(r.toSym) + ' ' + r.toScore + '</b></div>'
+    + changeHtml
+    + '<div class="card-proof">' + (isPending ? 'Not old enough to grade yet' : (r.correct ? 'Confirmed ✓ — spread ≥ ' + ROTATION_THRESHOLD + '%' : 'Did not confirm')) + '</div>';
     card.addEventListener('click', function() { openRotationModal(r); });
     return card;
   }
+
 
 
   /* Returns { priceMap: {id: price}, mcapMap: {id: mcap} } so evaluate()
@@ -620,11 +625,41 @@ a{color:inherit;text-decoration:none}
     return e;
   }
 
+  /* ── Watermark arrow SVGs — win = rising diagonal, miss = jagged
+     zigzag descent. Decorative, low-opacity, behind card content
+     (see .card-watermark CSS). currentColor picks up the red/green
+     set by .card.win/.card.miss so one function serves both. ── */
+  function risingArrowSvg() {
+    return '<svg class="card-watermark" viewBox="0 0 300 140" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">'
+      + '<polyline points="10,120 90,90 150,95 220,35 290,15" fill="none" stroke="currentColor" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/>'
+      + '<polygon points="290,15 265,20 282,38" fill="currentColor"/>'
+      + '</svg>';
+  }
+  function zigzagArrowSvg() {
+    return '<svg class="card-watermark" viewBox="0 0 300 140" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">'
+      + '<polyline points="10,20 70,55 110,35 160,80 200,60 290,125" fill="none" stroke="currentColor" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/>'
+      + '<polygon points="290,125 260,113 272,138" fill="currentColor"/>'
+      + '</svg>';
+  }
+  /* Swap arrow for rotation-pair cards — red flowing into green,
+     replaces the plain "→" text arrow. */
+  function swapArrowSvg() {
+    return '<svg class="swap-arrow" width="34" height="16" viewBox="0 0 34 16" xmlns="http://www.w3.org/2000/svg">'
+      + '<defs><linearGradient id="swapGrad" x1="0" y1="0" x2="1" y2="0">'
+      + '<stop offset="0%" stop-color="#ff4560"/><stop offset="100%" stop-color="#00c896"/>'
+      + '</linearGradient></defs>'
+      + '<line x1="2" y1="8" x2="26" y2="8" stroke="url(#swapGrad)" stroke-width="3" stroke-linecap="round"/>'
+      + '<polygon points="26,2 34,8 26,14" fill="#00c896"/>'
+      + '</svg>';
+  }
+
   function renderCard(r) {
     var isBull = r.type === 'bullish';
     var card = el('div', { className: 'card ' + (r.correct ? 'win' : 'miss') });
+    card.dataset.searchText = (r.sym || '').toLowerCase();
     card.innerHTML =
-      '<div class="card-top">'
+      (r.correct ? risingArrowSvg() : zigzagArrowSvg())
+    + '<div class="card-top">'
     +   '<span class="card-sym">' + escape(r.sym) + '</span>'
     +   '<span class="card-signal ' + (isBull ? 'bull' : 'bear') + '">'
     +     escape(r.signal || (isBull ? 'BULLISH' : 'LAGGING'))
@@ -644,6 +679,7 @@ a{color:inherit;text-decoration:none}
     +   (r.score != null ? ' (score ' + r.score + ')' : '')
     +   ' — ' + (r.correct ? 'confirmed ✓' : 'did not confirm')
     + '</div>';
+    card.addEventListener('click', function() { openSingleModal(r); });
     return card;
   }
 
@@ -699,10 +735,41 @@ a{color:inherit;text-decoration:none}
     /* Pair */
     ctx.fillStyle = '#ff4560'; ctx.font = 'bold 64px "IBM Plex Mono", monospace';
     ctx.fillText(r.fromSym, 70, 165);
-    ctx.fillStyle = 'rgba(243,186,47,0.6)'; ctx.font = '42px "IBM Plex Mono", monospace';
-    ctx.fillText('→', 70 + ctx.measureText(r.fromSym).width + 340, 155);
     ctx.fillStyle = '#00c896'; ctx.font = 'bold 64px "IBM Plex Mono", monospace';
-    ctx.fillText(r.toSym, W - 70 - ctx.measureText(r.toSym).width, 165);
+    var toX = W - 70 - ctx.measureText(r.toSym).width;
+    ctx.fillText(r.toSym, toX, 165);
+
+    /* Swap arrow — red flowing into green, matches the on-page swap-arrow SVG */
+    var fromW = ctx.measureText(r.fromSym).width; /* uses current font (toSym's), close enough for arrow placement */
+    ctx.font = 'bold 64px "IBM Plex Mono", monospace';
+    var arrowStartX = 70 + ctx.measureText(r.fromSym).width + 40;
+    var arrowEndX = toX - 40;
+    if (arrowEndX > arrowStartX) {
+      var swapGrad = ctx.createLinearGradient(arrowStartX, 0, arrowEndX, 0);
+      swapGrad.addColorStop(0, '#ff4560'); swapGrad.addColorStop(1, '#00c896');
+      ctx.strokeStyle = swapGrad; ctx.lineWidth = 5; ctx.lineCap = 'round';
+      ctx.beginPath(); ctx.moveTo(arrowStartX, 145); ctx.lineTo(arrowEndX - 14, 145); ctx.stroke();
+      ctx.fillStyle = '#00c896';
+      ctx.beginPath(); ctx.moveTo(arrowEndX - 14, 130); ctx.lineTo(arrowEndX + 4, 145); ctx.lineTo(arrowEndX - 14, 160); ctx.closePath(); ctx.fill();
+    }
+
+    /* Watermark — rising line for a confirmed win, jagged descent for a
+       miss. Matches the on-page card-watermark treatment so the shared
+       image and the site look like the same product. */
+    if (!isPending) {
+      ctx.save();
+      ctx.globalAlpha = 0.10;
+      ctx.strokeStyle = r.correct ? '#00c896' : '#ff4560';
+      ctx.lineWidth = 10; ctx.lineCap = 'round'; ctx.lineJoin = 'round';
+      ctx.beginPath();
+      if (r.correct) {
+        ctx.moveTo(40, H - 60); ctx.lineTo(340, H - 220); ctx.lineTo(620, H - 240); ctx.lineTo(940, H - 420); ctx.lineTo(W - 40, H - 480);
+      } else {
+        ctx.moveTo(40, 60); ctx.lineTo(280, 160); ctx.lineTo(440, 100); ctx.lineTo(640, 260); ctx.lineTo(820, 190); ctx.lineTo(W - 40, H - 60);
+      }
+      ctx.stroke();
+      ctx.restore();
+    }
 
     ctx.fillStyle = 'rgba(255,255,255,0.4)'; ctx.font = '22px "IBM Plex Mono", monospace';
     ctx.fillText('Score ' + r.fromScore, 70, 200);
@@ -767,6 +834,111 @@ a{color:inherit;text-decoration:none}
     document.getElementById('rot-modal').classList.add('show');
   }
 
+  /* ── Single-coin (win/miss) share image + modal — same visual
+     language as the rotation cards, reuses the same modal DOM (only
+     one is ever open at once, so sharing _rotModalBlob/_rotModalText
+     is safe rather than duplicating the whole modal). ── */
+  function generateSingleShareImage(r) {
+    var W = 1200, H = 630;
+    var can = document.createElement('canvas');
+    can.width = W; can.height = H;
+    var ctx = can.getContext('2d');
+
+    var bg = ctx.createLinearGradient(0, 0, W, H);
+    bg.addColorStop(0, '#080c12'); bg.addColorStop(0.4, '#0d1420'); bg.addColorStop(1, '#080c12');
+    ctx.fillStyle = bg; ctx.fillRect(0, 0, W, H);
+
+    ctx.strokeStyle = 'rgba(243,186,47,0.025)'; ctx.lineWidth = 1;
+    for (var gx = 0; gx < W; gx += 50) { ctx.beginPath(); ctx.moveTo(gx, 0); ctx.lineTo(gx, H); ctx.stroke(); }
+    for (var gy = 0; gy < H; gy += 50) { ctx.beginPath(); ctx.moveTo(0, gy); ctx.lineTo(W, gy); ctx.stroke(); }
+
+    var gold = ctx.createLinearGradient(0, 0, W, 0);
+    gold.addColorStop(0, 'rgba(243,186,47,0)'); gold.addColorStop(0.3, 'rgba(243,186,47,0.9)');
+    gold.addColorStop(0.7, 'rgba(243,186,47,0.9)'); gold.addColorStop(1, 'rgba(243,186,47,0)');
+    ctx.fillStyle = gold; ctx.fillRect(0, 0, W, 4);
+
+    /* Watermark — same rising/zigzag treatment as the on-page card */
+    ctx.save();
+    ctx.globalAlpha = 0.10;
+    ctx.strokeStyle = r.correct ? '#00c896' : '#ff4560';
+    ctx.lineWidth = 10; ctx.lineCap = 'round'; ctx.lineJoin = 'round';
+    ctx.beginPath();
+    if (r.correct) {
+      ctx.moveTo(40, H - 60); ctx.lineTo(340, H - 220); ctx.lineTo(620, H - 240); ctx.lineTo(940, H - 420); ctx.lineTo(W - 40, H - 480);
+    } else {
+      ctx.moveTo(40, 60); ctx.lineTo(280, 160); ctx.lineTo(440, 100); ctx.lineTo(640, 260); ctx.lineTo(820, 190); ctx.lineTo(W - 40, H - 60);
+    }
+    ctx.stroke();
+    ctx.restore();
+
+    var badgeColor = r.correct ? '#00c896' : '#ff4560';
+    var badgeText  = r.correct ? '🟢 CALLED IT' : '🔴 MISSED';
+    ctx.fillStyle = r.correct ? 'rgba(0,200,150,.12)' : 'rgba(255,69,96,.12)';
+    _roundRect(ctx, 60, 40, 260, 50, 8); ctx.fill();
+    ctx.strokeStyle = badgeColor; ctx.lineWidth = 2;
+    _roundRect(ctx, 60, 40, 260, 50, 8); ctx.stroke();
+    ctx.fillStyle = badgeColor;
+    ctx.font = 'bold 26px "IBM Plex Mono", monospace';
+    ctx.fillText(badgeText, 80, 74);
+
+    ctx.fillStyle = 'rgba(255,255,255,0.4)'; ctx.font = '22px "IBM Plex Mono", monospace';
+    ctx.textAlign = 'right'; ctx.fillText(r.daysAgo + ' days ago', W - 70, 74); ctx.textAlign = 'left';
+
+    ctx.fillStyle = '#f3ba2f'; ctx.font = 'bold 80px "IBM Plex Mono", monospace';
+    ctx.fillText(r.sym, 70, 190);
+
+    ctx.fillStyle = 'rgba(255,255,255,0.5)'; ctx.font = '22px "IBM Plex Mono", monospace';
+    ctx.fillText('Flagged ' + (r.signal || (r.type === 'bullish' ? 'BULLISH' : 'LAGGING')) + (r.score != null ? ' (score ' + r.score + ')' : ''), 70, 225);
+
+    ctx.fillStyle = 'rgba(255,255,255,0.5)'; ctx.font = '22px "IBM Plex Mono", monospace';
+    ctx.textAlign = 'center'; ctx.fillText(fmtP(r.priceThen) + '  →  ' + fmtP(r.priceNow), W / 2, 320); ctx.textAlign = 'left';
+
+    var changeStr = (r.change >= 0 ? '+' : '') + r.change + '%';
+    ctx.fillStyle = r.change >= 0 ? '#00c896' : '#ff4560'; ctx.font = 'bold 96px "IBM Plex Mono", monospace';
+    ctx.textAlign = 'center'; ctx.fillText(changeStr, W / 2, 430); ctx.textAlign = 'left';
+
+    ctx.fillStyle = 'rgba(243,186,47,0.06)';
+    _roundRect(ctx, 70, 475, W - 140, 42, 6); ctx.fill();
+    ctx.strokeStyle = 'rgba(243,186,47,0.2)'; ctx.lineWidth = 1;
+    _roundRect(ctx, 70, 475, W - 140, 42, 6); ctx.stroke();
+    ctx.fillStyle = 'rgba(243,186,47,0.85)'; ctx.font = 'bold 18px "IBM Plex Mono", monospace';
+    ctx.textAlign = 'center';
+    ctx.fillText('Free signals at Rotator — see what\'s next', W / 2, 502);
+    ctx.textAlign = 'left';
+
+    ctx.fillStyle = 'rgba(255,255,255,0.06)'; ctx.fillRect(70, H - 60, W - 140, 1);
+    ctx.fillStyle = '#f3ba2f'; ctx.font = 'bold 28px "IBM Plex Mono", monospace';
+    ctx.fillText('ROTATOR', 70, H - 25);
+    ctx.fillStyle = 'rgba(243,186,47,0.7)'; ctx.font = 'bold 16px "IBM Plex Mono", monospace';
+    ctx.textAlign = 'right'; ctx.fillText('rotatortool-official.github.io', W - 70, H - 25); ctx.textAlign = 'left';
+
+    ctx.fillStyle = gold; ctx.fillRect(0, H - 4, W, 4);
+    return can;
+  }
+
+  function openSingleModal(r) {
+    var body = document.getElementById('rot-modal-body');
+    body.innerHTML =
+      '<div style="font-family:var(--font-mono);font-size:20px;font-weight:800;margin-bottom:6px;color:var(--bnb);">'
+    +   escape(r.sym)
+    + '</div>'
+    + '<div style="font-family:var(--font-mono);font-size:12px;color:var(--muted);">Flagged ' + r.daysAgo + ' days ago as '
+    +   escape(r.signal || (r.type === 'bullish' ? 'BULLISH' : 'LAGGING'))
+    +   (r.score != null ? ' (score ' + r.score + ')' : '') + ' — ' + fmtP(r.priceThen) + ' → ' + fmtP(r.priceNow) + '</div>';
+
+    var can = generateSingleShareImage(r);
+    can.toBlob(function(blob) {
+      _rotModalBlob = blob;
+      var url = URL.createObjectURL(blob);
+      document.getElementById('rot-modal-preview').innerHTML = '<img src="' + url + '" alt="' + escape(r.sym) + ' call result">';
+    }, 'image/png');
+
+    var changeStr = (r.change >= 0 ? '+' : '') + r.change + '%';
+    _rotModalText = 'Rotator flagged ' + r.sym + ' as ' + (r.signal || (r.type === 'bullish' ? 'bullish' : 'lagging')) + ' ' + r.daysAgo + ' days ago at ' + fmtP(r.priceThen) + '. Now ' + fmtP(r.priceNow) + ' (' + changeStr + '). Free signals: https://rotatortool-official.github.io/';
+
+    document.getElementById('rot-modal').classList.add('show');
+  }
+
   document.getElementById('rot-modal-close').addEventListener('click', function() {
     document.getElementById('rot-modal').classList.remove('show');
   });
@@ -785,6 +957,29 @@ a{color:inherit;text-decoration:none}
       var btn = e.target; var orig = btn.textContent;
       btn.textContent = '✓ Copied'; setTimeout(function() { btn.textContent = orig; }, 1500);
     });
+  });
+
+  /* ── "Open Rotator" — prefer real Back navigation over a fresh link
+     click. A plain <a href="/"> click is a NEW forward navigation even
+     in the same tab; the browser's back-forward cache (bfcache), which
+     can restore the dashboard instantly without re-running scripts or
+     re-firing API calls, is only ever consulted on genuine Back/Forward
+     navigation. So: if we can tell the visitor arrived here FROM the
+     dashboard (same-origin referrer) and there's history to go back to,
+     call history.back() instead — this gives bfcache a real chance to
+     kick in. Otherwise (arrived via a direct link, e.g. the Telegram
+     bot), fall through to the normal href="/" navigation, since there's
+     nothing to go "back" to. Honest caveat: bfcache is entirely
+     browser-controlled — this maximizes the chance, it can't guarantee
+     it (some browsers/situations opt out regardless). */
+  document.getElementById('open-rotator-btn').addEventListener('click', function(e) {
+    try {
+      var ref = document.referrer;
+      if (ref && new URL(ref).origin === location.origin && history.length > 1) {
+        e.preventDefault();
+        history.back();
+      }
+    } catch (err) { /* malformed referrer or blocked API — just let the normal link navigate */ }
   });
 
   /* ── Search — filters all three grids (wins/misses/rotation) live ── */
