@@ -302,17 +302,22 @@ function buySuggestTile(c) {
   var sentCls   = sent >= 0 ? 'up' : 'dn';
   var circ = c.circulating_supply || 0, maxS = c.max_supply || 0;
   var unlock = (circ && maxS > 0) ? Math.round((circ / maxS) * 100) + '%' : '∞';
+  /* Visual cue for the held-first sort in allBuys above — otherwise
+     why this coin surfaced first is invisible to the person looking. */
+  var isHeld = (typeof holdings !== 'undefined') && holdings.some(function(h) { return h.sym === c.sym; });
+  var badgeText = isHeld ? 'ADD MORE?' : 'BUY ZONE';
   return '<div class="sig-tile rot" onclick="openTileDetail(\'' + c.id + '\',event)" title="Click for details">'
     + '<div class="sig-tile-top">'
       + '<div class="sig-tile-ico"><img src="' + c.image + '" alt="' + c.sym + ' logo" loading="lazy" width="20" height="20" onerror="this.style.display=\'none\'"></div>'
       + '<span class="sig-tile-sym" style="color:var(--green);">' + c.sym + '</span>'
-      + '<span class="sig-tile-badge rot" style="background:rgba(0,200,150,.12);color:var(--green);">BUY ZONE</span>'
+      + '<span class="sig-tile-badge rot" style="background:rgba(0,200,150,.12);color:var(--green);">' + badgeText + '</span>'
     + '</div>'
     + '<div class="sig-tile-stats">'
       + '<div class="sig-stat"><span class="sig-stat-l">SCORE</span><span class="sig-stat-v am">' + c.score + '</span></div>'
       + '<div class="sig-stat"><span class="sig-stat-l">SENT</span><span class="sig-stat-v ' + sentCls + '">' + sentLabel + '</span></div>'
       + '<div class="sig-stat"><span class="sig-stat-l">UNLOCK</span><span class="sig-stat-v am">' + unlock + '</span></div>'
     + '</div>'
+    + (isHeld ? '<div style="font-size:11px;color:var(--muted);margin-top:6px;">Already in your holdings — still in buy zone.</div>' : '')
     + '</div>';
 }
 
@@ -475,7 +480,16 @@ function renderTopBars() {
      been delisted, take-profit/sell advice is still valid, arguably
      more urgent (get out before it's fully illiquid), so the sell
      side is deliberately untouched. */
-  var allBuys  = coins.slice().filter(function(c) { return !c.isStock && c._zone === 'buy' && _passesMeanRevGate(c) && !(typeof delistedSymbols !== 'undefined' && delistedSymbols.has(c.sym)); }).sort(function(a, b) { return a.score - b.score; });
+  /* Held-first sort: a coin the user already holds (but is still in
+     buy-zone — e.g. bought early, still looks good) should surface
+     ahead of a suggestion for something they've never held. Score
+     order (strongest buy-zone conviction first) still applies within
+     each group. */
+  var allBuys  = coins.slice().filter(function(c) { return !c.isStock && c._zone === 'buy' && _passesMeanRevGate(c) && !(typeof delistedSymbols !== 'undefined' && delistedSymbols.has(c.sym)); }).sort(function(a, b) {
+    var aHeld = hSyms.indexOf(a.sym) >= 0, bHeld = hSyms.indexOf(b.sym) >= 0;
+    if (aHeld !== bHeld) return aHeld ? -1 : 1;
+    return a.score - b.score;
+  });
 
   if (!isPro) {
     /* Build up to 4 real tiles — genuinely mixed types, not a forced
