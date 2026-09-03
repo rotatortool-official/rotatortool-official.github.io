@@ -426,7 +426,12 @@ function renderTopBars() {
   }
 
   /* ── Column 2: High Momentum — 1 free / 6 Pro ── */
-  var momAll  = coins.slice().filter(function(c) { return c.score >= 60 && !c.isStock; })
+  /* Same delisted-coin exclusion as the buy-side filters above — a
+     score-60+ coin shown here reads as a tip, not a warning, so the
+     same "don't point at something you can't actually buy" reasoning
+     applies. Worst-30D-Performers (below) is deliberately left
+     untouched — cautionary framing, not a suggestion to act on. */
+  var momAll  = coins.slice().filter(function(c) { return c.score >= 60 && !c.isStock && !(typeof delistedSymbols !== 'undefined' && delistedSymbols.has(c.sym)); })
                              .sort(function(a, b) { return b.score - a.score; });
   var momEl   = document.getElementById('mom-cards');
   if (isPro) {
@@ -454,7 +459,7 @@ function renderTopBars() {
      rotation logic (tokenomics-aware buy/sell zones) doesn't apply to equities. */
   var held  = coins.filter(function(c) { return hSyms.indexOf(c.sym) >= 0 && !c.isStock; });
   var sells = held.filter(function(c)  { return c._zone === 'sell'; }).sort(function(a, b) { return b.score - a.score; });
-  var buys  = coins.filter(function(c) { return hSyms.indexOf(c.sym) < 0 && !c.isStock && c._zone === 'buy' && _passesMeanRevGate(c); }).sort(function(a, b) { return a.score - b.score; });
+  var buys  = coins.filter(function(c) { return hSyms.indexOf(c.sym) < 0 && !c.isStock && c._zone === 'buy' && _passesMeanRevGate(c) && !(typeof delistedSymbols !== 'undefined' && delistedSymbols.has(c.sym)); }).sort(function(a, b) { return a.score - b.score; });
 
   /* Fallback candidates from all coins when no holdings exist —
      REAL zone-classified buy candidates only. The old version also
@@ -463,7 +468,14 @@ function renderTopBars() {
      though they held neither — replaced below with genuine mixed-type
      tiles (pair / take-profit / standalone buy) that reflect what's
      actually true for the visitor. */
-  var allBuys  = coins.slice().filter(function(c) { return !c.isStock && c._zone === 'buy' && _passesMeanRevGate(c); }).sort(function(a, b) { return a.score - b.score; });
+  /* Real reported harm fix: exclude coins whose Binance USDT pair is
+     delisted/suspended (see loadDelistedSymbols() in data-loaders.js,
+     populated daily from Binance's own exchangeInfo). Only excluded
+     from the BUY side — if someone already holds a coin that's since
+     been delisted, take-profit/sell advice is still valid, arguably
+     more urgent (get out before it's fully illiquid), so the sell
+     side is deliberately untouched. */
+  var allBuys  = coins.slice().filter(function(c) { return !c.isStock && c._zone === 'buy' && _passesMeanRevGate(c) && !(typeof delistedSymbols !== 'undefined' && delistedSymbols.has(c.sym)); }).sort(function(a, b) { return a.score - b.score; });
 
   if (!isPro) {
     /* Build up to 4 real tiles — genuinely mixed types, not a forced

@@ -253,6 +253,39 @@ async function loadCoins(categoryOverride) {
 /* ── Macro data (Gold, Silver, Oil, BTC 7D) ──────────────────── */
 var _macroData = {btcP7: null, goldP7: null, silverP7: null, oilP7: null, dxyP7: null, total3P7: null};
 
+/* ── Delisted/suspended Binance symbols — real reported harm fix ────
+   The rotation/buy suggestions were recommending tokens no longer
+   actively trading on Binance. binance_delisted_symbols is populated
+   daily by the sync-binance-status Edge Function from Binance's own
+   exchangeInfo. Any coin whose sym appears here gets excluded from
+   buy-zone/rotation-target eligibility everywhere — see _isBuySide()/
+   the sell-side filters in signals.js. Read-only, same fail-safe
+   design as the server side: if this fetch fails, the Set stays
+   empty and nothing gets excluded (fail open on THIS specific check
+   only — not a reason to block the whole page). */
+var delistedSymbols = new Set();
+
+async function loadDelistedSymbols() {
+  try {
+    var rows = null;
+    if (typeof supaCacheGet === 'function') {
+      try { rows = await supaCacheGet('binance_delisted_symbols', 60 * 60 * 1000); }
+      catch (e) { console.warn('[SupaCache] delisted-symbols read skipped:', e.message); }
+    }
+    if (!rows || !Array.isArray(rows)) {
+      rows = await supaRest('binance_delisted_symbols', 'GET', { 'select': 'base_asset' });
+      if (Array.isArray(rows) && typeof supaCacheSet === 'function') {
+        supaCacheSet('binance_delisted_symbols', rows);
+      }
+    }
+    if (Array.isArray(rows)) {
+      delistedSymbols = new Set(rows.map(function(r) { return r.base_asset; }));
+    }
+  } catch (e) {
+    console.warn('[loadDelistedSymbols] failed, no exclusions applied this load:', e.message);
+  }
+}
+
 async function loadMacroData() {
   /* ── Try shared Supabase cache first ── */
   if (typeof supaCacheGet === 'function') {
@@ -693,6 +726,7 @@ async function doLoad() {
   });
   try {
     await loadMarketCycle(); /* must resolve before loadCoins() so real btcMA200 is available */
+    await loadDelistedSymbols(); /* must resolve before renderAll() so buy/rotation suggestions exclude delisted coins */
     await loadCoins('all');  prog(50, 'Scoring and ranking coins…');  renderCoinSel();
     await loadBstocks();     prog(65, 'Fetching bStock data…');
     if (typeof pruneStaleHoldings === 'function') pruneStaleHoldings();
@@ -727,6 +761,7 @@ async function doRefresh() {
   if (tsEl) tsEl.style.color = 'var(--bnb)';
   try {
     await loadMarketCycle(); /* cheap — 1hr cache TTL, real MA200 barely moves anyway */
+    await loadDelistedSymbols(); /* same TTL reasoning — Binance status doesn't change minute to minute */
 
     /* Always refresh crypto — re-fetch all loaded categories */
     await loadCoins(_loadedCategories['all'] ? 'all' : activeCategory);
