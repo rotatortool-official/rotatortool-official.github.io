@@ -1180,8 +1180,9 @@ var SignalHistory = (function() {
     getAccuracyStats: getAccuracyStats,
     loadHistory: loadHistory,
     loadServerHistory: loadServerHistory,
-    /* Rotation-pair scoring (server-synced) */
-    takeRotationSnapshot:        takeRotationSnapshot,
+    /* Rotation-pair scoring (server-synced) — takeRotationSnapshot
+       removed (see comment above, ~line 460): it called an RPC/table
+       that never existed. No longer exported. */
     loadRotationHistory:         loadRotationHistory,
     loadServerRotationHistory:   loadServerRotationHistory,
     getRotationProvenSignals:    getRotationProvenSignals,
