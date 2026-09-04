@@ -257,6 +257,14 @@ var BSTOCK_LIST = [
 /* ── Tokenomics database ─────────────────────────────────────────── */
 /* deflation: 'full'=active burn | 'partial'=some burn | 'fixed'=hard cap | 'none'=inflation */
 /* unlockRisk: 'low' | 'medium' | 'high' (vesting overhang)                                  */
+/* unlock30d: OPTIONAL. % of circulating supply unlocking in the next 30 days.
+   If > 5, computeScores() applies an extra -15 to Layer 3. NOT populated
+   automatically — no live vesting-schedule feed exists in this project.
+   Look values up by hand at token.unlocks.app or Vestlab and fill in the
+   coins that actually have near-term cliffs (mainly the ones already
+   marked unlockRisk:'high' below — BTC/LTC/fixed-supply coins can skip
+   this entirely). The three example values below are PLACEHOLDERS to
+   show the shape — replace with real numbers before relying on them.  */
 var TOKENOMICS_DB = {
   'bitcoin':              {deflation:'fixed',   unlockRisk:'low'},
   'ethereum':             {deflation:'partial', unlockRisk:'low'},
@@ -283,10 +291,10 @@ var TOKENOMICS_DB = {
   'cosmos':               {deflation:'none',    unlockRisk:'medium'},
   'vechain':              {deflation:'partial', unlockRisk:'low'},
   'tron':                 {deflation:'partial', unlockRisk:'low'},
-  'sui':                  {deflation:'none',    unlockRisk:'high'},
-  'aptos':                {deflation:'none',    unlockRisk:'high'},
+  'sui':                  {deflation:'none',    unlockRisk:'high', unlock30d: 6.8}, /* ⚠ PLACEHOLDER — verify at token.unlocks.app */
+  'aptos':                {deflation:'none',    unlockRisk:'high', unlock30d: 5.9}, /* ⚠ PLACEHOLDER — verify at token.unlocks.app */
   'sei-network':          {deflation:'none',    unlockRisk:'high'},
-  'render-token':         {deflation:'partial', unlockRisk:'medium'},
+  'render-token':         {deflation:'partial', unlockRisk:'medium', unlock30d: 3.2}, /* ⚠ PLACEHOLDER — verify at token.unlocks.app */
   'jupiter-exchange-solana':{deflation:'partial',unlockRisk:'medium'},
   'aave':                 {deflation:'partial', unlockRisk:'low'},
   'the-graph':            {deflation:'none',    unlockRisk:'high'},

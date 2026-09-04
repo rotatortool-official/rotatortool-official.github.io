@@ -442,8 +442,58 @@ async function loadFearGreed() {
   } catch(e) { console.warn('[FearGreed]', e.message); }
 }
 
+/* ── Rolling 7d volume tracker (client-side, samples 1x/day) ──────
+   No historical volume feed exists in this project (CoinGecko/Binance
+   only give snapshot volume24), so we build a short series ourselves
+   in localStorage. Until a coin has 2+ daily samples, its ratio
+   defaults to 1.0 (neutral) rather than skewing L1 on day one — after
+   ~1 week of normal site usage every actively-viewed coin has a real
+   7d average. */
+var _VOL_HIST_KEY  = 'rot_vol_hist_v1';
+var _VOL_HIST_DAYS = 7;
+var _volHist = {};
+
+function _loadVolHist() {
+  try { return JSON.parse(localStorage.getItem(_VOL_HIST_KEY)) || {}; }
+  catch (e) { return {}; }
+}
+
+function _trackVolumeHistory(coinsArr) {
+  var hist = _loadVolHist();
+  var today = new Date().toISOString().slice(0, 10); // YYYY-MM-DD
+  coinsArr.forEach(function(c) {
+    if (!c.volume24) return;
+    var h = hist[c.id] || [];
+    if (!h.length || h[h.length - 1].d !== today) {
+      h.push({ d: today, v: c.volume24 });
+      if (h.length > _VOL_HIST_DAYS) h = h.slice(-_VOL_HIST_DAYS);
+      hist[c.id] = h;
+    } else {
+      h[h.length - 1].v = c.volume24; // overwrite same-day sample
+    }
+  });
+  try { localStorage.setItem(_VOL_HIST_KEY, JSON.stringify(hist)); } catch (e) {}
+  _volHist = hist;
+  return hist;
+}
+
+/* volumeRatio = 24h volume / prior-days average. Falls back to 1
+   (neutral — doesn't move the score) when there isn't enough history
+   yet for a coin. */
+function _volRatio(c) {
+  var h = _volHist[c.id];
+  if (!h || h.length < 2) return 1;
+  var priorDays = h.slice(0, -1); // exclude today's own sample
+  var avg = priorDays.reduce(function(s, x) { return s + x.v; }, 0) / priorDays.length;
+  if (!avg) return 1;
+  return c.volume24 / avg;
+}
+window._volRatio = _volRatio; // exposed for signal-history.js snapshot push
+
 /* ── Score engine (3 layers) ─────────────────────────────────── */
 function computeScores() {
+  _trackVolumeHistory(coins);
+
   /* Exclude stablecoins (APR display), bStocks (scored separately below —
      UNLOCK/SENT tokenomics has no meaning for equities), and coins with
      incomplete % data — a freshly-listed coin without 14D/30D history
@@ -453,9 +503,20 @@ function computeScores() {
   var scorable = coins.filter(function(c) { return !c.isStable && !c.isStock && c.dataComplete !== false; });
   var n = Math.max(scorable.length - 1, 1);
 
-  /* LAYER 1: Intra-list rank (0–40 pts) — crypto peer group only */
+  /* LAYER 1: Intra-list rank (0–40 pts) — crypto peer group only.
+     p7 is ranked on a volume-adjusted value so a coin pumping on thin
+     volume doesn't outrank one with the same % move backed by real
+     turnover. p14/p30 are left on raw price change — no reliable
+     14d/30d volume-average signal exists yet. */
   ['p7','p14','p30'].forEach(function(k) {
-    var sorted = scorable.slice().sort(function(a, b) { return b[k] - a[k]; });
+    var sorted = scorable.slice().sort(function(a, b) {
+      if (k === 'p7') {
+        var va = a.p7 * (0.5 + 0.5 * Math.min(_volRatio(a), 2));
+        var vb = b.p7 * (0.5 + 0.5 * Math.min(_volRatio(b), 2));
+        return vb - va;
+      }
+      return b[k] - a[k];
+    });
     sorted.forEach(function(c, i) { c['r' + k.slice(1)] = i + 1; });
   });
 
@@ -505,10 +566,28 @@ function computeScores() {
     } else if (!c.max_supply) { supplyPts = -3; }
     var deflPts   = tkx.deflation  === 'full' ? 15 : tkx.deflation  === 'partial' ? 8 : tkx.deflation === 'fixed' ? 5 : 0;
     var unlockPts = tkx.unlockRisk === 'low'  ?  0 : tkx.unlockRisk === 'medium'  ? -5 : -10;
+    /* Near-term unlock overhang — extra penalty on top of the static
+       unlockRisk tier when a coin has a real unlock event coming up.
+       unlock30d must be filled in by hand in config.js's
+       TOKENOMICS_DB (see that file's comment) — no live vesting data
+       source is wired into this project. */
+    if (tkx.unlock30d && tkx.unlock30d > 5) unlockPts -= 15;
     var layer3    = Math.min(30, Math.max(-50, supplyPts + deflPts + unlockPts));
 
     c.score = Math.min(100, Math.max(-50, Math.round(layer1 + layer2 + layer3)));
-    c.scoreBreakdown = {layer1, layer2, layer3, supplyPts, deflPts, unlockPts, dxyP7: dxyP7, total3P7: total3P7};
+
+    /* Mcap bracket adjustment — dampens micro-cap noise (<$500M),
+       rewards mega-cap stability (>$50B). Neutral $500M–$10B band is
+       implicit (mult stays 1.0). Applied post-clamp, after L1+L2+L3,
+       per the spec — can nudge score slightly outside -50..100 in
+       edge cases, which is intentional (a 1.05x mega-cap bonus on a
+       near-100 score should still read as "very strong"). */
+    var mcapMult = 1.0;
+    if (c.mcap && c.mcap < 500e6)      mcapMult = 0.85;
+    else if (c.mcap && c.mcap > 50e9)  mcapMult = 1.05;
+    c.score = Math.round(c.score * mcapMult);
+
+    c.scoreBreakdown = {layer1, layer2, layer3, supplyPts, deflPts, unlockPts, dxyP7: dxyP7, total3P7: total3P7, mcapMult, volRatio: _volRatio(c)};
   });
 
   /* ── bStocks: partial score, own peer group, no Layer 3 ──────────

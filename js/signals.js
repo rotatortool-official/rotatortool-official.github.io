@@ -1195,6 +1195,21 @@ function setSort(tf) {
 /* Master render — call this after any data change */
 var _klinesFetched = false;
 function renderAll() {
+  /* Macro risk gate — suppresses BUY-side alerts (Telegram, and any
+     future in-app "safe to buy" badge) when broad conditions favor
+     caution, independent of any single coin's own score.
+       · Fear & Greed > 70 (Greed/Extreme Greed)
+       · DXY up >2% over 7d (dollar strength headwind for crypto)
+       · Oil up >5% over 7d (risk-off proxy — no absolute oil price
+         feed exists in this project, only % 7d change via _macroData,
+         so this is a % proxy for the originally-requested ">$95"
+         absolute threshold; swap in a real price feed if you wire one
+         in later) */
+  var fg     = (typeof window.fearGreed === 'object' && window.fearGreed) ? window.fearGreed.value : 50;
+  var oilHot = (typeof _macroData !== 'undefined' && _macroData.oilP7 != null) && _macroData.oilP7 > 5;
+  var dxyHot = (typeof _macroData !== 'undefined' && _macroData.dxyP7 != null) && _macroData.dxyP7 > 2;
+  window.safeToBuy = !(fg > 70 || oilHot || dxyHot);
+
   computeInsights();
   maybeSyncInsightSnapshots();
   renderBTC(); renderTiles(); renderTopBars(); renderTable(); renderCoinSel(); updateTierBadge(); if (typeof initCategoryLocks === 'function') initCategoryLocks(); if (typeof updateProGates === 'function') updateProGates();

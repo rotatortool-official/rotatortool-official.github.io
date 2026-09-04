@@ -439,7 +439,12 @@ var SignalHistory = (function() {
         mcap: c.mcap || 0,   /* Step 4: stored so vol-normalized threshold survives reloads */
         p24: Math.round(c.p24 * 100) / 100,
         p7: Math.round(c.p7 * 100) / 100,
-        p30: Math.round(c.p30 * 100) / 100
+        p30: Math.round(c.p30 * 100) / 100,
+        /* volRatio + zone — added for the Telegram alert Edge Function
+           (send-telegram-alerts), which reads today's signal_snapshots
+           row instead of recomputing scores server-side. */
+        volRatio: (typeof window._volRatio === 'function') ? Math.round(window._volRatio(c) * 100) / 100 : 1,
+        zone: c._zone || 'neutral'
       };
     }
 
@@ -485,7 +490,8 @@ var SignalHistory = (function() {
         coin_id: e.id, coin_sym: e.sym, coin_name: e.name,
         signal_type: 'bullish', signal_label: e.signal, extras: e.extras || [],
         score: e.score, price: e.price, mcap: e.mcap || 0,
-        p24: e.p24, p7: e.p7, p30: e.p30
+        p24: e.p24, p7: e.p7, p30: e.p30,
+        vol_ratio: e.volRatio, zone: e.zone
       });
     });
     topLag.forEach(function(e) {
@@ -493,7 +499,8 @@ var SignalHistory = (function() {
         coin_id: e.id, coin_sym: e.sym, coin_name: e.name,
         signal_type: 'lagging', signal_label: e.signal, extras: e.extras || [],
         score: e.score, price: e.price, mcap: e.mcap || 0,
-        p24: e.p24, p7: e.p7, p30: e.p30
+        p24: e.p24, p7: e.p7, p30: e.p30,
+        vol_ratio: e.volRatio, zone: e.zone
       });
     });
     if (!rows.length) return;
