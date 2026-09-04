@@ -17,47 +17,66 @@ only to configure/deploy a few things Claude can't do for you.
   "% oil move > 5% in 7d" proxy. Swap it for a real threshold if you wire
   in an absolute oil price source later.
 
-## ⚠️ Needs your action — D (Telegram bot)
+## ✅ Already applied via Supabase MCP, some setup left — D (Telegram bot)
 
-This didn't exist before, so there's real setup:
+**STATUS AS OF THIS BUILD:** the SQL migrations are already run and the
+Edge Function is already deployed against your live project
+(`wyvwycatgexpbugzkdfw`) — I did this directly via the Supabase
+connector. What's left is Telegram-side config + verifying real data
+flows through.
+
+**Architecture note — this went through a revision.** The first version
+read `signal_snapshots`, which only ever stores the mean-reversion "buy
+zone" pool (gated to -3%..-40% 30D pullbacks) — the *opposite* of "High
+Momentum." Two new tables now exist instead:
+- `momentum_snapshots` — the actual score≥60 "High Momentum" tier
+  (never existed anywhere before this)
+- `holdings_snapshots` — daily score for symbols specifically in
+  `my_holdings` (more precise than the old plan, which could miss a
+  held coin if it wasn't in the day's bottom-10 globally)
+
+Both are written once/day by `js/signals.js`'s `renderTopBars()` via new
+functions in `js/supabase.js` (`supaRecordMomentumSnapshot`,
+`supaRecordHoldingsSnapshot`) — that's the part that needs to reach your
+live GitHub Pages site (this zip has it; push it).
+
+Remaining steps:
 
 1. **Create the bot** — message `@BotFather` on Telegram → `/newbot` →
    save the token.
 2. **Get your chat ID** — message your new bot once, then open
    `https://api.telegram.org/bot<TOKEN>/getUpdates` in a browser and read
    `chat.id` from the JSON.
-3. **Run the SQL migrations, in order:**
-   - `sql/add_vol_ratio_zone_to_signal_snapshots.sql`
-   - `sql/my_holdings_table.sql`
-4. **Deploy the Edge Function:**
-   ```
-   supabase functions deploy send-telegram-alerts
-   supabase secrets set TELEGRAM_BOT_TOKEN=<from step 1>
-   supabase secrets set TELEGRAM_CHAT_ID=<from step 2>
-   supabase secrets set TELEGRAM_ALERTS_SECRET=<make up a random string>
-   ```
-5. **Wire the cron** — open `sql/send_telegram_alerts_cron.sql`, replace
-   the two `⚠ replace with...` placeholders (your project URL + the same
-   `TELEGRAM_ALERTS_SECRET` value from step 4), then run it in the SQL
-   Editor.
-6. **Keep `my_holdings` current by hand** whenever you buy/sell, e.g.:
+3. **Set the 3 Edge Function secrets** (Dashboard → Edge Functions →
+   `send-telegram-alerts` → Secrets, or `supabase secrets set`):
+   `TELEGRAM_BOT_TOKEN`, `TELEGRAM_CHAT_ID`, `TELEGRAM_ALERTS_SECRET`
+   (make up a long random string for the last one — it's what protects
+   the endpoint from strangers triggering it).
+4. **Push this zip's `js/` files to GitHub** and visit the live site
+   once — that's what fires the first `momentum_snapshots`/
+   `holdings_snapshots` write of the day.
+5. **Add at least one symbol to `my_holdings`** if you want to test a
+   SELL alert:
    ```sql
-   insert into my_holdings (sym) values ('RENDER') on conflict do nothing;
-   delete from my_holdings where sym = 'RENDER'; -- when you sell
+   insert into my_holdings (sym) values ('YOUR_SYMBOL') on conflict do nothing;
+   delete from my_holdings where sym = 'YOUR_SYMBOL'; -- when you sell
    ```
-   This exists because holdings have only ever lived in browser
-   localStorage in this project — there's no sync to key off server-side.
-7. **Test before trusting it:**
+6. **Wire the cron** — open `sql/send_telegram_alerts_cron.sql`, replace
+   the two `⚠ replace with...` placeholders (your project URL + the same
+   `TELEGRAM_ALERTS_SECRET` value from step 3), then run it.
+7. **Test:**
    ```sql
    select public.trigger_telegram_alerts();
    ```
-   then check your Telegram + the Edge Function logs in the Supabase
-   dashboard. Do this for a day or two before assuming it's reliably firing.
+   (or ask me to — I can trigger it directly and check the response).
+   Watch for a real Telegram message once momentum/holdings data exists;
+   until then it correctly returns `{"ok":true,"sent":0,"reason":"no
+   snapshots for today yet"}` rather than erroring.
 
-Filter logic implemented, per your answers: BUY = "High Momentum" tier
-(score ≥ 70, your explicit choice) + volume ≥1.5x 7d avg; SELL = score
-≤ 40 AND symbol in `my_holdings`; either suppressed entirely if the macro
-gate (C) is closed.
+Filter logic: BUY = "High Momentum" tier (score ≥ 70) + volume ≥1.5x 7d
+avg, from `momentum_snapshots`; SELL = score ≤ 40 for a symbol in
+`my_holdings`, from `holdings_snapshots`; either suppressed entirely if
+the macro gate (C) is closed.
 
 ## ⚠️ Needs your action — E (tokenomics unlock data)
 

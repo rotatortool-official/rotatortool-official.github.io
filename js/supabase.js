@@ -361,6 +361,36 @@ function supaCacheSet(key, data) {
  *   price, p24, p7, p30 }. coin_name optional.
  * @returns {Promise<{ok:boolean, reason:string, count:number}>}
  */
+function supaRecordMomentumSnapshot(rows) {
+  var url = SUPA_URL + '/rest/v1/rpc/record_momentum_snapshot';
+  return fetch(url, {
+    method: 'POST',
+    headers: { 'apikey': SUPA_KEY, 'Authorization': 'Bearer ' + SUPA_KEY, 'Content-Type': 'application/json' },
+    body: JSON.stringify({ p_rows: rows })
+  }).then(function(r) {
+    if (!r.ok) throw new Error('rpc ' + r.status);
+    return r.json();
+  }).catch(function(e) {
+    console.warn('[Supabase] record_momentum_snapshot failed:', e.message);
+    return { ok: false, reason: 'offline', count: 0 };
+  });
+}
+
+function supaRecordHoldingsSnapshot(rows) {
+  var url = SUPA_URL + '/rest/v1/rpc/record_holdings_snapshot';
+  return fetch(url, {
+    method: 'POST',
+    headers: { 'apikey': SUPA_KEY, 'Authorization': 'Bearer ' + SUPA_KEY, 'Content-Type': 'application/json' },
+    body: JSON.stringify({ p_rows: rows })
+  }).then(function(r) {
+    if (!r.ok) throw new Error('rpc ' + r.status);
+    return r.json();
+  }).catch(function(e) {
+    console.warn('[Supabase] record_holdings_snapshot failed:', e.message);
+    return { ok: false, reason: 'offline', count: 0 };
+  });
+}
+
 function supaRecordSignalSnapshot(rows) {
   var url = SUPA_URL + '/rest/v1/rpc/record_daily_snapshot';
   return fetch(url, {

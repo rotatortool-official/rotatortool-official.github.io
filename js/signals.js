@@ -438,6 +438,33 @@ function renderTopBars() {
      untouched — cautionary framing, not a suggestion to act on. */
   var momAll  = coins.slice().filter(function(c) { return c.score >= 60 && !c.isStock && !(typeof delistedSymbols !== 'undefined' && delistedSymbols.has(c.sym)); })
                              .sort(function(a, b) { return b.score - a.score; });
+
+  /* Persist today's momentum tier + your holdings' scores, once/day,
+     for the Telegram alert Edge Function (send-telegram-alerts) —
+     signal_snapshots can't be reused here, see
+     sql/create_momentum_and_holdings_snapshots.sql for why. Both RPCs
+     are idempotent (server checks "already recorded today" and no-ops),
+     so calling this on every render is safe, same pattern as the
+     existing takeSnapshot() call. */
+  if (typeof supaRecordMomentumSnapshot === 'function') {
+    var momRows = momAll.slice(0, 20).map(function(c) {
+      return {
+        coin_id: c.id, coin_sym: c.sym, coin_name: c.name || '',
+        score: c.score, price: c.price,
+        vol_ratio: (typeof window._volRatio === 'function') ? Math.round(window._volRatio(c) * 100) / 100 : 1,
+        mcap: c.mcap || 0
+      };
+    });
+    if (momRows.length) supaRecordMomentumSnapshot(momRows);
+  }
+  if (typeof supaRecordHoldingsSnapshot === 'function' && typeof holdings !== 'undefined' && holdings.length) {
+    var heldRows = holdings.map(function(h) {
+      var c = coins.find(function(cc) { return cc.sym === h.sym; });
+      if (!c) return null;
+      return { sym: c.sym, coin_id: c.id, score: c.score, price: c.price };
+    }).filter(Boolean);
+    if (heldRows.length) supaRecordHoldingsSnapshot(heldRows);
+  }
   var momEl   = document.getElementById('mom-cards');
   if (isPro) {
     if (momAll.length) {
