@@ -324,6 +324,35 @@ function supaCacheGet(key, ttlMs) {
 }
 
 /**
+ * Last-resort read: returns the cached row REGARDLESS of age.
+ *
+ * Only for use after every live fetch path has already failed.
+ * supaCacheGet() stays the normal entry point precisely because it
+ * returns null when stale — if this returned stale data on the happy
+ * path, a cached row would satisfy the request and the data would
+ * stop refreshing entirely.
+ *
+ * @param {string} key — cache key
+ * @returns {Promise<{data:*, ageMs:number}|null>}
+ */
+function supaCacheGetStale(key) {
+  return supaRest('market_cache', 'GET', {
+    'cache_key': 'eq.' + key,
+    'select':    'data,updated_at',
+    'limit':     '1'
+  }).then(function(rows) {
+    if (!rows || !rows.length) return null;
+    return {
+      data:  rows[0].data,
+      ageMs: Date.now() - new Date(rows[0].updated_at).getTime()
+    };
+  }).catch(function(e) {
+    console.warn('[SupaCache] stale read failed:', e.message);
+    return null;
+  });
+}
+
+/**
  * Write to shared Supabase cache (upsert).
  * @param {string} key  — cache key
  * @param {object} data — JSON-serializable data

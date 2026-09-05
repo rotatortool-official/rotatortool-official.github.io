@@ -125,6 +125,44 @@ var SignalHistory = (function() {
   var _dailyKlineCache = {};   /* sym → { ts, candles } */
   var _dailyKlineTTL   = 60 * 60 * 1000;  /* 1h */
   var _dailyKlinePend  = {};   /* sym → in-flight promise (dedupes parallel calls) */
+
+  /* Back the in-memory cache with localStorage. These are daily candles
+     for grading past calls — mostly settled history — but the cache used
+     to be memory-only, so every page reload refetched one Binance
+     request per graded symbol. TTL stays 1h: today's candle is still
+     forming, so this persists across reloads without freezing it. */
+  var _DK_PREFIX = 'rk1d:';
+
+  function _dkLoad(sym) {
+    try {
+      var raw = localStorage.getItem(_DK_PREFIX + sym);
+      if (!raw) return null;
+      var stored = JSON.parse(raw);
+      if (!stored || (Date.now() - stored.ts) >= _dailyKlineTTL) return null;
+      return stored;
+    } catch (e) { return null; }
+  }
+
+  function _dkSave(sym, entry) {
+    try {
+      localStorage.setItem(_DK_PREFIX + sym, JSON.stringify(entry));
+    } catch (e) {
+      /* Quota hit — drop expired kline entries and retry once, so a full
+         store doesn't leave writes failing forever. */
+      try {
+        var now = Date.now();
+        Object.keys(localStorage)
+          .filter(function(k) { return k.indexOf(_DK_PREFIX) === 0; })
+          .forEach(function(k) {
+            try {
+              var s = JSON.parse(localStorage.getItem(k));
+              if (!s || (now - s.ts) >= _dailyKlineTTL) localStorage.removeItem(k);
+            } catch (e2) { localStorage.removeItem(k); }
+          });
+        localStorage.setItem(_DK_PREFIX + sym, JSON.stringify(entry));
+      } catch (e3) {}
+    }
+  }
   var _peakVerdicts    = {};   /* "YYYY-MM-DD|coin_id" → {bestChange, worstChange, ...} */
   var _peakWarmStarted = false;
   var _peakWarmDone    = false;
@@ -143,6 +181,10 @@ var SignalHistory = (function() {
   function _fetchDailyKlines(sym) {
     var now = Date.now();
     var cached = _dailyKlineCache[sym];
+    if (!cached) {
+      cached = _dkLoad(sym);            /* survives page reloads */
+      if (cached) _dailyKlineCache[sym] = cached;
+    }
     if (cached && (now - cached.ts) < _dailyKlineTTL) return Promise.resolve(cached.candles);
     if (_dailyKlinePend[sym]) return _dailyKlinePend[sym];
     var pair = sym + 'USDT';
@@ -150,7 +192,13 @@ var SignalHistory = (function() {
     var p = fetch(url)
       .then(function(r) { return r.ok ? r.json() : null; })
       .then(function(data) {
-        if (!Array.isArray(data) || !data.length) { _dailyKlineCache[sym] = { ts: now, candles: null }; return null; }
+        /* Server answered but has nothing for this pair (no Binance
+           listing) — worth persisting so reloads stop re-asking. */
+        if (!Array.isArray(data) || !data.length) {
+          _dailyKlineCache[sym] = { ts: now, candles: null };
+          _dkSave(sym, _dailyKlineCache[sym]);
+          return null;
+        }
         var candles = data.map(function(k) {
           return {
             openTime: +k[0],
@@ -160,8 +208,11 @@ var SignalHistory = (function() {
           };
         });
         _dailyKlineCache[sym] = { ts: now, candles: candles };
+        _dkSave(sym, _dailyKlineCache[sym]);
         return candles;
       })
+      /* Transient failure (offline, timeout) — cache in memory only, so
+         the next page load retries instead of being stuck on it for 1h. */
       .catch(function() { _dailyKlineCache[sym] = { ts: now, candles: null }; return null; })
       .then(function(out) { delete _dailyKlinePend[sym]; return out; });
     _dailyKlinePend[sym] = p;

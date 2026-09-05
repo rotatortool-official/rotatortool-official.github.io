@@ -31,8 +31,25 @@ var CACHE_RULES = [
   { match: /coins\/markets/,                           ttl: 15*60*1000, label: 'COINS-MKT'   }, // 15 min
   { match: /finance\.yahoo\.com/,                      ttl: 30*60*1000, label: 'STOCKS'       }, // 30 min
   { match: /frankfurter\.app/,                         ttl: 15*60*1000, label: 'FOREX-FK'    }, // 15 min
+  /* These three used to fall through to DEFAULT by accident. Binance's
+     ticker stays at 5 min because it is the live price feed; the other
+     two are pinned to how often the source actually republishes. */
+  { match: /api\.binance\.com\/api\/v3\/ticker\/24hr/, ttl:  5*60*1000, label: 'BNB-TICKER'  }, // 5 min — live prices
+  { match: /alternative\.me\/fng/,                     ttl: 60*60*1000, label: 'FEAR-GREED'  }, // 1 hour — index updates once a day
+  { match: /coingecko\.com\/api\/v3\/global/,          ttl: 15*60*1000, label: 'CG-GLOBAL'   }, // 15 min — total mcap/dominance drift slowly
   { match: /./,                                        ttl:  5*60*1000, label: 'DEFAULT'      }  // 5 min
 ];
+
+/* ── Cache metrics ───────────────────────────────────────────────────
+   Read-only counters, exposed for monitoring. Nothing branches on
+   these — they exist so "the cache quietly stopped working" is
+   observable instead of invisible. Inspect via window.__ROT_CACHE_STATS.
+────────────────────────────────────────────────────────────────── */
+var _cacheStats = {
+  hit: 0, miss: 0, staleServed: 0, rateLimited: 0, failed: 0,
+  proxyDepth: [0, 0, 0]   /* [direct, corsproxy, allorigins] */
+};
+try { window.__ROT_CACHE_STATS = _cacheStats; } catch(e) {}
 
 /* ── Internal cache stores ─────────────────────────────────────── */
 var _memCache = {};  /* url → { data, time }  — fast, in-memory     */
@@ -61,6 +78,24 @@ function _cacheGet(url) {
     }
   } catch(e) {}
   return null;
+}
+
+/* Read a cached entry REGARDLESS of age. Last-resort only: used after
+   every network path has already failed, where a few minutes of
+   staleness beats an empty screen. Kept separate from _cacheGet so a
+   stale entry can never silently satisfy a normal request.
+   Note: purgeStaleCacheEntries() drops entries past 4x their TTL, so
+   this can only reach back that far. Returns { data, age } or null. */
+function _cacheGetStale(url) {
+  var entry = _memCache[url];
+  if (!entry) {
+    try {
+      var raw = localStorage.getItem('rc:' + url);
+      if (raw) entry = JSON.parse(raw);
+    } catch(e) {}
+  }
+  if (!entry || entry.data === undefined || entry.data === null) return null;
+  return { data: entry.data, age: Date.now() - entry.time };
 }
 
 function _cacheSet(url, data) {
@@ -133,7 +168,8 @@ function getCacheInfo(url) {
 async function apiFetch(url) {
   /* Return cached data if still fresh */
   var cached = _cacheGet(url);
-  if (cached !== null) return cached;
+  if (cached !== null) { _cacheStats.hit++; return cached; }
+  _cacheStats.miss++;
 
   /* Deduplicate concurrent requests to the same URL */
   if (_pending[url]) return _pending[url];
@@ -153,13 +189,29 @@ async function apiFetch(url) {
         if (!r.ok) throw new Error('HTTP ' + r.status);
         var j = await r.json();
         var u = unwrap(j);
-        if (u && u.status && u.status.error_code === 429) throw new Error('rate_limited');
+        if (u && u.status && u.status.error_code === 429) { _cacheStats.rateLimited++; throw new Error('rate_limited'); }
         _cacheSet(url, u);
+        _cacheStats.proxyDepth[i]++;
         delete _pending[url];
         return u;
       } catch(e) { errs.push(e.message || String(e)); }
     }
+
     delete _pending[url];
+
+    /* Every proxy failed. Before throwing, fall back to whatever is
+       still in the cache — expired data is almost always better than
+       none, and the age is logged so a genuinely dead endpoint shows up
+       as "serving 40-minute-old data" rather than passing unnoticed. */
+    var stale = _cacheGetStale(url);
+    if (stale) {
+      _cacheStats.staleServed++;
+      console.warn('[apiFetch] all sources failed — serving cache ' +
+                   Math.round(stale.age / 1000) + 's old: ' + url);
+      return stale.data;
+    }
+
+    _cacheStats.failed++;
     throw new Error(errs.join(' | '));
   })();
 

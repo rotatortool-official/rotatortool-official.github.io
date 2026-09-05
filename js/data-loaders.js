@@ -177,6 +177,18 @@ async function loadCoins(categoryOverride) {
       supaCacheSet(cacheKey, rawData); // fire-and-forget
     }
   }
+  /* Every live path has failed by this point, including apiFetch's own
+     per-visitor stale fallback. The shared cache at any age is the last
+     copy of this data that exists — and for a first-time visitor with an
+     empty localStorage it is the ONLY one. */
+  if (!rawData.length && typeof supaCacheGetStale === 'function') {
+    var lastResort = await supaCacheGetStale(cacheKey);
+    if (lastResort && Array.isArray(lastResort.data) && lastResort.data.length) {
+      rawData = lastResort.data;
+      console.warn('[loadCoins] live fetch failed — using shared cache ' +
+                   Math.round(lastResort.ageMs / 60000) + ' min old');
+    }
+  }
   if (!rawData.length) throw new Error('CoinGecko data invalid');
 
   var fetchedCoins = rawData.map(function(c) {
