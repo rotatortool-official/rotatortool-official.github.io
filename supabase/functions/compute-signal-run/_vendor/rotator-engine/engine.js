@@ -1,4 +1,4 @@
-/* ══════════════════════════════════════════════════════════════════
+/* ═══════════════════════════════════════════════════════════════
    rotator-engine — the canonical Rotator scoring engine.
 
    ⚠ GENERATED FILE — do not edit engine.js by hand during Phase 1.
@@ -31,7 +31,7 @@
 //   site/js/signals.js                 _passesMeanRevGate     L155-158  sha256:92b63c975dcf
 //   site/js/signals.js                 _quickInsight          L171-207  sha256:b749552c2655
 //   site/js/signals.js                 _classifyZones         L211-244  sha256:f2591b61b33a
-══════════════════════════════════════════════════════════════════ */
+═══════════════════════════════════════════════════════════════ */
 (function (root, factory) {
   if (typeof module === 'object' && module.exports) module.exports = factory();
   else root.RotatorEngine = factory();
@@ -48,7 +48,7 @@
   var ENGINE_VERSION = '2.0.0';
   var SCORING_MODELS = ['v1', 'v2'];
 
-  /* ── Eligibility defaults ──────────────────────────────────────────
+  /* ── Eligibility defaults ──────────────────────────────
      Tradability, not quality. A coin can score well and still be
      something nobody can actually get in or out of, and publishing it
      as a rotation candidate is the harm the delisted-symbol exclusion
@@ -70,12 +70,12 @@
     minVolume24h: 250000
   };
 
-  /* ════════════════════════════════════════════════════════════════
+  /* ════════════════════════════════════════════════════════════
      SEAM 1 — page globals, now module state.
      Every name here is one the extracted bodies expect to find in
      scope. They are reset by _loadState() at the top of each run, so a
      run never inherits anything from the run before it.
-     ════════════════════════════════════════════════════════════════ */
+     ════════════════════════════════════════════════════════════ */
   var coins = [];
   var TOKENOMICS_DB = {};
   var _macroData = {};
@@ -91,7 +91,7 @@
   var _SIG_SELL_BASE = 62;
   var _SIG_DEADBAND = 50;
 
-  /* ════════════════════════════════════════════════════════════════
+  /* ════════════════════════════════════════════════════════════
      SEAM 2 — localStorage.
      _trackVolumeHistory() and _classifyZones() read and write browser
      storage directly. Rather than edit those bodies, the module gives
@@ -99,7 +99,7 @@
      collected and returned as output. That is the whole of "move zone
      state server-side" from the engine's side: the caller decides where
      the store actually lives.
-     ════════════════════════════════════════════════════════════════ */
+     ════════════════════════════════════════════════════════════ */
   var _store = {};
   var localStorage = {
     getItem: function (k) { return Object.prototype.hasOwnProperty.call(_store, k) ? _store[k] : null; },
@@ -107,19 +107,19 @@
     removeItem: function (k) { delete _store[k]; }
   };
 
-  /* ════════════════════════════════════════════════════════════════
+  /* ════════════════════════════════════════════════════════════
      SEAM 3 — the clock.
      _trackVolumeHistory() stamps samples with `new Date()`. A signal run
      must be reproducible from its inputs alone, so Date is shadowed here
      by one frozen at the run's `asOf`. Nothing else in the extracted
      code reads the clock.
-     ════════════════════════════════════════════════════════════════ */
+     ════════════════════════════════════════════════════════════ */
   var NativeDate = (typeof globalThis !== 'undefined' ? globalThis : this).Date;
   var _asOf = null;
   function Date() { return new NativeDate(_asOf); }
   Date.now = function () { return new NativeDate(_asOf).getTime(); };
 
-  /* ─── verbatim from data-loaders.js ─────────────────────── */
+  /* ─── verbatim from data-loaders.js ─────────────────── */
   function _loadVolHist() {
     try { return JSON.parse(localStorage.getItem(_VOL_HIST_KEY)) || {}; }
     catch (e) { return {}; }
@@ -260,7 +260,7 @@
       c.scoreBreakdown = {layer1, layer2, layer3, supplyPts, deflPts, unlockPts, dxyP7: dxyP7, total3P7: total3P7, mcapMult, volRatio: _volRatio(c)};
     });
 
-    /* ── bStocks: partial score, own peer group, no Layer 3 ──────────
+    /* ── bStocks: partial score, own peer group, no Layer 3 ─────────────
        Ship-first version per the migration plan: MCAP + momentum only,
        no fabricated unlock/sentiment number. Ranked against OTHER bStocks
        (not crypto) so a modest-momentum stock isn't buried under a
@@ -284,7 +284,7 @@
     });
   }
 
-  /* ─── verbatim from signals.js ─────────────────────── */
+  /* ─── verbatim from signals.js ─────────────────── */
   function _adaptiveThresholds() {
     if (btcMA200 && btcPrice) {
       /* BTC's own Mayer Multiple label (real, calibrated to BTC's history —
@@ -392,12 +392,12 @@
     try { localStorage.setItem('rot_last_zone', JSON.stringify(_lastZone)); } catch (e) {}
   }
 
-  /* ════════════════════════════════════════════════════════════════
+  /* ════════════════════════════════════════════════════════════
      Glue — the parts of loadCoins()/loadMacroData() that are page
      plumbing rather than scoring. Kept out of the extraction on purpose,
      and kept identical in behaviour to what the site does before it
      calls computeScores().
-     ════════════════════════════════════════════════════════════════ */
+     ════════════════════════════════════════════════════════════ */
   function _deriveBtcAnchors(input) {
     var btc = null;
     for (var i = 0; i < coins.length; i++) if (coins[i].id === 'bitcoin') { btc = coins[i]; break; }
@@ -474,7 +474,7 @@
     };
   }
 
-  /* ── Eligibility ───────────────────────────────────────────────────
+  /* ── Eligibility ────────────────────────────────────────────
      Computed AFTER scoring and kept strictly separate from it: this
      never moves a score, a rank or a zone. It answers a different
      question — "may this coin be published as a candidate" — and every
@@ -503,7 +503,7 @@
     return { eligible: reasons.length === 0, exclusions: reasons };
   }
 
-  /* ════════════════════════════════════════════════════════════════
+  /* ════════════════════════════════════════════════════════════
      SCORING v2 — additive, opt-in, and side by side with v1.
 
      v1 above is untouched and still the default. v2 is a separate
@@ -541,7 +541,7 @@
      Weights are explicit and renormalise over whatever data is present,
      so a missing component costs coverage rather than silently becoming
      a neutral vote. Tune them here; every run reports what it used.
-     ════════════════════════════════════════════════════════════════ */
+     ════════════════════════════════════════════════════════════ */
   var V2_WEIGHTS = {
     momentum:   0.45,   /* intra-list rank blend, same horizons as v1 */
     relBtc:     0.20,   /* relative strength vs BTC, 7d and 30d       */
@@ -707,9 +707,9 @@
     };
   }
 
-  /* ════════════════════════════════════════════════════════════════
+  /* ════════════════════════════════════════════════════════════
      PUBLIC API
-     ════════════════════════════════════════════════════════════════ */
+     ════════════════════════════════════════════════════════════ */
   /**
    * Score one market snapshot. Pure: same input in, same output out.
    *

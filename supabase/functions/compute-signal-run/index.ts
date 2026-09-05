@@ -8,18 +8,6 @@
 // their own — the root cause of the measured Spearman-0.759 divergence
 // between them (rotator-fixture).
 //
-// WHAT THIS DOES NOT YET CHANGE:
-// The site still computes client-side too (runSignalEngine() in
-// js/data-loaders.js) and still writes signal_zone_state itself via
-// supaApplyZoneState — this function writes the SAME zone state (same
-// apply_zone_state RPC, same staleness guard) so nothing regresses
-// while both writers coexist. Switching the site to READ signal_runs
-// instead of computing, and deleting the bot's own scoring (Step C), are
-// separate follow-up changes — deliberately not bundled into standing
-// up this table, same reasoning rotator-engine/README.md gives for why
-// Phase 1's zone-state migration and site-rewiring were kept as two
-// separate, individually-reviewable steps.
-//
 // SCORING: v1 (computeSignalRun's score/zone) is what's stored as
 // authoritative (`scoring_model = 'v1'`) — promptove/08-backtest-
 // results-2026-09-05.md found v2 not distinguishably better on a
@@ -37,6 +25,10 @@
 // absent from `v2.components` for every coin on every run (that's a
 // real, visible gap in the stored `params`, not a silent one).
 //
+// bStocks are NOT included — this scores the CoinGecko crypto universe
+// only. The site still scores bStocks locally (see js/data-loaders.js);
+// that's unaffected by this migration.
+//
 // DATA SOURCES: same already-cached tables every other sync function in
 // this project reads (market_cache, market_cycle, binance_delisted_
 // symbols) — no new external API calls. market_cache is a shared
@@ -48,6 +40,12 @@
 // coins[] IS BUILT the same way rotator-fixture/lib/fixture.js's
 // toWebsiteCoins() does — deliberately the no-Binance-merge fallback
 // path (the deterministic one), not a re-typed guess at loadCoins().
+//
+// The site (js/data-loaders.js's runSignalEngine()) reads this table
+// directly now — crypto score/zone/breakdown are server-authoritative
+// for every visitor. It still ALSO runs the canonical engine locally,
+// but only to score bStocks (not covered here) and as a same-session
+// fallback if this table has no row yet or the fetch fails.
 //
 // DEPLOY:
 //   node rotator-engine/sync-to-edge-function.js   (refresh the _vendor/ copy first)
@@ -197,9 +195,9 @@ Deno.serve(async (req) => {
     const { error: itemsErr } = await supabase.from('signal_run_items').insert(items);
     if (itemsErr) throw new Error('signal_run_items insert failed: ' + itemsErr.message);
 
-    // ── Keep signal_zone_state fed exactly as the client already does,
-    //    so nothing regresses while the site's own client-side compute
-    //    is still live (see header comment). ──
+    // ── Keep signal_zone_state fed — the site no longer writes it
+    //    itself (Step B site rewiring), so this cron is now the SOLE
+    //    writer, on the same RPC with the same staleness guard. ──
     const zonePayload: Record<string, unknown> = {};
     run.items.forEach((it: any) => {
       if (run.zones[it.id]) zonePayload[it.id] = { zone: run.zones[it.id], sym: it.sym, score: it.score, effective_score: it.effectiveScore };
