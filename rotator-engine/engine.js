@@ -38,11 +38,37 @@
 }(typeof globalThis !== 'undefined' ? globalThis : this, function () {
   'use strict';
 
-  /* Bumped ONLY when the maths changes. Phase 1 is an extraction, so this
-     is the version of the behaviour already live on the site. The bot
-     adopting this engine (Phase 4) is what makes it 2.0.0, because that
-     is when published output actually changes. */
-  var ENGINE_VERSION = '1.4.0';
+  /* 2.0.0 adds the v2 scoring model alongside v1. v1 is unchanged and
+     still the default: computeSignalRun() returns exactly what 1.5.0
+     returned, byte for byte, and the golden test enforces it. Nothing a
+     consumer publishes changes until it opts in to computeSignalRunV2().
+
+     The major bump is because the module now offers two models, not
+     because the old one moved. */
+  var ENGINE_VERSION = '2.0.0';
+  var SCORING_MODELS = ['v1', 'v2'];
+
+  /* ── Eligibility defaults ──────────────────────────────────────────
+     Tradability, not quality. A coin can score well and still be
+     something nobody can actually get in or out of, and publishing it
+     as a rotation candidate is the harm the delisted-symbol exclusion
+     already exists to prevent — this generalises that.
+
+     $250k of 24h volume is the same floor the Telegram bot has used for
+     its DEX check. Measured against one frozen day it removes HOPR
+     ($10k/day), DEXT ($97k), PRCL ($151k) and CFG ($0 market cap) from
+     the buy-zone list while keeping liquid mid-caps like JTO ($38M/day)
+     and SAND ($15M/day).
+
+     Deliberately NOT a market-cap-rank ceiling. The bot's rank<=150 rule
+     is an editorial choice about which coins a public channel talks
+     about, not a statement about tradability — applied to the site's
+     mean-reversion buy zone it removed all 12 candidates including the
+     two most liquid ones. Thresholds live here so they are versioned
+     with the engine rather than being re-invented per consumer. */
+  var ELIGIBILITY_DEFAULTS = {
+    minVolume24h: 250000
+  };
 
   /* ════════════════════════════════════════════════════════════════
      SEAM 1 — page globals, now module state.
@@ -448,6 +474,221 @@
     };
   }
 
+  /* ── Eligibility ───────────────────────────────────────────────────
+     Computed AFTER scoring and kept strictly separate from it: this
+     never moves a score, a rank or a zone. It answers a different
+     question — "may this coin be published as a candidate" — and every
+     consumer is expected to filter on it rather than re-deriving its own
+     rules, which is how the website (buy-side only) and the edge
+     function (whole universe) ended up excluding delisted coins
+     differently in the first place.
+
+     Returns the reasons, not just a boolean, so a run can explain
+     itself later. */
+  function _eligibility(c, cfg, delistedSet) {
+    var reasons = [];
+    if (c.isStable) reasons.push('stablecoin');
+    if (c.dataComplete === false) reasons.push('incomplete_history');
+    if (c.isStock) reasons.push('equity');            /* partial 0-70 scale, not comparable to crypto */
+    if (delistedSet[c.sym]) reasons.push('delisted');
+    var vol = c.volume24 || 0;
+    if (cfg.minVolume24h > 0 && vol < cfg.minVolume24h) reasons.push('illiquid');
+    /* A coin reporting no market cap at all is a data failure, not a
+       micro-cap: CoinGecko returns this for delisted and migrated
+       tokens (FTM after the Sonic migration, OMNI, CFG). They can still
+       show real volume, so the liquidity floor alone does not catch
+       them — and both engines had a falsy-guard bug that let them slip
+       past a market-cap check. Naming it here fixes it in one place. */
+    if (!c.mcap || c.mcap <= 0) reasons.push('no_market_cap');
+    return { eligible: reasons.length === 0, exclusions: reasons };
+  }
+
+  /* ════════════════════════════════════════════════════════════════
+     SCORING v2 — additive, opt-in, and side by side with v1.
+
+     v1 above is untouched and still the default. v2 is a separate
+     function so the two can be run on the same inputs and diffed. It is
+     NOT claimed to be more predictive: that requires the forward-return
+     backtest, and until that exists the honest description is "the same
+     information, arranged so it can act". What it does fix are four
+     defects measured on the 2026-09-05 cross-section:
+
+       1. One number served two jobs with opposite signs. The buy list
+          sorted ASCENDING by score, so every penalty promoted a coin and
+          every bonus demoted it. v2 returns `strength` (high = strong,
+          rank on this) and `setup` (high = better rotate-in candidate,
+          sort on this). Neither is ever read upside down.
+
+       2. The 0.85x micro-cap multiplier pushed 109 of 166 coins UP the
+          buy list — the opposite of dampening micro-cap noise, and the
+          reason the panel filled with $7M names. v2 has no multiplier;
+          size enters as a signed term that cannot invert.
+
+       3. L3 carried the widest spread of any layer (sd 9.51) while being
+          effectively frozen — 122 of 166 coins shared one value, and 49
+          more were penalised merely for having no max_supply field. So
+          ~30% of the ordering was a constant. v2 caps tokenomics at 15%
+          of the weight and makes "no max supply" neutral rather than
+          negative.
+
+       4. L2 expanded to 0.90*p7 - K, one scalar K for every coin, so
+          gold/silver/oil/DXY/TOTAL3 could only shift the whole
+          distribution, never rank it — and three of those five feeds are
+          dead in production anyway. v2 keeps the one genuinely
+          coin-specific comparison, versus BTC, on two horizons, and
+          reports the rest as context instead of scoring it.
+
+     Weights are explicit and renormalise over whatever data is present,
+     so a missing component costs coverage rather than silently becoming
+     a neutral vote. Tune them here; every run reports what it used.
+     ════════════════════════════════════════════════════════════════ */
+  var V2_WEIGHTS = {
+    momentum:   0.45,   /* intra-list rank blend, same horizons as v1 */
+    relBtc:     0.20,   /* relative strength vs BTC, 7d and 30d       */
+    tokenomics: 0.15,   /* supply / deflation / unlock                */
+    technical:  0.20    /* RSI, MACD, Bollinger, volume — when supplied */
+  };
+
+  /* Technical confirmation is all-or-nothing at the RUN level. Scoring
+     some coins with real RSI and leaving the rest at a neutral default
+     would differentiate exactly the coins that happen to have data and
+     bias everything else to the middle — the same trap as 122 coins
+     sharing one tokenomics value. Below this coverage the layer is
+     dropped for everyone and the remaining weights renormalise. */
+  var V2_TECHNICAL_MIN_COVERAGE = 0.80;
+
+  var _clamp = function (v, lo, hi) { return Math.min(hi, Math.max(lo, v)); };
+  /* Map a value onto 0..1 across an expected range, clamped. */
+  var _norm = function (v, lo, hi) { return _clamp((v - lo) / (hi - lo), 0, 1); };
+
+  /* Tokenomics, rebalanced to -15..+15 (was -50..+30). Same inputs, same
+     ordering of preferences — a quarter of the influence. */
+  function _v2Tokenomics(c) {
+    var tkx = TOKENOMICS_DB[c.id] || { deflation: 'none', unlockRisk: 'medium' };
+    var pts = 0;
+    var parts = {};
+    var circ = c.circulating_supply, maxS = c.max_supply;
+    if (circ && maxS && maxS > 0) {
+      var ratio = circ / maxS;
+      parts.supply = ratio > 0.90 ? 8 : ratio > 0.70 ? 5 : ratio > 0.40 ? 0 : ratio > 0.20 ? -5 : -8;
+    } else {
+      /* No max supply is a property of the token's design (ETH, SOL, XMR,
+         ATOM and 45 others here), not a red flag. v1 charged -3 for it. */
+      parts.supply = 0;
+      parts.noMaxSupply = true;
+    }
+    parts.deflation = tkx.deflation === 'full' ? 4 : tkx.deflation === 'partial' ? 2 : tkx.deflation === 'fixed' ? 2 : 0;
+    parts.unlock = tkx.unlockRisk === 'low' ? 0 : tkx.unlockRisk === 'medium' ? -2 : -4;
+    if (tkx.unlock30d && tkx.unlock30d > 5) parts.unlock -= 4;
+    pts = parts.supply + parts.deflation + parts.unlock;
+    parts.total = _clamp(pts, -15, 15);
+    return parts;
+  }
+
+  /* Relative strength versus BTC on two horizons. This is the only part
+     of v1's "macro" layer that varied between coins; the rest was a
+     market-wide constant. Both horizons because 7d alone is what made
+     the old layer a second copy of the momentum signal. */
+  function _v2RelBtc(c, btc) {
+    if (!btc) return null;
+    var r7 = (c.p7 || 0) - (btc.p7 || 0);
+    var r30 = (c.p30 || 0) - (btc.p30 || 0);
+    return { rel7: r7, rel30: r30, blended: r7 * 0.5 + r30 * 0.5 };
+  }
+
+  /* Size, as a signed term rather than a multiplier. A multiplier below
+     1 applied to a negative score raises it; this cannot. */
+  function _v2SizeAdjust(c) {
+    if (!c.mcap || c.mcap <= 0) return 0;
+    if (c.mcap < 100e6) return -4;
+    if (c.mcap < 500e6) return -2;
+    if (c.mcap > 50e9) return 2;
+    return 0;
+  }
+
+  /* Technical confirmation from real indicator values. Nothing is
+     derived from p7/p14/p30 here on purpose — that information is
+     already in the momentum component, and re-encoding it was what made
+     v1's layers correlate. */
+  function _v2Technical(t) {
+    if (!t) return null;
+    var pts = 0;
+    var signals = [];
+    if (typeof t.rsi === 'number') {
+      if (t.rsi <= 30)      { pts += 6; signals.push('RSI oversold'); }
+      else if (t.rsi <= 45) { pts += 3; signals.push('RSI low'); }
+      else if (t.rsi >= 70) { pts -= 6; signals.push('RSI overbought'); }
+      else if (t.rsi >= 60) { pts -= 3; signals.push('RSI elevated'); }
+    }
+    if (t.macd && typeof t.macd.hist === 'number') {
+      if (t.macd.line > t.macd.signal && t.macd.hist > 0)      { pts += 5; signals.push('MACD bullish'); }
+      else if (t.macd.line < t.macd.signal && t.macd.hist < 0) { pts -= 5; signals.push('MACD bearish'); }
+    }
+    if (t.bb && typeof t.bb.pctB === 'number') {
+      if (t.bb.pctB < 10)      { pts += 4; signals.push('at lower band'); }
+      else if (t.bb.pctB > 90) { pts -= 4; signals.push('at upper band'); }
+    }
+    if (typeof t.volRatio === 'number') {
+      if (t.volRatio >= 2)        { pts += 5; signals.push('volume surge'); }
+      else if (t.volRatio >= 1.5) { pts += 3; signals.push('volume rising'); }
+      else if (t.volRatio < 0.5)  { pts -= 3; signals.push('volume drying up'); }
+    }
+    return { points: _clamp(pts, -20, 20), signals: signals };
+  }
+
+  /* Setup quality — a rotate-in candidate's score, high = better.
+     Answers "is this a pullback that has stopped falling", which is the
+     question v1 had no way to ask: its buy list was "coins that fell,
+     ranked by how weak they are", with nothing requiring evidence that
+     the fall had ended. Only meaningful for eligible coins. */
+  function _v2Setup(c, tech, rel) {
+    var p30 = c.p30 || 0, p7 = c.p7 || 0;
+    var parts = {};
+
+    /* Drawdown depth: best around -25%..-10%, worthless outside the
+       mean-reversion band. Continuous, so -2.9% and -3.1% are no longer
+       different worlds. */
+    parts.drawdown = p30 >= -3 || p30 <= -40 ? 0
+      : p30 >= -10 ? _norm(p30, -3, -10)
+      : p30 >= -25 ? 1
+      : _norm(p30, -40, -25);
+
+    /* A pullback is a PRECONDITION, not a weighted opinion. Without this
+       a coin with no drawdown at all still scored ~50 on the strength of
+       the other components — UNI and ARB, both up 40%+ on the week, came
+       out as top "rotate-in setups". Outside the band there is no setup
+       to score. */
+    if (parts.drawdown === 0) return { drawdown: 0, score: null, reason: 'not_in_pullback' };
+
+    /* Has the fall stopped? Compare the last 7 days against the pace the
+       trailing 30 days implies. A coin down 30% over a month is "on pace"
+       for about -7% a week; doing better than that is the signal, and
+       measuring it this way stops a deep drawdown from flattering every
+       candidate equally. */
+    parts.turning = _norm(p7 - (p30 * 7) / 30, -8, 12);
+
+    /* Confirmation, when technicals are available for this coin. */
+    parts.confirmation = tech ? _norm(tech.points, -10, 15) : null;
+
+    /* Not falling behind BTC while it recovers. */
+    parts.vsBtc = rel ? _norm(rel.rel7, -12, 12) : null;
+
+    /* Depth is deliberately the SMALLEST weight. Being down a lot is the
+       entry ticket, not the case — weighting it heavily is what made v1's
+       buy list "coins that fell, ranked by how far", with nothing asking
+       whether the fall had stopped. The evidence of a turn carries the
+       score. */
+    var w = { drawdown: 0.15, turning: 0.40, confirmation: 0.30, vsBtc: 0.15 };
+    var sum = 0, wsum = 0;
+    for (var k in w) {
+      if (parts[k] == null) continue;
+      sum += w[k] * parts[k];
+      wsum += w[k];
+    }
+    parts.score = wsum > 0 ? Math.round((sum / wsum) * 100) : null;
+    return parts;
+  }
+
   function _projectItem(c) {
     return {
       id: c.id,
@@ -500,15 +741,37 @@
     computeScores();
     _classifyZones();
 
+    /* Eligibility is layered on after the fact — see _eligibility(). */
+    var cfg = {
+      minVolume24h: (input.eligibility && input.eligibility.minVolume24h != null)
+        ? input.eligibility.minVolume24h : ELIGIBILITY_DEFAULTS.minVolume24h
+    };
+    var delistedSet = {};
+    var dl = (input.eligibility && input.eligibility.delisted) || input.delisted || [];
+    for (var d = 0; d < dl.length; d++) delistedSet[dl[d]] = true;
+
     var items = [];
-    for (var i = 0; i < coins.length; i++) items.push(_projectItem(coins[i]));
+    for (var i = 0; i < coins.length; i++) {
+      var item = _projectItem(coins[i]);
+      var el = _eligibility(coins[i], cfg, delistedSet);
+      item.eligible = el.eligible;
+      item.exclusions = el.exclusions;
+      items.push(item);
+    }
 
     return {
       engineVersion: ENGINE_VERSION,
+      /* Which MATHS ran, as distinct from which module version shipped.
+         Without this, a stored signal can name the engine build but not
+         the scoring model — and from 2.0.0 the same build can run either.
+         v1 runs say so explicitly rather than by omission. */
+      scoringVersion: 'v1',
       asOf: input.asOf,
       thresholds: _adaptiveThresholds(),
       cycleLabel: _btcCycleLabel(),
+      eligibility: cfg,
       universeSize: coins.length,
+      eligibleCount: items.filter(function(it) { return it.eligible; }).length,
       items: items,
       /* The state the run produced. Persist these rather than leaving
          them in one visitor's browser. */
@@ -518,9 +781,136 @@
     };
   }
 
+  /**
+   * Score one market snapshot with the v2 model.
+   *
+   * Deliberately a SUPERSET of computeSignalRun(): every v1 field is
+   * still present and still computed by the untouched v1 code, so a
+   * consumer can adopt `strength`/`setup` at its own pace and the two
+   * models can be diffed on identical inputs. Same input contract, plus:
+   *
+   *   technicals  {object=} coinId -> { rsi, macd:{line,signal,hist},
+   *                                     bb:{pctB}, volRatio }
+   *   weights     {object=} override V2_WEIGHTS
+   *
+   * Adds per item:
+   *   strength  0-100, high = relative strength. Rank on this.
+   *   setup     0-100, high = better rotate-in candidate, null when the
+   *             coin is not eligible or has no mean-reversion setup.
+   *             Sort candidates on this, DESCENDING.
+   *   v2        the component breakdown, so a score can explain itself.
+   */
+  function computeSignalRunV2(input) {
+    var run = computeSignalRun(input);
+    var w = {};
+    for (var wk in V2_WEIGHTS) w[wk] = V2_WEIGHTS[wk];
+    if (input.weights) for (var ok in input.weights) w[ok] = input.weights[ok];
+
+    var technicals = input.technicals || null;
+    var scorable = [];
+    for (var s = 0; s < coins.length; s++) {
+      if (!coins[s].isStable && coins[s].dataComplete !== false) scorable.push(coins[s]);
+    }
+    var withTech = 0;
+    if (technicals) {
+      for (var t = 0; t < scorable.length; t++) {
+        if (technicals[scorable[t].id] || technicals[scorable[t].sym]) withTech++;
+      }
+    }
+    var coverage = scorable.length ? withTech / scorable.length : 0;
+    var useTechnical = coverage >= V2_TECHNICAL_MIN_COVERAGE;
+
+    var btc = null;
+    for (var b = 0; b < coins.length; b++) if (coins[b].id === 'bitcoin') btc = coins[b];
+    var n = Math.max(scorable.length - 1, 1);
+
+    var byId = {};
+    for (var m = 0; m < run.items.length; m++) byId[run.items[m].id] = run.items[m];
+
+    for (var i = 0; i < coins.length; i++) {
+      var c = coins[i];
+      var item = byId[c.id];
+      if (!item) continue;
+      if (c.isStable || c.dataComplete === false) {
+        item.strength = null; item.setup = null; item.v2 = null;
+        continue;
+      }
+
+      /* Momentum: the same weighted rank blend v1 uses. Measured on the
+         fixture, re-weighting these horizons moved the ranking by rho
+         0.99, so they are deliberately left alone — the gain was never
+         here. */
+      var wAvg = c.r7 * 0.25 + c.r14 * 0.30 + c.r30 * 0.45;
+      var momentum = _clamp(1 - (wAvg - 1) / n, 0, 1);
+
+      var rel = _v2RelBtc(c, btc);
+      var tok = _v2Tokenomics(c);
+      var techRaw = useTechnical
+        ? _v2Technical(technicals[c.id] || technicals[c.sym]) : null;
+
+      var comp = {
+        momentum: momentum,
+        relBtc: rel ? _norm(rel.blended, -30, 30) : null,
+        tokenomics: _norm(tok.total, -15, 15),
+        technical: techRaw ? _norm(techRaw.points, -20, 20) : null
+      };
+
+      var sum = 0, wsum = 0, missing = [];
+      for (var ck in comp) {
+        if (comp[ck] == null) { missing.push(ck); continue; }
+        sum += w[ck] * comp[ck];
+        wsum += w[ck];
+      }
+      var strength = wsum > 0 ? (sum / wsum) * 100 : null;
+      /* Size as a signed adjustment, never a multiplier. */
+      var sizeAdj = _v2SizeAdjust(c);
+      if (strength != null) strength = _clamp(Math.round(strength + sizeAdj), 0, 100);
+
+      var setup = null;
+      if (item.eligible) {
+        var sp = _v2Setup(c, techRaw, rel);
+        setup = sp.score;
+        item.v2setup = sp;
+      }
+
+      item.strength = strength;
+      item.setup = setup;
+      item.v2 = {
+        components: comp,
+        weightsUsed: w,
+        missingComponents: missing,
+        sizeAdjust: sizeAdj,
+        tokenomics: tok,
+        relBtc: rel,
+        technical: techRaw
+      };
+    }
+
+    run.scoringVersion = 'v2';
+    run.v2 = {
+      weights: w,
+      technicalCoverage: Math.round(coverage * 1000) / 1000,
+      technicalApplied: useTechnical,
+      technicalMinCoverage: V2_TECHNICAL_MIN_COVERAGE,
+      scorableCount: scorable.length,
+      /* Reported, not scored. v1 fed these into every coin's score as a
+         shared constant, which could shift the distribution but never
+         rank it — and three of the five feeds are dead in production. */
+      macroContext: {
+        goldP7: _macroData.goldP7, silverP7: _macroData.silverP7,
+        oilP7: _macroData.oilP7, dxyP7: _macroData.dxyP7,
+        total3P7: _macroData.total3P7, btcP7: _macroData.btcP7
+      },
+      mayer: marketCycleData.BTC ? marketCycleData.BTC.mayer_multiple : null
+    };
+    return run;
+  }
+
   return {
     ENGINE_VERSION: ENGINE_VERSION,
     computeSignalRun: computeSignalRun,
+    computeSignalRunV2: computeSignalRunV2,
+    V2_WEIGHTS: V2_WEIGHTS,
     /* Exposed for tests and for callers that need one piece in isolation.
        These are the extracted originals, not re-implementations. */
     internals: {
