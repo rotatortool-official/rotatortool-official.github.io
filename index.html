@@ -1332,6 +1332,10 @@
 
 
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
+  <!-- Canonical signal engine. Must load before signals.js and
+       data-loaders.js: it is a classic script (no defer, no module) and
+       loadCoins() calls into it synchronously. -->
+  <script src="rotator-engine/engine.js"></script>
   <script src="js/config.js"></script>
   <script src="js/analytics.js"></script>
   <script src="js/api-pool.js"></script>

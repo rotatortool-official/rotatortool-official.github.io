@@ -391,6 +391,58 @@ function supaRecordHoldingsSnapshot(rows) {
   });
 }
 
+/* ── Shared zone hysteresis (Phase 1) ──────────────────────────────
+   _classifyZones() used to hold a coin inside its band using THIS
+   browser's cached rot_last_zone, so the same market could classify
+   differently for two visitors — 17 of 177 coins on the golden fixture.
+   signal_zone_state makes that state a property of the market instead.
+
+   Read is public; writes go through the apply_zone_state RPC only, so
+   holding the anon key does not let anyone move a signal. Both calls
+   fail soft: a cold start behaves exactly like today's fresh browser,
+   and a failed write never blocks rendering.
+   ────────────────────────────────────────────────────────────────── */
+function supaLoadZoneState() {
+  return supaRest('signal_zone_state', 'GET', { 'select': 'coin_id,zone' })
+    .then(function(rows) {
+      var out = {};
+      (rows || []).forEach(function(r) { out[r.coin_id] = r.zone; });
+      return out;
+    })
+    .catch(function(e) {
+      console.warn('[Supabase] zone state read failed, cold start:', e.message);
+      return {};
+    });
+}
+
+function supaApplyZoneState(zones, engineVersion, asOf) {
+  var url = SUPA_URL + '/rest/v1/rpc/apply_zone_state';
+  return fetch(url, {
+    method: 'POST',
+    headers: {
+      'apikey':        SUPA_KEY,
+      'Authorization': 'Bearer ' + SUPA_KEY,
+      'Content-Type':  'application/json'
+    },
+    body: JSON.stringify({
+      p_zones:          zones,
+      p_engine_version: engineVersion,
+      p_as_of:          asOf
+    })
+  }).then(function(r) {
+    if (!r.ok) throw new Error('rpc ' + r.status);
+    return r.json();
+  }).then(function(result) {
+    if (result && result.ok === false) {
+      console.warn('[Supabase] apply_zone_state rejected:', result.reason);
+    }
+    return result;
+  }).catch(function(e) {
+    console.warn('[Supabase] apply_zone_state failed:', e.message);
+    return { ok: false, reason: 'offline', applied: 0 };
+  });
+}
+
 function supaRecordSignalSnapshot(rows) {
   var url = SUPA_URL + '/rest/v1/rpc/record_daily_snapshot';
   return fetch(url, {

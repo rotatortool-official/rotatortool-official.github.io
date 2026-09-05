@@ -245,7 +245,7 @@ async function loadCoins(categoryOverride) {
     }
   }
 
-  computeScores();
+  runSignalEngine();
   window.coins = coins; /* sync so ui.js search/modal can access live data */
 }
 
@@ -490,7 +490,130 @@ function _volRatio(c) {
 }
 window._volRatio = _volRatio; // exposed for signal-history.js snapshot push
 
+/* ══════════════════════════════════════════════════════════════
+   SIGNAL ENGINE BRIDGE  (Phase 1 — canonical engine)
+
+   Scoring now happens in rotator-engine/engine.js, the single
+   implementation the website, the Telegram bot and the Supabase edge
+   functions all share. computeScores() and _classifyZones() below are
+   NOT called any more — they are kept in place on purpose, because
+   rotator-engine/test/verify-verbatim.js compares the engine's copy of
+   them against these originals on every test run. That check is what
+   proves the extraction changed no mathematics, and deleting these
+   would delete the check. They come out in a later commit, once the
+   engine is the only copy anywhere.
+
+   Two things genuinely change here:
+     · zone hysteresis reads shared state from signal_zone_state instead
+       of this browser's localStorage, so what gets published no longer
+       depends on who loaded the page first;
+     · every run is stamped with the engine version that produced it.
+
+   Volume history deliberately stays in localStorage for now — measured
+   at ≤1 point of score movement — and moves server-side with the
+   Phase 3 scheduled runs.
+══════════════════════════════════════════════════════════════ */
+var ROTATOR_ENGINE_READY = (typeof RotatorEngine !== 'undefined');
+
+/* Write a run's per-coin results back onto coins[] under the field names
+   the rest of the app already uses, so ui.js / holdings.js / signals.js /
+   signal-history.js keep working untouched. */
+function applySignalRun(run) {
+  var byId = {};
+  run.items.forEach(function(it) { byId[it.id] = it; });
+  coins.forEach(function(c) {
+    var it = byId[c.id];
+    if (!it) return;
+    c.score           = it.score;
+    c.r7              = it.r7;
+    c.r14             = it.r14;
+    c.r30             = it.r30;
+    c.scoreBreakdown  = it.breakdown;
+    c._zone           = it.zone;
+    c._effectiveScore = it.effectiveScore;
+    c._quickIns       = it.quickInsight;
+  });
+  window.ROTATOR_RUN = run;
+}
+
+/**
+ * Run the canonical engine over the current coins[].
+ * @param {object} [opts]
+ *   persist {boolean} write the resulting zones back to Supabase.
+ *           True for real data loads; false for re-renders, which would
+ *           otherwise hammer the RPC with identical state.
+ */
+function runSignalEngine(opts) {
+  opts = opts || {};
+  if (typeof RotatorEngine === 'undefined') {
+    /* Fail loudly in the console but keep the page alive on the old path.
+       A missing engine script must not blank the dashboard. */
+    console.error('[Engine] rotator-engine not loaded — falling back to the in-page copy');
+    computeScores();
+    if (typeof _classifyZones === 'function') _classifyZones();
+    return null;
+  }
+
+  /* Insights exist only for holdings/watchlist and only after klines
+     land. Passing them through keeps the Insight↔rotation cross-link
+     working exactly as it did when _classifyZones() re-ran post-kline. */
+  var insights = null;
+  coins.forEach(function(c) {
+    if (c.insight && typeof c.insight.score === 'number') {
+      if (!insights) insights = {};
+      insights[c.id] = c.insight;
+    }
+  });
+
+  /* Previous zones: the server's shared state on the first run of a page
+     load, then this page's own last run — mirroring how _lastZone was
+     read from storage once and then carried in memory. */
+  var prevZones = (window.ROTATOR_RUN && window.ROTATOR_RUN.zones)
+    ? window.ROTATOR_RUN.zones
+    : (window._serverZones || {});
+
+  var volHist = {};
+  try { volHist = JSON.parse(localStorage.getItem(_VOL_HIST_KEY)) || {}; } catch (e) {}
+
+  var run;
+  try {
+    run = RotatorEngine.computeSignalRun({
+      asOf:          new Date().toISOString(),
+      coins:         coins,
+      tokenomics:    (typeof TOKENOMICS_DB !== 'undefined') ? TOKENOMICS_DB : {},
+      macro:         _macroData,
+      marketCycle:   marketCycleData,
+      volumeHistory: volHist,
+      previousZones: prevZones,
+      insights:      insights
+    });
+  } catch (e) {
+    console.error('[Engine] computeSignalRun failed, falling back to the in-page copy:', e);
+    computeScores();
+    if (typeof _classifyZones === 'function') _classifyZones();
+    return null;
+  }
+
+  applySignalRun(run);
+
+  /* Volume history stays a browser concern this phase; the engine takes
+     it in and hands it back, we persist it exactly as before so
+     window._volRatio (used by signal-history.js and the momentum
+     snapshot) keeps returning real ratios. */
+  try {
+    _volHist = run.volumeHistory;
+    localStorage.setItem(_VOL_HIST_KEY, JSON.stringify(run.volumeHistory));
+  } catch (e) {}
+
+  if (opts.persist !== false && typeof supaApplyZoneState === 'function') {
+    supaApplyZoneState(run.zones, run.engineVersion, run.asOf);
+  }
+  return run;
+}
+
 /* ── Score engine (3 layers) ─────────────────────────────────── */
+/* SUPERSEDED — see the SIGNAL ENGINE BRIDGE above. Kept as the
+   reference copy that verify-verbatim.js diffs the engine against. */
 function computeScores() {
   _trackVolumeHistory(coins);
 
@@ -719,7 +842,7 @@ async function loadBstocks() {
     coins.forEach(function(c, i) { c.rank = i + 1; });
 
     bstocksLoaded = true;
-    computeScores();
+    runSignalEngine();
     window.coins = coins;
   } catch (e) {
     console.warn('[bStocks] load failed:', e.message);
@@ -806,6 +929,12 @@ async function doLoad() {
   try {
     await loadMarketCycle(); /* must resolve before loadCoins() so real btcMA200 is available */
     await loadDelistedSymbols(); /* must resolve before renderAll() so buy/rotation suggestions exclude delisted coins */
+    /* Shared zone hysteresis. Must resolve before the first engine run,
+       otherwise this page starts from a cold zone map and re-derives
+       classifications that the rest of the world already agreed on.
+       Fails soft to {} — a cold start behaves like today's fresh browser. */
+    window._serverZones = (typeof supaLoadZoneState === 'function')
+      ? await supaLoadZoneState() : {};
     await loadCoins('all');  prog(50, 'Scoring and ranking coins…');  renderCoinSel();
     await loadBstocks();     prog(65, 'Fetching bStock data…');
     if (typeof pruneStaleHoldings === 'function') pruneStaleHoldings();

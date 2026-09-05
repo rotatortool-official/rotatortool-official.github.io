@@ -243,11 +243,20 @@ function _classifyZones() {
   try { localStorage.setItem('rot_last_zone', JSON.stringify(_lastZone)); } catch (e) {}
 }
 
-/* Exposed for signal-history.js (rotation snapshot uses the same gates). */
+/* Exposed for signal-history.js (rotation snapshot uses the same gates).
+   Phase 1: these now resolve to the canonical engine's copies rather than
+   the in-page ones, so signal-history.js and the engine can never apply
+   different gates to the same coin. Falls back to the local definitions
+   if the engine script failed to load, for the same reason
+   runSignalEngine() does — a missing script must not blank the page. */
 window.RotZones = {
-  classify: _classifyZones,
-  passesMeanRevGate: _passesMeanRevGate,
-  adaptiveThresholds: _adaptiveThresholds
+  classify: function() {
+    /* No-op: zones arrive with the engine run (see runSignalEngine()). */
+  },
+  passesMeanRevGate: (typeof RotatorEngine !== 'undefined')
+    ? RotatorEngine.internals.passesMeanRevGate : _passesMeanRevGate,
+  adaptiveThresholds: (typeof RotatorEngine !== 'undefined')
+    ? RotatorEngine.internals.adaptiveThresholds : _adaptiveThresholds
 };
 
 /* ══════════════════════════════════════════════════════════════
@@ -392,7 +401,15 @@ function sigRotTile(sell, buy) {
 
 /* Render all three signal columns */
 function renderTopBars() {
-  _classifyZones();
+  /* Was _classifyZones(). Zones now come from the canonical engine, which
+     also re-applies the Insight↔rotation cross-link — the reason this was
+     re-run on every render in the first place (renderTopBars() is called
+     again once Binance klines land and holdings gain a real Insight score).
+     persist:false because a re-render is not new information; only real
+     data loads write zones back to signal_zone_state. */
+  if (typeof runSignalEngine === 'function' && typeof coins !== 'undefined' && coins.length) {
+    runSignalEngine({ persist: false });
+  }
   var hSyms = holdings.map(function(h) { return h.sym; });
 
   /* Helper: single supporter unlock tile (one per column only) */
@@ -1069,7 +1086,7 @@ async function switchCategory(cat) {
       tbody.innerHTML = skRows;
     }
     await loadCoins(cat);
-    computeScores();
+    runSignalEngine();
     window.coins = coins;
   } else if (cat === 'all' && !_loadedCategories['all']) {
     var tbody = document.getElementById('tbody');
@@ -1089,7 +1106,7 @@ async function switchCategory(cat) {
       tbody.innerHTML = skRows;
     }
     await loadCoins('all');
-    computeScores();
+    runSignalEngine();
     window.coins = coins;
   }
   renderTable();
