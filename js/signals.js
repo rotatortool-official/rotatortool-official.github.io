@@ -401,15 +401,13 @@ function sigRotTile(sell, buy) {
 
 /* Render all three signal columns */
 function renderTopBars() {
-  /* Was _classifyZones(). Zones now come from the canonical engine, which
-     also re-applies the Insight↔rotation cross-link — the reason this was
-     re-run on every render in the first place (renderTopBars() is called
-     again once Binance klines land and holdings gain a real Insight score).
-     persist:false because a re-render is not new information; only real
-     data loads write zones back to signal_zone_state. */
-  if (typeof runSignalEngine === 'function' && typeof coins !== 'undefined' && coins.length) {
-    runSignalEngine({ persist: false });
-  }
+  /* No re-run here any more (Step B). Zone/score are server-authoritative
+     for crypto now (see runSignalEngine() in data-loaders.js) and don't
+     change on a render — the old re-run existed only to reapply the
+     insight↔zone cross-link with a visitor's own rich Insight score, a
+     per-visitor effect this migration deliberately removed. The insight
+     BADGE itself (coin.insight, rendered in ui.js) is untouched and needs
+     no re-run: it's just read off coins[] here like everything else. */
   var hSyms = holdings.map(function(h) { return h.sym; });
 
   /* Helper: single supporter unlock tile (one per column only) */
@@ -472,7 +470,7 @@ function renderTopBars() {
         mcap: c.mcap || 0
       };
     });
-    if (momRows.length) supaRecordMomentumSnapshot(momRows);
+    if (momRows.length) supaRecordMomentumSnapshot(momRows, (window.ROTATOR_RUN && window.ROTATOR_RUN.engineVersion) || null);
   }
   if (typeof supaRecordHoldingsSnapshot === 'function' && typeof holdings !== 'undefined' && holdings.length) {
     var heldRows = holdings.map(function(h) {
@@ -480,7 +478,7 @@ function renderTopBars() {
       if (!c) return null;
       return { sym: c.sym, coin_id: c.id, score: c.score, price: c.price };
     }).filter(Boolean);
-    if (heldRows.length) supaRecordHoldingsSnapshot(heldRows);
+    if (heldRows.length) supaRecordHoldingsSnapshot(heldRows, (window.ROTATOR_RUN && window.ROTATOR_RUN.engineVersion) || null);
   }
   var momEl   = document.getElementById('mom-cards');
   if (isPro) {
@@ -1086,7 +1084,7 @@ async function switchCategory(cat) {
       tbody.innerHTML = skRows;
     }
     await loadCoins(cat);
-    runSignalEngine();
+    await runSignalEngine();
     window.coins = coins;
   } else if (cat === 'all' && !_loadedCategories['all']) {
     var tbody = document.getElementById('tbody');
@@ -1106,7 +1104,7 @@ async function switchCategory(cat) {
       tbody.innerHTML = skRows;
     }
     await loadCoins('all');
-    runSignalEngine();
+    await runSignalEngine();
     window.coins = coins;
   }
   renderTable();

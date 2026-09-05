@@ -245,7 +245,7 @@ async function loadCoins(categoryOverride) {
     }
   }
 
-  runSignalEngine();
+  await runSignalEngine();
   window.coins = coins; /* sync so ui.js search/modal can access live data */
 }
 
@@ -319,18 +319,21 @@ async function loadMacroData() {
     var btcCoin = coins.find(function(c) { return c.id === 'bitcoin'; });
     if (btcCoin) _macroData.btcP7 = btcCoin.p7;
 
-    var oilUrl  = 'https://www.alphavantage.co/query?function=GLOBAL_QUOTE&symbol=USO&apikey=' + getAVKey();
-    var oilData = await apiFetch(oilUrl);
-    var oilQ    = oilData && oilData['Global Quote'];
-    if (oilQ) _macroData.oilP7 = parseFloat((oilQ['10. change percent'] || '0%').replace('%', '')) || 0;
-
-    /* DXY (US Dollar Index) — rising DXY is bearish for crypto */
-    try {
-      var dxyUrl  = 'https://www.alphavantage.co/query?function=GLOBAL_QUOTE&symbol=UUP&apikey=' + getAVKey();
-      var dxyData = await apiFetch(dxyUrl);
-      var dxyQ    = dxyData && dxyData['Global Quote'];
-      if (dxyQ) _macroData.dxyP7 = parseFloat((dxyQ['10. change percent'] || '0%').replace('%', '')) || 0;
-    } catch(e2) { console.warn('DXY fetch:', e2.message); }
+    /* Oil (USO) and DXY (UUP) used to come from Alpha Vantage. Removed
+       2026-09-05 (backlog #1, promptove/07-roadmap-2026-09-05.md): the
+       free-tier key was hard-coded in this public client file — visible
+       to anyone who opened dev tools — and had already been scraped and
+       rate-limited into uselessness (403/429 on nearly every call, see
+       PUSH-CHECKLIST/roadmap). Both feed Layer 2 (macro relative
+       strength), which promptove/06-scoring-review-2026-09-05.md already
+       measured as macro-inert — swapping every macro input for its
+       fallback constant moved no score by more than 1 point — so
+       oilP7/dxyP7 simply fall through to computeScores()'s existing
+       fallback constants (1 and 0) now, same as they already did on
+       every 403. No scoring behavior changes; the exposed credential and
+       the guaranteed-to-fail requests are just gone. If Oil/DXY are ever
+       worth reviving, do it server-side (a synced Supabase table, like
+       market_cycle) — never a client-shipped key again. */
 
     /* TOTAL3 (alt market cap excl. BTC+ETH) — via CoinGecko global */
     try {
@@ -491,28 +494,27 @@ function _volRatio(c) {
 window._volRatio = _volRatio; // exposed for signal-history.js snapshot push
 
 /* ══════════════════════════════════════════════════════════════
-   SIGNAL ENGINE BRIDGE  (Phase 1 — canonical engine)
+   SIGNAL ENGINE BRIDGE  (Phase 3 — server-authoritative crypto)
 
-   Scoring now happens in rotator-engine/engine.js, the single
-   implementation the website, the Telegram bot and the Supabase edge
-   functions all share. computeScores() and _classifyZones() below are
-   NOT called any more — they are kept in place on purpose, because
+   Scoring happens in rotator-engine/engine.js, the single implementation
+   the website, the Telegram bot and the Supabase edge functions all
+   share. computeScores() and _classifyZones() below are NOT called for
+   crypto any more (still used for bStocks — see runSignalEngine()) —
+   they are kept in place on purpose, because
    rotator-engine/test/verify-verbatim.js compares the engine's copy of
    them against these originals on every test run. That check is what
    proves the extraction changed no mathematics, and deleting these
    would delete the check. They come out in a later commit, once the
    engine is the only copy anywhere.
 
-   Two things genuinely change here:
-     · zone hysteresis reads shared state from signal_zone_state instead
-       of this browser's localStorage, so what gets published no longer
-       depends on who loaded the page first;
-     · every run is stamped with the engine version that produced it.
+   As of Step B (promptove/07-roadmap-2026-09-05.md), crypto score/zone
+   come from signal_runs/signal_run_items — written every 15 minutes by
+   the compute-signal-run Edge Function, not computed in this browser.
+   See runSignalEngine() below for exactly what still runs locally
+   (bStocks, and the same-session fallback if the server fetch fails).
 
-   Volume history deliberately stays in localStorage for now — measured
-   at ≤1 point of score movement — and moves server-side with the
-   Phase 3 scheduled runs.
-══════════════════════════════════════════════════════════════ */
+   Volume history stays in localStorage — measured at ≤1 point of score
+   movement, not worth a second schema change for that alone. */
 var ROTATOR_ENGINE_READY = (typeof RotatorEngine !== 'undefined');
 
 /* Write a run's per-coin results back onto coins[] under the field names
@@ -537,92 +539,108 @@ function applySignalRun(run) {
 }
 
 /**
- * Run the canonical engine over the current coins[].
- * @param {object} [opts]
- *   persist {boolean} write the resulting zones back to Supabase.
- *           True for real data loads; false for re-renders, which would
- *           otherwise hammer the RPC with identical state.
+ * Refresh coins[] with the latest signal data.
+ *
+ * Roadmap Step B (promptove/07-roadmap-2026-09-05.md): crypto score/zone/
+ * breakdown now come from signal_runs / signal_run_items — the same table
+ * compute-signal-run (Supabase Edge Function, on a 15-min cron) writes —
+ * instead of being computed in THIS browser. Every visitor sees the same
+ * score and zone for the same coin, which local computation could never
+ * guarantee: rotator-fixture measured 17 of 177 coins classifying
+ * differently depending on whose browser happened to load first. The
+ * Telegram bot reads the same table once its own scoring is retired
+ * (Step C).
+ *
+ * bStocks are NOT in that server run (compute-signal-run only scores the
+ * CoinGecko crypto universe) and the canonical engine is still run
+ * locally to score them — unchanged from before. That local run doubles
+ * as the fallback for CRYPTO scores too, if the server fetch fails or
+ * hasn't produced a row yet: a temporary backend gap must not blank the
+ * dashboard.
+ *
+ * The old insight↔zone cross-link (a visitor's own rich Insight Engine
+ * score nudging THEIR view of a held coin's zone near the 50 threshold)
+ * is intentionally gone — it was exactly the kind of per-visitor drift
+ * this migration exists to remove for crypto. The `insight` badge itself
+ * (ui.js's separate tile, and signals.js's own rotation-panel bonus) is
+ * untouched; neither ever read `_zone`/`_effectiveScore`.
  */
-function runSignalEngine(opts) {
-  opts = opts || {};
+async function runSignalEngine() {
+  var localRun = null;
+
+  /* Local pass: scores everything (crypto + bStocks). Crypto gets
+     overwritten below when the server run is available; bStocks keep
+     whatever this computes, since they're outside the server's universe. */
   if (typeof RotatorEngine === 'undefined') {
     /* Fail loudly in the console but keep the page alive on the old path.
        A missing engine script must not blank the dashboard. */
     console.error('[Engine] rotator-engine not loaded — falling back to the in-page copy');
     computeScores();
     if (typeof _classifyZones === 'function') _classifyZones();
-    return null;
-  }
-
-  /* Insights exist only for holdings/watchlist and only after klines
-     land. Passing them through keeps the Insight↔rotation cross-link
-     working exactly as it did when _classifyZones() re-ran post-kline. */
-  var insights = null;
-  coins.forEach(function(c) {
-    if (c.insight && typeof c.insight.score === 'number') {
-      if (!insights) insights = {};
-      insights[c.id] = c.insight;
+  } else {
+    var volHist = {};
+    try { volHist = JSON.parse(localStorage.getItem(_VOL_HIST_KEY)) || {}; } catch (e) {}
+    var prevZones = (typeof supaLoadZoneState === 'function') ? await supaLoadZoneState() : {};
+    try {
+      localRun = RotatorEngine.computeSignalRun({
+        asOf:          new Date().toISOString(),
+        coins:         coins,
+        tokenomics:    (typeof TOKENOMICS_DB !== 'undefined') ? TOKENOMICS_DB : {},
+        macro:         _macroData,
+        marketCycle:   marketCycleData,
+        volumeHistory: volHist,
+        previousZones: prevZones
+      });
+      applySignalRun(localRun);
+      try {
+        _volHist = localRun.volumeHistory;
+        localStorage.setItem(_VOL_HIST_KEY, JSON.stringify(localRun.volumeHistory));
+      } catch (e) {}
+    } catch (e) {
+      console.error('[Engine] computeSignalRun failed, falling back to the in-page copy:', e);
+      computeScores();
+      if (typeof _classifyZones === 'function') _classifyZones();
     }
-  });
+  }
 
-  /* Previous zones: the server's shared state on the first run of a page
-     load, then this page's own last run — mirroring how _lastZone was
-     read from storage once and then carried in memory. */
-  var prevZones = (window.ROTATOR_RUN && window.ROTATOR_RUN.zones)
-    ? window.ROTATOR_RUN.zones
-    : (window._serverZones || {});
-
-  var volHist = {};
-  try { volHist = JSON.parse(localStorage.getItem(_VOL_HIST_KEY)) || {}; } catch (e) {}
-
-  var run;
+  /* Server-authoritative overwrite, crypto only — a coin id the server
+     run doesn't know about (bStocks, or a coin outside its universe)
+     simply keeps whatever the local pass above already set. */
   try {
-    run = RotatorEngine.computeSignalRun({
-      asOf:          new Date().toISOString(),
-      coins:         coins,
-      tokenomics:    (typeof TOKENOMICS_DB !== 'undefined') ? TOKENOMICS_DB : {},
-      macro:         _macroData,
-      marketCycle:   marketCycleData,
-      volumeHistory: volHist,
-      previousZones: prevZones,
-      insights:      insights
+    var runRows = await supaRest('signal_runs', 'GET', {
+      select: 'id,as_of,engine_version,cycle_label',
+      order:  'as_of.desc',
+      limit:  '1'
     });
+    var latest = runRows && runRows[0];
+    if (latest) {
+      var items = await supaRest('signal_run_items', 'GET', {
+        run_id: 'eq.' + latest.id,
+        select: 'coin_id,score,effective_score,zone,r7,r14,r30,breakdown'
+      });
+      var byId = {};
+      (items || []).forEach(function(it) { byId[it.coin_id] = it; });
+      coins.forEach(function(c) {
+        var it = byId[c.id];
+        if (!it) return;
+        c.score           = Number(it.score);
+        c.r7              = it.r7;
+        c.r14             = it.r14;
+        c.r30             = it.r30;
+        c.scoreBreakdown  = it.breakdown;
+        c._zone           = it.zone;
+        c._effectiveScore = Number(it.effective_score);
+      });
+      window.ROTATOR_RUN = { engineVersion: latest.engine_version, asOf: latest.as_of, cycleLabel: latest.cycle_label, source: 'server' };
+    } else if (localRun) {
+      window.ROTATOR_RUN = localRun; /* no server row yet — e.g. cron hasn't ticked since project setup */
+    }
   } catch (e) {
-    console.error('[Engine] computeSignalRun failed, falling back to the in-page copy:', e);
-    computeScores();
-    if (typeof _classifyZones === 'function') _classifyZones();
-    return null;
+    console.warn('[Engine] server signal run fetch failed, using local scores:', e.message);
+    if (localRun) window.ROTATOR_RUN = localRun;
   }
 
-  applySignalRun(run);
-
-  /* Volume history stays a browser concern this phase; the engine takes
-     it in and hands it back, we persist it exactly as before so
-     window._volRatio (used by signal-history.js and the momentum
-     snapshot) keeps returning real ratios. */
-  try {
-    _volHist = run.volumeHistory;
-    localStorage.setItem(_VOL_HIST_KEY, JSON.stringify(run.volumeHistory));
-  } catch (e) {}
-
-  if (opts.persist !== false && typeof supaApplyZoneState === 'function') {
-    /* The engine hands back a bare { coinId: 'buy' } map — that is the
-       shape _classifyZones() has always kept in localStorage. Enrich it
-       with the symbol and the score that produced each classification
-       before persisting, so signal_zone_state can answer "why was this
-       coin in the buy band" later instead of only "it was". */
-    var zonePayload = {};
-    var runById = {};
-    run.items.forEach(function(it) { runById[it.id] = it; });
-    Object.keys(run.zones).forEach(function(id) {
-      var it = runById[id];
-      zonePayload[id] = it
-        ? { zone: run.zones[id], sym: it.sym, score: it.score, effective_score: it.effectiveScore }
-        : run.zones[id];
-    });
-    supaApplyZoneState(zonePayload, run.engineVersion, run.asOf);
-  }
-  return run;
+  return window.ROTATOR_RUN || null;
 }
 
 /* ── Score engine (3 layers) ─────────────────────────────────── */
@@ -856,7 +874,7 @@ async function loadBstocks() {
     coins.forEach(function(c, i) { c.rank = i + 1; });
 
     bstocksLoaded = true;
-    runSignalEngine();
+    await runSignalEngine();
     window.coins = coins;
   } catch (e) {
     console.warn('[bStocks] load failed:', e.message);
@@ -943,12 +961,6 @@ async function doLoad() {
   try {
     await loadMarketCycle(); /* must resolve before loadCoins() so real btcMA200 is available */
     await loadDelistedSymbols(); /* must resolve before renderAll() so buy/rotation suggestions exclude delisted coins */
-    /* Shared zone hysteresis. Must resolve before the first engine run,
-       otherwise this page starts from a cold zone map and re-derives
-       classifications that the rest of the world already agreed on.
-       Fails soft to {} — a cold start behaves like today's fresh browser. */
-    window._serverZones = (typeof supaLoadZoneState === 'function')
-      ? await supaLoadZoneState() : {};
     await loadCoins('all');  prog(50, 'Scoring and ranking coins…');  renderCoinSel();
     await loadBstocks();     prog(65, 'Fetching bStock data…');
     if (typeof pruneStaleHoldings === 'function') pruneStaleHoldings();

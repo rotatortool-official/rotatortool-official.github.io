@@ -1,12 +1,8 @@
 /* ══════════════════════════════════════════════════════════════════
-   api-pool.js  —  All network fetching, caching & key rotation
-   
+   api-pool.js  —  All network fetching & caching
+
    HOW TO EDIT THIS FILE:
    ──────────────────────
-   • ADD MORE ALPHA VANTAGE KEYS:  Find AV_KEYS and add to the array
-       AV_KEYS = ['KEY1', 'KEY2', 'KEY3']
-     Keys rotate automatically when one hits a 429 rate-limit.
-   
    • CHANGE CACHE TIMES:  Find CACHE_RULES below. Each entry has a
      `ttl` in milliseconds. Examples:
        5  minutes = 5*60*1000
@@ -15,59 +11,14 @@
 
    • ADD A NEW PROXY:  Add a function to the `ps` array inside apiFetch.
      The system tries each proxy in order and stops at the first success.
+
+   Alpha Vantage support (a key pool + rotation, for the Oil/DXY macro
+   feeds) was removed 2026-09-05 — see js/data-loaders.js's loadMacroData()
+   for why. If a future feed needs Alpha Vantage again, do NOT hard-code
+   a key in this file: it's shipped to every visitor's browser as plain
+   text. Fetch it server-side (a Supabase Edge Function + synced table,
+   the pattern market_cycle already uses) instead.
 ══════════════════════════════════════════════════════════════════ */
-
-/* ── Alpha Vantage API Key Pool ─────────────────────────────────────
-   Add more keys here — they rotate automatically on 429 errors.
-   Get free keys at: https://www.alphavantage.co/support/#api-key
-────────────────────────────────────────────────────────────────── */
-var AV_KEYS = ['R9V24J5V7LCQYZMF'];
-/* To add more keys:  var AV_KEYS = ['KEY1', 'KEY2', 'KEY3']; */
-
-/* ── Smart AV key manager — tracks per-key cooldowns ────────────────
-   When a key hits 429 it gets a cooldown (default 65s for free tier).
-   getAVKey() always returns the first key that is NOT in cooldown.
-   If ALL keys are cooling down, it returns the least-recently-hit one
-   (best of bad options) rather than crashing.
-────────────────────────────────────────────────────────────────── */
-var _avCooldowns = {};   /* key → timestamp when cooldown expires */
-var _avCooldownMs = 30 * 1000;  /* 30 seconds — AV free tier resets per minute */
-
-function getAVKey() {
-  var now = Date.now();
-  /* First: find a key with no active cooldown */
-  for (var i = 0; i < AV_KEYS.length; i++) {
-    var k = AV_KEYS[i];
-    if (!_avCooldowns[k] || now >= _avCooldowns[k]) return k;
-  }
-  /* All keys cooling — return the one whose cooldown expires soonest */
-  var best = AV_KEYS[0];
-  for (var j = 1; j < AV_KEYS.length; j++) {
-    if (_avCooldowns[AV_KEYS[j]] < _avCooldowns[best]) best = AV_KEYS[j];
-  }
-  return best;
-}
-
-function rotateAVKey() {
-  /* Mark current key as rate-limited and return next available */
-  var cur = getAVKey();
-  _avCooldowns[cur] = Date.now() + _avCooldownMs;
-  console.warn('[AV] Key rate-limited, cooling for 65s:', cur.slice(0,6) + '…');
-  return getAVKey();
-}
-
-/* How long until next AV key is available (ms), 0 if one is ready now */
-function avKeyWaitMs() {
-  var now = Date.now();
-  for (var i = 0; i < AV_KEYS.length; i++) {
-    if (!_avCooldowns[AV_KEYS[i]] || now >= _avCooldowns[AV_KEYS[i]]) return 0;
-  }
-  var min = Infinity;
-  AV_KEYS.forEach(function(k) { if (_avCooldowns[k] < min) min = _avCooldowns[k]; });
-  return Math.max(0, min - now);
-}
-
-var AV_KEY = getAVKey(); /* kept for backwards compat — always use getAVKey() in new code */
 
 /* ── Cache TTL Rules ─────────────────────────────────────────────────
    Rules are checked top-to-bottom; first match wins.
@@ -79,7 +30,6 @@ var CACHE_RULES = [
   { match: /simple\/price/,                             ttl: 10*60*1000, label: 'SIMPLE-PRC'  }, // 10 min
   { match: /coins\/markets/,                           ttl: 15*60*1000, label: 'COINS-MKT'   }, // 15 min
   { match: /finance\.yahoo\.com/,                      ttl: 30*60*1000, label: 'STOCKS'       }, // 30 min
-  { match: /alphavantage\.co/,                         ttl: 15*60*1000, label: 'FOREX-AV'    }, // 15 min
   { match: /frankfurter\.app/,                         ttl: 15*60*1000, label: 'FOREX-FK'    }, // 15 min
   { match: /./,                                        ttl:  5*60*1000, label: 'DEFAULT'      }  // 5 min
 ];
@@ -200,19 +150,9 @@ async function apiFetch(url) {
     for (var i = 0; i < ps.length; i++) {
       try {
         var r = await ps[i]();
-        if (!r.ok) {
-          if (r.status === 429 && url.indexOf('alphavantage') >= 0) rotateAVKey();
-          throw new Error('HTTP ' + r.status);
-        }
+        if (!r.ok) throw new Error('HTTP ' + r.status);
         var j = await r.json();
         var u = unwrap(j);
-        if (u && (u.Note || u.Information) && url.indexOf('alphavantage') >= 0) {
-          var msg = u.Note || u.Information;
-          if (msg.indexOf('API call frequency') >= 0 || msg.indexOf('rate limit') >= 0 || msg.indexOf('premium') >= 0) {
-            rotateAVKey();
-            throw new Error('AV rate_limited: ' + msg.slice(0, 60));
-          }
-        }
         if (u && u.status && u.status.error_code === 429) throw new Error('rate_limited');
         _cacheSet(url, u);
         delete _pending[url];

@@ -361,12 +361,12 @@ function supaCacheSet(key, data) {
  *   price, p24, p7, p30 }. coin_name optional.
  * @returns {Promise<{ok:boolean, reason:string, count:number}>}
  */
-function supaRecordMomentumSnapshot(rows) {
+function supaRecordMomentumSnapshot(rows, engineVersion) {
   var url = SUPA_URL + '/rest/v1/rpc/record_momentum_snapshot';
   return fetch(url, {
     method: 'POST',
     headers: { 'apikey': SUPA_KEY, 'Authorization': 'Bearer ' + SUPA_KEY, 'Content-Type': 'application/json' },
-    body: JSON.stringify({ p_rows: rows })
+    body: JSON.stringify({ p_rows: rows, p_engine_version: engineVersion || null })
   }).then(function(r) {
     if (!r.ok) throw new Error('rpc ' + r.status);
     return r.json();
@@ -376,12 +376,12 @@ function supaRecordMomentumSnapshot(rows) {
   });
 }
 
-function supaRecordHoldingsSnapshot(rows) {
+function supaRecordHoldingsSnapshot(rows, engineVersion) {
   var url = SUPA_URL + '/rest/v1/rpc/record_holdings_snapshot';
   return fetch(url, {
     method: 'POST',
     headers: { 'apikey': SUPA_KEY, 'Authorization': 'Bearer ' + SUPA_KEY, 'Content-Type': 'application/json' },
-    body: JSON.stringify({ p_rows: rows })
+    body: JSON.stringify({ p_rows: rows, p_engine_version: engineVersion || null })
   }).then(function(r) {
     if (!r.ok) throw new Error('rpc ' + r.status);
     return r.json();
@@ -391,11 +391,18 @@ function supaRecordHoldingsSnapshot(rows) {
   });
 }
 
-/* ── Shared zone hysteresis (Phase 1) ──────────────────────────────
+/* ── Shared zone hysteresis ──────────────────────────────────────────
    _classifyZones() used to hold a coin inside its band using THIS
    browser's cached rot_last_zone, so the same market could classify
    differently for two visitors — 17 of 177 coins on the golden fixture.
    signal_zone_state makes that state a property of the market instead.
+
+   As of Step B (promptove/07-roadmap-2026-09-05.md), the compute-signal-
+   run Edge Function is the SOLE writer (its own cron, every 15 min) —
+   supaApplyZoneState() below is kept for reference and any future direct
+   need, but js/data-loaders.js's runSignalEngine() no longer calls it;
+   the client only reads signal_zone_state now (via supaLoadZoneState(),
+   as previousZones input to the local bStocks/fallback engine run).
 
    Read is public; writes go through the apply_zone_state RPC only, so
    holding the anon key does not let anyone move a signal. Both calls
@@ -443,7 +450,7 @@ function supaApplyZoneState(zones, engineVersion, asOf) {
   });
 }
 
-function supaRecordSignalSnapshot(rows) {
+function supaRecordSignalSnapshot(rows, engineVersion) {
   var url = SUPA_URL + '/rest/v1/rpc/record_daily_snapshot';
   return fetch(url, {
     method: 'POST',
@@ -452,7 +459,7 @@ function supaRecordSignalSnapshot(rows) {
       'Authorization': 'Bearer ' + SUPA_KEY,
       'Content-Type':  'application/json'
     },
-    body: JSON.stringify({ p_rows: rows })
+    body: JSON.stringify({ p_rows: rows, p_engine_version: engineVersion || null })
   }).then(function(r) {
     if (!r.ok) throw new Error('rpc ' + r.status);
     return r.json();

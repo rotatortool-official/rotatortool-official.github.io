@@ -505,7 +505,8 @@ var SignalHistory = (function() {
     });
     if (!rows.length) return;
 
-    supaRecordSignalSnapshot(rows).then(function(result) {
+    var engineVersion = (window.ROTATOR_RUN && window.ROTATOR_RUN.engineVersion) || null;
+    supaRecordSignalSnapshot(rows, engineVersion).then(function(result) {
       if (result && result.ok) {
         try { localStorage.setItem(LS_DATE_KEY, today); } catch(e) {}
       }
