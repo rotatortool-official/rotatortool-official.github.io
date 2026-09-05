@@ -370,6 +370,28 @@ web uploader ignores `.gitignore` entirely, which is how secrets or
 stray files can leak. `.gitignore` here excludes `.env`,
 `node_modules/`, OS/editor cruft, and local tool config.
 
+**Deploying `compute-signal-run` needs a byte-exact path.** It ships a
+~43KB vendored engine bundle (`_vendor/rotator-engine/engine.js`) full
+of long runs of box-drawing and alignment characters. Any deploy route
+that requires the file contents to be re-typed or re-emitted (including
+the Supabase MCP connector) can silently miscount those runs and corrupt
+the live engine. Deploy it only with a tool that reads bytes from disk:
+
+```bash
+supabase functions deploy compute-signal-run --project-ref wyvwycatgexpbugzkdfw --no-verify-jwt
+```
+
+`--no-verify-jwt` is required — the function does its own secret-based
+auth, and enabling JWT verification breaks the cron. Also check the
+local copy against what is actually deployed before pushing it up; it
+has drifted before, and deploying a stale local copy silently reverts
+production.
+
+Because of this, **prefer changes that derive from already-stored data**
+— SQL views and triggers need no deploy, carry no corruption risk, and
+apply retroactively to existing rows. `signal_run_l2_parts` and the
+`input_freshness` trigger both took that route deliberately.
+
 ---
 
 ## ⚠️ Things to not change without being told
