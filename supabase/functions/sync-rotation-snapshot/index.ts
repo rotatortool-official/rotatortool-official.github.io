@@ -2,51 +2,37 @@
 // sync-rotation-snapshot — Supabase Edge Function
 //
 // Records today's "Rotation Opportunities" (strong asset -> weak asset
-// pairs) into `rotation_snapshots`, using the SAME scoring formula as
-// the live dashboard's computeScores() in js/data-loaders.js.
+// pairs) into `rotation_snapshots`, for the track-record page's
+// then-vs-now grading.
 //
-// WHY THIS EXISTS:
-// The site previously tried to record these client-side, once per
-// visitor per day (takeRotationSnapshot() in js/signal-history.js) via
-// an RPC (record_rotation_snapshot) and table (rotation_snapshots) that
-// TURNED OUT NEVER TO HAVE BEEN CREATED — confirmed via direct query,
-// zero rows, function doesn't exist. Every "call" made by the rotation
-// feature since it shipped was silently lost; only whatever happened to
-// sit in one browser's localStorage ever existed. This function
-// replaces that fragile, traffic-dependent design with the same
-// reliable pattern already used by signal_snapshots (real, 99-day,
-// 1980-row history) — a scheduled server-side job, immune to whether
-// anyone actually visits the site that day.
+// RETIRED 2026-09-05 (roadmap backlog #4): this used to be a THIRD,
+// hand-rolled copy of the scoring formula — a manual TypeScript port of
+// computeScores()'s Layer 1/2/3 math, kept in sync with engine.js and
+// config.js entirely by hand. It had already drifted (that's exactly
+// the failure mode Steps B/C exist to kill for the site and the bot) and
+// there was no test catching it. Since Step B, a canonical, already-
+// computed run exists in `signal_runs`/`signal_run_items` every 15
+// minutes — so this function no longer scores anything itself. It reads
+// the latest run's per-coin score/eligibility (already filtered for
+// stablecoins, delisted symbols, and data completeness by
+// compute-signal-run) and just picks top-5-by-score / bottom-5-by-score,
+// same as before. Divergence from the site/bot goes to zero by
+// construction, same as Step C.
 //
-// FIDELITY NOTE:
-// This ports computeScores()'s Layer 1 (intra-list momentum rank),
-// Layer 2 (macro relative strength vs BTC/Gold/Silver/Oil/DXY/Total3),
-// and Layer 3 (tokenomics quality) exactly, using the same weights and
-// formula as the live dashboard. It deliberately does NOT implement the
-// zone-hysteresis/deadband classifier or the BTC Mayer Multiple
-// adaptive-threshold modifier — those only affect which zone a coin is
-// labeled when a VISITOR has holdings. A server-side snapshot has no
-// concept of "holdings", and the site's own code already falls back to
-// plain top-5-by-score vs bottom-5-by-score in that exact situation
+// FIDELITY NOTE (carried over): this is plain score ranking, not the
+// zone-hysteresis/deadband classifier or BTC Mayer Multiple modifier —
+// those only affect labeling for a visitor with holdings, which a
+// server-side snapshot has no concept of. The site's own code already
+// falls back to plain top-5/bottom-5-by-score in that exact situation
 // (see the fallback branch in takeRotationSnapshot(), js/signal-history.js)
-// — so using pure score ranking here IS the faithful behavior, not a
-// shortcut around it.
-//
-// DATA SOURCES (all already-cached, no new external API calls):
-//   market_cache['cg_markets_all']  — full ~177-coin CoinGecko markets
-//                                      snapshot (price, 7d/14d/30d %,
-//                                      supply, mcap, volume)
-//   market_cache['macro_data']      — BTC/Gold/Silver/Oil/DXY/Total3 7D %
-//   TOKENOMICS_DB / STABLECOINS     — embedded below, mirrors config.js
-//                                      exactly (keep both in sync manually)
+// — so this IS the faithful behavior, not a shortcut around it.
 //
 // DEPLOY:
 //   supabase functions deploy sync-rotation-snapshot
-//   supabase secrets set ROTATION_SYNC_SECRET=<own secret, same reasoning
-//     as BSTOCKS_SYNC_SECRET/MARKET_CYCLE_SYNC_SECRET — never reuse the
-//     project-wide SYNC_SECRET>
+//   (ROTATION_SYNC_SECRET already set from the original deploy — unchanged)
 //
-// SCHEDULE: once daily. See sql/sync_rotation_snapshot_cron.sql.
+// SCHEDULE: once daily. See sql/sync_rotation_snapshot_cron.sql (unchanged —
+// this function's request/response shape didn't change, only its internals).
 // ============================================================
 
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
@@ -57,79 +43,13 @@ const ROTATION_SYNC_SECRET  = Deno.env.get('ROTATION_SYNC_SECRET')!;
 
 const supabase = createClient(SUPABASE_URL, SERVICE_ROLE_KEY);
 
-// ── TOKENOMICS_DB — mirrors js/config.js exactly. Keep in sync manually. ──
-const TOKENOMICS_DB: Record<string, { deflation: string; unlockRisk: string }> = {
-  'bitcoin':              {deflation:'fixed',   unlockRisk:'low'},
-  'ethereum':             {deflation:'partial', unlockRisk:'low'},
-  'binancecoin':          {deflation:'full',    unlockRisk:'low'},
-  'solana':               {deflation:'none',    unlockRisk:'medium'},
-  'ripple':               {deflation:'none',    unlockRisk:'high'},
-  'dogecoin':             {deflation:'none',    unlockRisk:'low'},
-  'cardano':              {deflation:'none',    unlockRisk:'low'},
-  'avalanche-2':          {deflation:'partial', unlockRisk:'medium'},
-  'shiba-inu':            {deflation:'partial', unlockRisk:'low'},
-  'chainlink':            {deflation:'none',    unlockRisk:'high'},
-  'polkadot':             {deflation:'none',    unlockRisk:'medium'},
-  'bitcoin-cash':         {deflation:'fixed',   unlockRisk:'low'},
-  'near':                 {deflation:'none',    unlockRisk:'medium'},
-  'litecoin':             {deflation:'fixed',   unlockRisk:'low'},
-  'uniswap':              {deflation:'partial', unlockRisk:'medium'},
-  'internet-computer':    {deflation:'none',    unlockRisk:'high'},
-  'ethereum-classic':     {deflation:'fixed',   unlockRisk:'low'},
-  'stellar':              {deflation:'partial', unlockRisk:'medium'},
-  'monero':               {deflation:'none',    unlockRisk:'low'},
-  'okb':                  {deflation:'full',    unlockRisk:'low'},
-  'hedera-hashgraph':     {deflation:'none',    unlockRisk:'high'},
-  'filecoin':             {deflation:'none',    unlockRisk:'high'},
-  'cosmos':               {deflation:'none',    unlockRisk:'medium'},
-  'vechain':              {deflation:'partial', unlockRisk:'low'},
-  'tron':                 {deflation:'partial', unlockRisk:'low'},
-  'sui':                  {deflation:'none',    unlockRisk:'high'},
-  'aptos':                {deflation:'none',    unlockRisk:'high'},
-  'sei-network':          {deflation:'none',    unlockRisk:'high'},
-  'render-token':         {deflation:'partial', unlockRisk:'medium'},
-  'jupiter-exchange-solana':{deflation:'partial',unlockRisk:'medium'},
-  'aave':                 {deflation:'partial', unlockRisk:'low'},
-  'the-graph':            {deflation:'none',    unlockRisk:'high'},
-  'curve-dao-token':      {deflation:'partial', unlockRisk:'medium'},
-  'maker':                {deflation:'full',    unlockRisk:'low'},
-  'lido-dao':             {deflation:'none',    unlockRisk:'medium'},
-  'arbitrum':             {deflation:'none',    unlockRisk:'high'},
-  'optimism':             {deflation:'none',    unlockRisk:'high'},
-  'stacks':               {deflation:'fixed',   unlockRisk:'medium'},
-  'immutable-x':          {deflation:'none',    unlockRisk:'high'},
-  'injective-protocol':   {deflation:'full',    unlockRisk:'low'},
-  'blur':                 {deflation:'none',    unlockRisk:'high'},
-  'bonk':                 {deflation:'partial', unlockRisk:'low'},
-  'dogwifcoin':           {deflation:'none',    unlockRisk:'low'},
-  'book-of-meme':         {deflation:'none',    unlockRisk:'low'},
-  'pepe':                 {deflation:'none',    unlockRisk:'low'},
-  'ondo-finance':         {deflation:'none',    unlockRisk:'high'},
-  'worldcoin-wld':        {deflation:'none',    unlockRisk:'high'},
-  'pyth-network':         {deflation:'none',    unlockRisk:'high'},
-  'jito-governance-token':{deflation:'none',    unlockRisk:'high'},
-  'ethena':               {deflation:'partial', unlockRisk:'high'}
-};
-
-// ── STABLECOINS — mirrors js/config.js. Excluded from scoring entirely. ──
-const STABLE_IDS = new Set([
-  'tether', 'usd-coin', 'dai', 'first-digital-usd', 'true-usd',
-  'ethena-usde', 'frax', 'paypal-usd', 'gemini-dollar', 'usdd'
-]);
-
-interface RawCoin {
-  id: string; symbol: string; current_price: number;
-  price_change_percentage_7d_in_currency: number | null;
-  price_change_percentage_14d_in_currency: number | null;
-  price_change_percentage_30d_in_currency: number | null;
-  circulating_supply: number | null; max_supply: number | null;
-}
-
-interface ScoredCoin {
-  id: string; sym: string; price: number;
-  p7: number; p14: number; p30: number;
-  r7: number; r14: number; r30: number;
-  score: number;
+interface RunItem {
+  coin_id: string;
+  coin_sym: string | null;
+  price: number | null;
+  score: number | null;
+  eligible: boolean | null;
+  data_complete: boolean | null;
 }
 
 Deno.serve(async (req) => {
@@ -143,119 +63,52 @@ Deno.serve(async (req) => {
   }
 
   try {
-    // ── Load cached market data (already fetched by other sync jobs — no new external calls) ──
-    const { data: marketsRow, error: marketsErr } = await supabase
-      .from('market_cache').select('data').eq('cache_key', 'cg_markets_all').single();
-    if (marketsErr || !marketsRow) throw new Error('cg_markets_all not found in market_cache: ' + (marketsErr?.message ?? 'no row'));
+    // ── Latest canonical run — same source the site and the bot read. ──
+    const { data: run, error: runErr } = await supabase
+      .from('signal_runs')
+      .select('id,as_of,engine_version')
+      .order('as_of', { ascending: false })
+      .limit(1)
+      .single();
+    if (runErr || !run) throw new Error('no signal_runs row found: ' + (runErr?.message ?? 'empty'));
 
-    const { data: macroRow } = await supabase
-      .from('market_cache').select('data').eq('cache_key', 'macro_data').single();
-    const macro = macroRow?.data || {};
+    const { data: items, error: itemsErr } = await supabase
+      .from('signal_run_items')
+      .select('coin_id,coin_sym,price,score,eligible,data_complete')
+      .eq('run_id', run.id);
+    if (itemsErr || !items) throw new Error('signal_run_items fetch failed: ' + (itemsErr?.message ?? 'empty'));
 
-    const raw: RawCoin[] = marketsRow.data;
+    // Stablecoins/delisted are already excluded upstream by compute-signal-run
+    // (its own eligibility gate) — no re-filtering needed here beyond that.
+    const scorable = (items as RunItem[]).filter((it) =>
+      it.eligible !== false &&
+      it.data_complete !== false &&
+      it.score != null &&
+      it.price != null && it.price > 0
+    );
 
-    // ── Exclude coins whose Binance USDT pair isn't actively trading —
-    //    real reported harm: this pipeline was publishing rotation calls
-    //    for tokens delisted/suspended on Binance, the exact exchange
-    //    this whole site assumes tradability on. See sync-binance-status
-    //    Edge Function + binance_delisted_symbols table for how this is
-    //    populated (daily, from Binance's own exchangeInfo). Excluded
-    //    from BOTH sides — a "sell X for Y" call is equally broken if
-    //    either leg can't actually be traded. ──
-    const { data: delistedRows } = await supabase
-      .from('binance_delisted_symbols').select('base_asset');
-    const delistedSet = new Set((delistedRows || []).map((r: { base_asset: string }) => r.base_asset));
+    if (scorable.length < 10) {
+      throw new Error(`only ${scorable.length} scorable coins in run #${run.id} — too few for a meaningful snapshot`);
+    }
 
-    // ── Build scorable set — mirrors computeScores()'s `scorable` filter:
-    //    no stablecoins, requires all three of 7d/14d/30d present (same
-    //    dataComplete definition as loadCoins() in data-loaders.js) ──
-    const scorable: ScoredCoin[] = raw
-      .filter((c) => !STABLE_IDS.has(c.id))
-      .filter((c) => !delistedSet.has(c.symbol.toUpperCase()))
-      .filter((c) =>
-        c.price_change_percentage_7d_in_currency  != null &&
-        c.price_change_percentage_14d_in_currency != null &&
-        c.price_change_percentage_30d_in_currency != null &&
-        c.current_price > 0
-      )
-      .map((c) => ({
-        id: c.id, sym: c.symbol.toUpperCase(), price: c.current_price,
-        p7:  c.price_change_percentage_7d_in_currency!,
-        p14: c.price_change_percentage_14d_in_currency!,
-        p30: c.price_change_percentage_30d_in_currency!,
-        r7: 0, r14: 0, r30: 0, score: 0
-      }));
-
-    if (scorable.length < 10) throw new Error(`only ${scorable.length} scorable coins — too few for a meaningful snapshot`);
-
-    // ── LAYER 1: intra-list rank (0-40 pts) — exact port of computeScores() ──
-    const n = Math.max(scorable.length - 1, 1);
-    (['p7', 'p14', 'p30'] as const).forEach((k) => {
-      const sorted = [...scorable].sort((a, b) => b[k] - a[k]);
-      sorted.forEach((c, i) => {
-        const rankKey = ('r' + k.slice(1)) as 'r7' | 'r14' | 'r30';
-        c[rankKey] = i + 1;
-      });
-    });
-
-    const btcCoin = scorable.find((c) => c.id === 'bitcoin');
-    const btcP7    = macro.btcP7    ?? btcCoin?.p7 ?? 0;
-    const goldP7   = macro.goldP7   ?? 2;
-    const silvP7   = macro.silverP7 ?? 1.5;
-    const oilP7    = macro.oilP7    ?? 1;
-    const dxyP7    = macro.dxyP7    ?? 0;
-    const total3P7 = macro.total3P7 ?? 0;
-
-    // Original coin objects (with supply data) for Layer 3, keyed by id
-    const rawById = new Map(raw.map((c) => [c.id, c]));
-
-    scorable.forEach((c) => {
-      const wAvg = c.r7 * 0.25 + c.r14 * 0.30 + c.r30 * 0.45;
-      const layer1 = Math.round((1 - (wAvg - 1) / n) * 40);
-
-      // ── LAYER 2: macro relative strength (0-30 pts) ──
-      const coreDelta = (c.p7 - btcP7) * 0.35 + (c.p7 - goldP7) * 0.25 + (c.p7 - silvP7) * 0.10 + (c.p7 - oilP7) * 0.10;
-      const dxyDelta  = -dxyP7 * 0.10;
-      const t3Delta   = (c.p7 - total3P7) * 0.10;
-      const delta = coreDelta + dxyDelta + t3Delta;
-      const layer2 = Math.min(30, Math.max(0, Math.round(15 + Math.min(Math.max(delta * 0.9, -15), 15))));
-
-      // ── LAYER 3: tokenomics quality (-50 to +30 pts) ──
-      const tkx = TOKENOMICS_DB[c.id] || { deflation: 'none', unlockRisk: 'medium' };
-      const rawC = rawById.get(c.id);
-      let supplyPts = 0;
-      if (rawC?.circulating_supply && rawC?.max_supply && rawC.max_supply > 0) {
-        const ratio = rawC.circulating_supply / rawC.max_supply;
-        if      (ratio > 0.90) supplyPts =  10;
-        else if (ratio > 0.70) supplyPts =   5;
-        else if (ratio > 0.40) supplyPts =   0;
-        else if (ratio > 0.20) supplyPts = -15;
-        else                   supplyPts = -25;
-      } else if (!rawC?.max_supply) { supplyPts = -3; }
-      const deflPts   = tkx.deflation  === 'full' ? 15 : tkx.deflation  === 'partial' ? 8 : tkx.deflation === 'fixed' ? 5 : 0;
-      const unlockPts = tkx.unlockRisk === 'low'  ?  0 : tkx.unlockRisk === 'medium'  ? -5 : -10;
-      const layer3 = Math.min(30, Math.max(-50, supplyPts + deflPts + unlockPts));
-
-      c.score = Math.min(100, Math.max(-50, Math.round(layer1 + layer2 + layer3)));
-    });
-
-    // ── Selection: plain top-5 / bottom-5 by score — the SAME fallback
-    //    behavior the live site uses for any visitor with no holdings
-    //    (see takeRotationSnapshot() in js/signal-history.js). No zone/
-    //    hysteresis classifier needed here — that only changes labeling
-    //    for holdings-aware visitors, not this ranking. ──
-    const sells = [...scorable].sort((a, b) => b.score - a.score).slice(0, 5);
-    const buys  = [...scorable].sort((a, b) => a.score - b.score).slice(0, 5);
+    const sells = [...scorable].sort((a, b) => (b.score as number) - (a.score as number)).slice(0, 5);
+    const buys  = [...scorable].sort((a, b) => (a.score as number) - (b.score as number)).slice(0, 5);
 
     const today = new Date().toISOString().slice(0, 10);
     const pairs = [];
     for (let i = 0; i < Math.min(sells.length, buys.length); i++) {
       const from = sells[i], to = buys[i];
-      if (from.id === to.id) continue; // shouldn't happen given disjoint sort directions, guard anyway
+      if (from.coin_id === to.coin_id) continue; // shouldn't happen given disjoint sort directions, guard anyway
       pairs.push({
         snap_date:   today,
-        from_id:     from.id, from_sym: from.sym, from_price: from.price, from_score: from.score,
-        to_id:       to.id,   to_sym:   to.sym,   to_price:   to.price,   to_score:   to.score,
+        from_id:     from.coin_id,
+        from_sym:    (from.coin_sym || from.coin_id).toUpperCase(),
+        from_price:  from.price,
+        from_score:  from.score,
+        to_id:       to.coin_id,
+        to_sym:      (to.coin_sym || to.coin_id).toUpperCase(),
+        to_price:    to.price,
+        to_score:    to.score,
         source:      'sync-rotation-snapshot'
       });
     }
@@ -269,7 +122,13 @@ Deno.serve(async (req) => {
     if (upsertErr) throw new Error('upsert failed: ' + upsertErr.message);
 
     return new Response(
-      JSON.stringify({ synced: pairs.length, snap_date: today, scorable_count: scorable.length }),
+      JSON.stringify({
+        synced: pairs.length,
+        snap_date: today,
+        run_id: run.id,
+        engine_version: run.engine_version,
+        scorable_count: scorable.length
+      }),
       { status: 200, headers: { 'Content-Type': 'application/json' } }
     );
   } catch (e) {
