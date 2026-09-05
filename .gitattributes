@@ -1,0 +1,6 @@
+# Lock line endings to LF regardless of OS or how files were copied in.
+# Without this, Windows tools (Explorer copy/paste, some drag-and-drop
+# uploads) introduce CRLF, and git then reports nearly every file as
+# "modified" even though nothing actually changed — pure noise that
+# buries real diffs. See promptove/11-resolved-2026-09-05.md.
+* text=auto eol=lf
