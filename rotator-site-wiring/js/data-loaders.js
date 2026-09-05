@@ -606,21 +606,7 @@ function runSignalEngine(opts) {
   } catch (e) {}
 
   if (opts.persist !== false && typeof supaApplyZoneState === 'function') {
-    /* The engine hands back a bare { coinId: 'buy' } map — that is the
-       shape _classifyZones() has always kept in localStorage. Enrich it
-       with the symbol and the score that produced each classification
-       before persisting, so signal_zone_state can answer "why was this
-       coin in the buy band" later instead of only "it was". */
-    var zonePayload = {};
-    var runById = {};
-    run.items.forEach(function(it) { runById[it.id] = it; });
-    Object.keys(run.zones).forEach(function(id) {
-      var it = runById[id];
-      zonePayload[id] = it
-        ? { zone: run.zones[id], sym: it.sym, score: it.score, effective_score: it.effectiveScore }
-        : run.zones[id];
-    });
-    supaApplyZoneState(zonePayload, run.engineVersion, run.asOf);
+    supaApplyZoneState(run.zones, run.engineVersion, run.asOf);
   }
   return run;
 }
