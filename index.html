@@ -596,6 +596,24 @@
   </div>
 </div>
 
+<!-- SIGNAL ASSISTANT MODAL (Pro) — answers only from the live signal run, see js/signal-assistant.js -->
+<div class="overlay" id="signal-assistant-modal" onclick="if(event.target===this)closeModal('signal-assistant-modal')">
+  <div class="modal" style="max-width:520px;max-height:85vh;display:flex;flex-direction:column;padding-bottom:16px;">
+    <button class="modal-x" onclick="closeModal('signal-assistant-modal')" aria-label="Close">×</button>
+    <div class="modal-title" style="color:var(--bnb);">🤖 Signal Assistant</div>
+    <div class="modal-sub">Ask about the current rotation signals. Answers come only from live model data — never invented.</div>
+    <div id="sa-messages" style="flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;min-height:180px;max-height:44vh;margin:10px 0;padding-right:2px;"></div>
+    <div id="sa-error" style="display:none;color:var(--red);font-size:12px;margin-bottom:8px;"></div>
+    <form id="sa-form" onsubmit="sendSignalAssistantMessage(event)" style="display:flex;gap:8px;">
+      <input id="sa-input" type="text" placeholder="e.g. what looks weak right now?" autocomplete="off"
+             onkeydown="saInputKeydown(event)"
+             style="flex:1;background:var(--bg3);border:1px solid var(--bdr2);border-radius:6px;padding:10px 12px;font-size:13px;color:var(--text);">
+      <button type="submit" class="code-btn" style="padding:10px 16px;font-size:12px;letter-spacing:.06em;">ASK</button>
+    </form>
+    <div style="font-size:10px;color:var(--muted);text-align:center;margin-top:10px;">Algorithmic rotation signal only · Not financial advice · DYOR</div>
+  </div>
+</div>
+
 <!-- LOADER -->
 <div class="loader" id="loader">
   <canvas id="splash-c" width="420" height="140" style="display:block;margin-bottom:-10px;"></canvas>
@@ -707,6 +725,13 @@
     <div class="tb-dropdown-wrap">
       <button class="tb-icon-btn" onclick="openPro()" title="Unlock Pro" style="color:var(--pro);">
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+      </button>
+    </div>
+
+    <!-- Signal Assistant (Pro) — always visible, gates on click for non-Pro (same pattern as joinTelegram()) -->
+    <div class="tb-dropdown-wrap">
+      <button class="tb-icon-btn" onclick="openSignalAssistant()" title="Signal Assistant" data-pro-only="1">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
       </button>
     </div>
 
@@ -1276,6 +1301,9 @@
   <button class="mob-more-item" onclick="document.getElementById('signal-track-record').scrollIntoView({behavior:'smooth'});closeMobMore();">
     <span class="mmi-ico">📊</span><span>Signal Track Record</span>
   </button>
+  <button class="mob-more-item" onclick="openSignalAssistant();closeMobMore();">
+    <span class="mmi-ico">🤖</span><span>Signal Assistant</span>
+  </button>
   <button class="mob-more-item" onclick="openPro();closeMobMore();">
     <span class="mmi-ico">⚡</span><span>Unlock Pro</span>
   </button>
@@ -1341,6 +1369,7 @@
   <script src="js/api-pool.js"></script>
   <script src="js/pro-system.js"></script>
   <script src="js/supabase.js"></script>
+  <script src="js/signal-assistant.js"></script>
   <script src="js/tx-verify.js"></script>
   <script src="js/i18n.js"></script>
   <script src="js/signals.js"></script>

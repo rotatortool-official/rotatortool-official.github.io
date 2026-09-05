@@ -85,13 +85,6 @@ var FREE_CATEGORIES = ['all', 'l1', 'defi', 'meme', 'demo'];
 ### Change community channel links
 Search for `t.me/rotatortool` in `index.html` and `js/pro-system.js` — replace with your own Telegram channel handle. The Discord button is a placeholder (Coming soon) — wire it up the same way once you have a server.
 
-### Add an Alpha Vantage key (so stocks don't fail)
-Open `js/api-pool.js`, find `AV_KEYS`:
-```js
-var AV_KEYS = ['KEY1', 'KEY2', 'KEY3'];
-```
-Keys rotate automatically when one hits a rate limit.
-
 ### Add a new coin
 Open `js/config.js`, add to `FREE_COINS`:
 ```js
