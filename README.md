@@ -73,6 +73,8 @@ Project: `wyvwycatgexpbugzkdfw` ("rotatortool-official's Project").
 | `market_cache` | Cached Fear&Greed / DXY / Oil macro data, keyed by `cache_key` |
 | `my_holdings` | Your tracked symbols, drives `holdings_snapshots` + the personal SELL alert |
 | `unified_market_data` | Cross-asset (crypto/stock/forex) ticker data for the Market Ticker strip |
+| `binance_futures_metrics` | Current USDⓈ-M futures data per symbol — funding, open interest + change, long/short ratio, taker flow, Binance's own category, listing date. **Two timestamps**: `bulk_updated_at` (all symbols each run) vs `detail_updated_at` (per-symbol, rotated) |
+| `binance_futures_history` | Hourly buckets of OI/funding/price. Exists because Binance serves only ~30d of OI history and it cannot be rebuilt later — see `promptove/13-binance-futures-integration-2026-09-06.md` |
 | `pro_users` / `pro_codes` / `pro_requests` / `referrals` | Pro tier state |
 
 Every write-path table above that stores a *signal* (not just cache/config)
@@ -101,7 +103,8 @@ cleanup and don't repeat the omission next time a param gets added.
 | `sync-rotation-snapshot` | Records daily Rotation Opportunities picks for track-record grading (reads the canonical `signal_runs` row — does not re-score) |
 | `sync-market-data` | Syncs cross-asset ticker data into `unified_market_data`, every 12h |
 | `sync-bstocks` | Syncs Binance tokenized-stock data into `unified_market_data` |
-| `sync-binance-status` | Flags delisted/suspended Binance pairs so they stop being suggested |
+| `sync-binance-status` | Flags delisted/suspended Binance **spot** pairs so they stop being suggested |
+| `sync-binance-futures` | Every 30 min → `binance_futures_metrics` / `_history`. 3 bulk calls cover all symbols; open interest, long/short and taker flow are per-symbol and rotate by staleness (75/run). **Feeds no score and no UI yet — data collection only** |
 | `verify-tx` | Server-side crypto donation verification + Pro activation (replaces client-trusted tx-verify) |
 
 ### SQL migrations (`sql/`)
