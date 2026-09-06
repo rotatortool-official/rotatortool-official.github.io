@@ -416,6 +416,46 @@ function supaLoadDailyKlines(syms) {
 }
 
 /**
+ * Raw 4h candles for the Insight Engine, read from Supabase instead of
+ * one Binance request per symbol from the browser.
+ *
+ * Returns { BTC: {closes:[…], volumes:[…]} }. Deliberately raw inputs,
+ * not computed indicators — js/signals.js keeps doing the RSI/MACD/
+ * Bollinger maths with its own functions, so that maths exists in
+ * exactly one place and cannot drift.
+ *
+ * A coin with no row (not on Binance, or too short a history) simply
+ * isn't in the map, and signals.js falls back to its proxy RSI exactly
+ * as it did when the Binance fetch failed.
+ *
+ * @param {Array<string>} syms — base assets, e.g. ['BTC','ETH']
+ * @returns {Promise<Object>} base asset → { closes, volumes }
+ */
+function supaLoad4hKlines(syms) {
+  var unique = [];
+  (syms || []).forEach(function(s) {
+    s = String(s || '').toUpperCase();
+    if (s && unique.indexOf(s) < 0) unique.push(s);
+  });
+  if (!unique.length) return Promise.resolve({});
+
+  return supaRest('binance_klines_4h', 'GET', {
+    'base_asset': 'in.(' + unique.join(',') + ')',
+    'select':     'base_asset,closes,volumes'
+  }).then(function(rows) {
+    var out = {};
+    (rows || []).forEach(function(r) {
+      if (!Array.isArray(r.closes) || !r.closes.length) return;
+      out[r.base_asset] = { closes: r.closes, volumes: r.volumes || [] };
+    });
+    return out;
+  }).catch(function(e) {
+    console.warn('[Supabase] 4h klines read failed, insight falls back to proxy RSI:', e.message);
+    return {};
+  });
+}
+
+/**
  * Last-resort read: returns the cached row REGARDLESS of age.
  *
  * Only for use after every live fetch path has already failed.

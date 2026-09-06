@@ -78,8 +78,35 @@ Deno.serve(async (req: Request) => {
     }
     if (!tradingBase.size) throw new Error('exchangeInfo returned no TRADING USDT pairs');
 
+    // ── Ticker-collision guard ───────────────────────────────────────
+    // Matching Binance pairs to site coins by ticker alone can pair two
+    // DIFFERENT assets that happen to share a symbol. Real case: FRAX.
+    // CoinGecko's `frax` is the ~$1 stablecoin; Binance's FRAXUSDT is
+    // the post-rebrand token at ~$0.30. Storing that hands the site a
+    // 70% wrong price for a coin it labels a stablecoin.
+    //
+    // Rather than hardcode a list that needs maintaining, reject any
+    // pair whose price disagrees with CoinGecko beyond a threshold no
+    // genuine exchange-vs-aggregate spread reaches. Liquid pairs sit
+    // well under 1%; anything past 25% is a different asset or stale
+    // data, not a price. Fails OPEN — if the CoinGecko cache is missing
+    // the guard simply does not run, rather than emptying the table.
+    const MAX_DIVERGENCE_PCT = 25;
+    const { data: mkRow } = await supabase
+      .from('market_cache').select('data').eq('cache_key', 'cg_markets_all').maybeSingle();
+    const cgPrice = new Map<string, number>();
+    if (Array.isArray(mkRow?.data)) {
+      for (const c of mkRow!.data as any[]) {
+        const p = Number(c?.current_price);
+        if (c?.symbol && Number.isFinite(p) && p > 0) {
+          cgPrice.set(String(c.symbol).toUpperCase(), p);
+        }
+      }
+    }
+
     const now = new Date().toISOString();
     const skippedNotTrading: string[] = [];
+    const skippedDiverged: string[] = [];
 
     const rows = all
       .filter((t: any) => {
@@ -98,7 +125,18 @@ Deno.serve(async (req: Request) => {
       }))
       // A pair quoting zero across the board is delisted-in-place; storing
       // it would hand the site a 0 price to display.
-      .filter((r: any) => r.last_price !== null && r.last_price > 0);
+      .filter((r: any) => r.last_price !== null && r.last_price > 0)
+      // Ticker-collision guard — see note above.
+      .filter((r: any) => {
+        const cg = cgPrice.get(r.base_asset);
+        if (!cg) return true;                       // not a site coin, or no reference
+        const divergence = Math.abs((r.last_price - cg) / cg) * 100;
+        if (divergence > MAX_DIVERGENCE_PCT) {
+          skippedDiverged.push(`${r.base_asset} (binance ${r.last_price} vs cg ${cg})`);
+          return false;
+        }
+        return true;
+      });
 
     if (!rows.length) throw new Error('no usable USDT pairs parsed');
 
@@ -121,6 +159,9 @@ Deno.serve(async (req: Request) => {
       usdt_pairs_stored: rows.length,
       skipped_not_trading: skippedNotTrading.length,
       skipped_sample: skippedNotTrading.slice(0, 8),
+      skipped_diverged: skippedDiverged.length,
+      skipped_diverged_detail: skippedDiverged,
+      cg_reference_coins: cgPrice.size,
       updated_at: now,
     }), { headers: { 'Content-Type': 'application/json' } });
 

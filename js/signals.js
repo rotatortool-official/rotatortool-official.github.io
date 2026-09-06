@@ -687,50 +687,59 @@ function _calcBollinger(closes, period, mult) {
   return { upper: upper, lower: lower, mid: sma, width: width, pctB: pctB };
 }
 
+/* Candles come from Supabase (binance_klines_4h), not api.binance.com.
+   The indicator maths stays here on purpose — the server caches raw
+   closes/volumes so _calcRSI / _calcMACD / _calcBollinger remain the
+   single implementation rather than being duplicated server-side. */
+function _buildKlineEntry(sym, raw) {
+  if (!raw || !Array.isArray(raw.closes) || raw.closes.length < 30) return null;
+  var closes  = raw.closes.map(Number);
+  var volumes = (raw.volumes || []).map(Number);
+  var result = {
+    ts: Date.now(),
+    closes: closes,
+    volumes: volumes,
+    rsi:  _calcRSI(closes, 14),
+    macd: _calcMACD(closes),
+    bb:   _calcBollinger(closes, 20, 2)
+  };
+  _klineCache[sym] = result;
+  return result;
+}
+
+async function _preloadKlines(syms) {
+  if (typeof supaLoad4hKlines !== 'function') return;
+  var fresh = syms.filter(function(s) {
+    return !(_klineCache[s] && (Date.now() - _klineCache[s].ts) < _klineTTL);
+  });
+  if (!fresh.length) return;
+  var map = await supaLoad4hKlines(fresh);
+  fresh.forEach(function(s) { _buildKlineEntry(s, map[s]); });
+}
+
 async function _fetchKlines(sym) {
-  var now = Date.now();
-  if (_klineCache[sym] && (now - _klineCache[sym].ts) < _klineTTL) return _klineCache[sym];
-  try {
-    var pair = sym + 'USDT';
-    var url = 'https://api.binance.com/api/v3/klines?symbol=' + pair + '&interval=4h&limit=100';
-    var resp = await fetch(url);
-    if (!resp.ok) return null;
-    var data = await resp.json();
-    if (!Array.isArray(data) || data.length < 30) return null;
-    var closes = data.map(function(k) { return parseFloat(k[4]); });
-    var volumes = data.map(function(k) { return parseFloat(k[5]); });
-    var result = {
-      ts: now,
-      closes: closes,
-      volumes: volumes,
-      rsi:  _calcRSI(closes, 14),
-      macd: _calcMACD(closes),
-      bb:   _calcBollinger(closes, 20, 2)
-    };
-    _klineCache[sym] = result;
-    return result;
-  } catch(e) {
-    console.warn('[Insight] Kline fetch failed for ' + sym + ':', e.message);
-    return null;
-  }
+  return _klineCache[sym] || null;
 }
 
 /* ── Fetch klines for all holdings (called after data load) ── */
 async function fetchInsightKlines() {
-  /* Skip bStocks entirely — this hits api.binance.com directly from the
-     browser (sym + 'USDT'), the exact CORS problem the whole bStocks
-     migration moved server-side to avoid (see loadBstocks() in
-     data-loaders.js). A stock's momentum data already comes from
-     unified_market_data; there's no RSI/MACD/Bollinger equivalent for
-     bStocks yet, so these rows just won't have the extra Insight stats
-     for now rather than throwing a guaranteed-to-fail request. */
+  /* Skip bStocks entirely. The old reason was that this fetched
+     api.binance.com directly; that is no longer true (candles now come
+     from Supabase), but the exclusion still stands for a simpler reason:
+     a tokenized stock has no <sym>USDT spot pair, so it would never have
+     a row to find. A stock's momentum data already comes from
+     unified_market_data; there is no RSI/MACD/Bollinger equivalent for
+     bStocks yet, so those rows simply go without the extra Insight
+     stats. */
   var stockSyms = (typeof coins !== 'undefined') ? coins.filter(function(c) { return c.isStock; }).map(function(c) { return c.sym; }) : [];
   var hSyms = holdings.map(function(h) { return h.sym; }).filter(function(s) { return stockSyms.indexOf(s) < 0; });
   var wSyms = (typeof watchlist !== 'undefined') ? watchlist.filter(function(s) { return stockSyms.indexOf(s) < 0; }) : [];
   var targetSyms = hSyms.concat(wSyms.filter(function(s) { return hSyms.indexOf(s) < 0; }));
-  /* Fetch in parallel, max 10 to respect rate limits */
+  /* Still capped at 10 — not for rate limits any more (this is one
+     Supabase read), but because the Insight Engine only surfaces this
+     depth of detail for holdings and watchlist entries. */
   var batch = targetSyms.slice(0, 10);
-  await Promise.all(batch.map(function(sym) { return _fetchKlines(sym); }));
+  await _preloadKlines(batch);
   /* Re-run insights with fresh kline data */
   computeInsights();
 }
