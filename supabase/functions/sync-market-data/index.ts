@@ -224,6 +224,126 @@ async function upsertRows(
   return count ?? rows.length;
 }
 
+// ─────────────── SOURCE: MACRO (gold / silver / oil / DXY) ───────────────
+// Added 2026-09-06. These used to come from Alpha Vantage in the browser,
+// with the free-tier key hard-coded in a public client file; it was scraped
+// and rate-limited into 403/429 on nearly every call, and removed on
+// 2026-09-05. The removal note said to revive it server-side and never
+// ship a key again — this is that revival. Yahoo's /v8/finance/chart needs
+// no key at all, and this function already uses it for stocks and FX.
+//
+// READ THIS BEFORE WIRING IT INTO SCORING: promptove/06 proved L2 expands
+// to `0.90·p7 − K` where K is one scalar shared by every coin, so a macro
+// value cannot rank anything — it shifts the whole distribution equally.
+// These feeds are for REGIME EVIDENCE (what is the environment doing),
+// for the bot to quote, and as the prerequisite for per-asset sensitivity
+// later. They are not a scoring fix, and re-weighting them inside L2 was
+// already considered and rejected.
+const MACRO_SYMBOLS: { key: string; symbol: string; label: string }[] = [
+  { key: 'goldP7',   symbol: 'GC=F',     label: 'Gold futures' },
+  { key: 'silverP7', symbol: 'SI=F',     label: 'Silver futures' },
+  { key: 'oilP7',    symbol: 'CL=F',     label: 'WTI crude futures' },
+  { key: 'dxyP7',    symbol: 'DX-Y.NYB', label: 'US Dollar Index' },
+];
+
+// 7 CALENDAR days, matched by timestamp rather than by counting bars.
+// Commodities and FX do not trade weekends, so "7 bars back" is about 9
+// calendar days — which would silently compare a different window than
+// the coins' own p7 and make every delta wrong in the same direction.
+async function pct7d(symbol: string): Promise<number | null> {
+  const url = `https://query1.finance.yahoo.com/v8/finance/chart/${encodeURIComponent(symbol)}?interval=1d&range=1mo`;
+  const data = await safeJson(url);
+  const r = data?.chart?.result?.[0];
+  const ts: number[] = r?.timestamp ?? [];
+  const closes: (number | null)[] = r?.indicators?.quote?.[0]?.close ?? [];
+  if (!ts.length || ts.length !== closes.length) return null;
+
+  let last = -1;
+  for (let i = closes.length - 1; i >= 0; i--) { if (closes[i] != null) { last = i; break; } }
+  if (last < 0) return null;
+
+  const target = ts[last] - 7 * 86400;
+  let bestIdx = -1, bestDist = Infinity;
+  for (let i = 0; i <= last; i++) {
+    if (closes[i] == null) continue;
+    const d = Math.abs(ts[i] - target);
+    if (d < bestDist) { bestDist = d; bestIdx = i; }
+  }
+  // Reject a match more than 3 days off the 7-day mark — a stale or gappy
+  // series should report nothing rather than a number for a window nobody
+  // asked for.
+  if (bestIdx < 0 || bestIdx === last || bestDist > 3 * 86400) return null;
+
+  const then = closes[bestIdx]!, now = closes[last]!;
+  if (!then) return null;
+  return ((now - then) / then) * 100;
+}
+
+async function fetchMacro(
+  supabase: ReturnType<typeof createClient>,
+): Promise<Record<string, number | null>> {
+  const out: Record<string, number | null> = {
+    goldP7: null, silverP7: null, oilP7: null, dxyP7: null,
+    total3P7: null, total3Mcap: null,
+  };
+
+  for (const m of MACRO_SYMBOLS) {
+    try {
+      out[m.key] = await pct7d(m.symbol);
+    } catch (e) {
+      console.warn(`[macro] ${m.label} (${m.symbol}) failed:`, (e as Error).message);
+    }
+    await sleep(150);
+  }
+
+  // TOTAL3 = market cap excluding BTC and ETH.
+  //
+  // The client-side version took CoinGecko /global's 24h change and
+  // multiplied it by 2.5 to "approximate 7D". That is a fabricated number
+  // and it is not carried over. Derived here instead from data already
+  // held: a coin's mcap and its own 7d change give its mcap 7 days ago.
+  // The single assumption is constant supply over a week, which is small
+  // and stated rather than hidden.
+  try {
+    const { data: mkt } = await supabase
+      .from('market_cache').select('data').eq('cache_key', 'cg_markets_all').single();
+    const rows = (mkt?.data ?? []) as {
+      id: string; market_cap: number | null;
+      price_change_percentage_7d_in_currency: number | null;
+    }[];
+    let now = 0, then = 0;
+    for (const c of rows) {
+      if (c.id === 'bitcoin' || c.id === 'ethereum') continue;
+      const mc = c.market_cap ?? 0;
+      const p7 = c.price_change_percentage_7d_in_currency;
+      if (!mc || p7 == null) continue;
+      const denom = 1 + p7 / 100;
+      if (denom <= 0) continue;      // a −100% week would divide by zero
+      now += mc;
+      then += mc / denom;
+    }
+    if (now > 0 && then > 0) {
+      out.total3Mcap = now;
+      out.total3P7 = ((now - then) / then) * 100;
+    }
+  } catch (e) {
+    console.warn('[macro] total3 derivation failed:', (e as Error).message);
+  }
+
+  // Only write if at least one value resolved. A row of all-nulls would
+  // overwrite the last good reading with nothing, and compute-signal-run
+  // would silently fall back to its constants.
+  const got = Object.entries(out).filter(([, v]) => v != null).length;
+  if (got === 0) throw new Error('every macro source returned null — nothing written');
+
+  const { error } = await supabase.from('market_cache').upsert(
+    { cache_key: 'macro_data', data: out, updated_at: new Date().toISOString() },
+    { onConflict: 'cache_key' },
+  );
+  if (error) throw error;
+  return out;
+}
+
 // ─────────────── MAIN HANDLER ───────────────
 Deno.serve(async (req) => {
   // Auth: require Bearer SYNC_SECRET (or service role key as fallback)
@@ -268,9 +388,23 @@ Deno.serve(async (req) => {
     await sleep(350); // gentle pacing for free-tier APIs
   }
 
+  // Macro writes market_cache, not unified_market_data, so it sits outside
+  // the upsertRows loop above — but it is isolated the same way: it must
+  // never be able to fail the price syncs that already succeeded.
+  let macro: Record<string, number | null> | null = null;
+  try {
+    macro = await fetchMacro(supabase);
+    report.macro = { ok: true, count: Object.values(macro).filter((v) => v != null).length };
+    console.log('[macro] wrote market_cache.macro_data:', JSON.stringify(macro));
+  } catch (e) {
+    const msg = (e as Error).message ?? String(e);
+    report.macro = { ok: false, error: msg };
+    console.error('[macro] failed:', msg);
+  }
+
   const anyOk = Object.values(report).some((r) => r.ok);
   return new Response(
-    JSON.stringify({ ok: anyOk, report, ts: new Date().toISOString() }, null, 2),
+    JSON.stringify({ ok: anyOk, report, macro, ts: new Date().toISOString() }, null, 2),
     {
       status: anyOk ? 200 : 502,
       headers: { 'content-type': 'application/json' },

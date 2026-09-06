@@ -22,11 +22,11 @@
      Deno      import Engine from './rotator-engine/engine.mjs'
 
    Extracted from:
-//   site/js/data-loaders.js            _loadVolHist           L561-564  sha256:baa7903c3e1c
-//   site/js/data-loaders.js            _trackVolumeHistory    L566-583  sha256:b35e845b1a35
-//   site/js/data-loaders.js            _volRatio              L588-595  sha256:7249fb7cea95
-//   site/js/data-loaders.js            _btcCycleLabel         L513-519  sha256:7e1c6abf871d
-//   site/js/data-loaders.js            computeScores          L766-887  sha256:8b72b1cc2582
+//   site/js/data-loaders.js            _loadVolHist           L529-532  sha256:baa7903c3e1c
+//   site/js/data-loaders.js            _trackVolumeHistory    L534-551  sha256:b35e845b1a35
+//   site/js/data-loaders.js            _volRatio              L556-563  sha256:7249fb7cea95
+//   site/js/data-loaders.js            _btcCycleLabel         L481-487  sha256:7e1c6abf871d
+//   site/js/data-loaders.js            computeScores          L734-855  sha256:8b72b1cc2582
 //   site/js/signals.js                 _adaptiveThresholds    L126-153  sha256:3655c005c109
 //   site/js/signals.js                 _passesMeanRevGate     L155-158  sha256:92b63c975dcf
 //   site/js/signals.js                 _quickInsight          L171-207  sha256:b749552c2655

@@ -388,11 +388,25 @@ async function loadBinanceTags() {
   }
 }
 
+/* ── Macro: READ ONLY. The server owns this. ────────────────────────
+   Until 2026-09-06 this function FETCHED macro data in the visitor's
+   browser and wrote it back to market_cache — and compute-signal-run and
+   send-telegram-alerts then read that. The backend's Layer 2 inputs came
+   from whatever a random tab last managed to fetch, and a visitor whose
+   fetches failed would write nulls over a good reading. That is why
+   oilP7/dxyP7/silverP7/total3P7 were all null in production.
+
+   sync-market-data now produces this server-side from Yahoo (no API key,
+   see MACRO_SYMBOLS there). This function only reads it. It must never
+   write market_cache.macro_data again.
+
+   TTL is a day, not ten minutes: these are 7-day changes refreshed on the
+   sync cron, and a short TTL would just make every visitor treat a
+   perfectly good server reading as stale and fall through to nothing. */
 async function loadMacroData() {
-  /* ── Try shared Supabase cache first ── */
   if (typeof supaCacheGet === 'function') {
     try {
-      var cached = await supaCacheGet('macro_data', 10 * 60 * 1000); // 10 min TTL
+      var cached = await supaCacheGet('macro_data', 24 * 60 * 60 * 1000);
       if (cached && cached.goldP7 != null) {
         _macroData.goldP7    = cached.goldP7;
         _macroData.silverP7  = cached.silverP7;
@@ -407,64 +421,18 @@ async function loadMacroData() {
     } catch(e) { console.warn('[SupaCache] macro read skipped:', e.message); }
   }
 
-  try {
-    var goldUrl  = 'https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&ids=tether-gold&price_change_percentage=7d&per_page=1';
-    var goldData = await apiFetch(goldUrl);
-    if (Array.isArray(goldData) && goldData.length)
-      _macroData.goldP7 = goldData[0].price_change_percentage_7d_in_currency || 0;
+  /* No server reading available (first run, or the sync is down).
+     btcP7 still comes from coins[] because that is already loaded here and
+     is not macro — it is one of the tracked assets.
 
-    var silverUrl  = 'https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&ids=silver&price_change_percentage=7d&per_page=1';
-    var silverData = await apiFetch(silverUrl);
-    if (Array.isArray(silverData) && silverData.length)
-      _macroData.silverP7 = silverData[0].price_change_percentage_7d_in_currency || 0;
-
-    var btcCoin = coins.find(function(c) { return c.id === 'bitcoin'; });
-    if (btcCoin) _macroData.btcP7 = btcCoin.p7;
-
-    /* Oil (USO) and DXY (UUP) used to come from Alpha Vantage. Removed
-       2026-09-05 (backlog #1, promptove/07-roadmap-2026-09-05.md): the
-       free-tier key was hard-coded in this public client file — visible
-       to anyone who opened dev tools — and had already been scraped and
-       rate-limited into uselessness (403/429 on nearly every call, see
-       PUSH-CHECKLIST/roadmap). Both feed Layer 2 (macro relative
-       strength), which promptove/06-scoring-review-2026-09-05.md already
-       measured as macro-inert — swapping every macro input for its
-       fallback constant moved no score by more than 1 point — so
-       oilP7/dxyP7 simply fall through to computeScores()'s existing
-       fallback constants (1 and 0) now, same as they already did on
-       every 403. No scoring behavior changes; the exposed credential and
-       the guaranteed-to-fail requests are just gone. If Oil/DXY are ever
-       worth reviving, do it server-side (a synced Supabase table, like
-       market_cycle) — never a client-shipped key again. */
-
-    /* TOTAL3 (alt market cap excl. BTC+ETH) — via CoinGecko global */
-    try {
-      var t3Url  = 'https://api.coingecko.com/api/v3/global';
-      var t3Data = await apiFetch(t3Url);
-      if (t3Data && t3Data.data) {
-        var totalMcap = t3Data.data.total_market_cap && t3Data.data.total_market_cap.usd || 0;
-        var btcMcap   = (coins.find(function(c){ return c.id==='bitcoin'; }) || {mcap:0}).mcap || 0;
-        var ethMcap   = (coins.find(function(c){ return c.id==='ethereum'; }) || {mcap:0}).mcap || 0;
-        var total3Now = totalMcap - btcMcap - ethMcap;
-        var chgPct    = t3Data.data.market_cap_change_percentage_24h_usd || 0;
-        /* Approximate 7D from 24h change — rough but directional */
-        _macroData.total3P7 = chgPct * 2.5;
-        _macroData.total3Mcap = total3Now;
-      }
-    } catch(e3) { console.warn('Total3 fetch:', e3.message); }
-
-    /* Write macro data to shared cache for other users */
-    if (typeof supaCacheSet === 'function') {
-      supaCacheSet('macro_data', {
-        goldP7:     _macroData.goldP7,
-        silverP7:   _macroData.silverP7,
-        oilP7:      _macroData.oilP7,
-        dxyP7:      _macroData.dxyP7,
-        total3P7:   _macroData.total3P7,
-        total3Mcap: _macroData.total3Mcap
-      });
-    }
-  } catch(e) { console.warn('Macro data:', e.message); }
+     Everything else is deliberately left null. The engine has fallback
+     constants for exactly this case, and a null is honest: it says "no
+     reading", which dataQuality already reports. The old code fetched gold
+     and silver from CoinGecko here and derived total3 by multiplying a 24h
+     change by 2.5 — a fabricated 7d number — then wrote all of it back to
+     the shared cache where the backend would read it. Both are gone. */
+  var btcCoin = coins.find(function(c) { return c.id === 'bitcoin'; });
+  if (btcCoin) _macroData.btcP7 = btcCoin.p7;
 }
 
 /* ── Market Cycle (real MA200 + Mayer Multiple) ──────────────────
