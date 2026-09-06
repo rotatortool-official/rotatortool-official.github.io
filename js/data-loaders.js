@@ -666,6 +666,11 @@ async function runSignalEngine() {
         /* Server-side eligibility — same gate, same thresholds, computed
            once by compute-signal-run instead of per visitor. */
         c._eligible       = it.eligible !== false;
+        /* signal_run_items stores the verdict but not the reasons, so
+           any _exclusions left by the local pass now describe a
+           different run. Clear it rather than leave a stale list that
+           disagrees with the flag beside it. */
+        c._exclusions     = null;
       });
       window.ROTATOR_RUN = { engineVersion: latest.engine_version, asOf: latest.as_of, cycleLabel: latest.cycle_label, source: 'server' };
     } else if (localRun) {

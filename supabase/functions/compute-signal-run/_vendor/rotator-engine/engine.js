@@ -26,7 +26,7 @@
 //   site/js/data-loaders.js            _trackVolumeHistory    L490-507  sha256:b35e845b1a35
 //   site/js/data-loaders.js            _volRatio              L512-519  sha256:7249fb7cea95
 //   site/js/data-loaders.js            _btcCycleLabel         L437-443  sha256:7e1c6abf871d
-//   site/js/data-loaders.js            computeScores          L685-806  sha256:8b72b1cc2582
+//   site/js/data-loaders.js            computeScores          L690-811  sha256:8b72b1cc2582
 //   site/js/signals.js                 _adaptiveThresholds    L126-153  sha256:3655c005c109
 //   site/js/signals.js                 _passesMeanRevGate     L155-158  sha256:92b63c975dcf
 //   site/js/signals.js                 _quickInsight          L171-207  sha256:b749552c2655

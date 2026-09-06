@@ -370,6 +370,23 @@ var SignalHistory = (function() {
     if (c.dataComplete === false) return false;
     if (c.p7 == null || c.p30 == null) return false;
     if (!c.price || c.price <= 0) return false;
+    /* Tradability, for the same reason as the dataComplete guard above:
+       the public track record should not credit or blame us for calls
+       nobody could have acted on. Before this, 6 of the 10 "lagging"
+       picks on a live run were untradeable — RBN, SBR, SCRT, DEXT
+       (illiquid) and CFG (no market cap at all).
+
+       EQUITIES ARE DELIBERATELY EXEMPT. The engine's _eligibility()
+       also marks bStocks ineligible, but for a different reason — their
+       partial 0-70 scale is not comparable to crypto, not that they are
+       hard to trade. AAPL and AMZN are the most liquid things on the
+       page. Gating on the raw flag would have silently dropped all 24
+       equities from the track record, which is a product decision about
+       what the record covers, not a liquidity fix. Kept exactly as they
+       were; see promptove/18- for the open question.
+
+       Fails open: a coin the run does not cover has no verdict. */
+    if (c._eligible === false && !c.isStock) return false;
     return true;
   }
 
