@@ -336,7 +336,7 @@ function buySuggestTile(c) {
   /* Visual cue for the held-first sort in allBuys above — otherwise
      why this coin surfaced first is invisible to the person looking. */
   var isHeld = (typeof holdings !== 'undefined') && holdings.some(function(h) { return h.sym === c.sym; });
-  var badgeText = isHeld ? 'ADD MORE?' : 'BUY ZONE';
+  var badgeText = isHeld ? 'ALREADY HELD' : 'ROTATION SETUP';
   return '<div class="sig-tile rot" onclick="openTileDetail(\'' + c.id + '\',event)" title="Click for details">'
     + '<div class="sig-tile-top">'
       + '<div class="sig-tile-ico"><img src="' + c.image + '" alt="' + c.sym + ' logo" loading="lazy" width="20" height="20" onerror="this.style.display=\'none\'"></div>'
@@ -348,7 +348,7 @@ function buySuggestTile(c) {
       + '<div class="sig-stat"><span class="sig-stat-l">SENT</span><span class="sig-stat-v ' + sentCls + '">' + sentLabel + '</span></div>'
       + '<div class="sig-stat"><span class="sig-stat-l">UNLOCK</span><span class="sig-stat-v am">' + unlock + '</span></div>'
     + '</div>'
-    + (isHeld ? '<div style="font-size:11px;color:var(--muted);margin-top:6px;">Already in your holdings — still in buy zone.</div>' : '')
+    + (isHeld ? '<div style="font-size:11px;color:var(--muted);margin-top:6px;">Already in your holdings — still showing the same relative-weakness setup.</div>' : '')
     + '</div>';
 }
 
@@ -365,9 +365,9 @@ function provenProofLine() {
   if (!proven || !proven.length) return '';
   var p = proven[0]; /* already sorted most-recent-relevant by getProvenSignals() */
   var changeStr = (p.change >= 0 ? '+' : '') + p.change + '%';
-  return '<div class="proof-line" onclick="if(typeof SignalHistory!==\'undefined\')SignalHistory.shareProven(\'' + p.id + '\')" title="Click to share this call">'
-    + '<span style="color:var(--green);">✓ Told you so —</span> '
-    + p.daysAgo + 'd ago we flagged <b>' + p.sym + '</b> at ' + fmtP(p.priceThen)
+  return '<div class="proof-line" onclick="if(typeof SignalHistory!==\'undefined\')SignalHistory.shareProven(\'' + p.id + '\')" title="Click to share this observation">'
+    + '<span style="color:var(--green);">✓ On the record —</span> '
+    + p.daysAgo + 'd ago Rotator flagged <b>' + p.sym + '</b> at ' + fmtP(p.priceThen)
     + ', now ' + fmtP(p.priceNow) + ' (<span style="color:' + (p.change >= 0 ? 'var(--green)' : 'var(--red)') + ';">' + changeStr + '</span>)'
     + '</div>';
 }
@@ -381,13 +381,13 @@ function takeProfitTile(c) {
     + '<div class="sig-tile-top">'
       + '<div class="sig-tile-ico"><img src="' + c.image + '" alt="' + c.sym + ' logo" loading="lazy" width="20" height="20" onerror="this.style.display=\'none\'"></div>'
       + '<span class="sig-tile-sym" style="color:var(--red);">' + c.sym + '</span>'
-      + '<span class="sig-tile-badge rot" style="background:rgba(255,69,96,.12);color:var(--red);">TAKE PROFIT</span>'
+      + '<span class="sig-tile-badge rot" style="background:rgba(255,69,96,.12);color:var(--red);">OUTPERFORMING</span>'
     + '</div>'
     + '<div class="sig-tile-stats">'
       + '<div class="sig-stat"><span class="sig-stat-l">SCORE</span><span class="sig-stat-v am">' + c.score + '</span></div>'
       + '<div class="sig-stat"><span class="sig-stat-l">30D</span><span class="sig-stat-v ' + (c.p30 >= 0 ? 'up' : 'dn') + '">' + (c.p30 >= 0 ? '+' : '') + c.p30.toFixed(1) + '%</span></div>'
     + '</div>'
-    + '<div style="font-size:11px;color:var(--muted);margin-top:6px;line-height:1.4;">Held &amp; overheated — no rotation target implied, just preserve some gains.</div>'
+    + '<div style="font-size:11px;color:var(--muted);margin-top:6px;line-height:1.4;">Held, and well ahead of the tracked market over 30 days. No rotation target is implied — open it to see what is driving the move.</div>'
     + '</div>';
 }
 
@@ -404,7 +404,7 @@ function sigRotTile(sell, buy) {
   var bMax  = buy.max_supply || 0;
   var bUnlock = (bCirc && bMax > 0) ? Math.round((bCirc / bMax) * 100) + '%' : '∞';
 
-  return '<div class="sig-tile rot" onclick="openTileDetail(\'' + buy.id + '\',event)" title="Click for buy-side details">'
+  return '<div class="sig-tile rot" onclick="openTileDetail(\'' + buy.id + '\',event)" title="Click for details">'
     + '<div class="sig-tile-top">'
       + '<div class="sig-tile-ico"><img src="' + sell.image + '" alt="' + sell.sym + ' logo" loading="lazy" width="20" height="20" onerror="this.style.display=\'none\'"></div>'
       + '<span class="sig-tile-sym" style="color:var(--red);">'   + sell.sym + '</span>'
@@ -414,7 +414,7 @@ function sigRotTile(sell, buy) {
       + '<span class="sig-tile-badge rot">Δ' + delta + '</span>'
     + '</div>'
     + '<div class="sig-tile-stats">'
-      + '<div class="sig-stat"><span class="sig-stat-l">BUY SENT</span><span class="sig-stat-v ' + buySentCls + '">' + buySentLabel + '</span></div>'
+      + '<div class="sig-stat"><span class="sig-stat-l">TO SENT</span><span class="sig-stat-v ' + buySentCls + '">' + buySentLabel + '</span></div>'
       + '<div class="sig-stat"><span class="sig-stat-l">UNLOCK</span><span class="sig-stat-v am">' + bUnlock + '</span></div>'
       + '<div class="sig-stat"><span class="sig-stat-l">SCR DELTA</span><span class="sig-stat-v am">' + sell.score + '→' + buy.score + '</span></div>'
     + '</div>'
@@ -632,7 +632,7 @@ function renderTopBars() {
   proTiles = proTiles.slice(0, 4);
 
   if (!proTiles.length) {
-    sugEl.innerHTML = '<div class="no-sug">Scanning — no buy-zone or sell-zone signals right now.</div>';
+    sugEl.innerHTML = '<div class="no-sug">Scanning — no rotation setups in range right now.</div>';
     return;
   }
   var rotHtml = proTiles.map(function(t) {
@@ -914,7 +914,7 @@ function computeInsights() {
     /* ── PILLAR 6: Contrarian Sentiment (Fear & Greed) ── */
     if (fg < 25) {
       pts += 25;
-      signals.push('Extreme Fear (' + fg + ') — Contrarian Buy');
+      signals.push('Extreme Fear (' + fg + ') — historically a contrarian reading');
     } else if (fg < 40) {
       pts += 12;
       signals.push('Fear Zone (' + fg + ')');
@@ -954,7 +954,7 @@ function computeInsights() {
 
     /* ── Label & colour ── */
     var label, color;
-    if      (normalised >= 65) { label = 'BUY';     color = 'insight-buy';  }
+    if      (normalised >= 65) { label = 'STRONG';  color = 'insight-buy';  }
     else if (normalised <= 35) { label = 'WARN';    color = 'insight-warn'; }
     else                       { label = 'NEUTRAL'; color = 'insight-neut'; }
 

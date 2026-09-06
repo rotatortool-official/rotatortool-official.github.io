@@ -13,8 +13,8 @@ var TUT_STEPS = [
   {
     target: '.topbar',
     title: 'Welcome to ROTATOR',
-    desc: '<strong>Rotator</strong> is a daily performance tracker for crypto (plus tokenized bStocks). It measures price momentum across <strong>24H, 7D, 14D and 30D</strong> and surfaces opportunities to improve portfolio performance over time.<br><br>'
-        + '<strong>What is rotation?</strong> If you hold two assets and one has fallen 17% while the other only fell 5%, rotating part of the weaker position into the stronger one recovers value without adding capital. Over time, compounding these small adjustments significantly improves performance.<br><br>'
+    desc: '<strong>Rotator</strong> is a daily performance tracker for crypto (plus tokenized bStocks). It measures price momentum across <strong>24H, 7D, 14D and 30D</strong> and reports which assets are performing relatively strongly, which are performing relatively weakly, and what changed.<br><br>'
+        + '<strong>What is rotation?</strong> If you hold two assets and one has fallen 17% while the other only fell 5%, the relative-strength gap between them is 12 points. Rotator measures those gaps, shows the evidence behind each one, and records what happened to them afterwards.<br><br>'
         + '<strong>Multi-timeframe scoring</strong> surfaces sustained trends, not just recent noise. A coin ranked highly across 7D, 14D <em>and</em> 30D is behaving very differently from one that just had a single good week.',
     arrow: 'top', pos: 'center', wide: true
   },
@@ -37,7 +37,7 @@ var TUT_STEPS = [
         + '<div style="border-left:3px solid #00bd8e;padding-left:12px;">'
           + '<div style="font-size:12px;letter-spacing:.13em;color:rgba(0,200,150,.7);margin-bottom:6px;font-weight:700;">↑ ROTATION OPPS</div>'
           + '<div style="color:#00bd8e;font-size:16px;font-weight:700;margin-bottom:7px;">↑ Rotate</div>'
-          + '<span style="color:rgba(200,220,210,.85);">Pairs from your holdings where rotating makes sense. The score gap shows how much one coin is outpacing another.</span>'
+          + '<span style="color:rgba(200,220,210,.85);">Pairs from your holdings with the widest relative-strength gap. The score gap shows how much one coin has outpaced another.</span>'
           + '<div style="margin-top:7px;font-size:12px;color:rgba(167,139,250,.9);font-weight:600;">⚡ Pro feature — unlock free</div>'
         + '</div>'
         + '<div style="border-left:3px solid #f0a030;padding-left:12px;">'
@@ -48,7 +48,7 @@ var TUT_STEPS = [
         + '<div style="border-left:3px solid #f03e58;padding-left:12px;">'
           + '<div style="font-size:12px;letter-spacing:.13em;color:rgba(240,62,88,.7);margin-bottom:6px;font-weight:700;">↓ WORST 30D</div>'
           + '<div style="color:#f03e58;font-size:16px;font-weight:700;margin-bottom:7px;">↓ Lagging</div>'
-          + '<span style="color:rgba(220,200,200,.85);">Biggest 30-day losers. Potential bounce candidates — or assets to exit. Monitor or reduce exposure.</span>'
+          + '<span style="color:rgba(220,200,200,.85);">The weakest 30-day performers in the tracked market. Weakness can persist or reverse — open a coin to see what is driving it.</span>'
         + '</div>'
         + '</div>',
     arrow: 'top', pos: 'neon-below', wide: true

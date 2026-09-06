@@ -244,7 +244,7 @@ function renderSignal(hc) {
   var statusTxt, statusCol;
   if (!over.length && !under.length) { statusTxt = '✓ BALANCED';         statusCol = 'var(--green)'; }
   else if (over.length && under.length) { statusTxt = '⚡ MIXED SIGNALS'; statusCol = 'var(--amber)'; }
-  else if (over.length)                 { statusTxt = '↑ ROTATE OUT';     statusCol = 'var(--amber)'; }
+  else if (over.length)                 { statusTxt = '↑ OUTPERFORMING';  statusCol = 'var(--amber)'; }
   else                                  { statusTxt = '↓ LAGGING — WATCH'; statusCol = 'var(--red)';  }
 
   var h = '<div class="sig-avg" style="color:' + avgColor + ';">'

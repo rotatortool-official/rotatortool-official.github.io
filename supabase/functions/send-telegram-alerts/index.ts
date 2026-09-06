@@ -274,17 +274,17 @@ Deno.serve(async (req: Request) => {
   // 1 msg/sec to a chat and Supabase does not throttle outbound fetch. A
   // limit would surface as HTTP 429 with retry_after in `errors` below.
   const day = new Date(latestRun.as_of).toISOString().slice(0, 10);
-  const lines: string[] = [`📊 <b>Rotator signals</b> — ${day}`];
+  const lines: string[] = [`📊 <b>Rotator — what changed</b> — ${day}`];
 
   if (sells.length) {
-    lines.push('', '🔴 <b>TAKE PROFIT</b> — your holding entered the sell zone');
+    lines.push('', '🔴 <b>RELATIVE STRENGTH</b> — a holding of yours crossed into the top of the tracked range');
     for (const s of sells) {
       lines.push(`• <b>${s.sym}</b> — ${s.score ?? '?'} (was ${s.was ?? '?'}) · ${fmtPrice(s.price)}`);
     }
   }
 
   if (buyShown.length) {
-    lines.push('', '🟢 <b>OVERSOLD</b> — entered the buy zone');
+    lines.push('', '🟢 <b>RELATIVE WEAKNESS</b> — crossed into the bottom of the tracked range');
     for (const b of buyShown) {
       lines.push(`• <b>${b.sym}</b> — ${b.score ?? '?'} (was ${b.was ?? '?'}) · ${fmtPrice(b.price)}`);
     }
@@ -294,8 +294,15 @@ Deno.serve(async (req: Request) => {
   }
 
   if (!gate.safe && sells.length) {
-    lines.push('', `<i>Buy signals suppressed: ${gate.reason}</i>`);
+    lines.push('', `<i>Relative-weakness lines suppressed: ${gate.reason}</i>`);
   }
+
+  // Every alert ends by pointing back at the evidence rather than at an
+  // action. See promptove/19-research-first-language-2026-09-06.md: the job
+  // of a notification is to bring someone to the breakdown, not to trade for
+  // them.
+  lines.push('', '<a href="https://rotatortool-official.github.io/">Explore the full breakdown on Rotator.</a>');
+  lines.push('<i>Informational research tool · not financial advice · DYOR</i>');
 
   // Telegram hard-caps a message at 4096 chars. Split on line boundaries
   // well under that rather than risking a 400 on an unusually busy day.

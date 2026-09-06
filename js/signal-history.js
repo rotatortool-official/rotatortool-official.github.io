@@ -442,7 +442,7 @@ var SignalHistory = (function() {
       var extras = getExtraSignals(c);
       /* Mark high-conviction picks so the UI can render a badge. */
       var conf = _confidenceScore(c, kind);
-      if ((conf - (c.score || 50)) >= 8) extras.push('HIGH CONVICTION');
+      if ((conf - (c.score || 50)) >= 8) extras.push('STRONG EVIDENCE');
       return {
         id: c.id, sym: c.sym, name: c.name || '',
         price: c.price, score: c.score,

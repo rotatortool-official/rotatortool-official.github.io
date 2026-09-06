@@ -45,16 +45,16 @@ function prog(p, m) {
 
 /* ── Loading screen tips ─────────────────────────────────────── */
 var LOAD_TIPS = [
-  '"DCA and patience beats chasing moonshots every time."',
+  '"Relative strength is measurable. A narrative is not."',
   '"The best trade is often the one you don\'t make."',
-  '"Rotate into strength, not into hope."',
+  '"What changed is a better question than what to buy."',
   '"Time in the market beats timing the market."',
   '"A portfolio that survives is a portfolio that thrives."',
   '"Diversify across sectors, not just coins."',
   '"Never invest more than you can afford to lose."',
   '"Consistent small gains compound into big results."',
   '"Zoom out. The 30D trend tells a clearer story than the 1H chart."',
-  '"Conviction without research is just gambling."'
+  '"Look for the evidence against it, not just the evidence for it."'
 ];
 (function showLoadTip() {
   var el = document.getElementById('load-tip');
