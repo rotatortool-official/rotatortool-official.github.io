@@ -296,6 +296,28 @@ function sigTile(c, kind) {
     + '</div>';
 }
 
+/* ── Tradability gate for BUY suggestions ────────────────────────
+   A coin can score well and still be something nobody can actually get
+   into. The engine already decides this — _eligibility() in
+   rotator-engine applies a $250k/24h liquidity floor plus a market-cap
+   sanity check that catches migrated/delisted tokens reporting real
+   volume but no market cap (FTM after Sonic, OMNI, CFG).
+
+   That verdict reached signal_run_items and was used by the Telegram
+   bot, but never by this page: the buy lists below filtered on zone,
+   mean-reversion and the delisted set only. The golden-fixture harness
+   made the gap visible on 2026-09-06 — site and bot shared identical
+   scores yet had ZERO overlap in their rotate-in lists, because the
+   site was surfacing CFG (no market cap) and DEXT (~$97k/day) while the
+   bot's own liquidity check refused them.
+
+   Deliberately fails OPEN: a coin the run doesn't cover (bStocks, or
+   anything outside its universe) has no verdict and is left alone,
+   rather than being silently dropped from the UI. */
+function _isTradable(c) {
+  return c && c._eligible !== false;
+}
+
 /* Rotation opportunity tile (sell→buy pair) */
 /* ── Standalone "what should I buy" suggestion tile ──────────────
    Unlike sigRotTile (which always pairs a sell with a buy), this shows
@@ -506,7 +528,7 @@ function renderTopBars() {
      rotation logic (tokenomics-aware buy/sell zones) doesn't apply to equities. */
   var held  = coins.filter(function(c) { return hSyms.indexOf(c.sym) >= 0 && !c.isStock; });
   var sells = held.filter(function(c)  { return c._zone === 'sell'; }).sort(function(a, b) { return b.score - a.score; });
-  var buys  = coins.filter(function(c) { return hSyms.indexOf(c.sym) < 0 && !c.isStock && c._zone === 'buy' && _passesMeanRevGate(c) && !(typeof delistedSymbols !== 'undefined' && delistedSymbols.has(c.sym)); }).sort(function(a, b) { return a.score - b.score; });
+  var buys  = coins.filter(function(c) { return hSyms.indexOf(c.sym) < 0 && !c.isStock && c._zone === 'buy' && _passesMeanRevGate(c) && _isTradable(c) && !(typeof delistedSymbols !== 'undefined' && delistedSymbols.has(c.sym)); }).sort(function(a, b) { return a.score - b.score; });
 
   /* Fallback candidates from all coins when no holdings exist —
      REAL zone-classified buy candidates only. The old version also
@@ -527,7 +549,7 @@ function renderTopBars() {
      ahead of a suggestion for something they've never held. Score
      order (strongest buy-zone conviction first) still applies within
      each group. */
-  var allBuys  = coins.slice().filter(function(c) { return !c.isStock && c._zone === 'buy' && _passesMeanRevGate(c) && !(typeof delistedSymbols !== 'undefined' && delistedSymbols.has(c.sym)); }).sort(function(a, b) {
+  var allBuys  = coins.slice().filter(function(c) { return !c.isStock && c._zone === 'buy' && _passesMeanRevGate(c) && _isTradable(c) && !(typeof delistedSymbols !== 'undefined' && delistedSymbols.has(c.sym)); }).sort(function(a, b) {
     var aHeld = hSyms.indexOf(a.sym) >= 0, bHeld = hSyms.indexOf(b.sym) >= 0;
     if (aHeld !== bHeld) return aHeld ? -1 : 1;
     return a.score - b.score;

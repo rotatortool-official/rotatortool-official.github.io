@@ -560,6 +560,13 @@ function applySignalRun(run) {
     c._zone           = it.zone;
     c._effectiveScore = it.effectiveScore;
     c._quickIns       = it.quickInsight;
+    /* Tradability, computed by the engine's _eligibility() — liquidity
+       floor, market-cap sanity, delisted, stablecoin, equity, incomplete
+       history. The engine has always returned this per item; nothing on
+       the page read it, so illiquid coins kept reaching the buy list.
+       See _isTradable() in signals.js. */
+    c._eligible       = it.eligible !== false;
+    c._exclusions     = it.exclusions || [];
   });
   window.ROTATOR_RUN = run;
 }
@@ -642,7 +649,7 @@ async function runSignalEngine() {
     if (latest) {
       var items = await supaRest('signal_run_items', 'GET', {
         run_id: 'eq.' + latest.id,
-        select: 'coin_id,score,effective_score,zone,r7,r14,r30,breakdown'
+        select: 'coin_id,score,effective_score,zone,r7,r14,r30,breakdown,eligible'
       });
       var byId = {};
       (items || []).forEach(function(it) { byId[it.coin_id] = it; });
@@ -656,6 +663,9 @@ async function runSignalEngine() {
         c.scoreBreakdown  = it.breakdown;
         c._zone           = it.zone;
         c._effectiveScore = Number(it.effective_score);
+        /* Server-side eligibility — same gate, same thresholds, computed
+           once by compute-signal-run instead of per visitor. */
+        c._eligible       = it.eligible !== false;
       });
       window.ROTATOR_RUN = { engineVersion: latest.engine_version, asOf: latest.as_of, cycleLabel: latest.cycle_label, source: 'server' };
     } else if (localRun) {
