@@ -318,6 +318,38 @@ function _isTradable(c) {
   return c && c._eligible !== false;
 }
 
+/* Exchange-flagged exclusions for the BUY side.
+   Two separate Binance signals, deliberately checked together because
+   every buy-side filter wants both:
+
+     delistedSymbols   — the USDT pair has already stopped trading
+                         (status != TRADING in exchangeInfo).
+     monitoringSymbols — still trading, but carrying Binance's
+                         Monitoring Tag: volatility/risk materially
+                         above listing standards, under periodic review
+                         for possible delisting.
+
+   The second is not a subset of the first. When measured on 2026-09-06
+   all 32 Monitoring-tagged USDT pairs were status='TRADING', so the
+   delisted check caught none of them — which is how SYN and GLMR kept
+   reaching the rotation suggestions.
+
+   BUY SIDE ONLY. A flagged coin you already hold still gets scored and
+   still shows its relative performance; hiding it would conceal a
+   position rather than protect it. Same reasoning as the sell-side note
+   further down.
+
+   Both Sets fail open (empty when their fetch fails), so a Supabase
+   outage degrades to "no exclusions", never to "everything excluded".
+   The typeof guards matter: signals.js is also loaded by the golden-
+   fixture harness, where data-loaders.js may not be present at all. */
+function _isExchangeFlagged(c) {
+  if (!c || !c.sym) return false;
+  if (typeof delistedSymbols   !== 'undefined' && delistedSymbols.has(c.sym))   return true;
+  if (typeof monitoringSymbols !== 'undefined' && monitoringSymbols.has(c.sym)) return true;
+  return false;
+}
+
 /* Rotation opportunity tile (sell→buy pair) */
 /* ── Standalone "what should I buy" suggestion tile ──────────────
    Unlike sigRotTile (which always pairs a sell with a buy), this shows
@@ -473,7 +505,7 @@ function renderTopBars() {
      same "don't point at something you can't actually buy" reasoning
      applies. Worst-30D-Performers (below) is deliberately left
      untouched — cautionary framing, not a suggestion to act on. */
-  var momAll  = coins.slice().filter(function(c) { return c.score >= 60 && !c.isStock && !(typeof delistedSymbols !== 'undefined' && delistedSymbols.has(c.sym)); })
+  var momAll  = coins.slice().filter(function(c) { return c.score >= 60 && !c.isStock && !_isExchangeFlagged(c); })
                              .sort(function(a, b) { return b.score - a.score; });
 
   /* Persist today's momentum tier + your holdings' scores, once/day,
@@ -528,7 +560,7 @@ function renderTopBars() {
      rotation logic (tokenomics-aware buy/sell zones) doesn't apply to equities. */
   var held  = coins.filter(function(c) { return hSyms.indexOf(c.sym) >= 0 && !c.isStock; });
   var sells = held.filter(function(c)  { return c._zone === 'sell'; }).sort(function(a, b) { return b.score - a.score; });
-  var buys  = coins.filter(function(c) { return hSyms.indexOf(c.sym) < 0 && !c.isStock && c._zone === 'buy' && _passesMeanRevGate(c) && _isTradable(c) && !(typeof delistedSymbols !== 'undefined' && delistedSymbols.has(c.sym)); }).sort(function(a, b) { return a.score - b.score; });
+  var buys  = coins.filter(function(c) { return hSyms.indexOf(c.sym) < 0 && !c.isStock && c._zone === 'buy' && _passesMeanRevGate(c) && _isTradable(c) && !_isExchangeFlagged(c); }).sort(function(a, b) { return a.score - b.score; });
 
   /* Fallback candidates from all coins when no holdings exist —
      REAL zone-classified buy candidates only. The old version also
@@ -549,7 +581,7 @@ function renderTopBars() {
      ahead of a suggestion for something they've never held. Score
      order (strongest buy-zone conviction first) still applies within
      each group. */
-  var allBuys  = coins.slice().filter(function(c) { return !c.isStock && c._zone === 'buy' && _passesMeanRevGate(c) && _isTradable(c) && !(typeof delistedSymbols !== 'undefined' && delistedSymbols.has(c.sym)); }).sort(function(a, b) {
+  var allBuys  = coins.slice().filter(function(c) { return !c.isStock && c._zone === 'buy' && _passesMeanRevGate(c) && _isTradable(c) && !_isExchangeFlagged(c); }).sort(function(a, b) {
     var aHeld = hSyms.indexOf(a.sym) >= 0, bHeld = hSyms.indexOf(b.sym) >= 0;
     if (aHeld !== bHeld) return aHeld ? -1 : 1;
     return a.score - b.score;
@@ -1158,7 +1190,7 @@ function renderTable() {
   } else if (activeCategory === 'stocks') {
     catCoins = coins.filter(function(c) { return c.isStock; });
   } else {
-    catCoins = coins.filter(function(c) { return (COIN_CATEGORIES[c.id] || 'other') === activeCategory; });
+    catCoins = coins.filter(function(c) { return categoryOf(c) === activeCategory; });
   }
 
   var sorted = catCoins.sort(function(a, b) {

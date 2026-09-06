@@ -312,6 +312,82 @@ async function loadDelistedSymbols() {
   }
 }
 
+/* ── Binance Monitoring Tag — reported harm fix, 2026-09-06 ────────
+   Rotation suggestions were surfacing SYN and GLMR. Both carry
+   Binance's Monitoring Tag: the exchange's own marker for a token whose
+   volatility/risk is materially above listing standards, reviewed
+   periodically for possible delisting.
+
+   This is NOT the same as delisted. All 32 Monitoring-tagged USDT pairs
+   were status='TRADING' when measured, so loadDelistedSymbols() above
+   caught none of them — the tag is the state between "fine" and
+   "already broken".
+
+   Excluded from the BUY side only, exactly like delistedSymbols: if a
+   coin you already hold gets tagged, you still need to see how it is
+   performing. Suppressing that would hide the position, not protect it.
+
+   Same fail-open design: if this fetch fails the Set stays empty and
+   nothing is excluded, rather than blocking the page. */
+var monitoringSymbols = new Set();
+
+async function loadMonitoringSymbols() {
+  try {
+    var rows = null;
+    if (typeof supaCacheGet === 'function') {
+      try { rows = await supaCacheGet('binance_monitoring_symbols', 60 * 60 * 1000); }
+      catch (e) { console.warn('[SupaCache] monitoring-symbols read skipped:', e.message); }
+    }
+    if (!rows || !Array.isArray(rows)) {
+      rows = await supaRest('binance_monitoring_symbols', 'GET', { 'select': 'base_asset' });
+      if (Array.isArray(rows) && typeof supaCacheSet === 'function') {
+        supaCacheSet('binance_monitoring_symbols', rows);
+      }
+    }
+    if (Array.isArray(rows)) {
+      monitoringSymbols = new Set(rows.map(function(r) { return r.base_asset; }));
+    }
+  } catch (e) {
+    console.warn('[loadMonitoringSymbols] failed, no exclusions applied this load:', e.message);
+  }
+}
+
+/* ── Binance's category tags ───────────────────────────────────────
+   Same feed, same table, same fail-open contract as the two loaders
+   above. Fills config.js's `binanceTags`, which categoryOf() reads.
+
+   This is the streamlining: 194 category assignments were maintained by
+   hand in config.js and could drift from what the exchange actually
+   says. Binance publishes them. The hand map stays only as the fallback
+   for coins Binance does not tag, and as the L1/L2 tie-breaker (Binance
+   has one `Layer1_Layer2` tag where the site has two tabs).
+
+   Note the tags are keyed by SYMBOL, not CoinGecko id — that is the
+   exchange's key space, and it is why categoryOf() takes the whole coin
+   rather than an id. */
+async function loadBinanceTags() {
+  try {
+    var rows = null;
+    if (typeof supaCacheGet === 'function') {
+      try { rows = await supaCacheGet('binance_symbol_tags', 60 * 60 * 1000); }
+      catch (e) { console.warn('[SupaCache] binance-tags read skipped:', e.message); }
+    }
+    if (!rows || !Array.isArray(rows)) {
+      rows = await supaRest('binance_symbol_tags', 'GET', { 'select': 'base_asset,tags', 'limit': '1000' });
+      if (Array.isArray(rows) && typeof supaCacheSet === 'function') {
+        supaCacheSet('binance_symbol_tags', rows);
+      }
+    }
+    if (Array.isArray(rows)) {
+      var map = {};
+      rows.forEach(function(r) { if (r.base_asset) map[r.base_asset] = r.tags || []; });
+      binanceTags = map;
+    }
+  } catch (e) {
+    console.warn('[loadBinanceTags] failed, falling back to the hand map:', e.message);
+  }
+}
+
 async function loadMacroData() {
   /* ── Try shared Supabase cache first ── */
   if (typeof supaCacheGet === 'function') {
@@ -1001,7 +1077,11 @@ async function doLoad() {
   });
   try {
     await loadMarketCycle(); /* must resolve before loadCoins() so real btcMA200 is available */
-    await loadDelistedSymbols(); /* must resolve before renderAll() so buy/rotation suggestions exclude delisted coins */
+    /* Both must resolve before renderAll() so buy/rotation suggestions
+       exclude delisted AND Monitoring-tagged coins. Run together: they are
+       independent reads and serialising them would add a round trip to
+       first paint for no reason. */
+    await Promise.all([loadDelistedSymbols(), loadMonitoringSymbols(), loadBinanceTags()]);
     await loadCoins('all');  prog(50, 'Scoring and ranking coins…');  renderCoinSel();
     await loadBstocks();     prog(65, 'Fetching bStock data…');
     if (typeof pruneStaleHoldings === 'function') pruneStaleHoldings();
@@ -1037,7 +1117,8 @@ async function doRefresh() {
   if (tsEl) tsEl.style.color = 'var(--bnb)';
   try {
     await loadMarketCycle(); /* cheap — 1hr cache TTL, real MA200 barely moves anyway */
-    await loadDelistedSymbols(); /* same TTL reasoning — Binance status doesn't change minute to minute */
+    /* Same TTL reasoning — Binance status and tags don't change minute to minute. */
+    await Promise.all([loadDelistedSymbols(), loadMonitoringSymbols(), loadBinanceTags()]);
 
     /* Always refresh crypto — re-fetch all loaded categories */
     await loadCoins(_loadedCategories['all'] ? 'all' : activeCategory);
@@ -1683,6 +1764,17 @@ function openTileDetail(coinId, evt) {
 
   /* Signal badges */
   var badges = [];
+  /* Exchange flags first — they qualify everything below them. A coin
+     Binance has tagged is still scored and still shown; it is only kept
+     out of the buy-side suggestions (_isExchangeFlagged in signals.js).
+     Saying so beats dropping it silently: the standard is that a user
+     can see the evidence behind an exclusion, not just its effect. */
+  if (typeof monitoringSymbols !== 'undefined' && monitoringSymbols.has(c.sym)) {
+    badges.push({t:'⚠ BINANCE MONITORING', cls:'bear'});
+  }
+  if (typeof delistedSymbols !== 'undefined' && delistedSymbols.has(c.sym)) {
+    badges.push({t:'⚠ NOT TRADING ON BINANCE', cls:'bear'});
+  }
   if (c.score >= 70)      badges.push({t:'STRONG MOM', cls:'bull'});
   else if (c.score >= 55) badges.push({t:'MOMENTUM',   cls:'bull'});
   else if (c.score <= 30) badges.push({t:'LAGGING',    cls:'bear'});

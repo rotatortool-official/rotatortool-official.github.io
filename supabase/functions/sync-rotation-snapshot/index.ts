@@ -91,8 +91,43 @@ Deno.serve(async (req) => {
       throw new Error(`only ${scorable.length} scorable coins in run #${run.id} — too few for a meaningful snapshot`);
     }
 
+    // ── Binance Monitoring Tag, buy side only (added 2026-09-06) ──
+    // NOT covered by the eligibility gate above. compute-signal-run's
+    // `eligible` flag is liquidity + market-cap sanity + delisting; the
+    // Monitoring Tag is a still-TRADING coin the exchange has flagged as
+    // materially riskier and is reviewing for delisting, so nothing
+    // upstream sees it.
+    //
+    // This function is where it mattered most: `buys` is the FIVE LOWEST
+    // SCORES in the run, and Monitoring-tagged coins cluster at exactly
+    // that end — GLMR (2), GNS (5) and SYN (8) on 2026-09-06. They were
+    // being written into rotation_snapshots and graded as published calls
+    // on the track record.
+    //
+    // Sell side is deliberately untouched: `sells` is the strongest
+    // coins, and if a flagged coin is up there it is a holding worth
+    // reporting on, not a recommendation to acquire anything.
+    //
+    // Fails OPEN, like every other consumer of this table: on a read
+    // error the set is empty and nothing is excluded, rather than the
+    // snapshot silently narrowing to a handful of coins.
+    let monitored = new Set<string>();
+    try {
+      const { data: monRows, error: monErr } = await supabase
+        .from('binance_monitoring_symbols').select('base_asset');
+      if (monErr) throw new Error(monErr.message);
+      monitored = new Set((monRows ?? []).map((r: { base_asset: string }) => r.base_asset));
+    } catch (e) {
+      console.warn('[sync-rotation-snapshot] monitoring-tag read failed, no exclusions applied:',
+        e instanceof Error ? e.message : String(e));
+    }
+
+    const isMonitored = (it: RunItem) =>
+      monitored.has((it.coin_sym || '').toUpperCase());
+
     const sells = [...scorable].sort((a, b) => (b.score as number) - (a.score as number)).slice(0, 5);
-    const buys  = [...scorable].sort((a, b) => (a.score as number) - (b.score as number)).slice(0, 5);
+    const buys  = [...scorable].filter((it) => !isMonitored(it))
+                               .sort((a, b) => (a.score as number) - (b.score as number)).slice(0, 5);
 
     const today = new Date().toISOString().slice(0, 10);
     const pairs = [];
@@ -127,7 +162,12 @@ Deno.serve(async (req) => {
         snap_date: today,
         run_id: run.id,
         engine_version: run.engine_version,
-        scorable_count: scorable.length
+        scorable_count: scorable.length,
+        // Named separately from scorable_count so "the tag sync is broken"
+        // and "no flagged coins were in range today" can never look alike.
+        monitoring_known: monitored.size,
+        monitoring_excluded_from_buys: scorable.filter(isMonitored).map((it) =>
+          (it.coin_sym || it.coin_id).toUpperCase()),
       }),
       { status: 200, headers: { 'Content-Type': 'application/json' } }
     );

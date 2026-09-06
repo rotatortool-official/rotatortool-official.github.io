@@ -73,6 +73,85 @@ var PRO_EXTRA_COINS = []; /* All 200 in free tier — Pro reserved for future ex
    Coins not listed here default to 'other'.
    Categories: l1, defi, l2, meme, ai, gaming, rwa, infra, stable
 ──────────────────────────────────────────────────────────────────── */
+/* ══ Binance's own category vocabulary ═══════════════════════════════
+   COIN_CATEGORIES below is 194 hand-maintained assignments. Binance
+   publishes the same information on the feed sync-binance-status already
+   reads, so it is now the source and the hand map is the fallback.
+
+   Why a map rather than using Binance's strings directly: the tab bar is
+   a product decision (ten tabs that fit on a phone), Binance's vocabulary
+   is 27 tags and theirs to change. This is the seam between them.
+
+   Layer1_Layer2 is the one tag that does NOT map cleanly — Binance lumps
+   L1 and L2 together and the site splits them. For those coins the hand
+   map still decides which of the two, and that is the only thing it is
+   still authoritative for.                                             */
+var BINANCE_TAG_TO_CAT = {
+  'bStocks':        'stocks',
+  'stablecoin':     'stable',
+  'Meme':           'meme',
+  'AI':             'ai',
+  'Gaming':         'gaming',
+  'RWA':            'rwa',
+  'defi':           'defi',
+  'Infrastructure': 'infra'
+};
+
+/* Order matters, and it is not "most specific wins".
+
+   A chain is a chain. Tried thematic-first and it moved AVAX, ICP and VET
+   into RWA and INJ into AI, because Binance tags chains with the sectors
+   they court. Nobody looking for AVAX opens the RWA tab. So the layer tag,
+   where present, beats every thematic tag — and only stocks/stable, which
+   are structural rather than thematic, outrank it.
+
+   Measured over the 201 tracked coins: chain-first reclassifies 25 and
+   keeps L1 at 46 (hand map said 40); thematic-first reclassified 30 and
+   collapsed L1 to 36 by scattering chains across sector tabs.
+
+   Below the layer tag, the order is a fixed list rather than Binance's
+   array order, which is not a contract. */
+var BINANCE_CAT_PRIORITY = ['meme','ai','gaming','rwa','defi','infra'];
+
+/* Populated by loadBinanceTags() in data-loaders.js: { SYM: [tags] }.
+   Empty until that resolves, and empty forever if the read fails — in
+   which case every lookup below falls through to the hand map, i.e. the
+   behaviour this replaced. */
+var binanceTags = {};
+
+/* The one place that answers "which tab does this coin belong to". */
+function categoryOf(c) {
+  if (!c) return 'other';
+  var hand = COIN_CATEGORIES[c.id] || 'other';
+
+  /* bStocks are registered into COIN_CATEGORIES at fetch time and are not
+     in the crypto tag feed under their own symbols — trust the hand value. */
+  if (hand === 'stocks') return 'stocks';
+
+  var tags = binanceTags[c.sym];
+  if (!tags || !tags.length) return hand;
+
+  /* Structural tags first — these describe what the instrument IS. */
+  if (tags.indexOf('bStocks') >= 0)    return 'stocks';
+  if (tags.indexOf('stablecoin') >= 0) return 'stable';
+
+  /* Then chain identity. Binance cannot tell us L1 from L2 — it has one
+     Layer1_Layer2 tag where the site has two tabs — so the hand map
+     breaks that tie, and that is the only thing it still decides. */
+  if (tags.indexOf('Layer1_Layer2') >= 0) {
+    return (hand === 'l1' || hand === 'l2') ? hand : 'l1';
+  }
+
+  /* Everything else falls to its sector. */
+  for (var i = 0; i < BINANCE_CAT_PRIORITY.length; i++) {
+    var want = BINANCE_CAT_PRIORITY[i];
+    for (var j = 0; j < tags.length; j++) {
+      if (BINANCE_TAG_TO_CAT[tags[j]] === want) return want;
+    }
+  }
+  return hand;
+}
+
 var COIN_CATEGORIES = {
   /* ── L1 / Major chains ── */
   'bitcoin':'l1','ethereum':'l1','binancecoin':'l1','solana':'l1','ripple':'l1',
