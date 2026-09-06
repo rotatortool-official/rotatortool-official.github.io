@@ -530,11 +530,9 @@ async function loadMarketCycle() {
    2.4× / 0.8× are historically-observed cycle top/bottom levels specific
    to Bitcoin's own price history, not a generic rule of thumb. */
 function _btcCycleLabel() {
-  var mm = marketCycleData.BTC && marketCycleData.BTC.mayer_multiple;
-  if (mm == null) return null;
-  if (mm >= 2.4) return 'stretched';
-  if (mm <= 0.8) return 'oversold';
-  return 'neutral';
+  return (typeof RotatorEngine !== 'undefined')
+    ? RotatorEngine.internals.btcCycleLabel()
+    : null;
 }
 
 
@@ -582,35 +580,17 @@ function _loadVolHist() {
   catch (e) { return {}; }
 }
 
-function _trackVolumeHistory(coinsArr) {
-  var hist = _loadVolHist();
-  var today = new Date().toISOString().slice(0, 10); // YYYY-MM-DD
-  coinsArr.forEach(function(c) {
-    if (!c.volume24) return;
-    var h = hist[c.id] || [];
-    if (!h.length || h[h.length - 1].d !== today) {
-      h.push({ d: today, v: c.volume24 });
-      if (h.length > _VOL_HIST_DAYS) h = h.slice(-_VOL_HIST_DAYS);
-      hist[c.id] = h;
-    } else {
-      h[h.length - 1].v = c.volume24; // overwrite same-day sample
-    }
-  });
-  try { localStorage.setItem(_VOL_HIST_KEY, JSON.stringify(hist)); } catch (e) {}
-  _volHist = hist;
-  return hist;
-}
+/* _trackVolumeHistory lived here. Removed 2026-09-06 with computeScores,
+   its only caller — the engine tracks volume history from the
+   volumeHistory it is handed and returns it on the run. See promptove/23. */
 
 /* volumeRatio = 24h volume / prior-days average. Falls back to 1
    (neutral — doesn't move the score) when there isn't enough history
    yet for a coin. */
 function _volRatio(c) {
-  var h = _volHist[c.id];
-  if (!h || h.length < 2) return 1;
-  var priorDays = h.slice(0, -1); // exclude today's own sample
-  var avg = priorDays.reduce(function(s, x) { return s + x.v; }, 0) / priorDays.length;
-  if (!avg) return 1;
-  return c.volume24 / avg;
+  return (typeof RotatorEngine !== 'undefined')
+    ? RotatorEngine.internals.volRatio(c)
+    : 1;
 }
 window._volRatio = _volRatio; // exposed for signal-history.js snapshot push
 
@@ -693,18 +673,30 @@ function applySignalRun(run) {
  * (ui.js's separate tile, and signals.js's own rotation-panel bonus) is
  * untouched; neither ever read `_zone`/`_effectiveScore`.
  */
+/* Set when the engine could not run at all. Read by the UI so a failed
+   engine reads as "unavailable" rather than as a page full of zeros. */
+var _engineUnavailable = false;
+
 async function runSignalEngine() {
   var localRun = null;
+  _engineUnavailable = false;
 
-  /* Local pass: scores everything (crypto + bStocks). Crypto gets
-     overwritten below when the server run is available; bStocks keep
-     whatever this computes, since they're outside the server's universe. */
+  /* Local pass, using the canonical engine. Its results are overwritten
+     below for anything the server run covers — which since 2026-09-06 is
+     crypto AND bStocks — so this is really a cold-start path: a brand-new
+     database with no run yet, or a Supabase fetch that failed.
+
+     There is no longer an in-page fallback beneath it. The site used to
+     carry its own copy of computeScores()/_classifyZones() for when the
+     engine script failed to load; that copy was the thing build.js lifted
+     into the engine, and keeping it meant two implementations that could
+     drift. A missing engine script is a deploy failure, and the honest
+     response is to say so rather than to quietly score with a second
+     implementation nobody is testing. See promptove/23. */
   if (typeof RotatorEngine === 'undefined') {
-    /* Fail loudly in the console but keep the page alive on the old path.
-       A missing engine script must not blank the dashboard. */
-    console.error('[Engine] rotator-engine not loaded — falling back to the in-page copy');
-    computeScores();
-    if (typeof _classifyZones === 'function') _classifyZones();
+    console.error('[Engine] rotator-engine failed to load — scores unavailable. '
+      + 'Check <script src="rotator-engine/engine.js"> in index.html.');
+    _engineUnavailable = true;
   } else {
     var volHist = {};
     try { volHist = JSON.parse(localStorage.getItem(_VOL_HIST_KEY)) || {}; } catch (e) {}
@@ -725,9 +717,11 @@ async function runSignalEngine() {
         localStorage.setItem(_VOL_HIST_KEY, JSON.stringify(localRun.volumeHistory));
       } catch (e) {}
     } catch (e) {
-      console.error('[Engine] computeSignalRun failed, falling back to the in-page copy:', e);
-      computeScores();
-      if (typeof _classifyZones === 'function') _classifyZones();
+      /* Same reasoning as above: no second implementation to fall back
+         to. The server overwrite below may still populate scores, so this
+         is not necessarily fatal — it is reported, not swallowed. */
+      console.error('[Engine] computeSignalRun failed — relying on the server run:', e);
+      _engineUnavailable = true;
     }
   }
 
@@ -782,128 +776,10 @@ async function runSignalEngine() {
 /* ── Score engine (3 layers) ─────────────────────────────────── */
 /* SUPERSEDED — see the SIGNAL ENGINE BRIDGE above. Kept as the
    reference copy that verify-verbatim.js diffs the engine against. */
-function computeScores() {
-  _trackVolumeHistory(coins);
-
-  /* Exclude stablecoins (APR display), bStocks (scored separately below —
-     UNLOCK/SENT tokenomics has no meaning for equities), and coins with
-     incomplete % data — a freshly-listed coin without 14D/30D history
-     would otherwise rank mid-pack on r14/r30 (since p14/p30 default to 0)
-     and inflate its rotation score, repeatedly surfacing as a "buy zone"
-     candidate despite us having no real basis to score it. */
-  var scorable = coins.filter(function(c) { return !c.isStable && !c.isStock && c.dataComplete !== false; });
-  var n = Math.max(scorable.length - 1, 1);
-
-  /* LAYER 1: Intra-list rank (0–40 pts) — crypto peer group only.
-     p7 is ranked on a volume-adjusted value so a coin pumping on thin
-     volume doesn't outrank one with the same % move backed by real
-     turnover. p14/p30 are left on raw price change — no reliable
-     14d/30d volume-average signal exists yet. */
-  ['p7','p14','p30'].forEach(function(k) {
-    var sorted = scorable.slice().sort(function(a, b) {
-      if (k === 'p7') {
-        var va = a.p7 * (0.5 + 0.5 * Math.min(_volRatio(a), 2));
-        var vb = b.p7 * (0.5 + 0.5 * Math.min(_volRatio(b), 2));
-        return vb - va;
-      }
-      return b[k] - a[k];
-    });
-    sorted.forEach(function(c, i) { c['r' + k.slice(1)] = i + 1; });
-  });
-
-  /* Set stablecoin AND incomplete-data scores to 0 — they're rendered but
-     not part of the rotation leaderboard. The detail modal can surface the
-     dataComplete flag separately if we want a "🆕 New listing" badge later. */
-  coins.forEach(function(c) {
-    if (c.isStable || c.dataComplete === false) {
-      c.score = 0; c.r7 = 0; c.r14 = 0; c.r30 = 0;
-    }
-  });
-
-  var btcP7    = _macroData.btcP7    != null ? _macroData.btcP7    : (coins.find(function(x){ return x.id==='bitcoin'; }) || {p7:0}).p7;
-  var goldP7   = _macroData.goldP7   != null ? _macroData.goldP7   : 2;
-  var silvP7   = _macroData.silverP7 != null ? _macroData.silverP7 : 1.5;
-  var oilP7    = _macroData.oilP7    != null ? _macroData.oilP7    : 1;
-  var dxyP7    = _macroData.dxyP7    != null ? _macroData.dxyP7    : 0;
-  var total3P7 = _macroData.total3P7 != null ? _macroData.total3P7 : 0;
-
-  scorable.forEach(function(c) {
-    /* Weighted rank (lower rank# = better) */
-    var wAvg   = (c.r7 * 0.25 + c.r14 * 0.30 + c.r30 * 0.45);
-    var layer1 = Math.round((1 - (wAvg - 1) / n) * 40);
-
-    /* LAYER 2: Macro relative strength vs BTC/Gold/Silver/Oil + DXY/Total3 (0–30 pts)
-       DXY inverse: rising dollar is headwind for crypto, so we ADD dxy strength (coin benefits when DXY falls)
-       Total3: rising altcoin market = tailwind, coin benefits when outperforming total3 */
-    /* Core: vs traditional assets (60% weight) */
-    var coreDelta = (c.p7 - btcP7)*0.35 + (c.p7 - goldP7)*0.25 + (c.p7 - silvP7)*0.10 + (c.p7 - oilP7)*0.10;
-    /* DXY headwind: if DXY rose 2%, all crypto gets -2 pts penalty; coin-specific edge stays in coreDelta (10% weight) */
-    var dxyDelta  = -dxyP7 * 0.10;
-    /* Total3 tailwind: coin outperforming altcoin market = bonus (10% weight) */
-    var t3Delta   = (c.p7 - total3P7) * 0.10;
-    var delta  = coreDelta + dxyDelta + t3Delta;
-    var layer2 = Math.min(30, Math.max(0, Math.round(15 + Math.min(Math.max(delta * 0.9, -15), 15))));
-
-    /* LAYER 3: Tokenomics quality (−50 to +30 pts) — crypto only */
-    var tkx      = TOKENOMICS_DB[c.id] || {deflation:'none', unlockRisk:'medium'};
-    var supplyPts = 0;
-    if (c.circulating_supply && c.max_supply && c.max_supply > 0) {
-      var ratio = c.circulating_supply / c.max_supply;
-      if      (ratio > 0.90) supplyPts =  10;
-      else if (ratio > 0.70) supplyPts =   5;
-      else if (ratio > 0.40) supplyPts =   0;
-      else if (ratio > 0.20) supplyPts = -15;
-      else                   supplyPts = -25;
-    } else if (!c.max_supply) { supplyPts = -3; }
-    var deflPts   = tkx.deflation  === 'full' ? 15 : tkx.deflation  === 'partial' ? 8 : tkx.deflation === 'fixed' ? 5 : 0;
-    var unlockPts = tkx.unlockRisk === 'low'  ?  0 : tkx.unlockRisk === 'medium'  ? -5 : -10;
-    /* Near-term unlock overhang — extra penalty on top of the static
-       unlockRisk tier when a coin has a real unlock event coming up.
-       unlock30d must be filled in by hand in config.js's
-       TOKENOMICS_DB (see that file's comment) — no live vesting data
-       source is wired into this project. */
-    if (tkx.unlock30d && tkx.unlock30d > 5) unlockPts -= 15;
-    var layer3    = Math.min(30, Math.max(-50, supplyPts + deflPts + unlockPts));
-
-    c.score = Math.min(100, Math.max(-50, Math.round(layer1 + layer2 + layer3)));
-
-    /* Mcap bracket adjustment — dampens micro-cap noise (<$500M),
-       rewards mega-cap stability (>$50B). Neutral $500M–$10B band is
-       implicit (mult stays 1.0). Applied post-clamp, after L1+L2+L3,
-       per the spec — can nudge score slightly outside -50..100 in
-       edge cases, which is intentional (a 1.05x mega-cap bonus on a
-       near-100 score should still read as "very strong"). */
-    var mcapMult = 1.0;
-    if (c.mcap && c.mcap < 500e6)      mcapMult = 0.85;
-    else if (c.mcap && c.mcap > 50e9)  mcapMult = 1.05;
-    c.score = Math.round(c.score * mcapMult);
-
-    c.scoreBreakdown = {layer1, layer2, layer3, supplyPts, deflPts, unlockPts, dxyP7: dxyP7, total3P7: total3P7, mcapMult, volRatio: _volRatio(c)};
-  });
-
-  /* ── bStocks: partial score, own peer group, no Layer 3 ──────────
-     Ship-first version per the migration plan: MCAP + momentum only,
-     no fabricated unlock/sentiment number. Ranked against OTHER bStocks
-     (not crypto) so a modest-momentum stock isn't buried under a
-     pumping memecoin's rank. Max attainable is 70 (40+30), not 100 —
-     intentionally not rescaled to look comparable to a full crypto
-     score; the UI labels this a partial score (see signals.js). */
-  var stockScorable = coins.filter(function(c) { return c.isStock && c.dataComplete !== false; });
-  var sn = Math.max(stockScorable.length - 1, 1);
-  ['p7','p14','p30'].forEach(function(k) {
-    var sorted = stockScorable.slice().sort(function(a, b) { return b[k] - a[k]; });
-    sorted.forEach(function(c, i) { c['r' + k.slice(1)] = i + 1; });
-  });
-  coins.forEach(function(c) { if (c.isStock && c.dataComplete === false) { c.score = 0; c.r7 = 0; c.r14 = 0; c.r30 = 0; } });
-  stockScorable.forEach(function(c) {
-    var wAvg   = (c.r7 * 0.25 + c.r14 * 0.30 + c.r30 * 0.45);
-    var layer1 = Math.round((1 - (wAvg - 1) / sn) * 40);
-    var coreDelta = (c.p7 - btcP7) * 0.5 + (c.p7 - goldP7) * 0.5; /* simpler macro compare for equities */
-    var layer2 = Math.min(30, Math.max(0, Math.round(15 + Math.min(Math.max(coreDelta * 0.9, -15), 15))));
-    c.score = Math.max(0, Math.round(layer1 + layer2));
-    c.scoreBreakdown = {layer1: layer1, layer2: layer2, layer3: null, partial: true};
-  });
-}
+/* computeScores lived here — 120 lines of Layer 1/2/3 scoring. Removed
+   2026-09-06. It was the site's own copy of maths that build.js then
+   lifted into the engine; the engine is the source now and the page
+   reads a run rather than computing one. See promptove/23. */
 
 /* ══════════════════════════════════════════════════════════════
    bSTOCKS — Binance tokenized equities, merged into coins[]

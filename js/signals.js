@@ -124,37 +124,15 @@ try {
 } catch (e) {}
 
 function _adaptiveThresholds() {
-  if (btcMA200 && btcPrice) {
-    /* BTC's own Mayer Multiple label (real, calibrated to BTC's history —
-       see _btcCycleLabel() in data-loaders.js) adds a third tier on top
-       of the plain bull/bear split below. This ONLY applies to BTC —
-       ETH/BNB/SOL/XRP/PAXG's Mayer Multiples are shown in the UI as raw
-       ratios but never touch scoring, since no calibrated bands exist
-       for them (see sync-market-cycle Edge Function comments). */
-    var cycleLabel = (typeof _btcCycleLabel === 'function') ? _btcCycleLabel() : null;
-    if (cycleLabel === 'stretched') {
-      /* Market historically overheated (BTC Mayer Multiple ≥ 2.4×) — be
-         MORE cautious about new buys, keep the same "let winners run"
-         sell discipline as plain bull, since exiting early near a real
-         top is its own mistake. */
-      return { buy: 32, sell: 66 };
-    }
-    if (cycleLabel === 'oversold') {
-      /* Market historically stretched to the downside (BTC Mayer
-         Multiple ≤ 0.8×) — loosen the buy band a bit further than plain
-         bear, since this zone has historically been accumulation
-         territory rather than a falling knife. */
-      return { buy: 38, sell: 58 };
-    }
-    if (btcPrice > btcMA200) return { buy: 38, sell: 66 }; /* bull: hold winners */
-    return { buy: 34, sell: 58 };                           /* bear: skip knives */
-  }
-  return { buy: _SIG_BUY_BASE, sell: _SIG_SELL_BASE };
+  return (typeof RotatorEngine !== 'undefined')
+    ? RotatorEngine.internals.adaptiveThresholds()
+    : null;
 }
 
 function _passesMeanRevGate(c) {
-  var p30 = (c && typeof c.p30 === 'number') ? c.p30 : 0;
-  return p30 <= -3 && p30 >= -40;
+  return (typeof RotatorEngine !== 'undefined')
+    ? RotatorEngine.internals.passesMeanRevGate(c)
+    : false;
 }
 
 /* Lightweight forward-looking proxy for ALL coins — used by the zone
@@ -168,80 +146,29 @@ function _passesMeanRevGate(c) {
      ≥65 → forward-looking bullish (oversold/accumulating/accelerating)
      ≤35 → forward-looking bearish (overbought/distribution/decelerating)
 */
+/* ── Delegates to the canonical engine ───────────────────────────────
+   The site no longer holds a copy of the scoring maths. Until 2026-09-06
+   these bodies lived here and build.js lifted them verbatim into
+   rotator-engine/engine.js; the direction is now inverted and engine.js
+   is the source. See promptove/23-build-js-inversion-plan.md.
+
+   Neutral returns if the engine script is missing: the page is already
+   broken at that point (runSignalEngine reports it loudly), and a
+   delegate that guesses would be a second copy of the maths by the back
+   door. passesMeanRevGate fails CLOSED — no engine, nothing reaches a
+   buy list. */
 function _quickInsight(c) {
-  if (!c) return 50;
-  var pts = 0;
-  var p7   = c.p7  || 0;
-  var p14  = c.p14 || 0;
-  var p30  = c.p30 || 0;
-
-  /* Momentum acceleration: p7 outperforming p14 = momentum building */
-  var accel = p7 - p14;
-  if      (accel >  5)   pts += 15;
-  else if (accel >  1.5) pts += 6;
-  else if (accel < -5)   pts -= 15;
-  else if (accel < -1.5) pts -= 6;
-
-  /* Recovery vs 30D: short-term lift while still drawn-down = reversion */
-  var recovery = p7 - p30;
-  if      (recovery >  8) pts += 10;
-  else if (recovery < -8) pts -= 8;
-
-  /* Volume × stability: high turnover at flat price = accumulation */
-  var vm = (c.volume24 && c.mcap) ? c.volume24 / c.mcap : 0;
-  var stable24 = Math.abs(c.p24 || 0) < 3;
-  if      (vm > 0.20 && stable24)        pts += 20;
-  else if (vm > 0.20)                    pts += 10;
-  else if (vm < 0.02 && c.mcap > 5e8)    pts -= 12;
-
-  /* RSI-style proxy from intra-list 30D rank */
-  if (c.r30 && typeof coins !== 'undefined' && coins.length > 1) {
-    var rsiProxy = (1 - (c.r30 - 1) / Math.max(coins.length - 1, 1)) * 100;
-    if      (rsiProxy <= 25) pts += 18;   /* oversold */
-    else if (rsiProxy >= 75) pts -= 18;   /* overbought */
-  }
-
-  var max = 65, min = -65;
-  var raw = Math.min(max, Math.max(min, pts));
-  return Math.round(((raw - min) / (max - min)) * 100);
+  return (typeof RotatorEngine !== 'undefined')
+    ? RotatorEngine.internals.quickInsight(c)
+    : null;
 }
 
 /* Classify every coin's zone with hysteresis + adaptive bands.
    Sets c._zone ∈ {'buy','sell','neutral'} and persists to localStorage. */
-function _classifyZones() {
-  if (typeof coins === 'undefined' || !coins.length) return;
-  var th = _adaptiveThresholds();
-  coins.forEach(function(c) {
-    if (!c || c.isStable || c.dataComplete === false) { c._zone = 'neutral'; return; }
-
-    /* Step 3: Insight↔rotation cross-link.
-       Prefer the rich Insight Engine score when present (holdings/watchlist),
-       fall back to _quickInsight for everything else. If the forward-looking
-       signal strongly disagrees with the rotation score, pull the effective
-       score back toward neutral (50) so the zone classifier won't trigger.
-         · ins ≥65 (bullish ahead) but rot ≥55 (rotation says sell) → dampen sell
-         · ins ≤35 (bearish ahead) but rot ≤45 (rotation says buy)  → dampen buy
-       Never crosses 50 — only neutralizes the contradiction. */
-    var s = c.score;
-    var ins = (c.insight && typeof c.insight.score === 'number')
-                ? c.insight.score : _quickInsight(c);
-    if      (ins >= 65 && s >= 55) s = Math.max(50, s - 6);
-    else if (ins <= 35 && s <= 45) s = Math.min(50, s + 6);
-    c._effectiveScore = s;
-    c._quickIns = ins;
-
-    var prev = _lastZone[c.id];
-    var z;
-    if      (s <= th.buy)                                 z = 'buy';
-    else if (s >= th.sell)                                z = 'sell';
-    else if (prev === 'buy'  && s < _SIG_DEADBAND)        z = 'buy';   /* deadband hold */
-    else if (prev === 'sell' && s > _SIG_DEADBAND)        z = 'sell';
-    else                                                  z = 'neutral';
-    _lastZone[c.id] = z;
-    c._zone = z;
-  });
-  try { localStorage.setItem('rot_last_zone', JSON.stringify(_lastZone)); } catch (e) {}
-}
+/* _classifyZones lived here. Removed 2026-09-06: zones now arrive with
+   the engine run (runSignalEngine in data-loaders.js) or from the server
+   row, and a second in-page classifier could only ever disagree with
+   them. See promptove/23. */
 
 /* Exposed for signal-history.js (rotation snapshot uses the same gates).
    Phase 1: these now resolve to the canonical engine's copies rather than

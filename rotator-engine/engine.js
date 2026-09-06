@@ -1,13 +1,23 @@
 /* ══════════════════════════════════════════════════════════════════
    rotator-engine — the canonical Rotator scoring engine.
 
-   ⚠ GENERATED FILE — do not edit engine.js by hand during Phase 1.
-     Edit engine.template.js and run `node build.js`.
+   ⚠ THIS FILE IS THE SOURCE. Edit it directly.
 
-   The scoring functions below are lifted VERBATIM out of the deployed
-   site (js/data-loaders.js, js/signals.js). Not a port, not a rewrite —
-   the same characters, verified on every test run by
-   test/verify-verbatim.js. Phase 1 changes no maths.
+     Inverted 2026-09-06. Until then it was GENERATED: build.js lifted
+     the scoring functions verbatim out of site/js/data-loaders.js and
+     site/js/signals.js, because Phase 1's whole claim was "the maths did
+     not change" and generating it made that a fact rather than a promise.
+
+     That phase is over. The site now holds no copy of these functions —
+     it delegates into this module — so there is nothing left to extract
+     from. engine.js is hand-maintained; build.js only publishes it to
+     the copy the browser loads; engine.template.js and
+     test/verify-verbatim.js are retired in place.
+
+     The golden fixture is what guards the maths now. It must not change
+     unless you meant to change the maths.
+
+     See promptove/23-build-js-inversion-plan.md.
 
    What the extraction DOES change is where those functions get their
    inputs. On the site they close over page globals, three of which live
@@ -21,7 +31,10 @@
      Node      require('./rotator-engine/engine.js')
      Deno      import Engine from './rotator-engine/engine.mjs'
 
-   Extracted from:
+   Extracted from (HISTORICAL — the provenance of the Phase 1 lift, kept
+   because it is the evidence that this code and the shipped site were
+   once byte-identical. The line numbers refer to a version of the site
+   that no longer contains these functions):
 //   site/js/data-loaders.js            _loadVolHist           L580-583  sha256:baa7903c3e1c
 //   site/js/data-loaders.js            _trackVolumeHistory    L585-602  sha256:b35e845b1a35
 //   site/js/data-loaders.js            _volRatio              L607-614  sha256:7249fb7cea95
