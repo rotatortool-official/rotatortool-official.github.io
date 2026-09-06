@@ -122,6 +122,21 @@ var SignalHistory = (function() {
      momentum fades by day 20. Falls back to current-price comparison
      when klines are unavailable (coins not on Binance, offline, etc).
   ══════════════════════════════════════════════════════════════ */
+  var _peakVerdicts    = {};   /* "YYYY-MM-DD|coin_id" → {bestChange, worstChange, ...} */
+  var _peakWarmStarted = false;
+  var _peakWarmDone    = false;
+
+  /* Restore persisted verdict cache so re-opening the app doesn't
+     re-grade calls that already have a locked verdict. */
+  try {
+    var _savedPeak = localStorage.getItem(LS_PEAK_KEY);
+    if (_savedPeak) _peakVerdicts = JSON.parse(_savedPeak) || {};
+  } catch(e) { _peakVerdicts = {}; }
+
+  function _savePeakVerdicts() {
+    try { localStorage.setItem(LS_PEAK_KEY, JSON.stringify(_peakVerdicts)); } catch(e) {}
+  }
+
   /* Daily candles now come from Supabase (binance_daily_klines), loaded
      in ONE bulk read before grading starts, instead of one Binance
      request per symbol from the browser. Coins with no Binance listing
