@@ -258,13 +258,30 @@ var BSTOCK_LIST = [
 /* deflation: 'full'=active burn | 'partial'=some burn | 'fixed'=hard cap | 'none'=inflation */
 /* unlockRisk: 'low' | 'medium' | 'high' (vesting overhang)                                  */
 /* unlock30d: OPTIONAL. % of circulating supply unlocking in the next 30 days.
-   If > 5, computeScores() applies an extra -15 to Layer 3. NOT populated
+   If > 5, the engine applies an extra -15 to Layer 3. NOT populated
    automatically — no live vesting-schedule feed exists in this project.
-   Look values up by hand at token.unlocks.app or Vestlab and fill in the
-   coins that actually have near-term cliffs (mainly the ones already
-   marked unlockRisk:'high' below — BTC/LTC/fixed-supply coins can skip
-   this entirely). The three example values below are PLACEHOLDERS to
-   show the shape — replace with real numbers before relying on them.  */
+
+   ⚠ CURRENTLY EMPTY ON PURPOSE. This field previously carried three
+   invented example values (sui 6.8, aptos 5.9, render-token 3.2) added
+   to demonstrate the shape. Because 6.8 and 5.9 both clear the >5
+   threshold, SUI and APT were each being docked 15 real points on
+   numbers nobody had looked up — and unlike the macro inputs in L2,
+   this field varies per coin, so it genuinely moved their ranking.
+   They were removed 2026-09-06.
+
+   A missing value is NOT the same as a low one: absent means "we don't
+   know", which correctly applies no penalty. Do not repopulate this
+   with estimates. Fill a coin in only from a real vesting schedule
+   (token.unlocks.app, Vestlab, or DefiLlama's unlocks data), and only
+   for coins with genuine near-term cliffs — mainly those already marked
+   unlockRisk:'high'. Fixed-supply coins (BTC/LTC) can skip it entirely.
+
+   NOTE: this table is mirrored into
+   supabase/functions/compute-signal-run/_vendor/rotator-engine/site-tables.mjs,
+   which is what the SERVER-AUTHORITATIVE score actually reads. Editing
+   here alone changes only the client-side fallback — the vendored copy
+   must be updated and the function redeployed for a change to reach
+   live scores.  */
 var TOKENOMICS_DB = {
   'bitcoin':              {deflation:'fixed',   unlockRisk:'low'},
   'ethereum':             {deflation:'partial', unlockRisk:'low'},
@@ -291,10 +308,10 @@ var TOKENOMICS_DB = {
   'cosmos':               {deflation:'none',    unlockRisk:'medium'},
   'vechain':              {deflation:'partial', unlockRisk:'low'},
   'tron':                 {deflation:'partial', unlockRisk:'low'},
-  'sui':                  {deflation:'none',    unlockRisk:'high', unlock30d: 6.8}, /* ⚠ PLACEHOLDER — verify at token.unlocks.app */
-  'aptos':                {deflation:'none',    unlockRisk:'high', unlock30d: 5.9}, /* ⚠ PLACEHOLDER — verify at token.unlocks.app */
+  'sui':                  {deflation:'none',    unlockRisk:'high'},
+  'aptos':                {deflation:'none',    unlockRisk:'high'},
   'sei-network':          {deflation:'none',    unlockRisk:'high'},
-  'render-token':         {deflation:'partial', unlockRisk:'medium', unlock30d: 3.2}, /* ⚠ PLACEHOLDER — verify at token.unlocks.app */
+  'render-token':         {deflation:'partial', unlockRisk:'medium'},
   'jupiter-exchange-solana':{deflation:'partial',unlockRisk:'medium'},
   'aave':                 {deflation:'partial', unlockRisk:'low'},
   'the-graph':            {deflation:'none',    unlockRisk:'high'},
