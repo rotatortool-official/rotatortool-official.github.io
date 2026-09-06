@@ -456,6 +456,37 @@ function supaLoad4hKlines(syms) {
 }
 
 /**
+ * Binance USDⓈ-M futures metrics for the coin detail modal's
+ * Derivatives section.
+ *
+ * Returns a map keyed by base asset. Only ~118 of the site's 177 coins
+ * have a perpetual, so a missing entry is normal — the modal hides the
+ * section entirely rather than showing empty cells, the same way the
+ * Liquidity section already behaves.
+ *
+ * Display only. Nothing here feeds the score: these metrics have not
+ * been measured against forward returns yet, and this project has twice
+ * shipped plausible-sounding signals that failed measurement (see
+ * promptove/09 and /12). binance_futures_history is accumulating so
+ * that test can actually be run later.
+ *
+ * @returns {Promise<Object>} base asset → futures metrics
+ */
+function supaLoadFuturesMetrics() {
+  return supaRest('binance_futures_metrics', 'GET', {
+    'select': 'base_asset,funding_rate,open_interest_value,oi_change_24h_pct,'
+            + 'price_change_pct_24h,long_short_ratio,binance_category,detail_updated_at'
+  }).then(function(rows) {
+    var out = {};
+    (rows || []).forEach(function(r) { out[r.base_asset] = r; });
+    return out;
+  }).catch(function(e) {
+    console.warn('[Supabase] futures metrics read failed:', e.message);
+    return {};
+  });
+}
+
+/**
  * Last-resort read: returns the cached row REGARDLESS of age.
  *
  * Only for use after every live fetch path has already failed.

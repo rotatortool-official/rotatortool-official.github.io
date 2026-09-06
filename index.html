@@ -328,6 +328,19 @@
     <div class="td-mkt-grid" id="td-liquidity"></div>
   </div>
 
+  <!-- Derivatives — Binance USDⓈ-M perpetual data, read from Supabase
+       (binance_futures_metrics), never from the browser. Hidden for the
+       ~59 site coins with no perpetual, same as Liquidity hides itself.
+       Display only: none of this feeds the score. These metrics DO vary
+       per coin (unlike L2's macro terms, which were identical for every
+       coin and so could never rank anything), but "capable of ranking"
+       is not "predicts returns" — that needs measuring against forward
+       returns first. See promptove/14. -->
+  <div class="td-section" id="td-deriv-sec" style="display:none;">
+    <div class="td-section-title">Derivatives</div>
+    <div class="td-mkt-grid" id="td-deriv"></div>
+  </div>
+
   <!-- Signal badges -->
   <div class="td-section" id="td-signals-sec">
     <div class="td-section-title">Signals</div>

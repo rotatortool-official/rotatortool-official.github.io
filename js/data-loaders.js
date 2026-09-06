@@ -263,6 +263,22 @@ async function loadCoins(categoryOverride) {
 /* ── Macro data (Gold, Silver, Oil, BTC 7D) ──────────────────── */
 var _macroData = {btcP7: null, goldP7: null, silverP7: null, oilP7: null, dxyP7: null, total3P7: null};
 
+/* Binance perpetual metrics for the modal's Derivatives section, keyed
+   by base asset. Populated once per load from Supabase — the browser
+   never calls Binance. Empty is a valid state: the section hides itself
+   for coins with no perpetual, and a failed read simply means no
+   section rather than a broken modal. Display only, never scored. */
+var _futuresBySym = {};
+
+async function loadFuturesMetrics() {
+  if (typeof supaLoadFuturesMetrics !== 'function') return;
+  try {
+    _futuresBySym = await supaLoadFuturesMetrics();
+  } catch (e) {
+    _futuresBySym = {};
+  }
+}
+
 /* ── Delisted/suspended Binance symbols — real reported harm fix ────
    The rotation/buy suggestions were recommending tokens no longer
    actively trading on Binance. binance_delisted_symbols is populated
@@ -974,6 +990,7 @@ async function doLoad() {
     await loadCoins('all');  prog(50, 'Scoring and ranking coins…');  renderCoinSel();
     await loadBstocks();     prog(65, 'Fetching bStock data…');
     if (typeof pruneStaleHoldings === 'function') pruneStaleHoldings();
+    await loadFuturesMetrics(); /* modal Derivatives section — never blocks, never scores */
     await loadMacroData(); prog(80, 'Loading macro data — Gold, Oil…');
     await loadFearGreed(); prog(88, 'Fetching sentiment data…');
     prog(92, 'Almost ready — building your dashboard…');
@@ -1494,6 +1511,66 @@ function openTileDetail(coinId, evt) {
      over several % of mcap daily; sub-1-2% is a real thin-liquidity
      warning sign), not a precise scientific boundary — said plainly in
      the tooltip rather than presented as exact science. */
+  /* ── Derivatives (Binance perpetuals) ──────────────────────────────
+     Display only — deliberately not part of the composite score. These
+     metrics vary per coin, so unlike L2's macro terms they COULD rank;
+     but none has been measured against forward returns yet, and this
+     project has twice shipped plausible signals that failed that test
+     (promptove/09, /12). binance_futures_history accumulates so the
+     measurement can actually happen. */
+  var drvSec = document.getElementById('td-deriv-sec');
+  var drvEl  = document.getElementById('td-deriv');
+  if (drvSec && drvEl) {
+    var f = _futuresBySym[c.sym];
+    if (f && f.open_interest_value) {
+      var fund = f.funding_rate != null ? Number(f.funding_rate) * 100 : null;  /* % per 8h */
+      var oi24 = f.oi_change_24h_pct != null ? Number(f.oi_change_24h_pct) : null;
+      var pc24 = f.price_change_pct_24h != null ? Number(f.price_change_pct_24h) : null;
+
+      /* Funding is charged every 8h, so x3 daily x365 makes it tangible.
+         Colour marks crowding, not direction: heavy positive = longs are
+         paying to stay in, which is what unwinds violently. */
+      var fundColor = 'var(--muted)', fundNote = 'Longs and shorts are close to balanced.';
+      if (fund != null) {
+        var annual = fund * 3 * 365;
+        if (fund >= 0.05)       { fundColor = 'var(--red)';   fundNote = 'Longs are paying shorts heavily — crowded long positioning, the setup that unwinds fastest.'; }
+        else if (fund >= 0.015) { fundColor = 'var(--amber)'; fundNote = 'Longs are paying shorts — mildly crowded to the upside.'; }
+        else if (fund <= -0.015){ fundColor = 'var(--green)'; fundNote = 'Shorts are paying longs — bearish positioning, which can fuel a squeeze.'; }
+      }
+
+      /* Price direction x OI direction. Rising OI means new positions
+         are being opened; falling OI means existing ones are closing. */
+      var posLabel = '—', posColor = 'var(--muted)', posNote = 'Not enough data to read positioning.';
+      if (oi24 != null && pc24 != null) {
+        if (pc24 >= 0 && oi24 >= 0)      { posLabel = 'NEW MONEY';     posColor = 'var(--green)'; posNote = 'Price up and open interest up — the move is backed by fresh positions rather than short covering.'; }
+        else if (pc24 >= 0 && oi24 < 0)  { posLabel = 'SHORT COVERING';posColor = 'var(--amber)'; posNote = 'Price up while open interest falls — this rally is shorts closing out, which tends to be less durable than new buying.'; }
+        else if (pc24 < 0 && oi24 >= 0)  { posLabel = 'NEW SHORTS';    posColor = 'var(--red)';   posNote = 'Price down and open interest up — traders are actively opening shorts, not just exiting longs.'; }
+        else                             { posLabel = 'UNWINDING';     posColor = 'var(--muted)'; posNote = 'Price down and open interest down — positions are being flushed out rather than new bets placed.'; }
+      }
+
+      var oiColor = oi24 == null ? 'var(--muted)' : (oi24 >= 0 ? 'var(--green)' : 'var(--red)');
+      var ageNote = f.detail_updated_at
+        ? ' Updated ' + Math.round((Date.now() - Date.parse(f.detail_updated_at)) / 60000) + ' min ago.'
+        : '';
+
+      drvEl.innerHTML =
+         '<div class="td-cell" title="' + fundNote + ' Shown per 8h funding interval'
+           + (fund != null ? '; roughly ' + (fund * 3 * 365).toFixed(1) + '% annualised' : '')
+           + '. Not part of the score."><div class="td-cell-l">FUNDING</div><div class="td-cell-v" style="color:' + fundColor + ';">'
+           + (fund != null ? (fund >= 0 ? '+' : '') + fund.toFixed(4) + '%' : '—') + '</div></div>'
+        + '<div class="td-cell" title="Total value of open perpetual positions on Binance.' + ageNote
+           + '"><div class="td-cell-l">OPEN INTEREST</div><div class="td-cell-v bnb">' + fmtVol(Number(f.open_interest_value)) + '</div></div>'
+        + '<div class="td-cell" title="Change in open interest over 24h. Rising means positions are being opened, falling means they are closing."><div class="td-cell-l">OI 24H</div><div class="td-cell-v" style="color:' + oiColor + ';">'
+           + (oi24 != null ? (oi24 >= 0 ? '+' : '') + oi24.toFixed(1) + '%' : '—') + '</div></div>'
+        + '<div class="td-cell" title="' + posNote + ' Derived from price direction versus open-interest direction over 24h. Descriptive only — it does not affect the score."><div class="td-cell-l">POSITIONING</div><div class="td-cell-v" style="color:' + posColor + ';">'
+           + posLabel + '</div></div>';
+      drvEl.style.gridTemplateColumns = 'repeat(2,1fr)';
+      drvSec.style.display = '';
+    } else {
+      drvSec.style.display = 'none';   /* no perpetual for this coin */
+    }
+  }
+
   var liqSec = document.getElementById('td-liquidity-sec');
   var liqEl  = document.getElementById('td-liquidity');
   if (liqSec && liqEl) {
