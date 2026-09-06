@@ -97,22 +97,20 @@ async function loadCoins(categoryOverride) {
      If Binance is available we use it for price + p24 accuracy; CoinGecko
      for the multi-timeframe changes needed by the scorer.
   ──────────────────────────────────────────────────────────────────────── */
+  /* Read from Supabase, not api.binance.com. The browser used to pull
+     the FULL ticker payload (~500KB, every USDT pair) on every page
+     load just to use three fields per coin; sync-binance-spot now does
+     that once for everyone on a 5-minute cron. It also fixes visitors
+     in regions where Binance answers HTTP 451, who previously got no
+     Binance prices at all with nothing to indicate why.
+     Same map shape as before, so nothing downstream changes. */
   var _binancePrices = {}; /* sym → {price, p24, volume} */
-  try {
-    var bnbTicker = await apiFetch('https://api.binance.com/api/v3/ticker/24hr');
-    if (Array.isArray(bnbTicker)) {
-      bnbTicker.forEach(function(t) {
-        if (!t.symbol.endsWith('USDT')) return;
-        var sym = t.symbol.slice(0, -4); /* strip USDT */
-        _binancePrices[sym] = {
-          price:  parseFloat(t.lastPrice)  || 0,
-          p24:    parseFloat(t.priceChangePercent) || 0,
-          volume: parseFloat(t.quoteVolume) || 0
-        };
-      });
+  if (typeof supaLoadBinanceSpot === 'function') {
+    _binancePrices = await supaLoadBinanceSpot();
+    if (Object.keys(_binancePrices).length) {
       prog(25, 'Binance prices loaded — fetching historical data…');
     }
-  } catch(e) { console.warn('[Binance] 24hr ticker failed — using CoinGecko prices:', e.message); }
+  }
 
   /* Fetch CoinGecko for 7D/14D/30D data (always needed for scoring) */
   /* On initial load: only fetch the active category to save API calls.

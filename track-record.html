@@ -283,9 +283,6 @@ a{color:inherit;text-decoration:none}
     return 5;
   }
   var MAX_CARDS_PER_LIST = 12;
-  var KLINE_TTL_MS       = 60 * 60 * 1000;
-  var KLINE_BATCH_SIZE   = 5;
-  var KLINE_BATCH_PAUSE  = 80;
 
   /* ── Price formatter ───────────────────────────────────── */
   function fmtP(p) {
@@ -437,36 +434,69 @@ a{color:inherit;text-decoration:none}
      drifting back later does NOT retro-demote the call.
      Coins that don't trade on Binance silently fall back to the
      current-price comparison so we never lose coverage. */
-  var _klineCache = {};
-  var _klinePend  = {};
+  /* Candles come from Supabase (binance_daily_klines), not from
+     api.binance.com. This page and js/signal-history.js each carried
+     their own copy of the same fetch-per-symbol loop; both now read the
+     table that sync-binance-daily-klines fills every 3 hours.
+
+     Coins with no Binance listing simply have no rows, and the caller
+     falls back to the current-price comparison exactly as before — but
+     without a guaranteed-to-fail cross-origin request per coin.
+
+     Chunked at 30 symbols because PostgREST caps a response at 1000
+     rows and each symbol carries ~30 candles. */
+  var _klinesAll = null;         /* promise of { SYM: candles[] } */
+  var _klineSymsNeeded = [];     /* set by warmKlines() before grading */
+  /* Resolved candles, kept as a plain object because evaluate() looks
+     them up SYNCHRONOUSLY. evaluate() runs twice — once before candles
+     are loaded (empty map -> current-price fallback) and again after
+     warmKlines() resolves — so an empty map here is a normal state, not
+     an error. */
+  var _klineMap = {};
+
+  function loadAllDailyKlines(syms) {
+    if (_klinesAll) return _klinesAll;
+
+    var unique = [];
+    (syms || []).forEach(function(s) {
+      s = String(s || '').toUpperCase();
+      if (s && unique.indexOf(s) < 0) unique.push(s);
+    });
+    if (!unique.length) { _klinesAll = Promise.resolve({}); return _klinesAll; }
+
+    var chunks = [];
+    for (var i = 0; i < unique.length; i += 30) chunks.push(unique.slice(i, i + 30));
+
+    _klinesAll = Promise.all(chunks.map(function(group) {
+      var url = SUPA_URL + '/rest/v1/binance_daily_klines'
+        + '?base_asset=in.(' + group.join(',') + ')'
+        + '&select=base_asset,open_time,high,low'
+        + '&order=open_time.asc&limit=1000';
+      return fetch(url, {
+        headers: { 'apikey': SUPA_KEY, 'Authorization': 'Bearer ' + SUPA_KEY }
+      }).then(function(r) { return r.ok ? r.json() : []; })
+        .catch(function() { return []; });
+    })).then(function(groups) {
+      var out = {};
+      groups.forEach(function(rows) {
+        (rows || []).forEach(function(r) {
+          (out[r.base_asset] = out[r.base_asset] || []).push({
+            openTime: Date.parse(r.open_time),
+            high: parseFloat(r.high),
+            low:  parseFloat(r.low)
+          });
+        });
+      });
+      _klineMap = out;          /* for evaluate()'s synchronous lookup */
+      return out;
+    }).catch(function() { _klineMap = {}; return {}; });
+
+    return _klinesAll;
+  }
 
   function fetchDailyKlines(sym) {
-    var now = Date.now();
-    var cached = _klineCache[sym];
-    if (cached && (now - cached.ts) < KLINE_TTL_MS) return Promise.resolve(cached.candles);
-    if (_klinePend[sym]) return _klinePend[sym];
-    var url = 'https://api.binance.com/api/v3/klines?symbol=' + sym + 'USDT&interval=1d&limit=30';
-    var p = fetch(url)
-      .then(function(r) { return r.ok ? r.json() : null; })
-      .then(function(data) {
-        if (!Array.isArray(data) || !data.length) {
-          _klineCache[sym] = { ts: now, candles: null };
-          return null;
-        }
-        var candles = data.map(function(k) {
-          return {
-            openTime: +k[0],
-            high: parseFloat(k[2]),
-            low:  parseFloat(k[3])
-          };
-        });
-        _klineCache[sym] = { ts: now, candles: candles };
-        return candles;
-      })
-      .catch(function() { _klineCache[sym] = { ts: now, candles: null }; return null; })
-      .then(function(out) { delete _klinePend[sym]; return out; });
-    _klinePend[sym] = p;
-    return p;
+    return loadAllDailyKlines(_klineSymsNeeded)
+      .then(function(map) { return map[String(sym || '').toUpperCase()] || null; });
   }
 
   function peakInWindow(candles, snapDateStr) {
@@ -499,18 +529,10 @@ a{color:inherit;text-decoration:none}
     });
     var list = Object.keys(symbols);
     if (!list.length) return Promise.resolve();
-    return new Promise(function(resolve) {
-      var i = 0;
-      function step() {
-        if (i >= list.length) return resolve();
-        var batch = list.slice(i, i + KLINE_BATCH_SIZE);
-        i += KLINE_BATCH_SIZE;
-        Promise.all(batch.map(fetchDailyKlines)).then(function() {
-          setTimeout(step, KLINE_BATCH_PAUSE);
-        });
-      }
-      step();
-    });
+    /* One bulk read replaces the old batched, rate-limit-paced loop of
+       one Binance request per symbol. */
+    _klineSymsNeeded = list;
+    return loadAllDailyKlines(list).then(function() {});
   }
 
   /* ── Evaluate snapshots → wins/misses lists + stats ────── */
@@ -531,8 +553,8 @@ a{color:inherit;text-decoration:none}
       if (!priceThen) return;
 
       var change, priceNow, usedPeak = false;
-      var cached = _klineCache[r.coin_sym];
-      var peak = (cached && cached.candles) ? peakInWindow(cached.candles, r.snap_date) : null;
+      var candles = _klineMap[r.coin_sym];
+      var peak = (candles && candles.length) ? peakInWindow(candles, r.snap_date) : null;
 
       if (peak) {
         usedPeak = true;

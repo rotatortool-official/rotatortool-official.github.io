@@ -110,29 +110,48 @@ Deno.serve(async (req: Request) => {
     // ── 2. Universe = top N by market cap that actually have a perp ──
     // Reuses the same visitor-populated cache compute-signal-run reads,
     // so no extra CoinGecko call is made here.
+    // NOTE the single .data — `mkRow` is already the row, so `mkRow.data`
+    // IS the jsonb column, which is the coin array itself. Writing
+    // `mkRow.data.data` here yields undefined, silently drops every site
+    // coin, and sends the selection into the volume fallback below. That
+    // bug shipped once: it filled the table with 190 symbols the site does
+    // not even list while missing 67 that it does.
     const { data: mkRow } = await supabase
       .from('market_cache').select('data').eq('cache_key', 'cg_markets_all').maybeSingle();
-    const coins: any[] = mkRow?.data?.data ?? [];
+    const coins: any[] = Array.isArray(mkRow?.data) ? mkRow!.data : [];
+
+    const premiumBy = new Map(premium.map((p: any) => [p.symbol, p]));
+    const tickerBy  = new Map(ticker.map((t: any) => [t.symbol, t]));
+    const now = new Date().toISOString();
 
     const wanted = new Map<string, { base: string; category: string | null; onboard: string | null }>();
-    for (const c of coins) {                       // already mcap-ordered
+
+    // Priority 1 — coins the site actually shows, in market-cap order.
+    // These are the only ones whose metrics can currently be surfaced.
+    for (const c of coins) {
       const sym = String(c.symbol || '').toUpperCase() + 'USDT';
       const hit = perps.get(sym);
       if (hit && !wanted.has(sym)) wanted.set(sym, hit);
       if (wanted.size >= UNIVERSE_SIZE) break;
     }
-    // Cold start (empty/failed cache): fall back to Binance's own list so
-    // the job still does something useful rather than writing nothing.
-    if (wanted.size === 0) {
-      for (const [sym, v] of perps) {
+    const siteMatched = wanted.size;
+
+    // Priority 2 — top up to UNIVERSE_SIZE with the highest-volume
+    // remaining perps. The site's list is smaller than UNIVERSE_SIZE, so
+    // this both uses the budget and means the table is already populated
+    // if a coin is added to the site later. Also covers a cold start where
+    // the market cache is empty.
+    if (wanted.size < UNIVERSE_SIZE) {
+      const rest = [...perps.entries()]
+        .filter(([sym]) => !wanted.has(sym))
+        .sort((a, b) =>
+          Number(tickerBy.get(b[0])?.quoteVolume ?? 0) -
+          Number(tickerBy.get(a[0])?.quoteVolume ?? 0));
+      for (const [sym, v] of rest) {
         wanted.set(sym, v);
         if (wanted.size >= UNIVERSE_SIZE) break;
       }
     }
-
-    const premiumBy = new Map(premium.map((p: any) => [p.symbol, p]));
-    const tickerBy  = new Map(ticker.map((t: any) => [t.symbol, t]));
-    const now = new Date().toISOString();
 
     const bulkRows = [...wanted.entries()].map(([symbol, meta]) => {
       const p: any = premiumBy.get(symbol);
@@ -162,6 +181,17 @@ Deno.serve(async (req: Request) => {
     const { error: upErr } = await supabase
       .from('binance_futures_metrics').upsert(bulkRows, { onConflict: 'symbol' });
     if (upErr) throw new Error('metrics upsert failed: ' + upErr.message);
+
+    // Drop rows this run did not refresh — i.e. symbols that left the
+    // tracked universe or the live perp list. This is not just tidiness:
+    // the OI rotation below picks the STALEST rows first, so untracked
+    // leftovers would monopolise all 75 per-symbol calls forever.
+    // Every surviving row shares this run's `now`, so the comparison is
+    // exact rather than a guess at a staleness window. The symbol's past
+    // readings remain in binance_futures_history regardless.
+    const { error: pruneErr } = await supabase
+      .from('binance_futures_metrics').delete().lt('bulk_updated_at', now);
+    if (pruneErr) throw new Error('prune failed: ' + pruneErr.message);
 
     // ── 3. Open interest for the stalest slice ──────────────────────
     // base_asset comes along because PostgREST's upsert is a full INSERT
@@ -254,6 +284,8 @@ Deno.serve(async (req: Request) => {
       ok: true,
       perps_live: perps.size,
       universe: bulkRows.length,
+      site_matched: siteMatched,        // coins the site lists AND that have a perp
+      site_coins_seen: coins.length,    // 0 here means the market cache read broke
       oi_refreshed: oiRows.length,
       oi_requested: staleSyms.length,
       history_rows: histRows.length,

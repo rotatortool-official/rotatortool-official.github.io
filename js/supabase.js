@@ -324,6 +324,98 @@ function supaCacheGet(key, ttlMs) {
 }
 
 /**
+ * Binance spot price/24h/volume, read from Supabase instead of calling
+ * api.binance.com from the browser.
+ *
+ * Returns a map keyed by base asset ({ BTC: {price, p24, volume} }) —
+ * the same shape data-loaders.js's `_binancePrices` has always had, so
+ * nothing downstream needed to change.
+ *
+ * Binance supplies ONLY these three fields. Market cap and the
+ * 7d/14d/30d changes L1 ranks on come from CoinGecko; the two sources
+ * complement each other rather than one being a fallback. On failure
+ * this returns {} and every coin keeps its CoinGecko values, which is
+ * the same degradation the old direct-fetch path had.
+ *
+ * @returns {Promise<Object>} base asset → { price, p24, volume }
+ */
+function supaLoadBinanceSpot() {
+  return supaRest('binance_spot_metrics', 'GET', {
+    'select': 'base_asset,last_price,price_change_pct_24h,volume_24h_quote'
+  }).then(function(rows) {
+    var out = {};
+    (rows || []).forEach(function(r) {
+      out[r.base_asset] = {
+        price:  Number(r.last_price) || 0,
+        p24:    Number(r.price_change_pct_24h) || 0,
+        volume: Number(r.volume_24h_quote) || 0
+      };
+    });
+    return out;
+  }).catch(function(e) {
+    console.warn('[Supabase] binance spot read failed, using CoinGecko prices:', e.message);
+    return {};
+  });
+}
+
+/**
+ * Daily candles for grading past calls, read from Supabase instead of
+ * one Binance request per symbol from the browser.
+ *
+ * Returns { BTC: [{openTime, high, low, close}, …] } — openTime as an
+ * epoch millisecond number, matching exactly what Binance's kline array
+ * gave, so the peak-verdict maths downstream is untouched.
+ *
+ * Chunked because PostgREST caps a response at 1000 rows: ~30 candles
+ * per symbol means 30 symbols per request stays safely under it. A coin
+ * with no Binance listing simply has no entry, and the caller falls
+ * back to the current-price comparison as it always did.
+ *
+ * @param {Array<string>} syms — base assets, e.g. ['BTC','ETH']
+ * @returns {Promise<Object>} base asset → candles[]
+ */
+function supaLoadDailyKlines(syms) {
+  var unique = [];
+  (syms || []).forEach(function(s) {
+    s = String(s || '').toUpperCase();
+    if (s && unique.indexOf(s) < 0) unique.push(s);
+  });
+  if (!unique.length) return Promise.resolve({});
+
+  var CHUNK = 30;
+  var chunks = [];
+  for (var i = 0; i < unique.length; i += CHUNK) chunks.push(unique.slice(i, i + CHUNK));
+
+  return Promise.all(chunks.map(function(group) {
+    return supaRest('binance_daily_klines', 'GET', {
+      'base_asset': 'in.(' + group.join(',') + ')',
+      'select':     'base_asset,open_time,high,low,close',
+      'order':      'open_time.asc',
+      'limit':      '1000'
+    }).catch(function(e) {
+      console.warn('[Supabase] daily klines chunk failed:', e.message);
+      return [];
+    });
+  })).then(function(groups) {
+    var out = {};
+    groups.forEach(function(rows) {
+      (rows || []).forEach(function(r) {
+        (out[r.base_asset] = out[r.base_asset] || []).push({
+          openTime: Date.parse(r.open_time),
+          high:     parseFloat(r.high),
+          low:      parseFloat(r.low),
+          close:    parseFloat(r.close)
+        });
+      });
+    });
+    return out;
+  }).catch(function(e) {
+    console.warn('[Supabase] daily klines read failed:', e.message);
+    return {};
+  });
+}
+
+/**
  * Last-resort read: returns the cached row REGARDLESS of age.
  *
  * Only for use after every live fetch path has already failed.

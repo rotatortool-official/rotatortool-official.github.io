@@ -122,101 +122,23 @@ var SignalHistory = (function() {
      momentum fades by day 20. Falls back to current-price comparison
      when klines are unavailable (coins not on Binance, offline, etc).
   ══════════════════════════════════════════════════════════════ */
-  var _dailyKlineCache = {};   /* sym → { ts, candles } */
-  var _dailyKlineTTL   = 60 * 60 * 1000;  /* 1h */
-  var _dailyKlinePend  = {};   /* sym → in-flight promise (dedupes parallel calls) */
+  /* Daily candles now come from Supabase (binance_daily_klines), loaded
+     in ONE bulk read before grading starts, instead of one Binance
+     request per symbol from the browser. Coins with no Binance listing
+     simply have no entry here — the same current-price fallback as
+     before, minus a guaranteed-to-fail cross-origin request each, which
+     was the entire source of the console error noise. */
+  var _dailyKlines = {};   /* base asset -> [{openTime, high, low, close}] */
 
-  /* Back the in-memory cache with localStorage. These are daily candles
-     for grading past calls — mostly settled history — but the cache used
-     to be memory-only, so every page reload refetched one Binance
-     request per graded symbol. TTL stays 1h: today's candle is still
-     forming, so this persists across reloads without freezing it. */
-  var _DK_PREFIX = 'rk1d:';
-
-  function _dkLoad(sym) {
-    try {
-      var raw = localStorage.getItem(_DK_PREFIX + sym);
-      if (!raw) return null;
-      var stored = JSON.parse(raw);
-      if (!stored || (Date.now() - stored.ts) >= _dailyKlineTTL) return null;
-      return stored;
-    } catch (e) { return null; }
-  }
-
-  function _dkSave(sym, entry) {
-    try {
-      localStorage.setItem(_DK_PREFIX + sym, JSON.stringify(entry));
-    } catch (e) {
-      /* Quota hit — drop expired kline entries and retry once, so a full
-         store doesn't leave writes failing forever. */
-      try {
-        var now = Date.now();
-        Object.keys(localStorage)
-          .filter(function(k) { return k.indexOf(_DK_PREFIX) === 0; })
-          .forEach(function(k) {
-            try {
-              var s = JSON.parse(localStorage.getItem(k));
-              if (!s || (now - s.ts) >= _dailyKlineTTL) localStorage.removeItem(k);
-            } catch (e2) { localStorage.removeItem(k); }
-          });
-        localStorage.setItem(_DK_PREFIX + sym, JSON.stringify(entry));
-      } catch (e3) {}
-    }
-  }
-  var _peakVerdicts    = {};   /* "YYYY-MM-DD|coin_id" → {bestChange, worstChange, ...} */
-  var _peakWarmStarted = false;
-  var _peakWarmDone    = false;
-
-  /* Restore persisted verdict cache so re-opening the app doesn't
-     re-query Binance for calls that already have a locked verdict. */
-  try {
-    var _savedPeak = localStorage.getItem(LS_PEAK_KEY);
-    if (_savedPeak) _peakVerdicts = JSON.parse(_savedPeak) || {};
-  } catch(e) { _peakVerdicts = {}; }
-
-  function _savePeakVerdicts() {
-    try { localStorage.setItem(LS_PEAK_KEY, JSON.stringify(_peakVerdicts)); } catch(e) {}
+  function _preloadDailyKlines(syms) {
+    if (typeof supaLoadDailyKlines !== 'function') return Promise.resolve();
+    return supaLoadDailyKlines(syms).then(function(map) {
+      _dailyKlines = map || {};
+    }).catch(function() { _dailyKlines = {}; });
   }
 
   function _fetchDailyKlines(sym) {
-    var now = Date.now();
-    var cached = _dailyKlineCache[sym];
-    if (!cached) {
-      cached = _dkLoad(sym);            /* survives page reloads */
-      if (cached) _dailyKlineCache[sym] = cached;
-    }
-    if (cached && (now - cached.ts) < _dailyKlineTTL) return Promise.resolve(cached.candles);
-    if (_dailyKlinePend[sym]) return _dailyKlinePend[sym];
-    var pair = sym + 'USDT';
-    var url = 'https://api.binance.com/api/v3/klines?symbol=' + pair + '&interval=1d&limit=30';
-    var p = fetch(url)
-      .then(function(r) { return r.ok ? r.json() : null; })
-      .then(function(data) {
-        /* Server answered but has nothing for this pair (no Binance
-           listing) — worth persisting so reloads stop re-asking. */
-        if (!Array.isArray(data) || !data.length) {
-          _dailyKlineCache[sym] = { ts: now, candles: null };
-          _dkSave(sym, _dailyKlineCache[sym]);
-          return null;
-        }
-        var candles = data.map(function(k) {
-          return {
-            openTime: +k[0],
-            high:  parseFloat(k[2]),
-            low:   parseFloat(k[3]),
-            close: parseFloat(k[4])
-          };
-        });
-        _dailyKlineCache[sym] = { ts: now, candles: candles };
-        _dkSave(sym, _dailyKlineCache[sym]);
-        return candles;
-      })
-      /* Transient failure (offline, timeout) — cache in memory only, so
-         the next page load retries instead of being stuck on it for 1h. */
-      .catch(function() { _dailyKlineCache[sym] = { ts: now, candles: null }; return null; })
-      .then(function(out) { delete _dailyKlinePend[sym]; return out; });
-    _dailyKlinePend[sym] = p;
-    return p;
+    return Promise.resolve(_dailyKlines[String(sym || '').toUpperCase()] || null);
   }
 
   /* Compute best/worst change for one snapshot entry in the confirm window.
@@ -276,8 +198,15 @@ var SignalHistory = (function() {
 
     if (!tasks.length) { _peakWarmDone = true; return Promise.resolve(); }
 
-    /* Batch of 5 concurrent with a 50ms pause between batches to stay
-       well under Binance's 1200 req/min limit. */
+    /* One bulk read covers every symbol these tasks need, so the loop
+       below now does no network I/O at all. */
+    return _preloadDailyKlines(tasks.map(function(t) { return t.entry.sym; }))
+      .then(function() { return _gradeTasks(tasks); });
+  }
+
+  function _gradeTasks(tasks) {
+    /* Batching is kept from when each task issued its own Binance
+       request. It is cheap now that candles are already in memory. */
     return new Promise(function(resolve) {
       var BATCH = 5;
       function step(i) {
