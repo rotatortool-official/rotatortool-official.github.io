@@ -350,6 +350,165 @@ function _isExchangeFlagged(c) {
   return false;
 }
 
+/* ══ METRIC LENSES ═══════════════════════════════════════════════════
+   The vertical counterpart to the horizontal category tabs. Categories
+   answer "what is this asset"; lenses answer "how is it behaving". The
+   two are independent, so "DEFI coins ranked by long/short skew" falls
+   out of picking one from each.
+
+   Every value is read from data already in the page — _futuresBySym and
+   coinTechnicals, both loaded once on boot. Selecting a lens costs no
+   request.
+
+   A coin with no reading is NOT a cold cell. ~50 of the tracked coins
+   have no Binance USDT pair and can never have open interest or RSI;
+   painting them at the bottom of a heatmap would invent a signal nobody
+   measured. They render hollow and sort last. */
+var activeLens = null;
+
+var LENSES = [
+  { id: 'oi',    label: 'OI',    tip: 'Open interest, USD — size of outstanding futures positions.',
+    get: function(c) { var f = _futuresBySym[c.sym]; return f && f.open_interest_value != null ? +f.open_interest_value : null; },
+    fmt: function(v) { return v >= 1e9 ? '$' + (v/1e9).toFixed(1) + 'B' : v >= 1e6 ? '$' + (v/1e6).toFixed(0) + 'M' : '$' + (v/1e3).toFixed(0) + 'K'; },
+    dir: 'high' },
+  { id: 'oi24',  label: 'OIΔ',   tip: 'Open interest change over 24h, %. Rising OI with rising price = new money; rising OI with falling price = new shorts.',
+    get: function(c) { var f = _futuresBySym[c.sym]; return f && f.oi_change_24h_pct != null ? +f.oi_change_24h_pct : null; },
+    fmt: function(v) { return (v >= 0 ? '+' : '') + v.toFixed(1) + '%'; },
+    dir: 'signed' },
+  { id: 'ls',    label: 'L/S',   tip: 'Global long/short account ratio. Above 1 = more accounts long. Crowding, not a forecast.',
+    get: function(c) { var f = _futuresBySym[c.sym]; return f && f.long_short_ratio != null ? +f.long_short_ratio : null; },
+    fmt: function(v) { return v.toFixed(2); },
+    dir: 'high' },
+  { id: 'fund',  label: 'FND',   tip: 'Funding rate. Positive = longs paying shorts.',
+    get: function(c) { var f = _futuresBySym[c.sym]; return f && f.funding_rate != null ? +f.funding_rate * 100 : null; },
+    fmt: function(v) { return (v >= 0 ? '+' : '') + v.toFixed(3) + '%'; },
+    dir: 'signed' },
+  { id: 'rsid',  label: 'RSI·D', tip: 'Wilder RSI(14) on daily candles. Computed server-side.',
+    get: function(c) { var t = coinTechnicals[c.sym]; return t && t.rsiD != null ? t.rsiD : null; },
+    fmt: function(v) { return v.toFixed(0); },
+    dir: 'rsi' },
+  { id: 'rsiw',  label: 'RSI·W', tip: 'Wilder RSI(14) on weekly closes. Computed server-side.',
+    get: function(c) { var t = coinTechnicals[c.sym]; return t && t.rsiW != null ? t.rsiW : null; },
+    fmt: function(v) { return v.toFixed(0); },
+    dir: 'rsi' }
+];
+
+/* Colour for one reading.
+   'rsi'    — fixed 0-100 scale, so 70 always looks the same day to day.
+   'signed' — diverging around zero; the sign is the meaning.
+   'high'   — relative to the coins currently on screen, since open
+              interest has no natural ceiling. */
+function _lensColor(lens, v, lo, hi) {
+  if (v == null) return null;
+  var t;
+  if (lens.dir === 'rsi') {
+    t = Math.max(0, Math.min(1, v / 100));
+  } else if (lens.dir === 'signed') {
+    var m = Math.max(Math.abs(lo), Math.abs(hi)) || 1;
+    t = 0.5 + (v / m) * 0.5;
+  } else {
+    t = hi > lo ? (v - lo) / (hi - lo) : 0.5;
+  }
+  t = Math.max(0, Math.min(1, t));
+  /* Red (cold/low) -> amber -> green (hot/high). Same ramp as the score
+     bar so a user is not learning a second colour language. */
+  var hue = 4 + t * 136;
+  return 'hsl(' + hue.toFixed(0) + ',72%,' + (46 + t * 6).toFixed(0) + '%)';
+}
+
+function setLens(id) {
+  activeLens = (activeLens === id) ? null : id;
+  renderTable();
+  renderLensRail();
+}
+
+function renderLensRail() {
+  var panel = document.getElementById('crypto-panel');
+  if (!panel) return;
+  var table = panel.querySelector('table');
+  if (!table) return;
+
+  /* Wrap the table once so the rail can sit beside it without touching
+     the stylesheet or the table's own horizontal scrolling. */
+  var wrap = document.getElementById('lens-wrap');
+  if (!wrap) {
+    wrap = document.createElement('div');
+    wrap.id = 'lens-wrap';
+    wrap.style.cssText = 'display:flex;align-items:flex-start;gap:6px;width:100%;';
+    var scroller = document.createElement('div');
+    scroller.style.cssText = 'flex:1 1 auto;min-width:0;overflow-x:auto;';
+    panel.insertBefore(wrap, table);
+    wrap.appendChild(scroller);
+    scroller.appendChild(table);
+  }
+
+  var rail = document.getElementById('lens-rail');
+  if (!rail) {
+    rail = document.createElement('div');
+    rail.id = 'lens-rail';
+    rail.style.cssText = 'flex:0 0 auto;display:flex;flex-direction:column;gap:3px;'
+      + 'position:sticky;top:8px;padding-top:2px;';
+    wrap.insertBefore(rail, wrap.firstChild);
+  }
+
+  rail.innerHTML = LENSES.map(function(l) {
+    var on = activeLens === l.id;
+    return '<button onclick="setLens(\'' + l.id + '\')" title="' + l.tip.replace(/"/g,'&quot;') + '"'
+      + ' style="writing-mode:vertical-rl;text-orientation:mixed;'
+      + 'padding:9px 3px;border-radius:4px;cursor:pointer;font-size:10px;letter-spacing:.09em;'
+      + 'font-family:var(--font-mono);border:1px solid ' + (on ? 'var(--bnb)' : 'var(--bdr)') + ';'
+      + 'background:' + (on ? 'rgba(240,185,11,.14)' : 'var(--bg2)') + ';'
+      + 'color:' + (on ? 'var(--bnb)' : 'var(--muted)') + ';">' + l.label + '</button>';
+  }).join('')
+  + (activeLens
+      ? '<button onclick="setLens(null)" title="Clear lens — back to score order"'
+        + ' style="margin-top:4px;padding:6px 3px;border-radius:4px;cursor:pointer;font-size:11px;'
+        + 'border:1px solid var(--bdr);background:var(--bg2);color:var(--muted);">×</button>'
+      : '');
+}
+
+/* ── Cross badge, rendered after the coin symbol ────────────────────
+   ✨ golden = fast MA above slow, ☠ death = fast below.
+
+   The periods are named in the tooltip on purpose. This is a 60/125
+   cross, not the classic 50/200, and a badge that says "golden cross"
+   without saying which two lines crossed is a claim the data does not
+   support.
+
+   The grey suffix is the age of the flip. It is only shown when the flip
+   is actually datable: with a 125-bar MA inside a 140-bar window only
+   the last ~15 days have a slow MA at all, so an older cross is real but
+   undatable. Those render the state with no age rather than a guess —
+   `cross_days_ago` is null and we say nothing rather than something
+   wrong. */
+function crossBadge(c) {
+  if (!c || !c.sym || typeof coinTechnicals === 'undefined') return '';
+  var t = coinTechnicals[c.sym];
+  if (!t || !t.cross) return '';
+
+  var golden = t.cross === 'golden';
+  var icon   = golden ? '✨' : '☠';
+  var color  = golden ? 'var(--green)' : 'var(--red)';
+
+  var age = '';
+  if (t.crossDays != null) {
+    age = '<span style="color:var(--muted);font-size:10px;margin-left:3px;opacity:.75;">'
+        + (t.crossDays === 0 ? 'today' : t.crossDays + 'd')
+        + '</span>';
+  }
+
+  var tip = (golden ? 'Golden cross' : 'Death cross')
+    + ' — the 60-day average is ' + (golden ? 'above' : 'below') + ' the 125-day average.'
+    + (t.crossDays != null
+        ? ' Crossed ' + (t.crossDays === 0 ? 'today' : t.crossDays + ' day' + (t.crossDays === 1 ? '' : 's') + ' ago') + '.'
+        : ' The cross happened before the stored window, so its date is not known.')
+    + ' Descriptive of past price only.';
+
+  return '<span class="cross-badge" title="' + tip.replace(/"/g, '&quot;') + '"'
+    + ' style="margin-left:4px;font-size:11px;color:' + color + ';white-space:nowrap;">'
+    + icon + age + '</span>';
+}
+
 /* Rotation opportunity tile (sell→buy pair) */
 /* ── Standalone "what should I buy" suggestion tile ──────────────
    Unlike sigRotTile (which always pairs a sell with a buy), this shows
@@ -1193,7 +1352,27 @@ function renderTable() {
     catCoins = coins.filter(function(c) { return categoryOf(c) === activeCategory; });
   }
 
+  /* A lens takes over the ordering while it is active — that is the
+     point of picking one. Readings with no value sort LAST regardless of
+     direction: "no data" is not the weakest reading, it is the absence
+     of one, and burying it at the bottom keeps it out of the ranking
+     rather than pretending it lost. */
+  var _lens = activeLens ? LENSES.filter(function(l) { return l.id === activeLens; })[0] : null;
+  var _lensLo = 0, _lensHi = 0;
+  if (_lens) {
+    var vals = catCoins.map(function(c) { return _lens.get(c); })
+                       .filter(function(v) { return v != null; });
+    if (vals.length) { _lensLo = Math.min.apply(null, vals); _lensHi = Math.max.apply(null, vals); }
+  }
+
   var sorted = catCoins.sort(function(a, b) {
+    if (_lens) {
+      var av = _lens.get(a), bv = _lens.get(b);
+      if (av == null && bv == null) return b.score - a.score;
+      if (av == null) return 1;
+      if (bv == null) return -1;
+      return bv - av;
+    }
     if (sortTF === 0)  return b.score - a.score;
     if (sortTF === 24) return b.p24 - a.p24;
     if (sortTF === 7)  return b.p7  - a.p7;
@@ -1258,10 +1437,24 @@ function renderTable() {
       colScore = '<td class="r pro-blur-cell" data-label="SCORE" onclick="event.stopPropagation();openPro()" title="Unlock Rotator Score with Pro"><div class="pro-blur-wrap"><div class="sw"><span class="sv" style="color:var(--muted);">' + sc + '</span><div class="sb"><div class="sbf" style="width:' + Math.max(2, sc) + '%;background:var(--muted);"></div></div></div></div><span class="pro-blur-lock">🔒</span></td>';
     }
 
-    return '<tr class="' + (isH ? 'held' : '') + (c.isStable ? ' stable-row' : '') + (c.isStock ? ' stock-row' : '') + '" ' + tipData + ' onmouseenter="showRowTip(this,event)" onmouseleave="hideTip()" onclick="openTileDetail(\'' + c.id + '\',event)">'
+    var _lv = _lens ? _lens.get(c) : null;
+    var _lc = _lens ? _lensColor(_lens, _lv, _lensLo, _lensHi) : null;
+    /* Hollow left edge when the lens has no reading for this coin —
+       visibly different from a low reading, never the same. */
+    var _lensStyle = _lens
+      ? ' style="box-shadow:inset 3px 0 0 ' + (_lc || 'transparent')
+        + (_lc ? '' : ';outline:0') + ';"'
+      : '';
+    return '<tr class="' + (isH ? 'held' : '') + (c.isStable ? ' stable-row' : '') + (c.isStock ? ' stock-row' : '') + '"' + _lensStyle + ' ' + tipData + ' onmouseenter="showRowTip(this,event)" onmouseleave="hideTip()" onclick="openTileDetail(\'' + c.id + '\',event)">'
       + '<td class="qa-cell">' + qaBtnHtml + '</td>'
       + '<td style="color:var(--muted);font-size:11px;opacity:.5;">' + (i+1) + '</td>'
-      + '<td><div class="cc"><div class="ti"><img src="' + c.image + '" alt="' + c.sym + ' logo" loading="lazy" width="18" height="18" onerror="this.style.display=\'none\'"></div><div><div style="display:flex;align-items:center;"><span class="tsym">' + c.sym + '</span>' + (isH ? '<span class="htag">HELD</span>' : '') + stableTag + '</div><div class="tname">' + (c.name.length > 17 ? c.name.slice(0,15) + '…' : c.name) + '</div></div></div></td>'
+      + '<td><div class="cc"><div class="ti"><img src="' + c.image + '" alt="' + c.sym + ' logo" loading="lazy" width="18" height="18" onerror="this.style.display=\'none\'"></div><div><div style="display:flex;align-items:center;"><span class="tsym">' + c.sym + '</span>' + (isH ? '<span class="htag">HELD</span>' : '') + stableTag + crossBadge(c) + (_lens
+        ? '<span class="lens-chip" title="' + _lens.label + ' — ' + _lens.tip.replace(/"/g,'&quot;') + '" style="margin-left:5px;font-size:10px;font-family:var(--font-mono);padding:1px 4px;border-radius:3px;'
+          + (_lv == null
+              ? 'color:var(--muted);border:1px dashed var(--bdr);opacity:.6;">no data'
+              : 'color:' + _lc + ';border:1px solid ' + _lc + '33;">' + _lens.fmt(_lv))
+          + '</span>'
+        : '') + '</div><div class="tname">' + (c.name.length > 17 ? c.name.slice(0,15) + '…' : c.name) + '</div></div></div></td>'
       + '<td class="r price-col" data-label="PRICE">' + fmtP(c.price) + '</td>'
       + col24 + col7 + col14 + col30 + colScore
       + '</tr>';
@@ -1274,6 +1467,7 @@ function renderTable() {
       + '</div></td></tr>';
   }
   body.innerHTML = html;
+  if (typeof renderLensRail === 'function') renderLensRail();
 }
 
 function renderCoinSel() {

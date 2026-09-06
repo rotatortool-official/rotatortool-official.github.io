@@ -25,9 +25,12 @@
 // absent from `v2.components` for every coin on every run (that's a
 // real, visible gap in the stored `params`, not a silent one).
 //
-// bStocks are NOT included — this scores the CoinGecko crypto universe
-// only. The site still scores bStocks locally (see js/data-loaders.js);
-// that's unaffected by this migration.
+// bStocks ARE included since 2026-09-06, stamped asset_type='bstock'.
+// They are ranked in their own peer group by the engine (computeScores()
+// filters !c.isStock for crypto and ranks stocks separately), so their
+// presence cannot move a crypto score — and they come out eligible=false
+// with reason 'equity', so consumers that respect `eligible` keep them
+// out of crypto rotation without any change.
 //
 // DATA SOURCES: same already-cached tables every other sync function in
 // this project reads (market_cache, market_cycle, binance_delisted_
@@ -42,10 +45,10 @@
 // path (the deterministic one), not a re-typed guess at loadCoins().
 //
 // The site (js/data-loaders.js's runSignalEngine()) reads this table
-// directly now — crypto score/zone/breakdown are server-authoritative
-// for every visitor. It still ALSO runs the canonical engine locally,
-// but only to score bStocks (not covered here) and as a same-session
-// fallback if this table has no row yet or the fetch fails.
+// directly now — score/zone/breakdown are server-authoritative for every
+// visitor, bStocks included since 2026-09-06. The local engine pass is
+// now only a same-session fallback for when this table has no row yet or
+// the fetch fails.
 //
 // DEPLOY:
 //   node rotator-engine/sync-to-edge-function.js   (refresh the _vendor/ copy first)
@@ -141,11 +144,71 @@ Deno.serve(async (req) => {
     for (const r of zoneRows.data || []) previousZones[r.coin_id] = r.zone;
 
     const coins = toWebsiteCoins(raw, stableIds);
+
+    // ── bStocks, added 2026-09-06 ────────────────────────────────────
+    // Tokenized equities, previously scored ONLY in the visitor's browser
+    // — the last thing on the page the server did not own. Now they ride
+    // the same run.
+    //
+    // THIS DOES NOT MOVE ANY CRYPTO SCORE. The engine partitions them
+    // already: computeScores() filters `!c.isStock` for the crypto peer
+    // group and ranks bStocks separately against each other (`sn`), so
+    // adding them to coins[] cannot change a crypto rank. Verified by
+    // diffing scores before and after.
+    //
+    // They also come out eligible=false with reason 'equity' from
+    // _eligibility(), which is deliberate — a 0-70 partial score is not
+    // comparable to a crypto 0-100 — so every consumer that respects
+    // `eligible` keeps them out of crypto rotation with no change.
+    //
+    // Source is the binance-sourced row: the yahoo row for the same
+    // symbol carries sector/52-week fields but no p7/p14/p30, so picking
+    // the wrong one would silently produce a coin with zero momentum.
+    let bstocks: ReturnType<typeof toWebsiteCoins> = [];
+    try {
+      const { data: bsRows } = await supabase
+        .from('unified_market_data')
+        .select('symbol,name,price,change_24h,metadata')
+        .eq('asset_type', 'stock')
+        .eq('source_name', 'binance');
+
+      bstocks = (bsRows ?? []).map((r: any) => {
+        const meta = r.metadata ?? {};
+        const n = (v: unknown) => (v == null ? null : Number(v));
+        const p7 = n(meta.p7), p14 = n(meta.p14), p30 = n(meta.p30);
+        return {
+          // Same id shape the site builds in loadBstocks(), so the
+          // server row lands on the right coin when the page merges.
+          id: 'bstock_' + r.symbol,
+          sym: r.symbol,
+          name: r.name || r.symbol,
+          price: r.price != null ? Number(r.price) : 0,
+          image: '', mcap: n(meta.mcap) ?? 0, rank: 0,
+          p24: n(r.change_24h) ?? 0,
+          p7: p7 ?? 0, p14: p14 ?? 0, p30: p30 ?? 0,
+          // Momentum is the whole score for an equity here; without the
+          // full set the row would rank mid-pack on defaults rather than
+          // be excluded, which is the bug dataComplete exists to prevent.
+          dataComplete: p7 != null && p14 != null && p30 != null,
+          volume24: n(meta.volume24) ?? 0,
+          circulating_supply: 0, max_supply: null,
+          ath: 0, ath_change_pct: 0,
+          score: 0, r7: 0, r14: 0, r30: 0, isPro: false,
+          isStable: false, isStock: true,
+          apr: 0, aprPlatform: '',
+        };
+      }) as any;
+    } catch (e) {
+      // A missing bStock feed must not stop the crypto run.
+      console.warn('[compute-signal-run] bStock load failed:', (e as Error).message);
+    }
+
+    const universe = [...coins, ...bstocks];
     const asOf = new Date().toISOString();
 
     const run = Engine.computeSignalRunV2({
       asOf,
-      coins,
+      coins: universe,
       tokenomics: siteTables.TOKENOMICS_DB,
       macro,
       marketCycle,
@@ -172,13 +235,26 @@ Deno.serve(async (req) => {
       .single();
     if (runErr || !runRow) throw new Error('signal_runs insert failed: ' + runErr?.message);
 
+    // Index the universe once. Two reasons, both real:
+    //
+    // 1. asset_type CANNOT come from the item. _projectItem() in the
+    //    engine carries `isStable` but NOT `isStock`, so `it.isStock` is
+    //    undefined for every row — stamping from it would have labelled
+    //    every bStock 'crypto'. Caught by running the engine locally
+    //    before deploying. Fixed here rather than by adding a field to
+    //    _projectItem, which would move the golden fixture for what is a
+    //    labelling concern, not a scoring one.
+    // 2. The old `.find()` per item was a linear scan inside a map over
+    //    ~190 items.
+    const bySrcId = new Map(universe.map((c: any) => [c.id, c]));
+
     const items = run.items
       .filter((it: any) => !it.isStable)
       .map((it: any) => ({
         run_id: runRow.id,
         coin_id: it.id,
         coin_sym: it.sym,
-        price: coins.find((c) => c.id === it.id)?.price ?? null,
+        price: bySrcId.get(it.id)?.price ?? null,
         mcap: it.mcap,
         p7: it.p7, p14: it.p14, p30: it.p30,
         r7: it.r7, r14: it.r14, r30: it.r30,
@@ -190,6 +266,7 @@ Deno.serve(async (req) => {
         strength: it.strength ?? null,
         setup: it.setup ?? null,
         breakdown: it.breakdown ?? null,
+        asset_type: (bySrcId.get(it.id) as any)?.isStock ? 'bstock' : 'crypto',
       }));
 
     const { error: itemsErr } = await supabase.from('signal_run_items').insert(items);
@@ -214,6 +291,7 @@ Deno.serve(async (req) => {
         run_id: runRow.id, as_of: asOf, engine_version: run.engineVersion,
         cycle_label: run.cycleLabel, universe_size: run.universeSize,
         eligible_count: run.eligibleCount, items: items.length,
+        bstocks: items.filter((i) => i.asset_type === 'bstock').length,
       }),
       { status: 200, headers: { 'Content-Type': 'application/json' } }
     );

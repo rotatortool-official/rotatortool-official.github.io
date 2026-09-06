@@ -388,6 +388,57 @@ async function loadBinanceTags() {
   }
 }
 
+/* ── Server-computed technicals ─────────────────────────────────────
+   RSI(14) daily + weekly, the 60/125 MAs, and the cross state — all
+   derived in sync-binance-daily-klines from candles that never leave
+   Supabase. One small row per coin; the ~16,000 candles behind them are
+   never shipped to a browser.
+
+   Keyed by SYMBOL (the exchange's key space), like the futures metrics
+   and the Binance tags.
+
+   A missing entry, or a null field inside one, means NOT COMPUTABLE —
+   a coin with no Binance USDT pair, or too few bars for that particular
+   indicator. It must never be rendered as 0, as a neutral 50, or as a
+   cold heatmap cell; absence has to read as absence or the UI invents a
+   signal nobody measured. See _techVal()/crossBadge() in signals.js. */
+var coinTechnicals = {};
+
+async function loadCoinTechnicals() {
+  try {
+    var rows = null;
+    if (typeof supaCacheGet === 'function') {
+      try { rows = await supaCacheGet('coin_technicals', 60 * 60 * 1000); }
+      catch (e) { console.warn('[SupaCache] technicals read skipped:', e.message); }
+    }
+    if (!rows || !Array.isArray(rows)) {
+      rows = await supaRest('coin_technicals', 'GET', {
+        'select': 'base_asset,rsi14_daily,rsi14_weekly,cross_state,cross_days_ago,bars_used',
+        'limit':  '1000'
+      });
+      if (Array.isArray(rows) && typeof supaCacheSet === 'function') {
+        supaCacheSet('coin_technicals', rows);
+      }
+    }
+    if (Array.isArray(rows)) {
+      var map = {};
+      rows.forEach(function(r) {
+        if (!r || !r.base_asset) return;
+        map[r.base_asset] = {
+          rsiD:      r.rsi14_daily    != null ? Number(r.rsi14_daily)    : null,
+          rsiW:      r.rsi14_weekly   != null ? Number(r.rsi14_weekly)   : null,
+          cross:     r.cross_state    || null,
+          crossDays: r.cross_days_ago != null ? Number(r.cross_days_ago) : null,
+          bars:      r.bars_used      != null ? Number(r.bars_used)      : 0
+        };
+      });
+      coinTechnicals = map;
+    }
+  } catch (e) {
+    console.warn('[loadCoinTechnicals] failed, lenses will show as unavailable:', e.message);
+  }
+}
+
 /* ── Macro: READ ONLY. The server owns this. ────────────────────────
    Until 2026-09-06 this function FETCHED macro data in the visitor's
    browser and wrote it back to market_cache — and compute-signal-run and
@@ -1049,13 +1100,14 @@ async function doLoad() {
        exclude delisted AND Monitoring-tagged coins. Run together: they are
        independent reads and serialising them would add a round trip to
        first paint for no reason. */
-    await Promise.all([loadDelistedSymbols(), loadMonitoringSymbols(), loadBinanceTags()]);
+    await Promise.all([loadDelistedSymbols(), loadMonitoringSymbols(), loadBinanceTags(), loadCoinTechnicals()]);
     await loadCoins('all');  prog(50, 'Scoring and ranking coins…');  renderCoinSel();
     await loadBstocks();     prog(65, 'Fetching bStock data…');
     if (typeof pruneStaleHoldings === 'function') pruneStaleHoldings();
     await loadFuturesMetrics(); /* modal Derivatives section — never blocks, never scores */
     await loadMacroData(); prog(80, 'Loading macro data — Gold, Oil…');
     await loadFearGreed(); prog(88, 'Fetching sentiment data…');
+    renderFearGreed(); /* takes the banner slot if the scaling tip is already dismissed */
     prog(92, 'Almost ready — building your dashboard…');
     renderAll();         prog(100, 'All done! This free tool is built by one person — thanks for your patience ♥');
     window.coins = coins; /* keep window.coins fresh for search/modal */
@@ -1086,7 +1138,7 @@ async function doRefresh() {
   try {
     await loadMarketCycle(); /* cheap — 1hr cache TTL, real MA200 barely moves anyway */
     /* Same TTL reasoning — Binance status and tags don't change minute to minute. */
-    await Promise.all([loadDelistedSymbols(), loadMonitoringSymbols(), loadBinanceTags()]);
+    await Promise.all([loadDelistedSymbols(), loadMonitoringSymbols(), loadBinanceTags(), loadCoinTechnicals()]);
 
     /* Always refresh crypto — re-fetch all loaded categories */
     await loadCoins(_loadedCategories['all'] ? 'all' : activeCategory);
@@ -1162,6 +1214,52 @@ function dismissScaleBanner() {
   try { localStorage.setItem('rot_scale_dismissed', '1'); } catch(e) {}
   var sb = document.getElementById('scale-banner');
   if (sb) sb.classList.remove('show');
+  renderFearGreed();
+}
+
+/* ── Fear & Greed, in the banner slot ───────────────────────────────
+   Deliberately plain text, no gauge, no needle. It is one number and it
+   changes once a day; a dial would be more chrome than information.
+
+   COLOUR: red at 25 and below, yellow at 50, green at 80 and above,
+   interpolated between those anchors. The value is rounded to the
+   nearest 10 first, so the colour moves in steps rather than drifting a
+   shade every time the index ticks by one — a 66 and a 67 should not
+   look like different readings.
+
+   Market-wide, not per-coin, which is why it sits in the topbar rather
+   than as a leaderboard column. The same number already feeds
+   _quickInsight()'s contrarian pillar in signals.js; this only surfaces
+   what the engine was already using. */
+function fngColor(v) {
+  /* Anchors are tested on the RAW value, before rounding. Quantising
+     first would push exactly-25 up to 30 and paint it orange, when 25 is
+     specified as red. The rounding is only for the shades in between. */
+  if (v <= 25) return 'hsl(0,82%,58%)';                 /* red   */
+  if (v >= 80) return 'hsl(140,82%,58%)';               /* green */
+  var q = Math.round(v / 10) * 10;
+  var hue = q <= 50
+    ? ((q - 25) / 25) * 50                              /* red -> yellow */
+    : 50 + ((q - 50) / 30) * 90;                        /* yellow -> green */
+  return 'hsl(' + Math.round(Math.max(0, Math.min(140, hue))) + ',82%,58%)';
+}
+
+function renderFearGreed() {
+  var el = document.getElementById('fng-banner');
+  var tx = document.getElementById('fng-text');
+  if (!el || !tx) return;
+
+  /* Only takes the slot once the scaling tip is out of the way — one
+     banner at a time, and the tip is the more urgent thing to read. */
+  var scaleDismissed = false;
+  try { scaleDismissed = localStorage.getItem('rot_scale_dismissed') === '1'; } catch(e) {}
+  var fg = window.fearGreed;
+  if (!scaleDismissed || !fg || fg.value == null) { el.classList.remove('show'); return; }
+
+  tx.innerHTML = '<strong style="color:' + fngColor(fg.value) + ';">FEAR &amp; GREED INDEX '
+    + fg.value + '</strong>';
+  el.title = 'Crypto Fear & Greed Index — ' + (fg.label || '') + '. Market-wide sentiment, 0 = extreme fear, 100 = extreme greed. Source: alternative.me.';
+  el.classList.add('show');
 }
 
 /* ── Mobile nav — scroll-to helpers ─────────────────────────── */

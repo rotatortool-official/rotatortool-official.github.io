@@ -694,6 +694,12 @@
     <span>This website uses dynamic scaling. Use <strong>Ctrl +</strong> / <strong>Ctrl −</strong> to adjust the layout to your liking.</span>
     <button class="scale-close" onclick="dismissScaleBanner()" title="Dismiss">×</button>
   </div>
+  <!-- Takes the banner slot once the scaling tip is dismissed. Not a
+       banner to close: it is a standing market reading, so it has no ×.
+       Filled by renderFearGreed() in js/data-loaders.js. -->
+  <div class="scale-banner" id="fng-banner">
+    <span id="fng-text">—</span>
+  </div>
   <div class="topbar-r">
     <span class="ts" id="ts">—</span>
 
