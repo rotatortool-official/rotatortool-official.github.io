@@ -183,7 +183,11 @@ window.RotZones = {
   passesMeanRevGate: (typeof RotatorEngine !== 'undefined')
     ? RotatorEngine.internals.passesMeanRevGate : _passesMeanRevGate,
   adaptiveThresholds: (typeof RotatorEngine !== 'undefined')
-    ? RotatorEngine.internals.adaptiveThresholds : _adaptiveThresholds
+    ? RotatorEngine.internals.adaptiveThresholds : _adaptiveThresholds,
+  /* Exposed so the daily snapshot recorder applies the SAME candidate
+     test the rotation panel does, rather than growing its own. Reads
+     c._candidateClass, which the engine set — see _isPresentable(). */
+  isPresentable: _isPresentable
 };
 
 /* ══════════════════════════════════════════════════════════════
@@ -243,6 +247,33 @@ function sigTile(c, kind) {
    rather than being silently dropped from the UI. */
 function _isTradable(c) {
   return c && c._eligible !== false;
+}
+
+/* "May this be presented as a NEW entry" — the engine's candidate
+   classification (2.2.0), read here and never re-derived. It is the
+   third of three separate questions the buy list asks, and they are kept
+   separate on purpose:
+
+     _passesMeanRevGate  is this a pullback at all
+     _isTradable         can anyone actually get in and out
+     _isPresentable      has it stopped falling, does RSI agree, and has
+                         it not already made its move
+
+   Before this existed the third question was not asked. On the frozen
+   fixture day the published buy list carried ICX at +46.8% in 24 hours,
+   ranked as a normal buy because everything else about it scored well.
+
+   The thresholds behind the answer — 40% for an extreme daily move, RSI
+   45 for oversold confirmation, the falling-knife gap — live in the
+   engine's CANDIDATE_RULES. None of them appear in this file, and none
+   should ever be copied into it.
+
+   Fails OPEN, exactly like _isTradable(): a coin the run gives no class
+   (a server run older than 2.2.0, or a coin outside the universe) is
+   left alone rather than silently dropped. A stale run degrades to the
+   previous behaviour instead of emptying the panel. */
+function _isPresentable(c) {
+  return !!c && (c._candidateClass == null || c._candidateClass === 'CANDIDATE');
 }
 
 /* Exchange-flagged exclusions for the BUY side.
@@ -646,7 +677,7 @@ function renderTopBars() {
      rotation logic (tokenomics-aware buy/sell zones) doesn't apply to equities. */
   var held  = coins.filter(function(c) { return hSyms.indexOf(c.sym) >= 0 && !c.isStock; });
   var sells = held.filter(function(c)  { return c._zone === 'sell'; }).sort(function(a, b) { return b.score - a.score; });
-  var buys  = coins.filter(function(c) { return hSyms.indexOf(c.sym) < 0 && !c.isStock && c._zone === 'buy' && _passesMeanRevGate(c) && _isTradable(c) && !_isExchangeFlagged(c); }).sort(function(a, b) { return a.score - b.score; });
+  var buys  = coins.filter(function(c) { return hSyms.indexOf(c.sym) < 0 && !c.isStock && c._zone === 'buy' && _passesMeanRevGate(c) && _isTradable(c) && _isPresentable(c) && !_isExchangeFlagged(c); }).sort(function(a, b) { return a.score - b.score; });
 
   /* Fallback candidates from all coins when no holdings exist —
      REAL zone-classified buy candidates only. The old version also
@@ -667,7 +698,7 @@ function renderTopBars() {
      ahead of a suggestion for something they've never held. Score
      order (strongest buy-zone conviction first) still applies within
      each group. */
-  var allBuys  = coins.slice().filter(function(c) { return !c.isStock && c._zone === 'buy' && _passesMeanRevGate(c) && _isTradable(c) && !_isExchangeFlagged(c); }).sort(function(a, b) {
+  var allBuys  = coins.slice().filter(function(c) { return !c.isStock && c._zone === 'buy' && _passesMeanRevGate(c) && _isTradable(c) && _isPresentable(c) && !_isExchangeFlagged(c); }).sort(function(a, b) {
     var aHeld = hSyms.indexOf(a.sym) >= 0, bHeld = hSyms.indexOf(b.sym) >= 0;
     if (aHeld !== bHeld) return aHeld ? -1 : 1;
     return a.score - b.score;

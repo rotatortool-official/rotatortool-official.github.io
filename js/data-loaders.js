@@ -642,6 +642,13 @@ function applySignalRun(run) {
        See _isTradable() in signals.js. */
     c._eligible       = it.eligible !== false;
     c._exclusions     = it.exclusions || [];
+    /* "May this be presented as a NEW entry" — a different question from
+       score and from eligibility, answered by the engine and never by
+       this page. See _classifyCandidate() in the engine. */
+    c._candidateClass = it.candidateClass || null;
+    c._rsi            = (typeof it.rsi === 'number') ? it.rsi : null;
+    c._rsiState       = it.rsiState || null;
+    c._candidate      = it.candidate || null;
   });
   window.ROTATOR_RUN = run;
 }
@@ -709,7 +716,16 @@ async function runSignalEngine() {
         macro:         _macroData,
         marketCycle:   marketCycleData,
         volumeHistory: volHist,
-        previousZones: prevZones
+        previousZones: prevZones,
+        /* Real Wilder RSI(14), already loaded for the display lenses and
+           keyed by the same symbol the engine matches on. It reaches the
+           engine as the oversold CONFIRMATION step of the candidate
+           classification (engine 2.2.0) and changes no score — the page
+           has never computed RSI and still does not. loadCoinTechnicals()
+           resolves before loadCoins(), so this is populated by the time
+           the engine runs; if it is not, the engine sees 0% coverage and
+           says so rather than confirming on nothing. */
+        technicals:    (typeof coinTechnicals !== 'undefined') ? coinTechnicals : {}
       });
       applySignalRun(localRun);
       try {
@@ -738,7 +754,8 @@ async function runSignalEngine() {
     if (latest) {
       var items = await supaRest('signal_run_items', 'GET', {
         run_id: 'eq.' + latest.id,
-        select: 'coin_id,score,effective_score,zone,r7,r14,r30,breakdown,eligible'
+        select: 'coin_id,score,effective_score,zone,r7,r14,r30,breakdown,eligible,'
+                + 'candidate_class,rsi,rsi_state,candidate'
       });
       var byId = {};
       (items || []).forEach(function(it) { byId[it.coin_id] = it; });
@@ -760,6 +777,16 @@ async function runSignalEngine() {
            different run. Clear it rather than leave a stale list that
            disagrees with the flag beside it. */
         c._exclusions     = null;
+        /* Same classification, from the server run. A run older than
+           engine 2.2.0 has these null on every row; the page then shows
+           no class rather than falling back to the local pass, because
+           mixing a server score with a locally derived label would be
+           exactly the parallel calculation this wiring exists to
+           prevent. */
+        c._candidateClass = it.candidate_class || null;
+        c._rsi            = it.rsi != null ? Number(it.rsi) : null;
+        c._rsiState       = it.rsi_state || null;
+        c._candidate      = it.candidate || null;
       });
       window.ROTATOR_RUN = { engineVersion: latest.engine_version, asOf: latest.as_of, cycleLabel: latest.cycle_label, source: 'server' };
     } else if (localRun) {

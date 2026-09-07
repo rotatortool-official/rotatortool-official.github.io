@@ -67,7 +67,14 @@
      `score`, `zone` or `scoreBreakdown` needs updating — except that
      `scoreBreakdown.mcapMult` is now `scoreBreakdown.sizeAdj`, which
      nothing outside the engine ever read. */
-  var ENGINE_VERSION = '2.1.0';
+  /* 2.2.0 — candidate classification.
+
+     Adds `candidateClass` and the real RSI it was confirmed against to
+     every eligible item, plus a run-level `candidates` block. Purely
+     additive: no score, rank, zone or eligibility value changes, so the
+     golden fixture's numbers are untouched and 2.1.0's tracking record
+     stays comparable. See _classifyCandidate(). */
+  var ENGINE_VERSION = '2.2.0';
   var SCORING_MODELS = ['v1', 'v2'];
 
   /* ── Eligibility defaults ──────────────────────────────────────────
@@ -545,6 +552,193 @@
     return { eligible: reasons.length === 0, exclusions: reasons };
   }
 
+  /* ── Candidate classification ──────────────────────────────────────
+     Answers "may this coin be presented as a NEW rotate-in entry", which
+     is a different question from both `score` (how it ranks) and
+     `eligible` (whether it is tradable at all). Kept strictly separate
+     from scoring for the same reason _eligibility() is: it must never
+     move a score, a rank or a zone. Adding it changes no number the
+     golden fixture records.
+
+     It exists because the buy list ranked ASCENDING by v1 score with a
+     -40%..-3% drawdown gate and nothing else. That promotes a coin for
+     being weak, with no requirement that the fall has stopped, no real
+     oversold test, and no upper guard at all — a coin already up 40% in
+     a day could be published as a fresh entry on the strength of its
+     other components.
+
+     Composition, in the order the rules are applied:
+
+       extreme-move filter  →  pullback precondition  →  falling-knife
+       filter  →  RSI oversold confirmation  →  stabilisation
+
+     RSI is CONFIRMATION, not the whole score. Relative weakness alone
+     cannot promote a coin (that was the defect), and RSI alone does not
+     promote one either — it has to be a pullback that has stopped
+     falling AND that RSI agrees is oversold.
+
+     Every threshold lives in CANDIDATE_RULES and nowhere else. No
+     consumer re-derives one; they read `candidateClass`.
+
+     Classes:
+       CANDIDATE      in a pullback, not accelerating down, RSI-confirmed
+       STRONG         no pullback — a fine asset, just not a mean-reversion entry
+       EXTENDED       already made an extreme one-day move; not a new entry
+       COOLDOWN       ran hard today but short of extreme; wait it out
+       FALLING_KNIFE  decline accelerating, or deep with no stabilisation
+       NOT_OVERSOLD   in a pullback but RSI does not support the setup
+       UNCONFIRMED    RSI is being applied this run but missing for this coin
+       null           not eligible — _eligibility() already answered
+
+     Deliberately NOT the same band as _passesMeanRevGate(): that gate
+     stops at -40% on the argument that deeper is a different regime.
+     Here a coin down 55% that has visibly stopped falling stays a
+     candidate, because "heavily oversold but stabilising" is exactly the
+     case the stabilisation test was written to keep. The two coexist;
+     consumers pick which question they are asking. */
+  var CANDIDATE_RULES = {
+    /* One-day move. 40% is the "no longer an attractive new entry" line;
+       25% is "it ran, let it cool" — separated so the second can be
+       loosened without touching the hard guard. */
+    extremeMove:   { p24: 40 },
+    cooldown:      { p24: 25 },
+
+    /* A pullback is the precondition for a mean-reversion entry. Above
+       this, the coin may be perfectly good — it is just not this. */
+    pullback:      { enter: -3 },
+
+    /* confirm is the line RSI must be at or below for a pullback to read
+       as oversold. oversold/neutralHigh/overbought only label the state
+       for consumers; they never gate on their own.
+
+       minCoverage is an OUTAGE guard, not a bias guard, and that is why
+       it is 0.35 rather than V2_TECHNICAL_MIN_COVERAGE's 0.80.
+
+       It was 0.80, copied from v2's technical layer, and that was wrong.
+       Measured on live data 2026-09-07: real RSI covers 68% of the
+       scorable universe, 78% of eligible coins and 50% of the coins
+       actually on the buy list — because coin_technicals only exists for
+       coins with a Binance USDT pair, and HYPE, XMR, OKB, MNT, KAS and
+       ~50 others simply do not have one. That is structural and will not
+       improve, so an 80% gate meant the confirmation step never ran at
+       all. A guardrail that is permanently inert is worse than none,
+       because it reads as present.
+
+       v2's 0.80 is right for v2 and does not transfer. There, RSI is
+       BLENDED into a weighted score, so partial coverage silently shifts
+       the distribution — the only safe answer is all-or-nothing. Here it
+       is a per-coin gate with an explicit third state: a coin with no RSI
+       is UNCONFIRMED, which says "not confirmed" rather than quietly
+       passing. The bias is already handled per coin, so the run-level
+       number has only one job left — noticing that the feed is dead. If
+       sync-binance-daily-klines stops, coverage collapses toward zero,
+       every coin becomes UNCONFIRMED and the buy list empties silently.
+       0.35 catches that while sitting far below the structural floor. */
+    rsi:           { oversold: 30, confirm: 45, neutralHigh: 60, overbought: 70, minCoverage: 0.35 },
+
+    /* Falling knife: this week's loss materially larger than last
+       week's. accelGap is in percentage points of 7-day return. */
+    knife:         { accelGap: 5 },
+
+    /* Stabilisation: this week at or better than the pace the trailing
+       30 days implies. A coin down 30% on the month is "on pace" for
+       about -7%/week; doing better than that is the evidence of a turn. */
+    stabilization: { paceFloor: 0 }
+  };
+
+  function _candidateRules(override) {
+    var r = {};
+    for (var k in CANDIDATE_RULES) {
+      r[k] = {};
+      for (var j in CANDIDATE_RULES[k]) r[k][j] = CANDIDATE_RULES[k][j];
+    }
+    if (!override) return r;
+    for (var ok in override) {
+      if (!r[ok]) continue;
+      for (var oj in override[ok]) r[ok][oj] = override[ok][oj];
+    }
+    return r;
+  }
+
+  /* Same lookup v2 uses: technicals may be keyed by CoinGecko id or by
+     symbol. `rsi` is the engine's field name; `rsiD` is accepted because
+     that is what coin_technicals.rsi14_daily is called once it reaches
+     the site, and one alias here is cheaper than a rename at the seam. */
+  function _candidateTechnical(technicals, c) {
+    if (!technicals) return null;
+    return technicals[c.id] || technicals[c.sym] || null;
+  }
+
+  function _candidateRsi(t) {
+    if (!t) return null;
+    if (typeof t.rsi === 'number') return t.rsi;
+    if (typeof t.rsiD === 'number') return t.rsiD;
+    return null;
+  }
+
+  function _rsiState(rsi, r) {
+    if (typeof rsi !== 'number') return null;
+    if (rsi <= r.oversold)    return 'oversold';
+    if (rsi <= r.confirm)     return 'low';
+    if (rsi <  r.neutralHigh) return 'neutral';
+    if (rsi <  r.overbought)  return 'elevated';
+    return 'overbought';
+  }
+
+  /* Returns the classification AND the numbers it was reached from, so a
+     published call can explain itself later without being re-run. */
+  function _classifyCandidate(c, rsi, rules, rsiApplied) {
+    var p24 = c.p24 || 0, p7 = c.p7 || 0, p14 = c.p14 || 0, p30 = c.p30 || 0;
+
+    /* priorWeek is days 8-14 backed out of the two cumulative returns.
+       Arithmetic, not compounded — the comparison is against recentWeek
+       on the same footing, and the gap that matters is points, not a
+       precise reconstruction. */
+    var pace30     = (p30 * 7) / 30;
+    var recentWeek = p7;
+    var priorWeek  = p14 - p7;
+
+    var accelerating = recentWeek < 0 && recentWeek < (priorWeek - rules.knife.accelGap);
+    var stabilizing  = recentWeek >= (pace30 + rules.stabilization.paceFloor);
+    var rsiState     = _rsiState(rsi, rules.rsi);
+
+    var cls, flags = [];
+    if (p24 >= rules.extremeMove.p24) {
+      cls = 'EXTENDED';      flags.push('extreme_daily_gain');
+    } else if (p24 >= rules.cooldown.p24) {
+      cls = 'COOLDOWN';      flags.push('large_daily_gain');
+    } else if (p30 > rules.pullback.enter) {
+      cls = 'STRONG';        flags.push('no_pullback');
+    } else if (accelerating) {
+      cls = 'FALLING_KNIFE'; flags.push('decline_accelerating');
+    } else if (rsiApplied && rsi == null) {
+      cls = 'UNCONFIRMED';   flags.push('rsi_missing');
+    } else if (rsiApplied && rsi > rules.rsi.confirm) {
+      cls = 'NOT_OVERSOLD';  flags.push('rsi_not_oversold');
+    } else if (!stabilizing) {
+      cls = 'FALLING_KNIFE'; flags.push('no_stabilization');
+    } else {
+      cls = 'CANDIDATE';
+      flags.push(!rsiApplied ? 'rsi_unavailable'
+        : rsiState === 'oversold' ? 'rsi_oversold' : 'rsi_low');
+      if (stabilizing) flags.push('stabilizing');
+    }
+
+    return {
+      class: cls,
+      flags: flags,
+      rsi: (typeof rsi === 'number') ? rsi : null,
+      rsiState: rsiState,
+      rsiApplied: rsiApplied,
+      p24: p24,
+      pace30: pace30,
+      recentWeek: recentWeek,
+      priorWeek: priorWeek,
+      accelerating: accelerating,
+      stabilizing: stabilizing
+    };
+  }
+
   /* ════════════════════════════════════════════════════════════════
      SCORING v2 — additive, opt-in, and side by side with v1.
 
@@ -792,12 +986,47 @@
     var dl = (input.eligibility && input.eligibility.delisted) || input.delisted || [];
     for (var d = 0; d < dl.length; d++) delistedSet[dl[d]] = true;
 
+    /* Candidate classification. `rsiApplied` is a feed-alive check, not a
+       coverage-quality one — see CANDIDATE_RULES.rsi.minCoverage for why
+       that differs from v2's technical layer. When the feed is dead the
+       classifier says so on every item rather than pretending
+       confirmation happened, or silently emptying the buy list. */
+    var candRules = _candidateRules(input.candidateRules);
+    var candTech = input.technicals || null;
+    var classifiable = 0, withRsi = 0;
+    for (var q = 0; q < coins.length; q++) {
+      if (coins[q].isStable || coins[q].dataComplete === false || coins[q].isStock) continue;
+      classifiable++;
+      if (_candidateRsi(_candidateTechnical(candTech, coins[q])) != null) withRsi++;
+    }
+    var rsiCoverage = classifiable ? withRsi / classifiable : 0;
+    var rsiApplied = rsiCoverage >= candRules.rsi.minCoverage;
+
+    var candCounts = {};
     var items = [];
     for (var i = 0; i < coins.length; i++) {
       var item = _projectItem(coins[i]);
       var el = _eligibility(coins[i], cfg, delistedSet);
       item.eligible = el.eligible;
       item.exclusions = el.exclusions;
+
+      /* Only eligible coins get a class. _eligibility() has already
+         answered for the rest, and giving an untradable coin a
+         CANDIDATE label would be a second, softer gate. */
+      if (el.eligible) {
+        var cand = _classifyCandidate(
+          coins[i], _candidateRsi(_candidateTechnical(candTech, coins[i])), candRules, rsiApplied);
+        item.candidateClass = cand.class;
+        item.rsi = cand.rsi;
+        item.rsiState = cand.rsiState;
+        item.candidate = cand;
+        candCounts[cand.class] = (candCounts[cand.class] || 0) + 1;
+      } else {
+        item.candidateClass = null;
+        item.rsi = null;
+        item.rsiState = null;
+        item.candidate = null;
+      }
       items.push(item);
     }
 
@@ -819,6 +1048,16 @@
          them in one visitor's browser. */
       zones: JSON.parse(_store.rot_last_zone || '{}'),
       volumeHistory: JSON.parse(_store[_VOL_HIST_KEY] || '{}'),
+      /* Every threshold the classification used, reported with the run.
+         A stored run can be re-read years later and say which rules
+         produced its labels, the same way `thresholds` does for zones. */
+      candidates: {
+        rules: candRules,
+        rsiCoverage: Math.round(rsiCoverage * 1000) / 1000,
+        rsiApplied: rsiApplied,
+        classifiableCount: classifiable,
+        counts: candCounts
+      },
       dataQuality: _dataQuality(input)
     };
   }
@@ -953,6 +1192,7 @@
     computeSignalRun: computeSignalRun,
     computeSignalRunV2: computeSignalRunV2,
     V2_WEIGHTS: V2_WEIGHTS,
+    CANDIDATE_RULES: CANDIDATE_RULES,
     /* Exposed for tests and for callers that need one piece in isolation.
        These are the extracted originals, not re-implementations. */
     internals: {
@@ -963,7 +1203,10 @@
       quickInsight: _quickInsight,
       btcCycleLabel: _btcCycleLabel,
       volRatio: _volRatio,
-      trackVolumeHistory: _trackVolumeHistory
+      trackVolumeHistory: _trackVolumeHistory,
+      classifyCandidate: _classifyCandidate,
+      candidateRules: _candidateRules,
+      rsiState: _rsiState
     }
   };
 }));

@@ -448,6 +448,13 @@ var SignalHistory = (function() {
       /* Mean-reversion gate: bullish picks should be pull-backs in the
          -3% .. -40% 30D band. Tails are usually broken markets. */
       if (_rz && !_rz.passesMeanRevGate(c)) return false;
+      /* And the engine's candidate classification (2.2.0). These rows
+         become the PUBLISHED track record, so a pick recorded here is
+         graded and shown as something Rotator called — a coin already up
+         40% on the day has no business in that record. Same predicate
+         the rotation panel uses; this file defines no threshold of its
+         own. */
+      if (_rz && _rz.isPresentable && !_rz.isPresentable(c)) return false;
       return true;
     });
     bullCandidates.sort(function(a, b) {
@@ -462,8 +469,15 @@ var SignalHistory = (function() {
     /* Emergency fallback: if filters killed the pool, retry unfiltered so
        we always produce a snapshot. */
     if (bullCandidates.length < 10) {
-      bullCandidates = coins.filter(_isValidCandidate)
-                            .sort(function(a, b) { return b.score - a.score; });
+      /* Filters killed the pool — retry without them so a snapshot still
+         gets recorded. The candidate classification is deliberately NOT
+         dropped here: "we needed more rows" is not a reason to publish a
+         call on a coin that has already made its move. Everything else
+         relaxes; this does not. */
+      bullCandidates = coins.filter(function(c) {
+        return _isValidCandidate(c)
+          && (!_rz || !_rz.isPresentable || _rz.isPresentable(c));
+      }).sort(function(a, b) { return b.score - a.score; });
     }
     if (lagCandidates.length < 10) {
       lagCandidates = coins.filter(_isValidCandidate)

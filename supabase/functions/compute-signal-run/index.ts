@@ -18,12 +18,23 @@
 // against real production history once enough of it exists, without a
 // second write path.
 //
-// NOT INCLUDED: the technical indicator layer (RSI/MACD/Bollinger %B).
-// Computing that here would mean fetching Binance klines on every cron
-// tick; left out for now, same as the rest of v2 not being published —
-// `technicals` is simply not passed, so v2's technical component is
-// absent from `v2.components` for every coin on every run (that's a
-// real, visible gap in the stored `params`, not a silent one).
+// TECHNICALS: RSI is now passed in. It is NOT computed here — that would
+// mean fetching Binance klines on every cron tick. It is READ from
+// coin_technicals, which sync-binance-daily-klines already writes from
+// the klines it holds anyway, so this costs one more cheap table read
+// and no external call. That table has carried real Wilder RSI(14) for
+// weeks; it was reaching the website as a display lens and stopping
+// there, so nothing that made a recommendation had ever seen it.
+//
+// It feeds two things: v2's technical component (still measured, still
+// not published) and — the reason it is wired now — engine 2.2.0's
+// candidate classification, where RSI is the oversold CONFIRMATION step.
+// Below 80% coverage the engine drops the confirmation for every coin
+// and says so in `candidates.rsiApplied`, rather than judging the coins
+// that happen to have RSI on a stronger rule than the rest.
+//
+// MACD and Bollinger %B are still not supplied; the engine treats each
+// technical field independently, so their absence costs nothing here.
 //
 // bStocks ARE included since 2026-09-06, stamped asset_type='bstock'.
 // They are ranked in their own peer group by the engine (computeScores()
@@ -126,12 +137,13 @@ Deno.serve(async (req) => {
   try {
     const stableIds = new Set(Object.keys(siteTables.STABLECOINS));
 
-    const [marketsRow, macroRow, cycleRows, delistedRows, zoneRows] = await Promise.all([
+    const [marketsRow, macroRow, cycleRows, delistedRows, zoneRows, techRows] = await Promise.all([
       supabase.from('market_cache').select('data').eq('cache_key', 'cg_markets_all').single(),
       supabase.from('market_cache').select('data').eq('cache_key', 'macro_data').single(),
       supabase.from('market_cycle').select('symbol, ma200, mayer_multiple'),
       supabase.from('binance_delisted_symbols').select('base_asset'),
       supabase.from('signal_zone_state').select('coin_id, zone'),
+      supabase.from('coin_technicals').select('base_asset, rsi14_daily'),
     ]);
     if (marketsRow.error || !marketsRow.data) throw new Error('cg_markets_all not found: ' + (marketsRow.error?.message ?? 'no row'));
 
@@ -142,6 +154,20 @@ Deno.serve(async (req) => {
     const delisted = (delistedRows.data || []).map((r: { base_asset: string }) => r.base_asset);
     const previousZones: Record<string, string> = {};
     for (const r of zoneRows.data || []) previousZones[r.coin_id] = r.zone;
+
+    // Keyed by base_asset, which is the same uppercase symbol the engine
+    // carries as `c.sym` — the engine looks up by id first, then sym.
+    // A null rsi14_daily is left OUT rather than passed as null, so it
+    // counts against coverage instead of reading as a real reading.
+    const technicals: Record<string, { rsi: number }> = {};
+    for (const r of (techRows.data || [])) {
+      if (r.rsi14_daily != null) technicals[r.base_asset] = { rsi: Number(r.rsi14_daily) };
+    }
+    if (techRows.error) {
+      // A missing technicals feed must not stop the run. The engine will
+      // see 0% coverage, skip confirmation for everyone, and record that.
+      console.warn('[compute-signal-run] coin_technicals read failed:', techRows.error.message);
+    }
 
     const coins = toWebsiteCoins(raw, stableIds);
 
@@ -215,7 +241,7 @@ Deno.serve(async (req) => {
       volumeHistory: {},
       previousZones,
       eligibility: { minVolume24h: ELIGIBILITY_MIN_VOLUME, delisted },
-      // technicals intentionally omitted — see header comment.
+      technicals,
     });
 
     // ── Persist the run + its items ──────────────────────────────────
@@ -229,7 +255,15 @@ Deno.serve(async (req) => {
         eligibility: run.eligibility,
         universe_size: run.universeSize,
         eligible_count: run.eligibleCount,
-        params: { macro, v2Weights: run.v2?.weights, technicalApplied: run.v2?.technicalApplied ?? false },
+        params: {
+          macro,
+          v2Weights: run.v2?.weights,
+          technicalApplied: run.v2?.technicalApplied ?? false,
+          // The rules that produced this run's labels, stored with the
+          // run so a call can still explain itself after the thresholds
+          // are next tuned.
+          candidates: run.candidates,
+        },
       })
       .select('id')
       .single();
@@ -266,6 +300,10 @@ Deno.serve(async (req) => {
         strength: it.strength ?? null,
         setup: it.setup ?? null,
         breakdown: it.breakdown ?? null,
+        candidate_class: it.candidateClass ?? null,
+        rsi: it.rsi ?? null,
+        rsi_state: it.rsiState ?? null,
+        candidate: it.candidate ?? null,
         asset_type: (bySrcId.get(it.id) as any)?.isStock ? 'bstock' : 'crypto',
       }));
 
@@ -292,6 +330,9 @@ Deno.serve(async (req) => {
         cycle_label: run.cycleLabel, universe_size: run.universeSize,
         eligible_count: run.eligibleCount, items: items.length,
         bstocks: items.filter((i) => i.asset_type === 'bstock').length,
+        rsi_coverage: run.candidates?.rsiCoverage ?? 0,
+        rsi_applied: run.candidates?.rsiApplied ?? false,
+        candidate_classes: run.candidates?.counts ?? {},
       }),
       { status: 200, headers: { 'Content-Type': 'application/json' } }
     );

@@ -20,7 +20,12 @@
 //      load the site first. Those were measurably stale: ONDO 20 vs a
 //      live 25, INJ 28 vs 37, RENDER 34 vs 42.
 //   2. DIRECTION. Take profit when a HELD coin enters the sell zone;
-//      suggest entries when an unheld eligible coin enters the buy zone.
+//      suggest entries when an unheld eligible coin enters the buy zone
+//      AND the engine classified it CANDIDATE (engine 2.2.0). Crossing
+//      is the event; the class is whether the event is worth sending.
+//      This function does not define "too pumped" or "still falling" and
+//      must never start — those thresholds live in the engine's
+//      CANDIDATE_RULES and reach here as a label.
 //   3. TRANSITIONS, NOT STATE. A coin sitting in a zone is not news —
 //      that is what produced the same four SELL lines every evening.
 //      Crossing into a zone is the event. No crossings, no message.
@@ -131,6 +136,8 @@ interface ItemRow {
   score: number | string | null;
   zone: string | null;
   eligible: boolean | null;
+  candidate_class: string | null;
+  rsi: number | string | null;
   price: number | string | null;
   mcap: number | string | null;
 }
@@ -424,13 +431,17 @@ Deno.serve(async (req: Request) => {
     was: number | null;
     price: number | null;
     mcap: number;
+    rsi?: number | null;
   }
   const sells: Line[] = [];
   const buys: Line[] = [];
+  // Buy-zone crossings the classification held back. Reported in the
+  // response, not the message — the digest says less, the logs say why.
+  const withheld: { sym: string; why: string }[] = [];
   let gate = { safe: true, reason: 'clear' };
 
   if (latestRun && prevRun) {
-    const cols = 'coin_sym, score, zone, eligible, price, mcap';
+    const cols = 'coin_sym, score, zone, eligible, price, mcap, candidate_class, rsi';
     const [nowRes, oldRes] = await Promise.all([
       supabase.from('signal_run_items').select(cols).eq('run_id', latestRun.id),
       supabase.from('signal_run_items').select('coin_sym, zone, score').eq('run_id', prevRun.id),
@@ -472,7 +483,24 @@ Deno.serve(async (req: Request) => {
         sells.push(line);
       } else if (r.zone === 'buy' && !held.has(sym) && r.eligible === true && gate.safe) {
         // Oversold entry: eligible (tradable) and not already held.
-        buys.push(line);
+        //
+        // CANDIDATE is the engine's answer to "may this be presented as
+        // a new entry" (engine 2.2.0). Crossing into the buy zone is the
+        // event; being a candidate is whether the event is worth sending.
+        // This function does not decide what "too pumped" or "still
+        // falling" means and must never start — it reads the label the
+        // same run gave the website and the bot.
+        //
+        // A run older than 2.2.0 has candidate_class = null on every row.
+        // Treated as "not classified, send as before" rather than as
+        // "not a candidate", so a stale run degrades to the previous
+        // behaviour instead of silently sending nothing.
+        if (r.candidate_class === null || r.candidate_class === 'CANDIDATE') {
+          line.rsi = num(r.rsi);
+          buys.push(line);
+        } else {
+          withheld.push({ sym, why: r.candidate_class });
+        }
       }
     }
 
@@ -492,6 +520,7 @@ Deno.serve(async (req: Request) => {
           : `no holdings entered the sell zone; buys suppressed (${gate.reason}); no undelivered technical events`),
       run_id: latestRun?.id ?? null,
       compared_to: prevRun?.id ?? null,
+      ...(withheld.length ? { withheld } : {}),
     });
   }
 
@@ -635,6 +664,10 @@ Deno.serve(async (req: Request) => {
       run_id: latestRun?.id ?? null,
       compared_to: prevRun?.id ?? null,
       ...(zoneSkipped ? { zone_skipped: zoneSkipped } : {}),
+      // Buy-zone crossings the engine's classification held back, with
+      // the class that held each one. Not in the message — in the
+      // response, so a quiet digest can be told apart from a broken one.
+      ...(withheld.length ? { withheld } : {}),
       ...(errs.length ? { errors: errs } : {}),
     },
     // Loud only when nothing got through at all. A partial failure still
