@@ -358,6 +358,126 @@ function supaLoadBinanceSpot() {
   });
 }
 
+/* ── Daily-kline fetch limits ───────────────────────────────────────
+   PostgREST caps any response at 1000 rows. This read used to chunk 30
+   symbols per request and trust that ~30 candles each kept it under the
+   cap. Both halves of that were unsafe:
+
+     · a truncated response looks exactly like a complete one, so
+       crossing the cap failed silently rather than loudly;
+     · the ~30 stopped being true on 2026-09-06, when
+       sync-binance-daily-klines raised KLINE_LIMIT from 30 to 140 bars
+       for the weekly-RSI lenses. 30 symbols x 141 candles is 4,230 rows
+       against a 1000-row cap, and with order=open_time.asc the 1000 rows
+       returned were the OLDEST. Measured live on 2026-09-07: a
+       30-symbol chunk came back holding 2026-04-20 to 2026-05-23 and
+       nothing after it, so every recent call lost its peak verdict and
+       fell through to the current-price path.
+
+   The size is now derived from a row budget and the requested window,
+   and every chunk pages until a short page comes back, so a wrong
+   estimate costs an extra request instead of silently losing candles.
+   track-record.html carries the same fix in its own inline copy — the
+   two are deliberately separate (that page loads no shared JS) and each
+   points at the other. */
+var KLINE_PAGE_LIMIT = 1000;  /* PostgREST's hard cap on one response */
+var KLINE_ROW_BUDGET = 800;   /* rows we aim for per request — headroom under the cap */
+var KLINE_MAX_PAGES  = 12;    /* paging floor; hitting it warns rather than truncating quietly */
+var KLINE_MAX_DAYS   = 200;   /* table retention (180d) + slack, when no window bound is known */
+var KLINE_MAX_SYMS   = 60;    /* keeps the in.() list to a sane URL length */
+var KLINE_STALE_DAYS = 3;     /* the sync runs every 3h; older than this is suspicious */
+var KLINE_CONCURRENCY = 6;    /* chunks in flight at once — see supaKlinePool() */
+
+/** Symbols per request, from the row budget rather than a fixed count. */
+function supaKlineChunkSize(sinceIso) {
+  var days = KLINE_MAX_DAYS;
+  if (sinceIso) {
+    var t = Date.parse(sinceIso);
+    if (!isNaN(t)) days = Math.ceil((Date.now() - t) / 864e5) + 2;   /* +2: today, and a day of slack */
+  }
+  days = Math.max(1, Math.min(days, KLINE_MAX_DAYS));
+  return Math.max(1, Math.min(KLINE_MAX_SYMS, Math.floor(KLINE_ROW_BUDGET / days)));
+}
+
+/** Every row for `group` at or after `sinceIso`, paged until a short page.
+ *  A page that arrives exactly at the limit is never treated as complete —
+ *  that assumption is the bug this replaces.
+ *
+ *  Paging needs a total order: open_time alone ties across symbols and rows
+ *  can shift between pages. Ordered on the primary key (base_asset,
+ *  open_time) instead. No consumer depends on the old ordering — the peak
+ *  verdict filters the window and scans it. */
+function supaFetchKlinePages(group, sinceIso) {
+  var rows = [];
+  function page(offset, pageNo) {
+    var params = {
+      'base_asset': 'in.(' + group.join(',') + ')',
+      'select':     'base_asset,open_time,high,low,close',
+      'order':      'base_asset.asc,open_time.asc',
+      'limit':      String(KLINE_PAGE_LIMIT),
+      'offset':     String(offset)
+    };
+    if (sinceIso) params['open_time'] = 'gte.' + sinceIso;
+    return supaRest('binance_daily_klines', 'GET', params).then(function(batch) {
+      batch = batch || [];
+      rows = rows.concat(batch);
+      if (batch.length < KLINE_PAGE_LIMIT) return rows;      /* short page — complete */
+      if (pageNo >= KLINE_MAX_PAGES) {
+        console.warn('[Supabase] kline paging hit the ' + KLINE_MAX_PAGES + '-page floor for '
+          + group.length + ' symbols (' + rows.length + ' rows). Candles are incomplete '
+          + 'and graded accuracy will read low.');
+        return rows;
+      }
+      return page(offset + KLINE_PAGE_LIMIT, pageNo + 1);
+    }).catch(function(e) {
+      console.warn('[Supabase] daily klines page failed (' + group.length
+        + ' symbols, offset ' + offset + '):', (e && e.message) || e);
+      return rows;   /* partial beats nothing; uncovered coins fall back per coin */
+    });
+  }
+  return page(0, 1);
+}
+
+/** The assertion that would have caught the silent truncation. One symbol
+ *  with no recent candle is normal — a delisted pair keeps old rows until
+ *  the 180-day prune. MOST symbols stale at once is not: that means the
+ *  fetch, not the listing, is the problem. */
+function supaWarnIfKlinesStale(requested, map) {
+  var withRows = 0, stale = 0;
+  var cutoff = Date.now() - KLINE_STALE_DAYS * 864e5;
+  requested.forEach(function(s) {
+    var c = map[s];
+    if (!c || !c.length) return;
+    withRows++;
+    var newest = 0;
+    for (var i = 0; i < c.length; i++) if (c[i].openTime > newest) newest = c[i].openTime;
+    if (newest < cutoff) stale++;
+  });
+  if (withRows && stale > withRows / 2) {
+    console.warn('[Supabase] ' + stale + ' of ' + withRows + ' symbols returned no candle newer '
+      + 'than ' + KLINE_STALE_DAYS + ' days. Peak grading is falling back to current price, '
+      + 'which reads several points below the true accuracy.');
+  }
+}
+
+/** Chunks run pooled rather than all at once. A wide window sizes chunks
+ *  small, so an unbounded read is ~29 requests; fired together they queue
+ *  behind the browser's per-host connection limit while supaRest's own 10s
+ *  timeout is already running — a queued request can time out having never
+ *  been sent. Six at a time keeps every request's clock honest. */
+function supaKlinePool(chunks, run) {
+  var results = new Array(chunks.length);
+  var next = 0;
+  function worker() {
+    if (next >= chunks.length) return Promise.resolve();
+    var i = next++;
+    return run(chunks[i]).then(function(r) { results[i] = r; return worker(); });
+  }
+  var lanes = [];
+  for (var i = 0; i < Math.min(KLINE_CONCURRENCY, chunks.length); i++) lanes.push(worker());
+  return Promise.all(lanes).then(function() { return results; });
+}
+
 /**
  * Daily candles for grading past calls, read from Supabase instead of
  * one Binance request per symbol from the browser.
@@ -366,15 +486,19 @@ function supaLoadBinanceSpot() {
  * epoch millisecond number, matching exactly what Binance's kline array
  * gave, so the peak-verdict maths downstream is untouched.
  *
- * Chunked because PostgREST caps a response at 1000 rows: ~30 candles
- * per symbol means 30 symbols per request stays safely under it. A coin
- * with no Binance listing simply has no entry, and the caller falls
+ * Chunked and paged against PostgREST's 1000-row cap; see the note above
+ * KLINE_PAGE_LIMIT for why the old fixed 30-symbol chunk was unsafe. A
+ * coin with no Binance listing simply has no entry, and the caller falls
  * back to the current-price comparison as it always did.
  *
  * @param {Array<string>} syms — base assets, e.g. ['BTC','ETH']
+ * @param {string} [sinceIso] — oldest candle worth reading, as an ISO
+ *        instant. Grading only ever reads [snap+1d, snap+14d], so the
+ *        caller's oldest gradeable snapshot bounds this. Omitting it is
+ *        safe but reads the whole retention window.
  * @returns {Promise<Object>} base asset → candles[]
  */
-function supaLoadDailyKlines(syms) {
+function supaLoadDailyKlines(syms, sinceIso) {
   var unique = [];
   (syms || []).forEach(function(s) {
     s = String(s || '').toUpperCase();
@@ -382,21 +506,13 @@ function supaLoadDailyKlines(syms) {
   });
   if (!unique.length) return Promise.resolve({});
 
-  var CHUNK = 30;
+  var size = supaKlineChunkSize(sinceIso);
   var chunks = [];
-  for (var i = 0; i < unique.length; i += CHUNK) chunks.push(unique.slice(i, i + CHUNK));
+  for (var i = 0; i < unique.length; i += size) chunks.push(unique.slice(i, i + size));
 
-  return Promise.all(chunks.map(function(group) {
-    return supaRest('binance_daily_klines', 'GET', {
-      'base_asset': 'in.(' + group.join(',') + ')',
-      'select':     'base_asset,open_time,high,low,close',
-      'order':      'open_time.asc',
-      'limit':      '1000'
-    }).catch(function(e) {
-      console.warn('[Supabase] daily klines chunk failed:', e.message);
-      return [];
-    });
-  })).then(function(groups) {
+  return supaKlinePool(chunks, function(group) {
+    return supaFetchKlinePages(group, sinceIso);
+  }).then(function(groups) {
     var out = {};
     groups.forEach(function(rows) {
       (rows || []).forEach(function(r) {
@@ -408,6 +524,7 @@ function supaLoadDailyKlines(syms) {
         });
       });
     });
+    supaWarnIfKlinesStale(unique, out);
     return out;
   }).catch(function(e) {
     console.warn('[Supabase] daily klines read failed:', e.message);

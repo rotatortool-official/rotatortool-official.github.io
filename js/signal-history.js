@@ -150,9 +150,9 @@ var SignalHistory = (function() {
      was the entire source of the console error noise. */
   var _dailyKlines = {};   /* base asset -> [{openTime, high, low, close}] */
 
-  function _preloadDailyKlines(syms) {
+  function _preloadDailyKlines(syms, sinceIso) {
     if (typeof supaLoadDailyKlines !== 'function') return Promise.resolve();
-    return supaLoadDailyKlines(syms).then(function(map) {
+    return supaLoadDailyKlines(syms, sinceIso).then(function(map) {
       _dailyKlines = map || {};
     }).catch(function() { _dailyKlines = {}; });
   }
@@ -204,6 +204,7 @@ var SignalHistory = (function() {
 
     var now = new Date();
     var tasks = [];
+    var oldest = null;
     hist.forEach(function(snap) {
       var daysAgo = Math.round((now - new Date(snap.date + 'T00:00:00')) / 864e5);
       if (daysAgo < CONFIRM_DAYS_MIN) return;   /* too fresh — not scored yet */
@@ -211,7 +212,21 @@ var SignalHistory = (function() {
       entries.forEach(function(entry) {
         if (!entry || !entry.id || !entry.sym || !entry.price) return;
         var key = snap.date + '|' + entry.id;
-        if (_peakVerdicts[key]) return;   /* already cached */
+        var cached = _peakVerdicts[key];
+        /* Skip only real, kline-derived verdicts. A 'current-lock' was
+           written *because* no candles were available at the time — and
+           for every call graded while the kline read was truncating
+           (see js/supabase.js, KLINE_PAGE_LIMIT) that was the fetch bug
+           rather than a coin with no Binance listing. Those locks are
+           cached in localStorage and would otherwise outlive the fix on
+           every visitor's device. Re-attempt them: if candles exist now
+           the peak verdict replaces the lock, and if they genuinely
+           don't, _computePeakVerdict returns null and the lock stands
+           untouched. Nothing is lost either way, and a lock that
+           comes back empty is stamped 'regraded' so this costs one
+           retry per lock rather than one on every page load. */
+        if (cached && (cached.source !== 'current-lock' || cached.regraded)) return;
+        if (!oldest || snap.date < oldest) oldest = snap.date;
         tasks.push({ snap: snap, entry: entry, key: key });
       });
     });
@@ -219,8 +234,14 @@ var SignalHistory = (function() {
     if (!tasks.length) { _peakWarmDone = true; return Promise.resolve(); }
 
     /* One bulk read covers every symbol these tasks need, so the loop
-       below now does no network I/O at all. */
-    return _preloadDailyKlines(tasks.map(function(t) { return t.entry.sym; }))
+       below now does no network I/O at all. The oldest task date bounds
+       it: grading reads [snap+1d, snap+14d], so nothing older than the
+       oldest snapshot still being graded can matter, and the bound is
+       what lets the read size its chunks against PostgREST's row cap
+       instead of guessing at a symbol count. */
+    return _preloadDailyKlines(
+        tasks.map(function(t) { return t.entry.sym; }),
+        oldest ? oldest + 'T00:00:00Z' : null)
       .then(function() { return _gradeTasks(tasks); });
   }
 
@@ -239,7 +260,13 @@ var SignalHistory = (function() {
         var batch = tasks.slice(i, i + BATCH);
         Promise.all(batch.map(function(t) {
           return _computePeakVerdict(t.entry, t.snap.date).then(function(v) {
-            if (v) _peakVerdicts[t.key] = v;
+            if (v) { _peakVerdicts[t.key] = v; return; }
+            /* Still no candles — this coin genuinely has no Binance
+               listing rather than a truncated fetch. Stamp the lock so
+               the re-attempt above happens exactly once per lock and
+               not on every page load forever. */
+            var prev = _peakVerdicts[t.key];
+            if (prev && prev.source === 'current-lock') prev.regraded = true;
           });
         })).then(function() { setTimeout(function() { step(i + BATCH); }, 50); });
       }
