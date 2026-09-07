@@ -31,12 +31,17 @@ var SignalHistory = (function() {
   var ROTATION_THRESHOLD = 2;   /* rotation: spread between to-change and from-change, in % */
 
   /* Hard cutoff: snapshots dated before STATS_FROM_DATE are excluded from
-     accuracy stats and the proven-signals list. We're rebooting accuracy
-     measurement on top of the v2 scoring engine (adaptive thresholds +
-     hysteresis + mean-rev gate + insight cross-link + vol-normalized
-     confirmation). Old snapshots are still stored, but they don't count
-     toward what we publish. To extend or move the cutoff, edit this date. */
-  var STATS_FROM_DATE = '2026-04-26';
+     accuracy stats and the proven-signals list. Reset a second time on
+     2026-09-07 for engine 2.1.0, which moved the market-cap adjustment
+     from a multiplier to a signed additive term — a 2.1.0 score is not
+     the same quantity a v2 score was, so the two cannot share a running
+     accuracy number. The retired v2 engine's final record (76.2% over
+     863 graded calls, 2026-04-26 → 2026-08-31) is frozen in the private
+     workbench at archive/v2-engine/v2-final-record.json and displayed as
+     a legacy badge on track-record.html. Keep this date in sync with
+     STATS_FROM_DATE in track-record.html. */
+  var STATS_FROM_DATE = '2026-09-07';
+  var ENGINE_LABEL    = '2.1.0';
 
   function _passesCutoff(dateStr) {
     return typeof dateStr === 'string' && dateStr >= STATS_FROM_DATE;
@@ -896,10 +901,10 @@ var SignalHistory = (function() {
       + '<a href="track-record.html" target="_blank" rel="noopener">'
       + 'View the full public track record →</a></div>';
 
-    /* Engine-v2 reset notice — explains why the accuracy number may
-       look low (no signals are old enough to grade yet). */
+    /* Engine-2.1.0 reset notice — explains why the accuracy number is
+       empty or thin (no signals are old enough to grade yet). */
     var resetBadge = '<div class="str-reset-badge" style="font-family:var(--font-mono);font-size:10px;letter-spacing:.08em;color:var(--muted);text-align:center;padding:6px 0 10px;opacity:.85;">'
-      + 'STATS RESET ' + STATS_FROM_DATE.replace(/-/g,'·') + ' — SCORING ENGINE v2 ACTIVE'
+      + 'STATS RESET ' + STATS_FROM_DATE.replace(/-/g,'·') + ' — SCORING ENGINE v' + ENGINE_LABEL + ' ACTIVE'
       + '</div>';
 
     /* Data attribution — required by CoinGecko brand guidelines and

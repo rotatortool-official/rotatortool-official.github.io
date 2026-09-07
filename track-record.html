@@ -57,6 +57,20 @@ a{color:inherit;text-decoration:none}
   background:rgba(243,186,47,.08);border:1px solid rgba(243,186,47,.2);border-radius:3px;
   font-family:var(--font-mono);font-size:11px;letter-spacing:.1em;color:var(--bnb);}
 
+/* ── Legacy engine badge (retired v2 record) ─────────────── */
+.legacy{margin:34px auto 0;max-width:640px;padding:20px 24px;background:var(--bg2);
+  border:1px solid var(--bdr2);border-left:3px solid var(--pro);border-radius:6px;text-align:left;}
+.legacy-hdr{display:flex;align-items:baseline;justify-content:space-between;gap:12px;flex-wrap:wrap;}
+.legacy-title{font-family:var(--font-mono);font-size:12px;letter-spacing:.16em;
+  text-transform:uppercase;color:var(--pro);}
+.legacy-retired{font-family:var(--font-mono);font-size:11px;color:var(--muted);}
+.legacy-body{display:flex;align-items:center;gap:22px;margin-top:14px;flex-wrap:wrap;}
+.legacy-pct{font-family:var(--font-mono);font-size:40px;font-weight:800;line-height:1;color:var(--pro);}
+.legacy-meta{font-family:var(--font-mono);font-size:12px;color:var(--muted);line-height:1.7;}
+.legacy-meta b{color:var(--text);font-weight:600;}
+.legacy-note{margin-top:14px;padding-top:12px;border-top:1px solid var(--bdr);
+  font-size:12px;color:var(--muted);line-height:1.6;}
+
 /* ── Section ───────────────────────────────────────────── */
 .section{padding:40px 0;}
 .section-hdr{display:flex;justify-content:space-between;align-items:baseline;
@@ -173,7 +187,7 @@ a{color:inherit;text-decoration:none}
     <div class="hero-kicker">◆ SIGNAL TRACK RECORD</div>
     <h1>Every call, tracked.</h1>
     <p class="hero-sub">
-      Rotator snapshots its top bullish and lagging signals every day. After 7 days, we compare the call to the actual price. The result is published here — wins and misses both.
+      Rotator snapshots its top bullish and lagging signals every day. After 7 days, we compare the call to the actual price. The result is published here — wins and misses both. The counter below restarted on 2026-09-07 with scoring engine 2.1.0; the retired v2 engine's final record is kept underneath it.
     </p>
     <div id="accuracy-box" class="acc-box">
       <div class="acc-big" id="acc-pct">—</div>
@@ -181,8 +195,37 @@ a{color:inherit;text-decoration:none}
       <div class="acc-detail" id="acc-detail">Loading…</div>
     </div>
     <div>
-      <span class="window-pill" id="window-pill">Last 30 days</span>
+      <span class="window-pill" id="window-pill">Engine 2.1.0 · since 2026-09-07</span>
     </div>
+
+    <!-- Retired v2 record. Frozen, not recomputed: these numbers are final
+         and are inlined deliberately so the badge never depends on a live
+         query against tables that no longer hold v2 rows. Provenance and
+         the raw 2120-row snapshot export live in the private workbench at
+         archive/v2-engine/ (v2-final-record.json carries the methodology). -->
+    <div class="legacy">
+      <div class="legacy-hdr">
+        <span class="legacy-title">🏅 Engine v2 — final record</span>
+        <span class="legacy-retired">Retired 2026-09-07</span>
+      </div>
+      <div class="legacy-body">
+        <div class="legacy-pct">76.2%</div>
+        <div class="legacy-meta">
+          <b>658</b> of <b>863</b> graded calls confirmed<br>
+          Bullish <b>71.9%</b> · Lagging <b>80.8%</b><br>
+          90 trading days · 2026-04-26 → 2026-08-31
+        </div>
+      </div>
+      <div class="legacy-note">
+        Engine 2.1.0 changed the market-cap adjustment from a multiplier to a
+        signed additive term, so v2 and 2.1.0 scores don't mean the same thing.
+        Rather than splice them into one running number, v2's book is closed
+        here and the live counter above restarts from scratch. Graded on the
+        best price reached inside the 7–14 day window, so read it as an upper
+        bound — not as the bar 2.1.0 has already cleared.
+      </div>
+    </div>
+
     <div class="search-wrap" id="search-wrap">
       <span class="search-icon">🔍</span>
       <input type="text" class="search-input" id="search-input" placeholder="Search by coin symbol or name…" autocomplete="off">
@@ -245,7 +288,7 @@ a{color:inherit;text-decoration:none}
 <footer class="footer">
   <div class="wrap">
     <div class="disclaimer">
-      Track record reflects Rotator's v2 scoring engine, active from 2026-04-26. A signal is "confirmed" when price clears a market-cap-aware threshold within 7–14 days (1.5% mega · 2% large · 3% mid · 5% small/micro). Once a signal hits its target inside the window, the call is locked in and cannot be retroactively demoted by later price moves. Not financial advice — DYOR before any trade.
+      The live counter reflects Rotator's 2.1.0 scoring engine, tracking from 2026-09-07. Engine v2 (2026-04-26 → 2026-09-07) finished on 76.2% across 863 graded calls; its record is shown separately and is not blended into the live number, because 2.1.0 changed how market cap enters the score. A signal is "confirmed" when price clears a market-cap-aware threshold within 7–14 days (1.5% mega · 2% large · 3% mid · 5% small/micro). Once a signal hits its target inside the window, the call is locked in and cannot be retroactively demoted by later price moves. Not financial advice — DYOR before any trade.
     </div>
     <div style="margin-top:10px;display:flex;justify-content:center;gap:14px;flex-wrap:wrap;">
       <span><span style="color:#22c55e;">•</span> Powered by <a href="https://www.coingecko.com" target="_blank" rel="noopener">CoinGecko</a></span>
@@ -271,7 +314,18 @@ a{color:inherit;text-decoration:none}
   var ROTATION_THRESHOLD = 2;    /* rotation: spread between to-change and from-change, in % — mirrors js/signal-history.js */
   var PEAK_WINDOW_DAYS   = 14;   /* upper bound of the confirm window for peak-capture */
   var CONFIRM_THRESHOLD  = 2;    /* legacy fallback when mcap unknown */
-  var STATS_FROM_DATE    = '2026-04-26';  /* v2 engine reset — pre-cutoff snapshots not graded */
+
+  /* ── Engine 2.1.0 tracking reset ─────────────────────────────
+     2.1.0 changed the market-cap adjustment from a multiplier to a
+     signed additive term, so a 2.1.0 score does not mean what a 2.0.0
+     score meant. Splicing the two into one running number would be
+     dishonest, so v2's record is CLOSED (frozen in the private
+     workbench at archive/v2-engine/v2-final-record.json, and shown as
+     the legacy badge below) and the live counter restarts from this date.
+     Snapshots before the cutoff are not graded here. */
+  var STATS_FROM_DATE    = '2026-09-07';
+  var TRACKING_START     = '2026-09-07';
+  var ENGINE_LABEL       = '2.1.0';
 
   /* Vol-normalized confirmation by mcap tier (mirrors signal-history.js).
      Falls back to CONFIRM_THRESHOLD when mcap is unavailable on the row. */
@@ -283,6 +337,20 @@ a{color:inherit;text-decoration:none}
     return 5;
   }
   var MAX_CARDS_PER_LIST = 12;
+
+  /* Day counter for the 2.1.0 reset, so the pre-grading state can say
+     how far in we are instead of showing a bare em-dash. */
+  function daysTracking() {
+    var start = new Date(TRACKING_START + 'T00:00:00');
+    return Math.max(0, Math.floor((Date.now() - start.getTime()) / 864e5));
+  }
+  function trackingLine() {
+    var d = daysTracking();
+    var left = Math.max(0, CONFIRM_DAYS_MIN - d);
+    return 'Engine ' + ENGINE_LABEL + ' · day ' + (d + 1) + ' of tracking. '
+      + (left ? 'First graded calls in ' + left + ' day' + (left === 1 ? '' : 's') + '.'
+              : 'Grading as calls clear ' + CONFIRM_DAYS_MIN + ' days.');
+  }
 
   /* ── Price formatter ───────────────────────────────────── */
   function fmtP(p) {
@@ -340,6 +408,9 @@ a{color:inherit;text-decoration:none}
   function evaluateRotation(snaps, priceMap) {
     var evaluated = [], pending = [];
     snaps.forEach(function(s) {
+      /* Same 2.1.0 reset as evaluate(): rotation calls scored by the
+         retired engine are archived, not carried into the live count. */
+      if (!s.snap_date || s.snap_date < TRACKING_START) return;
       var snapTs = new Date(s.snap_date + 'T00:00:00Z').getTime();
       var daysAgo = Math.floor((Date.now() - snapTs) / 864e5);
       var fromNow = priceMap[s.from_id], toNow = priceMap[s.to_id];
@@ -835,7 +906,7 @@ a{color:inherit;text-decoration:none}
 
     if (stats.accuracy == null) {
       pct.textContent = '—';
-      det.innerHTML = 'Tracking signals. Results appear after signals reach 7 days old.';
+      det.textContent = trackingLine();
       box.style.opacity = '.6';
     } else {
       pct.textContent = stats.accuracy + '%';
@@ -923,8 +994,7 @@ a{color:inherit;text-decoration:none}
       if (!snaps.length) {
         var pct = document.getElementById('acc-pct');
         pct.textContent = '—';
-        document.getElementById('acc-detail').innerHTML =
-          'No snapshots yet. Come back after the first few days of tracking.';
+        document.getElementById('acc-detail').textContent = trackingLine();
         return;
       }
       /* Render current-price-only result first for fast paint, then
