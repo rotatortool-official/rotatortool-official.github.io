@@ -249,7 +249,7 @@ function getCategoryCoins(cat) {
   return FREE_COINS.filter(function(id) { return (COIN_CATEGORIES[id] || 'other') === cat; });
 }
 
-function getActiveCoins() { return FREE_COINS; } /* All 200 crypto coins always available */
+function getActiveCoins() { return FREE_COINS; } /* All 195 crypto coins always available */
 
 /* ── Stablecoin APR database ────────────────────────────────────── */
 /* Approximate lending/staking APR (%) for stablecoins.              */

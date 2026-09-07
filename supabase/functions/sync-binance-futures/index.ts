@@ -259,22 +259,53 @@ Deno.serve(async (req: Request) => {
     }
 
     // ── 4. Hourly history — upsert into the current hour bucket ─────
+    //
+    // WRITTEN AS TWO UPSERTS, and it has to be. The bulk fields are fresh
+    // for every symbol on every run; the detail fields exist only for the
+    // OI_BATCH symbols this run happened to rotate through.
+    //
+    // Sending them together, as this did until 2026-09-07, meant the
+    // 19:37 run wrote NULL over the 19:07 run's open interest for the 225
+    // symbols it did not sample — because a column present in the payload
+    // is included in ON CONFLICT DO UPDATE SET whether its value is real
+    // or null. Two runs per hour at 75 symbols collected 150 readings and
+    // stored 75. Measured before the fix: 302 rows per bucket, 75-77 with
+    // open interest, where ~150 was expected.
+    //
+    // Omitting a column from the payload leaves it untouched on conflict,
+    // so splitting the write is the whole fix: bulk fields for everyone,
+    // detail fields only for symbols that actually produced a reading.
+    // Bulk goes first so the row exists before the detail upsert lands.
     const bucket = new Date();
     bucket.setUTCMinutes(0, 0, 0);
     const bucketIso = bucket.toISOString();
-    const oiBy = new Map(oiRows.map((r: any) => [r.symbol, r]));
 
-    const histRows = bulkRows.map((r) => ({
+    const histBulkRows = bulkRows.map((r) => ({
       symbol: r.symbol,
       bucket: bucketIso,
-      open_interest_value: oiBy.get(r.symbol)?.open_interest_value ?? null,
       funding_rate: r.funding_rate,
       last_price: r.last_price,
     }));
 
     const { error: hErr } = await supabase
-      .from('binance_futures_history').upsert(histRows, { onConflict: 'symbol,bucket' });
+      .from('binance_futures_history').upsert(histBulkRows, { onConflict: 'symbol,bucket' });
     if (hErr) throw new Error('history upsert failed: ' + hErr.message);
+
+    // Only symbols this run sampled. A symbol whose positioning feed does
+    // not exist keeps long_short_ratio null for the hour — NULL means "not
+    // measured", never "balanced".
+    const histDetailRows = oiRows.map((r: any) => ({
+      symbol: r.symbol,
+      bucket: bucketIso,
+      open_interest_value: r.open_interest_value,
+      long_short_ratio: r.long_short_ratio,
+    }));
+
+    if (histDetailRows.length) {
+      const { error: hdErr } = await supabase
+        .from('binance_futures_history').upsert(histDetailRows, { onConflict: 'symbol,bucket' });
+      if (hdErr) throw new Error('history detail upsert failed: ' + hdErr.message);
+    }
 
     // Cheap prune; the PK already bounds growth to 24 rows/symbol/day.
     const cutoff = new Date(Date.now() - HISTORY_RETENTION_DAYS * 864e5).toISOString();
@@ -288,7 +319,18 @@ Deno.serve(async (req: Request) => {
       site_coins_seen: coins.length,    // 0 here means the market cache read broke
       oi_refreshed: oiRows.length,
       oi_requested: staleSyms.length,
-      history_rows: histRows.length,
+      // Positioning feeds are best-effort per symbol, so these two say how
+      // much of the batch actually produced a reading. A sudden drop means
+      // Binance changed or degraded the feed, not that the market went
+      // neutral. Restored 2026-09-07: they existed in the deployed function
+      // but not in this file, and a redeploy from source silently dropped
+      // them — the local copy had drifted behind production.
+      with_long_short: oiRows.filter((r: any) => r.long_short_ratio !== null).length,
+      with_taker:      oiRows.filter((r: any) => r.taker_buy_sell_ratio !== null).length,
+      history_rows: histBulkRows.length,
+      // Symbols whose OI + positioning landed in this hour's bucket. Should
+      // equal oi_refreshed; a gap means the detail upsert partly failed.
+      history_detail_rows: histDetailRows.length,
       bucket: bucketIso,
     }), { headers: { 'Content-Type': 'application/json' } });
 
