@@ -51,14 +51,23 @@
 }(typeof globalThis !== 'undefined' ? globalThis : this, function () {
   'use strict';
 
-  /* 2.0.0 adds the v2 scoring model alongside v1. v1 is unchanged and
-     still the default: computeSignalRun() returns exactly what 1.5.0
-     returned, byte for byte, and the golden test enforces it. Nothing a
-     consumer publishes changes until it opts in to computeSignalRunV2().
+  /* 2.0.0 added the v2 scoring model alongside v1, and v1 was unchanged
+     from 1.5.0 — byte for byte, with the golden test enforcing it. The
+     major bump was because the module offered two models, not because
+     the old one moved.
 
-     The major bump is because the module now offers two models, not
-     because the old one moved. */
-  var ENGINE_VERSION = '2.0.0';
+     2.1.0 IS THE FIRST RELEASE WHERE v1's MATHS MOVED. The market-cap
+     bracket adjustment in computeScores() changed from a multiplier to
+     a signed additive term (see the comment there for the measured
+     reason). Every v1 score for a coin outside the $500M-$50B band
+     changes, so the golden fixture necessarily differs from 2.0.0 and
+     the diff is the record of what moved.
+
+     Minor, not major: no consumer interface changed. Nothing that reads
+     `score`, `zone` or `scoreBreakdown` needs updating — except that
+     `scoreBreakdown.mcapMult` is now `scoreBreakdown.sizeAdj`, which
+     nothing outside the engine ever read. */
+  var ENGINE_VERSION = '2.1.0';
   var SCORING_MODELS = ['v1', 'v2'];
 
   /* ── Eligibility defaults ──────────────────────────────────────────
@@ -259,18 +268,38 @@
 
       c.score = Math.min(100, Math.max(-50, Math.round(layer1 + layer2 + layer3)));
 
-      /* Mcap bracket adjustment — dampens micro-cap noise (<$500M),
-         rewards mega-cap stability (>$50B). Neutral $500M–$10B band is
-         implicit (mult stays 1.0). Applied post-clamp, after L1+L2+L3,
-         per the spec — can nudge score slightly outside -50..100 in
-         edge cases, which is intentional (a 1.05x mega-cap bonus on a
-         near-100 score should still read as "very strong"). */
-      var mcapMult = 1.0;
-      if (c.mcap && c.mcap < 500e6)      mcapMult = 0.85;
-      else if (c.mcap && c.mcap > 50e9)  mcapMult = 1.05;
-      c.score = Math.round(c.score * mcapMult);
+      /* Mcap bracket adjustment — a SIGNED ADDITIVE term, never a
+         multiplier. Shares _v2SizeAdjust with the v2 path, so one size
+         policy serves both models instead of two that can drift apart.
 
-      c.scoreBreakdown = {layer1, layer2, layer3, supplyPts, deflPts, unlockPts, dxyP7: dxyP7, total3P7: total3P7, mcapMult, volRatio: _volRatio(c)};
+         It WAS a multiplier until 2026-09-07: <$500M scored x0.85,
+         >$50B x1.05. Two things were wrong with that, both measured on
+         live data rather than argued from taste:
+
+         1. A multiplier below 1 moves NEGATIVE scores UP. Small-cap
+            scores ran -25..67 at the time of the change, so the weakest
+            micro caps — exactly the coins the penalty exists to flag —
+            were pulled toward zero and OUT of the bottom of the range
+            (-25 x 0.85 = -21), while the strongest lost 10 points
+            (67 x 0.85 = 57). On the coins it was written for it did the
+            opposite of its stated purpose, and since low score is the
+            buy zone it dragged them out of it.
+         2. It scaled with strength rather than with size: -10 points at
+            score 67, -4 at 29, +4 at -25. A size risk adjustment must
+            not depend on where the coin currently ranks.
+
+         Not an edge case: 145 of 191 coins on the 2026-09-07 run were
+         inside the <$500M bracket, so the "adjustment" was the default
+         state for three quarters of the universe.
+
+         Re-clamped, unlike the multiplier, which was deliberately left
+         free to overflow on the argument that a 1.05x mega-cap bonus on
+         a near-100 score should still read as "very strong". That
+         argument is proportional and does not carry over to a flat +2. */
+      var sizeAdj = _v2SizeAdjust(c);
+      c.score = Math.min(100, Math.max(-50, c.score + sizeAdj));
+
+      c.scoreBreakdown = {layer1, layer2, layer3, supplyPts, deflPts, unlockPts, dxyP7: dxyP7, total3P7: total3P7, sizeAdj, volRatio: _volRatio(c)};
     });
 
     /* ── bStocks: partial score, own peer group, no Layer 3 ──────────
