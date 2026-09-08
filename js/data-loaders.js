@@ -1785,6 +1785,88 @@ function openTileDetail(coinId, evt) {
       + '<div class="td-ev-sub">' + body + ' · ' + day + '</div></div></div>';
   }
 
+  /* ── RSI(14), value now and shape over time ────────────────────────
+     The modal had no RSI at all. The lens rail shows the current reading
+     and the engine confirms candidate classification against it, but a
+     visitor who opened a coin saw neither the number nor its direction.
+
+     TWO SOURCES, ON PURPOSE, and they are not interchangeable:
+
+       coin_technicals       the CURRENT value. Refreshed every 3h and
+                             overwritten, so it cannot answer "what was
+                             it last week".
+       coin_indicator_daily  a once-a-day snapshot at 00:45 UTC, one row
+                             per asset per day. The only thing that has
+                             yesterday.
+
+     So the number is read from the fresher table and the line from the
+     historical one. Using the snapshot for both would show a reading up
+     to 24h stale next to a live price.
+
+     The history started on 2026-09-06 and lengthens by one point per day
+     with no further work, so the line appears on its own once there are
+     enough readings — the same _SPARK_MIN_POINTS floor the derivatives
+     sparklines use, and for the same reason. Until then the panel says
+     how many days it has, which is a truthful "not yet" rather than an
+     empty box. */
+  var rsiSec = document.getElementById('td-rsi-sec');
+  var rsiEl  = document.getElementById('td-rsi');
+  if (rsiSec && rsiEl) {
+    var tech = (typeof coinTechnicals !== 'undefined') ? (coinTechnicals[c.sym] || null) : null;
+    var rNow = tech && tech.rsiD != null ? Number(tech.rsiD) : null;
+    var rWk  = tech && tech.rsiW != null ? Number(tech.rsiW) : null;
+
+    if (rNow == null && rWk == null) {
+      rsiSec.style.display = 'none';
+    } else {
+      /* Bands are the engine's CANDIDATE_RULES.rsi, named here rather
+         than re-invented: 30 oversold, 45 the confirmation line, 70
+         overbought. A second set of bands on the same number is exactly
+         what 2.3.0 removed. */
+      var band = function(v) {
+        if (v == null) return { t: '—', c: 'var(--muted)' };
+        if (v <= 30) return { t: 'oversold',   c: 'var(--green)' };
+        if (v <= 45) return { t: 'low',        c: 'var(--green)' };
+        if (v <  60) return { t: 'neutral',    c: 'var(--muted)' };
+        if (v <  70) return { t: 'elevated',   c: 'var(--amber)' };
+        return             { t: 'overbought', c: 'var(--red)' };
+      };
+      var bD = band(rNow), bW = band(rWk);
+      rsiEl.innerHTML =
+          '<div class="td-mkt-grid cols-2" style="margin-bottom:0;">'
+        + '<div class="td-cell" title="Wilder RSI(14) on daily candles, computed server-side. Compares recent gains with recent losses on a 0-100 scale. It describes what price has already done."><div class="td-cell-l">RSI · DAILY</div><div class="td-cell-v" style="color:' + bD.c + ';">'
+          + (rNow != null ? rNow.toFixed(1) : '—') + ' <span style="font-size:10px;font-weight:400;">' + bD.t + '</span></div></div>'
+        + '<div class="td-cell" title="Wilder RSI(14) on weekly closes. Slower, so it moves less often than the daily reading."><div class="td-cell-l">RSI · WEEKLY</div><div class="td-cell-v" style="color:' + bW.c + ';">'
+          + (rWk != null ? rWk.toFixed(1) : '—') + ' <span style="font-size:10px;font-weight:400;">' + bW.t + '</span></div></div>'
+        + '</div>'
+        + '<div id="td-rsi-hist" data-sym="' + c.sym + '"></div>';
+      rsiSec.style.display = '';
+
+      (function(sym) {
+        if (typeof supaLoadIndicatorHistory !== 'function') return;
+        supaLoadIndicatorHistory(sym).then(function(rows) {
+          var box = document.getElementById('td-rsi-hist');
+          if (!box || box.getAttribute('data-sym') !== sym) return;   /* modal moved on */
+          var series = _seriesOf(rows, 'rsi14_daily');
+          var svg = _sparkline(series, 'var(--bnb)', 200, 34);
+          if (!svg) {
+            box.innerHTML = '<div class="td-hist-note">' + series.length + ' day'
+              + (series.length === 1 ? '' : 's') + ' of history recorded so far — the trend line '
+              + 'appears at ' + _SPARK_MIN_POINTS + '. One reading is added per day.</div>';
+            return;
+          }
+          var first = series[0], last = series[series.length - 1];
+          var dir = last > first ? 'rising' : last < first ? 'falling' : 'flat';
+          box.innerHTML = '<div class="td-hist-cell" style="margin-top:10px;">'
+            + '<div class="td-cell-l">RSI · DAILY OVER TIME<span style="color:var(--muted);font-weight:400;"> · '
+            + series.length + ' days</span></div>' + svg
+            + '<div class="td-hist-sub">' + first.toFixed(1) + ' → ' + last.toFixed(1)
+            + ' · ' + dir + ' across the recorded window</div></div>';
+        });
+      })(c.sym);
+    }
+  }
+
   var evSec = document.getElementById('td-events-sec');
   var evEl  = document.getElementById('td-events');
   if (evSec && evEl) {

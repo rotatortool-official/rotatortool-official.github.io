@@ -608,6 +608,40 @@ function supaLoadFuturesMetrics() {
 }
 
 /**
+ * Daily indicator history for ONE asset, oldest first.
+ *
+ * coin_indicator_daily is a once-a-day SNAPSHOT written at 00:45 UTC —
+ * one row per asset per day. That makes it the only source of "what was
+ * RSI last week", which coin_technicals cannot answer: that table holds
+ * the CURRENT reading and is overwritten every 3 hours.
+ *
+ * So the two are used for different jobs and neither replaces the other:
+ * coin_technicals for the value now (fresher), coin_indicator_daily for
+ * the shape over time (only it has yesterday).
+ *
+ * Started accumulating 2026-09-06, so it is genuinely short at first and
+ * lengthens by one point per asset per day with no further work.
+ */
+var _indHistCache = {};
+function supaLoadIndicatorHistory(baseAsset) {
+  if (!baseAsset) return Promise.resolve([]);
+  if (_indHistCache[baseAsset]) return Promise.resolve(_indHistCache[baseAsset]);
+  return supaRest('coin_indicator_daily', 'GET', {
+    'base_asset': 'eq.' + baseAsset,
+    'select': 'as_of_date,rsi14_daily,rsi14_weekly,cross_state,long_short_ratio',
+    'order':  'as_of_date.asc',
+    'limit':  '120'
+  }).then(function(rows) {
+    var out = Array.isArray(rows) ? rows : [];
+    _indHistCache[baseAsset] = out;
+    return out;
+  }).catch(function(e) {
+    console.warn('[Supabase] indicator history read failed for ' + baseAsset + ':', e.message);
+    return [];
+  });
+}
+
+/**
  * Recent technical events, indexed by base asset.
  *
  * READ ONLY. detect_coin_events() (sql/create_coin_events.sql, 00:45 UTC)

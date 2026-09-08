@@ -465,7 +465,20 @@ body::before{content:'';position:fixed;inset:0;background:repeating-linear-gradi
 /* ── SIGNAL TILE GRID (Rotation / Momentum / Worst) ── */
 .bars-cols{display:flex;gap:10px;flex:1;align-items:stretch;}
 .bars-divider{display:none;}
-.bars-col-inner{flex:1;min-width:0;background:var(--bg3);border:1px solid var(--bdr);border-radius:10px;padding:12px 10px 10px;border-top:2px solid transparent;}
+.bars-col-inner{flex:1;min-width:0;background:var(--bg3);border:1px solid var(--bdr);border-radius:10px;padding:12px 10px 10px;border-top:2px solid transparent;display:flex;flex-direction:column;}
+/* The three columns are stretched to equal height by .bars-cols'
+   align-items:stretch, which keeps the bordered cards aligned. Without
+   the two rules below only the CARD stretched and its contents did not,
+   so whichever column had the fewest tiles showed dead space under them
+   — in the middle of the screen, in the section people look at first.
+   Making the card a flex column and letting the tile grid grow means the
+   grid's existing grid-auto-rows:1fr distributes the height across the
+   rows that ARE there. Fewer tiles now means taller tiles, never a gap.
+   Mobile is untouched: the max-width:700 block below overrides
+   grid-auto-rows to auto, so rows keep their natural height and the
+   column scrolls. */
+.bars-col-inner > div:not(.bar-col-title){flex:1;display:flex;flex-direction:column;min-height:0;}
+.bars-col-inner .sig-tiles-grid{flex:1;}
 .bars-col-inner:nth-child(1){border-top-color:rgba(0,200,150,.6);border-color:rgba(0,200,150,.18);box-shadow:none;}
 .bars-col-inner:nth-child(2){border-top-color:rgba(240,160,48,.6);border-color:rgba(240,160,48,.18);box-shadow:none;}
 .bars-col-inner:nth-child(3){border-top-color:rgba(255,69,96,.6);border-color:rgba(255,69,96,.18);box-shadow:none;}

@@ -345,6 +345,14 @@
     <div class="td-hist-grid" id="td-deriv-hist"></div>
   </div>
 
+  <!-- RSI(14): current reading from coin_technicals, history from
+       coin_indicator_daily. Two sources on purpose — see the comment in
+       js/data-loaders.js. Hidden when the coin has no Binance pair. -->
+  <div class="td-section" id="td-rsi-sec" style="display:none;">
+    <div class="td-section-title">Momentum · RSI(14)</div>
+    <div id="td-rsi"></div>
+  </div>
+
   <!-- Technical events from coin_events, detected daily at 00:45 UTC by
        detect_coin_events(). Hidden unless this coin has one in the
        window — most coins do not on most days. -->

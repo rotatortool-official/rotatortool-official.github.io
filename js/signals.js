@@ -599,8 +599,16 @@ function renderTopBars() {
   var worstAll = coins.slice().filter(function(c) { return !c.isStock; }).sort(function(a, b) { return a.p30 - b.p30; });
   var worstEl  = document.getElementById('worst-cards');
   if (isPro) {
-    var worstTiles = worstAll.slice(0, 4).map(function(c) { return sigTile(c, 'wrst'); }).join('');
-    for (var wp = worstAll.slice(0, 4).length; wp < 4; wp++) worstTiles += emptyPlaceholderTile();
+    /* SIX, not four. The three signal columns share a row, so the tallest
+       sets the height — and Rotation is the tall one: its tile carries a
+       sentence of explanation while a momentum tile is four compact stats.
+       Four tiles fill two rows against Rotation's two taller ones, leaving
+       a third row of dead space in the middle of the screen. Six fills it
+       with real coins instead of nothing. Measured 2026-09-08 at 2371px:
+       184px of content in a 236px column. The file header has always
+       documented .slice(0, 6) as the knob; this is it being turned. */
+    var worstTiles = worstAll.slice(0, 6).map(function(c) { return sigTile(c, 'wrst'); }).join('');
+    for (var wp = worstAll.slice(0, 6).length; wp < 6; wp++) worstTiles += emptyPlaceholderTile();
     worstEl.innerHTML = '<div class="sig-tiles-grid">' + worstTiles + '</div>';
   } else {
     var w3 = worstAll.slice(0, 2).map(function(c) { return sigTile(c, 'wrst'); }).join('');
@@ -646,8 +654,16 @@ function renderTopBars() {
   var momEl   = document.getElementById('mom-cards');
   if (isPro) {
     if (momAll.length) {
-      var momTiles = momAll.slice(0, 4).map(function(c) { return sigTile(c, 'mom'); }).join('');
-      for (var mp = momAll.slice(0, 4).length; mp < 4; mp++) momTiles += emptyPlaceholderTile();
+    /* SIX, not four. The three signal columns share a row, so the tallest
+       sets the height — and Rotation is the tall one: its tile carries a
+       sentence of explanation while a momentum tile is four compact stats.
+       Four tiles fill two rows against Rotation's two taller ones, leaving
+       a third row of dead space in the middle of the screen. Six fills it
+       with real coins instead of nothing. Measured 2026-09-08 at 2371px:
+       184px of content in a 236px column. The file header has always
+       documented .slice(0, 6) as the knob; this is it being turned. */
+      var momTiles = momAll.slice(0, 6).map(function(c) { return sigTile(c, 'mom'); }).join('');
+      for (var mp = momAll.slice(0, 6).length; mp < 6; mp++) momTiles += emptyPlaceholderTile();
       momEl.innerHTML = '<div class="sig-tiles-grid">' + momTiles + '</div>';
     } else {
       momEl.innerHTML = '<div class="no-sug">Scanning \u2014 no coins above momentum threshold right now.</div>';
