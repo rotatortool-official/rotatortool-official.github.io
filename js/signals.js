@@ -562,6 +562,76 @@ function sigRotTile(sell, buy) {
     + '</div>';
 }
 
+/* How many tiles the Rotation column renders. The other two columns
+   document .slice(0, 6) in the file header as their knob; this is
+   Rotation's, and it is the SAME number for both tiers — Free renders
+   one of them for real and locks the rest, but it must build the same
+   list, or the two tiers can disagree about what the run said. */
+var ROT_TILE_SLOTS = 4;
+
+/* ── The rotation tile list — ONE builder, both tiers ──────────────────
+   Free and Pro each carried their own copy of this construction:
+   identical, eleven lines, twice. Two copies of a list that decides what
+   the front page recommends is the same shape of defect the engine
+   extraction spent three releases removing, one level down.
+
+   WHAT CHANGED. The old code only reached the buy candidates when the
+   holdings side had produced NOTHING at all:
+
+       if (!tiles.length) { allBuys.slice(0, 4) ... }
+
+   So a single sell-zone holding capped the entire panel at one tile, and
+   the three empty slots beside it read as "the market has nothing to
+   offer" when what they actually meant was "you hold one overheated
+   coin". An inventory fact rendered as a market fact — and the reason
+   two browsers on the SAME run disagreed on 2026-09-08: holding INJ
+   (score 76, RSI 73.1, sell zone) collapsed the panel to one tile, while
+   holding nothing fell through to the fallback and offered JTO.
+
+   Now the holdings tiles take their slots first — a rotate-out signal
+   concerns money already at risk, so it outranks a suggestion — and
+   every slot they do not need is filled with real buy candidates
+   instead of a placeholder.
+
+   Coins already on screen as the buy leg of a pair are sorted LAST
+   rather than dropped. On a normal day the spare slots show different
+   coins and this never triggers; when the candidate list is one coin
+   deep — run 308: JTO was the only one of 195 to survive the classifier
+   — a repeat says more than a blank does.
+
+   NOT a scoring change, and deliberately not a place where one could
+   hide. Every coin here was already filtered by the caller through
+   _passesMeanRevGate / _isTradable / _isPresentable / _isExchangeFlagged;
+   this function only chooses which of those survivors get the slots. It
+   reads no globals and touches no DOM, so verify-rotation-tiles.js runs
+   this exact function rather than a retyped approximation of it. */
+function _buildRotationTiles(sells, buys, allBuys, slots) {
+  var tiles = [];
+  var sl = (typeof slots === 'number' && slots > 0) ? slots : 4;
+  var bl = buys || [];
+
+  /* 1. Holdings first — a sell-zone coin paired with a buy target, or a
+        standalone take-profit tile when there is no target left to pair
+        it with (the real signal, not discarded for a fake pair). */
+  (sells || []).forEach(function(s, i) {
+    if (i < bl.length) tiles.push({ type: 'pair', sell: s, buy: bl[i] });
+    else tiles.push({ type: 'profit', c: s });
+  });
+  tiles = tiles.slice(0, sl);
+
+  /* 2. Fill what is left with buy candidates — ones not already on
+        screen ahead of ones that are. */
+  var onScreen = {};
+  tiles.forEach(function(t) { if (t.buy) onScreen[t.buy.sym] = true; });
+  var fresh = [], repeats = [];
+  (allBuys || []).forEach(function(c) { (onScreen[c.sym] ? repeats : fresh).push(c); });
+  fresh.concat(repeats).forEach(function(c) {
+    if (tiles.length < sl) tiles.push({ type: 'buy', c: c });
+  });
+
+  return tiles;
+}
+
 /* Render all three signal columns */
 function renderTopBars() {
   /* No re-run here any more (Step B). Zone/score are server-authoritative
@@ -713,24 +783,11 @@ function renderTopBars() {
   });
 
   if (!isPro) {
-    /* Build up to 4 real tiles — genuinely mixed types, not a forced
-       "sell X for Y" shape:
-       • held sell-zone coin + real buy target available  -> rotation pair
-       • held sell-zone coin, NO qualifying buy target     -> standalone
-         take-profit tile (the real signal, not discarded for a fake pair)
-       • no held sell-zone coins at all                    -> standalone
-         buy suggestions (the actual "what should I buy" answer) */
-    var previewTiles = [];
-    if (sells.length) {
-      sells.forEach(function(s, i) {
-        if (i < buys.length) previewTiles.push({ type: 'pair', sell: s, buy: buys[i] });
-        else previewTiles.push({ type: 'profit', c: s });
-      });
-    }
-    if (!previewTiles.length) {
-      allBuys.slice(0, 4).forEach(function(b) { previewTiles.push({ type: 'buy', c: b }); });
-    }
-    previewTiles = previewTiles.slice(0, 4);
+    /* Up to ROT_TILE_SLOTS genuinely mixed tiles — rotation pair,
+       standalone take-profit, or standalone buy. Built identically for
+       both tiers (see _buildRotationTiles); the tier decides only how
+       many of them are rendered for real, never what the list says. */
+    var previewTiles = _buildRotationTiles(sells, buys, allBuys, ROT_TILE_SLOTS);
 
     function tileHtmlFor(t) {
       if (t.type === 'pair') return sigRotTile(t.sell, t.buy);
@@ -766,7 +823,7 @@ function renderTopBars() {
     /* Always pad to exactly 4 slots with plain placeholders */
     var filledCount = previewTiles.length;
     if (filledCount === 1) gridHtml += proUnlockTile('unlock more');
-    for (var pad = Math.max(filledCount, 2); pad < 4; pad++) {
+    for (var pad = Math.max(filledCount, 2); pad < ROT_TILE_SLOTS; pad++) {
       gridHtml += emptyPlaceholderTile();
     }
 
@@ -776,17 +833,9 @@ function renderTopBars() {
 
   /* Pro: full signals — genuinely mixed types, same logic as the free
      tier above but showing up to 4 real tiles instead of 1. */
-  var proTiles = [];
-  if (sells.length) {
-    sells.forEach(function(s, i) {
-      if (i < buys.length) proTiles.push({ type: 'pair', sell: s, buy: buys[i] });
-      else proTiles.push({ type: 'profit', c: s });
-    });
-  }
-  if (!proTiles.length) {
-    allBuys.slice(0, 4).forEach(function(b) { proTiles.push({ type: 'buy', c: b }); });
-  }
-  proTiles = proTiles.slice(0, 4);
+  /* Same builder the Free branch above uses. Pro renders every tile it
+     returns; Free renders the first and locks the rest. */
+  var proTiles = _buildRotationTiles(sells, buys, allBuys, ROT_TILE_SLOTS);
 
   if (!proTiles.length) {
     sugEl.innerHTML = '<div class="no-sug">Scanning — no rotation setups in range right now.</div>';
@@ -797,7 +846,7 @@ function renderTopBars() {
     if (t.type === 'profit') return takeProfitTile(t.c);
     return buySuggestTile(t.c);
   }).join('');
-  for (var rp = proTiles.length; rp < 4; rp++) rotHtml += emptyPlaceholderTile();
+  for (var rp = proTiles.length; rp < ROT_TILE_SLOTS; rp++) rotHtml += emptyPlaceholderTile();
   sugEl.innerHTML = '<div class="sig-tiles-grid">' + rotHtml + '</div>' + provenProofLine();
 }
 
