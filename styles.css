@@ -730,6 +730,29 @@ body::before{content:'';position:fixed;inset:0;background:repeating-linear-gradi
 .td-mkt-cell-l{font-size:10px;color:var(--muted);opacity:.6;letter-spacing:.1em;text-transform:uppercase;font-family:var(--font-ui);font-weight:600;line-height:1;margin:0;}
 .td-mkt-cell-v{font-size:13px;font-weight:600;color:var(--text);font-family:var(--font-mono);letter-spacing:.01em;line-height:1.15;}
 /* td-cell: inline compact row used in perf/market grids by JS */
+/* ── Derivatives history sparklines ─────────────────────────────────
+   Sits under the current-reading grid in the coin modal. Collapses to
+   nothing when empty (:empty) so a pair with no perpetual history leaves
+   no gap, and stacks on narrow screens. */
+/* ── Technical events (coin_events) ─────────────────────────────────
+   One row per detected event in the modal. Colour marks direction only;
+   the text carries the meaning, because colour alone would imply a
+   verdict the row is careful not to give. */
+.td-ev-row{display:flex;gap:9px;align-items:flex-start;padding:7px 0;border-bottom:1px solid rgba(255,255,255,.05);}
+.td-ev-row:last-of-type{border-bottom:0;}
+.td-ev-dot{width:6px;height:6px;border-radius:50%;margin-top:6px;flex:0 0 6px;}
+.td-ev-body{min-width:0;}
+.td-ev-lbl{font-size:12.5px;color:var(--text);font-weight:600;line-height:1.4;}
+.td-ev-sub{font-size:10.5px;color:var(--muted);margin-top:2px;line-height:1.45;}
+.td-ev-more{font-size:10.5px;color:var(--muted);padding-top:7px;}
+.td-ev-note{font-size:10px;color:var(--muted);line-height:1.5;margin-top:9px;padding-top:8px;border-top:1px solid rgba(255,255,255,.05);}
+.td-hist-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-top:10px;}
+.td-hist-grid:empty{display:none;}
+.td-hist-cell{background:rgba(255,255,255,.02);border:1px solid rgba(255,255,255,.06);border-radius:6px;padding:9px 11px 8px;min-width:0;}
+.td-hist-cell .td-cell-l{margin-bottom:6px;}
+.td-hist-sub{font-size:10.5px;color:var(--muted);margin-top:5px;letter-spacing:.02em;}
+.td-hist-note{font-size:10.5px;color:var(--muted);line-height:1.5;padding:2px 0;}
+@media(max-width:520px){.td-hist-grid{grid-template-columns:1fr;}}
 .td-cell{background:rgba(255,255,255,.015);border:0;border-radius:0;padding:9px 8px;display:flex;flex-direction:column;gap:4px;}
 .td-cell-l{font-size:10px;color:var(--muted);opacity:.6;letter-spacing:.1em;text-transform:uppercase;font-family:var(--font-ui);font-weight:600;line-height:1;}
 .td-cell-v{font-size:13px;font-weight:600;font-family:var(--font-mono);color:var(--text);letter-spacing:.01em;line-height:1.15;}

@@ -591,7 +591,11 @@ function supaLoad4hKlines(syms) {
  */
 function supaLoadFuturesMetrics() {
   return supaRest('binance_futures_metrics', 'GET', {
-    'select': 'base_asset,funding_rate,open_interest_value,oi_change_24h_pct,'
+    /* `symbol` (BTCUSDT form) is carried because binance_futures_history
+       is keyed by it and has no base_asset column — see
+       supaLoadFuturesHistory(). Deriving it as base_asset + 'USDT' would
+       be right for almost every pair and silently wrong for the rest. */
+    'select': 'symbol,base_asset,funding_rate,open_interest_value,oi_change_24h_pct,'
             + 'price_change_pct_24h,long_short_ratio,binance_category,detail_updated_at'
   }).then(function(rows) {
     var out = {};
@@ -600,6 +604,87 @@ function supaLoadFuturesMetrics() {
   }).catch(function(e) {
     console.warn('[Supabase] futures metrics read failed:', e.message);
     return {};
+  });
+}
+
+/**
+ * Recent technical events, indexed by base asset.
+ *
+ * READ ONLY. detect_coin_events() (sql/create_coin_events.sql, 00:45 UTC)
+ * owns the detection; the site never derives a cross or an RSI crossing
+ * for itself, for the same reason it never re-derives the engine's zone
+ * thresholds — whoever computes a number owns it. See promptove/24.
+ *
+ * Fetched once for the whole universe rather than per coin: the detector
+ * produced six events across every tracked asset on 2026-09-07, so this
+ * is a handful of rows, and one request beats a request per modal open.
+ *
+ * The window matches EVENT_LOOKBACK_DAYS in send-telegram-alerts, which
+ * in turn matches detect_coin_events()'s own repair margin for a missed
+ * run. A wider window here would show the site events the digest had
+ * already stopped reporting.
+ */
+var EVENT_WINDOW_DAYS = 3;
+function supaLoadCoinEvents() {
+  var since = new Date(Date.now() - EVENT_WINDOW_DAYS * 86400000)
+                .toISOString().slice(0, 10);
+  return supaRest('coin_events', 'GET', {
+    'event_date': 'gte.' + since,
+    'select': 'base_asset,event_date,event_type,value,prev_value,detail',
+    'order':  'event_date.desc',
+    'limit':  '400'
+  }).then(function(rows) {
+    var out = {};
+    (rows || []).forEach(function(r) {
+      if (!r || !r.base_asset) return;
+      (out[r.base_asset] = out[r.base_asset] || []).push(r);
+    });
+    return out;
+  }).catch(function(e) {
+    console.warn('[Supabase] coin events read failed:', e.message);
+    return {};
+  });
+}
+
+/**
+ * Hourly derivatives history for ONE perpetual, newest last.
+ *
+ * Lazy on purpose: 443 symbols x ~40 buckets is far too much to pull on
+ * boot for a panel most visitors never open, so this is called when a
+ * coin modal opens and the result cached per symbol for the session.
+ *
+ * TWO SHAPES OF HOLE, both real and both handled by the caller:
+ *
+ *   · open_interest_value and long_short_ratio are NULL on alternating
+ *     buckets. sync-binance-futures rotates OI detail across ~75 symbols
+ *     per run to stay inside Binance's rate limits, so any one symbol
+ *     gets those fields roughly every other hour. Measured 2026-09-08:
+ *     funding lands on 39.7 of 39.7 buckets on average, OI on 15.8.
+ *     A chart that treated those nulls as zero would draw a sawtooth
+ *     that does not exist.
+ *   · a symbol listed recently simply has fewer buckets. 322 of 443 have
+ *     8+ OI points; the rest are too sparse to draw honestly.
+ *
+ * Display only. Nothing here reaches a score — see the Derivatives
+ * comment in data-loaders.js and promptove/15 for why that needs a
+ * forward-return measurement first, not a plausible story.
+ */
+var _futHistCache = {};
+function supaLoadFuturesHistory(symbol) {
+  if (!symbol) return Promise.resolve([]);
+  if (_futHistCache[symbol]) return Promise.resolve(_futHistCache[symbol]);
+  return supaRest('binance_futures_history', 'GET', {
+    'symbol': 'eq.' + symbol,
+    'select': 'bucket,open_interest_value,funding_rate,last_price,long_short_ratio',
+    'order':  'bucket.asc',
+    'limit':  '240'
+  }).then(function(rows) {
+    var out = Array.isArray(rows) ? rows : [];
+    _futHistCache[symbol] = out;
+    return out;
+  }).catch(function(e) {
+    console.warn('[Supabase] futures history read failed for ' + symbol + ':', e.message);
+    return [];
   });
 }
 

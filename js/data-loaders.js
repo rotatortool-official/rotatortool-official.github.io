@@ -270,6 +270,19 @@ var _macroData = {btcP7: null, goldP7: null, silverP7: null, oilP7: null, dxyP7:
    section rather than a broken modal. Display only, never scored. */
 var _futuresBySym = {};
 
+/* Technical events by base asset, from coin_events. Loaded once on boot —
+   the whole universe produces a handful of rows a day. See
+   supaLoadCoinEvents() for why the site reads rather than detects. */
+var _eventsBySym = {};
+async function loadCoinEvents() {
+  try {
+    _eventsBySym = (typeof supaLoadCoinEvents === 'function')
+      ? await supaLoadCoinEvents() : {};
+  } catch (e) {
+    _eventsBySym = {};
+  }
+}
+
 async function loadFuturesMetrics() {
   if (typeof supaLoadFuturesMetrics !== 'function') return;
   try {
@@ -1028,7 +1041,7 @@ async function doLoad() {
        exclude delisted AND Monitoring-tagged coins. Run together: they are
        independent reads and serialising them would add a round trip to
        first paint for no reason. */
-    await Promise.all([loadDelistedSymbols(), loadMonitoringSymbols(), loadBinanceTags(), loadCoinTechnicals()]);
+    await Promise.all([loadDelistedSymbols(), loadMonitoringSymbols(), loadBinanceTags(), loadCoinTechnicals(), loadCoinEvents()]);
     await loadCoins('all');  prog(50, 'Scoring and ranking coins…');  renderCoinSel();
     await loadBstocks();     prog(65, 'Fetching bStock data…');
     if (typeof pruneStaleHoldings === 'function') pruneStaleHoldings();
@@ -1066,7 +1079,7 @@ async function doRefresh() {
   try {
     await loadMarketCycle(); /* cheap — 1hr cache TTL, real MA200 barely moves anyway */
     /* Same TTL reasoning — Binance status and tags don't change minute to minute. */
-    await Promise.all([loadDelistedSymbols(), loadMonitoringSymbols(), loadBinanceTags(), loadCoinTechnicals()]);
+    await Promise.all([loadDelistedSymbols(), loadMonitoringSymbols(), loadBinanceTags(), loadCoinTechnicals(), loadCoinEvents()]);
 
     /* Always refresh crypto — re-fetch all loaded categories */
     await loadCoins(_loadedCategories['all'] ? 'all' : activeCategory);
@@ -1608,6 +1621,199 @@ function openTileDetail(coinId, evt) {
      project has twice shipped plausible signals that failed that test
      (promptove/09, /12). binance_futures_history accumulates so the
      measurement can actually happen. */
+  /* ── Derivatives history sparklines ────────────────────────────────
+     binance_futures_history has been banking funding, open interest and
+     long/short hourly since 2026-09-06 and nothing had ever read it —
+     the modal showed today's number with nothing to compare it against.
+     "OI is $8.5B" and "OI is $8.5B, flat for two days" are different
+     observations, and only one of them is worth showing.
+
+     MINIMUM POINTS, and why it is not 2. OI arrives on alternating
+     buckets (sync-binance-futures rotates detail across ~75 symbols per
+     run), so a freshly listed pair can have a handful of readings spread
+     over a day. Drawing a two-point line between them looks like a trend
+     and is really an artefact of the sampler. Below the floor the panel
+     says it is still collecting, which is true and useful; a chart
+     drawn from too little data is neither.
+
+     Still display only. Nothing here touches a score. */
+  var _SPARK_MIN_POINTS = 6;
+
+  function _sparkline(pts, color, w, h) {
+    if (!pts || pts.length < _SPARK_MIN_POINTS) return null;
+    var lo = Math.min.apply(null, pts), hi = Math.max.apply(null, pts);
+    var span = hi - lo;
+    /* A flat series is real information, not a failure — draw it down the
+       middle rather than dividing by zero and rendering NaN. */
+    var y = function(v) { return span === 0 ? h / 2 : h - ((v - lo) / span) * (h - 2) - 1; };
+    var step = pts.length > 1 ? w / (pts.length - 1) : 0;
+    var d = pts.map(function(v, i) {
+      return (i ? 'L' : 'M') + (i * step).toFixed(1) + ' ' + y(v).toFixed(1);
+    }).join(' ');
+    return '<svg viewBox="0 0 ' + w + ' ' + h + '" width="100%" height="' + h
+      + '" preserveAspectRatio="none" aria-hidden="true" style="display:block;overflow:visible;">'
+      + '<path d="' + d + '" fill="none" stroke="' + color
+      + '" stroke-width="1.5" stroke-linejoin="round" stroke-linecap="round"/>'
+      + '<circle cx="' + ((pts.length - 1) * step).toFixed(1) + '" cy="' + y(pts[pts.length - 1]).toFixed(1)
+      + '" r="2" fill="' + color + '"/></svg>';
+  }
+
+  /* Nulls are SKIPPED, never zero-filled — see supaLoadFuturesHistory(). */
+  function _seriesOf(rows, field) {
+    var out = [];
+    for (var i = 0; i < rows.length; i++) {
+      var v = rows[i][field];
+      if (v !== null && v !== undefined && isFinite(Number(v))) out.push(Number(v));
+    }
+    return out;
+  }
+
+  function _hoursSpanned(rows) {
+    if (!rows || rows.length < 2) return 0;
+    var a = Date.parse(rows[0].bucket), b = Date.parse(rows[rows.length - 1].bucket);
+    return (!isFinite(a) || !isFinite(b)) ? 0 : Math.round((b - a) / 3600000);
+  }
+
+  function _renderDerivHistory(sym, futSymbol) {
+    var box = document.getElementById('td-deriv-hist');
+    if (!box || !futSymbol || typeof supaLoadFuturesHistory !== 'function') return;
+    box.innerHTML = '<div class="td-hist-note">Loading history…</div>';
+    supaLoadFuturesHistory(futSymbol).then(function(rows) {
+      /* The modal may have moved on to another coin while this resolved. */
+      if (box.getAttribute('data-sym') !== sym) return;
+      var oi = _seriesOf(rows, 'open_interest_value');
+      var fund = _seriesOf(rows, 'funding_rate').map(function(v) { return v * 100; });
+      var hrs = _hoursSpanned(rows);
+      var oiSvg = _sparkline(oi, 'var(--bnb)', 200, 30);
+      var fundSvg = _sparkline(fund, fund.length && fund[fund.length - 1] >= 0 ? 'var(--red)' : 'var(--green)', 200, 30);
+
+      if (!oiSvg && !fundSvg) {
+        box.innerHTML = '<div class="td-hist-note">Still collecting hourly history for this pair — '
+          + 'a trend needs at least ' + _SPARK_MIN_POINTS + ' readings.</div>';
+        return;
+      }
+      var pct = function(a) {
+        if (a.length < 2 || a[0] === 0) return null;
+        return ((a[a.length - 1] - a[0]) / Math.abs(a[0])) * 100;
+      };
+      var oiPct = pct(oi);
+      var cell = function(lbl, svg, sub, n) {
+        if (!svg) return '<div class="td-hist-cell"><div class="td-cell-l">' + lbl
+          + '</div><div class="td-hist-note">not enough readings yet</div></div>';
+        return '<div class="td-hist-cell"><div class="td-cell-l">' + lbl
+          + '<span style="color:var(--muted);font-weight:400;"> · ' + n + ' pts</span></div>'
+          + svg + '<div class="td-hist-sub">' + sub + '</div></div>';
+      };
+      box.innerHTML =
+          cell('OPEN INTEREST' + (hrs ? ' · ' + hrs + 'H' : ''), oiSvg,
+               oiPct == null ? 'over the recorded window'
+                 : (oiPct >= 0 ? '+' : '') + oiPct.toFixed(1) + '% across the window', oi.length)
+        + cell('FUNDING' + (hrs ? ' · ' + hrs + 'H' : ''), fundSvg,
+               fund.length ? 'now ' + (fund[fund.length - 1] >= 0 ? '+' : '')
+                 + fund[fund.length - 1].toFixed(4) + '% per 8h' : '', fund.length);
+    });
+  }
+
+  /* ── Technical events ──────────────────────────────────────────────
+     coin_events, written daily by detect_coin_events() and until now read
+     only by send-telegram-alerts. Channel subscribers were told when an
+     asset crossed its 125-day average or moved past RSI 80; visitors to
+     the site were told nothing, from the same table.
+
+     THE WORDING RULES ARE THE ALERT FUNCTION'S, and they are not
+     stylistic:
+
+       · The periods are always named. These are 60/125 averages, not the
+         classic 50/200, and a reader who assumes the classic misreads
+         every line.
+       · Every row carries its own date and the word "today" never
+         appears. Detection runs at 00:45 UTC against the previous
+         completed daily candle, so even the freshest event is from
+         yesterday's close — and one coin can carry events from three
+         different closes.
+       · Each block says what the reading describes and what it does not.
+         A cross is past price. An RSI extreme is uncommon, not an
+         outcome. Positioning is how accounts are arranged, not what
+         price does next.
+
+     Not filtered by anything the visitor owns: a cross is a fact about
+     the coin. Same reasoning as the alert function's own note. */
+  function _eventRow(e) {
+    var d = e.detail || {};
+    var day = e.event_date || '';
+    var v = e.value != null ? Number(e.value) : null;
+    var pv = e.prev_value != null ? Number(e.prev_value) : null;
+    var fast = d.ma_fast_period || 60, slow = d.ma_slow_period || 125;
+    var label, body, color;
+
+    switch (e.event_type) {
+      case 'golden_cross':
+      case 'death_cross': {
+        var up = e.event_type === 'golden_cross';
+        color = up ? 'var(--green)' : 'var(--red)';
+        label = fast + 'D moved ' + (up ? 'above ' : 'below ') + slow + 'D';
+        body = (d.ma_fast != null && d.ma_slow != null)
+          ? fmtP(Number(d.ma_fast)) + ' vs ' + fmtP(Number(d.ma_slow))
+          : 'moving averages crossed';
+        break;
+      }
+      case 'rsi_overbought':
+      case 'rsi_oversold': {
+        var above = e.event_type === 'rsi_overbought';
+        color = above ? 'var(--red)' : 'var(--green)';
+        label = 'RSI(14) moved ' + (above ? 'above 80' : 'below 30');
+        body = (v != null ? v.toFixed(1) : '—')
+          + (pv != null ? ', from ' + pv.toFixed(1) + ' the day before' : '');
+        break;
+      }
+      case 'futures_long_crowded':
+      case 'futures_short_crowded': {
+        var lng = e.event_type === 'futures_long_crowded';
+        color = 'var(--amber)';
+        label = 'Long/short account ratio ' + (lng ? 'reached ' : 'fell to ')
+          + (v != null ? v.toFixed(2) : '—');
+        body = pv != null ? 'from ' + pv.toFixed(2) + ' the day before' : 'Binance accounts';
+        break;
+      }
+      default:
+        color = 'var(--muted)';
+        label = String(e.event_type || '').replace(/_/g, ' ');
+        body = v != null ? String(v) : '';
+    }
+    return '<div class="td-ev-row"><span class="td-ev-dot" style="background:' + color + ';"></span>'
+      + '<div class="td-ev-body"><div class="td-ev-lbl">' + label + '</div>'
+      + '<div class="td-ev-sub">' + body + ' · ' + day + '</div></div></div>';
+  }
+
+  var evSec = document.getElementById('td-events-sec');
+  var evEl  = document.getElementById('td-events');
+  if (evSec && evEl) {
+    var evs = (_eventsBySym[c.sym] || []).slice();
+    if (evs.length) {
+      /* Newest first, and capped: one coin crossing three thresholds in a
+         week is interesting, twenty rows is a wall. */
+      evs.sort(function(a, b) { return String(b.event_date).localeCompare(String(a.event_date)); });
+      var take = evs.slice(0, 6);
+      evEl.innerHTML = take.map(_eventRow).join('')
+        + (evs.length > take.length
+            ? '<div class="td-ev-more">+ ' + (evs.length - take.length) + ' more in the last '
+              + (typeof EVENT_WINDOW_DAYS !== 'undefined' ? EVENT_WINDOW_DAYS : 3) + ' days</div>'
+            : '')
+        /* The 60/125 clarification is only shown when a cross is actually
+           on screen. It exists to stop a reader assuming the classic
+           50/200, which is a real misreading — but on a coin whose only
+           event is an RSI crossing it is noise, and noise in a caption is
+           how captions stop being read. */
+        + '<div class="td-ev-note">Detected from completed daily candles at 00:45 UTC.'
+          + (take.some(function(x) { return /_cross$/.test(x.event_type); })
+              ? ' Moving averages are 60-day and 125-day, not the classic 50/200.' : '')
+          + ' These describe what price and positioning have already done.</div>';
+      evSec.style.display = '';
+    } else {
+      evSec.style.display = 'none';
+    }
+  }
+
   var drvSec = document.getElementById('td-deriv-sec');
   var drvEl  = document.getElementById('td-deriv');
   if (drvSec && drvEl) {
@@ -1656,6 +1862,16 @@ function openTileDetail(coinId, evt) {
            + posLabel + '</div></div>';
       drvEl.style.gridTemplateColumns = 'repeat(2,1fr)';
       drvSec.style.display = '';
+
+      /* History below the current readings. data-sym guards against a
+         late response landing in a modal the visitor has already
+         navigated away from. */
+      var histBox = document.getElementById('td-deriv-hist');
+      if (histBox) {
+        histBox.setAttribute('data-sym', c.sym);
+        histBox.innerHTML = '';
+        _renderDerivHistory(c.sym, f.symbol);
+      }
     } else {
       drvSec.style.display = 'none';   /* no perpetual for this coin */
     }
@@ -1670,11 +1886,11 @@ function openTileDetail(coinId, evt) {
       var ratio = (vol / mc) * 100;
       var liqLabel, liqColor, liqNote;
       if (ratio >= 8)      { liqLabel = 'HEALTHY';    liqColor = 'var(--green)'; liqNote = 'Plenty of daily turnover relative to size — exiting a normal position should not move the price much.'; }
-      else if (ratio >= 2) { liqLabel = 'MODERATE';   liqColor = 'var(--amber)'; liqNote = 'Workable liquidity, but a large order could move the price. Consider position size.'; }
+      else if (ratio >= 2) { liqLabel = 'MODERATE';   liqColor = 'var(--amber)'; liqNote = 'Workable liquidity, but a large order could move the price.'; }
       else                 { liqLabel = 'THIN ⚠';     liqColor = 'var(--red)';   liqNote = 'Low turnover relative to market cap — exiting even a modest position may be difficult without moving the price against yourself.'; }
       liqEl.innerHTML =
         '<div class="td-cell"><div class="td-cell-l">24H VOL / MCAP</div><div class="td-cell-v" style="color:'+liqColor+';">'+ratio.toFixed(2)+'%</div></div>'
-        +'<div class="td-cell" title="'+liqNote+' Heuristic thresholds (8%+ / 2-8% / under 2%), not a precise scientific boundary — always check the actual order book before sizing a position.">'
+        +'<div class="td-cell" title="'+liqNote+' Heuristic thresholds (8%+ / 2-8% / under 2%), not a precise scientific boundary. The order book is where the real depth shows.">'
         +'<div class="td-cell-l">ASSESSMENT</div><div class="td-cell-v" style="color:'+liqColor+';">'+liqLabel+'</div></div>';
       liqEl.style.gridTemplateColumns = 'repeat(2,1fr)';
       liqSec.style.display = '';
