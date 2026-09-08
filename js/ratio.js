@@ -167,6 +167,41 @@ var RatioTracker = (function() {
   }
 
   /* ── Dropdowns ───────────────────────────────────────────────── */
+  /* FREE_COINS is the single source of truth shared with the Telegram bot,
+     which reads it out of the deployed config.js, so it is not filtered here.
+     But 18 of its entries are not in the tracked universe at all (measured
+     2026-09-08: 194 in the dropdown, 177 tracked). Those cannot use the
+     Binance chart path — the CoinGecko id -> base asset mapping comes from
+     coins[] — and their prices fall back to a live CoinGecko call too, so
+     they are exactly the selections that produce the 403.
+  
+     Nothing is removed and nothing is hidden. They are grouped, so the list
+     says which coins the site holds full history for, and the fast ones
+     sort first. */
+  function _hasFullData(id){
+    try { return (typeof coins !== 'undefined') && coins.some(function(x){ return x.id === id; }); }
+    catch(e){ return false; }
+  }
+  function _appendGrouped(sel, ids){
+    var full = ids.filter(_hasFullData), lite = ids.filter(function(i){ return !_hasFullData(i); });
+    var mk = function(label, list){
+      if(!list.length) return;
+      var g=document.createElement('optgroup'); g.label=label;
+      list.forEach(function(id){
+        var o=document.createElement('option'); o.value=id; o.textContent=lbl(id)+'  —  '+id; g.appendChild(o);
+      });
+      sel.appendChild(g);
+    };
+    /* If coins[] has not loaded yet — first paint, or the market fetch
+       failed — there is nothing to judge availability against. Labelling
+       all 195 "Limited history" in that state would be a confident lie,
+       so the split is skipped and the list renders exactly as before.
+       loadAll() regroups once coins[] arrives. */
+    if(!full.length){ mk('All Coins', ids); return; }
+    mk('All Coins', full);
+    mk('Limited history', lite);
+  }
+
   function buildFromDropdown(){
     var sel=$('rt-from'); if(!sel) return;
     sel.innerHTML='';
@@ -176,12 +211,7 @@ var RatioTracker = (function() {
       holdIds.forEach(function(id){ var o=document.createElement('option'); o.value=id; o.textContent=lbl(id)+'  —  '+id; g.appendChild(o); });
       sel.appendChild(g);
     }
-    var g2=document.createElement('optgroup'); g2.label='All Coins';
-    FREE_COINS.forEach(function(id){
-      if(holdIds.indexOf(id)>=0) return;
-      var o=document.createElement('option'); o.value=id; o.textContent=lbl(id)+'  —  '+id; g2.appendChild(o);
-    });
-    sel.appendChild(g2);
+    _appendGrouped(sel, FREE_COINS.filter(function(id){ return holdIds.indexOf(id)<0; }));
     var saved=loadPair();
     if(saved&&saved.from&&sel.querySelector('option[value="'+saved.from+'"]')) sel.value=saved.from;
     else if(sel.querySelector('option[value="binancecoin"]')) sel.value='binancecoin';
@@ -193,12 +223,7 @@ var RatioTracker = (function() {
   function buildToDropdown(skipId){
     var sel=$('rt-to'); if(!sel) return;
     sel.innerHTML='';
-    var g=document.createElement('optgroup'); g.label='All Coins';
-    FREE_COINS.forEach(function(id){
-      if(id===skipId) return;
-      var o=document.createElement('option'); o.value=id; o.textContent=lbl(id)+'  —  '+id; g.appendChild(o);
-    });
-    sel.appendChild(g);
+    _appendGrouped(sel, FREE_COINS.filter(function(id){ return id!==skipId; }));
     var saved=loadPair();
     if(saved&&saved.to&&saved.to!==skipId&&sel.querySelector('option[value="'+saved.to+'"]')) sel.value=saved.to;
     else{ var d=['solana','ethereum','ondo-finance','bitcoin'].find(function(x){return x!==skipId;})||FREE_COINS.find(function(x){return x!==skipId;}); sel.value=d; }
@@ -304,6 +329,32 @@ var RatioTracker = (function() {
     status('Loading '+(d===1?'24h':d+'d')+' chart…','');
     setTfDisabled(true);
     try{
+      /* ── Binance first, CoinGecko only if it cannot serve the pair ──────
+         These two market_chart calls were the last browser-to-external-API
+         path in the product, and the source of the HTTP 403 users hit:
+         CoinGecko rate-limiting the browser, two calls per pair per
+         timeframe. Supabase already holds the candles — 141 days of daily
+         for 119 assets, 100 x 4h for 117 — synced, cached and free.
+      
+         Needs BOTH sides: a ratio from one Binance series and one CoinGecko
+         series would mix sampling grids and produce a chart that is wrong in
+         a way nobody could see. So it is all-or-nothing per pair.
+      
+         1d stays on CoinGecko on purpose: 4h candles give six points across
+         a day, which is not a shape anyone can read. */
+      var fSym = _symOf(f), tSym = _symOf(t);
+      if (d >= 7 && fSym && tSym && typeof supaLoadCloseSeries === 'function') {
+        var pair = await Promise.all([supaLoadCloseSeries(fSym, d), supaLoadCloseSeries(tSym, d)]);
+        var bs = _ratioFromCloses(pair[0], pair[1]);
+        if (bs.length >= 5) {
+          S.histCache[ckey] = { ts: Date.now(), series: bs }; S.series = bs;
+          renderChart(bs); renderRange(bs);
+          status('Updated ' + new Date().toLocaleTimeString(), 'ok');
+          setTfDisabled(false);
+          return;
+        }
+      }
+
       var base='https://api.coingecko.com/api/v3/coins/',sfx='/market_chart?vs_currency=usd&days='+d;
       var chartTtl=10*60*1000; /* 10 min shared TTL, matches doLoad's macro cache */
 
@@ -343,6 +394,15 @@ var RatioTracker = (function() {
       S.loading = false;          /* allow re-entry when caller forces refresh */
       _loadGen++;                 /* invalidate any in-flight load */
     }
+    /* The dropdowns are built at DOMContentLoaded, before loadCoins() has
+       run, so on first paint nothing is known about data availability.
+       refresh() has existed since the tool was written and nothing outside
+       this file ever called it; this is the caller it was missing. Once
+       only, and it preserves the current selection. */
+    if(!S._regrouped && typeof coins !== 'undefined' && coins.length){
+      S._regrouped = true;
+      try { refresh(); } catch(e){}
+    }
     if(S.loading) return; S.loading=true;
     var gen = ++_loadGen;         /* capture generation for staleness checks */
 
@@ -372,10 +432,17 @@ var RatioTracker = (function() {
     var vals=S.series.map(function(p){return p.r;}),sorted=vals.slice().sort(function(a,b){return a-b;});
     var pct=sorted.filter(function(v){return v<=ratio;}).length/sorted.length;
     var el=$('rt-badge'); if(!el) return;
-    if(pct>=0.80)      {el.textContent='↑ Great time to swap';            el.style.background='rgba(0,189,142,0.12)';  el.style.color='var(--green)'; el.style.borderColor='rgba(0,189,142,0.25)';}
-    else if(pct>=0.50) {el.textContent='◈ Decent — above average';        el.style.background='rgba(167,139,250,0.1)'; el.style.color='var(--pro)';   el.style.borderColor='rgba(167,139,250,0.25)';}
-    else if(pct>=0.25) {el.textContent='◈ Below period average';          el.style.background='rgba(240,160,48,0.1)';  el.style.color='var(--amber)'; el.style.borderColor='rgba(240,160,48,0.25)';}
-    else               {el.textContent='↓ Unfavorable — wait if possible'; el.style.background='rgba(240,62,88,0.1)';  el.style.color='var(--red)';   el.style.borderColor='rgba(240,62,88,0.25)';}
+    /* Describes where the current ratio sits in the period's own range, and
+       nothing more. It used to read "Great time to swap" / "Unfavorable —
+       wait if possible", which is a timing recommendation — the class of
+       language promptove/19 bans outright. scan-language passed it because
+       its TIER 1 list matches phrases rather than the concept, the same gap
+       that let "Consider position size" ship.
+       The colours are unchanged and still carry the direction. */
+    if(pct>=0.80)      {el.textContent='▲ Top '+(100-Math.round(pct*100))+'% of this period’s range'; el.style.background='rgba(0,189,142,0.12)';  el.style.color='var(--green)'; el.style.borderColor='rgba(0,189,142,0.25)';}
+    else if(pct>=0.50) {el.textContent='◈ Upper half of this period’s range';        el.style.background='rgba(167,139,250,0.1)'; el.style.color='var(--pro)';   el.style.borderColor='rgba(167,139,250,0.25)';}
+    else if(pct>=0.25) {el.textContent='◈ Lower half of this period’s range';          el.style.background='rgba(240,160,48,0.1)';  el.style.color='var(--amber)'; el.style.borderColor='rgba(240,160,48,0.25)';}
+    else               {el.textContent='▼ Bottom '+Math.max(1,Math.round(pct*100))+'% of this period’s range'; el.style.background='rgba(240,62,88,0.1)';  el.style.color='var(--red)';   el.style.borderColor='rgba(240,62,88,0.25)';}
   }
 
   function renderRange(series){
@@ -531,7 +598,7 @@ var RatioTracker = (function() {
             padding:8,
             callbacks:{
               label:function(c){
-                if(usePercent) return ' '+c.parsed.y.toFixed(3)+'%  ('+rawData[c.dataIndex].toFixed(6)+' ratio)';
+                if(usePercent) return ' '+c.parsed.y.toFixed(3)+'%  ('+fmtRatio(rawData[c.dataIndex])+' ratio)';
                 return ' '+c.parsed.y.toFixed(3)+'×';
               }
             }
@@ -556,7 +623,14 @@ var RatioTracker = (function() {
             ticks:{
               font:{size:9,family:'IBM Plex Mono,monospace'},
               color:'rgba(90,110,133,.7)',
-              callback:function(v){return usePercent ? v.toFixed(2)+'%' : v.toFixed(2)+'×';},
+              /* fmtRatio, not toFixed(2). A BTC -> sub-cent pair has a ratio
+                 around 1e8 and toFixed(2) printed an unreadable wall of
+                 digits; the inverse pair is ~1e-8 and printed "0.00" on
+                 EVERY tick, which is what made those charts look like a
+                 flat line. The line had shape all along — the axis could
+                 not express it. fmtRatio has scaled its decimals by
+                 magnitude since it was written; it just was not used here. */
+              callback:function(v){return usePercent ? v.toFixed(2)+'%' : fmtRatioAxis(v)+'×';},
               maxTicksLimit:4
             },
             border:{display:false},
@@ -566,6 +640,48 @@ var RatioTracker = (function() {
         }
       }
     });
+  }
+
+  /* CoinGecko id -> Binance base asset, via the coins[] the page already
+     has. No second mapping table: coins[] is the one place that knows both. */
+  function _symOf(id){
+    try {
+      var c = (typeof coins !== 'undefined') && coins.find(function(x){ return x.id === id; });
+      return c && c.sym ? String(c.sym).toUpperCase() : null;
+    } catch(e){ return null; }
+  }
+
+  /* Two close series -> one ratio series, matched on timestamp rather than
+     index. The two assets can have a different number of candles (a newer
+     listing has fewer), and zipping by index would silently compare
+     Monday's price of one against Wednesday's of the other. */
+  function _ratioFromCloses(a, b){
+    if(!a || !b || !a.length || !b.length) return [];
+    var idx = {}, out = [];
+    b.forEach(function(p){ idx[p.t] = p.r; });
+    a.forEach(function(p){
+      var q = idx[p.t];
+      if(q > 0) out.push({ t: p.t, r: p.r / q });
+    });
+    out.sort(function(x,y){ return x.t - y.t; });
+    return out;
+  }
+
+  /* Axis labels only. fmtRatio is right for the readouts, where full
+     precision is the point, but a 271px chart cannot show
+     "23,489,971,997.07x" three times — that was the other half of why
+     BTC against a sub-cent coin looked broken. Compact above a million,
+     significant digits below one, so the ticks stay distinct AND legible
+     at both extremes. */
+  function fmtRatioAxis(v){
+    var a=Math.abs(v);
+    if(a>=1e12) return (v/1e12).toFixed(2)+'T';
+    if(a>=1e9)  return (v/1e9 ).toFixed(2)+'B';
+    if(a>=1e6)  return (v/1e6 ).toFixed(2)+'M';
+    if(a>=1e3)  return (v/1e3 ).toFixed(2)+'k';
+    if(a>=1)    return v.toFixed(2);
+    if(a>0)     return Number(v.toPrecision(3)).toString();
+    return '0';
   }
 
   function fmtRatio(v){

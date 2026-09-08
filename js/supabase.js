@@ -608,6 +608,86 @@ function supaLoadFuturesMetrics() {
 }
 
 /**
+ * Close-price history for ONE base asset, oldest first, for the swap tool's
+ * ratio chart.
+ *
+ * WHY THIS EXISTS. ratio.js fetched /coins/{id}/market_chart from
+ * CoinGecko IN THE BROWSER, twice per pair per timeframe. That was the
+ * last browser-to-external-API path left in the product — promptove/14
+ * moved every Binance call server-side and these were missed — and it is
+ * what produced the "Chart error: Failed to fetch | HTTP 403" a user hit:
+ * CoinGecko rate-limiting the browser. It cost more than the chart, too,
+ * because renderBadge() returns early without a series, so one 403 also
+ * silently removed the swap-timing badge.
+ *
+ * Both tables are already synced, already cached, and carry more history
+ * than the chart asks for: binance_daily_klines had 141 days for 119
+ * assets on 2026-09-08, binance_klines_4h 100 candles for 117.
+ *
+ * RESOLUTION PER TIMEFRAME, and why 1d is not served here:
+ *   30d -> daily klines, real per-row open_time
+ *   7d  -> 4h klines, 42 points
+ *   1d  -> NOT SERVED. 4h candles give six points across a day, which is
+ *          a shape you cannot read. The caller keeps CoinGecko for that
+ *          one, so this removes roughly two thirds of the calls rather
+ *          than pretending to remove all of them.
+ *
+ * The 4h table stores a bare closes[] with no per-candle timestamp, so
+ * timestamps are reconstructed backwards from updated_at at 4h steps.
+ * That is accurate to within one sync interval and only affects x-axis
+ * labels, never the ratio itself.
+ *
+ * Returns [] when the asset has no row, which is the signal to fall back.
+ */
+var _klineCloseCache = {};
+function supaLoadCloseSeries(baseAsset, days) {
+  if (!baseAsset || !days) return Promise.resolve([]);
+  var key = baseAsset + '|' + days;
+  if (_klineCloseCache[key]) return Promise.resolve(_klineCloseCache[key]);
+
+  var done = function (series) { _klineCloseCache[key] = series; return series; };
+
+  if (days >= 14) {
+    return supaRest('binance_daily_klines', 'GET', {
+      'base_asset': 'eq.' + baseAsset,
+      'select': 'open_time,close',
+      'order':  'open_time.desc',
+      'limit':  String(Math.min(days + 2, 400))
+    }).then(function (rows) {
+      var out = (rows || []).filter(function (r) { return r && r.close != null; })
+        .map(function (r) { return { t: Date.parse(r.open_time), r: Number(r.close) }; })
+        .filter(function (p) { return isFinite(p.t) && isFinite(p.r) && p.r > 0; });
+      out.sort(function (a, b) { return a.t - b.t; });
+      return done(out);
+    }).catch(function (e) {
+      console.warn('[Supabase] daily klines read failed for ' + baseAsset + ':', e.message);
+      return [];
+    });
+  }
+
+  return supaRest('binance_klines_4h', 'GET', {
+    'base_asset': 'eq.' + baseAsset,
+    'select': 'closes,candle_count,updated_at'
+  }).then(function (rows) {
+    var row = (rows || [])[0];
+    if (!row || !Array.isArray(row.closes) || !row.closes.length) return [];
+    var want = Math.min(Math.ceil(days * 6), row.closes.length);   /* 6 x 4h per day */
+    var tail = row.closes.slice(-want);
+    var end = Date.parse(row.updated_at) || Date.now();
+    var step = 4 * 3600 * 1000;
+    var out = [];
+    for (var i = 0; i < tail.length; i++) {
+      var v = Number(tail[i]);
+      if (isFinite(v) && v > 0) out.push({ t: end - (tail.length - 1 - i) * step, r: v });
+    }
+    return done(out);
+  }).catch(function (e) {
+    console.warn('[Supabase] 4h klines read failed for ' + baseAsset + ':', e.message);
+    return [];
+  });
+}
+
+/**
  * Daily indicator history for ONE asset, oldest first.
  *
  * coin_indicator_daily is a once-a-day SNAPSHOT written at 00:45 UTC —
