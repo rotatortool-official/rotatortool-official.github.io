@@ -1539,9 +1539,27 @@ function openTileDetail(coinId, evt) {
 
   /* Score breakdown — tile grid with checkmarks */
   var scC = c.score >= 65 ? 'var(--green)' : c.score <= 35 ? 'var(--red)' : '#87CEEB';
+
+  /* The big number, in the column that was reserved for it and never
+     filled. #td-score-num has been in index.html since the modal was
+     built and NOTHING ever wrote to it — .td-score-wrap is a flex row
+     of a fixed 72px column plus the rest, so every modal opened with
+     72px of nothing directly under the section title, in the first
+     place the eye lands. styles.css even describes the intent it never
+     got: "Score section — DOMINANT: oversized number anchors hierarchy".
+
+     So the score moves here at 48px and comes OUT of the header row
+     beside the zone label, otherwise the same number would appear
+     twice a few pixels apart. The label keeps its row; the rank tiles
+     read underneath it. */
+  var scoreBig = document.getElementById('td-score-num');
+  if (scoreBig) {
+    scoreBig.innerHTML = '<div class="td-score-num-val" style="color:' + scC + ';">' + c.score + '</div>'
+      + '<div class="td-score-num-lbl">/ 100</div>';
+  }
+
   var scHtml = '<div class="td-insight-header" style="margin-bottom:6px;">'
     + '<div class="insight-pulse ' + (c.score >= 65 ? 'green' : c.score <= 35 ? 'red' : 'blue') + ' td-insight-pulse"><span class="insight-dot"></span><span class="insight-lbl">' + (c.score >= 65 ? 'BULLISH' : c.score <= 35 ? 'BEARISH' : 'NEUTRAL') + '</span></div>'
-    + '<span class="td-insight-score" style="color:' + scC + ';">' + c.score + '<span style="font-size:12px;color:var(--muted);"> / 100</span></span>'
     + '</div>';
   scHtml += '<div class="signal-tile-grid">';
   [{l:'7D RANK',v:c.r7,w:0.40},{l:'14D RANK',v:c.r14,w:0.35},{l:'30D RANK',v:c.r30,w:0.25}].forEach(function(b) {
@@ -2378,7 +2396,12 @@ function shareAsImage() {
   var name  = (document.getElementById('td-name') || {}).textContent || c.name || '';
   var price = (document.getElementById('td-price')|| {}).textContent || '';
   var chg   = (document.getElementById('td-price-chg') || {}).textContent || '';
-  var scoreEl = document.querySelector('#td-score-bars .td-insight-score');
+  /* The score moved out of #td-score-bars into #td-score-num when the
+     reserved big-number column was finally filled. Both share paths read
+     it from the DOM, and both had a fallback, so this would have kept
+     working off the fallback and nobody would have noticed the selector
+     had gone dead. Pointed at where the number actually is. */
+  var scoreEl = document.querySelector('#td-score-num .td-score-num-val');
   var score   = scoreEl ? scoreEl.textContent.trim().split('/')[0].trim() : (c.score || '');
 
   /* badges */
@@ -2639,7 +2662,12 @@ var _viralCopyTemplates = [
 function _getViralCopyData() {
   var sym   = (document.getElementById('td-sym')  || {}).textContent || _viralSym || '';
   var chg   = (document.getElementById('td-price-chg') || {}).textContent || '';
-  var scoreEl = document.querySelector('#td-score-bars .td-insight-score');
+  /* The score moved out of #td-score-bars into #td-score-num when the
+     reserved big-number column was finally filled. Both share paths read
+     it from the DOM, and both had a fallback, so this would have kept
+     working off the fallback and nobody would have noticed the selector
+     had gone dead. Pointed at where the number actually is. */
+  var scoreEl = document.querySelector('#td-score-num .td-score-num-val');
   var score = scoreEl ? scoreEl.textContent.trim().split('/')[0].trim() : (_tdCoin ? _tdCoin.score : '?');
   var link  = (typeof getMyReferralLink === 'function') ? getMyReferralLink() : 'https://rotatortool-official.github.io';
   return { sym: sym, score: score, chg: chg, link: link };

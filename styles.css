@@ -649,6 +649,22 @@ body::before{content:'';position:fixed;inset:0;background:repeating-linear-gradi
   .td-share-grid{
     grid-template-columns:repeat(2,1fr) !important;
   }
+  /* A trailing cell left alone on its row stretches across it.
+     Everything above is TWO columns at this width, so an odd number of
+     cells leaves the last one sitting beside a hole. Score Breakdown is
+     the one that does it — three layers, two columns — and the hole lands
+     directly under the score, which is the part of the modal people
+     actually read.
+
+     SCOPED TO THIS MEDIA BLOCK DELIBERATELY. The same grids are THREE
+     columns on desktop, where three cells fill the row exactly, and the
+     identical rule there would break a layout that is already correct.
+     Measured before changing anything: at 1199px every modal grid has
+     zero empty slots; at 376px only Score Breakdown had one. */
+  .td-mkt-grid > .td-cell:last-child:nth-child(odd),
+  #td-market > .td-cell:last-child:nth-child(odd){
+    grid-column:1 / -1;
+  }
   /* Share modal — keep content inside viewport on mobile */
   .viral-share-modal{
     width:calc(100vw - 16px) !important;
