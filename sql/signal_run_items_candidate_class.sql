@@ -6,8 +6,20 @@
 -- Telegram bot and the website all name them in a PostgREST `select`.
 -- Against a table that does not have them yet, that select returns 400:
 -- the website degrades quietly to its local pass (it catches), but the
--- bot and the alerts function fail their cron outright. Order is
--- migration -> edge functions -> site/bot push.
+-- bot and the alerts function fail their cron outright.
+--
+-- Order:
+--   1. this migration
+--   2. push site + bot to git
+--   3. deploy send-telegram-alerts
+--   4. deploy compute-signal-run  LAST
+--
+-- Steps 2 and 3 are safe the moment the columns exist: every row is
+-- still NULL, and every consumer fails OPEN on a null class, so they
+-- behave exactly as they did before. compute-signal-run is what starts
+-- writing real labels, so it is the single moment the buy list changes
+-- — which is also promptove/26's rule that the server moves last,
+-- because the server run is what visitors actually see.
 --
 -- Applied 2026-09-07.
 --
@@ -45,8 +57,9 @@ alter table signal_run_items
 
   -- The real Wilder RSI(14) the classification was confirmed against,
   -- from coin_technicals.rsi14_daily. NULL when RSI was unavailable for
-  -- this coin, or when run-level coverage was below 80% and the engine
-  -- dropped confirmation for everyone.
+  -- this coin, or when the run-level coverage floor (CANDIDATE_RULES.rsi
+  -- .minCoverage, 0.35 — a dead-feed check, not a quality bar) was not
+  -- met and the engine dropped confirmation for everyone.
   add column if not exists rsi numeric,
 
   -- oversold | low | neutral | elevated | overbought — the engine's own
