@@ -137,13 +137,17 @@ Deno.serve(async (req) => {
   try {
     const stableIds = new Set(Object.keys(siteTables.STABLECOINS));
 
-    const [marketsRow, macroRow, cycleRows, delistedRows, zoneRows, techRows] = await Promise.all([
+    const [marketsRow, macroRow, cycleRows, delistedRows, zoneRows, techRows, fgRow] = await Promise.all([
       supabase.from('market_cache').select('data').eq('cache_key', 'cg_markets_all').single(),
       supabase.from('market_cache').select('data').eq('cache_key', 'macro_data').single(),
       supabase.from('market_cycle').select('symbol, ma200, mayer_multiple'),
       supabase.from('binance_delisted_symbols').select('base_asset'),
       supabase.from('signal_zone_state').select('coin_id, zone'),
       supabase.from('coin_technicals').select('base_asset, rsi14_daily'),
+      // Pillar 6 of the insight score (engine 2.3.0). Same market_cache
+      // row the website reads, so the server run and a cold-start local
+      // pass see the same sentiment reading.
+      supabase.from('market_cache').select('data').eq('cache_key', 'fear_greed').maybeSingle(),
     ]);
     if (marketsRow.error || !marketsRow.data) throw new Error('cg_markets_all not found: ' + (marketsRow.error?.message ?? 'no row'));
 
@@ -168,6 +172,16 @@ Deno.serve(async (req) => {
       // see 0% coverage, skip confirmation for everyone, and record that.
       console.warn('[compute-signal-run] coin_technicals read failed:', techRows.error.message);
     }
+
+    // A missing or unparseable row is passed as null, NOT as 50. The
+    // engine skips pillar 6 on null and scores it on 50, and those are
+    // different statements — one says sentiment was not consulted, the
+    // other says it was and read neutral. dataQuality.fearGreedSupplied
+    // records which happened.
+    let fearGreed: number | null = null;
+    const fgVal = (fgRow?.data as { data?: { value?: unknown } } | null)?.data?.value;
+    if (fgVal != null && Number.isFinite(Number(fgVal))) fearGreed = Number(fgVal);
+    if (fgRow?.error) console.warn('[compute-signal-run] fear_greed read failed:', fgRow.error.message);
 
     const coins = toWebsiteCoins(raw, stableIds);
 
@@ -242,6 +256,7 @@ Deno.serve(async (req) => {
       previousZones,
       eligibility: { minVolume24h: ELIGIBILITY_MIN_VOLUME, delisted },
       technicals,
+      fearGreed,
     });
 
     // ── Persist the run + its items ──────────────────────────────────
@@ -263,6 +278,11 @@ Deno.serve(async (req) => {
           // run so a call can still explain itself after the thresholds
           // are next tuned.
           candidates: run.candidates,
+          // Same reasoning as candidates above: the thresholds and the
+          // point budget that produced this run's insight scores, stored
+          // with the run so an effective_score can still be explained
+          // after they are next tuned.
+          insights: run.insights,
         },
       })
       .select('id')
@@ -304,6 +324,11 @@ Deno.serve(async (req) => {
         rsi: it.rsi ?? null,
         rsi_state: it.rsiState ?? null,
         candidate: it.candidate ?? null,
+        // The 7-pillar forward-looking read (engine 2.3.0). Stored
+        // because the website's zone already depends on it — it is what
+        // _classifyZones() dampens on — so a stored run that omitted it
+        // could not explain its own effective_score.
+        insight: it.insight ?? null,
         asset_type: (bySrcId.get(it.id) as any)?.isStock ? 'bstock' : 'crypto',
       }));
 
@@ -333,6 +358,8 @@ Deno.serve(async (req) => {
         rsi_coverage: run.candidates?.rsiCoverage ?? 0,
         rsi_applied: run.candidates?.rsiApplied ?? false,
         candidate_classes: run.candidates?.counts ?? {},
+        fear_greed: run.insights?.fearGreed ?? null,
+        insight_labels: run.insights?.counts ?? {},
       }),
       { status: 200, headers: { 'Content-Type': 'application/json' } }
     );

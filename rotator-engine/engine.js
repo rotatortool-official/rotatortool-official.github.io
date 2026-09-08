@@ -74,7 +74,42 @@
      additive: no score, rank, zone or eligibility value changes, so the
      golden fixture's numbers are untouched and 2.1.0's tracking record
      stays comparable. See _classifyCandidate(). */
-  var ENGINE_VERSION = '2.2.0';
+  /* 2.3.0 — the Insight Engine moves into DERIVE.
+
+     The 7 forward-looking pillars, and the RSI/MACD/Bollinger maths
+     under them, lived in site/js/signals.js and produced c.insight.score
+     in the visitor's browser. _classifyZones() read that number and used
+     it to pull the effective score toward neutral, so a calculation
+     living in a CONSUMER moved a live zone — ARCHITECTURE-MAP.md gap 1,
+     and the last one of its kind.
+
+     They are here now. Three things changed with the move, and each one
+     is a behaviour change, not a relocation:
+
+       · The rank-derived RSI PROXY is gone. Pillar 1 reads the real
+         Wilder RSI(14) from coin_technicals — the same input, through
+         the same lookup, that candidate classification already
+         confirms on. A coin with no RSI simply does not get pillar 1,
+         rather than getting relative weakness wearing an RSI label.
+
+       · _quickInsight() is DELETED. It was the cross-link's fallback and
+         carried the same rank proxy. A dead proxy kept "just in case"
+         reads as present, which is worse than absent; the pillars now
+         cover every coin the cross-link classifies.
+
+       · Klines feed the SIGNAL LIST, never the score. insightDetail()
+         still computes MACD and Bollinger from candles for the tooltip,
+         but the score comes only from inputs a RUN has — real RSI,
+         aggregates, fear & greed, BTC — so every visitor sees the same
+         number and the server can reproduce it. Before this, a held coin
+         normalised over 176 points and an unheld one over 140, which
+         meant the badge was not comparable between two coins.
+
+     This MOVES SCORES AND ZONES and is meant to. On the frozen fixture
+     day: score unchanged for all 177 (the pillars never touch it),
+     effectiveScore moves on 18 of 166 classified coins, zone on 2.
+     See promptove/29 and the golden diff. */
+  var ENGINE_VERSION = '2.3.0';
   var SCORING_MODELS = ['v1', 'v2'];
 
   /* ── Eligibility defaults ──────────────────────────────────────────
@@ -113,6 +148,16 @@
   var btcMA200 = 0;
   var _volHist = {};
   var _lastZone = {};
+
+  /* Insight inputs, set by _loadState() like everything else here.
+     _rsiApplied is the run-level feed-alive verdict, shared with
+     candidate classification so a dead coin_technicals feed switches
+     BOTH off together rather than leaving insight confirming on the
+     stale fraction that happens to still have rows. */
+  var _fearGreed = null;
+  var _technicals = null;
+  var _rsiApplied = false;
+  var _insightRulesOverride = null;
 
   var _VOL_HIST_KEY = 'rot_vol_hist_v1';
   var _VOL_HIST_DAYS = 7;
@@ -368,65 +413,410 @@
     return p30 <= -3 && p30 >= -40;
   }
 
-  function _quickInsight(c) {
-    if (!c) return 50;
+  /* _quickInsight() was here. DELETED in 2.3.0.
+
+     It was the cross-link's fallback, and its fourth term derived an
+     "RSI-style proxy" from a coin's position in the 30-day return
+     ranking — relative weakness wearing an RSI label, which is the exact
+     defect promptove/28 named when it put real Wilder RSI behind
+     candidate classification. Its other three terms (momentum
+     acceleration, recovery against 30D, volume × stability) all survive
+     as pillars 2 and 4 of _computeInsight(), on the same thresholds.
+
+     Deleted rather than kept unused: an unreachable proxy still reads as
+     available to the next person looking for one. */
+
+  /* ── Insight — the 7 forward-looking pillars ───────────────────────
+     Moved out of site/js/signals.js in 2.3.0. Answers a different
+     question from `score`: score ranks a coin against its peers on what
+     has already happened; insight reads the same market for what is
+     lining up next. _classifyZones() uses it to refuse a rotation call
+     that the forward-looking read flatly contradicts.
+
+     Every threshold below was in the browser, and every value is
+     unchanged — this is a move plus the three corrections named in the
+     2.3.0 note at the top of the file.
+
+     WHY TWO RSI BAND SETS ARE STILL RIGHT. CANDIDATE_RULES.rsi answers
+     "is this pullback oversold enough to publish as a new entry" — a
+     binary gate at 45 with an explicit unconfirmed state.
+     INSIGHT_RULES.rsi grades the same reading into a contribution to a
+     0-100 forward score. Same input, same source, one owner, two
+     questions. What was wrong before was not that there were two band
+     sets; it was that one of them ran on a number derived from a coin's
+     position in a list. */
+  var INSIGHT_RULES = {
+    /* Pillar 1 — RSI. Real Wilder RSI(14) only. Skipped entirely, not
+       approximated, when the coin has none. */
+    rsi: { deepOversold: 25, oversold: 38, cooling: 45, warming: 55, hot: 62, overbought: 78,
+           pts: { deepOversold: 25, oversold: 14, cooling: 6, warming: -4, hot: -10, overbought: -22 } },
+
+    /* Pillar 2 — momentum. This is the aggregate reading, and it is NOT
+       MACD: it compares 7d against 14d and 30d. MACD proper needs candles
+       and lives in insightDetail(), where it cannot move a score. The
+       labels say "momentum", never "MACD", for that reason. */
+    momentum: { fast: 5, slow: 1.5, recovery: 8,
+                pts: { fast: 18, slow: 8, fade: -6, drop: -15, recovery: 10, decay: -8 } },
+
+    /* Pillar 4 — turnover. High volume against market cap at a flat
+       price is the accumulation reading; the price-stability window is
+       the same ±3% the deleted _quickInsight() used. */
+    volume: { surge: 0.20, active: 0.08, thin: 0.03, dead: 0.02, largeCap: 5e8, stable24: 3,
+              pts: { surgeStable: 25, surge: 12, activeStable: 8, active: 4, deadLarge: -10, thin: -5 } },
+
+    /* Pillar 5 — dilution. Circulating against max supply. */
+    supply: { cleared: 0.85, partial: 0.50, heavy: 0.30,
+              pts: { cleared: 20, partial: 5, heavy: -20 } },
+
+    /* Pillar 6 — contrarian sentiment. Skipped when the run carries no
+       fear & greed reading, rather than defaulting to 50 and quietly
+       contributing nothing while reading as though it had been
+       consulted. */
+    fearGreed: { extremeFear: 25, fear: 40, greed: 65, extremeGreed: 80,
+                 pts: { extremeFear: 25, fear: 12, greed: -8, extremeGreed: -20 } },
+
+    /* Pillar 7 — relative strength against BTC on the day. */
+    vsBtc: { btcDown: -1, strong: 5, edge: 2, weak: -5, lagging: -2,
+             pts: { hidden: 28, strong: 18, edge: 8, lagging: -6, weak: -18 } },
+
+    /* Bands the cross-link and the badge both read. */
+    bands: { bullish: 65, bearish: 35 },
+
+    /* Normalisation. NOT the shipped ±140 clamp, and this is the one
+       place 2.3.0 deliberately changes a number rather than moving it.
+
+       The pillars are not symmetric: their point budgets sum to +151 on
+       the bullish side and −113 on the bearish one, because the
+       vocabulary is (turnover alone is +25/−10). Against a flat ±140
+       clamp that made a score of 100 reachable and 0 not — the real
+       floor was 10 — and it made the bearish band at 35 cost 37% of the
+       available downside while the bullish band at 65 cost 28% of the
+       upside.
+
+       In the browser that asymmetry was cosmetic: it tilted a badge on a
+       visitor's own holdings. Moving the pillars into DERIVE made the
+       same number the input to a live zone gate for every coin, and
+       measured on the frozen day the ±140 form produced 47 coins above
+       65 and NOT ONE below 35 — the cross-link's buy-dampening leg fired
+       for nobody. A guardrail that cannot fire is worse than none,
+       because it reads as present; that is the finding promptove/28
+       recorded about the 80% coverage gate, arriving a second time.
+
+       So each side is normalised over its own budget: 50 is exactly zero
+       points, 0 is as bearish as these pillars can say, 100 as bullish.
+       The budgets are computed from the rules rather than written down,
+       so an override or a retuned pillar cannot silently re-open the
+       gap. Measured effect of this over the flat clamp on the frozen
+       day: 3 coins below 35 instead of 0, one fewer zone move, and SOL —
+       whose three signals were all bearish — correctly keeps its
+       dampening instead of becoming a buy.
+
+       NOT the other obvious option: renormalising over the pillars a
+       coin actually HAS, the way computeSignalRunV2() renormalises over
+       the components it has. Measured on production run 279, where 55 of
+       166 coins carry no RSI, that puts 11 of those 55 into a cross-link
+       band against this form's 6 — it speaks MORE confidently about a
+       coin precisely where a pillar of evidence is missing, which is
+       2.2.0's UNCONFIRMED instinct inverted.
+
+       The v2 pattern is safe there and not here because a precondition
+       does not travel with it: v2 gates its whole technical layer at
+       V2_TECHNICAL_MIN_COVERAGE first, so by the time it renormalises,
+       the missing components are noise rather than a third of the
+       universe. Insight has no such gate — coverage is structural, ~68%
+       live, and permanent. Same arithmetic, different guarantee. */
+    normalise: { perSideBudget: true },
+
+    /* Display-only, read by insightDetail(). No score reads these. */
+    detail: { bbSqueeze: 4, bbWide: 20, bbLow: 10, bbHigh: 95,
+              volSurge: 2, volBreakout: 1.8, volDry: 0.3,
+              rsiPeriod: 14, bbPeriod: 20, bbMult: 2 }
+  };
+
+  /* The most one coin can score, and the least, given a set of rules.
+     Each mutually exclusive if/else chain contributes its largest term;
+     momentum is the exception, because its two comparisons (7d vs 14d,
+     7d vs 30d) are independent and can both fire. */
+  function _insightBudget(r) {
+    function best(pts, sign) {
+      var v = 0;
+      for (var k in pts) {
+        if (sign > 0 && pts[k] > v) v = pts[k];
+        if (sign < 0 && pts[k] < v) v = pts[k];
+      }
+      return v;
+    }
+    var pos = best(r.rsi.pts, 1) + r.momentum.pts.fast + r.momentum.pts.recovery
+      + best(r.volume.pts, 1) + best(r.supply.pts, 1) + best(r.fearGreed.pts, 1) + best(r.vsBtc.pts, 1);
+    var neg = best(r.rsi.pts, -1) + r.momentum.pts.drop + r.momentum.pts.decay
+      + best(r.volume.pts, -1) + best(r.supply.pts, -1) + best(r.fearGreed.pts, -1) + best(r.vsBtc.pts, -1);
+    return { positive: pos, negative: Math.abs(neg) };
+  }
+
+  function _insightRules(override) {
+    function clone(o) {
+      var out = {};
+      for (var k in o) {
+        out[k] = (Object.prototype.toString.call(o[k]) === '[object Object]') ? clone(o[k]) : o[k];
+      }
+      return out;
+    }
+    var r = clone(INSIGHT_RULES);
+    if (!override) return r;
+    for (var ok in override) {
+      if (!r[ok]) continue;
+      for (var oj in override[ok]) {
+        if (Object.prototype.toString.call(override[ok][oj]) === '[object Object]' && r[ok][oj]) {
+          for (var om in override[ok][oj]) r[ok][oj][om] = override[ok][oj][om];
+        } else r[ok][oj] = override[ok][oj];
+      }
+    }
+    return r;
+  }
+
+  /* ── Indicator maths ───────────────────────────────────────────────
+     Wilder RSI, EMA, MACD and Bollinger, moved verbatim from
+     site/js/signals.js. They were the last financial calculation the
+     website performed. Nothing in the SCORE calls _calcMACD or
+     _calcBollinger — insightDetail() does, for the tooltip — but they
+     belong in the same owner as the rest, so there is one implementation
+     rather than one here and one that grows back in a consumer. */
+  function _calcRSI(closes, period) {
+    if (closes.length < period + 1) return 50;
+    var gains = 0, losses = 0;
+    for (var i = 1; i <= period; i++) {
+      var diff = closes[i] - closes[i - 1];
+      if (diff > 0) gains += diff; else losses -= diff;
+    }
+    var avgGain = gains / period, avgLoss = losses / period;
+    for (var j = period + 1; j < closes.length; j++) {
+      var d = closes[j] - closes[j - 1];
+      avgGain = (avgGain * (period - 1) + (d > 0 ? d : 0)) / period;
+      avgLoss = (avgLoss * (period - 1) + (d < 0 ? -d : 0)) / period;
+    }
+    if (avgLoss === 0) return 100;
+    var rs = avgGain / avgLoss;
+    return +(100 - 100 / (1 + rs)).toFixed(2);
+  }
+
+  function _calcEMA(arr, period) {
+    var k = 2 / (period + 1), ema = [arr[0]];
+    for (var i = 1; i < arr.length; i++) ema.push(arr[i] * k + ema[i - 1] * (1 - k));
+    return ema;
+  }
+
+  function _calcMACD(closes) {
+    if (closes.length < 26) return { line: 0, signal: 0, hist: 0 };
+    var ema12 = _calcEMA(closes, 12);
+    var ema26 = _calcEMA(closes, 26);
+    var macdLine = ema12.map(function (v, i) { return v - ema26[i]; });
+    var signalLine = _calcEMA(macdLine.slice(26), 9);
+    var last = macdLine.length - 1;
+    var sigLast = signalLine.length - 1;
+    return { line: macdLine[last], signal: signalLine[sigLast], hist: macdLine[last] - signalLine[sigLast] };
+  }
+
+  function _calcBollinger(closes, period, mult) {
+    if (closes.length < period) return { upper: 0, lower: 0, mid: 0, width: 0, pctB: 50 };
+    var slice = closes.slice(-period);
+    var sum = 0; for (var i = 0; i < slice.length; i++) sum += slice[i];
+    var sma = sum / period;
+    var sqSum = 0; for (var j = 0; j < slice.length; j++) sqSum += (slice[j] - sma) * (slice[j] - sma);
+    var stdDev = Math.sqrt(sqSum / period);
+    var upper = sma + mult * stdDev;
+    var lower = sma - mult * stdDev;
+    var lastP = closes[closes.length - 1];
+    var pctB = (upper - lower) > 0 ? ((lastP - lower) / (upper - lower)) * 100 : 50;
+    var width = sma > 0 ? ((upper - lower) / sma) * 100 : 0;
+    return { upper: upper, lower: lower, mid: sma, width: width, pctB: pctB };
+  }
+
+  /* One coin's insight. Pure in the inputs it is handed: the same coin,
+     the same RSI and the same context produce the same number on the
+     server and in every browser, which is the whole point of the move.
+
+     `rsi` is null when the coin has none, or when the run-level coverage
+     gate says the feed is dead. In both cases pillar 1 is skipped and
+     `rsiApplied` on the result says so, rather than the score implying a
+     reading that never happened. */
+  function _computeInsight(c, rsi, ctx, r) {
     var pts = 0;
-    var p7   = c.p7  || 0;
-    var p14  = c.p14 || 0;
-    var p30  = c.p30 || 0;
+    var signals = [];
 
-    /* Momentum acceleration: p7 outperforming p14 = momentum building */
-    var accel = p7 - p14;
-    if      (accel >  5)   pts += 15;
-    else if (accel >  1.5) pts += 6;
-    else if (accel < -5)   pts -= 15;
-    else if (accel < -1.5) pts -= 6;
-
-    /* Recovery vs 30D: short-term lift while still drawn-down = reversion */
-    var recovery = p7 - p30;
-    if      (recovery >  8) pts += 10;
-    else if (recovery < -8) pts -= 8;
-
-    /* Volume × stability: high turnover at flat price = accumulation */
-    var vm = (c.volume24 && c.mcap) ? c.volume24 / c.mcap : 0;
-    var stable24 = Math.abs(c.p24 || 0) < 3;
-    if      (vm > 0.20 && stable24)        pts += 20;
-    else if (vm > 0.20)                    pts += 10;
-    else if (vm < 0.02 && c.mcap > 5e8)    pts -= 12;
-
-    /* RSI-style proxy from intra-list 30D rank */
-    if (c.r30 && typeof coins !== 'undefined' && coins.length > 1) {
-      var rsiProxy = (1 - (c.r30 - 1) / Math.max(coins.length - 1, 1)) * 100;
-      if      (rsiProxy <= 25) pts += 18;   /* oversold */
-      else if (rsiProxy >= 75) pts -= 18;   /* overbought */
+    /* PILLAR 1 — RSI momentum. Real Wilder RSI(14) or nothing. */
+    if (typeof rsi === 'number') {
+      var lbl = 'RSI(' + rsi.toFixed(0) + ')';
+      if      (rsi <= r.rsi.deepOversold) { pts += r.rsi.pts.deepOversold; signals.push(lbl + ' Oversold'); }
+      else if (rsi <= r.rsi.oversold)     { pts += r.rsi.pts.oversold;     signals.push(lbl + ' Low Momentum'); }
+      else if (rsi <= r.rsi.cooling)      { pts += r.rsi.pts.cooling;      signals.push(lbl + ' Cooling'); }
+      else if (rsi >= r.rsi.overbought)   { pts += r.rsi.pts.overbought;   signals.push(lbl + ' Overbought'); }
+      else if (rsi >= r.rsi.hot)          { pts += r.rsi.pts.hot;          signals.push(lbl + ' Hot Zone'); }
+      else if (rsi >= r.rsi.warming)      { pts += r.rsi.pts.warming;      signals.push(lbl + ' Warming'); }
     }
 
-    var max = 65, min = -65;
-    var raw = Math.min(max, Math.max(min, pts));
-    return Math.round(((raw - min) / (max - min)) * 100);
+    /* PILLAR 2 — momentum shape, from the aggregate returns. */
+    var d714 = (c.p7 || 0) - (c.p14 || 0);
+    var d730 = (c.p7 || 0) - (c.p30 || 0);
+    if      (d714 >  r.momentum.fast) { pts += r.momentum.pts.fast; signals.push('Momentum Accelerating (+' + d714.toFixed(1) + '%)'); }
+    else if (d714 >  r.momentum.slow) { pts += r.momentum.pts.slow; signals.push('Momentum Building'); }
+    else if (d714 < -r.momentum.fast) { pts += r.momentum.pts.drop; signals.push('Momentum Decelerating (' + d714.toFixed(1) + '%)'); }
+    else if (d714 < -r.momentum.slow) { pts += r.momentum.pts.fade; signals.push('Momentum Fading'); }
+    if      (d730 >  r.momentum.recovery) { pts += r.momentum.pts.recovery; signals.push('Recovery Trend (+' + d730.toFixed(1) + '% vs 30D)'); }
+    else if (d730 < -r.momentum.recovery) { pts += r.momentum.pts.decay;    signals.push('Weakening Trend (' + d730.toFixed(1) + '% vs 30D)'); }
+
+    /* PILLAR 4 — turnover against market cap. (Pillar 3, Bollinger, is
+       display-only now — see insightDetail(). The numbering is kept
+       because it is the numbering every note and tooltip about this
+       already uses.) */
+    var vm = (c.volume24 && c.mcap) ? c.volume24 / c.mcap : 0;
+    var stable24 = Math.abs(c.p24 || 0) < r.volume.stable24;
+    if      (vm > r.volume.surge && stable24)  { pts += r.volume.pts.surgeStable;  signals.push('High Volume + Stable Price (Accumulation)'); }
+    else if (vm > r.volume.surge)              { pts += r.volume.pts.surge;        signals.push('High Liquidity Interest'); }
+    else if (vm > r.volume.active && stable24) { pts += r.volume.pts.activeStable; signals.push('Moderate Volume Activity'); }
+    else if (vm > r.volume.active)             { pts += r.volume.pts.active; }
+    else if (vm < r.volume.dead && c.mcap > r.volume.largeCap) { pts += r.volume.pts.deadLarge; signals.push('Low Liquidity (Large Cap)'); }
+    else if (vm < r.volume.thin)               { pts += r.volume.pts.thin;         signals.push('Below-Average Volume'); }
+
+    /* PILLAR 5 — dilution shield. */
+    var circ = c.circulating_supply || 0;
+    var maxS = c.max_supply || 0;
+    var supplyRatio = (circ && maxS > 0) ? circ / maxS : -1;
+    if      (supplyRatio >= r.supply.cleared) { pts += r.supply.pts.cleared; signals.push('Supply Cleared (' + Math.round(supplyRatio * 100) + '% Unlocked)'); }
+    else if (supplyRatio >= r.supply.partial) { pts += r.supply.pts.partial; }
+    else if (supplyRatio >= 0 && supplyRatio < r.supply.heavy) { pts += r.supply.pts.heavy; signals.push('High Dilution Risk (' + Math.round(supplyRatio * 100) + '% Unlocked)'); }
+
+    /* PILLAR 6 — contrarian sentiment, only when the run has a reading. */
+    var fg = ctx.fearGreed;
+    if (typeof fg === 'number') {
+      if      (fg < r.fearGreed.extremeFear)  { pts += r.fearGreed.pts.extremeFear;  signals.push('Extreme Fear (' + fg + ') — historically a contrarian reading'); }
+      else if (fg < r.fearGreed.fear)         { pts += r.fearGreed.pts.fear;         signals.push('Fear Zone (' + fg + ')'); }
+      else if (fg > r.fearGreed.extremeGreed) { pts += r.fearGreed.pts.extremeGreed; signals.push('Extreme Greed (' + fg + ') — Caution'); }
+      else if (fg > r.fearGreed.greed)        { pts += r.fearGreed.pts.greed;        signals.push('Greed Zone (' + fg + ')'); }
+    }
+
+    /* PILLAR 7 — relative strength against BTC on the day. */
+    var btc24 = ctx.btcP24 || 0;
+    var rel = (c.p24 || 0) - btc24;
+    if      (btc24 < r.vsBtc.btcDown && (c.p24 || 0) > 0) { pts += r.vsBtc.pts.hidden;  signals.push('Hidden Strength vs BTC (' + (rel >= 0 ? '+' : '') + rel.toFixed(1) + '%)'); }
+    else if (rel > r.vsBtc.strong)   { pts += r.vsBtc.pts.strong;  signals.push('Outperforming BTC (+' + rel.toFixed(1) + '%)'); }
+    else if (rel > r.vsBtc.edge)     { pts += r.vsBtc.pts.edge;    signals.push('Slight Edge vs BTC (+' + rel.toFixed(1) + '%)'); }
+    else if (rel < r.vsBtc.weak)     { pts += r.vsBtc.pts.weak;    signals.push('Underperforming BTC (' + rel.toFixed(1) + '%)'); }
+    else if (rel < r.vsBtc.lagging)  { pts += r.vsBtc.pts.lagging; signals.push('Lagging BTC (' + rel.toFixed(1) + '%)'); }
+
+    /* 50 is zero points. Each side is scaled by what that side can
+       actually reach — see INSIGHT_RULES.normalise. */
+    var budget = _insightBudget(r);
+    var score = pts >= 0
+      ? Math.round(50 + 50 * Math.min(pts, budget.positive) / budget.positive)
+      : Math.round(50 - 50 * Math.min(-pts, budget.negative) / budget.negative);
+
+    return {
+      score: score,
+      label: score >= r.bands.bullish ? 'STRONG' : score <= r.bands.bearish ? 'WARN' : 'NEUTRAL',
+      /* The badge's colour class. Kept on the engine's side because the
+         label and the colour are one decision, and splitting them is how
+         a consumer ends up owning half a rule. */
+      color: score >= r.bands.bullish ? 'insight-buy' : score <= r.bands.bearish ? 'insight-warn' : 'insight-neut',
+      signals: signals,
+      rsi: (typeof rsi === 'number') ? rsi : null,
+      rsiApplied: typeof rsi === 'number',
+      fearGreedApplied: typeof fg === 'number',
+      points: pts
+    };
+  }
+
+  /* Extra signal lines from candles, for the tooltip. DISPLAY ONLY —
+     it returns strings and readings, never a score, and nothing in
+     computeSignalRun() calls it. That separation is the point: candles
+     reach at most a handful of symbols in one visitor's browser, so a
+     number built from them could not be reproduced by the server or
+     matched by the next visitor. Before 2.3.0 the badge did exactly
+     that, normalising over 176 points for a coin the visitor held and
+     140 for one they did not — two coins with the same reading showed
+     different numbers.
+
+     `candles` is { closes: [], volumes: [] } at whatever interval the
+     caller loaded (the site passes binance_klines_4h). The interval is
+     the caller's to state; the maths does not assume one. */
+  function insightDetail(candles, rulesOverride) {
+    var r = _insightRules(rulesOverride);
+    var d = r.detail;
+    var out = { signals: [], rsi: null, macd: null, bb: null, volRatio: null };
+    if (!candles || !Array.isArray(candles.closes) || candles.closes.length < 30) return out;
+
+    var closes = candles.closes.map(Number);
+    var volumes = (candles.volumes || []).map(Number);
+    out.rsi = _calcRSI(closes, d.rsiPeriod);
+    out.macd = _calcMACD(closes);
+    out.bb = _calcBollinger(closes, d.bbPeriod, d.bbMult);
+
+    if (out.macd.line > out.macd.signal && out.macd.hist > 0) out.signals.push('MACD Bullish Cross');
+    else if (out.macd.line < out.macd.signal && out.macd.hist < 0) out.signals.push('MACD Bearish Cross');
+
+    if      (out.bb.width < d.bbSqueeze) out.signals.push('BB Squeeze (width ' + out.bb.width.toFixed(1) + '%) — Breakout Likely');
+    else if (out.bb.width > d.bbWide)    out.signals.push('BB Wide — High Volatility');
+    if      (out.bb.pctB < d.bbLow)      out.signals.push('Price at Lower Band (' + out.bb.pctB.toFixed(0) + '%B)');
+    else if (out.bb.pctB > d.bbHigh)     out.signals.push('Price at Upper Band (' + out.bb.pctB.toFixed(0) + '%B)');
+
+    if (volumes.length >= 26) {
+      var recent = volumes.slice(-6).reduce(function (a, b) { return a + b; }, 0) / 6;
+      var prior  = volumes.slice(-26, -6).reduce(function (a, b) { return a + b; }, 0) / 20;
+      out.volRatio = prior > 0 ? recent / prior : 1;
+      if      (out.volRatio > d.volSurge)    out.signals.push('Volume Surge (' + out.volRatio.toFixed(1) + 'x avg)');
+      else if (out.volRatio > d.volBreakout) out.signals.push('Volume Breakout (' + out.volRatio.toFixed(1) + 'x avg)');
+      else if (out.volRatio < d.volDry)      out.signals.push('Volume Drying Up');
+    }
+    return out;
+  }
+
+  /* Attach c.insight to every coin the zone classifier will look at.
+     Called BY _classifyZones() rather than beside it, so the invariant
+     "the cross-link always has a real insight to read" holds for any
+     caller of either — there is no path left where it silently falls
+     back to something else, because there is no longer anything to fall
+     back to. */
+  function _computeInsights() {
+    var r = _insightRules(_insightRulesOverride);
+    var btc = null;
+    for (var b = 0; b < coins.length; b++) if (coins[b].id === 'bitcoin') { btc = coins[b]; break; }
+    var ctx = { fearGreed: _fearGreed, btcP24: btc ? (btc.p24 || 0) : 0 };
+    for (var i = 0; i < coins.length; i++) {
+      var c = coins[i];
+      if (!c || c.isStable || c.dataComplete === false) { c.insight = null; continue; }
+      var rsi = _rsiApplied ? _candidateRsi(_candidateTechnical(_technicals, c)) : null;
+      c.insight = _computeInsight(c, rsi, ctx, r);
+    }
   }
 
   function _classifyZones() {
     if (typeof coins === 'undefined' || !coins.length) return;
+    /* The cross-link needs an insight for every coin it will look at,
+       and this is the only caller that guarantees it. */
+    _computeInsights();
     var th = _adaptiveThresholds();
+    var ir = _insightRules(_insightRulesOverride);
     coins.forEach(function(c) {
       if (!c || c.isStable || c.dataComplete === false) { c._zone = 'neutral'; return; }
 
-      /* Step 3: Insight↔rotation cross-link.
-         Prefer the rich Insight Engine score when present (holdings/watchlist),
-         fall back to _quickInsight for everything else. If the forward-looking
-         signal strongly disagrees with the rotation score, pull the effective
-         score back toward neutral (50) so the zone classifier won't trigger.
+      /* Insight↔rotation cross-link.
+         If the forward-looking signal strongly disagrees with the
+         rotation score, pull the effective score back toward neutral
+         (50) so the zone classifier won't trigger.
            · ins ≥65 (bullish ahead) but rot ≥55 (rotation says sell) → dampen sell
            · ins ≤35 (bearish ahead) but rot ≤45 (rotation says buy)  → dampen buy
-         Never crosses 50 — only neutralizes the contradiction. */
+         Never crosses 50 — only neutralizes the contradiction.
+
+         2.3.0: `ins` is the engine's own insight. It used to be either a
+         score the VISITOR'S BROWSER computed (holdings and watchlist
+         only) or _quickInsight()'s rank proxy for everything else — two
+         different calculations, one of them outside DERIVE, deciding
+         between them per coin per visitor. It is now one number from one
+         owner. See ARCHITECTURE-MAP.md, gap 1. */
       var s = c.score;
-      var ins = (c.insight && typeof c.insight.score === 'number')
-                  ? c.insight.score : _quickInsight(c);
-      if      (ins >= 65 && s >= 55) s = Math.max(50, s - 6);
-      else if (ins <= 35 && s <= 45) s = Math.min(50, s + 6);
+      var ins = c.insight.score;
+      if      (ins >= ir.bands.bullish && s >= 55) s = Math.max(50, s - 6);
+      else if (ins <= ir.bands.bearish && s <= 45) s = Math.min(50, s + 6);
       c._effectiveScore = s;
-      c._quickIns = ins;
 
       var prev = _lastZone[c.id];
       var z;
@@ -491,16 +881,22 @@
     _volHist = JSON.parse(_store[_VOL_HIST_KEY]);
     _lastZone = JSON.parse(_store.rot_last_zone);
 
-    /* Insights are optional. The site only computes the rich Insight
-       score for a visitor's holdings and watchlist; everything else falls
-       to _quickInsight() inside _classifyZones(). Passing them in keeps
-       that path reachable without the engine having to fetch klines. */
-    if (input.insights) {
-      for (var j = 0; j < coins.length; j++) {
-        var ins = input.insights[coins[j].id] || input.insights[coins[j].sym];
-        if (ins) coins[j].insight = ins;
-      }
+    /* `insights` used to be an INPUT here: a caller could hand the
+       engine a score computed elsewhere and _classifyZones() would use
+       it to move a zone. That was ARCHITECTURE-MAP.md gap 1 in one line,
+       and removing the parameter is what actually closes it — the
+       pillars are computed here now, so there is no longer anywhere for
+       an outside score to get in. `insight` is an OUTPUT. */
+    _fearGreed = null;
+    if (input.fearGreed != null) {
+      /* Accepts the raw number or the { value, label } shape the site
+         and market_cache both carry. */
+      var fgIn = (typeof input.fearGreed === 'object') ? input.fearGreed.value : input.fearGreed;
+      if (fgIn != null && isFinite(Number(fgIn))) _fearGreed = Number(fgIn);
     }
+    _technicals = input.technicals || null;
+    _insightRulesOverride = input.insightRules || null;
+    _rsiApplied = false;   /* set by computeSignalRun() once coverage is measured */
   }
 
   function _dataQuality(input) {
@@ -518,7 +914,8 @@
         : haveRealMA200 ? 'market_cycle' : 'p30_estimate',
       volumeHistorySupplied: !!(input.volumeHistory && Object.keys(input.volumeHistory).length),
       previousZonesSupplied: !!(input.previousZones && Object.keys(input.previousZones).length),
-      insightsSupplied: !!(input.insights && Object.keys(input.insights).length),
+      technicalsSupplied: !!(input.technicals && Object.keys(input.technicals).length),
+      fearGreedSupplied: _fearGreed != null,
       inputAges: input.inputAges || null
     };
   }
@@ -936,7 +1333,14 @@
       r7: c.r7, r14: c.r14, r30: c.r30,
       score: c.score,
       effectiveScore: c._effectiveScore,
-      quickInsight: c._quickIns,
+      /* `quickInsight` was here — the number the cross-link used, which
+         was _quickInsight()'s rank proxy on all but a visitor's own
+         holdings. 2.3.0 replaced it with the engine's insight, and the
+         field carries the whole reading rather than one number, because
+         a stored run that says only "48" cannot explain itself later.
+         Nothing outside the engine ever read `quickInsight`: the site
+         assigned it to c._quickIns and no file read that back. */
+      insight: c.insight || null,
       zone: c._zone,
       meanRevPass: _passesMeanRevGate(c),
       breakdown: c.scoreBreakdown || null
@@ -962,8 +1366,20 @@
    *   btcMA200        {number=} overrides the market_cycle MA200.
    *   volumeHistory   {object}  was localStorage rot_vol_hist_v1.
    *   previousZones   {object}  was localStorage rot_last_zone.
-   *   insights        {object=} coinId|sym -> {score}.
+   *   technicals      {object=} coinId|sym -> { rsi }. Real Wilder
+   *                             RSI(14) from coin_technicals. Feeds BOTH
+   *                             candidate confirmation and insight
+   *                             pillar 1; one feed, one coverage gate.
+   *   fearGreed       {number|object=} the index value, or the
+   *                             { value, label } row. Absent means
+   *                             pillar 6 is skipped, not neutral.
+   *   candidateRules  {object=} override CANDIDATE_RULES.
+   *   insightRules    {object=} override INSIGHT_RULES.
    *   inputAges       {object=} recorded into dataQuality, not used in maths.
+   *
+   *   `insights` was an input until 2.3.0 and is not one any more: it
+   *   let a caller hand in a score that moved a zone. Insight is an
+   *   OUTPUT now, on every item.
    * @returns {object} { engineVersion, asOf, thresholds, cycleLabel,
    *                     items, zones, volumeHistory, dataQuality }
    */
@@ -975,6 +1391,26 @@
     _deriveBtcAnchors(input);
 
     computeScores();
+
+    /* RSI coverage is measured BEFORE the zones are classified, because
+       from 2.3.0 two things depend on it and they must agree: candidate
+       classification's confirmation step, and the insight pillars the
+       cross-link reads. One measurement, one verdict, one feed. If
+       sync-binance-daily-klines dies, both switch off together instead
+       of insight quietly confirming on whichever rows are still there. */
+    var candRules = _candidateRules(input.candidateRules);
+    var candTech = input.technicals || null;
+    var classifiable = 0, withRsi = 0;
+    for (var q = 0; q < coins.length; q++) {
+      if (coins[q].isStable || coins[q].dataComplete === false || coins[q].isStock) continue;
+      classifiable++;
+      if (_candidateRsi(_candidateTechnical(candTech, coins[q])) != null) withRsi++;
+    }
+    var rsiCoverage = classifiable ? withRsi / classifiable : 0;
+    var rsiApplied = rsiCoverage >= candRules.rsi.minCoverage;
+    _rsiApplied = rsiApplied;
+
+    /* _classifyZones() computes the insights it needs. */
     _classifyZones();
 
     /* Eligibility is layered on after the fact — see _eligibility(). */
@@ -986,26 +1422,18 @@
     var dl = (input.eligibility && input.eligibility.delisted) || input.delisted || [];
     for (var d = 0; d < dl.length; d++) delistedSet[dl[d]] = true;
 
-    /* Candidate classification. `rsiApplied` is a feed-alive check, not a
-       coverage-quality one — see CANDIDATE_RULES.rsi.minCoverage for why
-       that differs from v2's technical layer. When the feed is dead the
-       classifier says so on every item rather than pretending
-       confirmation happened, or silently emptying the buy list. */
-    var candRules = _candidateRules(input.candidateRules);
-    var candTech = input.technicals || null;
-    var classifiable = 0, withRsi = 0;
-    for (var q = 0; q < coins.length; q++) {
-      if (coins[q].isStable || coins[q].dataComplete === false || coins[q].isStock) continue;
-      classifiable++;
-      if (_candidateRsi(_candidateTechnical(candTech, coins[q])) != null) withRsi++;
-    }
-    var rsiCoverage = classifiable ? withRsi / classifiable : 0;
-    var rsiApplied = rsiCoverage >= candRules.rsi.minCoverage;
-
+    /* Candidate classification. `rsiApplied` (measured above) is a
+       feed-alive check, not a coverage-quality one — see
+       CANDIDATE_RULES.rsi.minCoverage for why that differs from v2's
+       technical layer. When the feed is dead the classifier says so on
+       every item rather than pretending confirmation happened, or
+       silently emptying the buy list. */
     var candCounts = {};
+    var insightCounts = {};
     var items = [];
     for (var i = 0; i < coins.length; i++) {
       var item = _projectItem(coins[i]);
+      if (item.insight) insightCounts[item.insight.label] = (insightCounts[item.insight.label] || 0) + 1;
       var el = _eligibility(coins[i], cfg, delistedSet);
       item.eligible = el.eligible;
       item.exclusions = el.exclusions;
@@ -1057,6 +1485,26 @@
         rsiApplied: rsiApplied,
         classifiableCount: classifiable,
         counts: candCounts
+      },
+      /* The same treatment for the insight pillars: every threshold that
+         produced these labels, reported with the run, so a stored call
+         can still explain itself after they are next tuned.
+
+         `fearGreed` is echoed rather than assumed. Pillar 6 is skipped
+         when the run has no reading, and a run that says null there is
+         saying "sentiment was not consulted" — which is a different
+         statement from "sentiment was neutral", and the one a reader
+         needs when a score looks lower than they expected. */
+      insights: {
+        rules: _insightRules(_insightRulesOverride),
+        /* The point budget the scores were normalised over. Derived from
+           the rules, reported with the run, so a stored insight score is
+           readable as "N% of the way to what these pillars could say"
+           years later rather than as a bare number on an unstated scale. */
+        budget: _insightBudget(_insightRules(_insightRulesOverride)),
+        fearGreed: _fearGreed,
+        rsiApplied: rsiApplied,
+        counts: insightCounts
       },
       dataQuality: _dataQuality(input)
     };
@@ -1193,6 +1641,10 @@
     computeSignalRunV2: computeSignalRunV2,
     V2_WEIGHTS: V2_WEIGHTS,
     CANDIDATE_RULES: CANDIDATE_RULES,
+    INSIGHT_RULES: INSIGHT_RULES,
+    /* Candle-derived signal lines for a tooltip. Display only — it
+       returns no score, and no run calls it. See its own note. */
+    insightDetail: insightDetail,
     /* Exposed for tests and for callers that need one piece in isolation.
        These are the extracted originals, not re-implementations. */
     internals: {
@@ -1200,13 +1652,18 @@
       classifyZones: _classifyZones,
       adaptiveThresholds: _adaptiveThresholds,
       passesMeanRevGate: _passesMeanRevGate,
-      quickInsight: _quickInsight,
       btcCycleLabel: _btcCycleLabel,
       volRatio: _volRatio,
       trackVolumeHistory: _trackVolumeHistory,
       classifyCandidate: _classifyCandidate,
       candidateRules: _candidateRules,
-      rsiState: _rsiState
+      rsiState: _rsiState,
+      computeInsight: _computeInsight,
+      insightRules: _insightRules,
+      calcRSI: _calcRSI,
+      calcMACD: _calcMACD,
+      calcBollinger: _calcBollinger,
+      insightBudget: _insightBudget
     }
   };
 }));

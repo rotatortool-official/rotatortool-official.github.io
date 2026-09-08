@@ -1,0 +1,86 @@
+-- ═══════════════════════════════════════════════════════════════════
+-- signal_run_items — the insight column (engine 2.3.0)
+--
+-- APPLY THIS BEFORE DEPLOYING ANY CODE THAT READS THE COLUMN.
+-- compute-signal-run INSERTs it and the website names it in a PostgREST
+-- `select`. Against a table without it that select returns 400: the
+-- website degrades quietly to its local pass (it catches), but the row
+-- is the thing visitors actually see, so the order below is not
+-- optional.
+--
+-- Order:
+--   1. this migration
+--   2. push site to git (the page reads `insight`, tolerates null)
+--   3. deploy compute-signal-run  LAST
+--
+-- Step 2 is safe the moment the column exists: every row is still NULL,
+-- and a null insight makes the page show no badge rather than computing
+-- one locally. compute-signal-run is what starts writing real values,
+-- and is therefore the single moment zones move — promptove/26's rule
+-- that the server moves last, because the server run is what visitors
+-- see.
+--
+-- WHY. The 7-pillar forward-looking "insight" score was computed in the
+-- VISITOR'S BROWSER, in site/js/signals.js, from a local kline cache
+-- with a rank-derived RSI proxy when no candles were loaded. It was not
+-- display-only: the engine's _classifyZones() read it and used it to
+-- pull a coin's effective score toward neutral. A calculation living in
+-- a consumer moved a live zone — ARCHITECTURE-MAP.md gap 1, and the last
+-- parallel scoring path in the project.
+--
+-- Engine 2.3.0 owns it. This column is where the answer is stored, so
+-- the website, and anything added later, read the SAME number the run
+-- classified on instead of each deciding what "forward-looking" means.
+--
+-- THIS ONE DOES MOVE SCORES, unlike the 2.2.0 candidate columns. `score`,
+-- `r7/r14/r30`, `breakdown` and `eligible` are untouched, but
+-- `effective_score` moves wherever the pillars disagree with the proxy
+-- they replaced, and `zone` moves where that crosses a threshold. On the
+-- frozen fixture day: 17 of 166 effective scores, 1 zone (UOS), and that
+-- one is unreachable twice over — ineligible (illiquid, no market cap)
+-- AND failing the mean-reversion gate at p30 +17.5. Diffing the two
+-- goldens through the consumer buy path (zone=buy AND eligible AND
+-- meanRevPass) gives the SAME 9 coins either side, and the same single
+-- presented candidate after classification. Zero change to anything a
+-- consumer publishes.
+--
+-- Measured against PRODUCTION run 279 rather than the fixture, because
+-- compute-signal-run passes no insights today and a fixture number is
+-- measuring the local pass: 14 of 166 effective scores, ZERO zones, and
+-- the eligible buy zone unchanged at 82. That zero is regime-specific
+-- (buy threshold 28, Mayer 1.13) — re-run
+-- rotator-fixture/measure-production-delta.js against the latest run
+-- before deploying compute-signal-run. See promptove/29.
+--
+-- Applied 2026-09-08. Verified: the column exists and is nullable; the
+-- website's exact PostgREST select (which names `insight`) returns 200
+-- rather than 400; and signal_runs 280 (11:00Z, still engine 2.2.0)
+-- inserted 191 items cleanly afterwards with insight NULL on every row —
+-- the additive column does not disturb the running cron.
+--
+-- BACKFILL: none. Rows written before this have no insight, and must
+-- read as "not recorded" — which is what NULL says. Filling them in
+-- would mean recomputing a point-in-time sentiment and RSI reading that
+-- the run never saw, and attaching it to an effective_score that was
+-- reached without it.
+-- ═══════════════════════════════════════════════════════════════════
+
+alter table signal_run_items
+  -- { score, label, color, signals[], rsi, rsiApplied, fearGreedApplied,
+  --   points } as _computeInsight() returns it. NULL when the coin was
+  -- not classified (stablecoin, incomplete history) or the run predates
+  -- 2.3.0.
+  --
+  -- `points` and the run-level `params.insights.budget` are both stored
+  -- on purpose: a bare 0-100 score cannot be re-read years later once
+  -- the pillar weights have moved, but points against the budget they
+  -- were normalised over can.
+  add column if not exists insight jsonb;
+
+-- Deliberately no check constraint and no expression index on
+-- insight->>'label'. The label set belongs to INSIGHT_RULES.bands and is
+-- expected to move; the hot reads are by run_id and zone, which are
+-- already indexed. Adding an index here would be speculative.
+
+comment on column signal_run_items.insight is
+  'Engine 2.3.0 forward-looking insight. Read this; never re-derive it. It is what effective_score was dampened against. NULL = unclassified coin or pre-2.3.0 run.';

@@ -334,7 +334,7 @@ var SignalHistory = (function() {
      Raw score alone is noisy. We layer in:
        · Volume/mcap liquidity gate (dead coins rarely follow through)
        · BTC relative-strength overlay (alts tracking BTC → less signal)
-       · Insight Engine agreement (when available for holdings/watchlist)
+       · Insight agreement (the engine's forward-looking read)
        · Dilution risk (heavy unlocks cap bullish upside)
      A `confidence` score reorders the top-10 without touching the public
      `score` field that the leaderboard displays.
@@ -368,7 +368,13 @@ var SignalHistory = (function() {
       /* Short-term confirmation: p7 must be positive for a bullish call */
       if ((c.p7 || 0) > 0) bonus += 2;
       else                 bonus -= 4;
-      /* Insight Engine cross-check (only holdings/watchlist have it) */
+      /* Insight cross-check. Read from the engine's run since 2.3.0, so
+         it now applies to every coin — it used to reach only the coins
+         the visitor held or watched, because those were the only ones
+         the browser computed an insight for. A public track record whose
+         confidence ordering depended on whose browser recorded it was a
+         defect; this is the fix arriving as a side effect of moving the
+         calculation into the engine. */
       if (c.insight && typeof c.insight.score === 'number') {
         if (c.insight.score >= 65)      bonus += 6;
         else if (c.insight.score <= 35) bonus -= 10;

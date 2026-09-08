@@ -634,7 +634,13 @@ function applySignalRun(run) {
     c.scoreBreakdown  = it.breakdown;
     c._zone           = it.zone;
     c._effectiveScore = it.effectiveScore;
-    c._quickIns       = it.quickInsight;
+    /* The 7-pillar forward-looking read, computed by the engine since
+       2.3.0. It used to be computed in this browser by computeInsights()
+       in signals.js, and _classifyZones() used it to move a zone — a
+       consumer calculation moving a live number, ARCHITECTURE-MAP.md
+       gap 1. signals.js now only formats it: _insightRun is the run's
+       own object and c.insight is the presentation copy built from it. */
+    c._insightRun     = it.insight || null;
     /* Tradability, computed by the engine's _eligibility() — liquidity
        floor, market-cap sanity, delisted, stablecoin, equity, incomplete
        history. The engine has always returned this per item; nothing on
@@ -719,13 +725,24 @@ async function runSignalEngine() {
         previousZones: prevZones,
         /* Real Wilder RSI(14), already loaded for the display lenses and
            keyed by the same symbol the engine matches on. It reaches the
-           engine as the oversold CONFIRMATION step of the candidate
-           classification (engine 2.2.0) and changes no score — the page
-           has never computed RSI and still does not. loadCoinTechnicals()
-           resolves before loadCoins(), so this is populated by the time
-           the engine runs; if it is not, the engine sees 0% coverage and
-           says so rather than confirming on nothing. */
-        technicals:    (typeof coinTechnicals !== 'undefined') ? coinTechnicals : {}
+           engine twice over: as the oversold CONFIRMATION step of the
+           candidate classification (2.2.0), and as pillar 1 of the
+           insight score (2.3.0). One feed, one coverage gate, both
+           switched off together if it dies. The page has never computed
+           RSI and still does not. loadCoinTechnicals() resolves before
+           loadCoins(), so this is populated by the time the engine runs;
+           if it is not, the engine sees 0% coverage and says so rather
+           than confirming on nothing. */
+        technicals:    (typeof coinTechnicals !== 'undefined') ? coinTechnicals : {},
+        /* Pillar 6, the contrarian sentiment read. Passed as the whole
+           row so the engine can tell "no reading this run" from
+           "neutral" — it skips the pillar for the first and would score
+           the second. loadFearGreed() defaults window.fearGreed to
+           { value: 50 } before its fetch resolves, so an unresolved
+           fetch is indistinguishable here; that is the same 50 the page
+           has always displayed, and the run records
+           dataQuality.fearGreedSupplied either way. */
+        fearGreed:     (typeof window.fearGreed === 'object') ? window.fearGreed : null
       });
       applySignalRun(localRun);
       try {
@@ -755,7 +772,7 @@ async function runSignalEngine() {
       var items = await supaRest('signal_run_items', 'GET', {
         run_id: 'eq.' + latest.id,
         select: 'coin_id,score,effective_score,zone,r7,r14,r30,breakdown,eligible,'
-                + 'candidate_class,rsi,rsi_state,candidate'
+                + 'candidate_class,rsi,rsi_state,candidate,insight'
       });
       var byId = {};
       (items || []).forEach(function(it) { byId[it.coin_id] = it; });
@@ -787,6 +804,14 @@ async function runSignalEngine() {
         c._rsi            = it.rsi != null ? Number(it.rsi) : null;
         c._rsiState       = it.rsi_state || null;
         c._candidate      = it.candidate || null;
+        /* Same rule as the class above: a run older than 2.3.0 has this
+           null on every row, and the page then shows no insight badge
+           rather than computing one locally. Mixing a server score with
+           a locally derived insight is exactly the parallel calculation
+           this wiring exists to prevent — and it is the one that was
+           actually happening until 2.3.0. */
+        c._insightRun     = it.insight || null;
+        c.insight         = null;   /* rebuilt by computeInsights() */
       });
       window.ROTATOR_RUN = { engineVersion: latest.engine_version, asOf: latest.as_of, cycleLabel: latest.cycle_label, source: 'server' };
     } else if (localRun) {

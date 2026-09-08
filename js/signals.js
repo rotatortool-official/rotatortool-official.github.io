@@ -135,17 +135,6 @@ function _passesMeanRevGate(c) {
     : false;
 }
 
-/* Lightweight forward-looking proxy for ALL coins — used by the zone
-   classifier so we can dampen rotation calls when this disagrees with
-   the rotation score. The full Insight Engine in computeInsights() is
-   richer but only runs on holdings/watchlist (kline rate-limit cost);
-   this version uses fields computeScores has already populated, so it's
-   free to compute everywhere.
-
-   Returns 0–100 where:
-     ≥65 → forward-looking bullish (oversold/accumulating/accelerating)
-     ≤35 → forward-looking bearish (overbought/distribution/decelerating)
-*/
 /* ── Delegates to the canonical engine ───────────────────────────────
    The site no longer holds a copy of the scoring maths. Until 2026-09-06
    these bodies lived here and build.js lifted them verbatim into
@@ -156,12 +145,15 @@ function _passesMeanRevGate(c) {
    broken at that point (runSignalEngine reports it loudly), and a
    delegate that guesses would be a second copy of the maths by the back
    door. passesMeanRevGate fails CLOSED — no engine, nothing reaches a
-   buy list. */
-function _quickInsight(c) {
-  return (typeof RotatorEngine !== 'undefined')
-    ? RotatorEngine.internals.quickInsight(c)
-    : null;
-}
+   buy list.
+
+   _quickInsight() was here too, delegating to the engine's forward-looking
+   proxy. Both are gone as of engine 2.3.0: the proxy derived an
+   "RSI-style" reading from a coin's position in the 30-day return
+   ranking, and the pillars that replaced it read the real thing. Nothing
+   on the page called this delegate — _classifyZones() left the site in
+   2026-09-06's Step B — so removing it removes a name, not a behaviour.
+   See ARCHITECTURE-MAP.md gap 1. */
 
 /* Classify every coin's zone with hysteresis + adaptive bands.
    Sets c._zone ∈ {'buy','sell','neutral'} and persists to localStorage. */
@@ -794,88 +786,43 @@ function renderTopBars() {
 }
 
 /* ══════════════════════════════════════════════════════════════
-   INSIGHT ENGINE 2.0 — 7-pillar forward-looking signals
-   Pillars 1-2 use REAL Binance kline data (RSI, MACD, Bollinger)
-   Only computed for holdings + watchlist coins to save resources.
-   Attaches c.insight = { score, label, color, tooltip, signals }
+   INSIGHT ENGINE — the badge, and only the badge
+
+   The 7 pillars used to be computed HERE, in the visitor's browser, from
+   a local kline cache with a rank-derived RSI proxy when no candles were
+   loaded. That number was not display-only: the engine's _classifyZones()
+   read c.insight.score and used it to pull a coin's effective score
+   toward neutral, so a calculation living in a consumer moved a live
+   zone. It was ARCHITECTURE-MAP.md gap 1, and the last parallel scoring
+   path in the project.
+
+   Engine 2.3.0 owns them. c.insight now ARRIVES with the run — from the
+   server row, or from the local engine pass on a cold start — and
+   everything below is presentation: a tooltip string, and the extra
+   candle-derived signal lines for holdings and watchlist coins.
+
+   What this file may still do: format. What it may not do, and no longer
+   can, is produce a number that anything scores on.
 ══════════════════════════════════════════════════════════════ */
 
-/* ── Binance kline cache & fetcher ─────────────────────────── */
-var _klineCache = {};  /* sym → { ts, closes, volumes, rsi, macd, bb } */
+/* ── Binance 4h candle cache ───────────────────────────────────────
+   Candles come from Supabase (binance_klines_4h), not api.binance.com.
+   This is a CACHE now and nothing more: it holds closes and volumes, and
+   the indicator maths that used to live beside it (_calcRSI, _calcEMA,
+   _calcMACD, _calcBollinger) moved into rotator-engine/engine.js with
+   the pillars. RotatorEngine.insightDetail() reads these. */
+var _klineCache = {};  /* sym → { ts, closes, volumes } */
 var _klineTTL   = 10 * 60 * 1000;  /* 10 min cache */
 
-function _calcRSI(closes, period) {
-  if (closes.length < period + 1) return 50;
-  var gains = 0, losses = 0;
-  for (var i = 1; i <= period; i++) {
-    var diff = closes[i] - closes[i - 1];
-    if (diff > 0) gains += diff; else losses -= diff;
-  }
-  var avgGain = gains / period, avgLoss = losses / period;
-  for (var j = period + 1; j < closes.length; j++) {
-    var d = closes[j] - closes[j - 1];
-    avgGain = (avgGain * (period - 1) + (d > 0 ? d : 0)) / period;
-    avgLoss = (avgLoss * (period - 1) + (d < 0 ? -d : 0)) / period;
-  }
-  if (avgLoss === 0) return 100;
-  var rs = avgGain / avgLoss;
-  return +(100 - 100 / (1 + rs)).toFixed(2);
-}
-
-function _calcEMA(arr, period) {
-  var k = 2 / (period + 1), ema = [arr[0]];
-  for (var i = 1; i < arr.length; i++) ema.push(arr[i] * k + ema[i - 1] * (1 - k));
-  return ema;
-}
-
-function _calcMACD(closes) {
-  if (closes.length < 26) return { line: 0, signal: 0, hist: 0 };
-  var ema12 = _calcEMA(closes, 12);
-  var ema26 = _calcEMA(closes, 26);
-  var macdLine = ema12.map(function(v, i) { return v - ema26[i]; });
-  var signalLine = _calcEMA(macdLine.slice(26), 9);
-  var last = macdLine.length - 1;
-  var sigLast = signalLine.length - 1;
-  return {
-    line:   macdLine[last],
-    signal: signalLine[sigLast],
-    hist:   macdLine[last] - signalLine[sigLast]
-  };
-}
-
-function _calcBollinger(closes, period, mult) {
-  if (closes.length < period) return { upper: 0, lower: 0, mid: 0, width: 0, pctB: 50 };
-  var slice = closes.slice(-period);
-  var sum = 0; for (var i = 0; i < slice.length; i++) sum += slice[i];
-  var sma = sum / period;
-  var sqSum = 0; for (var j = 0; j < slice.length; j++) sqSum += (slice[j] - sma) * (slice[j] - sma);
-  var stdDev = Math.sqrt(sqSum / period);
-  var upper = sma + mult * stdDev;
-  var lower = sma - mult * stdDev;
-  var lastP = closes[closes.length - 1];
-  var pctB = (upper - lower) > 0 ? ((lastP - lower) / (upper - lower)) * 100 : 50;
-  var width = sma > 0 ? ((upper - lower) / sma) * 100 : 0;
-  return { upper: upper, lower: lower, mid: sma, width: width, pctB: pctB };
-}
-
-/* Candles come from Supabase (binance_klines_4h), not api.binance.com.
-   The indicator maths stays here on purpose — the server caches raw
-   closes/volumes so _calcRSI / _calcMACD / _calcBollinger remain the
-   single implementation rather than being duplicated server-side. */
 function _buildKlineEntry(sym, raw) {
   if (!raw || !Array.isArray(raw.closes) || raw.closes.length < 30) return null;
-  var closes  = raw.closes.map(Number);
-  var volumes = (raw.volumes || []).map(Number);
-  var result = {
+  var entry = {
     ts: Date.now(),
-    closes: closes,
-    volumes: volumes,
-    rsi:  _calcRSI(closes, 14),
-    macd: _calcMACD(closes),
-    bb:   _calcBollinger(closes, 20, 2)
+    closes: raw.closes.map(Number),
+    volumes: (raw.volumes || []).map(Number)
   };
-  _klineCache[sym] = result;
-  return result;
+  _klineCache[sym] = entry;
+  return entry;
 }
 
 async function _preloadKlines(syms) {
@@ -888,233 +835,87 @@ async function _preloadKlines(syms) {
   fresh.forEach(function(s) { _buildKlineEntry(s, map[s]); });
 }
 
-async function _fetchKlines(sym) {
-  return _klineCache[sym] || null;
-}
-
-/* ── Fetch klines for all holdings (called after data load) ── */
+/* ── Fetch candles for holdings + watchlist (called after data load) ── */
 async function fetchInsightKlines() {
-  /* Skip bStocks entirely. The old reason was that this fetched
-     api.binance.com directly; that is no longer true (candles now come
-     from Supabase), but the exclusion still stands for a simpler reason:
-     a tokenized stock has no <sym>USDT spot pair, so it would never have
-     a row to find. A stock's momentum data already comes from
-     unified_market_data; there is no RSI/MACD/Bollinger equivalent for
-     bStocks yet, so those rows simply go without the extra Insight
-     stats. */
+  /* Skip bStocks entirely: a tokenized stock has no <sym>USDT spot pair,
+     so it would never have a row to find. A stock's momentum data comes
+     from unified_market_data; there is no RSI/MACD/Bollinger equivalent
+     for bStocks yet, so those rows simply go without the extra detail. */
   var stockSyms = (typeof coins !== 'undefined') ? coins.filter(function(c) { return c.isStock; }).map(function(c) { return c.sym; }) : [];
   var hSyms = holdings.map(function(h) { return h.sym; }).filter(function(s) { return stockSyms.indexOf(s) < 0; });
   var wSyms = (typeof watchlist !== 'undefined') ? watchlist.filter(function(s) { return stockSyms.indexOf(s) < 0; }) : [];
   var targetSyms = hSyms.concat(wSyms.filter(function(s) { return hSyms.indexOf(s) < 0; }));
-  /* Still capped at 10 — not for rate limits any more (this is one
-     Supabase read), but because the Insight Engine only surfaces this
-     depth of detail for holdings and watchlist entries. */
+  /* Capped at 10 — not for rate limits (this is one Supabase read), but
+     because this depth of detail is only surfaced for holdings and
+     watchlist entries. */
   var batch = targetSyms.slice(0, 10);
   await _preloadKlines(batch);
-  /* Re-run insights with fresh kline data */
   computeInsights();
 }
 
+/* Attach the presentation layer to the insight the ENGINE produced.
+
+   Called on every render. It reads c.insight — set by applySignalRun()
+   or by the server-row overwrite in runSignalEngine() — and adds the
+   tooltip. For the handful of coins whose candles are loaded it also
+   appends MACD / Bollinger / candle-volume lines from
+   RotatorEngine.insightDetail().
+
+   Those lines are DISPLAY ONLY and deliberately do not touch
+   insight.score. Candles reach at most ten symbols in one visitor's
+   browser; a score built from them could not be reproduced by the server
+   or matched by the next visitor. Before 2.3.0 the score did include
+   them, normalised over a different range, so the same coin showed a
+   different number to someone who held it than to someone who did not. */
 function computeInsights() {
-  var btc = coins.find(function(c) { return c.id === 'bitcoin'; }) || { p24: 0, p7: 0, p14: 0 };
-  var fg  = (window.fearGreed && typeof window.fearGreed.value === 'number')
-              ? window.fearGreed.value : 50;
+  if (typeof coins === 'undefined' || !coins.length) return;
+  var fg      = (window.fearGreed && typeof window.fearGreed.value === 'number') ? window.fearGreed.value : null;
   var fgLabel = (window.fearGreed && window.fearGreed.label) || 'Neutral';
+  var haveEngine = (typeof RotatorEngine !== 'undefined' && typeof RotatorEngine.insightDetail === 'function');
 
-  /* Only compute for holdings + watchlist coins */
-  var hSyms = holdings.map(function(h) { return h.sym; });
-  var wSyms = (typeof watchlist !== 'undefined') ? watchlist : [];
-  var targetSyms = hSyms.concat(wSyms.filter(function(s) { return hSyms.indexOf(s) < 0; }));
+  coins.forEach(function(c) {
+    /* Format from the ENGINE'S object every time, never from the last
+       formatted one. This runs on every render, and again after
+       fetchInsightKlines() resolves — reading back what it wrote would
+       stack the candle signal lines a second time and lose the
+       rsiApplied / fearGreedApplied flags the tooltip branches on
+       (those are not carried onto the formatted object, because nothing
+       downstream reads them).
 
-  coins.forEach(function(c) { delete c.insight; }); /* clear old */
+       c._insightRun is set by applySignalRun() and by the server-row
+       overwrite, both in data-loaders.js — the same two places that set
+       every other engine field — so a new run replaces it rather than
+       leaving this reading a previous one. */
+    var ins = c._insightRun;
+    if (!ins || typeof ins.score !== 'number') { c.insight = null; return; }
 
-  targetSyms.forEach(function(sym) {
-    var c = coins.find(function(x) { return x.sym === sym; });
-    if (!c) return;
-
-    var signals = [];
-    var pts     = 0;
-    var kd      = _klineCache[sym] || null;  /* Binance kline data if available */
-
-    /* ── PILLAR 1: RSI Momentum (real if klines available, proxy if not) ── */
-    var rsi = kd ? kd.rsi : Math.round((1 - (c.r30 - 1) / Math.max(coins.length - 1, 1)) * 100);
-    var rsiLabel = kd ? 'RSI(' + rsi.toFixed(0) + ')' : 'RSI~' + rsi;
-
-    if (rsi <= 25) {
-      pts += 25;
-      signals.push(rsiLabel + ' Oversold');
-    } else if (rsi <= 38) {
-      pts += 14;
-      signals.push(rsiLabel + ' Low Momentum');
-    } else if (rsi <= 45) {
-      pts += 6;
-      signals.push(rsiLabel + ' Cooling');
-    } else if (rsi >= 78) {
-      pts -= 22;
-      signals.push(rsiLabel + ' Overbought');
-    } else if (rsi >= 62) {
-      pts -= 10;
-      signals.push(rsiLabel + ' Hot Zone');
-    } else if (rsi >= 55) {
-      pts -= 4;
-      signals.push(rsiLabel + ' Warming');
+    var signals = Array.isArray(ins.signals) ? ins.signals.slice() : [];
+    var kd = _klineCache[c.sym];
+    var detailed = false;
+    if (haveEngine && kd) {
+      var d = RotatorEngine.insightDetail(kd);
+      if (d && d.signals.length) { signals = signals.concat(d.signals); detailed = true; }
     }
 
-    /* ── PILLAR 2: MACD Trend (real if klines, proxy if not) ── */
-    if (kd && kd.macd) {
-      var mHist = kd.macd.hist;
-      if (kd.macd.line > kd.macd.signal && mHist > 0) {
-        pts += 20;
-        signals.push('MACD Bullish Cross');
-      } else if (kd.macd.line < kd.macd.signal && mHist < 0) {
-        pts -= 18;
-        signals.push('MACD Bearish Cross');
-      } else if (mHist > 0) {
-        pts += 8;
-      } else {
-        pts -= 5;
-      }
-    } else {
-      /* Proxy: compare p7 vs p14 and p7 vs p30 */
-      var p7p14diff = (c.p7 || 0) - (c.p14 || 0);
-      var p7p30diff = (c.p7 || 0) - (c.p30 || 0);
-      if (p7p14diff > 5) { pts += 18; signals.push('Momentum Accelerating (+' + p7p14diff.toFixed(1) + '%)'); }
-      else if (p7p14diff > 1.5) { pts += 8; signals.push('Momentum Building'); }
-      else if (p7p14diff < -5) { pts -= 15; signals.push('Momentum Decelerating (' + p7p14diff.toFixed(1) + '%)'); }
-      else if (p7p14diff < -1.5) { pts -= 6; signals.push('Momentum Fading'); }
-      /* Extra signal: 30D trend divergence */
-      if (p7p30diff > 8) { pts += 10; signals.push('Recovery Trend (+' + p7p30diff.toFixed(1) + '% vs 30D)'); }
-      else if (p7p30diff < -8) { pts -= 8; signals.push('Weakening Trend (' + p7p30diff.toFixed(1) + '% vs 30D)'); }
-    }
+    var tooltip = signals.length ? signals.join(' · ') : 'No strong signals — monitoring';
+    /* Fear & greed is stated whether or not the run had a reading, and
+       says which — pillar 6 is skipped rather than defaulted when the
+       run has none, and a tooltip that shows "50 (Neutral)" for a
+       missing reading would be describing a pillar that did not run. */
+    tooltip += ins.fearGreedApplied && fg != null
+      ? ' | F&G: ' + fg + ' (' + fgLabel + ')'
+      : ' | F&G: not available this run';
+    if (ins.rsi != null) tooltip += ' | RSI(14) ' + ins.rsi;
+    if (detailed) tooltip += ' | Binance 4H data';
 
-    /* ── PILLAR 3: Bollinger Bands Squeeze & Position (real if klines) ── */
-    if (kd && kd.bb) {
-      var bb = kd.bb;
-      if (bb.width < 4) {
-        pts += 18;
-        signals.push('BB Squeeze (width ' + bb.width.toFixed(1) + '%) — Breakout Likely');
-      } else if (bb.width > 20) {
-        pts -= 5;
-        signals.push('BB Wide — High Volatility');
-      }
-      if (bb.pctB < 10) {
-        pts += 15;
-        signals.push('Price at Lower Band (' + bb.pctB.toFixed(0) + '%B)');
-      } else if (bb.pctB > 95) {
-        pts -= 15;
-        signals.push('Price at Upper Band (' + bb.pctB.toFixed(0) + '%B)');
-      }
-    }
-
-    /* ── PILLAR 4: Volume Profile (real volumes if klines) ── */
-    var volMcap = (c.volume24 && c.mcap) ? c.volume24 / c.mcap : 0;
-    var priceStable = Math.abs(c.p24) < 3;
-    if (kd && kd.volumes && kd.volumes.length >= 6) {
-      /* Compare last 6 candles avg volume vs prior 20 candles */
-      var recentVol = kd.volumes.slice(-6).reduce(function(a,b){return a+b;},0) / 6;
-      var priorVol  = kd.volumes.slice(-26, -6).reduce(function(a,b){return a+b;},0) / Math.min(20, kd.volumes.length - 6);
-      var volRatio  = priorVol > 0 ? recentVol / priorVol : 1;
-      if (volRatio > 2 && priceStable) {
-        pts += 25;
-        signals.push('Volume Surge + Stable Price (Accumulation ' + volRatio.toFixed(1) + 'x)');
-      } else if (volRatio > 1.8) {
-        pts += 15;
-        signals.push('Volume Breakout (' + volRatio.toFixed(1) + 'x avg)');
-      } else if (volRatio < 0.3) {
-        pts -= 8;
-        signals.push('Volume Drying Up');
-      }
-    } else {
-      /* Fallback to basic vol/mcap ratio */
-      if (volMcap > 0.20 && priceStable) {
-        pts += 25;
-        signals.push('High Volume + Stable Price (Accumulation)');
-      } else if (volMcap > 0.20) {
-        pts += 12;
-        signals.push('High Liquidity Interest');
-      } else if (volMcap > 0.08 && priceStable) {
-        pts += 8;
-        signals.push('Moderate Volume Activity');
-      } else if (volMcap > 0.08) {
-        pts += 4;
-      } else if (volMcap < 0.02 && c.mcap > 5e8) {
-        pts -= 10;
-        signals.push('Low Liquidity (Large Cap)');
-      } else if (volMcap < 0.03) {
-        pts -= 5;
-        signals.push('Below-Average Volume');
-      }
-    }
-
-    /* ── PILLAR 5: Dilution Shield (Supply Dynamics) ── */
-    var circ = c.circulating_supply || 0;
-    var maxS = c.max_supply || 0;
-    var supplyRatio = (circ && maxS > 0) ? circ / maxS : -1;
-    if (supplyRatio >= 0.85) {
-      pts += 20;
-      signals.push('Supply Cleared (' + Math.round(supplyRatio * 100) + '% Unlocked)');
-    } else if (supplyRatio >= 0.50) {
-      pts += 5;
-    } else if (supplyRatio >= 0 && supplyRatio < 0.30) {
-      pts -= 20;
-      signals.push('High Dilution Risk (' + Math.round(supplyRatio * 100) + '% Unlocked)');
-    }
-
-    /* ── PILLAR 6: Contrarian Sentiment (Fear & Greed) ── */
-    if (fg < 25) {
-      pts += 25;
-      signals.push('Extreme Fear (' + fg + ') — historically a contrarian reading');
-    } else if (fg < 40) {
-      pts += 12;
-      signals.push('Fear Zone (' + fg + ')');
-    } else if (fg > 80) {
-      pts -= 20;
-      signals.push('Extreme Greed (' + fg + ') — Caution');
-    } else if (fg > 65) {
-      pts -= 8;
-      signals.push('Greed Zone (' + fg + ')');
-    }
-
-    /* ── PILLAR 7: Relative Strength vs BTC ── */
-    var btcP24 = btc.p24 || 0;
-    var relStr = c.p24 - btcP24;
-    if (btcP24 < -1 && c.p24 > 0) {
-      pts += 28;
-      signals.push('Hidden Strength vs BTC (' + (relStr >= 0 ? '+' : '') + relStr.toFixed(1) + '%)');
-    } else if (relStr > 5) {
-      pts += 18;
-      signals.push('Outperforming BTC (+' + relStr.toFixed(1) + '%)');
-    } else if (relStr > 2) {
-      pts += 8;
-      signals.push('Slight Edge vs BTC (+' + relStr.toFixed(1) + '%)');
-    } else if (relStr < -5) {
-      pts -= 18;
-      signals.push('Underperforming BTC (' + relStr.toFixed(1) + '%)');
-    } else if (relStr < -2) {
-      pts -= 6;
-      signals.push('Lagging BTC (' + relStr.toFixed(1) + '%)');
-    }
-
-    /* ── Normalise to 0–100 (symmetric: 0 pts = 50) ── */
-    var maxPts = kd ? 176 : 140;
-    var minPts = kd ? -176 : -140;
-    var raw    = Math.min(maxPts, Math.max(minPts, pts));
-    var normalised = Math.round(((raw - minPts) / (maxPts - minPts)) * 100);
-
-    /* ── Label & colour ── */
-    var label, color;
-    if      (normalised >= 65) { label = 'STRONG';  color = 'insight-buy';  }
-    else if (normalised <= 35) { label = 'WARN';    color = 'insight-warn'; }
-    else                       { label = 'NEUTRAL'; color = 'insight-neut'; }
-
-    /* ── Tooltip text ── */
-    var tooltip = signals.length
-      ? signals.join(' · ')
-      : 'No strong signals — monitoring';
-    tooltip += ' | F&G: ' + fg + ' (' + fgLabel + ')';
-    if (kd) tooltip += ' | Binance 4H data';
-
-    c.insight = { score: normalised, label: label, color: color, tooltip: tooltip, signals: signals };
+    c.insight = {
+      score:   ins.score,
+      label:   ins.label,
+      color:   ins.color,
+      signals: signals,
+      tooltip: tooltip,
+      rsi:     ins.rsi != null ? ins.rsi : null
+    };
   });
 }
 
@@ -1169,6 +970,13 @@ function postTodaysInsights() {
     if (sessionStorage.getItem(postedKey) === dStr) return;
   } catch (e) {}
 
+  /* Every coin with an insight, which since engine 2.3.0 means every
+     coin the run classified rather than whichever ten the FIRST VISITOR
+     OF THE DAY happened to hold. The snapshot used to depend on that
+     visitor's portfolio — the same per-visitor drift the zone migration
+     removed, sitting quietly in a stored table. The RPC is still
+     first-writer-of-day and idempotent, so this is one write of ~170
+     rows a day, not 170 more writes. */
   var rows = [];
   coins.forEach(function(c) {
     if (!c || !c.insight || typeof c.insight.score !== 'number') return;
