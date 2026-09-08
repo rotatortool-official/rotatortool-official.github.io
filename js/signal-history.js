@@ -31,17 +31,39 @@ var SignalHistory = (function() {
   var ROTATION_THRESHOLD = 2;   /* rotation: spread between to-change and from-change, in % */
 
   /* Hard cutoff: snapshots dated before STATS_FROM_DATE are excluded from
-     accuracy stats and the proven-signals list. Reset a second time on
-     2026-09-07 for engine 2.1.0, which moved the market-cap adjustment
-     from a multiplier to a signed additive term — a 2.1.0 score is not
-     the same quantity a v2 score was, so the two cannot share a running
-     accuracy number. The retired v2 engine's final record (76.2% over
-     863 graded calls, 2026-04-26 → 2026-08-31) is frozen in the private
-     workbench at archive/v2-engine/v2-final-record.json and displayed as
-     a legacy badge on track-record.html. Keep this date in sync with
-     STATS_FROM_DATE in track-record.html. */
-  var STATS_FROM_DATE = '2026-09-07';
-  var ENGINE_LABEL    = '2.1.0';
+     accuracy stats and the proven-signals list.
+
+     Reset a THIRD time on 2026-09-08, for engine 2.2.0's candidate
+     classification. The reasoning differs from the 2.1.0 reset, and the
+     difference is the point:
+
+       2.1.0 reset because the SCORE changed meaning (market-cap
+       adjustment went from a multiplier to a signed additive term).
+       2.2.0 and 2.3.0 moved NO score and NO zone — verified twice, on
+       the golden fixture and on production runs 298 vs 299. A graded
+       score still means exactly what it meant on 2026-09-07.
+
+     What changed is WHICH coins get published. 2.2.0 added the candidate
+     classification (extreme-move / falling-knife / RSI confirmation) and
+     bullCandidates below now filters on it, so from 2026-09-08 the
+     graded picks come through a stricter selection than the day before.
+     Same score, different population — blending the two would average a
+     looser selection with a tighter one and publish it as one number.
+
+     Day one holds rows written under 2.2.0 (dashboard) and 2.3.0 (bot).
+     They are comparable on both counts that matter: identical scores,
+     and both already selected through the candidate filter.
+
+     ENGINE_LABEL is the engine the RECORD was produced under, not
+     whatever is running now. It is deliberately pinned rather than read
+     from ROTATOR_RUN, so a later engine bump cannot silently relabel
+     history — but that is exactly why it went stale at 2.1.0 through two
+     releases. test/verify-tracking-labels.js now fails when it drifts
+     from the engine without a recorded reason.
+
+     Keep both constants in sync with track-record.html. */
+  var STATS_FROM_DATE = '2026-09-08';
+  var ENGINE_LABEL    = '2.3.0';
 
   function _passesCutoff(dateStr) {
     return typeof dateStr === 'string' && dateStr >= STATS_FROM_DATE;

@@ -187,7 +187,7 @@ a{color:inherit;text-decoration:none}
     <div class="hero-kicker">◆ SIGNAL TRACK RECORD</div>
     <h1>Every call, tracked.</h1>
     <p class="hero-sub">
-      Rotator snapshots its top bullish and lagging signals every day. After 7 days, we compare the call to the actual price. The result is published here — wins and misses both. The counter below restarted on 2026-09-07 with scoring engine 2.1.0; the retired v2 engine's final record is kept underneath it.
+      Rotator snapshots its top bullish and lagging signals every day. After 7 days, we compare the call to the actual price. The result is published here — wins and misses both. The counter below restarted on 2026-09-08 with scoring engine 2.3.0; the retired v2 engine's final record is kept underneath it. <a href="engine-changelog.html" style="color:#f3ba2f;text-decoration:underline;text-underline-offset:2px;">Every model change is logged here.</a>
     </p>
     <div id="accuracy-box" class="acc-box">
       <div class="acc-big" id="acc-pct">—</div>
@@ -195,7 +195,7 @@ a{color:inherit;text-decoration:none}
       <div class="acc-detail" id="acc-detail">Loading…</div>
     </div>
     <div>
-      <span class="window-pill" id="window-pill">Engine 2.1.0 · since 2026-09-07</span>
+      <span class="window-pill" id="window-pill">Engine 2.3.0 · since 2026-09-08</span>
     </div>
 
     <!-- Retired v2 record. Frozen, not recomputed: these numbers are final
@@ -218,11 +218,11 @@ a{color:inherit;text-decoration:none}
       </div>
       <div class="legacy-note">
         Engine 2.1.0 changed the market-cap adjustment from a multiplier to a
-        signed additive term, so v2 and 2.1.0 scores don't mean the same thing.
+        signed additive term, so v2 and later scores don't mean the same thing.
         Rather than splice them into one running number, v2's book is closed
         here and the live counter above restarts from scratch. Graded on the
         best price reached inside the 7–14 day window, so read it as an upper
-        bound — not as the bar 2.1.0 has already cleared.
+        bound — not as the bar the current engine has already cleared.
       </div>
     </div>
 
@@ -288,7 +288,7 @@ a{color:inherit;text-decoration:none}
 <footer class="footer">
   <div class="wrap">
     <div class="disclaimer">
-      The live counter reflects Rotator's 2.1.0 scoring engine, tracking from 2026-09-07. Engine v2 (2026-04-26 → 2026-09-07) finished on 76.2% across 863 graded calls; its record is shown separately and is not blended into the live number, because 2.1.0 changed how market cap enters the score. A signal is "confirmed" when price clears a market-cap-aware threshold within 7–14 days (1.5% mega · 2% large · 3% mid · 5% small/micro). Once a signal hits its target inside the window, the call is locked in and cannot be retroactively demoted by later price moves. Not financial advice — DYOR before any trade.
+      The live counter reflects Rotator's 2.3.0 scoring engine, tracking from 2026-09-08. Engine v2 (2026-04-26 → 2026-09-07) finished on 76.2% across 863 graded calls; its record is shown separately and is not blended into the live number — 2.1.0 changed how market cap enters the score, and 2.2.0 narrowed which coins are published at all. A signal is "confirmed" when price clears a market-cap-aware threshold within 7–14 days (1.5% mega · 2% large · 3% mid · 5% small/micro). Once a signal hits its target inside the window, the call is locked in and cannot be retroactively demoted by later price moves. Not financial advice — DYOR before any trade.
     </div>
     <div style="margin-top:10px;display:flex;justify-content:center;gap:14px;flex-wrap:wrap;">
       <span><span style="color:#22c55e;">•</span> Powered by <a href="https://www.coingecko.com" target="_blank" rel="noopener">CoinGecko</a></span>
@@ -315,17 +315,29 @@ a{color:inherit;text-decoration:none}
   var PEAK_WINDOW_DAYS   = 14;   /* upper bound of the confirm window for peak-capture */
   var CONFIRM_THRESHOLD  = 2;    /* legacy fallback when mcap unknown */
 
-  /* ── Engine 2.1.0 tracking reset ─────────────────────────────
-     2.1.0 changed the market-cap adjustment from a multiplier to a
-     signed additive term, so a 2.1.0 score does not mean what a 2.0.0
-     score meant. Splicing the two into one running number would be
-     dishonest, so v2's record is CLOSED (frozen in the private
-     workbench at archive/v2-engine/v2-final-record.json, and shown as
-     the legacy badge below) and the live counter restarts from this date.
-     Snapshots before the cutoff are not graded here. */
-  var STATS_FROM_DATE    = '2026-09-07';
-  var TRACKING_START     = '2026-09-07';
-  var ENGINE_LABEL       = '2.1.0';
+  /* ── Engine 2.3.0 tracking reset ─────────────────────────────
+     Third reset, 2026-09-08. Different reason from the 2.1.0 one, and
+     the difference matters:
+
+       2.1.0 reset because the SCORE changed meaning. 2.2.0 and 2.3.0
+       moved no score and no zone — verified on the golden fixture and
+       on production runs 298 vs 299 — so a graded score still means
+       what it meant on 2026-09-07.
+
+     What changed is WHICH coins get published: 2.2.0's candidate
+     classification (extreme-move / falling-knife / RSI confirmation)
+     filters the bullish picks, so calls from 2026-09-08 come through a
+     stricter selection. Same score, different population, so the two
+     cannot share one running number.
+
+     v2's record stays CLOSED and is shown as the legacy badge below.
+     The 2.1.0 window (2026-09-07 → 09-08) produced no graded calls —
+     grading needs 7 days — so there is nothing to display for it.
+     Snapshots before the cutoff are not graded here.
+     Keep these in sync with js/signal-history.js. */
+  var STATS_FROM_DATE    = '2026-09-08';
+  var TRACKING_START     = '2026-09-08';
+  var ENGINE_LABEL       = '2.3.0';
 
   /* Vol-normalized confirmation by mcap tier (mirrors signal-history.js).
      Falls back to CONFIRM_THRESHOLD when mcap is unavailable on the row. */
@@ -338,7 +350,7 @@ a{color:inherit;text-decoration:none}
   }
   var MAX_CARDS_PER_LIST = 12;
 
-  /* Day counter for the 2.1.0 reset, so the pre-grading state can say
+  /* Day counter for the 2.3.0 reset, so the pre-grading state can say
      how far in we are instead of showing a bare em-dash. */
   function daysTracking() {
     var start = new Date(TRACKING_START + 'T00:00:00');
@@ -408,7 +420,7 @@ a{color:inherit;text-decoration:none}
   function evaluateRotation(snaps, priceMap) {
     var evaluated = [], pending = [];
     snaps.forEach(function(s) {
-      /* Same 2.1.0 reset as evaluate(): rotation calls scored by the
+      /* Same 2.3.0 reset as evaluate(): rotation calls scored by the
          retired engine are archived, not carried into the live count. */
       if (!s.snap_date || s.snap_date < TRACKING_START) return;
       var snapTs = new Date(s.snap_date + 'T00:00:00Z').getTime();
