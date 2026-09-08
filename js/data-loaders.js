@@ -1521,7 +1521,26 @@ function openTileDetail(coinId, evt) {
   _tdCoin = c;
   var panel = document.getElementById('td-panel');
   var icoEl = document.getElementById('td-ico');
+  /* Logo, with initials behind it when the image does not load. The
+     fallback element has existed since the modal was built and nothing
+     ever wrote to it or toggled it, so a coin with a broken logo showed
+     an empty circle. onerror/onload rather than a guess about c.image:
+     the URL is usually present and still 404s. */
+  var icoFb = document.getElementById('td-ico-fallback');
+  if (icoFb) {
+    icoFb.textContent = (c.sym || '?').slice(0, 4);
+    icoFb.style.display = 'none';
+  }
+  icoEl.onerror = function () {
+    this.style.display = 'none';
+    if (icoFb) icoFb.style.display = 'flex';
+  };
+  icoEl.onload = function () {
+    this.style.display = '';
+    if (icoFb) icoFb.style.display = 'none';
+  };
   icoEl.src = c.image || ''; icoEl.style.display = '';
+  if (!c.image && icoFb) { icoEl.style.display = 'none'; icoFb.style.display = 'flex'; }
   document.getElementById('td-sym').textContent   = c.sym;
   document.getElementById('td-name').textContent  = c.name;
   document.getElementById('td-price').textContent = fmtP(c.price);
@@ -1552,6 +1571,14 @@ function openTileDetail(coinId, evt) {
      beside the zone label, otherwise the same number would appear
      twice a few pixels apart. The label keeps its row; the rank tiles
      read underneath it. */
+  /* The accent bar under the header. index.html calls it "Accent bar that
+     changes color by score" and styles it with transition:background .3s,
+     and nothing ever set a background — it has been a 2px transparent
+     strip since the modal was built. scC is the zone colour computed one
+     line above, so this is the number the bar was always meant to show. */
+  var accentBar = document.getElementById('td-accent-bar');
+  if (accentBar) accentBar.style.background = scC;
+
   var scoreBig = document.getElementById('td-score-num');
   if (scoreBig) {
     scoreBig.innerHTML = '<div class="td-score-num-val" style="color:' + scC + ';">' + c.score + '</div>'
