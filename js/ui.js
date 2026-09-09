@@ -145,7 +145,11 @@ function newToggleAdvanced() {
 
   /* On load: restore saved state (open sections that user previously opened) */
   document.addEventListener('DOMContentLoaded', function() {
-    var ids = ['hot', 'swap', 'promo', 'support', 'holdings', 'trackrecord'];
+    /* 'support' is gone — the Keep it Free card sits beside the swap
+       chart now and is never collapsed. The loop already skips ids whose
+       header or body is missing, so leaving it here would have been
+       harmless and also a lie about what the page contains. */
+    var ids = ['hot', 'swap', 'promo', 'holdings', 'trackrecord'];
     ids.forEach(function(id) {
       if (state[id] === 'open') {
         var hdr  = document.getElementById('ch-' + id);

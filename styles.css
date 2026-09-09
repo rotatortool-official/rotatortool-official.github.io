@@ -3634,7 +3634,8 @@ td.qa-cell{text-align:center;width:28px;padding:0 4px !important;}
 #sec-swap .rt-top-actions {grid-column:1 / -1;grid-row:3;}
 #sec-swap .rt-status      {grid-column:1 / -1;grid-row:4;}
 #sec-swap .rt-saved-wrap  {grid-column:1 / -1;grid-row:5;}
-#sec-swap .new-chart-section{grid-column:1 / -1;grid-row:6;min-height:320px;}
+#sec-swap .new-chart-section{grid-column:1 / span 2;grid-row:6;min-height:320px;}
+#sec-swap .sidebar-donate {grid-column:3;grid-row:6;margin-top:0 !important;}
 #sec-swap .rt-footer      {grid-column:1 / -1;grid-row:7;}
 
 /* ── Quantity on the pair itself ───────────────────────────────────
@@ -3701,8 +3702,15 @@ td.qa-cell{text-align:center;width:28px;padding:0 4px !important;}
 /* COINS and RECORD just need breathing room now they are full width. */
 #sec-coins .tbl-head{padding-left:16px;padding-right:16px;}
 #sec-record .str-section{padding:0 16px;}
-#sec-support{background:var(--bg2);}
-#sec-support .sidebar-donate{max-width:420px;margin:0;padding:14px 16px 18px;}
+/* The donate card lives in the swap grid now — third column, level with
+   the chart. `margin-top:auto` is inline on it from when it was pushed to
+   the bottom of a flex sidebar; in a grid cell that is meaningless, and
+   the padding here is what gives it its own shape beside the chart. */
+#sec-swap .sidebar-donate{
+  padding:0;align-self:stretch;
+  display:flex;flex-direction:column;
+}
+#sec-swap .sidebar-donate .ad-donate{flex:1;display:flex;flex-direction:column;justify-content:center;}
 
 @media(max-width:900px){
   /* These two carried `display:flex;flex-direction:column;flex:1;
