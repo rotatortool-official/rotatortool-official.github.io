@@ -275,67 +275,26 @@ function newToggleAdvanced() {
    - Swap Tool Tutorial
    ════════════════════════════════════════════════════════════════ */
 
-/* ── Holdings view tab toggle ───────────────────────────────── */
-var _holdingsView = 'my';
-function switchHoldingsView(view) {
-  _holdingsView = view;
-  document.getElementById('hvtab-my').classList.toggle('active', view === 'my');
-  var wTab = document.getElementById('hvtab-watch');
-  wTab.classList.toggle('active', view === 'watch');
-  /* Desktop shows both panels at once and overrides these inline styles,
-     so the class is what mobile keys off. Keeping the inline write too
-     means nothing else that reads .style.display changes behaviour. */
-  var my = document.getElementById('my-holdings-panel');
-  var wl = document.getElementById('watchlist-panel');
-  my.style.display = view === 'my' ? 'flex' : 'none';
-  wl.style.display = view === 'watch' ? 'flex' : 'none';
-  my.classList.toggle('hv-on', view === 'my');
-  wl.classList.toggle('hv-on', view === 'watch');
+/* The two tabs are gone — one panel holds both now. This remains only
+   because the mobile bottom nav and the add-to-watchlist flow still say
+   "show me the watchlist", and the honest answer is "it is already on
+   screen, here it is". Scrolls to the panel rather than switching to it. */
+function switchHoldingsView() {
+  var el = document.getElementById('my-holdings-panel');
+  if (el && typeof window.rotScrollToEl === 'function') window.rotScrollToEl(el);
 }
-
 
 /* ── Watchlist state ─────────────────────────────────────────── */
 var watchlist = [];
 try { watchlist = JSON.parse(localStorage.getItem('rot_watchlist') || '[]'); } catch(e) {}
 function saveWatchlist() { try { localStorage.setItem('rot_watchlist', JSON.stringify(watchlist)); } catch(e) {} }
-/* Nine, to match the holdings grid beside it. Both panels are on screen
-   together now, so a watchlist that collapsed to a one-line message left
-   the right half of the section empty while the left half showed a full
-   grid. Same shape, same count, read as a pair — and three by three
-   fills a three-wide panel exactly, which ten did not. */
-var WATCH_TILE_SLOTS = 9;
-
+/* Held coins and watched coins share ONE grid now, and renderTiles() in
+   js/holdings.js draws it. This stays because three call sites ask for it
+   by name — toggleWatch(), removeFromWatchlist() and renderAll() — and
+   because "redraw the watchlist" is still a sentence worth being able to
+   say. It just is not a second renderer any more. */
 function renderWatchlist() {
-  var grid = document.getElementById('watchlist-grid');
-  if (!grid) return;
-  var c = typeof coins !== 'undefined' ? coins : [];
-  var html = watchlist.map(function(sym) {
-    var coin = c.find(function(x) { return x.sym === sym; });
-    if (!coin) return '<div class="tile-placeholder" title="' + sym + ' (loading…)"><div class="ph-plus">' + sym + '</div><div class="ph-lbl">Loading</div></div>';
-    var glw = coin.score >= 65 ? 'glow-g' : coin.score >= 40 ? 'glow-a' : 'glow-r';
-    return '<div class="tile ' + glw + '" style="cursor:pointer;" onclick="openTileDetail(\'' + coin.id + '\',event)" title="' + coin.name + '">'
-      + '<div class="tile-top"><div class="tile-ico"><img src="' + coin.image + '" alt="' + coin.sym + ' logo" loading="lazy" width="22" height="22" onerror="this.style.display=\'none\'"></div>'
-      + '<span class="tile-sym">' + coin.sym + '</span>'
-      + '<button class="tile-rm" onclick="event.stopPropagation();removeFromWatchlist(\'' + sym + '\')">×</button></div>'
-      + '<div class="tile-price">' + (typeof fmtP !== 'undefined' ? fmtP(coin.price) : '$'+coin.price) + '</div>'
-      + '<div class="tile-perfs">'
-        + '<div class="tpf"><span class="tpf-l">24H</span><span class="tpf-v ' + (coin.p24>=0?'up':'dn') + '">' + (coin.p24>=0?'+':'') + coin.p24.toFixed(1) + '%</span></div>'
-        + '<div class="tpf"><span class="tpf-l">7D</span><span class="tpf-v '  + (coin.p7>=0?'up':'dn')  + '">' + (coin.p7>=0?'+':'')  + coin.p7.toFixed(1)  + '%</span></div>'
-      + '</div>'
-      + (coin.insight ? '<div class="tile-insight"><div class="insight-pulse ' + coin.insight.color + '" data-tip="' + coin.insight.tooltip.replace(/"/g, '&quot;') + '" title="' + coin.insight.tooltip.replace(/"/g, '&quot;') + '"><span class="insight-dot"></span><span class="insight-lbl">' + coin.insight.label + '</span><span class="insight-score">' + coin.insight.score + '</span></div></div>' : '')
-      + '<div class="tile-foot"><span></span><span class="tile-scr ' + (coin.score>=65?'hi':coin.score>=40?'md':'lo') + '">' + coin.score + '</span></div>'
-      + '</div>';
-  }).join('');
-
-  /* Pad to ten so the grid keeps its shape whether you watch one coin
-     or nine. The first empty slot carries the invitation the old
-     empty-state message used to. */
-  for (var i = watchlist.length; i < WATCH_TILE_SLOTS; i++) {
-    html += '<div class="tile-placeholder" onclick="openAddWatchlistModal()" title="Add to watchlist">'
-          + '<div class="ph-plus">+</div><div class="ph-lbl">'
-          + (i === 0 ? 'Watch Coin' : 'Add') + '</div></div>';
-  }
-  grid.innerHTML = html;
+  if (typeof renderTiles === 'function') renderTiles();
 }
 function removeFromWatchlist(sym) {
   watchlist = watchlist.filter(function(s) { return s !== sym; });
@@ -426,7 +385,7 @@ function ahmConfirm() {
     if (!watchlist.includes(_ahmSelected.sym)) { watchlist.push(_ahmSelected.sym); saveWatchlist(); }
     closeModal('add-holdings-modal');
     renderWatchlist();
-    switchHoldingsView('watch');
+    switchHoldingsView();
     return;
   }
   // holdings mode
@@ -888,11 +847,24 @@ function railGo(secId) {
     var rows = document.querySelectorAll('#tbody tr');
     if (rows.length) out.coins = rows.length + ' ranked';
 
-    var held = document.querySelectorAll('#tiles-grid .tile');
-    if (held.length) out.yours = held.length + (held.length === 1 ? ' holding' : ' holdings');
+    /* Held and watched share one grid now, so counting `.tile` and calling
+       the answer "holdings" would have reported twelve holdings to someone
+       who owns nine. Two counts, named for what they are. */
+    var all  = document.querySelectorAll('#tiles-grid .tile').length;
+    var watch = document.querySelectorAll('#tiles-grid .tile-watch').length;
+    var held = all - watch;
+    if (all) {
+      out.yours = held + ' held'
+        + (watch ? ' · ' + watch + ' watched' : '');
+    }
 
-    var cands = document.querySelectorAll('#sug-cards .sig-tile:not(.sig-tile-empty):not(.pro-locked)');
-    if (cands.length) out.rotation = cands.length + (cands.length === 1 ? ' signal' : ' signals');
+    /* Rotation Opportunities moved into YOURS, so this count no longer
+       describes the MOMENTUM section at all. That section holds High
+       Momentum and Worst 30d, and those are what it should count. */
+    var mov = document.querySelectorAll(
+      '#mom-cards .sig-tile:not(.sig-tile-empty):not(.pro-locked), '
+      + '#worst-cards .sig-tile:not(.sig-tile-empty):not(.pro-locked)');
+    if (mov.length) out.momentum = mov.length + ' listed';
 
     var from = document.getElementById('rt-from-card-lbl');
     var to = document.getElementById('rt-to-card-lbl');

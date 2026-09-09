@@ -499,6 +499,37 @@ async function loadMacroData() {
   if (btcCoin) _macroData.btcP7 = btcCoin.p7;
 }
 
+/* ── The briefing: on-chain readings. READ ONLY. ────────────────────
+   sync-market-data's fetchNetwork() owns market_cache.network_data and
+   is the only thing that writes it. Four readings, each with the 7-day
+   percent already derived server-side:
+
+     hashrateEh   Bitcoin hash rate, exahashes per second
+     addrCount    unique Bitcoin addresses used that day
+     tvlUsd       total value locked across every chain DefiLlama tracks
+     stableUsd    total stablecoin supply
+
+   The browser formats them and does not compute them, for the reason
+   spelled out at loadMacroData(): a reading assembled in one visitor's
+   tab is a reading nobody else can reproduce.
+
+   Staleness is reported rather than hidden. These move on a daily
+   cadence and the sync is cron-driven, so a reading is allowed to be a
+   day old — but the section says how old it is, because "yesterday's
+   hash rate" and "today's hash rate" are different claims. */
+var _networkData = null;
+var _networkAgeMs = null;
+
+async function loadNetworkData() {
+  if (typeof supaCacheGetStale !== 'function') return;
+  try {
+    var row = await supaCacheGetStale('network_data');
+    if (row && row.data) { _networkData = row.data; _networkAgeMs = row.ageMs; }
+  } catch (e) {
+    console.warn('[briefing] network read skipped:', e.message);
+  }
+}
+
 /* ── Market Cycle (real MA200 + Mayer Multiple) ──────────────────
    Read-only — the sync-market-cycle Edge Function is the sole writer
    (see supabase/functions/sync-market-cycle/index.ts + sql/
@@ -1047,6 +1078,7 @@ async function doLoad() {
     if (typeof pruneStaleHoldings === 'function') pruneStaleHoldings();
     await loadFuturesMetrics(); /* modal Derivatives section — never blocks, never scores */
     await loadMacroData(); prog(80, 'Loading macro data — Gold, Oil…');
+    await loadNetworkData(); renderBriefing();
     await loadFearGreed(); prog(88, 'Fetching sentiment data…');
     renderFearGreed(); /* takes the banner slot if the scaling tip is already dismissed */
     prog(92, 'Almost ready — building your dashboard…');
@@ -1156,6 +1188,79 @@ function dismissScaleBanner() {
   var sb = document.getElementById('scale-banner');
   if (sb) sb.classList.remove('show');
   renderFearGreed();
+}
+
+/* ── The briefing, rendered ─────────────────────────────────────────
+   Four readings from market_cache.network_data. Each cell is a value,
+   its 7-day move, and one line saying what the number IS — a hash rate
+   means nothing to a reader who has not met one before.
+
+   Deliberately not a call to action. These describe the network, they do
+   not argue for a trade, and the wording keeps to that.
+
+   A reading that did not resolve is left out rather than shown as a dash:
+   four cells with one empty is worse than three cells. If none resolved
+   the whole block stays hidden and the ticker carries the section, which
+   is what it did before this existed. */
+function _bfNum(v, digits) {
+  if (v == null || !isFinite(v)) return null;
+  return v.toLocaleString('en-US', {
+    minimumFractionDigits: digits || 0, maximumFractionDigits: digits || 0
+  });
+}
+function _bfUsd(v) {
+  if (v == null || !isFinite(v)) return null;
+  if (v >= 1e12) return '$' + (v / 1e12).toFixed(2) + 'T';
+  if (v >= 1e9)  return '$' + (v / 1e9).toFixed(1)  + 'B';
+  if (v >= 1e6)  return '$' + (v / 1e6).toFixed(1)  + 'M';
+  return '$' + Math.round(v).toLocaleString('en-US');
+}
+function _bfDelta(p) {
+  if (p == null || !isFinite(p)) return '';
+  var cls = p >= 0 ? 'up' : 'dn';
+  return '<span class="bf-d ' + cls + '">' + (p >= 0 ? '+' : '')
+       + p.toFixed(1) + '% 7d</span>';
+}
+function _bfAge(ms) {
+  if (ms == null) return '';
+  var h = ms / 3600000;
+  if (h < 1.5) return 'updated in the last hour';
+  if (h < 36)  return 'updated ' + Math.round(h) + 'h ago';
+  return 'updated ' + Math.round(h / 24) + 'd ago';
+}
+
+function renderBriefing() {
+  var host = document.getElementById('briefing');
+  if (!host) return;
+  var n = _networkData;
+  if (!n) { host.style.display = 'none'; return; }
+
+  var cells = [
+    { v: _bfNum(n.hashrateEh, 0), u: ' EH/s', p: n.hashrateP7,
+      k: 'Hash rate',
+      d: 'Computing power securing Bitcoin' },
+    { v: _bfNum(n.addrCount, 0), u: '', p: n.addrP7,
+      k: 'Active addresses',
+      d: 'Bitcoin addresses used in a day' },
+    { v: _bfUsd(n.tvlUsd), u: '', p: n.tvlP7,
+      k: 'DeFi TVL',
+      d: 'Value locked across every tracked chain' },
+    { v: _bfUsd(n.stableUsd), u: '', p: n.stableP7,
+      k: 'Stablecoin supply',
+      d: 'Dollars sitting on-chain, unallocated' }
+  ].filter(function (c) { return c.v != null; });
+
+  if (!cells.length) { host.style.display = 'none'; return; }
+
+  host.style.display = '';
+  host.innerHTML = cells.map(function (c) {
+    return '<div class="bf-cell">'
+      + '<div class="bf-k">' + c.k + '</div>'
+      + '<div class="bf-v">' + c.v + '<span class="bf-u">' + c.u + '</span></div>'
+      + _bfDelta(c.p)
+      + '<div class="bf-d-note">' + c.d + '</div>'
+      + '</div>';
+  }).join('') + '<div class="bf-age">' + _bfAge(_networkAgeMs) + '</div>';
 }
 
 /* ── Fear & Greed, in the banner slot ───────────────────────────────

@@ -833,11 +833,11 @@
   <nav class="rail" id="rail" aria-label="Section navigation">
     <button class="rail-item" id="rail-today" data-sec="sec-today" onclick="railGo('sec-today')" title="TODAY">
       <span class="rail-mark"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19V9"/><path d="M10 19V5"/><path d="M16 19v-7"/><path d="M22 19H2"/></svg></span>
-      <span class="rail-text"><span class="rail-label">TODAY</span><span class="rail-sub" id="rail-sub-today">the briefing</span></span>
+      <span class="rail-text"><span class="rail-label">TODAY</span><span class="rail-sub" id="rail-sub-today">on-chain now</span></span>
     </button>
-    <button class="rail-item" id="rail-rotation" data-sec="sec-rotation" onclick="railGo('sec-rotation')" title="ROTATION">
+    <button class="rail-item" id="rail-momentum" data-sec="sec-rotation" onclick="railGo('sec-rotation')" title="MOMENTUM">
       <span class="rail-mark"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M17 2.1 21 6l-4 3.9"/><path d="M3 12a9 9 0 0 1 9-9h9"/><path d="M7 21.9 3 18l4-3.9"/><path d="M21 12a9 9 0 0 1-9 9H3"/></svg></span>
-      <span class="rail-text"><span class="rail-label">ROTATION</span><span class="rail-sub" id="rail-sub-rotation">signals</span></span>
+      <span class="rail-text"><span class="rail-label">MOMENTUM</span><span class="rail-sub" id="rail-sub-momentum">best and worst</span></span>
     </button>
     <button class="rail-item" id="rail-record" data-sec="sec-record" onclick="railGo('sec-record')" title="RECORD">
       <span class="rail-mark"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M12 8v4l3 2"/><circle cx="12" cy="12" r="9"/></svg></span>
@@ -845,7 +845,7 @@
     </button>
     <button class="rail-item" id="rail-yours" data-sec="sec-yours" onclick="railGo('sec-yours')" title="YOURS">
       <span class="rail-mark"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M20 7h-9"/><path d="M14 17H5"/><circle cx="17" cy="17" r="3"/><circle cx="7" cy="7" r="3"/></svg></span>
-      <span class="rail-text"><span class="rail-label">YOURS</span><span class="rail-sub" id="rail-sub-yours">what you hold</span></span>
+      <span class="rail-text"><span class="rail-label">YOURS</span><span class="rail-sub" id="rail-sub-yours">holdings and rotations</span></span>
     </button>
     <button class="rail-item" id="rail-swap" data-sec="sec-swap" onclick="railGo('sec-swap')" title="SWAP">
       <span class="rail-mark"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M7 16V4m0 0L4 7m3-3 3 3"/><path d="M17 8v12m0 0 3-3m-3 3-3-3"/></svg></span>
@@ -853,12 +853,17 @@
     </button>
     <button class="rail-item rail-last" id="rail-coins" data-sec="sec-coins" onclick="railGo('sec-coins')" title="COINS">
       <span class="rail-mark"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M3 12h18"/><path d="M3 18h18"/></svg></span>
-      <span class="rail-text"><span class="rail-label">COINS</span><span class="rail-sub" id="rail-sub-coins">the evidence</span></span>
+      <span class="rail-text"><span class="rail-label">COINS</span><span class="rail-sub" id="rail-sub-coins">every tracked coin</span></span>
     </button>
   </nav>
   <div class="page" id="page">
   <section class="rsec" id="sec-today">
-    <div class="rsec-hdr"><span class="rsec-label">TODAY</span><span class="rsec-meta" id="rsec-meta-today">what the market is doing right now</span></div>
+    <div class="rsec-hdr"><span class="rsec-label">TODAY</span><span class="rsec-meta" id="rsec-meta-today">what the networks and the tape are doing right now</span></div>
+    <!-- BRIEFING — on-chain readings, filled by renderBriefing() in
+         js/data-loaders.js from market_cache.network_data. Empty until
+         sync-market-data has run once; the block hides itself rather
+         than showing a row of dashes. -->
+    <div class="briefing" id="briefing" style="display:none;"></div>
     <!-- MARKET TICKER — BTC anchor + infinite-loop global movers -->
     <div class="market-ticker" id="market-ticker">
       <div class="mt-anchor">
@@ -875,7 +880,7 @@
     </div>
   </section>
   <section class="rsec" id="sec-rotation">
-    <div class="rsec-hdr"><span class="rsec-label">ROTATION</span><span class="rsec-meta" id="rsec-meta-rotation">signals from the current run</span></div>
+    <div class="rsec-hdr"><span class="rsec-label">MOMENTUM</span><span class="rsec-meta" id="rsec-meta-momentum">the strongest and the weakest in this run</span></div>
     <!-- WHAT'S HOT — collapsible on mobile -->
     <div class="collapse-hdr hot" id="ch-hot" onclick="toggleCollapse('hot')">
       <div class="collapse-hdr-left">
@@ -888,10 +893,6 @@
     <div class="neon-section">
       <div class="neon-inner">
         <div class="bars-cols">
-          <div class="bars-col-inner">
-            <div class="bar-col-title" style="color:var(--green);">↑ Rotation Opportunities</div>
-            <div id="sug-cards"></div>
-          </div>
           <div class="bars-col-inner">
             <div class="bar-col-title" style="color:var(--amber);">⚡ High Momentum</div>
             <div id="mom-cards"></div>
@@ -925,7 +926,7 @@
     </div>
   </section>
   <section class="rsec" id="sec-yours">
-    <div class="rsec-hdr"><span class="rsec-label">YOURS</span><span class="rsec-meta" id="rsec-meta-yours">how what you hold sits against the tracked market</span></div>
+    <div class="rsec-hdr"><span class="rsec-label">YOURS</span><span class="rsec-meta" id="rsec-meta-yours">what you hold and watch, and the rotations this run surfaced</span></div>
   <div class="sidebar">
     <!-- PORTFOLIO SIGNAL: direct sidebar child — zero gap guaranteed -->
     <div class="sig-box" id="sig-box-crypto">
@@ -946,36 +947,38 @@
     <!-- HOLDINGS — crypto + bStocks share one panel; both live in coins[] now -->
     <div id="holdings-crypto">
 
-      <!-- Dual view tabs -->
-      <div class="holdings-view-tabs">
-        <button class="hvtab active" id="hvtab-my" onclick="switchHoldingsView('my')">💼 My Holdings</button>
-        <button class="hvtab hvtab-watch" id="hvtab-watch" onclick="switchHoldingsView('watch')">👁 Watchlist</button>
-      </div>
-
       <!-- MY HOLDINGS VIEW -->
-      <div id="my-holdings-panel" class="hv-on" style="display:flex;flex-direction:column;flex:1;min-height:0;">
+      <!-- ONE panel. Held coins and watched coins were two grids that had
+           to be toggled between; they are the same question asked twice —
+           what am I paying attention to — and they read better together.
+           renderTiles() in js/holdings.js draws both. A watched coin is
+           still stored in watchlist[] and still contributes NOTHING to the
+           portfolio signal: it is attention, not capital. -->
+      <div id="my-holdings-panel" class="hv-on">
         <div class="holdings-section-label">
-          <span>MY HOLDINGS</span>
+          <span>MY COINS</span>
           <span id="hcount" style="color:var(--bnb);font-size:12px;letter-spacing:.04em;"></span>
         </div>
         <div class="tiles-scroll"><div class="tiles-grid" id="tiles-grid"></div></div>
       </div>
-
-      <!-- WATCHLIST VIEW -->
-      <div id="watchlist-panel" style="display:none;flex-direction:column;flex:1;overflow:hidden;">
-        <div class="watchlist-tip">Track coins without committing capital. Ratio tool auto-populates your watchlist pairs.</div>
-        <div class="tiles-scroll"><div class="tiles-grid" id="watchlist-grid">
-          <div class="watchlist-placeholder">Click + to add coins to your watchlist.<br>Compare them in the swap tool →</div>
-        </div></div>
-      </div>
     </div>
     </div><!-- /cb-holdings -->
+
+    <!-- ROTATION OPPORTUNITIES — moved out of the ROTATION section so it
+         sits beside what you already hold, which is the only thing that
+         makes a rotation mean anything. Still filled by renderTopBars()
+         in js/signals.js; the id is what that function looks up, and it
+         did not change. -->
+    <div class="rot-beside" id="rot-beside">
+      <div class="bar-col-title" style="color:var(--green);">↑ Rotation Opportunities</div>
+      <div id="sug-cards"></div>
+    </div>
 
 
   </div>
   </section>
   <section class="rsec" id="sec-swap">
-    <div class="rsec-hdr"><span class="rsec-label">PAIR RATIO</span><span class="rsec-meta" id="rsec-meta-swap">how one asset has moved against another</span></div>
+    <div class="rsec-hdr"><span class="rsec-label">SWAP</span><span class="rsec-meta" id="rsec-meta-swap">how one asset has moved against another, and what a swap would give you</span></div>
   <div class="ad-panel">
     <!-- SWAP TOOL — collapsible on mobile -->
     <div class="collapse-hdr swap" id="ch-swap" onclick="toggleCollapse('swap')">
@@ -1090,6 +1093,17 @@
             </div>
           </div>
 
+          <!-- Save pair and Refresh were a full-width strip further down
+               the tool, acting on a pair chosen three cards away. They
+               live with Share now: three things you can do to the pair
+               you just picked, in the place you picked it. -->
+          <div class="rt-top-actions">
+            <button class="rt-star-btn" id="rt-star-btn" title="Save pair">☆ Save pair</button>
+            <button class="rt-refresh-btn" id="rt-refresh-btn" onclick="RatioTracker.loadAll()" title="Refresh">
+              <span id="rt-spin-icon">↻</span> Refresh
+            </button>
+          </div>
+
           <button class="rt-swap-share-btn" id="rt-swap-share-btn" onclick="shareSwapCard()" title="Share your swap as an image">
             <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/><polyline points="16 6 12 2 8 6"/><line x1="12" y1="2" x2="12" y2="15"/></svg>
             Share Swap
@@ -1107,13 +1121,6 @@
         </div>
       </div>
 
-      <!-- ══ SAVE + REFRESH ACTIONS ══ -->
-      <div class="rt-top-actions">
-        <button class="rt-star-btn" id="rt-star-btn" title="Save pair">☆ Save pair</button>
-        <button class="rt-refresh-btn" id="rt-refresh-btn" onclick="RatioTracker.loadAll()" title="Refresh">
-          <span id="rt-spin-icon">↻</span> Refresh
-        </button>
-      </div>
 
       <!-- Status + saved pairs -->
       <div class="rt-status" id="rt-status">Connecting…</div>

@@ -3576,7 +3576,7 @@ td.qa-cell{text-align:center;width:28px;padding:0 4px !important;}
    the same shape, so the section reads as a pair. */
 #sec-yours .sidebar{
   display:grid;
-  grid-template-columns:280px minmax(0,1fr) minmax(0,1fr);
+  grid-template-columns:230px minmax(0,1.8fr) minmax(0,1fr);
   gap:0 16px;align-items:start;
   padding:12px 16px 16px;
 }
@@ -3585,24 +3585,62 @@ td.qa-cell{text-align:center;width:28px;padding:0 4px !important;}
   border-bottom:none;border-radius:10px;
   border:1px solid rgba(243,186,47,.18);
 }
-#sec-yours .collapse-hdr{grid-column:2 / -1;}
-#sec-yours #cb-holdings{grid-column:2 / -1;display:block;}
-#sec-yours #holdings-crypto{
-  display:grid;
-  grid-template-columns:minmax(0,1fr) minmax(0,1fr);
-  gap:0 16px;align-items:start;
+/* Column 2 is what you are paying attention to — held and watched in one
+   grid. Column 3 is what the run suggests doing about it. Those two
+   belong side by side: a rotation candidate is an abstraction until it
+   is next to the coin you would be rotating out of. */
+#sec-yours .collapse-hdr{grid-column:2;}
+#sec-yours #cb-holdings{grid-column:2;display:block;}
+#sec-yours #holdings-crypto{display:block;}
+/* flex-direction was an inline style on this div and went with the rest
+   of them when the two panels became one. Without it the label and the
+   grid laid out as a ROW: the grid started 102px in and ran out over the
+   rotation cards. Nothing looked broken, it just sat in the wrong place. */
+#sec-yours #my-holdings-panel{display:flex;flex-direction:column;min-width:0;}
+#sec-yours .holdings-section-label{padding-left:0;padding-right:0;}
+/* Four across, not three. The rotation cards beside it are two across in
+   a narrower column, so at three the coin tiles read visibly fatter than
+   the thing they are meant to be compared with. Four lines the two panels
+   up. */
+#sec-yours .tiles-grid{grid-template-columns:repeat(4,minmax(0,1fr));gap:7px;}
+/* .tiles-scroll is a flex item with the default min-width:auto, so it
+   refused to go below the grid's min-content and pushed 705px of tiles
+   through a 615px column and underneath the rotation cards. Nothing was
+   clipped because the overflow was visible — it just silently overlapped.
+   Both the scroller and the tiles are allowed to shrink now. */
+#sec-yours .tiles-scroll,
+#sec-yours .tiles-grid{min-width:0;width:100%;}
+#sec-yours .tiles-grid > *{min-width:0;}
+/* Four across puts a coin tile at ~155px, and two things inside it were
+   built for a wider box: the 24H/7D/30D row and the Insight pill. Both
+   are allowed to shrink here rather than quietly spilling over the
+   rotation cards next door. */
+#sec-yours .tile-perfs{gap:3px;}
+#sec-yours .tile-perfs > *{min-width:0;}
+#sec-yours .tile .tpf-l{font-size:9px;letter-spacing:0;}
+#sec-yours .tile .tpf-v{font-size:10px;}
+#sec-yours .tile-insight{min-width:0;}
+#sec-yours .insight-pulse{
+  min-width:0;max-width:100%;gap:3px;
+  padding:2px 5px;font-size:9px;
 }
-/* Both panels, side by side. switchHoldingsView() writes inline display
-   styles, so these have to win — the tabs stay for mobile, where one at
-   a time is still the right answer. */
-#sec-yours .holdings-view-tabs{display:none;}
-#sec-yours #my-holdings-panel{display:flex !important;grid-column:1;}
-#sec-yours #watchlist-panel{display:flex !important;grid-column:2;}
-#sec-yours .holdings-section-label,
-#sec-yours .watchlist-tip{padding-left:0;padding-right:0;}
-#sec-yours .tiles-grid{grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;}
+/* .insight-lbl and .insight-score carry their own 12px, so shrinking the
+   pill alone did nothing — the text kept its size and spilled. */
+#sec-yours .insight-lbl,
+#sec-yours .insight-score{font-size:9px;}
+#sec-yours .insight-lbl{
+  min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
+  letter-spacing:.02em;
+}
+#sec-yours .insight-score{margin-left:0;flex-shrink:0;}
+#sec-yours .insight-dot{flex-shrink:0;}
 #sec-yours .tiles-scroll{padding:0;}
-#sec-yours .watchlist-placeholder{display:none;}
+
+#sec-yours .rot-beside{grid-column:3;grid-row:1 / span 2;min-width:0;}
+#sec-yours .rot-beside .bar-col-title{
+  font-size:12px;letter-spacing:.08em;font-weight:700;
+  padding:0 0 8px;text-transform:uppercase;
+}
 
 /* SWAP: everything you set or read sits ABOVE the chart, and the chart
    takes the full width underneath.
@@ -3631,12 +3669,11 @@ td.qa-cell{text-align:center;width:28px;padding:0 4px !important;}
 #sec-swap .new-swap-hero  {grid-column:1 / span 2;grid-row:1 / span 2;}
 #sec-swap .new-ratio-hook {grid-column:3;grid-row:1;}
 #sec-swap .rt-cards       {grid-column:3;grid-row:2;}
-#sec-swap .rt-top-actions {grid-column:1 / -1;grid-row:3;}
-#sec-swap .rt-status      {grid-column:1 / -1;grid-row:4;}
-#sec-swap .rt-saved-wrap  {grid-column:1 / -1;grid-row:5;}
-#sec-swap .new-chart-section{grid-column:1 / span 2;grid-row:6;min-height:320px;}
-#sec-swap .sidebar-donate {grid-column:3;grid-row:6;margin-top:0 !important;}
-#sec-swap .rt-footer      {grid-column:1 / -1;grid-row:7;}
+#sec-swap .rt-status      {grid-column:1 / -1;grid-row:3;}
+#sec-swap .rt-saved-wrap  {grid-column:1 / -1;grid-row:4;}
+#sec-swap .new-chart-section{grid-column:1 / span 2;grid-row:5;min-height:320px;}
+#sec-swap .sidebar-donate {grid-column:3;grid-row:5;margin-top:0 !important;}
+#sec-swap .rt-footer      {grid-column:1 / -1;grid-row:6;}
 
 /* ── Quantity on the pair itself ───────────────────────────────────
    The amount used to live only in the calculator, three cards away from
@@ -3691,12 +3728,14 @@ td.qa-cell{text-align:center;width:28px;padding:0 4px !important;}
   #sec-swap .swap-detail .rt-calc-ratios{grid-column:1;margin-top:0;}
   #sec-swap .swap-detail .new-adv-toggle{grid-column:2;grid-row:1;}
   #sec-swap .swap-detail .new-adv-panel{grid-column:2;grid-row:2;margin-top:0;}
-  #sec-swap .swap-detail .rt-swap-share-btn{grid-column:2;grid-row:3;margin-top:2px;}
+  #sec-swap .swap-detail .rt-top-actions{grid-column:2;grid-row:3;margin-top:2px;}
+  #sec-swap .swap-detail .rt-swap-share-btn{grid-column:2;grid-row:4;margin-top:6px;}
 }
 
-/* ROTATION keeps its three columns — that shape was right, it was the
-   page around it that was wrong. */
-#sec-rotation .bars-cols{padding:0 16px 14px;}
+/* Two columns, not three: Rotation Opportunities moved into YOURS, and
+   High Momentum and Worst 30d are a natural pair — the same question
+   asked from both ends. */
+#sec-rotation .bars-cols{padding:0 16px 14px;grid-template-columns:repeat(2,minmax(0,1fr));}
 #sec-rotation .neon-section{border-bottom:none;}
 
 /* COINS and RECORD just need breathing room now they are full width. */
@@ -3726,12 +3765,8 @@ td.qa-cell{text-align:center;width:28px;padding:0 4px !important;}
   #sec-yours #holdings-crypto,
   #sec-swap .ratio-section{display:block;padding-left:0;padding-right:0;}
   #sec-yours .tiles-grid{grid-template-columns:repeat(2,1fr);}
-  /* One at a time again — the tabs are the right answer on a phone. */
-  #sec-yours .holdings-view-tabs{display:flex;}
-  #sec-yours #my-holdings-panel,
-  #sec-yours #watchlist-panel{display:none !important;}
-  #sec-yours #my-holdings-panel.hv-on,
-  #sec-yours #watchlist-panel.hv-on{display:flex !important;}
+  #sec-yours #my-holdings-panel{display:flex;}
+  #sec-yours .rot-beside{padding:0 12px 12px;}
 }
 
 /* ── Section labels ────────────────────────────────────────────────
@@ -3791,3 +3826,90 @@ header{position:sticky;top:0;z-index:100;}
   top:var(--topbar-h,45px);
   height:calc(100vh - var(--topbar-h,45px));
 }
+
+/* ── The briefing ───────────────────────────────────────────────────
+   Four on-chain readings at the top of TODAY, above the ticker. They
+   describe the network rather than the price: what is securing it, who
+   is using it, what is committed to it, and what is sitting in dollars
+   waiting. Filled by renderBriefing(); hidden when nothing resolved. */
+.briefing{
+  display:grid;grid-template-columns:repeat(4,minmax(0,1fr));
+  gap:0 1px;background:var(--bdr);
+  border-top:1px solid var(--bdr);border-bottom:1px solid var(--bdr);
+  margin:0 0 2px;
+}
+.bf-cell{background:var(--bg2);padding:10px 16px 11px;min-width:0;}
+.bf-k{
+  font-size:10px;letter-spacing:.1em;text-transform:uppercase;
+  color:var(--muted);font-weight:700;margin-bottom:3px;
+}
+.bf-v{
+  font-family:var(--font-mono);font-size:20px;font-weight:700;
+  color:var(--text);line-height:1.1;
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
+}
+.bf-u{font-size:12px;font-weight:600;color:var(--muted);margin-left:2px;}
+.bf-d{font-family:var(--font-mono);font-size:11px;font-weight:700;}
+.bf-d.up{color:var(--green);}
+.bf-d.dn{color:var(--red);}
+.bf-d-note{font-size:10px;color:var(--muted);opacity:.75;margin-top:3px;line-height:1.35;}
+/* Its own full-width row under the cells, so the age of the reading is
+   attached to all four rather than to the last one. */
+.bf-age{
+  grid-column:1 / -1;background:var(--bg2);
+  padding:5px 16px 7px;font-size:10px;color:var(--muted);opacity:.7;
+  letter-spacing:.04em;
+}
+@media(max-width:900px){
+  .briefing{grid-template-columns:repeat(2,minmax(0,1fr));}
+  .bf-cell{padding:9px 12px 10px;}
+  .bf-v{font-size:17px;}
+  .bf-age{padding:5px 12px 7px;}
+}
+
+/* ── A narrower page ────────────────────────────────────────────────
+   The layout stretched to whatever the monitor was, which on a wide
+   screen put the rail and the leaderboard's last column nearly a metre
+   apart and left the eye no centre to return to. Capped and centred.
+   The bar keeps its full-width background and constrains its contents
+   to the same measure, so the chrome frames the page rather than
+   floating away from it. */
+.root{max-width:1600px;margin:0 auto;}
+.topbar{max-width:1600px;margin:0 auto;width:100%;box-sizing:border-box;}
+header{background:var(--bg2);}
+
+/* ── A watched coin ─────────────────────────────────────────────────
+   Same grid as the coins you hold, deliberately quieter: no profit line,
+   because there is no position, and a marker so the difference is never
+   in doubt. */
+.tile-watch{border-style:dashed;}
+.tile-watch-badge{
+  font-size:11px;line-height:1;opacity:.75;margin-left:4px;
+  flex-shrink:0;
+}
+.tile-watch-lbl{
+  font-size:9px;letter-spacing:.09em;text-transform:uppercase;
+  color:var(--green);opacity:.8;font-weight:700;
+}
+
+/* ── Swap: one place for the actions ────────────────────────────────
+   Save pair and Refresh were a full-width strip halfway down the tool
+   while Share sat in the panel beside the pair. Three buttons, one
+   place, under the thing they act on. */
+#sec-swap .rt-top-actions{
+  display:flex;gap:8px;margin:0;padding:0;
+}
+#sec-swap .rt-top-actions > *{flex:1;min-width:0;}
+
+/* ── The pair, read as a pair ────────────────────────────────────────
+   FROM and TO were two cards at opposite ends of a wide row with the ⇄
+   marooned between them, and each coin's icon sat on its own outer edge
+   — the two things being exchanged pointed away from each other. The
+   cards close up, and the FROM card mirrors so its icon sits on the
+   inside. BNB and SOL now face across the arrow. */
+#sec-swap .new-pair-grid{grid-template-columns:1fr 34px 1fr;gap:5px;}
+#sec-swap .new-from-card .new-coin-main{flex-direction:row-reverse;}
+#sec-swap .new-from-card .new-coin-info{text-align:right;}
+#sec-swap .new-from-card .new-coin-badge{justify-content:flex-start;flex-direction:row-reverse;}
+#sec-swap .new-from-card .new-coin-qty{align-items:flex-end;}
+#sec-swap .new-from-card .new-coin-qty-inp{text-align:right;}

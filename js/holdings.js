@@ -193,6 +193,50 @@ function renderTiles() {
           + '</div>';
   });
 
+  /* ── Watched coins ──
+     Same panel, different claim. A held tile says what you own and what it
+     has done to your money; a watched tile says you are paying attention
+     and nothing more, so it carries no quantity, no average and no profit
+     line. They sit between the holdings and the empty slots so the upsell
+     never comes between two real coins.
+
+     watchlist[] still lives in js/ui.js and is still what the eye icon
+     writes. This function only DRAWS it. renderSignal() below is handed
+     heldCoins and never these, because a coin you are watching must not
+     move the portfolio score — it is attention, not capital.
+
+     The empty-slot arithmetic underneath is deliberately left alone: it
+     counts HOLDINGS against the tier limit, and watching a coin does not
+     consume a holding slot. */
+  var _watched = (typeof watchlist !== 'undefined' ? watchlist : []).filter(function(sym) {
+    return !holdings.some(function(h) { return h.sym === sym; });
+  });
+  _watched.forEach(function(sym) {
+    var c = coins.find(function(x) { return x.sym === sym; });
+    if (!c) {
+      html += '<div class="tile tile-watch"><div class="tile-top"><span class="tile-sym">' + sym + '</span>'
+            + '<button class="tile-rm" onclick="event.stopPropagation();removeFromWatchlist(\'' + sym + '\')">×</button></div>'
+            + '<div style="font-size:12px;color:var(--muted);">Loading…</div></div>';
+      return;
+    }
+    var wg = c.score >= 65 ? 'glow-g' : c.score >= 40 ? 'glow-a' : 'glow-r';
+    html += '<div class="tile tile-watch ' + wg + '" style="cursor:pointer;" onclick="openTileDetail(\'' + c.id + '\',event)" title="Watching ' + c.name + '">'
+          + '<div class="tile-top"><div class="tile-ico"><img src="' + c.image + '" alt="' + c.sym + ' logo" loading="lazy" width="16" height="16" onerror="this.style.display=\'none\'"></div>'
+          + '<span class="tile-sym">' + c.sym + '</span>'
+          + '<span class="tile-watch-badge" title="On your watchlist">👁</span>'
+          + '<button class="tile-rm" onclick="event.stopPropagation();removeFromWatchlist(\'' + c.sym + '\')">×</button></div>'
+          + '<div class="tile-price">' + fmtP(c.price) + '</div>'
+          + '<div class="tile-perfs">'
+            + '<div class="tpf"><span class="tpf-l">24H</span><span class="tpf-v ' + (c.p24>=0?'up':'dn') + '">' + (c.p24>=0?'+':'') + c.p24.toFixed(1) + '%</span></div>'
+            + '<div class="tpf"><span class="tpf-l">7D</span><span class="tpf-v '  + (c.p7>=0?'up':'dn')  + '">' + (c.p7>=0?'+':'')  + c.p7.toFixed(1)  + '%</span></div>'
+            + '<div class="tpf"><span class="tpf-l">30D</span><span class="tpf-v ' + (c.p30>=0?'up':'dn') + '">' + (c.p30>=0?'+':'') + c.p30.toFixed(1) + '%</span></div>'
+          + '</div>'
+          + (c.insight ? '<div class="tile-insight"><div class="insight-pulse ' + c.insight.color + '" data-tip="' + c.insight.tooltip.replace(/"/g, '&quot;') + '" title="' + c.insight.tooltip.replace(/"/g, '&quot;') + '"><span class="insight-dot"></span><span class="insight-lbl">' + c.insight.label + '</span><span class="insight-score">' + c.insight.score + '</span></div></div>' : '')
+          + '<div class="tile-foot"><span class="tile-watch-lbl">watching</span>'
+          + '<span class="tile-scr ' + (c.score>=65?'hi':c.score>=40?'md':'lo') + '">' + c.score + '</span></div>'
+          + '</div>';
+  });
+
   /* ── Fillable empty slots (green +) ── */
   var filledCount   = holdings.length;
   var fillableLimit = isPro ? TOTAL_TILE_SLOTS : FREE_HOLDINGS_LIMIT;

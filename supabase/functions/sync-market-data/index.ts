@@ -344,6 +344,146 @@ async function fetchMacro(
   return out;
 }
 
+// ─────────────── SOURCE: ON-CHAIN NETWORK READINGS ───────────────
+//
+// OWNER      this function. Nothing else writes market_cache.network_data.
+// INPUTS     blockchain.info charts (hash rate, unique addresses),
+//            DefiLlama (total DeFi TVL, total stablecoin supply).
+// OUTPUT     market_cache.network_data — one flat object, same shape
+//            discipline as macro_data: a value and its 7-day percent.
+// CONSUMERS  site/js/data-loaders.js loadNetworkData(), which READS ONLY.
+//
+// Every percent is derived here. The browser is handed finished numbers
+// and formats them, exactly as with macro_data — for the reason written
+// at loadMacroData(): a reading assembled in a visitor's tab is a reading
+// nobody can reproduce.
+//
+// NOT INCLUDED — ETF flows. Farside Investors is the only free source for
+// daily spot BTC/ETH ETF flow and it has no API; the page sits behind
+// Cloudflare's interstitial, so any parser here would be a scraper that
+// breaks silently and reports a stale number as today's. Left out on
+// purpose rather than shipped as a guess.
+
+/** Percent change between two readings, or null if either is unusable. */
+function pctChange(now: number | null, then: number | null): number | null {
+  if (now == null || then == null) return null;
+  if (!isFinite(now) || !isFinite(then) || then <= 0) return null;
+  return ((now - then) / then) * 100;
+}
+
+/**
+ * blockchain.info daily chart → [latest, the reading 7 days before it].
+ * `cors=true` is their documented parameter and is harmless server-side.
+ */
+async function chainSeries(chart: string): Promise<[number | null, number | null]> {
+  const url = `https://api.blockchain.info/charts/${chart}`
+    + '?timespan=9days&format=json&cors=true';
+  const data = await safeJson(url);
+  const vals = (data?.values ?? []) as { x: number; y: number }[];
+  const clean = vals.filter((v) => v && isFinite(v.y) && v.y > 0);
+  if (clean.length < 8) return [null, null];
+  const last = clean[clean.length - 1];
+  // Match on the timestamp rather than counting back 7 entries: the series
+  // is daily but a missing day would otherwise quietly become a 6-day or
+  // 8-day change reported as 7.
+  const target = last.x - 7 * 86400;
+  let best: { x: number; y: number } | null = null, bestDist = Infinity;
+  for (const v of clean) {
+    const d = Math.abs(v.x - target);
+    if (d < bestDist) { bestDist = d; best = v; }
+  }
+  if (!best || best.x === last.x || bestDist > 36 * 3600) return [last.y, null];
+  return [last.y, best.y];
+}
+
+async function fetchNetwork(
+  supabase: ReturnType<typeof createClient>,
+): Promise<Record<string, number | null>> {
+  const out: Record<string, number | null> = {
+    hashrateEh: null, hashrateP7: null,
+    addrCount: null,  addrP7: null,
+    tvlUsd: null,     tvlP7: null,
+    stableUsd: null,  stableP7: null,
+  };
+
+  // ── Bitcoin hash rate. Reported in TH/s; shown in EH/s. ──
+  try {
+    const [now, then] = await chainSeries('hash-rate');
+    if (now != null) out.hashrateEh = now / 1e6;
+    out.hashrateP7 = pctChange(now, then);
+  } catch (e) {
+    console.warn('[network] hash rate failed:', (e as Error).message);
+  }
+  await sleep(200);
+
+  // ── Unique Bitcoin addresses used per day. ──
+  try {
+    const [now, then] = await chainSeries('n-unique-addresses');
+    out.addrCount = now;
+    out.addrP7 = pctChange(now, then);
+  } catch (e) {
+    console.warn('[network] addresses failed:', (e as Error).message);
+  }
+  await sleep(200);
+
+  // ── Total DeFi TVL across every chain DefiLlama tracks. ──
+  try {
+    const rows = await safeJson('https://api.llama.fi/v2/historicalChainTvl') as
+      { date: number; tvl: number }[];
+    const clean = (rows ?? []).filter((r) => r && isFinite(r.tvl) && r.tvl > 0);
+    if (clean.length >= 8) {
+      const last = clean[clean.length - 1];
+      const target = last.date - 7 * 86400;
+      let best: { date: number; tvl: number } | null = null, bestDist = Infinity;
+      for (const r of clean) {
+        const d = Math.abs(r.date - target);
+        if (d < bestDist) { bestDist = d; best = r; }
+      }
+      out.tvlUsd = last.tvl;
+      if (best && best.date !== last.date && bestDist <= 36 * 3600) {
+        out.tvlP7 = pctChange(last.tvl, best.tvl);
+      }
+    }
+  } catch (e) {
+    console.warn('[network] defi tvl failed:', (e as Error).message);
+  }
+  await sleep(200);
+
+  // ── Total stablecoin supply. DefiLlama carries this week's figure and
+  //    last week's on the same row, so the window is theirs, not ours. ──
+  try {
+    const data = await safeJson('https://stablecoins.llama.fi/stablecoins?includePrices=false');
+    const assets = (data?.peggedAssets ?? []) as {
+      circulating?: Record<string, number>;
+      circulatingPrevWeek?: Record<string, number>;
+    }[];
+    let now = 0, then = 0;
+    for (const a of assets) {
+      const c = Object.values(a?.circulating ?? {}).find((v) => isFinite(v));
+      const p = Object.values(a?.circulatingPrevWeek ?? {}).find((v) => isFinite(v));
+      if (c) now += c;
+      if (p) then += p;
+    }
+    if (now > 0) out.stableUsd = now;
+    if (now > 0 && then > 0) out.stableP7 = pctChange(now, then);
+  } catch (e) {
+    console.warn('[network] stablecoins failed:', (e as Error).message);
+  }
+
+  // Same rule as macro: never overwrite a good reading with a row of
+  // nulls. A partial row IS written — three working sources and one
+  // broken one is still a briefing.
+  const got = Object.values(out).filter((v) => v != null).length;
+  if (got === 0) throw new Error('every network source returned null — nothing written');
+
+  const { error } = await supabase.from('market_cache').upsert(
+    { cache_key: 'network_data', data: out, updated_at: new Date().toISOString() },
+    { onConflict: 'cache_key' },
+  );
+  if (error) throw error;
+  return out;
+}
+
 // ─────────────── MAIN HANDLER ───────────────
 Deno.serve(async (req) => {
   // Auth: require Bearer SYNC_SECRET (or service role key as fallback)
@@ -402,9 +542,24 @@ Deno.serve(async (req) => {
     console.error('[macro] failed:', msg);
   }
 
+  // On-chain readings for the daily briefing. Isolated for the same
+  // reason macro is: it must never be able to fail a price sync that has
+  // already succeeded, and a broken feed here is a missing card on the
+  // page, not a broken page.
+  let network: Record<string, number | null> | null = null;
+  try {
+    network = await fetchNetwork(supabase);
+    report.network = { ok: true, count: Object.values(network).filter((v) => v != null).length };
+    console.log('[network] wrote market_cache.network_data:', JSON.stringify(network));
+  } catch (e) {
+    const msg = (e as Error).message ?? String(e);
+    report.network = { ok: false, error: msg };
+    console.error('[network] failed:', msg);
+  }
+
   const anyOk = Object.values(report).some((r) => r.ok);
   return new Response(
-    JSON.stringify({ ok: anyOk, report, macro, ts: new Date().toISOString() }, null, 2),
+    JSON.stringify({ ok: anyOk, report, macro, network, ts: new Date().toISOString() }, null, 2),
     {
       status: anyOk ? 200 : 502,
       headers: { 'content-type': 'application/json' },
