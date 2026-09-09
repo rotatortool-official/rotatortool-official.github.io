@@ -733,3 +733,147 @@ if (window.matchMedia('(display-mode: standalone)').matches || window.navigator.
 }
 
 /* ── Picker patch removed — ratio.js now owns the full open/close/listener lifecycle ── */
+
+/* ══════════════════════════════════════════════════════════════
+   SECTION RAIL
+
+   The page is one scroll now, not three columns. The rail is what
+   tells you where you are in it and lets you jump — the job the
+   three separate scrollbars used to do badly.
+
+   Deliberately reads the DOM rather than taking a feed: every count
+   below is already rendered by the time it runs, so the rail cannot
+   disagree with the page it is describing. If a section is missing
+   it is skipped, not guessed at.
+══════════════════════════════════════════════════════════════ */
+/* One scroll implementation for the whole page.
+   Exposed because data-loaders.js's mobile nav needs the same thing and
+   was using behavior:'smooth' directly — which does nothing at all in a
+   hidden tab, under prefers-reduced-motion, or in several browsers. Two
+   nav controls that scroll differently is one too many. */
+function rotScrollToEl(el) {
+  if (!el) return;
+
+  /* The topbar is sticky, so a section scrolled to its exact top sits
+     UNDER it. Measure rather than hardcode — the bar wraps to two rows
+     on narrow widths. */
+  var bar = document.querySelector('.topbar');
+  var offset = bar ? Math.round(bar.getBoundingClientRect().height) : 0;
+  var target = Math.round(el.getBoundingClientRect().top + window.scrollY) - offset - 4;
+
+  var max = Math.max(0, document.documentElement.scrollHeight - window.innerHeight);
+  target = Math.max(0, Math.min(target, max));
+
+  /* Animated by hand rather than with behavior:'smooth'. Native smooth
+     is a no-op in several environments — every headless browser I can
+     test in, and for anyone with prefers-reduced-motion — and a nav
+     control that silently does nothing is worse than one that jumps.
+     This always moves, and honours the reduced-motion preference by
+     jumping deliberately instead of by accident. */
+  var start = window.scrollY;
+  var dist = target - start;
+  if (Math.abs(dist) < 2) return;
+
+  /* Jump, do not animate, when animating is pointless or unwanted:
+     reduced-motion, no rAF, or a hidden tab. That last one is not
+     hypothetical — rAF is paused while document.hidden is true, so an
+     animated scroll in a background tab never starts and the position
+     silently never changes. */
+  var reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  if (reduce || !window.requestAnimationFrame || document.hidden) {
+    window.scrollTo(0, target);
+    return;
+  }
+
+  var DUR = Math.min(600, Math.max(240, Math.abs(dist) * 0.5));
+  var t0 = null;
+  function step(ts) {
+    if (t0 === null) t0 = ts;
+    var p = Math.min(1, (ts - t0) / DUR);
+    /* easeInOutCubic — fast in the middle, settles at the end */
+    var e = p < 0.5 ? 4 * p * p * p : 1 - Math.pow(-2 * p + 2, 3) / 2;
+    window.scrollTo(0, Math.round(start + dist * e));
+    if (p < 1) window.requestAnimationFrame(step);
+  }
+  window.requestAnimationFrame(step);
+}
+window.rotScrollToEl = rotScrollToEl;
+
+function railGo(secId) {
+  rotScrollToEl(document.getElementById(secId));
+}
+
+(function initRail() {
+  var rail = document.getElementById('rail');
+  if (!rail) return;
+
+  var items = Array.prototype.slice.call(rail.querySelectorAll('.rail-item'));
+  if (!items.length) return;
+
+  var sections = items.map(function(it) {
+    return document.getElementById(it.dataset.sec);
+  });
+
+  function setActive(id) {
+    items.forEach(function(it) {
+      it.classList.toggle('on', it.dataset.sec === id);
+    });
+  }
+
+  /* Whichever section owns the top third of the viewport is the one you
+     are reading. An observer rather than a scroll handler so it costs
+     nothing while idle. */
+  if ('IntersectionObserver' in window) {
+    var seen = {};
+    var obs = new IntersectionObserver(function(entries) {
+      entries.forEach(function(e) { seen[e.target.id] = e.intersectionRatio; });
+      var best = null, bestRatio = 0;
+      sections.forEach(function(s) {
+        if (!s) return;
+        var r = seen[s.id] || 0;
+        if (r > bestRatio) { bestRatio = r; best = s.id; }
+      });
+      if (best) setActive(best);
+    }, { rootMargin: '-10% 0px -60% 0px', threshold: [0, 0.15, 0.4, 0.75, 1] });
+    sections.forEach(function(s) { if (s) obs.observe(s); });
+  }
+  setActive(items[0].dataset.sec);
+
+  /* Sub-labels carry live counts where the page already knows them.
+     Read once the data has landed; silent when it has not. */
+  function countsFromDom() {
+    var out = {};
+    var rows = document.querySelectorAll('#tbody tr');
+    if (rows.length) out.coins = rows.length + ' ranked';
+
+    var held = document.querySelectorAll('#tiles-grid .tile');
+    if (held.length) out.yours = held.length + (held.length === 1 ? ' holding' : ' holdings');
+
+    var cands = document.querySelectorAll('#sug-cards .sig-tile:not(.sig-tile-empty):not(.pro-locked)');
+    if (cands.length) out.rotation = cands.length + (cands.length === 1 ? ' signal' : ' signals');
+
+    var from = document.getElementById('rt-from-card-lbl');
+    var to = document.getElementById('rt-to-card-lbl');
+    if (from && to && from.textContent && to.textContent) {
+      out.swap = from.textContent.trim() + ' / ' + to.textContent.trim();
+    }
+    return out;
+  }
+
+  function refreshSubs() {
+    var c = countsFromDom();
+    Object.keys(c).forEach(function(k) {
+      var el = document.getElementById('rail-sub-' + k);
+      if (el && c[k]) el.textContent = c[k];
+    });
+  }
+  window.railRefresh = refreshSubs;
+
+  /* The page fills in over several async loads, so look a few times
+     rather than once — cheap, bounded, and stops on its own. */
+  var tries = 0;
+  var iv = setInterval(function() {
+    refreshSubs();
+    if (++tries >= 12) clearInterval(iv);
+  }, 1500);
+})();

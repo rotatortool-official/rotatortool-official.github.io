@@ -1206,6 +1206,11 @@ function renderFearGreed() {
 /* ── Mobile nav — scroll-to helpers ─────────────────────────── */
 function _mobScrollTo(el) {
   if (!el) return;
+  /* Same scroll the section rail uses (ui.js). It was scrollIntoView
+     with behavior:'smooth', which is a silent no-op in a hidden tab and
+     under prefers-reduced-motion — the button appeared to do nothing.
+     It also now clears the sticky topbar, which the raw call did not. */
+  if (typeof window.rotScrollToEl === 'function') { window.rotScrollToEl(el); return; }
   el.scrollIntoView({ behavior: 'smooth', block: 'start' });
 }
 

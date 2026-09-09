@@ -830,8 +830,52 @@
 <main>
 <h1 class="sr-only">Rotator — Real-Time Crypto &amp; Tokenized Stock Rotation Screener</h1>
 <div class="root">
-
-  <!-- LEFT: Holdings -->
+  <nav class="rail" id="rail" aria-label="Section navigation">
+    <button class="rail-item" id="rail-today" data-sec="sec-today" onclick="railGo('sec-today')" title="TODAY">
+      <span class="rail-mark"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19V9"/><path d="M10 19V5"/><path d="M16 19v-7"/><path d="M22 19H2"/></svg></span>
+      <span class="rail-text"><span class="rail-label">TODAY</span><span class="rail-sub" id="rail-sub-today">the briefing</span></span>
+    </button>
+    <button class="rail-item" id="rail-yours" data-sec="sec-yours" onclick="railGo('sec-yours')" title="YOURS">
+      <span class="rail-mark"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M20 7h-9"/><path d="M14 17H5"/><circle cx="17" cy="17" r="3"/><circle cx="7" cy="7" r="3"/></svg></span>
+      <span class="rail-text"><span class="rail-label">YOURS</span><span class="rail-sub" id="rail-sub-yours">what you hold</span></span>
+    </button>
+    <button class="rail-item" id="rail-rotation" data-sec="sec-rotation" onclick="railGo('sec-rotation')" title="ROTATION">
+      <span class="rail-mark"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M17 2.1 21 6l-4 3.9"/><path d="M3 12a9 9 0 0 1 9-9h9"/><path d="M7 21.9 3 18l4-3.9"/><path d="M21 12a9 9 0 0 1-9 9H3"/></svg></span>
+      <span class="rail-text"><span class="rail-label">ROTATION</span><span class="rail-sub" id="rail-sub-rotation">signals</span></span>
+    </button>
+    <button class="rail-item" id="rail-coins" data-sec="sec-coins" onclick="railGo('sec-coins')" title="COINS">
+      <span class="rail-mark"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M3 12h18"/><path d="M3 18h18"/></svg></span>
+      <span class="rail-text"><span class="rail-label">COINS</span><span class="rail-sub" id="rail-sub-coins">the evidence</span></span>
+    </button>
+    <button class="rail-item" id="rail-swap" data-sec="sec-swap" onclick="railGo('sec-swap')" title="SWAP">
+      <span class="rail-mark"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M7 16V4m0 0L4 7m3-3 3 3"/><path d="M17 8v12m0 0 3-3m-3 3-3-3"/></svg></span>
+      <span class="rail-text"><span class="rail-label">SWAP</span><span class="rail-sub" id="rail-sub-swap">pair ratio</span></span>
+    </button>
+    <button class="rail-item rail-last" id="rail-record" data-sec="sec-record" onclick="railGo('sec-record')" title="RECORD">
+      <span class="rail-mark"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M12 8v4l3 2"/><circle cx="12" cy="12" r="9"/></svg></span>
+      <span class="rail-text"><span class="rail-label">RECORD</span><span class="rail-sub" id="rail-sub-record">what held up</span></span>
+    </button>
+  </nav>
+  <div class="page" id="page">
+  <section class="rsec" id="sec-today">
+    <div class="rsec-hdr"><span class="rsec-label">TODAY</span><span class="rsec-meta" id="rsec-meta-today">what the market is doing right now</span></div>
+    <!-- MARKET TICKER — BTC anchor + infinite-loop global movers -->
+    <div class="market-ticker" id="market-ticker">
+      <div class="mt-anchor">
+        <div class="btc-pill unk" id="btc-pill" title="BTC trend vs. 200-day MA">
+          <span class="pulse"></span>
+          <span id="btc-pill-txt">BTC: LOADING</span>
+        </div>
+      </div>
+      <div class="mt-viewport" id="mt-viewport" title="Hover to pause">
+        <div class="mt-track" id="mt-track">
+          <span class="mt-empty">Loading market movers…</span>
+        </div>
+      </div>
+    </div>
+  </section>
+  <section class="rsec" id="sec-yours">
+    <div class="rsec-hdr"><span class="rsec-label">YOURS</span><span class="rsec-meta" id="rsec-meta-yours">how what you hold sits against the tracked market</span></div>
   <div class="sidebar">
     <!-- PORTFOLIO SIGNAL: direct sidebar child — zero gap guaranteed -->
     <div class="sig-box" id="sig-box-crypto">
@@ -881,42 +925,10 @@
     </div><!-- /cb-holdings -->
 
 
-    <!-- SUPPORT CARD — collapsible on mobile -->
-    <div class="collapse-hdr holdings" id="ch-support" onclick="toggleCollapse('support')">
-      <div class="collapse-hdr-left">
-        <span class="collapse-hdr-icon">☕</span>
-        <span class="collapse-hdr-title">Keep it Free</span>
-      </div>
-      <span class="collapse-chevron" id="chev-support">▼</span>
-    </div>
-    <div class="collapse-body collapsed" id="cb-support">
-    <div class="sidebar-donate" style="margin-top:auto;padding:10px 12px 12px;flex-shrink:0;">
-      <div class="ad-donate">
-        <div class="ad-donate-title" style="font-size:14px;">Keep it Free</div>
-        <div class="ad-donate-sub">Rotator is free forever.<br>A coffee keeps the servers on.<br><span style="font-style:italic;opacity:.75;">Your donation keeps the person building this safe from starving ♥</span></div>
-        <div id="sidebar-goal-left" style="margin:8px 0;"></div>
-        <button class="ad-donate-btn" onclick="openModal('donate-modal')">SUPPORT THE PROJECT</button>
-      </div>
-    </div>
-    </div>
   </div>
-
-  <!-- CENTER -->
-  <div class="content main-col">
-    <!-- MARKET TICKER — BTC anchor + infinite-loop global movers -->
-    <div class="market-ticker" id="market-ticker">
-      <div class="mt-anchor">
-        <div class="btc-pill unk" id="btc-pill" title="BTC trend vs. 200-day MA">
-          <span class="pulse"></span>
-          <span id="btc-pill-txt">BTC: LOADING</span>
-        </div>
-      </div>
-      <div class="mt-viewport" id="mt-viewport" title="Hover to pause">
-        <div class="mt-track" id="mt-track">
-          <span class="mt-empty">Loading market movers…</span>
-        </div>
-      </div>
-    </div>
+  </section>
+  <section class="rsec" id="sec-rotation">
+    <div class="rsec-hdr"><span class="rsec-label">ROTATION</span><span class="rsec-meta" id="rsec-meta-rotation">signals from the current run</span></div>
     <!-- WHAT'S HOT — collapsible on mobile -->
     <div class="collapse-hdr hot" id="ch-hot" onclick="toggleCollapse('hot')">
       <div class="collapse-hdr-left">
@@ -945,22 +957,8 @@
       </div>
     </div>
     </div>
-    <!-- SIGNAL TRACK RECORD — "Told You So" section -->
-    <div class="str-section">
-      <div class="collapse-hdr" id="ch-trackrecord" onclick="toggleCollapse('trackrecord')">
-        <div class="collapse-hdr-left">
-          <span class="collapse-hdr-icon">📊</span>
-          <span class="collapse-hdr-title">Signal Track Record</span>
-          <span class="str-section-badge" id="str-accuracy-badge" style="display:none;"></span>
-        </div>
-        <span class="collapse-chevron" id="chev-trackrecord">▼</span>
-      </div>
-      <div class="collapse-body collapsed" id="cb-trackrecord">
-      <div class="str-body">
-        <div id="signal-track-record"></div>
-      </div>
-      </div>
-    </div>
+  </section>
+  <section class="rsec" id="sec-coins">
 
     <div class="tbl-head tbl-head-merged">
       <h2 class="ptitle" id="tbl-title">PERFORMANCE LEADERBOARD</h2>
@@ -1016,9 +1014,9 @@
 
     <!-- MOBILE INLINE HOLDINGS — shown below ratio tracker on portrait mobile only -->
     <div class="mob-inline-holdings" id="mob-inline-holdings"></div>
-  </div>
-
-  <!-- RIGHT: Info Panel -->
+  </section>
+  <section class="rsec" id="sec-swap">
+    <div class="rsec-hdr"><span class="rsec-label">PAIR RATIO</span><span class="rsec-meta" id="rsec-meta-swap">how one asset has moved against another</span></div>
   <div class="ad-panel">
     <!-- SWAP TOOL — collapsible on mobile -->
     <div class="collapse-hdr swap" id="ch-swap" onclick="toggleCollapse('swap')">
@@ -1230,6 +1228,47 @@
     </div><!-- /cb-swap -->
 
     <!-- PRO PROMO removed — right panel dedicated to Swap Tool + Ratio Chart -->
+  </div>
+  </section>
+  <section class="rsec" id="sec-record">
+    <div class="rsec-hdr"><span class="rsec-label">RECORD</span><span class="rsec-meta">every observation published, and what happened next</span></div>
+    <!-- SIGNAL TRACK RECORD — "Told You So" section -->
+    <div class="str-section">
+      <div class="collapse-hdr" id="ch-trackrecord" onclick="toggleCollapse('trackrecord')">
+        <div class="collapse-hdr-left">
+          <span class="collapse-hdr-icon">📊</span>
+          <span class="collapse-hdr-title">Signal Track Record</span>
+          <span class="str-section-badge" id="str-accuracy-badge" style="display:none;"></span>
+        </div>
+        <span class="collapse-chevron" id="chev-trackrecord">▼</span>
+      </div>
+      <div class="collapse-body collapsed" id="cb-trackrecord">
+      <div class="str-body">
+        <div id="signal-track-record"></div>
+      </div>
+      </div>
+    </div>
+  </section>
+  <section class="rsec" id="sec-support">
+    <!-- SUPPORT CARD — collapsible on mobile -->
+    <div class="collapse-hdr holdings" id="ch-support" onclick="toggleCollapse('support')">
+      <div class="collapse-hdr-left">
+        <span class="collapse-hdr-icon">☕</span>
+        <span class="collapse-hdr-title">Keep it Free</span>
+      </div>
+      <span class="collapse-chevron" id="chev-support">▼</span>
+    </div>
+    <div class="collapse-body collapsed" id="cb-support">
+    <div class="sidebar-donate" style="margin-top:auto;padding:10px 12px 12px;flex-shrink:0;">
+      <div class="ad-donate">
+        <div class="ad-donate-title" style="font-size:14px;">Keep it Free</div>
+        <div class="ad-donate-sub">Rotator is free forever.<br>A coffee keeps the servers on.<br><span style="font-style:italic;opacity:.75;">Your donation keeps the person building this safe from starving ♥</span></div>
+        <div id="sidebar-goal-left" style="margin:8px 0;"></div>
+        <button class="ad-donate-btn" onclick="openModal('donate-modal')">SUPPORT THE PROJECT</button>
+      </div>
+    </div>
+    </div>
+  </section>
   </div>
 </div>
 

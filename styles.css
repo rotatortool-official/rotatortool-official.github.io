@@ -3450,3 +3450,205 @@ td.qa-cell{text-align:center;width:28px;padding:0 4px !important;}
   /* Tutorial box — was hardcoded width:380px, overflowed on 375px screens */
   .tut-box{width:auto !important;max-width:calc(100vw - 24px) !important;}
 }
+
+/* ══════════════════════════════════════════════════════════════════
+   PHASE 1 — one vertical narrative, with a section rail.
+
+   The page was three fixed columns, each scrolling inside its own
+   viewport-height box: holdings left, signals+leaderboard centre, swap
+   right. Three scrollbars, three things competing, and nothing telling
+   the reader what to look at first.
+
+   It is now one column that scrolls normally, in the order the product
+   actually reasons in:
+
+     TODAY -> YOURS -> ROTATION -> COINS -> SWAP -> RECORD
+
+   Nothing was rebuilt. Every block, every id and every handler is the
+   one that was already there; .sidebar and .ad-panel keep their class
+   names because a handful of selectors descend from them. What changed
+   is the order they appear in and the boxes they used to be trapped in.
+
+   Appended deliberately: these are OVERRIDES of the rules above, and
+   keeping them in one block means the old layout can be read as it was.
+   ══════════════════════════════════════════════════════════════════ */
+
+.root{
+  display:grid;
+  grid-template-columns:148px minmax(0,1fr);
+  height:auto;
+  max-height:none;
+  overflow:visible;
+  align-items:start;
+}
+.page{min-width:0;display:flex;flex-direction:column;}
+
+/* Sections flow at their natural height — the old columns pinned these
+   to 100% of a viewport-height box and scrolled inside. */
+.rsec{min-width:0;border-bottom:1px solid var(--bdr);}
+.rsec:last-child{border-bottom:none;}
+
+.root > .rail + .page .sidebar,
+.rsec .sidebar{
+  height:auto;max-height:none;overflow:visible;
+  border-right:none;background:none;display:block;
+}
+.rsec .ad-panel{
+  height:auto;max-height:none;overflow:visible;
+  border-left:none;box-shadow:none;background:none;display:block;
+}
+/* Inner scrollers become natural height: there is only one page scroll
+   now. The leaderboard is the exception and has to be — 191 rows in the
+   flow measured 8,933px, which buried SWAP and RECORD below a screen of
+   table nobody asked to read. It keeps a contained scroll so the section
+   stays a section. */
+.rsec .tiles-scroll{overflow:visible;flex:none;min-height:0;}
+.rsec .neon-section{overflow:visible;}
+.rsec .leaderboard{
+  flex:none;min-height:0;
+  max-height:72vh;overflow-y:auto;
+  overscroll-behavior:contain;
+}
+
+/* ── The rail ──────────────────────────────────────────────────────
+   Icons on a progress line: the icon says which section, the line and
+   the sub-label say where you are in a page that is now one long
+   scroll. Sticky, so it stays with you. */
+.rail{
+  position:sticky;top:0;align-self:start;
+  height:100vh;
+  background:var(--bg2);
+  border-right:1px solid var(--bdr);
+  display:flex;flex-direction:column;
+  padding:16px 0;gap:0;
+  z-index:40;
+}
+.rail-item{
+  display:flex;gap:11px;align-items:flex-start;
+  padding:0 0 0 14px;background:none;border:none;
+  font-family:inherit;text-align:left;cursor:pointer;
+  color:var(--muted);
+}
+.rail-mark{
+  position:relative;flex-shrink:0;
+  width:28px;height:28px;border-radius:8px;
+  background:var(--bg3);border:1px solid var(--bdr);
+  display:flex;align-items:center;justify-content:center;
+  color:var(--muted);transition:all .15s;
+}
+.rail-mark svg{width:15px;height:15px;}
+/* the connecting line, drawn from each mark down to the next */
+.rail-item:not(.rail-last) .rail-mark::after{
+  content:'';position:absolute;top:100%;left:50%;
+  width:2px;height:26px;margin-left:-1px;
+  background:var(--bdr2);transition:background .15s;
+}
+.rail-text{display:flex;flex-direction:column;padding-top:3px;padding-bottom:24px;min-width:0;}
+.rail-item.rail-last .rail-text{padding-bottom:0;}
+.rail-label{font-size:11px;font-weight:700;letter-spacing:.05em;color:var(--muted);transition:color .15s;}
+.rail-sub{font-size:10px;color:var(--muted);opacity:.7;margin-top:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+
+.rail-item:hover .rail-mark{border-color:var(--bnb);color:var(--text);}
+.rail-item:hover .rail-label{color:var(--text);}
+
+.rail-item.on .rail-mark{background:var(--bnbd);border-color:var(--bnb);color:var(--bnb);}
+.rail-item.on .rail-label{color:var(--bnb);}
+.rail-item.on .rail-mark::after{background:var(--bnb);}
+
+/* ── Mobile: the rail does not survive a narrow screen as a column,
+      and the bottom nav already does this job. ── */
+@media(max-width:900px){
+  .root{grid-template-columns:1fr;}
+  .rail{display:none;}
+}
+
+/* ── Sections were built for a 310px column; they now have 1290px ──
+   Flattening the three columns is only half the job. `.tiles-grid` is
+   repeat(2,1fr), which in a sidebar meant two small cards and at full
+   width meant two 632px slabs. Each section gets the internal layout
+   the design asked for, so the extra width becomes structure rather
+   than stretch. */
+
+#sec-yours .sidebar{
+  display:grid;
+  grid-template-columns:300px minmax(0,1fr);
+  gap:0 16px;align-items:start;
+  padding:12px 16px 16px;
+}
+#sec-yours .sig-box{
+  grid-column:1;grid-row:1 / span 3;
+  border-bottom:none;border-radius:10px;
+  border:1px solid rgba(243,186,47,.18);
+}
+#sec-yours .collapse-hdr,
+#sec-yours .collapse-body{grid-column:2;}
+#sec-yours .tiles-grid{grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;}
+#sec-yours .tiles-scroll{padding:0;}
+
+/* SWAP: picker and calculator on the left, chart on the right — the
+   order the ratio tool is actually read in. Children are placed by
+   class because the section is a flat stack in the markup. */
+#sec-swap .ratio-section{
+  display:grid;
+  grid-template-columns:340px minmax(0,1fr);
+  gap:0 18px;align-items:start;
+  padding:14px 16px 18px;
+}
+#sec-swap .new-swap-hero,
+#sec-swap .new-ratio-hook,
+#sec-swap .rt-cards,
+#sec-swap .new-calc-card{grid-column:1;}
+#sec-swap .rt-top-actions,
+#sec-swap .rt-status,
+#sec-swap .rt-saved-wrap,
+#sec-swap .new-chart-section,
+#sec-swap .rt-footer{grid-column:2;}
+#sec-swap .new-chart-section{min-height:260px;}
+
+/* ROTATION keeps its three columns — that shape was right, it was the
+   page around it that was wrong. */
+#sec-rotation .bars-cols{padding:0 16px 14px;}
+#sec-rotation .neon-section{border-bottom:none;}
+
+/* COINS and RECORD just need breathing room now they are full width. */
+#sec-coins .tbl-head{padding-left:16px;padding-right:16px;}
+#sec-record .str-section{padding:0 16px;}
+#sec-support{background:var(--bg2);}
+#sec-support .sidebar-donate{max-width:420px;margin:0;padding:14px 16px 18px;}
+
+@media(max-width:900px){
+  #sec-yours .sidebar,
+  #sec-swap .ratio-section{display:block;padding-left:0;padding-right:0;}
+  #sec-yours .tiles-grid{grid-template-columns:repeat(2,1fr);}
+}
+
+/* ── Section labels ────────────────────────────────────────────────
+   The collapse headers that used to name these blocks are display:none
+   above 700px, so on desktop the page had no section names at all —
+   every panel arrived without being introduced. These are the labels
+   from the design, and they are what turns a stack into a sequence. */
+.rsec-hdr{
+  display:flex;align-items:baseline;gap:10px;
+  padding:18px 16px 10px;flex-wrap:wrap;
+}
+.rsec-label{
+  font-size:11px;font-weight:700;letter-spacing:.16em;
+  color:var(--muted);font-family:var(--font-ui);
+}
+.rsec-meta{font-size:11px;color:var(--muted);opacity:.75;}
+#sec-today .rsec-hdr{padding-top:12px;}
+@media(max-width:900px){
+  .rsec-hdr{padding:14px 12px 8px;}
+  /* Below 900px the collapse headers come back and name the sections
+     themselves — two labels would be one too many. */
+  #sec-yours .rsec-hdr,#sec-rotation .rsec-hdr,#sec-swap .rsec-hdr,#sec-record .rsec-hdr{display:none;}
+}
+
+/* ── The document scrolls, not the body ────────────────────────────
+   html,body were height:100% because .root was a viewport-height box
+   with three scrollers inside it. With one column that made BODY the
+   scroll container: document.scrollingElement never moved, window.scrollY
+   stayed 0, and position:sticky on the rail had no scrollport to stick
+   against. Content height now drives the document, which is what every
+   scroll API, anchor and sticky element already expects. */
+html,body{height:auto;min-height:100%;}
