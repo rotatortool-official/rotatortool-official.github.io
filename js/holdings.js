@@ -136,12 +136,13 @@ function removeHolding(sym) {
    and a hole where the other two would go. Three by three fills it.
 
    PRO_HOLDINGS_LIMIT stays at 10 — nobody loses a slot they were
-   promised. A Pro who fills all ten simply gets a tenth tile on a
-   fourth row, because the pad below is a MINIMUM shape and the real
-   holdings above it are always rendered in full. The free-tier
-   composition still adds up: 2 free + 5 locked + 2 promo = 9. */
-var TOTAL_TILE_SLOTS = 9;
-var PRO_PROMO_SLOTS  = 2;
+   promised. A Pro who fills all ten simply gets two tiles on a third
+   row, because the pad below is a MINIMUM shape and the real holdings
+   above it are always rendered in full.
+
+   Eight, not nine: the grid is four across, so nine left one tile alone
+   on a row with three holes beside it. Two rows of four fill exactly. */
+var TOTAL_TILE_SLOTS = 8;
 
 function renderTiles() {
   Object.keys(sparkStop).forEach(function(k) { sparkStop[k](); delete sparkStop[k]; });
@@ -237,34 +238,25 @@ function renderTiles() {
           + '</div>';
   });
 
-  /* ── Fillable empty slots (green +) ── */
-  var filledCount   = holdings.length;
-  var fillableLimit = isPro ? TOTAL_TILE_SLOTS : FREE_HOLDINGS_LIMIT;
-  for (var i = filledCount; i < fillableLimit; i++) {
-    html += '<div class="tile-placeholder" onclick="openAddHoldingsModal()">'
-          + '<div class="ph-plus">+</div><div class="ph-lbl">Add Coin</div></div>';
-  }
+  /* ── Empty slots, to the shape and no further ──
+     This used to add a FIXED number of locked tiles on top of whatever
+     was already rendered, so eight real holdings produced fourteen cells
+     and two dead rows of coffee cups. The pad now fills up to the grid
+     shape and stops.
 
-  if (!isPro) {
-    /* ── Locked green + slots ── */
-    var lockedCount = TOTAL_TILE_SLOTS - PRO_PROMO_SLOTS - FREE_HOLDINGS_LIMIT;
-    for (var j = 0; j < lockedCount; j++) {
-      html += '<div class="tile-placeholder tile-placeholder-locked" onclick="openPro()" title="Support & Unlock">'
-            + '<div class="ph-plus">+</div><div class="ph-lbl">☕</div></div>';
-    }
-    /* ── Purple Pro promo tiles (last 2) ── */
-    for (var k = 0; k < PRO_PROMO_SLOTS; k++) {
-      html += '<div class="tile-pro-promo" onclick="openPro()">'
-            + '<div class="pro-promo-thunder">☕</div>'
-            + '<div class="pro-promo-title">Monitor Multiple<br>Assets at Once</div>'
-            + '<div class="pro-promo-sub">Up to 10 for Supporters</div>'
-            + '</div>';
-    }
-  } else {
-    /* Pro: all remaining slots are green + */
-    for (var m = fillableLimit; m < TOTAL_TILE_SLOTS; m++) {
+     A slot is a green + while the tier still allows another holding, and
+     a locked ☕ after that. The purple "Monitor Multiple Assets at Once"
+     tiles are gone — that pitch is one entry at the foot of the rail
+     now, where it is asked once instead of twice per screen. */
+  var used  = holdings.length + _watched.length;
+  var limitH = isPro ? PRO_HOLDINGS_LIMIT : FREE_HOLDINGS_LIMIT;
+  for (var i = used; i < TOTAL_TILE_SLOTS; i++) {
+    if (holdings.length + (i - used) < limitH) {
       html += '<div class="tile-placeholder" onclick="openAddHoldingsModal()">'
             + '<div class="ph-plus">+</div><div class="ph-lbl">Add Coin</div></div>';
+    } else {
+      html += '<div class="tile-placeholder tile-placeholder-locked" onclick="openPro()" title="Support & Unlock">'
+            + '<div class="ph-plus">+</div><div class="ph-lbl">☕</div></div>';
     }
   }
 
@@ -317,12 +309,22 @@ function renderSignal(hc) {
        + '</div>';
   });
 
-  /* DYOR warning only if any are lagging */
-  if (under.length) {
-    h += '<div style="margin-top:6px;padding:5px 8px;background:rgba(255,69,96,.06);border:1px solid rgba(255,69,96,.2);border-radius:3px;font-size:12px;color:var(--muted);line-height:1.6;">'
-       + '<span style="color:var(--red);font-weight:600;">⚠ DYOR:</span> A coin performing badly for months will not automatically recover because you bought it. Research before rotating capital. '
-       + '<span style="color:var(--red);">Rotator is not responsible for your investment decisions.</span>'
-       + '</div>';
-  }
   el.innerHTML = h;
+
+  /* DYOR warning only if any are lagging.
+     It used to be appended INSIDE the signal box, where a 230px column
+     turned two sentences into five lines and made that column ~140px
+     taller than the two beside it — the whole of the empty space at the
+     foot of YOURS. It goes across the section instead: same words, same
+     condition, two lines, and it now reads as belonging to the section
+     rather than to the score. */
+  var dy = document.getElementById('signal-dyor');
+  if (dy) {
+    dy.innerHTML = under.length
+      ? '<span class="dyor-flag">⚠ DYOR:</span> A coin performing badly for months will not '
+        + 'automatically recover because you bought it. Research before rotating capital. '
+        + '<span class="dyor-flag">Rotator is not responsible for your investment decisions.</span>'
+      : '';
+    dy.style.display = under.length ? '' : 'none';
+  }
 }

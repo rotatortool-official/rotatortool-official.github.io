@@ -243,7 +243,13 @@ var RatioTracker = (function() {
   function updateStarBtn(){
     var btn=$('rt-star-btn'); if(!btn) return;
     var saved=isSaved(S.from,S.to);
-    btn.textContent=saved?'★ Saved':'☆ Save pair';
+    /* This used to write textContent, which an icon button cannot survive —
+       it would erase the SVG on the first render. The state lives in the
+       class (CSS fills the star) and in the label the tooltip reads. */
+    var tip=saved?'Saved — click to remove':'Save pair';
+    btn.setAttribute('data-tip',tip);
+    btn.setAttribute('aria-label',tip);
+    btn.setAttribute('aria-pressed',saved?'true':'false');
     btn.classList.toggle('rt-star-active',saved);
     btn.onclick=saved?function(){removeFavourite(S.from,S.to);}:function(){saveFavourite();};
   }
@@ -251,7 +257,7 @@ var RatioTracker = (function() {
   function renderSavedPairs(){
     var wrap=$('rt-saved-wrap'); if(!wrap) return;
     if(!S.saved.length){
-      wrap.innerHTML='<span class="rt-saved-empty">No saved pairs yet — pick a pair and click ☆ Save pair</span>';
+      wrap.innerHTML='<span class="rt-saved-empty">No saved pairs yet — pick a pair and save it with the star</span>';
       return;
     }
     wrap.innerHTML=S.saved.map(function(p){
@@ -316,8 +322,8 @@ var RatioTracker = (function() {
       tChgEl.style.color=S.toChg>=0?'var(--green)':'var(--red)';
     }
 
-    var nowVal=$('rt-now-ratio-val');
-    if(nowVal){ nowVal.textContent=ratio.toFixed(ratio<1?4:ratio<10?3:2)+'×'; }
+    var nowVal=$('rt-r-now');
+    if(nowVal){ nowVal.textContent=ratio.toFixed(2)+'x'; }
 
     renderBadge(ratio); calcSwap();
   }
@@ -431,7 +437,14 @@ var RatioTracker = (function() {
     if(!S.series||!S.series.length) return;
     var vals=S.series.map(function(p){return p.r;}),sorted=vals.slice().sort(function(a,b){return a-b;});
     var pct=sorted.filter(function(v){return v<=ratio;}).length/sorted.length;
-    var el=$('rt-badge'); if(!el) return;
+    var el=$('rt-badge');
+    /* The same percentile, as the number rather than the sentence. It is
+       what the badge has always been describing. */
+    set('rt-range-pos', Math.round(pct*100)+'%');
+    if(!el) return;
+    /* Only the colour is set inline now. The background and border went
+       with the box: a market reading that cannot be clicked should not be
+       shaped like a button. The pip beside it inherits currentColor. */
     /* Describes where the current ratio sits in the period's own range, and
        nothing more. It used to read "Great time to swap" / "Unfavorable —
        wait if possible", which is a timing recommendation — the class of
@@ -439,10 +452,10 @@ var RatioTracker = (function() {
        its TIER 1 list matches phrases rather than the concept, the same gap
        that let "Consider position size" ship.
        The colours are unchanged and still carry the direction. */
-    if(pct>=0.80)      {el.textContent='▲ Top '+(100-Math.round(pct*100))+'% of this period’s range'; el.style.background='rgba(0,189,142,0.12)';  el.style.color='var(--green)'; el.style.borderColor='rgba(0,189,142,0.25)';}
-    else if(pct>=0.50) {el.textContent='◈ Upper half of this period’s range';        el.style.background='rgba(167,139,250,0.1)'; el.style.color='var(--pro)';   el.style.borderColor='rgba(167,139,250,0.25)';}
-    else if(pct>=0.25) {el.textContent='◈ Lower half of this period’s range';          el.style.background='rgba(240,160,48,0.1)';  el.style.color='var(--amber)'; el.style.borderColor='rgba(240,160,48,0.25)';}
-    else               {el.textContent='▼ Bottom '+Math.max(1,Math.round(pct*100))+'% of this period’s range'; el.style.background='rgba(240,62,88,0.1)';  el.style.color='var(--red)';   el.style.borderColor='rgba(240,62,88,0.25)';}
+    if(pct>=0.80)      {el.textContent='Top '+(100-Math.round(pct*100))+'% of this period’s range'; el.style.color='var(--green)';}
+    else if(pct>=0.50) {el.textContent='Upper half of this period’s range'; el.style.color='var(--green)';}
+    else if(pct>=0.25) {el.textContent='Lower half of this period’s range'; el.style.color='var(--amber)';}
+    else               {el.textContent='Bottom '+Math.max(1,Math.round(pct*100))+'% of this period’s range'; el.style.color='var(--red)';}
   }
 
   function renderRange(series){
@@ -451,6 +464,9 @@ var RatioTracker = (function() {
     var nowR=vals[vals.length-1],peakIdx=vals.indexOf(maxR);
     var peakDate=new Date(series[peakIdx].t),startDate=new Date(series[0].t),range=maxR-minR||1;
     set('rt-r-low',minR.toFixed(2)+'x'); set('rt-r-peak',maxR.toFixed(2)+'x'); set('rt-r-now',nowR.toFixed(2)+'x'); set('rt-peak-val',maxR.toFixed(2)+'x');
+    /* The readings list beside the hero ratio. Same numbers this function
+       already derived — nothing is computed twice for them. */
+    set('rt-read-low',minR.toFixed(2)+'x');
     var nowPct=Math.max(2,Math.min(98,(nowR-minR)/range*100)),peakPct=peakIdx/Math.max(1,vals.length-1)*100;
     var fill=$('rt-bar-fill'),marker=$('rt-bar-marker');
     if(fill) fill.style.width=nowPct.toFixed(1)+'%'; if(marker) marker.style.left=peakPct.toFixed(1)+'%';
@@ -768,8 +784,8 @@ var RatioTracker = (function() {
       var ratio=S.fromPrice/S.toPrice;
       var rEl=$('rt-ratio-num');
       if(rEl) rEl.textContent=ratio.toFixed(ratio<1?4:ratio<10?3:2);
-      var nowVal=$('rt-now-ratio-val');
-      if(nowVal) nowVal.textContent=ratio.toFixed(ratio<1?4:ratio<10?3:2)+'×';
+      var nowVal=$('rt-r-now');
+      if(nowVal) nowVal.textContent=ratio.toFixed(2)+'x';
       calcSwap();
     }
 
@@ -1040,7 +1056,7 @@ function shareSwapCard() {
   var outEl   = document.getElementById('rt-hero-out');
   var usdEl   = document.getElementById('rt-calc-usd-out');
   var peakEl  = document.getElementById('rt-peak-val');
-  var nowEl   = document.getElementById('rt-now-ratio-val');
+  var nowEl   = document.getElementById('rt-r-now');
   var badgeEl = document.getElementById('rt-badge');
 
   var amount  = amtEl  ? amtEl.value : '100';

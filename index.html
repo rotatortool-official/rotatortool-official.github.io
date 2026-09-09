@@ -855,6 +855,16 @@
       <span class="rail-mark"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M3 12h18"/><path d="M3 18h18"/></svg></span>
       <span class="rail-text"><span class="rail-label">COINS</span><span class="rail-sub" id="rail-sub-coins">every tracked coin</span></span>
     </button>
+
+    <!-- The pitch, asked once. It used to be two purple tiles taking a
+         quarter of the holdings grid on every load; here it sits at the
+         foot of the rail, out of the way and always reachable. Not a
+         .rail-item: initRail() reads those for the scroll observer and
+         this one names no section. -->
+    <button class="rail-support" onclick="openModal('donate-modal')" title="Keep Rotator free">
+      <span class="rail-support-icon">☕</span>
+      <span class="rail-text"><span class="rail-label">SUPPORT</span><span class="rail-sub">keep it free</span></span>
+    </button>
   </nav>
   <div class="page" id="page">
   <section class="rsec" id="sec-today">
@@ -964,6 +974,11 @@
     </div>
     </div><!-- /cb-holdings -->
 
+    <!-- Filled by renderSignal() in js/holdings.js, and only when
+         something in the portfolio is underperforming. Spans the section
+         so two sentences stay two lines. -->
+    <div class="signal-dyor" id="signal-dyor" style="display:none;"></div>
+
     <!-- ROTATION OPPORTUNITIES — moved out of the ROTATION section so it
          sits beside what you already hold, which is the only thing that
          makes a rotation mean anything. Still filled by renderTopBars()
@@ -1003,7 +1018,18 @@
 
       <!-- ══ PAIR SELECTION HERO ══ -->
       <div class="swap-card new-swap-hero">
-        <div class="new-swap-hero-label">Select pair to swap</div>
+        <!-- Save, refresh and share are things you do TO the pair, so they
+             sit on the pair's own header. Three identical squares, one icon
+             set, tooltip on hover and on keyboard focus. The ids are the
+             ones js/ratio.js already wires — only the shape changed. -->
+        <div class="swap-hero-head">
+          <div class="new-swap-hero-label">Select pair to swap</div>
+          <div class="rt-top-actions">
+            <button class="rt-icon-btn" id="rt-star-btn" data-tip="Save pair" aria-label="Save pair"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="m12 3 2.7 5.6 6.1.9-4.4 4.3 1 6.1L12 17l-5.4 2.9 1-6.1L3.2 9.5l6.1-.9Z"/></svg></button>
+            <button class="rt-icon-btn" id="rt-refresh-btn" onclick="RatioTracker.loadAll()" data-tip="Refresh prices" aria-label="Refresh prices"><span id="rt-spin-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-2.6-6.4"/><path d="M21 3v6h-6"/></svg></span></button>
+            <button class="rt-icon-btn" id="rt-swap-share-btn" onclick="shareSwapCard()" data-tip="Share as image" aria-label="Share swap as image"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 13v6a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-6"/><path d="M12 15V3"/><path d="m8 7 4-4 4 4"/></svg></button>
+          </div>
+        </div>
         <div class="new-pair-grid">
 
           <!-- FROM CARD -->
@@ -1093,21 +1119,6 @@
             </div>
           </div>
 
-          <!-- Save pair and Refresh were a full-width strip further down
-               the tool, acting on a pair chosen three cards away. They
-               live with Share now: three things you can do to the pair
-               you just picked, in the place you picked it. -->
-          <div class="rt-top-actions">
-            <button class="rt-star-btn" id="rt-star-btn" title="Save pair">☆ Save pair</button>
-            <button class="rt-refresh-btn" id="rt-refresh-btn" onclick="RatioTracker.loadAll()" title="Refresh">
-              <span id="rt-spin-icon">↻</span> Refresh
-            </button>
-          </div>
-
-          <button class="rt-swap-share-btn" id="rt-swap-share-btn" onclick="shareSwapCard()" title="Share your swap as an image">
-            <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/><polyline points="16 6 12 2 8 6"/><line x1="12" y1="2" x2="12" y2="15"/></svg>
-            Share Swap
-          </button>
         </div><!-- /swap-detail -->
       </div><!-- /new-swap-hero -->
 
@@ -1116,8 +1127,15 @@
         <div class="new-ratio-unit-lbl">Current exchange ratio</div>
         <div class="rt-ratio-bold" id="rt-ratio-num" style="font-size:clamp(36px,12vw,52px);font-weight:700;font-family:var(--font-mono);line-height:1;display:block;color:var(--text);">——</div>
         <div class="rt-ratio-unit"><span id="rt-unit-txt">— received per 1 —</span></div>
-        <div style="margin-top:8px;">
-          <span class="rt-badge" id="rt-badge">&nbsp;</span>
+        <span class="rt-badge" id="rt-badge">&nbsp;</span>
+        <!-- The two stat cards that used to sit below this, without their
+             boxes. "Current" is gone: it printed the same number as the
+             hero directly above it. Position in range is the figure the
+             badge was already describing in words. -->
+        <div class="rt-reads">
+          <div class="rt-read"><span class="rt-read-k">Period low</span><span class="rt-read-v" id="rt-read-low">—</span></div>
+          <div class="rt-read"><span class="rt-read-k">Period peak</span><span class="rt-read-v hi" id="rt-peak-val">—</span></div>
+          <div class="rt-read"><span class="rt-read-k">Position in range</span><span class="rt-read-v" id="rt-range-pos">—</span></div>
         </div>
       </div>
 
@@ -1171,18 +1189,6 @@
         </div>
       </div>
 
-      <!-- ══ STAT CARDS ══ -->
-      <div class="rt-cards">
-        <div class="rt-card">
-          <div class="rt-card-lbl">Period peak</div>
-          <div class="rt-card-val rt-card-val-lg" style="color:var(--green);" id="rt-peak-val">—</div>
-          <div class="rt-card-sub">Best this period</div>
-        </div>
-        <div class="rt-card">
-          <div class="rt-card-lbl">Current</div>
-          <div class="rt-card-val rt-card-val-lg" id="rt-now-ratio-val">—</div>
-          <div class="rt-card-sub">ratio now</div>
-        </div>
       </div>
 
 
