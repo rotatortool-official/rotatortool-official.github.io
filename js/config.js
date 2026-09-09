@@ -62,8 +62,25 @@ var FREE_COINS = [
   'polymarket','grass','nosana','shadow-token','hivemapper',
   'mantra-dao','reserve-rights-token','maple-finance','clearpool','centrifuge',
   /* ── Stablecoins — shown with APR instead of % change ── */
+  /* 'frax' (the stablecoin) was REMOVED 2026-09-09. It collided with
+     'frax-share', which CoinGecko also reports as symbol FRAX, so the
+     universe carried two coins rendering the same ticker. Binance
+     settles which one owns it: Binance lists exactly one FRAX — with
+     daily klines and a FRAXUSDT futures pair — and that is the tradable
+     token CoinGecko calls 'frax-share'. The stablecoin is not on
+     Binance at all.
+
+     The collision was not cosmetic. holdings and watchlist are keyed by
+     SYMBOL, so a FRAX holding matched whichever of the two loaded
+     first. It also produced a false line in engine 2.4.0's movement
+     diff until that was re-keyed onto coin id.
+
+     Dropped rather than relabelled because nine other stablecoins still
+     carry the APR panel, and inventing a ticker for this one would be
+     asserting a rebrand this project has no source for. It stays in
+     STABLECOINS below as a CLASSIFIER — see the note there. */
   'tether','usd-coin','dai','first-digital-usd','true-usd',
-  'ethena-usde','frax','paypal-usd','gemini-dollar','usdd'
+  'ethena-usde','paypal-usd','gemini-dollar','usdd'
 ];
 
 var PRO_EXTRA_COINS = []; /* All 200 in free tier — Pro reserved for future expansion */
@@ -261,6 +278,12 @@ var STABLECOINS = {
   'first-digital-usd':{ sym:'FDUSD',apr: 3.8,  platform: 'Binance Earn' },
   'true-usd':        { sym: 'TUSD', apr: 3.5,  platform: 'Aave / Venus' },
   'ethena-usde':     { sym: 'USDe', apr: 12.0, platform: 'Ethena sUSDe' },
+  /* Kept although 'frax' is no longer fetched (see FREE_COINS above).
+     This map is the isStable CLASSIFIER, not a display list — nothing
+     iterates it, data-loaders.js only looks coins up in it by id. So
+     the entry costs nothing and still flags the coin correctly if it
+     ever reappears in the feed, and removing it would rescore the
+     frozen golden fixture, which still contains that day's row. */
   'frax':            { sym: 'FRAX', apr: 4.0,  platform: 'Frax Finance' },
   'paypal-usd':      { sym: 'PYUSD',apr: 3.2,  platform: 'Aave / Morpho' },
   'gemini-dollar':   { sym: 'GUSD', apr: 3.0,  platform: 'Gemini Earn' },
