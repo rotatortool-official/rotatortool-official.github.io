@@ -137,7 +137,21 @@
      and `frax-share` on the frozen fixture, so a symbol-keyed diff
      reported a 9-point move on an identical rerun. The diff keys on
      coin id. See _computeChanges(). */
-  var ENGINE_VERSION = '2.4.0';
+  /* 2.4.1 — movement stops reporting untradable coins.
+
+     `changes` reported any coin that moved, including ones _eligibility()
+     had already refused. On run 375 the biggest mover in the whole
+     universe was NTRN at 89 places, on $686 of daily volume, and it was
+     leading the brief.
+
+     Filters on the REASON, not the verdict: XMR is equally ineligible and
+     its 25-place move stays, because it turns $117.9M a day and is
+     excluded only for being delisted on Binance spot. See
+     CHANGE_RULES.suppress.
+
+     Additive still — no score, rank, zone, eligibility or class moves,
+     and the golden fixture is unchanged. */
+  var ENGINE_VERSION = '2.4.1';
   var SCORING_MODELS = ['v1', 'v2'];
 
   /* ── Eligibility defaults ──────────────────────────────────────────
@@ -1421,6 +1435,22 @@
        runs are near-identical by construction. */
     minRankDelta:   15,
     minScoreDelta:  10,
+    /* Movement is not reported for a coin excluded for one of these
+       reasons. Measured on run 375: NTRN was the single biggest mover in
+       the universe at 89 places, on $686 of daily volume — six hundred
+       and eighty-six dollars. SRM was another, at $31.8k. A rank that
+       moves because almost nothing traded is not market information, and
+       it was leading the briefing.
+
+       `delisted` is deliberately NOT here. XMR is excluded for it while
+       turning $117.9M a day against a $9.5B cap; its 25-place move is
+       real and a reader should see it. Same eligible=false verdict, two
+       completely different meanings — which is why this filters on the
+       REASON and not on the flag.
+
+       `equity` is absent too: bStocks are ranked in their own universe
+       (1-23 on run 375) and move within it legitimately. */
+    suppress: ['illiquid', 'no_market_cap', 'incomplete_history'],
     /* How many to carry per list. The counts are reported separately,
        so a truncated list never reads as the complete story. */
     topN:           5,
@@ -1430,7 +1460,11 @@
   function _changeRules(o) {
     var r = {};
     for (var k in CHANGE_RULES) r[k] = CHANGE_RULES[k];
-    if (o) for (var j in o) if (r[j] != null && typeof o[j] === 'number') r[j] = o[j];
+    if (o) for (var j in o) {
+      if (r[j] == null) continue;
+      if (typeof o[j] === 'number') r[j] = o[j];
+      else if (Array.isArray(o[j]) && Array.isArray(r[j])) r[j] = o[j].slice();
+    }
     return r;
   }
 
@@ -1439,6 +1473,31 @@
     if (v === null || v === undefined || v === '') return null;
     var n = Number(v);
     return isFinite(n) ? n : null;
+  }
+
+  /* Does this item's exclusion reason mean its movement should not be
+     reported? Reads `exclusions`, which _eligibility() puts on every item
+     — so it asks WHY a coin is ineligible, never just whether it is. */
+  function _suppressed(it, rules) {
+    var ex = (it && it.exclusions) || [];
+    if (!ex.length) return false;
+    var sup = (rules && rules.suppress) || CHANGE_RULES.suppress;
+
+    /* A tokenised equity has no token market cap, because it is not a
+       token — so _eligibility() stamps it `no_market_cap` and that is
+       definitional, not a data failure. Suppressing bStocks for it would
+       have dropped all 24 of them from movement while they rank
+       perfectly well in their own 1-23 universe. For an equity, that one
+       reason does not count; every other suppression reason still does,
+       so an illiquid bStock is still dropped. */
+    var isEquity = ex.indexOf('equity') >= 0;
+
+    for (var i = 0; i < ex.length; i++) {
+      var r = ex[i];
+      if (isEquity && r === 'no_market_cap') continue;
+      if (sup.indexOf(r) >= 0) return true;
+    }
+    return false;
   }
 
   /* Identity for the diff. `id` is the coin id and is unique; `sym` is
@@ -1485,6 +1544,7 @@
     var universe = {};
     for (var u = 0; u < items.length; u++) {
       if (items[u].isStable) continue;
+      if (_suppressed(items[u], R)) continue;
       if (_ranked(items[u].r30) == null) continue;
       var ut = (typeBySym && typeBySym[items[u].sym]) || 'crypto';
       universe[ut] = (universe[ut] || 0) + 1;
@@ -1497,6 +1557,10 @@
 
     for (var i = 0; i < items.length; i++) {
       var it = items[i], k = _changeKey(it);
+      /* Excluded for a reason that makes movement meaningless — see
+         CHANGE_RULES.suppress. Marked SEEN like a stablecoin so a caller
+         is not told the coin left the universe. */
+      if (_suppressed(it, R)) { seen[k] = true; continue; }
       /* Stablecoins are not scored, not ranked, and never reach
          signal_run_items — the run insert filters them. They carry no
          RSI, no class and no insight; the product shows them for their
@@ -1934,7 +1998,9 @@
       calcRSI: _calcRSI,
       calcMACD: _calcMACD,
       calcBollinger: _calcBollinger,
-      insightBudget: _insightBudget
+      insightBudget: _insightBudget,
+      computeChanges: _computeChanges,
+      changeRules: _changeRules
     }
   };
 }));

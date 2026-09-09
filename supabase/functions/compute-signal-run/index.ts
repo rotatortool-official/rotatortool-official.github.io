@@ -406,6 +406,12 @@ Deno.serve(async (req) => {
         effective_score: it.effectiveScore,
         zone: it.zone,
         eligible: it.eligible,
+        // WHY it was refused, not just that it was. _eligibility() has
+        // always returned these and only the boolean was kept; engine
+        // 2.4.1 stores them because a delisted large cap and an illiquid
+        // micro cap share `eligible: false` and mean opposite things.
+        // See sql/signal_run_items_exclusions.sql.
+        exclusions: it.exclusions ?? null,
         data_complete: it.dataComplete !== false,
         strength: it.strength ?? null,
         setup: it.setup ?? null,
