@@ -53,6 +53,11 @@ a{color:inherit;text-decoration:none}
 .acc-detail{margin-top:18px;font-family:var(--font-mono);font-size:13px;color:var(--muted);}
 .acc-detail .sep{opacity:.4;margin:0 8px;}
 .acc-detail .ok{color:var(--green)} .acc-detail .bad{color:var(--red)}
+.acc-grp{display:inline-flex;align-items:baseline;gap:6px;padding:4px 11px;border-radius:6px;border:1px solid var(--bdr2);cursor:pointer;transition:border-color .15s,background .15s;margin:0 4px 6px 0;}
+.acc-grp:hover{border-color:var(--bnb);}
+.acc-grp.on{background:rgba(243,186,47,.10);border-color:var(--bnb);}
+.acc-grp .n{font-weight:700;}
+.acc-base{margin-top:10px;font-size:12px;color:var(--muted);opacity:.85;}
 .window-pill{display:inline-block;margin-top:18px;padding:4px 12px;
   background:rgba(243,186,47,.08);border:1px solid rgba(243,186,47,.2);border-radius:3px;
   font-family:var(--font-mono);font-size:11px;letter-spacing:.1em;color:var(--bnb);}
@@ -187,7 +192,7 @@ a{color:inherit;text-decoration:none}
     <div class="hero-kicker">◆ SIGNAL TRACK RECORD</div>
     <h1>Every call, tracked.</h1>
     <p class="hero-sub">
-      Rotator snapshots its top bullish and lagging signals every day. After 7 days, we compare the call to the actual price. The result is published here — wins and misses both. The counter below restarted on 2026-09-08 with scoring engine 2.3.0; the retired v2 engine's final record is kept underneath it. <a href="engine-changelog.html" style="color:#f3ba2f;text-decoration:underline;text-underline-offset:2px;">Every model change is logged here.</a>
+      Rotator snapshots its top bullish, rotate-out and underperforming signals every day. After 7 days, we compare the call to the actual price. The result is published here — wins and misses both. The counter below restarted on 2026-09-08 with scoring engine 2.3.0; the retired v2 engine's final record is kept underneath it. <a href="engine-changelog.html" style="color:#f3ba2f;text-decoration:underline;text-underline-offset:2px;">Every model change is logged here.</a>
     </p>
     <div id="accuracy-box" class="acc-box">
       <div class="acc-big" id="acc-pct">—</div>
@@ -212,7 +217,8 @@ a{color:inherit;text-decoration:none}
         <div class="legacy-pct">76.2%</div>
         <div class="legacy-meta">
           <b>658</b> of <b>863</b> graded calls confirmed<br>
-          Bullish <b>71.9%</b> · Lagging <b>80.8%</b><br>
+          Bullish <b>71.9%</b> · Underperforming <b>80.8%</b><br>
+          <span style="opacity:.7">v2 did not separate rotate-out calls; they sit inside that 80.8%</span><br>
           90 trading days · 2026-04-26 → 2026-08-31
         </div>
       </div>
@@ -771,7 +777,7 @@ a{color:inherit;text-decoration:none}
   function evaluate(snaps, priceMap, mcapMap) {
     mcapMap = mcapMap || {};
     var wins = [], misses = [];
-    var tBull = 0, cBull = 0, tLag = 0, cLag = 0;
+    var tBull = 0, cBull = 0, tRot = 0, cRot = 0, tUnd = 0, cUnd = 0;
     var peakCovered = 0, fallbackCovered = 0;
     var now = new Date();
 
@@ -818,13 +824,23 @@ a{color:inherit;text-decoration:none}
       var thr = confirmThresholdFor(r.mcap || mcapMap[r.coin_id]);
       var correct;
       if (r.signal_type === 'bullish') {
+        record.bucket = 'bullish';
         tBull++;
         correct = change >= thr;
         if (correct) cBull++;
       } else if (r.signal_type === 'lagging') {
-        tLag++;
+        /* signal_type carries only bullish/lagging, but TWO different
+           calls live under 'lagging': ROTATE OUT is a strong asset that
+           has run ahead, everything else is one that is behind. Both
+           predict the price falls from here, so one grading rule fits
+           both and always has. What a single bucket could not say is
+           WHICH kind of call works — so they are counted apart here
+           while still being graded identically. */
+        var isRot = String(r.signal_label || '').toUpperCase() === 'ROTATE OUT';
+        record.bucket = isRot ? 'rotate' : 'under';
         correct = change <= -thr;
-        if (correct) cLag++;
+        if (isRot) { tRot++; if (correct) cRot++; }
+        else       { tUnd++; if (correct) cUnd++; }
       } else {
         return;
       }
@@ -849,15 +865,16 @@ a{color:inherit;text-decoration:none}
     wins   = dedupe(wins,   true);
     misses = dedupe(misses, true);
 
-    var total   = tBull + tLag;
-    var correct = cBull + cLag;
+    var total   = tBull + tRot + tUnd;
+    var correct = cBull + cRot + cUnd;
     var acc = total > 0 ? Math.round((correct / total) * 100) : null;
 
     return {
       wins: wins, misses: misses,
       stats: { total: total, correct: correct, accuracy: acc,
                bullTotal: tBull, bullCorrect: cBull,
-               lagTotal: tLag, lagCorrect: cLag,
+               rotTotal: tRot, rotCorrect: cRot,
+               undTotal: tUnd, undCorrect: cUnd,
                peakCovered: peakCovered, fallbackCovered: fallbackCovered }
     };
   }
@@ -1059,26 +1076,56 @@ a{color:inherit;text-decoration:none}
   });
 
   /* ── Render ────────────────────────────────────────────── */
+  var _bucket = 'all';   /* which call group the lists are filtered to */
+  var _result = null;    /* kept so a group chip can re-render without refetching */
+
   function render(result) {
+    _result = result;
     var stats = result.stats;
     var pct  = document.getElementById('acc-pct');
     var det  = document.getElementById('acc-detail');
     var box  = document.getElementById('accuracy-box');
 
-    if (stats.accuracy == null) {
+    var ungraded = stats.accuracy == null;
+    if (ungraded) {
       pct.textContent = '—';
-      det.textContent = trackingLine();
       box.style.opacity = '.6';
     } else {
       pct.textContent = stats.accuracy + '%';
       pct.style.color = stats.accuracy >= 65 ? 'var(--green)'
                       : stats.accuracy >= 50 ? 'var(--bnb)' : 'var(--red)';
-      det.innerHTML =
-        '<span>' + stats.correct + ' of ' + stats.total + ' confirmed</span>'
-      + '<span class="sep">·</span>'
-      + '<span class="ok">Bullish ' + stats.bullCorrect + '/' + stats.bullTotal + '</span>'
-      + '<span class="sep">·</span>'
-      + '<span class="bad">Lagging ' + stats.lagCorrect + '/' + stats.lagTotal + '</span>';
+      box.style.opacity = '';
+    }
+    {
+      /* Three groups, not two. They are graded identically where the
+         direction is the same — see the note in the scorer — but shown
+         apart so the page can say which KIND of call is working. Each
+         one filters the wins and misses below it. */
+      var GROUPS = [
+        { id:'all',     label:'All',              c:stats.correct,     t:stats.total,     cls:'' },
+        { id:'bullish', label:'Bullish',          c:stats.bullCorrect, t:stats.bullTotal, cls:'ok' },
+        { id:'rotate',  label:'Rotate-out',       c:stats.rotCorrect,  t:stats.rotTotal,  cls:'' },
+        { id:'under',   label:'Underperforming',  c:stats.undCorrect,  t:stats.undTotal,  cls:'bad' }
+      ];
+      /* Rendered even before anything grades. The counts read 0/0 and the
+         headline stays "—", but a reader can see WHAT will be measured
+         rather than a bare dash — and after a reset that is most of what
+         the page has to say for a week. */
+      det.innerHTML = (ungraded ? '<div style="margin-bottom:12px">' + trackingLine() + '</div>' : '')
+        + GROUPS.map(function(g) {
+        var p = g.t ? Math.round((g.c / g.t) * 100) + '%' : '—';
+        return '<span class="acc-grp' + (g.id === _bucket ? ' on' : '') + '" data-b="' + g.id + '">'
+             + '<span class="' + g.cls + '">' + g.label + '</span>'
+             + '<span class="n">' + p + '</span>'
+             + '<span style="opacity:.55">' + g.c + '/' + g.t + '</span></span>';
+        }).join('') + '<div class="acc-base" id="acc-base"></div>';
+
+      Array.prototype.forEach.call(det.querySelectorAll('.acc-grp'), function(chip) {
+        chip.addEventListener('click', function() {
+          _bucket = chip.dataset.b;
+          render(_result);
+        });
+      });
     }
 
     function fill(gridId, emptyId, countId, list, emptyMsg) {
@@ -1097,10 +1144,28 @@ a{color:inherit;text-decoration:none}
       list.slice(0, MAX_CARDS_PER_LIST).forEach(function(r) { grid.appendChild(renderCard(r)); });
     }
 
+    function ofBucket(list) {
+      return _bucket === 'all' ? list
+           : list.filter(function(r) { return r.bucket === _bucket; });
+    }
+
     fill('wins-grid',  'wins-empty',  'wins-count',
-         result.wins,   'Signals reach the wins list once they move ≥2% in the direction we flagged, 7+ days after being called.');
+         ofBucket(result.wins),   'Signals reach the wins list once they move ≥2% in the direction we flagged, 7+ days after being called.');
     fill('miss-grid',  'miss-empty',  'miss-count',
-         result.misses, 'No confirmed misses yet in this window. This list is published alongside the wins for honest accounting.');
+         ofBucket(result.misses), 'No confirmed misses yet in this window. This list is published alongside the wins for honest accounting.');
+
+    /* What the retired v2 engine managed on the same kind of call, so a
+       group can be read against something. v2 recorded only two buckets,
+       so rotate-out has no separate baseline and this says so rather than
+       splitting 80.8% into a number v2 never measured. */
+    var base = document.getElementById('acc-base');
+    if (base) {
+      base.innerHTML =
+        _bucket === 'bullish' ? 'Engine v2 managed <b>71.9%</b> on bullish calls over 90 days.'
+      : _bucket === 'under'   ? 'Engine v2 managed <b>80.8%</b> on the combined lagging bucket over 90 days.'
+      : _bucket === 'rotate'  ? 'Engine v2 did not record rotate-out separately — these sat inside its 80.8% lagging figure, so there is no like-for-like baseline.'
+      :                         'Engine v2 finished on <b>76.2%</b> across 863 graded calls. Graded on the best price in the window, so read it as an upper bound.';
+    }
   }
 
   function showError(msg) {
