@@ -130,8 +130,17 @@ function removeHolding(sym) {
   document.getElementById(id).addEventListener('keydown', function(e) { if (e.key === 'Enter') addHolding(); });
 });
 
-/* ── Crypto tile renderer — always shows 10 slots ───────────── */
-var TOTAL_TILE_SLOTS = 10;
+/* ── Crypto tile renderer ────────────────────────────────────
+   Nine, not ten. This is the GRID SHAPE, not an entitlement: the panel
+   is three tiles wide beside the watchlist, so ten left a row of one
+   and a hole where the other two would go. Three by three fills it.
+
+   PRO_HOLDINGS_LIMIT stays at 10 — nobody loses a slot they were
+   promised. A Pro who fills all ten simply gets a tenth tile on a
+   fourth row, because the pad below is a MINIMUM shape and the real
+   holdings above it are always rendered in full. The free-tier
+   composition still adds up: 2 free + 5 locked + 2 promo = 9. */
+var TOTAL_TILE_SLOTS = 9;
 var PRO_PROMO_SLOTS  = 2;
 
 function renderTiles() {

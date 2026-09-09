@@ -278,8 +278,15 @@ function switchHoldingsView(view) {
   document.getElementById('hvtab-my').classList.toggle('active', view === 'my');
   var wTab = document.getElementById('hvtab-watch');
   wTab.classList.toggle('active', view === 'watch');
-  document.getElementById('my-holdings-panel').style.display = view === 'my' ? 'flex' : 'none';
-  document.getElementById('watchlist-panel').style.display   = view === 'watch' ? 'flex' : 'none';
+  /* Desktop shows both panels at once and overrides these inline styles,
+     so the class is what mobile keys off. Keeping the inline write too
+     means nothing else that reads .style.display changes behaviour. */
+  var my = document.getElementById('my-holdings-panel');
+  var wl = document.getElementById('watchlist-panel');
+  my.style.display = view === 'my' ? 'flex' : 'none';
+  wl.style.display = view === 'watch' ? 'flex' : 'none';
+  my.classList.toggle('hv-on', view === 'my');
+  wl.classList.toggle('hv-on', view === 'watch');
 }
 
 
@@ -287,13 +294,16 @@ function switchHoldingsView(view) {
 var watchlist = [];
 try { watchlist = JSON.parse(localStorage.getItem('rot_watchlist') || '[]'); } catch(e) {}
 function saveWatchlist() { try { localStorage.setItem('rot_watchlist', JSON.stringify(watchlist)); } catch(e) {} }
+/* Nine, to match the holdings grid beside it. Both panels are on screen
+   together now, so a watchlist that collapsed to a one-line message left
+   the right half of the section empty while the left half showed a full
+   grid. Same shape, same count, read as a pair — and three by three
+   fills a three-wide panel exactly, which ten did not. */
+var WATCH_TILE_SLOTS = 9;
+
 function renderWatchlist() {
   var grid = document.getElementById('watchlist-grid');
   if (!grid) return;
-  if (!watchlist.length) {
-    grid.innerHTML = '<div class="watchlist-placeholder">Click + to add coins to your watchlist.<br>Compare them in the swap tool →</div>';
-    return;
-  }
   var c = typeof coins !== 'undefined' ? coins : [];
   var html = watchlist.map(function(sym) {
     var coin = c.find(function(x) { return x.sym === sym; });
@@ -312,6 +322,15 @@ function renderWatchlist() {
       + '<div class="tile-foot"><span></span><span class="tile-scr ' + (coin.score>=65?'hi':coin.score>=40?'md':'lo') + '">' + coin.score + '</span></div>'
       + '</div>';
   }).join('');
+
+  /* Pad to ten so the grid keeps its shape whether you watch one coin
+     or nine. The first empty slot carries the invitation the old
+     empty-state message used to. */
+  for (var i = watchlist.length; i < WATCH_TILE_SLOTS; i++) {
+    html += '<div class="tile-placeholder" onclick="openAddWatchlistModal()" title="Add to watchlist">'
+          + '<div class="ph-plus">+</div><div class="ph-lbl">'
+          + (i === 0 ? 'Watch Coin' : 'Add') + '</div></div>';
+  }
   grid.innerHTML = html;
 }
 function removeFromWatchlist(sym) {
@@ -319,6 +338,11 @@ function removeFromWatchlist(sym) {
   saveWatchlist(); renderWatchlist();
 }
 function openAddWatchlistModal() { openAddHoldingsModal('watchlist'); }
+
+/* Draw the ten slots before any coin data exists, so the panel has its
+   shape during the load rather than a single placeholder line. renderAll()
+   redraws it with real tiles the moment `coins` is populated. */
+document.addEventListener('DOMContentLoaded', function() { renderWatchlist(); });
 
 /* ── Add Holdings Modal ──────────────────────────────────────── */
 var _ahmMode = 'holdings'; // 'holdings' or 'watchlist'
@@ -433,9 +457,12 @@ var SWAP_TUT_STEPS = [
     anchor: 'rt-bar-track'
   },
   {
-    title: 'Swap Calculator',
-    desc: 'Enter your amount to see exactly how much you\'d receive. Override prices manually for hypothetical scenarios. Always verify on your exchange before executing — prices shift fast.',
-    anchor: 'rt-calc'
+    title: 'Amount and Result',
+    /* Anchored on the amount box itself. This used to point at 'rt-calc',
+       which was a CLASS on the calculator card and never an id, so
+       getElementById returned null and the step highlighted nothing. */
+    desc: 'Enter your amount on the FROM card and the TO card shows what you\'d receive. Underneath, the dollar value, both ratio directions, and price overrides for hypothetical scenarios. Always verify on your exchange before executing — prices shift fast.',
+    anchor: 'rt-hero-amt'
   }
 ];
 var _swapTutStep = 0;
@@ -751,14 +778,25 @@ if (window.matchMedia('(display-mode: standalone)').matches || window.navigator.
    was using behavior:'smooth' directly — which does nothing at all in a
    hidden tab, under prefers-reduced-motion, or in several browsers. Two
    nav controls that scroll differently is one too many. */
+/* The sticky bar's own height, measured. Two things need it and neither
+   can hardcode it: the rail has to start below the bar rather than behind
+   it (CSS, via --topbar-h), and a section scrolled to its exact top would
+   otherwise sit under it (rotScrollToEl). The bar wraps to two rows on
+   narrow widths, so it is measured on load and on resize. */
+function rotTopbarH() {
+  var bar = document.querySelector('header') || document.querySelector('.topbar');
+  return bar ? Math.round(bar.getBoundingClientRect().height) : 0;
+}
+function rotSyncTopbarH() {
+  document.documentElement.style.setProperty('--topbar-h', rotTopbarH() + 'px');
+}
+document.addEventListener('DOMContentLoaded', rotSyncTopbarH);
+window.addEventListener('resize', rotSyncTopbarH);
+
 function rotScrollToEl(el) {
   if (!el) return;
 
-  /* The topbar is sticky, so a section scrolled to its exact top sits
-     UNDER it. Measure rather than hardcode — the bar wraps to two rows
-     on narrow widths. */
-  var bar = document.querySelector('.topbar');
-  var offset = bar ? Math.round(bar.getBoundingClientRect().height) : 0;
+  var offset = rotTopbarH();
   var target = Math.round(el.getBoundingClientRect().top + window.scrollY) - offset - 4;
 
   var max = Math.max(0, document.documentElement.scrollHeight - window.innerHeight);

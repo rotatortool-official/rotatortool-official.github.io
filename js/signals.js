@@ -1343,6 +1343,13 @@ function renderAll() {
   computeInsights();
   maybeSyncInsightSnapshots();
   renderBTC(); renderTiles(); renderTopBars(); renderTable(); renderCoinSel(); updateTierBadge(); if (typeof initCategoryLocks === 'function') initCategoryLocks(); if (typeof updateProGates === 'function') updateProGates();
+  /* The watchlist grid had no owner in the render cycle — it was only
+     ever drawn by toggleWatch() and removeFromWatchlist(), so on a cold
+     load it kept the hardcoded placeholder from index.html and a
+     returning visitor's saved symbols never appeared until they touched
+     an eye icon. It reads the same `coins` array as renderTiles(), so it
+     belongs on the same line. */
+  if (typeof renderWatchlist === 'function') renderWatchlist();
   /* Async: fetch Binance klines for holdings to enrich Insight Engine */
   if (holdings.length && !_klinesFetched) {
     _klinesFetched = true;

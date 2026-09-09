@@ -892,9 +892,9 @@
       </div>
       <span class="collapse-chevron" id="chev-holdings">▼</span>
     </div>
-    <div class="collapse-body collapsed" id="cb-holdings" style="display:flex;flex-direction:column;flex:1;min-height:0;overflow:hidden;">
+    <div class="collapse-body collapsed" id="cb-holdings">
     <!-- HOLDINGS — crypto + bStocks share one panel; both live in coins[] now -->
-    <div id="holdings-crypto" style="display:flex;flex-direction:column;flex:1;min-height:0;overflow:hidden;">
+    <div id="holdings-crypto">
 
       <!-- Dual view tabs -->
       <div class="holdings-view-tabs">
@@ -903,7 +903,7 @@
       </div>
 
       <!-- MY HOLDINGS VIEW -->
-      <div id="my-holdings-panel" style="display:flex;flex-direction:column;flex:1;min-height:0;">
+      <div id="my-holdings-panel" class="hv-on" style="display:flex;flex-direction:column;flex:1;min-height:0;">
         <div class="holdings-section-label">
           <span>MY HOLDINGS</span>
           <span id="hcount" style="color:var(--bnb);font-size:12px;letter-spacing:.04em;"></span>
@@ -1057,6 +1057,15 @@
                 <div class="new-coin-chg" id="rt-from-chg"></div>
               </div>
             </div>
+            <!-- The amount. There is exactly one of these in the tool now;
+                 calcSwap() reads it directly. -->
+            <div class="new-coin-qty" onclick="event.stopPropagation();">
+              <label class="new-coin-qty-lbl" id="rt-calc-from-lbl" for="rt-hero-amt">Amount</label>
+              <input type="number" id="rt-hero-amt" class="new-coin-qty-inp" value="100" step="any"
+                     inputmode="decimal" aria-label="Amount to swap"
+                     onclick="event.stopPropagation();"
+                     oninput="RatioTracker.calcSwap()">
+            </div>
           </div>
 
           <!-- SWAP DIRECTION -->
@@ -1077,6 +1086,11 @@
                 <div class="new-coin-chg" id="rt-to-chg"></div>
               </div>
             </div>
+            <!-- Read-only mirror of the calculator's output. -->
+            <div class="new-coin-qty new-coin-qty-out">
+              <span class="new-coin-qty-lbl">You receive</span>
+              <span class="new-coin-qty-val" id="rt-hero-out">—</span>
+            </div>
           </div>
 
         </div><!-- /new-pair-grid -->
@@ -1089,6 +1103,39 @@
         <!-- Hidden selects — JS populates & reads these -->
         <select class="rt-ct-sel" id="rt-from" onchange="RatioTracker.onFromChange()" aria-hidden="true" tabindex="-1"></select>
         <select class="rt-ct-sel" id="rt-to"   onchange="RatioTracker.onToChange()"   aria-hidden="true" tabindex="-1"></select>
+
+        <!-- ══ WHAT THE SWAP IS WORTH ══
+             This was a separate SWAP CALCULATOR card in the right column.
+             Once the amount and the received figure moved onto the pair
+             cards, everything left in it described THIS pair and nothing
+             else, so it reads here instead of being repeated there. -->
+        <div class="swap-detail">
+          <div class="swap-detail-usd" id="rt-calc-usd-out"></div>
+          <div class="rt-calc-ratios">
+            <div class="rt-calc-ratio-line" id="rt-calc-ratio-fwd">—</div>
+            <div class="rt-calc-ratio-line" id="rt-calc-ratio-inv">—</div>
+          </div>
+
+          <div class="new-adv-toggle" onclick="newToggleAdvanced()" role="button" tabindex="0">
+            <span class="new-adv-icon" id="new-adv-icon">▶</span>
+            ADVANCED — Override prices
+          </div>
+          <div class="new-adv-panel" id="new-adv-panel">
+            <div class="rt-ci" style="margin-bottom:8px;">
+              <label id="rt-calc-from-ov-lbl">Override FROM ($)</label>
+              <input type="number" id="rt-calc-from-ov" aria-label="Override from price" placeholder="auto" step="any" oninput="RatioTracker.calcSwap()">
+            </div>
+            <div class="rt-ci">
+              <label id="rt-calc-to-ov-lbl">Override TO ($)</label>
+              <input type="number" id="rt-calc-to-ov" aria-label="Override to price" placeholder="auto" step="any" oninput="RatioTracker.calcSwap()">
+            </div>
+          </div>
+
+          <button class="rt-swap-share-btn" id="rt-swap-share-btn" onclick="shareSwapCard()" title="Share your swap as an image">
+            <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/><polyline points="16 6 12 2 8 6"/><line x1="12" y1="2" x2="12" y2="15"/></svg>
+            Share Swap
+          </button>
+        </div><!-- /swap-detail -->
       </div><!-- /new-swap-hero -->
 
       <!-- ══ RATIO HOOK ══ -->
@@ -1106,9 +1153,6 @@
         <button class="rt-star-btn" id="rt-star-btn" title="Save pair">☆ Save pair</button>
         <button class="rt-refresh-btn" id="rt-refresh-btn" onclick="RatioTracker.loadAll()" title="Refresh">
           <span id="rt-spin-icon">↻</span> Refresh
-        </button>
-        <button class="rt-share-btn" onclick="shareSwapCard()" title="Share swap as image card">
-          <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/><polyline points="16 6 12 2 8 6"/><line x1="12" y1="2" x2="12" y2="15"/></svg> Share
         </button>
       </div>
 
@@ -1148,7 +1192,7 @@
       </div><!-- /new-chart-section -->
 
       <!-- ══ STAT CARDS ══ -->
-      <div class="rt-cards" style="margin-top:8px;">
+      <div class="rt-cards">
         <div class="rt-card">
           <div class="rt-card-lbl">Period peak</div>
           <div class="rt-card-val rt-card-val-lg" style="color:var(--green);" id="rt-peak-val">—</div>
@@ -1161,48 +1205,6 @@
         </div>
       </div>
 
-      <!-- ══ SWAP CALCULATOR ══ -->
-      <div class="rt-calc new-calc-card">
-        <h2 class="rt-calc-title">⇄ SWAP CALCULATOR</h2>
-
-        <div style="margin-bottom:10px;">
-          <label id="rt-calc-from-lbl" style="display:block;font-size:12px;letter-spacing:.1em;color:var(--muted);margin-bottom:6px;font-weight:600;">Amount</label>
-          <input type="number" id="rt-calc-amt" class="new-amount-input" aria-label="Swap amount" value="100" step="any" oninput="RatioTracker.calcSwap()" placeholder="Enter amount…">
-        </div>
-
-        <div class="new-calc-output">
-          <div class="new-calc-out-label">YOU'D RECEIVE</div>
-          <div class="rt-res-val" style="color:var(--green);font-size:26px;" id="rt-calc-out">—</div>
-          <div class="rt-res-val" style="color:var(--amber);font-size:14px;margin-top:4px;" id="rt-calc-usd-out"></div>
-        </div>
-
-        <div class="rt-calc-ratios" style="margin-bottom:10px;">
-          <div class="rt-calc-ratio-line" id="rt-calc-ratio-fwd">—</div>
-          <div class="rt-calc-ratio-line" id="rt-calc-ratio-inv">—</div>
-        </div>
-
-        <!-- Advanced toggle -->
-        <div class="new-adv-toggle" onclick="newToggleAdvanced()" role="button" tabindex="0">
-          <span class="new-adv-icon" id="new-adv-icon">▶</span>
-          ADVANCED — Override prices
-        </div>
-        <div class="new-adv-panel" id="new-adv-panel">
-          <div class="rt-ci" style="margin-bottom:8px;">
-            <label id="rt-calc-from-ov-lbl">Override FROM ($)</label>
-            <input type="number" id="rt-calc-from-ov" aria-label="Override from price" placeholder="auto" step="any" oninput="RatioTracker.calcSwap()">
-          </div>
-          <div class="rt-ci">
-            <label id="rt-calc-to-ov-lbl">Override TO ($)</label>
-            <input type="number" id="rt-calc-to-ov" aria-label="Override to price" placeholder="auto" step="any" oninput="RatioTracker.calcSwap()">
-          </div>
-        </div>
-
-        <!-- Share swap card -->
-        <button class="rt-swap-share-btn" id="rt-swap-share-btn" onclick="shareSwapCard()" title="Share your swap as an image">
-          <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/><polyline points="16 6 12 2 8 6"/><line x1="12" y1="2" x2="12" y2="15"/></svg>
-          Share Swap
-        </button>
-      </div><!-- /rt-calc -->
 
       <div class="rt-footer">Live data via CoinGecko · Not financial advice · Always verify before swapping</div>
 

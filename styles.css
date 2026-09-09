@@ -3569,41 +3569,129 @@ td.qa-cell{text-align:center;width:28px;padding:0 4px !important;}
    the design asked for, so the extra width becomes structure rather
    than stretch. */
 
+/* YOURS: signal, holdings and watchlist all on screen at once.
+   The tab bar existed because a 310px sidebar could only show one at a
+   time. At full width both fit, and holding-vs-watching is a comparison
+   you make by looking at them together, not by toggling. Ten slots each,
+   the same shape, so the section reads as a pair. */
 #sec-yours .sidebar{
   display:grid;
-  grid-template-columns:300px minmax(0,1fr);
+  grid-template-columns:280px minmax(0,1fr) minmax(0,1fr);
   gap:0 16px;align-items:start;
   padding:12px 16px 16px;
 }
 #sec-yours .sig-box{
-  grid-column:1;grid-row:1 / span 3;
+  grid-column:1;grid-row:1 / span 2;
   border-bottom:none;border-radius:10px;
   border:1px solid rgba(243,186,47,.18);
 }
-#sec-yours .collapse-hdr,
-#sec-yours .collapse-body{grid-column:2;}
-#sec-yours .tiles-grid{grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;}
+#sec-yours .collapse-hdr{grid-column:2 / -1;}
+#sec-yours #cb-holdings{grid-column:2 / -1;display:block;}
+#sec-yours #holdings-crypto{
+  display:grid;
+  grid-template-columns:minmax(0,1fr) minmax(0,1fr);
+  gap:0 16px;align-items:start;
+}
+/* Both panels, side by side. switchHoldingsView() writes inline display
+   styles, so these have to win — the tabs stay for mobile, where one at
+   a time is still the right answer. */
+#sec-yours .holdings-view-tabs{display:none;}
+#sec-yours #my-holdings-panel{display:flex !important;grid-column:1;}
+#sec-yours #watchlist-panel{display:flex !important;grid-column:2;}
+#sec-yours .holdings-section-label,
+#sec-yours .watchlist-tip{padding-left:0;padding-right:0;}
+#sec-yours .tiles-grid{grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;}
 #sec-yours .tiles-scroll{padding:0;}
+#sec-yours .watchlist-placeholder{display:none;}
 
-/* SWAP: picker and calculator on the left, chart on the right — the
-   order the ratio tool is actually read in. Children are placed by
-   class because the section is a flat stack in the markup. */
+/* SWAP: everything you set or read sits ABOVE the chart, and the chart
+   takes the full width underneath.
+
+   The markup is a flat stack in DOM order and the stat cards come after
+   the chart there. Rather than move them in index.html, each child is
+   placed explicitly here. Grid placement ignores source order, so the
+   HTML keeps reading the way the tool was built and the page reads the
+   way the tool is used. */
 #sec-swap .ratio-section{
   display:grid;
-  grid-template-columns:340px minmax(0,1fr);
-  gap:0 18px;align-items:start;
+  grid-template-columns:repeat(3,minmax(0,1fr));
+  gap:12px 16px;align-items:start;
   padding:14px 16px 18px;
 }
-#sec-swap .new-swap-hero,
-#sec-swap .new-ratio-hook,
-#sec-swap .rt-cards,
-#sec-swap .new-calc-card{grid-column:1;}
-#sec-swap .rt-top-actions,
-#sec-swap .rt-status,
-#sec-swap .rt-saved-wrap,
-#sec-swap .new-chart-section,
-#sec-swap .rt-footer{grid-column:2;}
-#sec-swap .new-chart-section{min-height:260px;}
+/* Dead in practice — updateProGates() forces it hidden and the tool is
+   never gated whole — but if it ever comes back it gets its own row
+   rather than landing on top of the pair picker. */
+#sec-swap .swap-pro-gate{grid-column:1 / -1;}
+
+/* The pair block takes two of the three columns and runs down both rows:
+   the amount, the result, the dollar value, both ratio directions, the
+   overrides and the share are all one thing now, and they were being
+   read across a gap. The right column is what the pair is DOING — the
+   ratio, then the period peak and where it sits now. */
+#sec-swap .new-swap-hero  {grid-column:1 / span 2;grid-row:1 / span 2;}
+#sec-swap .new-ratio-hook {grid-column:3;grid-row:1;}
+#sec-swap .rt-cards       {grid-column:3;grid-row:2;}
+#sec-swap .rt-top-actions {grid-column:1 / -1;grid-row:3;}
+#sec-swap .rt-status      {grid-column:1 / -1;grid-row:4;}
+#sec-swap .rt-saved-wrap  {grid-column:1 / -1;grid-row:5;}
+#sec-swap .new-chart-section{grid-column:1 / -1;grid-row:6;min-height:320px;}
+#sec-swap .rt-footer      {grid-column:1 / -1;grid-row:7;}
+
+/* ── Quantity on the pair itself ───────────────────────────────────
+   The amount used to live only in the calculator, three cards away from
+   the pair you were choosing. It is entered on the FROM card now and the
+   result reads back on the TO card. The calculator still owns the
+   arithmetic; these two boxes only feed and mirror it.
+
+   Label above value, not beside it. The pair cards are ~175px wide and
+   a ratio runs to seven characters, so a row that had to hold both put
+   the number in 50px and clipped it. */
+.new-coin-qty{
+  display:flex;flex-direction:column;gap:3px;
+  margin-top:8px;padding:7px 8px 2px;
+  border-top:1px solid var(--bdr);
+}
+.new-coin-qty-lbl{
+  font-size:9px;letter-spacing:.09em;text-transform:uppercase;
+  color:var(--muted);font-weight:600;white-space:nowrap;
+}
+.new-coin-qty-inp{
+  width:100%;min-width:0;
+  background:var(--bg);border:1px solid var(--bdr);border-radius:6px;
+  color:var(--text);font-family:var(--font-mono);font-size:15px;font-weight:700;
+  padding:5px 8px;
+}
+.new-coin-qty-inp:focus{outline:none;border-color:var(--bnb);}
+.new-coin-qty-val{
+  font-family:var(--font-mono);font-size:15px;font-weight:700;
+  color:var(--green);
+  padding:5px 0;
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
+}
+
+/* ── What the swap is worth ────────────────────────────────────────
+   The remains of the SWAP CALCULATOR card, now under the pair. Two
+   columns on desktop: what it comes to on the left, what you can change
+   or do with it on the right. */
+.swap-detail{padding-top:10px;margin-top:2px;border-top:1px solid var(--bdr);}
+.swap-detail-usd{
+  font-family:var(--font-mono);font-size:20px;font-weight:700;
+  color:var(--amber);line-height:1.2;min-height:24px;
+}
+.swap-detail .rt-calc-ratios{margin-top:6px;padding-top:0;border-top:none;}
+.swap-detail .new-adv-toggle{margin-top:0;}
+.swap-detail .rt-swap-share-btn{margin-top:10px;width:100%;}
+@media(min-width:901px){
+  #sec-swap .swap-detail{
+    display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);
+    gap:10px 18px;align-items:start;
+  }
+  #sec-swap .swap-detail-usd{grid-column:1;}
+  #sec-swap .swap-detail .rt-calc-ratios{grid-column:1;margin-top:0;}
+  #sec-swap .swap-detail .new-adv-toggle{grid-column:2;grid-row:1;}
+  #sec-swap .swap-detail .new-adv-panel{grid-column:2;grid-row:2;margin-top:0;}
+  #sec-swap .swap-detail .rt-swap-share-btn{grid-column:2;grid-row:3;margin-top:2px;}
+}
 
 /* ROTATION keeps its three columns — that shape was right, it was the
    page around it that was wrong. */
@@ -3617,9 +3705,25 @@ td.qa-cell{text-align:center;width:28px;padding:0 4px !important;}
 #sec-support .sidebar-donate{max-width:420px;margin:0;padding:14px 16px 18px;}
 
 @media(max-width:900px){
+  /* These two carried `display:flex;flex-direction:column;flex:1;
+     min-height:0;overflow:hidden` as INLINE styles in index.html, left
+     over from when .root was a viewport-tall three-column box and each
+     column had to flex inside it. Inline beats any selector, so the
+     desktop grid above silently never applied and both panels stacked at
+     the same x. The declarations that still earn their keep live here,
+     where the phone layout actually wants them. */
+  #cb-holdings,
+  #holdings-crypto{display:flex;flex-direction:column;min-height:0;overflow:hidden;}
   #sec-yours .sidebar,
+  #sec-yours #holdings-crypto,
   #sec-swap .ratio-section{display:block;padding-left:0;padding-right:0;}
   #sec-yours .tiles-grid{grid-template-columns:repeat(2,1fr);}
+  /* One at a time again — the tabs are the right answer on a phone. */
+  #sec-yours .holdings-view-tabs{display:flex;}
+  #sec-yours #my-holdings-panel,
+  #sec-yours #watchlist-panel{display:none !important;}
+  #sec-yours #my-holdings-panel.hv-on,
+  #sec-yours #watchlist-panel.hv-on{display:flex !important;}
 }
 
 /* ── Section labels ────────────────────────────────────────────────
@@ -3652,3 +3756,30 @@ td.qa-cell{text-align:center;width:28px;padding:0 4px !important;}
    against. Content height now drives the document, which is what every
    scroll API, anchor and sticky element already expects. */
 html,body{height:auto;min-height:100%;}
+
+/* ── Why the rail did not actually stick ───────────────────────────
+   Line 61 sets `overflow-x:hidden` on html AND body. The html element's
+   overflow propagates to the viewport, which leaves html itself treated
+   as visible — but body keeps its own, and a box with a non-visible
+   overflow on one axis computes `auto` on the other. So BODY became a
+   scroll container: 3,905px of content in a 3,905px box, no internal
+   scrolling, and every position:sticky descendant measuring against a
+   scrollport that never moves. The rail scrolled away with the page.
+
+   The viewport already clips horizontally via html. Body needs nothing. */
+body{overflow:visible;}
+
+/* The topbar had position:sticky since line 66 and had never once stuck:
+   a sticky box cannot leave its parent, and <header> is exactly as tall
+   as the bar inside it. It did not matter while .root was a viewport-tall
+   box and the page never scrolled. It matters now. The header is what
+   scrolls, so the header is what sticks. */
+header{position:sticky;top:0;z-index:100;}
+
+/* Sit the rail below the bar rather than behind it. --topbar-h is written
+   by ui.js from the measured header, because the bar wraps to two rows on
+   narrow widths; the literal is the desktop fallback for the first paint. */
+.rail{
+  top:var(--topbar-h,45px);
+  height:calc(100vh - var(--topbar-h,45px));
+}

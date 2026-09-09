@@ -691,14 +691,19 @@ var RatioTracker = (function() {
     return v.toLocaleString('en-US',{maximumFractionDigits:8});
   }
 
+  /* The amount and the received figure live on the pair cards — there is
+     one of each, and they are these. The separate SWAP CALCULATOR card
+     that used to hold a second copy of both is gone; what it still had to
+     say (the dollar value, the two ratio lines, the price overrides) now
+     sits under the pair it describes. */
   function calcSwap(){
-    var amtEl=$('rt-calc-amt'),ovFEl=$('rt-calc-from-ov'),ovTEl=$('rt-calc-to-ov'); if(!amtEl) return;
+    var amtEl=$('rt-hero-amt'),ovFEl=$('rt-calc-from-ov'),ovTEl=$('rt-calc-to-ov'); if(!amtEl) return;
     var amt=parseFloat(amtEl.value)||0,ovF=parseFloat(ovFEl?ovFEl.value:''),ovT=parseFloat(ovTEl?ovTEl.value:'');
     var fp=(!isNaN(ovF)&&ovF>0)?ovF:S.fromPrice,tp=(!isNaN(ovT)&&ovT>0)?ovT:S.toPrice;
-    if(!fp||!tp||amt<=0) return;
+    if(!fp||!tp||amt<=0){ set('rt-hero-out','—'); set('rt-calc-usd-out',''); return; }
     var outAmt = amt*(fp/tp);
     var outFmt = fmtRatio(outAmt);
-    set('rt-calc-out', outFmt + ' ' + lbl(S.to));
+    set('rt-hero-out', outFmt);
     set('rt-calc-usd-out','$'+(amt*fp).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2}));
 
     var fwd=fp/tp, inv=tp/fp;
@@ -1031,15 +1036,18 @@ function shareSwapCard() {
   if (window.Analytics) Analytics.track('Share', { source: 'swap', pair: fromSym + '/' + toSym });
 
   /* Read UI values */
-  var amtEl   = document.getElementById('rt-calc-amt');
-  var outEl   = document.getElementById('rt-calc-out');
+  var amtEl   = document.getElementById('rt-hero-amt');
+  var outEl   = document.getElementById('rt-hero-out');
   var usdEl   = document.getElementById('rt-calc-usd-out');
   var peakEl  = document.getElementById('rt-peak-val');
   var nowEl   = document.getElementById('rt-now-ratio-val');
   var badgeEl = document.getElementById('rt-badge');
 
   var amount  = amtEl  ? amtEl.value : '100';
-  var output  = outEl  ? outEl.textContent.trim() : '—';
+  /* The pair card prints the number alone — the TO card beside it already
+     names the coin. The share image has no such neighbour, so it gets the
+     ticker appended here. */
+  var output  = outEl  ? (outEl.textContent.trim() + ' ' + toSym) : '—';
   var usdVal  = usdEl  ? usdEl.textContent.trim() : '';
   var peakR   = peakEl ? peakEl.textContent.trim() : '—';
   var nowR    = nowEl  ? nowEl.textContent.trim()  : '—';
