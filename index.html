@@ -847,15 +847,15 @@
       <span class="rail-mark"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M20 7h-9"/><path d="M14 17H5"/><circle cx="17" cy="17" r="3"/><circle cx="7" cy="7" r="3"/></svg></span>
       <span class="rail-text"><span class="rail-label">YOURS</span><span class="rail-sub" id="rail-sub-yours">holdings and rotations</span></span>
     </button>
-    <button class="rail-item" id="rail-swap" data-sec="sec-swap" onclick="railGo('sec-swap')" title="SWAP">
-      <span class="rail-mark"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M7 16V4m0 0L4 7m3-3 3 3"/><path d="M17 8v12m0 0 3-3m-3 3-3-3"/></svg></span>
-      <span class="rail-text"><span class="rail-label">SWAP</span><span class="rail-sub" id="rail-sub-swap">pair ratio</span></span>
-    </button>
-    <button class="rail-item rail-last" id="rail-coins" data-sec="sec-coins" onclick="railGo('sec-coins')" title="COINS">
+    <button class="rail-item" id="rail-coins" data-sec="sec-coins" onclick="railGo('sec-coins')" title="COINS">
       <span class="rail-mark"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M3 12h18"/><path d="M3 18h18"/></svg></span>
       <span class="rail-text"><span class="rail-label">COINS</span><span class="rail-sub" id="rail-sub-coins">every tracked coin</span></span>
     </button>
 
+    <button class="rail-item rail-last" id="rail-swap" data-sec="sec-swap" onclick="railGo('sec-swap')" title="SWAP">
+      <span class="rail-mark"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M7 16V4m0 0L4 7m3-3 3 3"/><path d="M17 8v12m0 0 3-3m-3 3-3-3"/></svg></span>
+      <span class="rail-text"><span class="rail-label">SWAP</span><span class="rail-sub" id="rail-sub-swap">pair ratio</span></span>
+    </button>
     <!-- The pitch, asked once. It used to be two purple tiles taking a
          quarter of the holdings grid on every load; here it sits at the
          foot of the rail, out of the way and always reachable. Not a
@@ -991,6 +991,63 @@
 
 
   </div>
+  </section>
+  <section class="rsec" id="sec-coins">
+
+    <div class="tbl-head tbl-head-merged">
+      <h2 class="ptitle" id="tbl-title">PERFORMANCE LEADERBOARD</h2>
+      <div class="cat-bar cat-bar-inline" id="cat-bar">
+        <button class="cat-tab active" data-cat="all" onclick="switchCategory('all')"><span class="cat-ico">🌐</span><span class="cat-lbl">ALL</span></button>
+        <button class="cat-tab" data-cat="l1" onclick="switchCategory('l1')"><span class="cat-ico">⛓</span><span class="cat-lbl">L1</span></button>
+        <button class="cat-tab" data-cat="defi" onclick="switchCategory('defi')"><span class="cat-ico">🏦</span><span class="cat-lbl">DEFI</span></button>
+        <button class="cat-tab" data-cat="l2" onclick="switchCategory('l2')"><span class="cat-ico">🔗</span><span class="cat-lbl">L2</span></button>
+        <button class="cat-tab" data-cat="meme" onclick="switchCategory('meme')"><span class="cat-ico">🐸</span><span class="cat-lbl">MEME</span></button>
+        <button class="cat-tab" data-cat="ai" onclick="switchCategory('ai')"><span class="cat-ico">🤖</span><span class="cat-lbl">AI</span></button>
+        <button class="cat-tab" data-cat="gaming" onclick="switchCategory('gaming')"><span class="cat-ico">🎮</span><span class="cat-lbl">GAMING</span></button>
+        <button class="cat-tab" data-cat="rwa" onclick="switchCategory('rwa')"><span class="cat-ico">🏠</span><span class="cat-lbl">RWA</span></button>
+        <button class="cat-tab" data-cat="infra" onclick="switchCategory('infra')"><span class="cat-ico">🛠</span><span class="cat-lbl">INFRA</span></button>
+        <button class="cat-tab" data-cat="stable" onclick="switchCategory('stable')"><span class="cat-ico">💵</span><span class="cat-lbl">STABLE</span></button>
+        <button class="cat-tab" data-cat="stocks" onclick="switchCategory('stocks')"><span class="cat-ico">🏛</span><span class="cat-lbl">STOCKS</span></button>
+        <button class="cat-tab demo-tab" data-cat="demo" onclick="switchCategory('demo')"><span class="cat-ico">🎯</span><span class="cat-lbl">DEMO</span></button>
+      </div>
+      <div class="tbl-head-meta">
+        <div class="sort-hint">CLICK COLUMN HEADERS TO SORT</div>
+        <span id="last-updated-crypto"  class="last-upd-ts" style="display:none;"></span>
+      </div>
+    </div>
+    <div class="leaderboard" id="crypto-panel">
+      <table>
+        <thead>
+          <tr>
+            <th style="width:28px;"></th>
+            <th style="width:22px;">#</th>
+            <th style="position:relative;">
+              <div class="table-search-wrap" id="table-search-wrap">
+                <input type="text" id="table-search-input" class="table-search-input"
+                  placeholder="🔍 Search coin…" autocomplete="off"
+                  oninput="handleTableSearch(this.value)"
+                  onkeydown="if(event.key==='Escape'){this.value='';handleTableSearch('');this.blur();}">
+                <div class="table-search-dropdown topbar-search-dropdown" id="table-search-dropdown" style="display:none;">
+                  <div class="topbar-search-results" id="table-search-results"></div>
+                </div>
+              </div>
+            </th>
+            <th class="r price-col" data-tip="Current market price in USD">PRICE</th>
+            <th class="r" id="th-24" onclick="setSort(24)" data-tip="Price change in the last 24 hours">24H%</th>
+            <th class="r sorted" id="th-7" onclick="setSort(7)" data-tip="Price change over 7 days. Click to sort.">7D%</th>
+            <th class="r" id="th-14" onclick="setSort(14)" data-tip="Price change over 14 days. Click to sort.">14D%</th>
+            <th class="r" id="th-30" onclick="setSort(30)" data-tip="Price change over 30 days. Click to sort.">30D%</th>
+            <th class="r" id="th-score" onclick="setSort(0)" data-tip="Composite score 0–100 combining 7D, 14D and 30D ranks. Higher = stronger momentum. bStock rows show a partial momentum-only score (max 70) — see STOCKS tab tooltip.">SCORE <span style="color:var(--muted);font-size:12px;cursor:help;" title="Score = 40% 7D rank + 35% 14D rank + 25% 30D rank. Adjusted for macro & tokenomics. bStocks: momentum-only partial score, no tokenomics applies.">ⓘ</span></th>
+          </tr>
+        </thead>
+        <tbody id="tbody"></tbody>
+      </table>
+    </div>
+
+    <!-- RATIO TRACKER moved to right panel -->
+
+    <!-- MOBILE INLINE HOLDINGS — shown below ratio tracker on portrait mobile only -->
+    <div class="mob-inline-holdings" id="mob-inline-holdings"></div>
   </section>
   <section class="rsec" id="sec-swap">
     <div class="rsec-hdr"><span class="rsec-label">SWAP</span><span class="rsec-meta" id="rsec-meta-swap">how one asset has moved against another, and what a swap would give you</span></div>
@@ -1217,63 +1274,6 @@
 
     <!-- PRO PROMO removed — right panel dedicated to Swap Tool + Ratio Chart -->
   </div>
-  </section>
-  <section class="rsec" id="sec-coins">
-
-    <div class="tbl-head tbl-head-merged">
-      <h2 class="ptitle" id="tbl-title">PERFORMANCE LEADERBOARD</h2>
-      <div class="cat-bar cat-bar-inline" id="cat-bar">
-        <button class="cat-tab active" data-cat="all" onclick="switchCategory('all')"><span class="cat-ico">🌐</span><span class="cat-lbl">ALL</span></button>
-        <button class="cat-tab" data-cat="l1" onclick="switchCategory('l1')"><span class="cat-ico">⛓</span><span class="cat-lbl">L1</span></button>
-        <button class="cat-tab" data-cat="defi" onclick="switchCategory('defi')"><span class="cat-ico">🏦</span><span class="cat-lbl">DEFI</span></button>
-        <button class="cat-tab" data-cat="l2" onclick="switchCategory('l2')"><span class="cat-ico">🔗</span><span class="cat-lbl">L2</span></button>
-        <button class="cat-tab" data-cat="meme" onclick="switchCategory('meme')"><span class="cat-ico">🐸</span><span class="cat-lbl">MEME</span></button>
-        <button class="cat-tab" data-cat="ai" onclick="switchCategory('ai')"><span class="cat-ico">🤖</span><span class="cat-lbl">AI</span></button>
-        <button class="cat-tab" data-cat="gaming" onclick="switchCategory('gaming')"><span class="cat-ico">🎮</span><span class="cat-lbl">GAMING</span></button>
-        <button class="cat-tab" data-cat="rwa" onclick="switchCategory('rwa')"><span class="cat-ico">🏠</span><span class="cat-lbl">RWA</span></button>
-        <button class="cat-tab" data-cat="infra" onclick="switchCategory('infra')"><span class="cat-ico">🛠</span><span class="cat-lbl">INFRA</span></button>
-        <button class="cat-tab" data-cat="stable" onclick="switchCategory('stable')"><span class="cat-ico">💵</span><span class="cat-lbl">STABLE</span></button>
-        <button class="cat-tab" data-cat="stocks" onclick="switchCategory('stocks')"><span class="cat-ico">🏛</span><span class="cat-lbl">STOCKS</span></button>
-        <button class="cat-tab demo-tab" data-cat="demo" onclick="switchCategory('demo')"><span class="cat-ico">🎯</span><span class="cat-lbl">DEMO</span></button>
-      </div>
-      <div class="tbl-head-meta">
-        <div class="sort-hint">CLICK COLUMN HEADERS TO SORT</div>
-        <span id="last-updated-crypto"  class="last-upd-ts" style="display:none;"></span>
-      </div>
-    </div>
-    <div class="leaderboard" id="crypto-panel">
-      <table>
-        <thead>
-          <tr>
-            <th style="width:28px;"></th>
-            <th style="width:22px;">#</th>
-            <th style="position:relative;">
-              <div class="table-search-wrap" id="table-search-wrap">
-                <input type="text" id="table-search-input" class="table-search-input"
-                  placeholder="🔍 Search coin…" autocomplete="off"
-                  oninput="handleTableSearch(this.value)"
-                  onkeydown="if(event.key==='Escape'){this.value='';handleTableSearch('');this.blur();}">
-                <div class="table-search-dropdown topbar-search-dropdown" id="table-search-dropdown" style="display:none;">
-                  <div class="topbar-search-results" id="table-search-results"></div>
-                </div>
-              </div>
-            </th>
-            <th class="r price-col" data-tip="Current market price in USD">PRICE</th>
-            <th class="r" id="th-24" onclick="setSort(24)" data-tip="Price change in the last 24 hours">24H%</th>
-            <th class="r sorted" id="th-7" onclick="setSort(7)" data-tip="Price change over 7 days. Click to sort.">7D%</th>
-            <th class="r" id="th-14" onclick="setSort(14)" data-tip="Price change over 14 days. Click to sort.">14D%</th>
-            <th class="r" id="th-30" onclick="setSort(30)" data-tip="Price change over 30 days. Click to sort.">30D%</th>
-            <th class="r" id="th-score" onclick="setSort(0)" data-tip="Composite score 0–100 combining 7D, 14D and 30D ranks. Higher = stronger momentum. bStock rows show a partial momentum-only score (max 70) — see STOCKS tab tooltip.">SCORE <span style="color:var(--muted);font-size:12px;cursor:help;" title="Score = 40% 7D rank + 35% 14D rank + 25% 30D rank. Adjusted for macro & tokenomics. bStocks: momentum-only partial score, no tokenomics applies.">ⓘ</span></th>
-          </tr>
-        </thead>
-        <tbody id="tbody"></tbody>
-      </table>
-    </div>
-
-    <!-- RATIO TRACKER moved to right panel -->
-
-    <!-- MOBILE INLINE HOLDINGS — shown below ratio tracker on portrait mobile only -->
-    <div class="mob-inline-holdings" id="mob-inline-holdings"></div>
   </section>
   </div>
 </div>
