@@ -4042,3 +4042,149 @@ header{background:var(--bg2);}
 @media(max-width:900px){
   #sec-yours .signal-dyor{margin:12px 12px 0;}
 }
+
+/* ══════════════════════════════════════════════════════════════════
+   ADD TO HOLDINGS — the swap panel's control system, applied here.
+   One 7px radius, 32px controls, one filled primary. The old box had
+   four radii and three input heights in 440px, and its confirm was a
+   tinted outline, which is the treatment we removed from Save pair.
+   ══════════════════════════════════════════════════════════════════ */
+.ahm-modal{
+  max-width:416px;position:relative;
+  border:1px solid var(--bdr2);border-radius:12px;
+  box-shadow:0 24px 60px rgba(0,0,0,.55);
+}
+.ahm-title{color:var(--bnb);font-size:15px;font-weight:700;letter-spacing:.02em;}
+.ahm-sub{font-size:12px;color:var(--muted);margin:4px 0 12px;line-height:1.5;}
+.ahm-x{
+  position:absolute;top:10px;right:10px;
+  width:30px;height:30px;border-radius:7px;padding:0;
+  display:inline-flex;align-items:center;justify-content:center;
+  background:var(--bg3);border:1px solid var(--bdr2);color:var(--muted);
+  cursor:pointer;transition:color .15s,border-color .15s,background .15s;
+}
+.ahm-x svg{width:14px;height:14px;display:block;}
+.ahm-x:hover{color:var(--text);border-color:rgba(255,255,255,.2);background:var(--bg4);}
+.ahm-x:focus-visible{outline:2px solid var(--bnb);outline-offset:2px;}
+
+.ahm-coin-search{
+  width:100%;height:32px;box-sizing:border-box;
+  border-radius:7px;border:1px solid var(--bdr2);
+  background:var(--bg);color:var(--text);
+  font-family:var(--font-ui);font-size:12px;padding:0 10px;
+}
+.ahm-coin-search:focus{outline:none;border-color:var(--bnb);}
+
+.ahm-coin-list{
+  border:1px solid var(--bdr);border-radius:7px;margin-top:10px;
+  max-height:186px;overflow-y:auto;overscroll-behavior:contain;
+}
+.ahm-grp{
+  font-family:var(--font-mono);font-size:9.5px;letter-spacing:.13em;
+  text-transform:uppercase;color:var(--muted);
+  padding:7px 10px 5px;background:var(--bg3);
+  border-bottom:1px solid var(--bdr);position:sticky;top:0;z-index:1;
+}
+.ahm-grp.watch{color:var(--green);}
+.ahm-coin-item{
+  display:flex;align-items:center;gap:9px;padding:8px 9px;
+  cursor:pointer;min-width:0;transition:background .12s;
+}
+.ahm-coin-item + .ahm-coin-item{border-top:1px solid var(--bdr);}
+.ahm-coin-item:hover{background:var(--bg3);}
+.ahm-coin-item.selected{background:var(--bnbd);}
+.ahm-coin-ico{
+  width:22px;height:22px;border-radius:50%;overflow:hidden;
+  background:var(--bg4);flex-shrink:0;
+}
+.ahm-coin-ico img{width:100%;height:100%;}
+.ahm-coin-who{display:flex;flex-direction:column;min-width:0;flex:1;}
+.ahm-coin-name{font-size:12.5px;font-weight:700;color:var(--text);}
+.ahm-coin-sub{
+  font-size:10.5px;color:var(--muted);
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
+}
+.ahm-coin-sub .up{color:var(--green);}
+.ahm-coin-sub .dn{color:var(--red);}
+.ahm-chip{
+  font-size:9px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;
+  padding:2px 6px;border-radius:4px;flex-shrink:0;white-space:nowrap;
+  background:rgba(135,206,235,.1);color:#87CEEB;
+}
+.ahm-chip.insight-buy{background:rgba(16,185,129,.12);color:var(--green);}
+.ahm-chip.insight-warn{background:rgba(239,68,68,.11);color:var(--red);}
+.ahm-scr{
+  font-family:var(--font-mono);font-size:13px;font-weight:700;
+  font-variant-numeric:tabular-nums;flex-shrink:0;width:24px;text-align:right;
+}
+.ahm-scr.hi{color:var(--green);}
+.ahm-scr.md{color:var(--amber);}
+.ahm-scr.lo{color:var(--red);}
+.ahm-empty{padding:14px;font-size:12px;color:var(--muted);text-align:center;line-height:1.9;}
+.ahm-empty span{font-size:11px;opacity:.7;}
+
+.ahm-inputs{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:12px;}
+.ahm-field label{
+  display:block;font-size:10px;letter-spacing:.11em;text-transform:uppercase;
+  color:var(--muted);font-weight:700;margin-bottom:4px;
+}
+.ahm-field input{
+  width:100%;height:32px;box-sizing:border-box;
+  border-radius:7px;border:1px solid var(--bdr2);
+  background:var(--bg);color:var(--text);
+  font-family:var(--font-mono);font-size:13px;padding:0 10px;
+}
+.ahm-field input:focus{outline:none;border-color:var(--bnb);}
+
+/* ── The preview ──────────────────────────────────────────────────
+   Money figures come from holdingPL() in js/holdings.js, the function
+   the real tile calls. A row is absent, never dashed, when its inputs
+   are missing. */
+.ahm-preview{
+  margin-top:12px;padding:12px;
+  background:var(--bg3);border:1px solid var(--bdr2);border-radius:10px;
+}
+.ahm-pv-cap{
+  font-size:9.5px;letter-spacing:.13em;text-transform:uppercase;
+  color:var(--muted);font-weight:700;margin-bottom:9px;
+}
+.ahm-pv-top{display:flex;align-items:center;gap:9px;}
+.ahm-pv-rows{margin-top:9px;}
+.ahm-pv-row{
+  display:flex;align-items:baseline;justify-content:space-between;gap:10px;
+  padding:7px 0;border-bottom:1px solid var(--bdr);
+}
+.ahm-pv-row:last-child{border-bottom:none;}
+.ahm-pv-k{
+  font-size:10px;letter-spacing:.11em;text-transform:uppercase;
+  color:var(--muted);font-weight:700;
+}
+.ahm-pv-v{
+  font-family:var(--font-mono);font-size:14px;font-weight:700;
+  color:var(--text);font-variant-numeric:tabular-nums;
+}
+.ahm-pv-v.up{color:var(--green);}
+.ahm-pv-v.dn{color:var(--red);}
+.ahm-pv-note{
+  display:flex;align-items:flex-start;gap:6px;margin-top:9px;
+  font-size:11px;color:var(--muted);line-height:1.5;
+}
+.ahm-pip{
+  width:5px;height:5px;border-radius:50%;flex-shrink:0;margin-top:5px;
+  background:#87CEEB;
+}
+.ahm-pip.insight-buy{background:var(--green);}
+.ahm-pip.insight-warn{background:var(--red);}
+
+.ahm-confirm-btn{
+  width:100%;height:34px;margin-top:12px;
+  border-radius:7px;border:1px solid var(--bnb);
+  background:var(--bnb);color:#120d02;
+  font-family:var(--font-ui);font-size:12px;font-weight:700;letter-spacing:.06em;
+  cursor:pointer;transition:background .15s,border-color .15s;
+}
+.ahm-confirm-btn:hover:not(:disabled){background:#e2b435;border-color:#e2b435;}
+.ahm-confirm-btn:disabled{
+  background:transparent;border-color:var(--bdr2);color:var(--muted);cursor:default;
+}
+.ahm-confirm-btn:focus-visible{outline:2px solid var(--bnb);outline-offset:2px;}

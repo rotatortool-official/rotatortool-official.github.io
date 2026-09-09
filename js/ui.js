@@ -317,66 +317,177 @@ function openAddHoldingsModal(mode) {
   document.getElementById('ahm-search').value = '';
   document.getElementById('ahm-qty').value = '';
   document.getElementById('ahm-avg').value = '';
-  document.getElementById('ahm-confirm-btn').disabled = true;
-  document.getElementById('ahm-confirm-btn').textContent = _ahmMode === 'watchlist' ? '+ ADD TO WATCHLIST' : '+ ADD TO HOLDINGS';
-  document.querySelector('#add-holdings-modal .modal-title').textContent = _ahmMode === 'watchlist' ? '+ Add to Watchlist' : '+ Add to Holdings';
-  // Show/hide price inputs for watchlist mode
-  var inputs = document.querySelector('.ahm-inputs');
-  inputs.style.display = _ahmMode === 'watchlist' ? 'none' : '';
+  var watching = _ahmMode === 'watchlist';
+  document.querySelector('#add-holdings-modal .modal-title').textContent =
+    watching ? 'Add to watchlist' : 'Add to holdings';
+  document.querySelector('#add-holdings-modal .modal-sub').textContent = watching
+    ? 'Coins you follow without holding. Scores are relative strength in this run, not advice.'
+    : _ahmCoins().length + ' coins ranked in this run. Scores are relative strength, not advice.';
+  /* Quantity and average mean nothing for a coin you are only watching. */
+  document.querySelector('.ahm-inputs').style.display = watching ? 'none' : '';
   ahmFilter();
-  document.querySelector('#add-holdings-modal .modal-sub').textContent = _ahmMode === 'watchlist'
-    ? 'Track coins without committing capital. Use the Swap Tool to find best swap timing.'
-    : 'Search and select a coin, then enter quantity and average buy price.';
-  document.getElementById('ahm-selected-info').classList.remove('show');
+  ahmPreview();
   openModal('add-holdings-modal');
-  /* Re-filter after a tick so coins array is guaranteed to be populated */
-  setTimeout(ahmFilter, 60);
+  /* Re-filter after a tick so coins[] is guaranteed to be populated. */
+  setTimeout(function() { ahmFilter(); ahmPreview(); }, 60);
+}
+
+/* ── The add-holdings list ────────────────────────────────────────
+   A row carries what the engine already knows: the score it ranked the
+   coin at and the Insight label it wrote. This is the one screen where
+   you choose a coin, and it was the one screen that showed neither.
+
+   Coins already on the watchlist are grouped first. You have said you
+   are paying attention to those, so they are the ones most likely to
+   become a holding.
+
+   Wording stays descriptive. A score is relative strength in this run,
+   not a recommendation, and the subtitle says so. */
+function _ahmCoins() {
+  if (window.coins && Array.isArray(window.coins) && window.coins.length) return window.coins;
+  return (typeof coins !== 'undefined' && Array.isArray(coins)) ? coins : [];
+}
+
+function _ahmPrice(v) {
+  if (!isFinite(v)) return '—';
+  return '$' + (v >= 1 ? v.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
+                       : v.toFixed(5));
+}
+
+function _ahmRow(coin) {
+  var sel  = _ahmSelected && _ahmSelected.sym === coin.sym;
+  var scrC = coin.score >= 65 ? 'hi' : coin.score >= 40 ? 'md' : 'lo';
+  var chg  = (coin.p24 >= 0 ? '+' : '') + (coin.p24 || 0).toFixed(1) + '% 24h';
+  var chgC = coin.p24 >= 0 ? 'up' : 'dn';
+  return '<div class="ahm-coin-item' + (sel ? ' selected' : '') + '" onclick="ahmSelect(\'' + coin.id + '\')">'
+    + '<div class="ahm-coin-ico"><img src="' + coin.image + '" alt="" loading="lazy" onerror="this.style.display=\'none\'"></div>'
+    + '<div class="ahm-coin-who">'
+      + '<div class="ahm-coin-name">' + coin.sym + '</div>'
+      + '<div class="ahm-coin-sub">' + _ahmPrice(coin.price)
+        + ' · <span class="' + chgC + '">' + chg + '</span></div>'
+    + '</div>'
+    + (coin.insight
+        ? '<span class="ahm-chip ' + coin.insight.color + '">' + coin.insight.label
+          + ' ' + coin.insight.score + '</span>'
+        : '')
+    + '<span class="ahm-scr ' + scrC + '">' + (coin.score != null ? coin.score : '—') + '</span>'
+    + '</div>';
 }
 
 function ahmFilter() {
   var q = (document.getElementById('ahm-search').value || '').toLowerCase().trim();
-  var c = (window.coins && Array.isArray(window.coins) && window.coins.length)
-        ? window.coins
-        : (typeof coins !== 'undefined' && Array.isArray(coins) ? coins : []);
+  var c = _ahmCoins();
   var listEl = document.getElementById('ahm-coin-list');
   if (!listEl) return;
   if (!c.length) {
-    listEl.innerHTML = '<div style="padding:14px;font-size:12px;color:var(--muted);text-align:center;line-height:2;">⟳ Loading coin data…<br><span style="font-size:12px;opacity:.6;">Open the app first to fetch prices, then re-open this modal.</span></div>';
+    listEl.innerHTML = '<div class="ahm-empty">Loading coin data…<br>'
+      + '<span>Open the app first to fetch prices, then re-open this window.</span></div>';
     return;
   }
-  var filtered = q
-    ? c.filter(function(x) { return x.sym.toLowerCase().includes(q) || (x.name||'').toLowerCase().includes(q); })
-    : c.slice(0, 50);
-  var html = filtered.slice(0, 50).map(function(coin) {
-    var sel = _ahmSelected && _ahmSelected.sym === coin.sym;
-    var p24c = coin.p24 >= 0 ? '#00bd8e' : '#f03e58';
-    return '<div class="ahm-coin-item' + (sel ? ' selected' : '') + '" onclick="ahmSelect(\'' + coin.id + '\')">'
-      + '<div class="ahm-coin-ico"><img src="' + coin.image + '" onerror="this.style.display=\'none\'"></div>'
-      + '<div style="flex:1;min-width:0;">'
-        + '<div class="ahm-coin-name">' + coin.sym + ' <span style="font-weight:400;color:var(--muted);font-size:12px;">' + (coin.name||'') + '</span></div>'
-        + '<div class="ahm-coin-sub">$' + (coin.price ? (coin.price >= 1 ? coin.price.toFixed(2) : coin.price.toFixed(5)) : '—')
-          + ' &nbsp;<span style="color:' + p24c + '">' + (coin.p24 >= 0 ? '+' : '') + (coin.p24||0).toFixed(1) + '% 24h</span></div>'
-      + '</div>'
-      + (sel ? '<span style="color:var(--bnb);font-size:12px;">✓</span>' : '')
-      + '</div>';
-  }).join('');
-  listEl.innerHTML = html || '<div style="padding:10px;font-size:12px;color:var(--muted);text-align:center;">No coins found for "' + q + '"</div>';
+
+  var match = q
+    ? c.filter(function(x) { return x.sym.toLowerCase().includes(q) || (x.name || '').toLowerCase().includes(q); })
+    : c;
+
+  var held = (typeof holdings !== 'undefined' ? holdings : []).map(function(h) { return h.sym; });
+  var watch = (typeof watchlist !== 'undefined' ? watchlist : []);
+  var onWatch = [], rest = [];
+  match.forEach(function(x) {
+    if (held.indexOf(x.sym) >= 0) return;      /* already a holding */
+    (watch.indexOf(x.sym) >= 0 ? onWatch : rest).push(x);
+  });
+
+  var html = '';
+  if (onWatch.length) {
+    html += '<div class="ahm-grp watch">Watching</div>'
+          + onWatch.slice(0, 20).map(_ahmRow).join('');
+    if (rest.length) html += '<div class="ahm-grp">All coins</div>';
+  }
+  html += rest.slice(0, 50).map(_ahmRow).join('');
+
+  listEl.innerHTML = html
+    || '<div class="ahm-empty">No coins found for "' + q + '"</div>';
 }
 
 function ahmSelect(coinId) {
-  var c = (window.coins && Array.isArray(window.coins) && window.coins.length)
-        ? window.coins
-        : (typeof coins !== 'undefined' ? coins : []);
+  var c = _ahmCoins();
   _ahmSelected = c.find(function(x) { return x.id === coinId; });
   if (!_ahmSelected) return;
-  var info = document.getElementById('ahm-selected-info');
-  info.textContent = 'Selected: ' + _ahmSelected.sym + ' · Current price: $' + (_ahmSelected.price ? _ahmSelected.price.toFixed(2) : '—');
-  info.classList.add('show');
-  document.getElementById('ahm-confirm-btn').disabled = false;
-  // Update coin-sel hidden select for legacy addHolding()
+  /* Legacy hidden select, still read by addHolding(). */
   var sel = document.getElementById('coin-sel');
-  if (sel) { sel.innerHTML = '<option value="' + _ahmSelected.sym + '">' + _ahmSelected.sym + '</option>'; sel.value = _ahmSelected.sym; }
-  ahmFilter(); // re-render to show selection
+  if (sel) {
+    sel.innerHTML = '<option value="' + _ahmSelected.sym + '">' + _ahmSelected.sym + '</option>';
+    sel.value = _ahmSelected.sym;
+  }
+  ahmFilter();
+  ahmPreview();
+}
+
+/* ── The tile you are about to create ─────────────────────────────
+   Value and profit come from holdingPL() in js/holdings.js — the same
+   function the real tile calls, so the preview cannot disagree with what
+   appears a second later.
+
+   The profit line is absent, not dashed, until an average is entered:
+   "no figure yet" and "no profit" are different statements. */
+function ahmPreview() {
+  var box = document.getElementById('ahm-preview');
+  var btn = document.getElementById('ahm-confirm-btn');
+  if (!box || !btn) return;
+
+  if (_ahmMode === 'watchlist') {
+    box.style.display = 'none';
+    btn.disabled = !_ahmSelected;
+    btn.textContent = _ahmSelected ? 'Watch ' + _ahmSelected.sym : 'Select a coin';
+    return;
+  }
+  if (!_ahmSelected) {
+    box.style.display = 'none';
+    btn.disabled = true;
+    btn.textContent = 'Select a coin';
+    return;
+  }
+
+  var c   = _ahmSelected;
+  var qty = document.getElementById('ahm-qty').value;
+  var avg = document.getElementById('ahm-avg').value;
+  var q   = parseFloat(qty);
+  var pl  = (typeof holdingPL === 'function') ? holdingPL(c.price, qty, avg) : null;
+
+  btn.disabled = false;
+  btn.textContent = (isFinite(q) && q > 0)
+    ? 'Add ' + (+q.toFixed(8)) + ' ' + c.sym + ' to holdings'
+    : 'Add ' + c.sym + ' to holdings';
+
+  var rows = '';
+  if (isFinite(q) && q > 0) {
+    rows += '<div class="ahm-pv-row"><span class="ahm-pv-k">Position value</span>'
+          + '<span class="ahm-pv-v">$' + (c.price * q).toLocaleString('en-US',
+              { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + '</span></div>';
+  }
+  if (pl) {
+    rows += '<div class="ahm-pv-row"><span class="ahm-pv-k">Profit vs average</span>'
+          + '<span class="ahm-pv-v ' + pl.dir + '">' + pl.text + '</span></div>';
+  }
+
+  box.style.display = '';
+  box.innerHTML =
+      '<div class="ahm-pv-cap">The tile you are about to create</div>'
+    + '<div class="ahm-pv-top">'
+      + '<div class="ahm-coin-ico"><img src="' + c.image + '" alt="" onerror="this.style.display=\'none\'"></div>'
+      + '<div class="ahm-coin-who"><div class="ahm-coin-name">' + c.sym + '</div>'
+      + '<div class="ahm-coin-sub">' + _ahmPrice(c.price) + ' · '
+      + '<span class="' + (c.p24 >= 0 ? 'up' : 'dn') + '">' + (c.p24 >= 0 ? '+' : '')
+      + (c.p24 || 0).toFixed(1) + '% 24h</span></div></div>'
+      + '<span class="ahm-scr ' + (c.score >= 65 ? 'hi' : c.score >= 40 ? 'md' : 'lo') + '">'
+      + (c.score != null ? c.score : '—') + '</span>'
+    + '</div>'
+    + (rows ? '<div class="ahm-pv-rows">' + rows + '</div>' : '')
+    + (c.insight
+        ? '<div class="ahm-pv-note"><span class="ahm-pip ' + c.insight.color + '"></span>'
+          + c.insight.label + ' ' + c.insight.score + ' · '
+          + String(c.insight.tooltip || '').replace(/</g, '&lt;') + '</div>'
+        : '');
 }
 
 function ahmConfirm() {

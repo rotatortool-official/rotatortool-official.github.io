@@ -130,6 +130,33 @@ function removeHolding(sym) {
   document.getElementById(id).addEventListener('keydown', function(e) { if (e.key === 'Enter') addHolding(); });
 });
 
+/* ── What a position is worth, and what it has done ─────────
+   OWNER of this arithmetic. It lived inline inside renderTiles() and was
+   the only copy, which was fine until the add-holdings modal needed to
+   show the same figures BEFORE the holding exists. Two copies of a money
+   calculation is how they drift, so there is one, and both callers ask
+   it rather than repeat it.
+
+   Returns null when there is nothing to say: no quantity, no average, or
+   an average of zero. A caller must render nothing in that case, never a
+   dash — "no profit figure yet" and "zero profit" are different claims. */
+function holdingPL(price, qty, avg) {
+  qty = parseFloat(qty); avg = parseFloat(avg);
+  if (!isFinite(price) || !isFinite(qty) || !isFinite(avg)) return null;
+  if (!qty || !avg || avg <= 0) return null;
+  var profit = (price - avg) * qty;
+  var pct    = ((price - avg) / avg) * 100;
+  return {
+    value:  price * qty,
+    profit: profit,
+    pct:    pct,
+    dir:    profit >= 0 ? 'up' : 'dn',
+    text:   (profit >= 0 ? '+' : '-') + '$'
+            + Math.abs(profit).toLocaleString('en-US', { maximumFractionDigits: 0 })
+            + ' (' + (pct >= 0 ? '+' : '') + pct.toFixed(1) + '%)'
+  };
+}
+
 /* ── Crypto tile renderer ────────────────────────────────────
    Nine, not ten. This is the GRID SHAPE, not an entitlement: the panel
    is three tiles wide beside the watchlist, so ten left a row of one
@@ -166,14 +193,8 @@ function renderTiles() {
             + '<div style="font-size:12px;color:var(--muted);">Unavailable</div></div>';
       return;
     }
-    var pl = '', plC = '';
-    if (h.qty && h.avg) {
-      var profit = (c.price - h.avg) * h.qty;
-      var plPct  = ((c.price - h.avg) / h.avg * 100);
-      plC = profit >= 0 ? 'up' : 'dn';
-      pl  = (profit >= 0 ? '+' : '-') + '$' + Math.abs(profit).toLocaleString('en-US', {maximumFractionDigits:0})
-          + ' (' + (plPct >= 0 ? '+' : '') + plPct.toFixed(1) + '%)';
-    }
+    var _pl = holdingPL(c.price, h.qty, h.avg);
+    var pl = _pl ? _pl.text : '', plC = _pl ? _pl.dir : '';
     var glw  = c.score >= 65 ? 'glow-g' : c.score >= 40 ? 'glow-a' : 'glow-r';
     var scrC = c.score >= 65 ? 'hi'     : c.score >= 40 ? 'md'     : 'lo';
     var isTop = topG && c.sym === topG.sym && c.p24 > 0;

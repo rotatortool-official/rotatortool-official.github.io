@@ -1278,26 +1278,40 @@
   </div>
 </div>
 
-<!-- ADD HOLDINGS MODAL -->
+<!-- ADD HOLDINGS MODAL
+     Rebuilt to the control system the swap panel uses: one 7px radius,
+     32px controls, one filled primary, and the close as an icon button
+     rather than a 44px circle.
+
+     The rows carry what the engine already knows about each coin — its
+     score and its Insight label — because this is the one screen where
+     you choose a coin and it was the one screen that withheld them. -->
 <div class="overlay" id="add-holdings-modal">
-  <div class="modal" style="max-width:440px;border:1px solid rgba(243,186,47,.28);box-shadow:0 0 40px rgba(243,186,47,.08);">
-    <button class="modal-x" onclick="closeModal('add-holdings-modal')">×</button>
-    <div class="modal-title" style="color:var(--bnb);">+ Add to Holdings</div>
-    <div class="modal-sub" style="margin-bottom:12px;">Search and select a coin, then enter quantity and average buy price.</div>
+  <div class="modal ahm-modal">
+    <button class="ahm-x" onclick="closeModal('add-holdings-modal')" aria-label="Close">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12"/></svg>
+    </button>
+    <div class="modal-title ahm-title">Add to holdings</div>
+    <div class="modal-sub ahm-sub">Search and select a coin, then enter quantity and average buy price.</div>
     <input class="ahm-coin-search" id="ahm-search" type="text" placeholder="Search coin name or symbol…" oninput="ahmFilter()" autocomplete="off">
     <div class="ahm-coin-list" id="ahm-coin-list"></div>
-    <div class="ahm-selected-info" id="ahm-selected-info"></div>
     <div class="ahm-inputs">
       <div class="ahm-field">
-        <label>Quantity</label>
-        <input type="number" id="ahm-qty" placeholder="e.g. 0.5" min="0" step="any">
+        <label for="ahm-qty">Quantity</label>
+        <input type="number" id="ahm-qty" placeholder="e.g. 0.5" min="0" step="any" oninput="ahmPreview()">
       </div>
       <div class="ahm-field">
-        <label>Avg Buy Price ($)</label>
-        <input type="number" id="ahm-avg" placeholder="e.g. 42000" min="0" step="any">
+        <label for="ahm-avg">Avg buy price ($)</label>
+        <input type="number" id="ahm-avg" placeholder="e.g. 42000" min="0" step="any" oninput="ahmPreview()">
       </div>
     </div>
-    <button class="ahm-confirm-btn" id="ahm-confirm-btn" onclick="ahmConfirm()" disabled>+ ADD TO HOLDINGS</button>
+
+    <!-- The tile you are about to create. Filled by ahmPreview(); the
+         money figures come from holdingPL() in js/holdings.js, the same
+         function the tile itself calls. -->
+    <div class="ahm-preview" id="ahm-preview" style="display:none;"></div>
+
+    <button class="ahm-confirm-btn" id="ahm-confirm-btn" onclick="ahmConfirm()" disabled>Select a coin</button>
     <!-- Hidden legacy inputs needed by addHolding() -->
     <select id="coin-sel" aria-label="Select coin" style="display:none;"><option value="">Select…</option></select>
     <input type="number" id="inp-qty" aria-label="Amount" style="display:none;" placeholder="amount" min="0" step="any">
