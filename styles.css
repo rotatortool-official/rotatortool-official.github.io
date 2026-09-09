@@ -3580,8 +3580,19 @@ td.qa-cell{text-align:center;width:28px;padding:0 4px !important;}
   gap:0 16px;align-items:start;
   padding:12px 16px 16px;
 }
+/* ONE row of three columns, then the DYOR bar. Every child is placed
+   explicitly.
+
+   These used to span two rows, from when the holdings panel had a header
+   and a body sitting in separate rows. The header is display:none above
+   700px so the body auto-placed into row 1, leaving row 2 as a phantom
+   sized by the leftovers of the two spanning columns. It was invisible
+   until the rotation column grew past the coins panel: at four rotation
+   cards it opened a 172px hole between the columns and the red bar, and
+   at two cards it closed again. Found by measuring the live page in
+   Daniel's own browser, where the column was tall enough to show it. */
 #sec-yours .sig-box{
-  grid-column:1;grid-row:1 / span 2;
+  grid-column:1;grid-row:1;
   border-bottom:none;border-radius:10px;
   border:1px solid rgba(243,186,47,.18);
 }
@@ -3589,8 +3600,8 @@ td.qa-cell{text-align:center;width:28px;padding:0 4px !important;}
    grid. Column 3 is what the run suggests doing about it. Those two
    belong side by side: a rotation candidate is an abstraction until it
    is next to the coin you would be rotating out of. */
-#sec-yours .collapse-hdr{grid-column:2;}
-#sec-yours #cb-holdings{grid-column:2;display:block;}
+#sec-yours .collapse-hdr{grid-column:2;grid-row:1;}
+#sec-yours #cb-holdings{grid-column:2;grid-row:1;display:block;}
 #sec-yours #holdings-crypto{display:block;}
 /* flex-direction was an inline style on this div and went with the rest
    of them when the two panels became one. Without it the label and the
@@ -3636,7 +3647,7 @@ td.qa-cell{text-align:center;width:28px;padding:0 4px !important;}
 #sec-yours .insight-dot{flex-shrink:0;}
 #sec-yours .tiles-scroll{padding:0;}
 
-#sec-yours .rot-beside{grid-column:3;grid-row:1 / span 2;min-width:0;}
+#sec-yours .rot-beside{grid-column:3;grid-row:1;min-width:0;}
 #sec-yours .rot-beside .bar-col-title{
   font-size:12px;letter-spacing:.08em;font-weight:700;
   padding:0 0 8px;text-transform:uppercase;
@@ -4020,7 +4031,7 @@ header{background:var(--bg2);}
    two sentences ran to five lines and left the other two columns short
    by that much. */
 #sec-yours .signal-dyor{
-  grid-column:1 / -1;
+  grid-column:1 / -1;grid-row:2;
   margin-top:14px;padding:8px 12px;
   background:rgba(239,68,68,.05);
   border:1px solid rgba(239,68,68,.16);
