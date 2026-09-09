@@ -109,7 +109,35 @@
      day: score unchanged for all 177 (the pillars never touch it),
      effectiveScore moves on 18 of 166 classified coins, zone on 2.
      See promptove/29 and the golden diff. */
-  var ENGINE_VERSION = '2.3.0';
+  /* 2.4.0 — run-over-run movement.
+
+     Adds `run.changes`: which coins moved rank, moved score, changed
+     zone or changed candidate class since a previous run, and out of
+     how large a universe. It is the data under the homepage brief's
+     "WHAT CHANGED" section.
+
+     It lives HERE and not on the page for one reason. The same
+     statements are meant to reach the website, the Telegram bot, the
+     alerts function and the Substack; four consumers each diffing the
+     same rows would drift apart within a month. One run, one set of
+     facts, every surface formats the same object. That is gap 1's
+     lesson applied before the fact instead of after it.
+
+     PURELY ADDITIVE, and the golden fixture proves it byte for byte:
+     no score, rank, zone, eligibility or class value moves. The
+     previous run arrives as `input.previous` — the engine never
+     fetches — and its absence yields null, which says "no comparison
+     available" rather than "nothing changed".
+
+     It reports facts, never prose: symbol, from, to, places, of. The
+     wording is a consumer's job. A sentence generated here would be a
+     threshold nobody could see.
+
+     Found while building it: `sym` is NOT unique. FRAX is both `frax`
+     and `frax-share` on the frozen fixture, so a symbol-keyed diff
+     reported a 9-point move on an identical rerun. The diff keys on
+     coin id. See _computeChanges(). */
+  var ENGINE_VERSION = '2.4.0';
   var SCORING_MODELS = ['v1', 'v2'];
 
   /* ── Eligibility defaults ──────────────────────────────────────────
@@ -1322,6 +1350,245 @@
     return parts;
   }
 
+  /* ════════════════════════════════════════════════════════════════
+     WHAT CHANGED — run-over-run movement (2.4.0)
+
+     The homepage brief wants to open with "ONDO moved 12 places higher
+     in the relative-strength ranking". That sentence is a DERIVE
+     output, not a page feature, and the distinction is the whole
+     reason this lives here.
+
+     If the website composed it, the Telegram bot, the alerts function
+     and anything downstream would each grow their own version from the
+     same rows, and within a month they would disagree about what
+     changed — the exact failure the insight extraction spent 2.3.0
+     undoing (ARCHITECTURE-MAP gap 1). One run, one set of facts, every
+     surface formats the SAME object.
+
+     This function reports movement. It deliberately does not write
+     prose: it emits which symbol moved, from what, to what, and out of
+     how many. Wording is a consumer's job; the facts are not.
+
+     PURE. The previous run arrives as input.previous — the engine
+     never fetches. No previous (a cold start, the golden fixture, the
+     first run after a reset) returns null, which reads as "no
+     comparison available" and is different from "nothing changed".
+
+     ADDITIVE. Touches no score, zone, rank, eligibility or class. It
+     only compares two runs that already exist.
+
+     THREE THINGS THAT WILL BITE ANYONE EDITING THIS
+
+     1. Rank 1 is the STRONGEST, so an improving coin's rank NUMBER goes
+        DOWN. `places` is reported as a positive count in the direction
+        named by the list, never as a signed delta, so a consumer cannot
+        invert it by accident.
+
+     2. Ranks are PER ASSET CLASS. Measured on run 320: crypto ranks
+        1-166, bStocks 1-23. Twelve places in a 23-asset universe is a
+        different statement from twelve in 166, so every rank entry
+        carries `of` and the consumer can say which. The class map is
+        passed IN: _projectItem() does not carry assetType, and
+        compute-signal-run's index.ts says plainly that asset_type
+        cannot come from the item. This does not change that.
+
+     3. Rank 0 is NOT a rank. It is the unranked sentinel — exactly one
+        per asset class on run 320, both with p30 = 0. A coin crossing
+        between 0 and a real rank would otherwise generate a confident
+        "moved 87 places" out of nothing.
+
+     And one that bit during development: `previous` arrives from
+     PostgREST, which returns `numeric` columns as STRINGS depending on
+     the path. Every value off the previous run goes through _num().
+     ════════════════════════════════════════════════════════════════ */
+  var CHANGE_RULES = {
+    /* MEASURED, not guessed. Against production runs over a 24-hour
+       window (191 coins, 2026-09-09):
+
+         score delta   p50 4   p75 7    p90 12   p95 17   max 33
+         rank  delta   p50 4   p75 10   p90 17   p95 24   max 82
+
+       The first draft of this file used 3 and 5, which sit at the
+       MEDIAN — they would have called half the market "notable" and the
+       counts would have meant nothing. These sit just under p90, so
+       roughly the top tenth of movers qualify.
+
+       They are calibrated for a ~24h comparison, which is the window
+       the caller is expected to pass and the one a DAILY brief means.
+       Over 15 minutes nothing crosses them, correctly: measured on
+       adjacent runs, the largest score move in the whole universe was
+       ZERO. Market data does not refresh every 15 minutes, so adjacent
+       runs are near-identical by construction. */
+    minRankDelta:   15,
+    minScoreDelta:  10,
+    /* How many to carry per list. The counts are reported separately,
+       so a truncated list never reads as the complete story. */
+    topN:           5,
+    maxTransitions: 20
+  };
+
+  function _changeRules(o) {
+    var r = {};
+    for (var k in CHANGE_RULES) r[k] = CHANGE_RULES[k];
+    if (o) for (var j in o) if (r[j] != null && typeof o[j] === 'number') r[j] = o[j];
+    return r;
+  }
+
+  /* PostgREST hands back numerics as strings on some paths. */
+  function _num(v) {
+    if (v === null || v === undefined || v === '') return null;
+    var n = Number(v);
+    return isFinite(n) ? n : null;
+  }
+
+  /* Identity for the diff. `id` is the coin id and is unique; `sym` is
+     not (see the FRAX note below). The previous run may arrive from
+     PostgREST, where the column is coin_id. */
+  function _changeKey(x) {
+    if (!x) return null;
+    return x.id || x.coinId || x.coin_id || x.sym || null;
+  }
+
+  /* Rank 0 and null both mean "not ranked" — see note 3 above. */
+  function _ranked(v) {
+    var n = _num(v);
+    return (n != null && n > 0) ? n : null;
+  }
+
+  /* sym -> asset class, for the rank universe. Built from `coins`,
+     which is where isStock lives; the projected item does not carry
+     it and this does not change that. */
+  function _typeBySym() {
+    var m = {};
+    for (var i = 0; i < coins.length; i++) m[coins[i].sym] = coins[i].isStock ? 'bstock' : 'crypto';
+    return m;
+  }
+
+  function _computeChanges(items, prev, rules, typeBySym) {
+    if (!items || !items.length || !prev || !prev.length) return null;
+    var R = rules || _changeRules();
+
+    /* Keyed by coin ID, never by symbol. On the frozen fixture FRAX is
+       TWO coins — `frax` (the stablecoin, score 0) and `frax-share`
+       (FXS, score 9) — both projecting sym 'FRAX'. A symbol-keyed map
+       keeps the last one, so the other coin diffs against a stranger
+       and reports a 9-point move on an IDENTICAL rerun. That would have
+       been a permanent false line in the brief. */
+    var before = {};
+    for (var p = 0; p < prev.length; p++) {
+      var pk = _changeKey(prev[p]);
+      if (pk) before[pk] = prev[p];
+    }
+
+    /* How big is each ranked universe THIS run — the `of` in
+       "12 places of 166". Counted, not assumed. */
+    var universe = {};
+    for (var u = 0; u < items.length; u++) {
+      if (items[u].isStable) continue;
+      if (_ranked(items[u].r30) == null) continue;
+      var ut = (typeBySym && typeBySym[items[u].sym]) || 'crypto';
+      universe[ut] = (universe[ut] || 0) + 1;
+    }
+
+    var rankImproved = [], rankDeclined = [];
+    var scoreGained = [], scoreLost = [];
+    var zoneMoves = [], classMoves = [];
+    var entered = [], seen = {}, compared = 0;
+
+    for (var i = 0; i < items.length; i++) {
+      var it = items[i], k = _changeKey(it);
+      /* Stablecoins are not scored, not ranked, and never reach
+         signal_run_items — the run insert filters them. They carry no
+         RSI, no class and no insight; the product shows them for their
+         yield APR and nothing else. Diffing them would report all ten
+         as newly "entered" on every single run, because the previous
+         run read back from the database has never contained one.
+
+         Marked SEEN before skipping, deliberately: a caller that does
+         hand one in must not then see it reported as having LEFT the
+         universe. Known, but not part of movement. */
+      if (it.isStable) { seen[k] = true; continue; }
+      var was = before[k];
+      seen[k] = true;
+      if (!was) { entered.push(it.sym); continue; }
+      compared++;
+
+      var type = (typeBySym && typeBySym[it.sym]) || 'crypto';
+
+      /* ── rank ── both must be genuinely ranked */
+      var rNow = _ranked(it.r30), rWas = _ranked(was.r30);
+      if (rNow != null && rWas != null) {
+        var places = rWas - rNow;           /* >0 == toward rank 1 */
+        var entry = {
+          id: it.id, sym: it.sym, from: rWas, to: rNow,
+          places: Math.abs(places), of: universe[type] || null, assetType: type
+        };
+        if (places >= R.minRankDelta) rankImproved.push(entry);
+        else if (-places >= R.minRankDelta) rankDeclined.push(entry);
+      }
+
+      /* ── score ── */
+      var sNow = _num(it.score), sWas = _num(was.score);
+      if (sNow != null && sWas != null) {
+        var d = sNow - sWas;
+        var se = { id: it.id, sym: it.sym, from: sWas, to: sNow, delta: Math.round(d * 100) / 100 };
+        if (d >= R.minScoreDelta) scoreGained.push(se);
+        else if (-d >= R.minScoreDelta) scoreLost.push(se);
+      }
+
+      /* ── zone and class ── every transition matters, none is noise,
+         so there is no threshold here. Null-to-null is not a move. */
+      if (it.zone !== was.zone && (it.zone != null || was.zone != null)) {
+        zoneMoves.push({ id: it.id, sym: it.sym, from: was.zone || null, to: it.zone || null });
+      }
+      var cNow = it.candidateClass || null;
+      var cWas = (was.candidateClass !== undefined ? was.candidateClass : was.candidate_class) || null;
+      if (cNow !== cWas) classMoves.push({ id: it.id, sym: it.sym, from: cWas, to: cNow });
+    }
+
+    var left = [];
+    for (var w = 0; w < prev.length; w++) {
+      var wk = _changeKey(prev[w]);
+      if (wk && !seen[wk]) left.push(prev[w].sym || wk);
+    }
+
+    function topBy(arr, key, n) {
+      return arr.slice().sort(function (a, b) { return b[key] - a[key]; }).slice(0, n);
+    }
+
+    return {
+      compared: compared,
+      entered: entered,
+      left: left,
+      /* Lists are truncated; the counts beside them are not. A consumer
+         saying "5 coins strengthened" when 23 did would be a lie the
+         data did not tell it to make. */
+      rank: {
+        improved: topBy(rankImproved, 'places', R.topN),
+        declined: topBy(rankDeclined, 'places', R.topN),
+        improvedCount: rankImproved.length,
+        declinedCount: rankDeclined.length
+      },
+      score: {
+        gained: topBy(scoreGained, 'delta', R.topN),
+        lost: topBy(scoreLost.map(function (x) {
+          return { id: x.id, sym: x.sym, from: x.from, to: x.to, delta: x.delta, _mag: -x.delta };
+        }), '_mag', R.topN).map(function (x) {
+          return { id: x.id, sym: x.sym, from: x.from, to: x.to, delta: x.delta };
+        }),
+        gainedCount: scoreGained.length,
+        lostCount: scoreLost.length
+      },
+      zoneTransitions: zoneMoves.slice(0, R.maxTransitions),
+      zoneTransitionCount: zoneMoves.length,
+      classTransitions: classMoves.slice(0, R.maxTransitions),
+      classTransitionCount: classMoves.length,
+      /* Reported with the run, like `candidates.rules` — a stored brief
+         can say which thresholds decided what counted as a move. */
+      rules: R
+    };
+  }
+
   function _projectItem(c) {
     return {
       id: c.id,
@@ -1506,6 +1773,10 @@
         rsiApplied: rsiApplied,
         counts: insightCounts
       },
+      /* What moved since the previous run. null when the caller did
+         not supply one — "no comparison available", which is not the
+         same statement as "nothing changed". See _computeChanges(). */
+      changes: _computeChanges(items, input.previous, _changeRules(input.changeRules), _typeBySym()),
       dataQuality: _dataQuality(input)
     };
   }

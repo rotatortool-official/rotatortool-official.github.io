@@ -246,6 +246,88 @@ Deno.serve(async (req) => {
     const universe = [...coins, ...bstocks];
     const asOf = new Date().toISOString();
 
+    // How far back run.changes compares. See the note below.
+    const CHANGE_WINDOW_HOURS = 24;
+
+    // ── The comparison run, for engine 2.4.0's run.changes ───────────
+    // NOT the immediately previous run. Measured against production on
+    // 2026-09-09, across 191 coins:
+    //
+    //   adjacent runs (15 min)   largest score move in the universe: 0
+    //   1 hour apart             largest: 1 point,  0 rank moves >= 5
+    //   4 hours apart            largest: 1 point,  0 rank moves >= 5
+    //   9 hours apart            16 coins moved >= 3, 4 zone changes
+    //
+    // Market data does not refresh every 15 minutes, so consecutive runs
+    // are near-identical by construction. Diffing against the previous
+    // run would have produced an empty `changes` block on essentially
+    // every run — a homepage telling visitors "nothing changed" 96 times
+    // a day, which is a claim the data never made.
+    //
+    // 24 hours is the window a DAILY brief means, and it is what
+    // CHANGE_RULES' thresholds are calibrated against (p90 of the 24h
+    // move distribution). If history is shorter than that, the oldest
+    // run available is used and vsAsOf says how far back it reached, so
+    // a consumer can always tell what "changed" is measured over.
+    //
+    // Fails OPEN. Any problem here leaves `previous` null, the engine
+    // returns changes: null, and the run is written exactly as a 2.3.0
+    // run would be. A movement report is worth having; it is not worth
+    // failing a scoring run over.
+    //
+    // Note the shape: signal_run_items holds no stablecoin rows (they
+    // are filtered at insert, below), and the engine skips isStable
+    // items for the same reason — otherwise every stablecoin would read
+    // as newly "entered" on every run.
+    let previous: any[] | null = null;
+    let previousRunId: number | null = null;
+    let previousAsOf: string | null = null;
+    try {
+      const since = new Date(Date.now() - CHANGE_WINDOW_HOURS * 3600 * 1000).toISOString();
+      let { data: prevRun } = await supabase
+        .from('signal_runs')
+        .select('id, as_of')
+        .lte('as_of', since)
+        .order('as_of', { ascending: false })
+        .limit(1)
+        .maybeSingle();
+      if (!prevRun) {
+        // Less history than the window: fall back to the OLDEST run
+        // rather than the newest, so the comparison spans as much time
+        // as exists instead of collapsing to "no change".
+        const { data: oldest } = await supabase
+          .from('signal_runs')
+          .select('id, as_of')
+          .order('as_of', { ascending: true })
+          .limit(1)
+          .maybeSingle();
+        prevRun = oldest ?? null;
+      }
+      if (prevRun) {
+        previousRunId = prevRun.id;
+        previousAsOf = prevRun.as_of;
+        const { data: prevItems } = await supabase
+          .from('signal_run_items')
+          .select('coin_id, coin_sym, r30, score, zone, candidate_class')
+          .eq('run_id', prevRun.id);
+        if (prevItems && prevItems.length) {
+          // PostgREST returns `numeric` as a string on some paths; the
+          // engine coerces, but map the names here rather than teaching
+          // it about column names.
+          previous = prevItems.map((r: any) => ({
+            id: r.coin_id,
+            sym: r.coin_sym,
+            r30: r.r30,
+            score: r.score,
+            zone: r.zone,
+            candidateClass: r.candidate_class,
+          }));
+        }
+      }
+    } catch (e) {
+      console.warn('[compute-signal-run] previous-run read failed, changes will be null:', (e as Error).message);
+    }
+
     const run = Engine.computeSignalRunV2({
       asOf,
       coins: universe,
@@ -257,6 +339,7 @@ Deno.serve(async (req) => {
       eligibility: { minVolume24h: ELIGIBILITY_MIN_VOLUME, delisted },
       technicals,
       fearGreed,
+      previous,
     });
 
     // ── Persist the run + its items ──────────────────────────────────
@@ -270,6 +353,13 @@ Deno.serve(async (req) => {
         eligibility: run.eligibility,
         universe_size: run.universeSize,
         eligible_count: run.eligibleCount,
+        // What moved since the previous run. The engine reports the
+        // movement; the run IDs are provenance only this function has.
+        // NULL means "no comparison available", which is not the same
+        // statement as "nothing changed" — see sql/signal_runs_changes.sql.
+        changes: run.changes
+          ? { ...run.changes, vsRunId: previousRunId, vsAsOf: previousAsOf }
+          : null,
         params: {
           macro,
           v2Weights: run.v2?.weights,
@@ -355,6 +445,11 @@ Deno.serve(async (req) => {
         cycle_label: run.cycleLabel, universe_size: run.universeSize,
         eligible_count: run.eligibleCount, items: items.length,
         bstocks: items.filter((i) => i.asset_type === 'bstock').length,
+        changed_vs_run: previousRunId,
+        changed_vs_as_of: previousAsOf,
+        rank_moves: run.changes
+          ? (run.changes.rank.improvedCount + run.changes.rank.declinedCount) : null,
+        zone_moves: run.changes ? run.changes.zoneTransitionCount : null,
         rsi_coverage: run.candidates?.rsiCoverage ?? 0,
         rsi_applied: run.candidates?.rsiApplied ?? false,
         candidate_classes: run.candidates?.counts ?? {},
