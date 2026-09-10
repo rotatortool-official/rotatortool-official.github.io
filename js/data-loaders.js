@@ -133,19 +133,35 @@ async function loadCoins(categoryOverride) {
   var seen = {}; var uniqueIds = [];
   idsToFetch.forEach(function(id) { if (!seen[id]) { seen[id] = true; uniqueIds.push(id); } });
 
-  /* ── Supabase shared cache: try to read CoinGecko data from cloud first ──
-     This prevents rate-limit bans when many users load at the same time.
-     Only one user per 5 minutes actually hits CoinGecko; everyone else
-     gets the cached version from Supabase.
+  /* ── Supabase is the SOURCE, not a cache in front of the browser ──
+     Rewritten 2026-09-10.
+
+     This used to be a 5-minute read-through cache in front of a browser
+     fetch, and that made the VISITOR the ingest path for the whole coin
+     universe. compute-signal-run scores on a 15-minute cron and simply
+     read whatever the last visitor had left behind. Measured from
+     signal_runs.input_freshness, about half of all runs scored prices
+     more than an hour old, worst case just under twelve hours — and the
+     tool got less accurate the fewer visitors it had.
+
+     sync-coin-universe now writes cg_markets_all on a cron at minutes
+     11/26/41/56, a few minutes ahead of each scoring run. The browser
+     READS it and does not normally fetch CoinGecko at all.
+
+     UNIVERSE_TTL_MS is 15 minutes: the freshness the page promises. Past
+     it the browser still falls back to a live fetch, because a stale
+     page is worse than a rate-limit risk taken once — but that path is
+     now the exception that means the cron is broken, not the design.
   ──────────────────────────────────────────────────────────────────────── */
+  var UNIVERSE_TTL_MS = 15 * 60 * 1000;
   var cacheKey = 'cg_markets_' + cat;
   var rawData  = [];
   var usedCache = false;
 
   if (typeof supaCacheGet === 'function') {
     try {
-      prog(15, 'Checking shared cache…');
-      var cached = await supaCacheGet(cacheKey, 5 * 60 * 1000);
+      prog(15, 'Reading market data…');
+      var cached = await supaCacheGet(cacheKey, UNIVERSE_TTL_MS);
       if (cached && Array.isArray(cached) && cached.length > 0) {
         rawData   = cached;
         usedCache = true;
@@ -155,13 +171,23 @@ async function loadCoins(categoryOverride) {
   }
 
   if (!usedCache) {
-    /* Split into batches of 50 for CoinGecko's per_page limit */
+    /* FALLBACK ONLY — reaching here means sync-coin-universe has not
+       written a fresh cache and the page would otherwise show data over
+       15 minutes old.
+
+       ONE request, not four. This split into batches of 50 citing
+       "CoinGecko's per_page limit"; the limit is 250. Verified
+       2026-09-10: all 194 ids in a single call return every coin that
+       resolves, with the 7d/14d/30d changes and the full supply fields.
+       The old split cost four calls per visitor per refresh for nothing,
+       and it is what made a server-side cron look too expensive for the
+       free tier when it is not. */
     var batches = [];
-    for (var b = 0; b < uniqueIds.length; b += 50) {
-      batches.push(uniqueIds.slice(b, b + 50).join(','));
+    for (var b = 0; b < uniqueIds.length; b += 250) {
+      batches.push(uniqueIds.slice(b, b + 250).join(','));
     }
     var baseUrl  = 'https://api.coingecko.com/api/v3/coins/markets'
-      + '?vs_currency=usd&order=market_cap_desc&per_page=50&page=1'
+      + '?vs_currency=usd&order=market_cap_desc&per_page=250&page=1'
       + '&sparkline=false&price_change_percentage=7d,14d,30d&include_24hr_vol=true';
 
     prog(20, 'Fetching data for ' + uniqueIds.length + ' coins (' + batches.length + ' batches)…');
