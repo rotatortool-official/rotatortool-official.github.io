@@ -192,7 +192,7 @@ a{color:inherit;text-decoration:none}
     <div class="hero-kicker">◆ SIGNAL TRACK RECORD</div>
     <h1>Every call, tracked.</h1>
     <p class="hero-sub">
-      Rotator snapshots its top bullish, rotate-out and underperforming signals every day. After 7 days, we compare the call to the actual price. The result is published here — wins and misses both. The counter below restarted on 2026-09-08 with scoring engine 2.3.0; the retired v2 engine's final record is kept underneath it. <a href="engine-changelog.html" style="color:#f3ba2f;text-decoration:underline;text-underline-offset:2px;">Every model change is logged here.</a>
+      Rotator snapshots its top bullish, rotate-out and underperforming signals every day. After 7 days, we compare the call to the actual price. The result is published here — wins and misses both. The counter below restarted on <span id="copy-reset-date"></span> with scoring engine <span id="copy-engine-hero"></span>; the retired v2 engine's final record is kept underneath it. <a href="engine-changelog.html" style="color:#f3ba2f;text-decoration:underline;text-underline-offset:2px;">Every model change is logged here.</a>
     </p>
     <div id="accuracy-box" class="acc-box">
       <div class="acc-big" id="acc-pct">—</div>
@@ -200,7 +200,7 @@ a{color:inherit;text-decoration:none}
       <div class="acc-detail" id="acc-detail">Loading…</div>
     </div>
     <div>
-      <span class="window-pill" id="window-pill">Engine 2.3.0 · since 2026-09-08</span>
+      <span class="window-pill" id="window-pill"></span>
     </div>
 
     <!-- Retired v2 record. Frozen, not recomputed: these numbers are final
@@ -294,7 +294,7 @@ a{color:inherit;text-decoration:none}
 <footer class="footer">
   <div class="wrap">
     <div class="disclaimer">
-      The live counter reflects Rotator's 2.3.0 scoring engine, tracking from 2026-09-08. Engine v2 (2026-04-26 → 2026-09-07) finished on 76.2% across 863 graded calls; its record is shown separately and is not blended into the live number — 2.1.0 changed how market cap enters the score, and 2.2.0 narrowed which coins are published at all. A signal is "confirmed" when price clears a market-cap-aware threshold within 7–14 days (1.5% mega · 2% large · 3% mid · 5% small/micro). Once a signal hits its target inside the window, the call is locked in and cannot be retroactively demoted by later price moves. Not financial advice — DYOR before any trade.
+      The live counter reflects Rotator's <span id="copy-engine-disc"></span> scoring engine, tracking from <span id="copy-disc-date"></span>. Engine v2 (2026-04-26 → 2026-09-07) finished on 76.2% across 863 graded calls; its record is shown separately and is not blended into the live number — 2.1.0 changed how market cap enters the score, and 2.2.0 narrowed which coins are published at all. A signal is "confirmed" when price clears a market-cap-aware threshold within 7–14 days (1.5% mega · 2% large · 3% mid · 5% small/micro). Once a signal hits its target inside the window, the call is locked in and cannot be retroactively demoted by later price moves. Not financial advice — DYOR before any trade.
     </div>
     <div style="margin-top:10px;display:flex;justify-content:center;gap:14px;flex-wrap:wrap;">
       <span><span style="color:#22c55e;">•</span> Powered by <a href="https://www.coingecko.com" target="_blank" rel="noopener">CoinGecko</a></span>
@@ -356,7 +356,35 @@ a{color:inherit;text-decoration:none}
   }
   var MAX_CARDS_PER_LIST = 12;
 
-  /* Day counter for the 2.3.0 reset, so the pre-grading state can say
+  /* Every place the page NAMES the engine or the reset date, stamped
+     from the two constants above.
+
+     Added 2026-09-10, after 2.5.0's reset moved STATS_FROM_DATE and
+     ENGINE_LABEL and the page went on saying "restarted on 2026-09-08
+     with scoring engine 2.3.0" in three places, two paragraphs above a
+     counter correctly reading day 1. verify-tracking-labels.js checked
+     the constants and passed, because the constants were right — the
+     PROSE was the copy that drifted, and nothing was watching it.
+
+     These elements must stay EMPTY in the HTML. A default written into
+     the markup is a second source of truth that only shows itself when
+     the JS has not run yet, which is exactly how this happened. The
+     test asserts they are empty. */
+  function stampEngineCopy() {
+    var pairs = [
+      ['copy-reset-date', STATS_FROM_DATE],
+      ['copy-disc-date',  STATS_FROM_DATE],
+      ['copy-engine-hero', ENGINE_LABEL],
+      ['copy-engine-disc', ENGINE_LABEL],
+      ['window-pill', 'Engine ' + ENGINE_LABEL + ' · since ' + STATS_FROM_DATE]
+    ];
+    for (var i = 0; i < pairs.length; i++) {
+      var el = document.getElementById(pairs[i][0]);
+      if (el) el.textContent = pairs[i][1];
+    }
+  }
+
+  /* Day counter for the tracking reset, so the pre-grading state can say
      how far in we are instead of showing a bare em-dash. */
   function daysTracking() {
     var start = new Date(TRACKING_START + 'T00:00:00');
@@ -1206,6 +1234,11 @@ a{color:inherit;text-decoration:none}
     }
     all.slice(0, MAX_CARDS_PER_LIST * 2).forEach(function(r) { grid.appendChild(renderRotationCard(r)); });
   }
+
+  /* Before any fetch: the engine label and reset date are already known
+     from the constants, so the page should never paint a stale one while
+     the network is in flight. */
+  stampEngineCopy();
 
   Promise.all([fetchSnapshots(), fetchCurrentPrices(), fetchRotationSnapshots()])
     .then(function(vals) {
