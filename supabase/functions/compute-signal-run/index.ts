@@ -89,6 +89,10 @@ interface RawCoin {
   id: string; symbol: string; name: string; current_price: number;
   market_cap: number | null; total_volume: number | null;
   circulating_supply: number | null; max_supply: number | null;
+  // Engine 2.6.0 reads this when max_supply is absent - it covers 166 of
+  // 166 coins where max covers 111. It was already in the cached payload
+  // and dropped here. See _supplyBasis() in the engine.
+  total_supply: number | null;
   price_change_percentage_24h: number | null;
   price_change_percentage_7d_in_currency: number | null;
   price_change_percentage_14d_in_currency: number | null;
@@ -114,6 +118,7 @@ function toWebsiteCoins(raw: RawCoin[], stableIds: Set<string>) {
       volume24: c.total_volume || 0,
       circulating_supply: c.circulating_supply || 0,
       max_supply: c.max_supply || null,
+      total_supply: c.total_supply || null,
       ath: 0, ath_change_pct: 0,
       score: 0, r7: 0, r14: 0, r30: 0, isPro: false,
       isStable: stableIds.has(c.id),
@@ -269,7 +274,7 @@ Deno.serve(async (req) => {
           // be excluded, which is the bug dataComplete exists to prevent.
           dataComplete: p7 != null && p14 != null && p30 != null,
           volume24: n(meta.volume24) ?? 0,
-          circulating_supply: 0, max_supply: null,
+          circulating_supply: 0, max_supply: null, total_supply: null,
           ath: 0, ath_change_pct: 0,
           score: 0, r7: 0, r14: 0, r30: 0, isPro: false,
           isStable: false, isStock: true,

@@ -171,7 +171,29 @@
      zones, so the hysteresis branch never fires there. What proves this
      one is verify-determinism's seeded-prior-zone check and the
      simulation in _SIG_HYSTERESIS, not the golden. */
-  var ENGINE_VERSION = '2.5.0';
+  /* 2.6.0 — the supply reading stops being a coin flip on max_supply.
+     Scores move for 55 of 166 coins. See _supplyBasis().
+
+     Layer 3's supplyPts and insight pillar 5 both read `max_supply`
+     only. It is present for 111 of 166 scorable coins; `total_supply`
+     is present for all 166 and was already ingested and discarded at
+     every seam. The 55 without a max took a flat -3 and were skipped by
+     pillar 5 entirely, so TRX at 100% circulating scored the same as
+     SAGA at 25%.
+
+     The flat constant is replaced by the same bands read against
+     total_supply, plus a -3 that now means only "uncapped" instead of
+     standing in for the whole reading. Average change on those 55 is
+     +7.7 points, range -15 to +10; the other 111 are untouched.
+
+     THE GOLDEN CANNOT SEE THIS. raw/cg_markets_all.csv has no `tot`
+     column, so every fixture coin has total_supply null and the
+     fallback never fires there — the golden is byte-identical, which
+     this version proves rather than assumes. test/verify-supply-basis.js
+     constructs its own coins to cover the branch. Both golden checks
+     also had to learn that "adding a field is allowed" applies inside
+     nested objects too; see rotator-fixture/lib/golden-project.js. */
+  var ENGINE_VERSION = '2.6.0';
   var SCORING_MODELS = ['v1', 'v2'];
 
   /* ── Eligibility defaults ──────────────────────────────────────────
@@ -412,15 +434,22 @@
 
       /* LAYER 3: Tokenomics quality (−50 to +30 pts) — crypto only */
       var tkx      = TOKENOMICS_DB[c.id] || {deflation:'none', unlockRisk:'medium'};
+      var sb = _supplyBasis(c);
       var supplyPts = 0;
-      if (c.circulating_supply && c.max_supply && c.max_supply > 0) {
-        var ratio = c.circulating_supply / c.max_supply;
-        if      (ratio > 0.90) supplyPts =  10;
-        else if (ratio > 0.70) supplyPts =   5;
-        else if (ratio > 0.40) supplyPts =   0;
-        else if (ratio > 0.20) supplyPts = -15;
-        else                   supplyPts = -25;
-      } else if (!c.max_supply) { supplyPts = -3; }
+      if (sb.ratio != null) {
+        if      (sb.ratio > 0.90) supplyPts =  10;
+        else if (sb.ratio > 0.70) supplyPts =   5;
+        else if (sb.ratio > 0.40) supplyPts =   0;
+        else if (sb.ratio > 0.20) supplyPts = -15;
+        else                      supplyPts = -25;
+      }
+      /* No cap is its own risk, on top of whatever the ratio says, and
+         it is the only part of the old flat -3 that was measuring
+         anything. Applied when max_supply is absent — including when
+         there is no ratio at all, so a coin with neither figure is not
+         quietly better off than one with a total. */
+      var uncappedPts = sb.uncapped ? _SUPPLY_UNCAPPED_PTS : 0;
+      supplyPts += uncappedPts;
       var deflPts   = tkx.deflation  === 'full' ? 15 : tkx.deflation  === 'partial' ? 8 : tkx.deflation === 'fixed' ? 5 : 0;
       var unlockPts = tkx.unlockRisk === 'low'  ?  0 : tkx.unlockRisk === 'medium'  ? -5 : -10;
       /* Near-term unlock overhang — extra penalty on top of the static
@@ -464,7 +493,12 @@
       var sizeAdj = _v2SizeAdjust(c);
       c.score = Math.min(100, Math.max(-50, c.score + sizeAdj));
 
-      c.scoreBreakdown = {layer1, layer2, layer3, supplyPts, deflPts, unlockPts, dxyP7: dxyP7, total3P7: total3P7, sizeAdj, volRatio: _volRatio(c)};
+      c.scoreBreakdown = {layer1, layer2, layer3, supplyPts, deflPts, unlockPts, dxyP7: dxyP7, total3P7: total3P7, sizeAdj, volRatio: _volRatio(c),
+        /* Which figure the supply reading came from, and the ratio
+           itself. Without these a stored -3 is unreadable: it could be
+           the uncapped penalty on a fully-circulating coin or a band
+           result on a heavily-locked one. */
+        supplyBasis: sb.basis, supplyRatio: sb.ratio, uncappedPts: uncappedPts};
     });
 
     /* ── bStocks: partial score, own peer group, no Layer 3 ──────────
@@ -490,6 +524,62 @@
       c.scoreBreakdown = {layer1: layer1, layer2: layer2, layer3: null, partial: true};
     });
   }
+
+  /* ─── Supply basis — ONE reading, two consumers ──────────────────
+     Layer 3's supplyPts and insight pillar 5 both ask "how much of this
+     token is actually circulating". They asked it twice, in two places,
+     both against `max_supply` only. This is that question with one owner.
+
+     WHY IT NEEDED FIXING (2.6.0, measured on the live universe).
+
+     `max_supply` is present for 111 of 166 scorable coins. The other 55
+     took a flat `supplyPts = -3` "no max supply" penalty, and pillar 5
+     skipped them entirely. So the reading with the WORSE coverage was
+     the only one consulted, and the gap was filled with a constant.
+
+     `total_supply` is present for 166 of 166 — every coin that has a
+     circulating supply also has a total. It was already being ingested
+     into market_cache and thrown away at every seam.
+
+     What the flat -3 actually did, on the 55 coins it applied to:
+
+       circ/total   coins   should score   scored
+       >0.90           41           +10       -3     ETH, SOL, TRX, XMR…
+       >0.70            6            +5       -3     GLMR, TIA, NEO…
+       >0.40            7             0       -3     JTO, FIL, SEI…
+       >0.20            1           -15       -3     SAGA
+
+     TRX is 100% circulating and was penalised the same as SAGA at 25%.
+     The constant was wrong in both directions at once, and it was wrong
+     for a third of the universe.
+
+     THE TWO RATIOS ARE NOT THE SAME QUESTION, and that is why `basis`
+     is returned rather than hidden:
+
+       circ / max    dilution against the eventual cap — future minting
+       circ / total  liquid against what already exists — vesting, team
+                     and treasury lockups
+
+     Where both exist they agree closely (total/max is 1.0000 for most
+     coins that have a cap), so falling back does not change what the
+     number means for coins already covered. `max` stays preferred when
+     present.
+
+     UNCAPPED IS STILL A RISK, and the -3 was partly about that. A coin
+     with no max supply can mint forever, which circ/total cannot see.
+     So the fallback keeps a flat penalty of the same size on top of the
+     band — ETH at 100% circulating scores +10-3 = +7, not +10. What is
+     removed is the CONFLATION of "uncapped" with "unmeasurable". */
+  function _supplyBasis(c) {
+    var circ = (c && c.circulating_supply) || 0;
+    var maxS = (c && c.max_supply) || 0;
+    var tot  = (c && c.total_supply) || 0;
+    if (circ > 0 && maxS > 0) return { ratio: circ / maxS, basis: 'max',   uncapped: false };
+    if (circ > 0 && tot  > 0) return { ratio: circ / tot,  basis: 'total', uncapped: true  };
+    return { ratio: null, basis: 'none', uncapped: !maxS };
+  }
+
+  var _SUPPLY_UNCAPPED_PTS = -3;
 
   /* ─── verbatim from signals.js ─────────────────────── */
   function _adaptiveThresholds() {
@@ -791,9 +881,12 @@
     else if (vm < r.volume.thin)               { pts += r.volume.pts.thin;         signals.push('Below-Average Volume'); }
 
     /* PILLAR 5 — dilution shield. */
-    var circ = c.circulating_supply || 0;
-    var maxS = c.max_supply || 0;
-    var supplyRatio = (circ && maxS > 0) ? circ / maxS : -1;
+    /* Same owner as layer 3's supplyPts. Pillar 5 used to read
+       max_supply only and skip a third of the universe; see
+       _supplyBasis(). It does NOT take the uncapped penalty — this
+       pillar grades dilution, and "no cap" is layer 3's concern. */
+    var _sb = _supplyBasis(c);
+    var supplyRatio = (_sb.ratio != null) ? _sb.ratio : -1;
     if      (supplyRatio >= r.supply.cleared) { pts += r.supply.pts.cleared; signals.push('Supply Cleared (' + Math.round(supplyRatio * 100) + '% Unlocked)'); }
     else if (supplyRatio >= r.supply.partial) { pts += r.supply.pts.partial; }
     else if (supplyRatio >= 0 && supplyRatio < r.supply.heavy) { pts += r.supply.pts.heavy; signals.push('High Dilution Risk (' + Math.round(supplyRatio * 100) + '% Unlocked)'); }

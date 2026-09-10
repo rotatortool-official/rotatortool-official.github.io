@@ -214,6 +214,10 @@ async function loadCoins(categoryOverride) {
       volume24: bnb ? bnb.volume : (c.total_volume || 0),
       circulating_supply: c.circulating_supply || 0,
       max_supply: c.max_supply || null,
+      /* Engine 2.6.0: the supply reading falls back to this when there
+         is no max. Present for every coin that has a circulating
+         supply; max is present for two thirds. */
+      total_supply: c.total_supply || null,
       ath: c.ath || 0, ath_change_pct: c.ath_change_percentage || 0,
       score: 0, r7: 0, r14: 0, r30: 0, isPro: false,
       isStable: !!stable,
@@ -964,7 +968,7 @@ async function loadBstocks() {
         /* Only require 24h + 7D — klines cron may not backfill 14D on first run */
         dataComplete: (r.change_24h != null && meta.p7 != null),
         volume24: meta.volume24 || 0,
-        circulating_supply: 0, max_supply: null,
+        circulating_supply: 0, max_supply: null, total_supply: null,
         ath: 0, ath_change_pct: 0,
         score: 0, r7: 0, r14: 0, r30: 0, isPro: false,
         isStable: false, isStock: true,
@@ -2156,7 +2160,15 @@ function openTileDetail(coinId, evt) {
   if (supSec && supEl) {
     var circ = c.circulating_supply;
     var maxS = c.max_supply;
-    var supPct = (circ && maxS && maxS > 0) ? Math.round((circ / maxS) * 100) : null;
+    /* Mirrors the engine's _supplyBasis() (2.6.0): max when present,
+       total otherwise. DISPLAY ONLY — it re-derives nothing the score
+       used, it just stops the modal saying "∞" for a coin the score
+       read at 52%. `supBasis` labels which figure it is, because
+       "% of max" and "% of what exists" are different statements. */
+    var totS = c.total_supply;
+    var supPct = null, supBasis = '';
+    if (circ && maxS && maxS > 0)      { supPct = Math.round((circ / maxS) * 100); supBasis = 'of max'; }
+    else if (circ && totS && totS > 0) { supPct = Math.round((circ / totS) * 100); supBasis = 'of total'; }
     var supPctStr = supPct !== null ? supPct + '%' : '∞';
     var supCol = supPct !== null ? (supPct >= 90 ? 'var(--red)' : supPct >= 70 ? 'var(--amber)' : 'var(--green)') : 'var(--muted)';
     function fmtSup(n) {
@@ -2169,7 +2181,7 @@ function openTileDetail(coinId, evt) {
     supEl.innerHTML =
       '<div class="td-cell"><div class="td-cell-l">CIRCULATING</div><div class="td-cell-v bnb">'+fmtSup(circ)+'</div></div>'
       +'<div class="td-cell"><div class="td-cell-l">MAX SUPPLY</div><div class="td-cell-v bnb">'+(maxS ? fmtSup(maxS) : '∞ / No max')+'</div></div>'
-      +'<div class="td-cell"><div class="td-cell-l">% UNLOCKED</div><div class="td-cell-v" style="color:'+supCol+';">'+supPctStr+'</div></div>'
+      +'<div class="td-cell"><div class="td-cell-l">% UNLOCKED'+(supBasis ? ' ('+supBasis+')' : '')+'</div><div class="td-cell-v" style="color:'+supCol+';">'+supPctStr+'</div></div>'
       +'<div class="td-cell"><div class="td-cell-l">FROM ATH</div><div class="td-cell-v '+(athPct>=0?'up':'dn')+'">'+(athPct>=0?'+':'')+athPct.toFixed(1)+'%</div></div>';
     supEl.style.gridTemplateColumns = 'repeat(2,1fr)';
     supSec.style.display = '';
