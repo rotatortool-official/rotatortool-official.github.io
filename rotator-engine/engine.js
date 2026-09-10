@@ -151,7 +151,27 @@
 
      Additive still — no score, rank, zone, eligibility or class moves,
      and the golden fixture is unchanged. */
-  var ENGINE_VERSION = '2.4.1';
+  /* 2.5.0 — the hysteresis hold becomes a margin, not a midpoint.
+     THE FIRST NON-ADDITIVE VERSION SINCE 2.3.0: zones move, so the
+     track record resets. See _SIG_HYSTERESIS for the measurements.
+
+     A coin that entered the buy zone at 38 kept the label until 50, and
+     one that entered the sell zone at 66 kept it back down to 50 — hold
+     bands of 12 and 16 points that nobody chose. They were the distance
+     between a fixed constant and an adaptive threshold, so they also
+     changed shape with the cycle: 18 and 16 under `stretched`, 12 and 8
+     under `oversold`.
+
+     On the 501 stored runs, 41% of every published SELL and 14% of every
+     published BUY were coins whose score no longer met the threshold the
+     label claimed. The hold is now 4 points past whichever line granted
+     the zone, which means the same thing in every cycle.
+
+     The golden fixture is byte-identical: it runs cold, with no previous
+     zones, so the hysteresis branch never fires there. What proves this
+     one is verify-determinism's seeded-prior-zone check and the
+     simulation in _SIG_HYSTERESIS, not the golden. */
+  var ENGINE_VERSION = '2.5.0';
   var SCORING_MODELS = ['v1', 'v2'];
 
   /* ── Eligibility defaults ──────────────────────────────────────────
@@ -205,7 +225,58 @@
   var _VOL_HIST_DAYS = 7;
   var _SIG_BUY_BASE = 38;
   var _SIG_SELL_BASE = 62;
-  var _SIG_DEADBAND = 50;
+
+  /* Hysteresis MARGIN, in score points, measured from whichever
+     threshold the coin actually crossed. It replaced _SIG_DEADBAND = 50
+     in 2.5.0.
+
+     THE DEADBAND WAS AN ABSOLUTE MIDPOINT, not a margin. A coin that
+     entered the buy zone at 38 kept the label until its score reached
+     50, and one that entered the sell zone at 66 kept it all the way
+     back down to 50. So the hold band was 12 points wide on the buy
+     side and 16 on the sell side, and neither number was chosen — both
+     fell out of the distance between a fixed 50 and an adaptive
+     threshold. Under `stretched` (buy 32 / sell 66) the same constant
+     produced 18 and 16; under `oversold` (38 / 58), 12 and 8.
+
+     Measured on the 501 runs stored between 2026-09-05 and 2026-09-10,
+     all of them `neutral` (buy 38 / sell 66):
+
+       zone   published rows   still past the threshold
+       buy            43,266    6,198  (14.3%), worst at 49
+       sell            4,805    1,968  (41.0%), worst at 51
+
+     Two fifths of every SELL the tool has published were coins that no
+     longer met the sell threshold, and the page said sell anyway. That
+     is not hysteresis absorbing noise, it is a label outliving its
+     reason.
+
+     WHY NOT SIMPLY DROP IT. Hysteresis earns its place. Over the same
+     history, classifying on the bare thresholds flips 400 times at the
+     15-minute cadence; the deadband cuts that to 85. The fault was the
+     shape of the rule, not the idea.
+
+     WHY 4. Simulated over that history at 15-minute cadence, and again
+     at the daily cadence send-telegram-alerts actually compares on
+     (LOOKBACK_HOURS, so intra-day oscillation never reaches a message):
+
+       margin   15-min flips   daily flips   buy rows past threshold
+            0            400            94                        0
+            3            206            75                    1,836
+            4            190            71                    2,392
+            6            150            65                    3,625
+           12             85            54                    6,922
+
+     4 is the knee. Against the deadband it removes 65% of the
+     misleading buy rows and 77% of the sell ones, and costs 17 extra
+     alert-visible transitions across 137 coins over five days — about
+     three a day. Below 3 the churn cost climbs faster than the honesty
+     gain (2 points costs 56 more 15-minute flips to remove 711 rows).
+
+     It is symmetric and it is relative, so it means the same thing in
+     every cycle: a zone survives until the score is 4 points past the
+     line that granted it. */
+  var _SIG_HYSTERESIS = 4;
 
   /* ════════════════════════════════════════════════════════════════
      SEAM 2 — localStorage.
@@ -864,8 +935,11 @@
       var z;
       if      (s <= th.buy)                                 z = 'buy';
       else if (s >= th.sell)                                z = 'sell';
-      else if (prev === 'buy'  && s < _SIG_DEADBAND)        z = 'buy';   /* deadband hold */
-      else if (prev === 'sell' && s > _SIG_DEADBAND)        z = 'sell';
+      /* Hysteresis hold. The margin is measured from the threshold this
+         coin crossed to earn the zone, so the grace it gets is the same
+         4 points in every cycle. See _SIG_HYSTERESIS. */
+      else if (prev === 'buy'  && s <= th.buy  + _SIG_HYSTERESIS)  z = 'buy';
+      else if (prev === 'sell' && s >= th.sell - _SIG_HYSTERESIS)  z = 'sell';
       else                                                  z = 'neutral';
       _lastZone[c.id] = z;
       c._zone = z;
@@ -1798,6 +1872,16 @@
       scoringVersion: 'v1',
       asOf: input.asOf,
       thresholds: _adaptiveThresholds(),
+      /* How far past those lines a zone survives, in score points, and
+         a sibling of `thresholds` rather than a key inside it: the
+         golden compares that object whole, and a run's zone lines are
+         the one thing in it that must never quietly gain a field.
+
+         Reported for the same reason `candidates.rules` is. A stored
+         run whose item sits at 42 in the buy zone is unreadable without
+         it — 42 is above the buy line, and only the margin says whether
+         that is hysteresis or a bug. */
+      hysteresis: _SIG_HYSTERESIS,
       cycleLabel: _btcCycleLabel(),
       eligibility: cfg,
       universeSize: coins.length,

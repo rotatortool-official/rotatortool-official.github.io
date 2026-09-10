@@ -344,6 +344,70 @@ async function fetchMacro(
   return out;
 }
 
+// ─────────────── SOURCE: FEAR & GREED ───────────────
+//
+// OWNER      this function. Nothing else writes market_cache.fear_greed.
+// INPUT      alternative.me /fng — no key, no rate limit worth pacing for.
+// OUTPUT     market_cache.fear_greed — { value, label, asOf, source }.
+// CONSUMERS  compute-signal-run (pillar 6 of the insight score),
+//            send-telegram-alerts. Both read `.value`; `label` is the
+//            upstream wording and is displayed, never compared against.
+//
+// WHY THIS FUNCTION EXISTS AT ALL, added 2026-09-10.
+//
+// ARCHITECTURE-MAP.md has named sync-market-data the owner of this row
+// since 2.3.0 wired the pillar. It was never true. No writer existed
+// anywhere in the repo, in any function or client file. The row was
+// written once, by hand, on 2026-09-03 at 22:27 UTC, and every insight
+// score in every run since has consulted that one frozen number.
+//
+// It survived undetected for a week because of a coincidence: the value
+// sat at exactly 65 and INSIGHT_RULES.fearGreed.greed is 65, and the
+// rule fires on `fg > greed`. A stale reading parked one point below a
+// band edge contributes nothing, so pillar 6 was silently inert rather
+// than visibly wrong. The live reading on the day this was written was
+// 69 — inside the greed band, -8 points to every coin.
+//
+// The lesson is not "add a writer". It is that a cache row with no owner
+// reads exactly like a cache row with a healthy one, so the guard has to
+// live at the READER: compute-signal-run now refuses a reading older
+// than FEAR_GREED_MAX_AGE_H and records that it did.
+async function fetchFearGreed(
+  supabase: ReturnType<typeof createClient>,
+): Promise<{ value: number; label: string }> {
+  const data = await safeJson('https://api.alternative.me/fng/?limit=1');
+
+  // The API reports its own failures in metadata.error while still
+  // returning 200, so a non-null error there is not an exception the
+  // fetch would have thrown.
+  const apiErr = data?.metadata?.error;
+  if (apiErr) throw new Error(`alternative.me reported: ${apiErr}`);
+
+  const row = data?.data?.[0];
+  // Everything upstream is a STRING, including the number.
+  const value = Number(row?.value);
+  if (!Number.isFinite(value) || value < 0 || value > 100) {
+    throw new Error(`unusable value: ${JSON.stringify(row?.value)}`);
+  }
+  const label = typeof row?.value_classification === 'string'
+    ? row.value_classification : '';
+
+  // The index's own timestamp for the reading, kept apart from
+  // updated_at. updated_at says when WE last wrote; asOf says what day
+  // the reading is for. The failure this function exists to fix is one
+  // where those two diverge, so both are recorded.
+  const ts = Number(row?.timestamp);
+  const asOf = Number.isFinite(ts) ? new Date(ts * 1000).toISOString() : null;
+
+  const out = { value, label, asOf, source: 'alternative.me' };
+  const { error } = await supabase.from('market_cache').upsert(
+    { cache_key: 'fear_greed', data: out, updated_at: new Date().toISOString() },
+    { onConflict: 'cache_key' },
+  );
+  if (error) throw error;
+  return { value, label };
+}
+
 // ─────────────── SOURCE: ON-CHAIN NETWORK READINGS ───────────────
 //
 // OWNER      this function. Nothing else writes market_cache.network_data.
@@ -557,9 +621,24 @@ Deno.serve(async (req) => {
     console.error('[network] failed:', msg);
   }
 
+  // Isolated for the same reason macro and network are. A dead sentiment
+  // feed must cost the run one pillar, never a price sync that already
+  // succeeded — and it is now VISIBLE when it dies, both here in
+  // `report.fear_greed` and at the reader, which ages the row out.
+  let fearGreed: { value: number; label: string } | null = null;
+  try {
+    fearGreed = await fetchFearGreed(supabase);
+    report.fear_greed = { ok: true, count: 1 };
+    console.log('[fear_greed] wrote market_cache.fear_greed:', JSON.stringify(fearGreed));
+  } catch (e) {
+    const msg = (e as Error).message ?? String(e);
+    report.fear_greed = { ok: false, error: msg };
+    console.error('[fear_greed] failed:', msg);
+  }
+
   const anyOk = Object.values(report).some((r) => r.ok);
   return new Response(
-    JSON.stringify({ ok: anyOk, report, macro, network, ts: new Date().toISOString() }, null, 2),
+    JSON.stringify({ ok: anyOk, report, macro, network, fearGreed, ts: new Date().toISOString() }, null, 2),
     {
       status: anyOk ? 200 : 502,
       headers: { 'content-type': 'application/json' },

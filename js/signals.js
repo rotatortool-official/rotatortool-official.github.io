@@ -96,26 +96,21 @@ function renderBTC() {
 }
 
 /* ══════════════════════════════════════════════════════════════
-   ADAPTIVE THRESHOLDS + HYSTERESIS + MEAN-REVERSION GATE
+   ZONE STATE — the classifier itself lives in the engine
    ──────────────────────────────────────────────────────────────
-   Three small accuracy nudges, applied as a single zone classifier:
+   Adaptive bands, hysteresis and the mean-reversion gate are all
+   RotatorEngine's — see _classifyZones() and _SIG_HYSTERESIS there.
+   This file holds only the per-coin zone state, mirrored to
+   localStorage so hysteresis survives a reload.
 
-   1. Adaptive bands: BTC>MA200 → SELL band raised (don't cut winners
-      too early); BTC<MA200 → BUY band lowered (don't catch knives).
-   2. Hysteresis deadband: once a coin enters BUY/SELL, it must cross
-      50 (not just the entry band) to flip — kills churn from coins
-      that hover near 38/62.
-   3. Mean-reversion gate on BUY: only call BUY when 30D drawdown is
-      in the reversion sweet spot (-40% .. -3%). Tails are usually
-      broken markets, not buys.
-
-   The base thresholds (38/62) are still the public/visible ones; the
-   adjustments shift the actual signal trigger. Per-coin zone state
-   is mirrored to localStorage so hysteresis survives reloads.
+   _SIG_BUY_BASE, _SIG_SELL_BASE and _SIG_DEADBAND were declared here
+   until 2.5.0. Nothing had read them since the 2026-09-06 inversion
+   moved the classifier into the engine, and by then the deadband they
+   named was gone as well — 2.5.0 replaced the absolute 50 with a
+   margin measured from the threshold actually crossed. A dead constant
+   that still looks like a threshold is worse than no constant: it is
+   the first thing a reader trusts and the last thing anyone updates.
 ══════════════════════════════════════════════════════════════ */
-var _SIG_BUY_BASE  = 38;
-var _SIG_SELL_BASE = 62;
-var _SIG_DEADBAND  = 50;
 
 var _lastZone = {};
 try {

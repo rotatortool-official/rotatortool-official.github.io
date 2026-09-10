@@ -147,7 +147,7 @@ Deno.serve(async (req) => {
       // Pillar 6 of the insight score (engine 2.3.0). Same market_cache
       // row the website reads, so the server run and a cold-start local
       // pass see the same sentiment reading.
-      supabase.from('market_cache').select('data').eq('cache_key', 'fear_greed').maybeSingle(),
+      supabase.from('market_cache').select('data, updated_at').eq('cache_key', 'fear_greed').maybeSingle(),
     ]);
     if (marketsRow.error || !marketsRow.data) throw new Error('cg_markets_all not found: ' + (marketsRow.error?.message ?? 'no row'));
 
@@ -178,9 +178,47 @@ Deno.serve(async (req) => {
     // different statements — one says sentiment was not consulted, the
     // other says it was and read neutral. dataQuality.fearGreedSupplied
     // records which happened.
+    //
+    // AND A STALE ROW IS TREATED AS A MISSING ONE, added 2026-09-10.
+    //
+    // Until today nothing wrote this row. It was set by hand on
+    // 2026-09-03 and read as live by every run for a week, because a
+    // cache row with no owner is indistinguishable from a healthy one at
+    // the point of reading. sync-market-data now owns it — but the fix
+    // that matters is here, because the next feed to die silently will
+    // not announce itself either.
+    //
+    // The age is measured on updated_at, which is when WE last wrote,
+    // not on the index's own asOf. A sentiment reading is one number for
+    // the whole market: unlike RSI coverage, no per-coin gate would
+    // notice it going stale, so the run-level age check is the only
+    // thing standing between a frozen constant and 190 scores.
+    //
+    // 48h is deliberately loose. The index publishes daily and the sync
+    // runs far more often, so anything approaching two days means the
+    // sync is broken rather than the market being quiet.
+    const FEAR_GREED_MAX_AGE_H = 48;
     let fearGreed: number | null = null;
+    let fearGreedAge: number | null = null;
+    let fearGreedStale = false;
     const fgVal = (fgRow?.data as { data?: { value?: unknown } } | null)?.data?.value;
-    if (fgVal != null && Number.isFinite(Number(fgVal))) fearGreed = Number(fgVal);
+    const fgAt = (fgRow?.data as { updated_at?: string } | null)?.updated_at;
+    if (fgAt) {
+      const ms = Date.now() - new Date(fgAt).getTime();
+      if (Number.isFinite(ms)) fearGreedAge = Math.round(ms / 36e5);
+    }
+    if (fgVal != null && Number.isFinite(Number(fgVal))) {
+      if (fearGreedAge != null && fearGreedAge > FEAR_GREED_MAX_AGE_H) {
+        // Passed as null, so the engine records "not consulted" rather
+        // than scoring a week-old number as today's sentiment.
+        fearGreedStale = true;
+        console.warn(
+          `[compute-signal-run] fear_greed is ${fearGreedAge}h old (max ${FEAR_GREED_MAX_AGE_H}h) — pillar 6 skipped`,
+        );
+      } else {
+        fearGreed = Number(fgVal);
+      }
+    }
     if (fgRow?.error) console.warn('[compute-signal-run] fear_greed read failed:', fgRow.error.message);
 
     const coins = toWebsiteCoins(raw, stableIds);
@@ -368,6 +406,24 @@ Deno.serve(async (req) => {
           // run so a call can still explain itself after the thresholds
           // are next tuned.
           candidates: run.candidates,
+          // The zone lines and the hysteresis margin that produced this
+          // run's buy/sell labels. Until 2.5.0 NEITHER was stored, so a
+          // stored item sitting at 42 in the buy zone could not be read
+          // back: 42 is above the buy line, and only the margin says
+          // whether that was hysteresis holding a prior call or a bug.
+          // `thresholds` moves with the cycle and `hysteresis` is the
+          // one the engine just changed, so both belong with the run for
+          // the same reason `candidates` does.
+          zoneRules: { thresholds: run.thresholds, hysteresis: run.hysteresis },
+          // Why pillar 6 did or did not run, in the run itself. A null
+          // fearGreed in `insights` says "not consulted"; this says
+          // whether that was because the row was absent or because it
+          // was too old to trust, and how old.
+          fearGreedSource: {
+            ageHours: fearGreedAge,
+            stale: fearGreedStale,
+            maxAgeHours: FEAR_GREED_MAX_AGE_H,
+          },
           // Same reasoning as candidates above: the thresholds and the
           // point budget that produced this run's insight scores, stored
           // with the run so an effective_score can still be explained
