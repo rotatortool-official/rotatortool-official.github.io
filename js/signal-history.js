@@ -63,7 +63,7 @@ var SignalHistory = (function() {
 
      Keep both constants in sync with track-record.html. */
   var STATS_FROM_DATE = '2026-09-10';
-  var ENGINE_LABEL    = '2.6.0';
+  var ENGINE_LABEL    = '2.7.0';
 
   function _passesCutoff(dateStr) {
     return typeof dateStr === 'string' && dateStr >= STATS_FROM_DATE;

@@ -193,7 +193,7 @@
      constructs its own coins to cover the branch. Both golden checks
      also had to learn that "adding a field is allowed" applies inside
      nested objects too; see rotator-fixture/lib/golden-project.js. */
-  var ENGINE_VERSION = '2.6.0';
+  var ENGINE_VERSION = '2.7.0';
   var SCORING_MODELS = ['v1', 'v2'];
 
   /* ── Eligibility defaults ──────────────────────────────────────────
@@ -240,6 +240,7 @@
      stale fraction that happens to still have rows. */
   var _fearGreed = null;
   var _technicals = null;
+  var _futures = null;
   var _rsiApplied = false;
   var _insightRulesOverride = null;
 
@@ -1104,6 +1105,9 @@
       if (fgIn != null && isFinite(Number(fgIn))) _fearGreed = Number(fgIn);
     }
     _technicals = input.technicals || null;
+    /* Derivatives, keyed the same way technicals are: by coin id or
+       by symbol. Absent for most of the universe, which has no perp. */
+    _futures = input.futures || null;
     _insightRulesOverride = input.insightRules || null;
     _rsiApplied = false;   /* set by computeSignalRun() once coverage is measured */
   }
@@ -1124,6 +1128,7 @@
       volumeHistorySupplied: !!(input.volumeHistory && Object.keys(input.volumeHistory).length),
       previousZonesSupplied: !!(input.previousZones && Object.keys(input.previousZones).length),
       technicalsSupplied: !!(input.technicals && Object.keys(input.technicals).length),
+      futuresSupplied: !!(input.futures && Object.keys(input.futures).length),
       fearGreedSupplied: _fearGreed != null,
       inputAges: input.inputAges || null
     };
@@ -1202,6 +1207,138 @@
      candidate, because "heavily oversold but stabilising" is exactly the
      case the stabilisation test was written to keep. The two coexist;
      consumers pick which question they are asking. */
+  /* ════════════════════════════════════════════════════════════════
+     POSITIONING — derivatives, READ AND PUBLISHED, DELIBERATELY UNWEIGHTED
+
+     Added 2.7.0. This is the whole derivatives feed — funding rate, open
+     interest and its 24h change, long/short ratio, taker buy/sell ratio
+     — reaching the engine for the first time. It contributes EXACTLY
+     ZERO points to any score, and that is the point of the design.
+
+     WHY IT IS HERE AT ALL. Until now this data was fetched by the
+     visitor's browser, per coin, on modal open, and rendered. It was
+     never part of a run, so it was never stored beside the score it sat
+     next to, and no past call could be graded against the positioning
+     that existed when it was made. Publishing it in the run fixes that
+     whether or not it ever earns a weight.
+
+     WHY IT SCORES NOTHING. Measured 2026-09-10 on binance_futures_history,
+     the only history that exists: 462 symbols, hourly, 2026-09-06 to
+     2026-09-10. Cross-sectional rank IC of funding against the next 24h
+     return, computed per hour and averaged, was +0.021 with t = 2.98 —
+     which looks convincing and is not. Sampling a 24h forward return
+     every hour counts each return about 24 times, so those 86
+     observations are roughly 4 independent ones. On NON-OVERLAPPING
+     daily snapshots:
+
+       day      symbols   IC(funding)   IC(long/short)
+       09-06        273        +0.084             n/a
+       09-07        275        +0.017          -0.003
+       09-08        275        -0.116          -0.050
+       09-09        271        +0.077          -0.066
+
+     The sign flips. Four independent observations, one regime, inside a
+     single week's selloff. There is no weight that this evidence
+     supports, and GUARDRAILS.md rule 1 says a threshold is chosen from
+     data or not at all.
+
+     WHAT UNBLOCKS IT. binance_futures_history is already accumulating
+     hourly. At roughly 30 independent daily cross-sections — about a
+     month from now — the same measurement becomes worth acting on, and
+     the run-stored `positioning` below is what makes it gradeable
+     against the calls actually published.
+
+     So: labelled, stored, shown, and worth zero. */
+  var POSITIONING_RULES = {
+    /* Funding is per 8h on Binance. 0.01% is the neutral resting rate;
+       these are multiples of it, not opinions about fair value. */
+    funding:   { heavyLong: 0.05, long: 0.015, short: -0.005, heavyShort: -0.03 },
+    /* Open-interest change over 24h, in percent. */
+    oi:        { surge: 15, build: 5, unwind: -10 },
+    /* Binance's top-trader long/short account ratio. 1.0 is balanced. */
+    longShort: { crowdedLong: 1.6, crowdedShort: 0.7 }
+  };
+
+  function _positioningRules(o) {
+    var r = {};
+    for (var k in POSITIONING_RULES) {
+      r[k] = {};
+      for (var j in POSITIONING_RULES[k]) r[k][j] = POSITIONING_RULES[k][j];
+    }
+    if (!o) return r;
+    for (var ok in o) { if (r[ok]) for (var oj in o[ok]) r[ok][oj] = o[ok][oj]; }
+    return r;
+  }
+
+  function _num2(v) {
+    if (v === null || v === undefined || v === '') return null;
+    var n = Number(v);
+    return isFinite(n) ? n : null;
+  }
+
+  /* One coin's positioning, or null when the coin has no futures market.
+     null is not "neutral" — most of the universe has no perp at all, and
+     the two must stay distinguishable for exactly the reason pillar 6
+     keeps `fearGreed: null` apart from a reading of 50. */
+  function _positioning(f, r) {
+    if (!f) return null;
+    var funding = _num2(f.funding_rate);
+    var oiChg   = _num2(f.oi_change_24h_pct);
+    var ls      = _num2(f.long_short_ratio);
+    var takers  = _num2(f.taker_buy_sell_ratio);
+    var oiVal   = _num2(f.open_interest_value);
+    if (funding === null && oiChg === null && ls === null) return null;
+
+    var signals = [];
+    /* Funding is a rate per 8h expressed as a fraction on Binance's API
+       (0.0001 = 0.01%). Compared in percent here, so scale once. */
+    var fundPct = funding !== null ? funding * 100 : null;
+    var fundState = null;
+    if (fundPct !== null) {
+      if      (fundPct >= r.funding.heavyLong)  { fundState = 'heavy_long';  signals.push('Funding richly positive (' + fundPct.toFixed(4) + '% per 8h) — longs paying'); }
+      else if (fundPct >= r.funding.long)       { fundState = 'long';        signals.push('Funding positive (' + fundPct.toFixed(4) + '% per 8h)'); }
+      else if (fundPct <= r.funding.heavyShort) { fundState = 'heavy_short'; signals.push('Funding deeply negative (' + fundPct.toFixed(4) + '% per 8h) — shorts paying'); }
+      else if (fundPct <= r.funding.short)      { fundState = 'short';       signals.push('Funding negative (' + fundPct.toFixed(4) + '% per 8h)'); }
+      else                                      { fundState = 'neutral'; }
+    }
+
+    var oiState = null;
+    if (oiChg !== null) {
+      if      (oiChg >= r.oi.surge)  { oiState = 'surge';  signals.push('Open interest +' + oiChg.toFixed(1) + '% in 24h'); }
+      else if (oiChg >= r.oi.build)  { oiState = 'build';  }
+      else if (oiChg <= r.oi.unwind) { oiState = 'unwind'; signals.push('Open interest ' + oiChg.toFixed(1) + '% in 24h — positions closing'); }
+      else                           { oiState = 'flat';   }
+    }
+
+    var lsState = null;
+    if (ls !== null) {
+      if      (ls >= r.longShort.crowdedLong)  { lsState = 'crowded_long';  signals.push('Top traders ' + ls.toFixed(2) + ':1 long'); }
+      else if (ls <= r.longShort.crowdedShort) { lsState = 'crowded_short'; signals.push('Top traders ' + ls.toFixed(2) + ':1 — short-leaning'); }
+      else                                     { lsState = 'balanced'; }
+    }
+
+    /* A summary label for display. It names the CROWD, never a call:
+       "crowded long" is a description of positioning, not a prediction
+       that price falls. The measurement that would justify turning it
+       into a prediction does not exist yet. */
+    var label = 'NEUTRAL';
+    if (fundState === 'heavy_long'  || lsState === 'crowded_long')  label = 'CROWDED LONG';
+    else if (fundState === 'heavy_short' || lsState === 'crowded_short') label = 'CROWDED SHORT';
+    else if (oiState === 'surge' && fundState === 'long')  label = 'NEW MONEY LONG';
+    else if (oiState === 'unwind')                          label = 'UNWINDING';
+
+    return {
+      funding: fundPct, fundingState: fundState,
+      oiChange24h: oiChg, oiState: oiState, oiValue: oiVal,
+      longShort: ls, longShortState: lsState,
+      takerBuySell: takers,
+      label: label, signals: signals,
+      /* Never remove this field, and never let it be non-zero without a
+         measurement in the commit that changes it. */
+      points: 0, weighted: false
+    };
+  }
+
   var CANDIDATE_RULES = {
     /* One-day move. 40% is the "no longer an attractive new entry" line;
        25% is "it ran, let it cool" — separated so the second can be
@@ -1839,6 +1976,9 @@
          Nothing outside the engine ever read `quickInsight`: the site
          assigned it to c._quickIns and no file read that back. */
       insight: c.insight || null,
+      /* Derivatives positioning. null means NO PERP MARKET, which is
+         not the same as balanced positioning — see _positioning(). */
+      positioning: c.positioning || null,
       zone: c._zone,
       meanRevPass: _passesMeanRevGate(c),
       breakdown: c.scoreBreakdown || null
@@ -1928,9 +2068,20 @@
        silently emptying the buy list. */
     var candCounts = {};
     var insightCounts = {};
+    var posCounts = {};
+    /* Derivatives positioning, computed once per coin, worth zero points.
+       Counted like the other classifications so a run says how much of
+       the universe even has a perp market. */
+    var posRules = _positioningRules(input.positioningRules);
+    var posCovered = 0;
+    for (var pz = 0; pz < coins.length; pz++) {
+      coins[pz].positioning = _positioning(_candidateTechnical(_futures, coins[pz]), posRules);
+      if (coins[pz].positioning) posCovered++;
+    }
     var items = [];
     for (var i = 0; i < coins.length; i++) {
       var item = _projectItem(coins[i]);
+      if (item.positioning) posCounts[item.positioning.label] = (posCounts[item.positioning.label] || 0) + 1;
       if (item.insight) insightCounts[item.insight.label] = (insightCounts[item.insight.label] || 0) + 1;
       var el = _eligibility(coins[i], cfg, delistedSet);
       item.eligible = el.eligible;
@@ -1987,6 +2138,17 @@
       /* Every threshold the classification used, reported with the run.
          A stored run can be re-read years later and say which rules
          produced its labels, the same way `thresholds` does for zones. */
+      /* Derivatives positioning, with the rules that labelled it and how
+         much of the universe it reached. `weighted: false` is asserted in
+         the run, not just in a comment, so a stored call can prove this
+         data did not move its score. See _positioning(). */
+      positioning: {
+        rules: posRules,
+        covered: posCovered,
+        universe: coins.length,
+        counts: posCounts,
+        weighted: false
+      },
       candidates: {
         rules: candRules,
         rsiCoverage: Math.round(rsiCoverage * 1000) / 1000,

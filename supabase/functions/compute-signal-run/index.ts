@@ -142,7 +142,7 @@ Deno.serve(async (req) => {
   try {
     const stableIds = new Set(Object.keys(siteTables.STABLECOINS));
 
-    const [marketsRow, macroRow, cycleRows, delistedRows, zoneRows, techRows, fgRow] = await Promise.all([
+    const [marketsRow, macroRow, cycleRows, delistedRows, zoneRows, techRows, fgRow, futRows] = await Promise.all([
       supabase.from('market_cache').select('data').eq('cache_key', 'cg_markets_all').single(),
       supabase.from('market_cache').select('data').eq('cache_key', 'macro_data').single(),
       supabase.from('market_cycle').select('symbol, ma200, mayer_multiple'),
@@ -153,6 +153,12 @@ Deno.serve(async (req) => {
       // row the website reads, so the server run and a cold-start local
       // pass see the same sentiment reading.
       supabase.from('market_cache').select('data, updated_at').eq('cache_key', 'fear_greed').maybeSingle(),
+      // Derivatives. Engine 2.7.0 LABELS this and scores nothing from
+      // it - see _positioning(). It is read here so the reading is
+      // stored beside the call it sat next to, which is the only way
+      // it becomes gradeable once there is enough history to measure.
+      supabase.from('binance_futures_metrics')
+        .select('base_asset, funding_rate, open_interest_value, oi_change_24h_pct, long_short_ratio, taker_buy_sell_ratio'),
     ]);
     if (marketsRow.error || !marketsRow.data) throw new Error('cg_markets_all not found: ' + (marketsRow.error?.message ?? 'no row'));
 
@@ -172,6 +178,18 @@ Deno.serve(async (req) => {
     for (const r of (techRows.data || [])) {
       if (r.rsi14_daily != null) technicals[r.base_asset] = { rsi: Number(r.rsi14_daily) };
     }
+    // Keyed by base_asset like technicals; the engine looks up by id then
+    // symbol. A coin with no perp simply has no entry, and the engine
+    // reports positioning null for it - which is "no futures market", not
+    // "balanced positioning".
+    const futures: Record<string, unknown> = {};
+    for (const r of (futRows.data || [])) {
+      if (r && r.base_asset) futures[r.base_asset] = r;
+    }
+    if (futRows.error) {
+      console.warn('[compute-signal-run] binance_futures_metrics read failed:', futRows.error.message);
+    }
+
     if (techRows.error) {
       // A missing technicals feed must not stop the run. The engine will
       // see 0% coverage, skip confirmation for everyone, and record that.
@@ -382,6 +400,7 @@ Deno.serve(async (req) => {
       eligibility: { minVolume24h: ELIGIBILITY_MIN_VOLUME, delisted },
       technicals,
       fearGreed,
+      futures,
       previous,
     });
 
@@ -420,6 +439,12 @@ Deno.serve(async (req) => {
           // one the engine just changed, so both belong with the run for
           // the same reason `candidates` does.
           zoneRules: { thresholds: run.thresholds, hysteresis: run.hysteresis },
+          // The positioning rules, coverage and the explicit
+          // weighted:false. Stored so a call made today can later be
+          // graded against the positioning that existed when it was
+          // made, and so nobody has to take a comment's word for the
+          // fact that this data moved no score.
+          positioning: run.positioning,
           // Why pillar 6 did or did not run, in the run itself. A null
           // fearGreed in `insights` says "not consulted"; this says
           // whether that was because the row was absent or because it
@@ -486,6 +511,11 @@ Deno.serve(async (req) => {
         // _classifyZones() dampens on — so a stored run that omitted it
         // could not explain its own effective_score.
         insight: it.insight ?? null,
+        // Derivatives positioning (engine 2.7.0). Stored, labelled, and
+        // worth zero points - see sql/signal_run_items_positioning.sql
+        // for the measurement that decided that. NULL means no perp
+        // market, which is not the same as balanced positioning.
+        positioning: it.positioning ?? null,
         asset_type: (bySrcId.get(it.id) as any)?.isStock ? 'bstock' : 'crypto',
       }));
 
