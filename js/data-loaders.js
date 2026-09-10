@@ -610,26 +610,63 @@ function _btcCycleLabel() {
 }
 
 
-/* ── Fear & Greed Index (used by Insight Engine) ─────────────── */
-window.fearGreed = { value: 50, label: 'Neutral' };
+/* ── Fear & Greed Index (pillar 6 of the Insight Engine) ───────────
+   Rewritten 2026-09-10. Three bugs, all in the same few lines.
+
+   1. NULL IS NOT 50. This initialised window.fearGreed to
+      { value: 50, label: 'Neutral' } — a real-looking reading, before
+      any fetch had resolved. The engine works hard to keep "sentiment
+      was not consulted" apart from "sentiment read neutral" (it is
+      rule 4 in GUARDRAILS.md), and this defeated that on the browser
+      path: the object always existed, so the run always claimed a
+      reading and pillar 6 always scored, sometimes on a number nobody
+      measured. The comment at the call site even said so and shrugged.
+      It is null now until something real arrives.
+
+   2. THE TTL FOUGHT THE SERVER. 15 minutes, on an index that publishes
+      ONCE A DAY and that sync-market-data writes twice a day. The cache
+      was therefore almost always "stale" by that rule, so the browser
+      skipped the server's row and hit alternative.me on nearly every
+      page load — exactly the per-visitor fetching the server-side
+      writer was added to end. 12 hours matches the write cadence; the
+      engine's own 48h staleness guard is what catches a dead feed, and
+      that lives in compute-signal-run where it belongs.
+
+   3. THE BROWSER CLOBBERED THE GOOD ROW. supaCacheSet wrote back only
+      { value, label }, dropping the `asOf` and `source` fields the
+      server writer records. Every visitor stripped the provenance off
+      the row that compute-signal-run reads. The fallback now writes the
+      same shape, or does not write at all. */
+window.fearGreed = null;
 async function loadFearGreed() {
-  /* Try shared cache first (15 min TTL — FnG updates daily) */
+  /* 12h: the index is daily and the server writes it twice a day. */
   if (typeof supaCacheGet === 'function') {
     try {
-      var cached = await supaCacheGet('fear_greed', 15 * 60 * 1000);
-      if (cached && cached.value) {
+      var cached = await supaCacheGet('fear_greed', 12 * 60 * 60 * 1000);
+      if (cached && typeof cached.value === 'number') {
         window.fearGreed = cached;
         return;
       }
-    } catch(e) { /* fall through to API */ }
+    } catch(e) { /* fall through to the API */ }
   }
 
+  /* FALLBACK ONLY. Reaching here means sync-market-data has not written
+     this row in 12 hours, which is a broken feed, not a normal load. */
   try {
     var data = await apiFetch('https://api.alternative.me/fng/?limit=1');
-    if (data && data.data && data.data[0]) {
+    var row  = data && data.data && data.data[0];
+    var val  = row ? parseInt(row.value, 10) : NaN;
+    /* No silent `|| 50`: an unparseable reading leaves fearGreed null so
+       the pillar is skipped, rather than scoring a fabricated neutral. */
+    if (isFinite(val) && val >= 0 && val <= 100) {
+      var ts = Number(row.timestamp);
       window.fearGreed = {
-        value: parseInt(data.data[0].value) || 50,
-        label: data.data[0].value_classification || 'Neutral'
+        value: val,
+        label: row.value_classification || '',
+        /* Same shape the server writes, so a fallback does not degrade
+           the row that compute-signal-run reads. */
+        asOf: isFinite(ts) ? new Date(ts * 1000).toISOString() : null,
+        source: 'alternative.me'
       };
       if (typeof supaCacheSet === 'function') {
         supaCacheSet('fear_greed', window.fearGreed);
@@ -811,12 +848,15 @@ async function runSignalEngine() {
         /* Pillar 6, the contrarian sentiment read. Passed as the whole
            row so the engine can tell "no reading this run" from
            "neutral" — it skips the pillar for the first and would score
-           the second. loadFearGreed() defaults window.fearGreed to
-           { value: 50 } before its fetch resolves, so an unresolved
-           fetch is indistinguishable here; that is the same 50 the page
-           has always displayed, and the run records
-           dataQuality.fearGreedSupplied either way. */
-        fearGreed:     (typeof window.fearGreed === 'object') ? window.fearGreed : null
+           the second.
+
+           Until 2026-09-10 loadFearGreed() defaulted this to
+           { value: 50 } before its fetch resolved, so an unresolved
+           fetch was indistinguishable from a real neutral reading and
+           this line always passed an object. It is null until a real
+           reading arrives, and dataQuality.fearGreedSupplied now means
+           what it says. */
+        fearGreed:     window.fearGreed || null
       });
       applySignalRun(localRun);
       try {
@@ -2363,8 +2403,11 @@ function openTileDetail(coinId, evt) {
         });
         insHtml += '</div>';
       }
-      var fgVal = window.fearGreed ? window.fearGreed.value : 50;
-      var fgLbl = window.fearGreed ? window.fearGreed.label : 'Neutral';
+      /* No reading is shown as an em-dash, not as 50/Neutral — the
+         display must not invent a sentiment the engine refused to use. */
+      var fgVal = (window.fearGreed && typeof window.fearGreed.value === 'number')
+        ? window.fearGreed.value : null;
+      var fgLbl = (window.fearGreed && window.fearGreed.label) || '—';
       var fgGood = fgVal <= 40;
       var fgBad  = fgVal >= 75;
       var fgCls  = fgGood ? 'good' : fgBad ? 'bad' : 'neutral';

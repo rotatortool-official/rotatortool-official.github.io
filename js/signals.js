@@ -1330,10 +1330,26 @@ function renderAll() {
          so this is a % proxy for the originally-requested ">$95"
          absolute threshold; swap in a real price feed if you wire one
          in later) */
-  var fg     = (typeof window.fearGreed === 'object' && window.fearGreed) ? window.fearGreed.value : 50;
+  /* A MISSING READING MUST NOT READ AS 50. This defaulted to 50 when
+     window.fearGreed was absent, and 50 is a real value that happens to
+     pass the `> 70` test — so a dead sentiment feed silently meant "not
+     overheated", on a flag that gates BUY suggestions in
+     send-telegram-alerts.
+
+     The behaviour is deliberately unchanged when there is no reading:
+     sentiment simply does not get a vote, and oil and DXY still do.
+     What changes is that it is now WRITTEN that way instead of arriving
+     through a magic constant. Failing closed was considered and
+     rejected — suppressing every buy whenever alternative.me is down is
+     a bigger error than declining to veto. */
+  var fgVal  = (window.fearGreed && typeof window.fearGreed.value === 'number')
+    ? window.fearGreed.value : null;
+  var fgHot  = fgVal != null && fgVal > 70;
   var oilHot = (typeof _macroData !== 'undefined' && _macroData.oilP7 != null) && _macroData.oilP7 > 5;
   var dxyHot = (typeof _macroData !== 'undefined' && _macroData.dxyP7 != null) && _macroData.dxyP7 > 2;
-  window.safeToBuy = !(fg > 70 || oilHot || dxyHot);
+  window.safeToBuy = !(fgHot || oilHot || dxyHot);
+  window.safeToBuyReason = fgHot ? 'sentiment ' + fgVal
+    : oilHot ? 'oil' : dxyHot ? 'dollar' : (fgVal == null ? 'no sentiment reading' : '');
 
   computeInsights();
   maybeSyncInsightSnapshots();
