@@ -291,7 +291,7 @@ async function loadCoins(categoryOverride) {
 
 
 /* ── Macro data (Gold, Silver, Oil, BTC 7D) ──────────────────── */
-var _macroData = {btcP7: null, goldP7: null, silverP7: null, oilP7: null, dxyP7: null, total3P7: null};
+var _macroData = {btcP7: null, goldP7: null, silverP7: null, oilP7: null, dxyP7: null, total3P7: null, series: null};
 
 /* Binance perpetual metrics for the modal's Derivatives section, keyed
    by base asset. Populated once per load from Supabase — the browser
@@ -508,6 +508,10 @@ async function loadMacroData() {
         _macroData.dxyP7     = cached.dxyP7;
         _macroData.total3P7  = cached.total3P7;
         _macroData.total3Mcap = cached.total3Mcap;
+        /* Daily closes for the sparklines (2026-09-11). Copied by name
+           like every other field so an absent `series` degrades to a
+           cell with no chart, never to a broken cell. */
+        _macroData.series    = cached.series || null;
         var btcCoin = coins.find(function(c) { return c.id === 'bitcoin'; });
         if (btcCoin) _macroData.btcP7 = btcCoin.p7;
         return;
@@ -1291,6 +1295,14 @@ function _bfDelta(p) {
   return '<span class="bf-d ' + cls + '">' + (p >= 0 ? '+' : '')
        + p.toFixed(1) + '% 7d</span>';
 }
+/* Macro cells ARE a percentage, so the headline value is the move
+   itself rather than a level. Returns null when absent so the cell is
+   dropped instead of rendering a dash. */
+function _bfPct(p) {
+  if (p == null || !isFinite(p)) return null;
+  return (p >= 0 ? '+' : '') + p.toFixed(1) + '%';
+}
+
 function _bfAge(ms) {
   if (ms == null) return '';
   var h = ms / 3600000;
@@ -1299,23 +1311,84 @@ function _bfAge(ms) {
   return 'updated ' + Math.round(h / 24) + 'd ago';
 }
 
+/* A sparkline, as inline SVG, from a plain array of numbers.
+
+   WHY THE DATA WAS ALREADY THERE. pct7d() in sync-market-data downloads
+   a month of daily closes for gold, silver, oil and DXY and used to keep
+   exactly two of them; chainSeries() downloaded nine days of hash rate
+   and addresses and kept two; DefiLlama returns the whole TVL history on
+   the endpoint already being called. Engine-side these were all thrown
+   away. Storing them (2026-09-11) cost ZERO additional API calls.
+
+   No chart library: this is one <path> and it has to render inside a
+   cell that is 120px wide on a phone. Colour follows the 7-day delta so
+   the line agrees with the number above it rather than stating a second,
+   possibly different, opinion.
+
+   Returns '' for anything unplottable, and the caller renders the cell
+   without a chart rather than with an empty box. */
+function _bfSpark(series, up) {
+  if (!Array.isArray(series) || series.length < 3) return '';
+  var pts = series.filter(function (v) { return typeof v === 'number' && isFinite(v); });
+  if (pts.length < 3) return '';
+
+  var W = 100, H = 26, PAD = 2;
+  var lo = Math.min.apply(null, pts), hi = Math.max.apply(null, pts);
+  /* A flat series would divide by zero; draw it down the middle. */
+  var span = (hi - lo) || 1;
+  var stepX = W / (pts.length - 1);
+
+  var d = pts.map(function (v, i) {
+    var x = (i * stepX).toFixed(1);
+    var y = (PAD + (H - PAD * 2) * (1 - (v - lo) / span)).toFixed(1);
+    return (i ? 'L' : 'M') + x + ' ' + y;
+  }).join(' ');
+
+  var col = up ? 'var(--green)' : 'var(--red)';
+  return '<svg class="bf-spark" viewBox="0 0 ' + W + ' ' + H + '" preserveAspectRatio="none"'
+    + ' aria-hidden="true" focusable="false">'
+    + '<path d="' + d + '" fill="none" stroke="' + col
+    + '" stroke-width="1.5" stroke-linejoin="round" stroke-linecap="round"/>'
+    + '</svg>';
+}
+
 function renderBriefing() {
   var host = document.getElementById('briefing');
   if (!host) return;
   var n = _networkData;
   if (!n) { host.style.display = 'none'; return; }
 
+  /* The macro row was fetched every sync since 2026-09-06 and displayed
+     NOWHERE — _macroData held gold, silver, oil and the dollar index and
+     no part of the page rendered them. They are the market backdrop the
+     score is measured against, so they belong in front of a visitor. */
+  var m  = (typeof _macroData !== 'undefined') ? _macroData : {};
+  var ms = (m && m.series) || {};
+  var ns = (n && n.series) || {};
+
   var cells = [
-    { v: _bfNum(n.hashrateEh, 0), u: ' EH/s', p: n.hashrateP7,
+    { v: _bfPct(m.goldP7),   u: '', p: m.goldP7,   s: ms.goldP7,
+      k: 'Gold · 7D',
+      d: 'The oldest store of value, as a benchmark' },
+    { v: _bfPct(m.silverP7), u: '', p: m.silverP7, s: ms.silverP7,
+      k: 'Silver · 7D',
+      d: 'Industrial demand as well as a metal' },
+    { v: _bfPct(m.oilP7),    u: '', p: m.oilP7,    s: ms.oilP7,
+      k: 'Oil · 7D',
+      d: 'WTI crude — input cost for the real economy' },
+    { v: _bfPct(m.dxyP7),    u: '', p: m.dxyP7,    s: ms.dxyP7,
+      k: 'Dollar index · 7D',
+      d: 'A rising dollar is a headwind for risk assets' },
+    { v: _bfNum(n.hashrateEh, 0), u: ' EH/s', p: n.hashrateP7, s: ns.hashrateEh,
       k: 'Hash rate',
       d: 'Computing power securing Bitcoin' },
-    { v: _bfNum(n.addrCount, 0), u: '', p: n.addrP7,
+    { v: _bfNum(n.addrCount, 0), u: '', p: n.addrP7, s: ns.addrCount,
       k: 'Active addresses',
       d: 'Bitcoin addresses used in a day' },
-    { v: _bfUsd(n.tvlUsd), u: '', p: n.tvlP7,
+    { v: _bfUsd(n.tvlUsd), u: '', p: n.tvlP7, s: ns.tvlUsd,
       k: 'DeFi TVL',
       d: 'Value locked across every tracked chain' },
-    { v: _bfUsd(n.stableUsd), u: '', p: n.stableP7,
+    { v: _bfUsd(n.stableUsd), u: '', p: n.stableP7, s: null,
       k: 'Stablecoin supply',
       d: 'Dollars sitting on-chain, unallocated' }
   ].filter(function (c) { return c.v != null; });
@@ -1328,6 +1401,7 @@ function renderBriefing() {
       + '<div class="bf-k">' + c.k + '</div>'
       + '<div class="bf-v">' + c.v + '<span class="bf-u">' + c.u + '</span></div>'
       + _bfDelta(c.p)
+      + _bfSpark(c.s, (c.p == null) || c.p >= 0)
       + '<div class="bf-d-note">' + c.d + '</div>'
       + '</div>';
   }).join('') + '<div class="bf-age">' + _bfAge(_networkAgeMs) + '</div>';

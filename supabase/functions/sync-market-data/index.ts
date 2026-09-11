@@ -250,17 +250,28 @@ const MACRO_SYMBOLS: { key: string; symbol: string; label: string }[] = [
 // Commodities and FX do not trade weekends, so "7 bars back" is about 9
 // calendar days — which would silently compare a different window than
 // the coins' own p7 and make every delta wrong in the same direction.
-async function pct7d(symbol: string): Promise<number | null> {
+/* Returns the 7-day percentage AND the daily closes it was computed from.
+   The series costs NOTHING extra: this call already downloads a month of
+   daily bars and, until 2026-09-11, kept two of them and threw the rest
+   away. The site renders it as a sparkline under each indicator. */
+async function pct7dSeries(symbol: string): Promise<{ pct: number | null; series: number[] }> {
   const url = `https://query1.finance.yahoo.com/v8/finance/chart/${encodeURIComponent(symbol)}?interval=1d&range=1mo`;
   const data = await safeJson(url);
   const r = data?.chart?.result?.[0];
   const ts: number[] = r?.timestamp ?? [];
   const closes: (number | null)[] = r?.indicators?.quote?.[0]?.close ?? [];
-  if (!ts.length || ts.length !== closes.length) return null;
+  if (!ts.length || ts.length !== closes.length) return { pct: null, series: [] };
+
+  /* Rounded to 6 significant figures: a sparkline needs shape, not
+     precision, and this keeps the stored row small. */
+  const series = closes
+    .filter((c): c is number => c != null && isFinite(c))
+    .slice(-30)
+    .map((c) => Number(c.toPrecision(6)));
 
   let last = -1;
   for (let i = closes.length - 1; i >= 0; i--) { if (closes[i] != null) { last = i; break; } }
-  if (last < 0) return null;
+  if (last < 0) return { pct: null, series };
 
   const target = ts[last] - 7 * 86400;
   let bestIdx = -1, bestDist = Infinity;
@@ -272,11 +283,11 @@ async function pct7d(symbol: string): Promise<number | null> {
   // Reject a match more than 3 days off the 7-day mark — a stale or gappy
   // series should report nothing rather than a number for a window nobody
   // asked for.
-  if (bestIdx < 0 || bestIdx === last || bestDist > 3 * 86400) return null;
+  if (bestIdx < 0 || bestIdx === last || bestDist > 3 * 86400) return { pct: null, series };
 
   const then = closes[bestIdx]!, now = closes[last]!;
-  if (!then) return null;
-  return ((now - then) / then) * 100;
+  if (!then) return { pct: null, series };
+  return { pct: ((now - then) / then) * 100, series };
 }
 
 async function fetchMacro(
@@ -287,9 +298,15 @@ async function fetchMacro(
     total3P7: null, total3Mcap: null,
   };
 
+  /* Series live under their own key so the shape of `macro_data`'s
+     numeric fields is unchanged — every existing reader keeps working
+     and simply ignores `series`. */
+  const series: Record<string, number[]> = {};
   for (const m of MACRO_SYMBOLS) {
     try {
-      out[m.key] = await pct7d(m.symbol);
+      const r = await pct7dSeries(m.symbol);
+      out[m.key] = r.pct;
+      if (r.series.length > 1) series[m.key] = r.series;
     } catch (e) {
       console.warn(`[macro] ${m.label} (${m.symbol}) failed:`, (e as Error).message);
     }
@@ -337,7 +354,9 @@ async function fetchMacro(
   if (got === 0) throw new Error('every macro source returned null — nothing written');
 
   const { error } = await supabase.from('market_cache').upsert(
-    { cache_key: 'macro_data', data: out, updated_at: new Date().toISOString() },
+    { cache_key: 'macro_data',
+      data: Object.assign({}, out, { series }),
+      updated_at: new Date().toISOString() },
     { onConflict: 'cache_key' },
   );
   if (error) throw error;
@@ -439,13 +458,17 @@ function pctChange(now: number | null, then: number | null): number | null {
  * blockchain.info daily chart → [latest, the reading 7 days before it].
  * `cors=true` is their documented parameter and is harmless server-side.
  */
-async function chainSeries(chart: string): Promise<[number | null, number | null]> {
+async function chainSeries(chart: string): Promise<[number | null, number | null, number[]]> {
   const url = `https://api.blockchain.info/charts/${chart}`
-    + '?timespan=9days&format=json&cors=true';
+    + '?timespan=30days&format=json&cors=true';
   const data = await safeJson(url);
   const vals = (data?.values ?? []) as { x: number; y: number }[];
   const clean = vals.filter((v) => v && isFinite(v.y) && v.y > 0);
-  if (clean.length < 8) return [null, null];
+  /* The daily series, for the sparkline. Widened from 9 days to 30 in
+     the SAME single call — the endpoint charges nothing for the longer
+     window and 9 points make a poor chart. */
+  const series = clean.slice(-30).map((v) => Number(v.y.toPrecision(6)));
+  if (clean.length < 8) return [null, null, series];
   const last = clean[clean.length - 1];
   // Match on the timestamp rather than counting back 7 entries: the series
   // is daily but a missing day would otherwise quietly become a 6-day or
@@ -456,8 +479,8 @@ async function chainSeries(chart: string): Promise<[number | null, number | null
     const d = Math.abs(v.x - target);
     if (d < bestDist) { bestDist = d; best = v; }
   }
-  if (!best || best.x === last.x || bestDist > 36 * 3600) return [last.y, null];
-  return [last.y, best.y];
+  if (!best || best.x === last.x || bestDist > 36 * 3600) return [last.y, null, series];
+  return [last.y, best.y, series];
 }
 
 async function fetchNetwork(
@@ -469,12 +492,16 @@ async function fetchNetwork(
     tvlUsd: null,     tvlP7: null,
     stableUsd: null,  stableP7: null,
   };
+  /* Kept under their own key so every existing reader of the numeric
+     fields is untouched. */
+  const series: Record<string, number[]> = {};
 
   // ── Bitcoin hash rate. Reported in TH/s; shown in EH/s. ──
   try {
-    const [now, then] = await chainSeries('hash-rate');
+    const [now, then, s] = await chainSeries('hash-rate');
     if (now != null) out.hashrateEh = now / 1e6;
     out.hashrateP7 = pctChange(now, then);
+    if (s.length > 1) series.hashrateEh = s.map((v) => Number((v / 1e6).toPrecision(6)));
   } catch (e) {
     console.warn('[network] hash rate failed:', (e as Error).message);
   }
@@ -482,9 +509,10 @@ async function fetchNetwork(
 
   // ── Unique Bitcoin addresses used per day. ──
   try {
-    const [now, then] = await chainSeries('n-unique-addresses');
+    const [now, then, s] = await chainSeries('n-unique-addresses');
     out.addrCount = now;
     out.addrP7 = pctChange(now, then);
+    if (s.length > 1) series.addrCount = s;
   } catch (e) {
     console.warn('[network] addresses failed:', (e as Error).message);
   }
@@ -507,6 +535,9 @@ async function fetchNetwork(
       if (best && best.date !== last.date && bestDist <= 36 * 3600) {
         out.tvlP7 = pctChange(last.tvl, best.tvl);
       }
+      /* DefiLlama returns the FULL history on this endpoint and only the
+         last two points were ever used. */
+      series.tvlUsd = clean.slice(-30).map((r) => Number(r.tvl.toPrecision(6)));
     }
   } catch (e) {
     console.warn('[network] defi tvl failed:', (e as Error).message);
@@ -541,7 +572,9 @@ async function fetchNetwork(
   if (got === 0) throw new Error('every network source returned null — nothing written');
 
   const { error } = await supabase.from('market_cache').upsert(
-    { cache_key: 'network_data', data: out, updated_at: new Date().toISOString() },
+    { cache_key: 'network_data',
+      data: Object.assign({}, out, { series }),
+      updated_at: new Date().toISOString() },
     { onConflict: 'cache_key' },
   );
   if (error) throw error;

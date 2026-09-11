@@ -3839,10 +3839,20 @@ header{position:sticky;top:0;z-index:100;}
 }
 
 /* ── The briefing ───────────────────────────────────────────────────
-   Four on-chain readings at the top of TODAY, above the ticker. They
-   describe the network rather than the price: what is securing it, who
-   is using it, what is committed to it, and what is sitting in dollars
-   waiting. Filled by renderBriefing(); hidden when nothing resolved. */
+   EIGHT readings at the top of TODAY, above the ticker, in two rows of
+   four.
+
+   Row one is the MACRO BACKDROP — gold, silver, oil, the dollar index.
+   These were fetched every sync from 2026-09-06 and rendered NOWHERE
+   until 2026-09-11; they are what the score's relative-strength layer
+   measures each coin against, so a visitor should be able to see them.
+
+   Row two is the NETWORK: what is securing it, who is using it, what is
+   committed to it, and what is sitting in dollars waiting.
+
+   Each carries a sparkline of its own daily series. Filled by
+   renderBriefing(); cells with no value are dropped, and a cell with no
+   series simply renders without a chart. */
 .briefing{
   display:grid;grid-template-columns:repeat(4,minmax(0,1fr));
   gap:0 1px;background:var(--bdr);
@@ -3864,6 +3874,12 @@ header{position:sticky;top:0;z-index:100;}
 .bf-d.up{color:var(--green);}
 .bf-d.dn{color:var(--red);}
 .bf-d-note{font-size:10px;color:var(--muted);opacity:.75;margin-top:3px;line-height:1.35;}
+/* Sparkline under each briefing cell. Fixed height, full width, no
+   library: the data is a plain array and the mark is one <path>.
+   preserveAspectRatio is none on purpose — the shape of the move is the
+   point, not its true aspect. */
+.bf-spark{display:block;width:100%;height:26px;margin:5px 0 1px;overflow:visible;opacity:.9;}
+.bf-cell:hover .bf-spark{opacity:1;}
 /* Its own full-width row under the cells, so the age of the reading is
    attached to all four rather than to the last one. */
 .bf-age{
