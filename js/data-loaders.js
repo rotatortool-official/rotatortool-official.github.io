@@ -614,6 +614,86 @@ function _btcCycleLabel() {
 }
 
 
+/* The unlock cell for the coin modal (2.9.0).
+
+   Engine 2.9.0 made an imminent unlock an ELIGIBILITY reason rather than
+   a score penalty, because a low score is the buy signal here and
+   subtracting points for a cliff pushed the coin TOWARD being
+   recommended. Measured on FF: 35 and in the buy zone with the penalty,
+   50 and neutral without it.
+
+   So this cell explains a coin's ABSENCE from the buy list, which is
+   exactly the kind of thing a user cannot otherwise discover. It states
+   the percentage, the date, and — when there is no schedule — says so
+   instead of implying safety. */
+function _tdUnlockCell(c) {
+  var u = c && c.id && _tokenUnlocks[c.id];
+  var pct = u && u.unlock30d_pct != null ? Number(u.unlock30d_pct) : null;
+  /* STAMPED from the engine, never typed. The 2026-09-10 failure in
+     GUARDRAILS.md was prose quoting a constant that had since moved. */
+  var LINE = (window.RotatorEngine && window.RotatorEngine.UNLOCK_PENDING_PCT != null)
+    ? window.RotatorEngine.UNLOCK_PENDING_PCT : 5;
+
+  if (pct == null) {
+    return '<div class="td-cell"><div class="td-cell-l">UNLOCKS · 30D</div>'
+      + '<div class="td-cell-v" style="color:var(--muted);" '
+      + 'title="No published vesting schedule for this coin. That is not the same as no unlock due — about 70% of the universe has no schedule available.">'
+      + 'no schedule</div></div>';
+  }
+
+  var pending = pct > LINE;
+  var when = '';
+  if (u.next_unlock_at) {
+    var d = new Date(u.next_unlock_at);
+    if (!isNaN(d)) {
+      var days = Math.round((d - Date.now()) / 86400000);
+      when = ' · ' + d.toISOString().slice(0, 10) + (days >= 0 ? ' (' + days + 'd)' : '');
+    }
+  }
+  var col = pending ? 'var(--red)' : pct > 0 ? 'var(--amber)' : 'var(--green)';
+  var tip = pending
+    ? 'Above the ' + LINE + '% line, so this coin is not published as a new entry until the unlock passes. It costs the coin no points — it is still scored, and still shown if you hold it.'
+    : 'Share of the supply unlocked so far that vests again over the next 30 days.';
+
+  return '<div class="td-cell"><div class="td-cell-l">UNLOCKS · 30D'
+    + (pending ? ' <span style="color:var(--red);">PENDING</span>' : '') + '</div>'
+    + '<div class="td-cell-v" style="color:' + col + ';" title="' + tip + '">'
+    + pct.toFixed(2) + '%' + when + '</div></div>';
+}
+
+/* ── Token unlock schedules ────────────────────────────────────────
+   Read-only, from the table sync-token-unlocks writes. Cached for an
+   hour: published vesting plans do not move faster than that, and the
+   server refreshes the full set roughly four times a day.
+
+   COVERAGE IS ~30% of the universe. A coin missing from this map has NO
+   PUBLISHED SCHEDULE, which is not the same as having no unlock due —
+   the modal says so in as many words rather than showing a reassuring
+   dash. That distinction is the whole reason the engine tests
+   `typeof unlock30d === 'number'` instead of truthiness.
+
+   Fails open to an empty map: no rows means no unlock lines, never a
+   broken modal. */
+var _tokenUnlocks = {};
+async function loadTokenUnlocks() {
+  var rows = null;
+  if (typeof supaCacheGet === 'function') {
+    try { rows = await supaCacheGet('token_unlocks', 60 * 60 * 1000); }
+    catch (e) { console.warn('[SupaCache] token_unlocks read skipped:', e.message); }
+  }
+  if (!rows) {
+    try {
+      rows = await supaRest('token_unlocks', 'GET',
+        { 'select': 'coin_id,unlock30d_pct,next_unlock_at,next_unlock_pct' });
+      if (rows && typeof supaCacheSet === 'function') supaCacheSet('token_unlocks', rows);
+    } catch (e) { console.warn('[TokenUnlocks]', e.message); return; }
+  }
+  if (!Array.isArray(rows)) return;
+  var map = {};
+  rows.forEach(function (r) { if (r && r.coin_id) map[r.coin_id] = r; });
+  _tokenUnlocks = map;
+}
+
 /* ── Fear & Greed Index (pillar 6 of the Insight Engine) ───────────
    Rewritten 2026-09-10. Three bugs, all in the same few lines.
 
@@ -1154,6 +1234,10 @@ async function doLoad() {
     await loadMacroData(); prog(80, 'Loading macro data — Gold, Oil…');
     await loadNetworkData(); renderBriefing();
     await loadFearGreed(); prog(88, 'Fetching sentiment data…');
+    /* Unlock schedules for the coin modal. Read-only and cached an
+       hour; a failure leaves the map empty and the modal simply shows
+       "no schedule" rather than breaking. */
+    await loadTokenUnlocks();
     renderFearGreed(); /* takes the banner slot if the scaling tip is already dismissed */
     prog(92, 'Almost ready — building your dashboard…');
     renderAll();         prog(100, 'All done! This free tool is built by one person — thanks for your patience ♥');
@@ -2342,7 +2426,8 @@ function openTileDetail(coinId, evt) {
       '<div class="td-cell"><div class="td-cell-l">CIRCULATING</div><div class="td-cell-v bnb">'+fmtSup(circ)+'</div></div>'
       +'<div class="td-cell"><div class="td-cell-l">MAX SUPPLY</div><div class="td-cell-v bnb">'+(maxS ? fmtSup(maxS) : '∞ / No max')+'</div></div>'
       +'<div class="td-cell"><div class="td-cell-l">% UNLOCKED'+(supBasis ? ' ('+supBasis+')' : '')+'</div><div class="td-cell-v" style="color:'+supCol+';">'+supPctStr+'</div></div>'
-      +'<div class="td-cell"><div class="td-cell-l">FROM ATH</div><div class="td-cell-v '+(athPct>=0?'up':'dn')+'">'+(athPct>=0?'+':'')+athPct.toFixed(1)+'%</div></div>';
+      +'<div class="td-cell"><div class="td-cell-l">FROM ATH</div><div class="td-cell-v '+(athPct>=0?'up':'dn')+'">'+(athPct>=0?'+':'')+athPct.toFixed(1)+'%</div></div>'
+      + _tdUnlockCell(c);
     supEl.style.gridTemplateColumns = 'repeat(2,1fr)';
     supSec.style.display = '';
   }

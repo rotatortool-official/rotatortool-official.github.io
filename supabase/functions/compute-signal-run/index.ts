@@ -573,6 +573,12 @@ Deno.serve(async (req) => {
         // for the measurement that decided that. NULL means no perp
         // market, which is not the same as balanced positioning.
         positioning: it.positioning ?? null,
+        // The live unlock figure the eligibility verdict was made on
+        // (engine 2.9.0). Stored so a call can explain itself later:
+        // `unlock_pending` in exclusions is only readable beside the
+        // number that triggered it. NULL means NO SCHEDULE AVAILABLE,
+        // never "no unlock due" — same rule as fear_greed.
+        unlock30d: it.unlock30d ?? null,
         asset_type: (bySrcId.get(it.id) as any)?.isStock ? 'bstock' : 'crypto',
       }));
 

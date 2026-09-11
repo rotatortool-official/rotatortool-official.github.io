@@ -76,7 +76,7 @@ var SignalHistory = (function() {
      Tomorrow's date would have been cleaner still, and
      verify-tracking-labels rightly refuses a future one. */
   var STATS_FROM_DATE = '2026-09-11';
-  var ENGINE_LABEL    = '2.8.0';
+  var ENGINE_LABEL    = '2.9.0';
 
   function _passesCutoff(dateStr) {
     return typeof dateStr === 'string' && dateStr >= STATS_FROM_DATE;

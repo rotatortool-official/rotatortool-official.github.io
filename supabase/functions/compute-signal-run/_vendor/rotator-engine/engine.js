@@ -193,7 +193,7 @@
      constructs its own coins to cover the branch. Both golden checks
      also had to learn that "adding a field is allowed" applies inside
      nested objects too; see rotator-fixture/lib/golden-project.js. */
-  var ENGINE_VERSION = '2.8.0';
+  var ENGINE_VERSION = '2.9.0';
   var SCORING_MODELS = ['v1', 'v2'];
 
   /* ── Eligibility defaults ──────────────────────────────────────────
@@ -300,6 +300,16 @@
      every cycle: a zone survives until the score is 4 points past the
      line that granted it. */
   var _SIG_HYSTERESIS = 4;
+
+  /* Percent of currently-unlocked supply vesting in the next 30 days,
+     above which a coin is not publishable as a new entry. 5 is carried
+     over from the penalty this replaced rather than re-derived — the
+     shape of the rule changed in 2.9.0, the line did not, and moving
+     both at once would make neither measurable. Fed by the
+     sync-token-unlocks feed into tokenomics[id].unlock30d; absent for
+     the ~70% of coins with no published schedule, which is why the guard
+     below tests for a number rather than for truthiness. */
+  var UNLOCK_PENDING_PCT = 5;
 
   /* ════════════════════════════════════════════════════════════════
      SEAM 2 — localStorage.
@@ -453,12 +463,23 @@
       supplyPts += uncappedPts;
       var deflPts   = tkx.deflation  === 'full' ? 15 : tkx.deflation  === 'partial' ? 8 : tkx.deflation === 'fixed' ? 5 : 0;
       var unlockPts = tkx.unlockRisk === 'low'  ?  0 : tkx.unlockRisk === 'medium'  ? -5 : -10;
-      /* Near-term unlock overhang — extra penalty on top of the static
-         unlockRisk tier when a coin has a real unlock event coming up.
-         unlock30d must be filled in by hand in config.js's
-         TOKENOMICS_DB (see that file's comment) — no live vesting data
-         source is wired into this project. */
-      if (tkx.unlock30d && tkx.unlock30d > 5) unlockPts -= 15;
+      /* THE NEAR-TERM UNLOCK PENALTY WAS HERE, and it was backwards.
+         Removed in 2.9.0; it is an eligibility reason now — see
+         UNLOCK_PENDING_PCT and _eligibility().
+
+         A low score IS the buy signal in this model, and Layer 3 is the
+         only layer where a quality judgement enters. It enters as a
+         subtraction. So "this coin dilutes 6.5% in nineteen days" was
+         read by the zone classifier as fifteen points of "this coin is
+         beaten down", and pushed the coin TOWARD being recommended.
+
+         Measured the day the live feed was wired, on FF: score 35 and in
+         the buy zone WITH the penalty, 50 and neutral without it. The
+         penalty was the only reason it was on the buy list.
+
+         An unlock does not make a coin cheap. It makes it unsuitable to
+         publish as a new entry, and then it passes. That is eligibility,
+         not price. */
       var layer3    = Math.min(30, Math.max(-50, supplyPts + deflPts + unlockPts));
 
       c.score = Math.min(100, Math.max(-50, Math.round(layer1 + layer2 + layer3)));
@@ -1177,6 +1198,22 @@
        hold is still scored and still reported. Hiding it would conceal a
        position rather than protect one. */
     if (monitoringSet && monitoringSet[c.sym]) reasons.push('monitoring');
+    /* NEAR-TERM UNLOCK (2.9.0). Reads the same tokenomics map
+       computeScores() does, now fed live by sync-token-unlocks.
+
+       TEMPORARY BY NATURE, unlike every other reason here: it lifts by
+       itself once the cliff passes, because eligibility is recomputed
+       every run. That is the point — a coin is not broken, it is simply
+       not a sensible NEW entry this week.
+
+       `typeof === 'number'` rather than a truthiness check: ~70% of the
+       universe has no published schedule and carries no field at all,
+       and a coin with a real 0 must be distinguishable from one nobody
+       has data for. Only the first is a measurement. */
+    var _tk = TOKENOMICS_DB[c.id];
+    if (_tk && typeof _tk.unlock30d === 'number' && _tk.unlock30d > UNLOCK_PENDING_PCT) {
+      reasons.push('unlock_pending');
+    }
     var vol = c.volume24 || 0;
     if (cfg.minVolume24h > 0 && vol < cfg.minVolume24h) reasons.push('illiquid');
     /* A coin reporting no market cap at all is a data failure, not a
@@ -2005,6 +2042,11 @@
       /* Derivatives positioning. null means NO PERP MARKET, which is
          not the same as balanced positioning — see _positioning(). */
       positioning: c.positioning || null,
+      /* The unlock reading that produced (or did not produce) the
+         `unlock_pending` exclusion. null means NO PUBLISHED SCHEDULE,
+         not "no unlock due" — see _eligibility(). */
+      unlock30d: (TOKENOMICS_DB[c.id] && typeof TOKENOMICS_DB[c.id].unlock30d === 'number')
+        ? TOKENOMICS_DB[c.id].unlock30d : null,
       zone: c._zone,
       meanRevPass: _passesMeanRevGate(c),
       breakdown: c.scoreBreakdown || null
@@ -2355,6 +2397,11 @@
     V2_WEIGHTS: V2_WEIGHTS,
     CANDIDATE_RULES: CANDIDATE_RULES,
     INSIGHT_RULES: INSIGHT_RULES,
+    /* The eligibility line for a pending unlock (2.9.0). Exported so the
+       page can STAMP the number into its copy rather than typing it —
+       a hand-typed constant in prose is exactly the failure recorded in
+       GUARDRAILS.md under "prose that quoted a constant". */
+    UNLOCK_PENDING_PCT: UNLOCK_PENDING_PCT,
     /* Candle-derived signal lines for a tooltip. Display only — it
        returns no score, and no run calls it. See its own note. */
     insightDetail: insightDetail,
