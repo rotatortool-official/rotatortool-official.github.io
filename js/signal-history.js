@@ -62,7 +62,20 @@ var SignalHistory = (function() {
      from the engine without a recorded reason.
 
      Keep both constants in sync with track-record.html. */
-  var STATS_FROM_DATE = '2026-09-10';
+  /* 2026-09-11. Moved off 09-10 because engine 2.8.0 made the Binance
+     Monitoring tag an eligibility reason, which moves what may be
+     published — rule 5 in GUARDRAILS.md.
+
+     Today's own snapshot was posted at 05:17 UTC under 2.7.0, an hour
+     before 2.8.0 shipped, so it is worth saying why it is kept rather
+     than cut: of its 20 rows, the only Monitoring-tagged coins (GLMR,
+     GNS, SYN) are on the UNDERPERFORMING side, which the gate does not
+     touch, and every bullish row is a tokenised equity. Not one BUY call
+     in it would differ under 2.8.0.
+
+     Tomorrow's date would have been cleaner still, and
+     verify-tracking-labels rightly refuses a future one. */
+  var STATS_FROM_DATE = '2026-09-11';
   var ENGINE_LABEL    = '2.8.0';
 
   function _passesCutoff(dateStr) {
