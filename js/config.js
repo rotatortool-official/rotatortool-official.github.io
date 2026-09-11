@@ -80,7 +80,34 @@ var FREE_COINS = [
      asserting a rebrand this project has no source for. It stays in
      STABLECOINS below as a CLASSIFIER — see the note there. */
   'tether','usd-coin','dai','first-digital-usd','true-usd',
-  'ethena-usde','paypal-usd','gemini-dollar','usdd'
+  'ethena-usde','paypal-usd','gemini-dollar','usdd',
+
+  /* ── Batch 201-256: Binance pairs added 2026-09-11 ──
+     Picked by intersecting CoinGecko's top 750 by market cap with the
+     Binance USDT pairs trading above $300k/day, minus what was already
+     here. Ids come FROM CoinGecko, never guessed from a ticker.
+
+     Three were rejected for TICKER COLLISION, which is the trap this
+     list has hit before (two coins reported as FRAX, fixed 2026-09-09):
+     cross-2 and centrifuge-2 trade as ONE and CFG, both already here,
+     and memecoin-2 collided with another pick. Two coins rendering one
+     ticker means a holding matches whichever loaded first.
+
+     Monitoring-tagged symbols were excluded at selection time as well
+     as by the 2.8.0 eligibility gate — no point adding a coin the
+     engine will refuse to publish. */
+  'zcash','the-open-network','tether-gold','aster-2','pax-gold',
+  'world-liberty-financial','pump-fun','sky','polygon-ecosystem-token','just',
+  'nexo','dash','ether-fi','aerodrome-finance','official-trump',
+  'falcon-finance-ff','pudgy-penguins','virtual-protocol','sun-token','tezos',
+  'terra-luna','decred','syrup','plasma','ethereum-name-service',
+  'trust-wallet-token','starknet','eigenlayer','kaia','doublezero',
+  'ecash','chiliz','apecoin','zencash','havven',
+  'mina-protocol','golem','sonic-3','zksync','prometeus',
+  'four','dydx-chain','ordinals','plume','superfarm',
+  'kaito','kusama','holotoken','goplus-security','dexe',
+  'turbo','redstone-oracles','spark-2','linea','berachain-bera',
+  'coti',
 ];
 
 var PRO_EXTRA_COINS = []; /* All 200 in free tier — Pro reserved for future expansion */

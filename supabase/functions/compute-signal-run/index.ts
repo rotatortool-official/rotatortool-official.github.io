@@ -142,7 +142,7 @@ Deno.serve(async (req) => {
   try {
     const stableIds = new Set(Object.keys(siteTables.STABLECOINS));
 
-    const [marketsRow, macroRow, cycleRows, delistedRows, zoneRows, techRows, fgRow, futRows] = await Promise.all([
+    const [marketsRow, macroRow, cycleRows, delistedRows, zoneRows, techRows, fgRow, futRows, monRows] = await Promise.all([
       supabase.from('market_cache').select('data').eq('cache_key', 'cg_markets_all').single(),
       supabase.from('market_cache').select('data').eq('cache_key', 'macro_data').single(),
       supabase.from('market_cycle').select('symbol, ma200, mayer_multiple'),
@@ -159,6 +159,17 @@ Deno.serve(async (req) => {
       // it becomes gradeable once there is enough history to measure.
       supabase.from('binance_futures_metrics')
         .select('base_asset, funding_rate, open_interest_value, oi_change_24h_pct, long_short_ratio, taker_buy_sell_ratio'),
+      // Binance Monitoring Tag. Engine 2.8.0 makes this an eligibility
+      // reason, so the page, this function's stored `eligible` column and
+      // send-telegram-alerts all inherit one answer. It had lived only in
+      // site/js/signals.js, which meant the PAGE hid these coins while the
+      // alerts - reading `eligible` - would have sent them. 308 of 685
+      // publishable CANDIDATE rows across every stored run were tagged.
+      //
+      // ORDER MATTERS: this is appended LAST because the destructure above
+      // takes it last. Inserting a query in the middle silently swaps two
+      // results; that broke production for four minutes on 2026-09-10.
+      supabase.from('binance_monitoring_symbols').select('base_asset'),
     ]);
     if (marketsRow.error || !marketsRow.data) throw new Error('cg_markets_all not found: ' + (marketsRow.error?.message ?? 'no row'));
 
@@ -167,6 +178,12 @@ Deno.serve(async (req) => {
     const marketCycle: Record<string, { ma200: number; mayer_multiple: number }> = {};
     for (const r of cycleRows.data || []) marketCycle[r.symbol] = { ma200: Number(r.ma200), mayer_multiple: r.mayer_multiple != null ? Number(r.mayer_multiple) : null as any };
     const delisted = (delistedRows.data || []).map((r: { base_asset: string }) => r.base_asset);
+    // Fails OPEN, like `delisted`: a read failure yields an empty list, so
+    // an outage degrades to "no exclusions" and never to an empty buy list.
+    const monitoring = (monRows.data || []).map((r: { base_asset: string }) => r.base_asset);
+    if (monRows.error) {
+      console.warn('[compute-signal-run] binance_monitoring_symbols read failed:', monRows.error.message);
+    }
     const previousZones: Record<string, string> = {};
     for (const r of zoneRows.data || []) previousZones[r.coin_id] = r.zone;
 
@@ -397,7 +414,7 @@ Deno.serve(async (req) => {
       marketCycle,
       volumeHistory: {},
       previousZones,
-      eligibility: { minVolume24h: ELIGIBILITY_MIN_VOLUME, delisted },
+      eligibility: { minVolume24h: ELIGIBILITY_MIN_VOLUME, delisted, monitoring },
       technicals,
       fearGreed,
       futures,

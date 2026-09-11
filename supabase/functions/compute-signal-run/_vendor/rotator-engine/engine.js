@@ -193,7 +193,7 @@
      constructs its own coins to cover the branch. Both golden checks
      also had to learn that "adding a field is allowed" applies inside
      nested objects too; see rotator-fixture/lib/golden-project.js. */
-  var ENGINE_VERSION = '2.7.0';
+  var ENGINE_VERSION = '2.8.0';
   var SCORING_MODELS = ['v1', 'v2'];
 
   /* ── Eligibility defaults ──────────────────────────────────────────
@@ -1145,12 +1145,38 @@
 
      Returns the reasons, not just a boolean, so a run can explain
      itself later. */
-  function _eligibility(c, cfg, delistedSet) {
+  function _eligibility(c, cfg, delistedSet, monitoringSet) {
     var reasons = [];
     if (c.isStable) reasons.push('stablecoin');
     if (c.dataComplete === false) reasons.push('incomplete_history');
     if (c.isStock) reasons.push('equity');            /* partial 0-70 scale, not comparable to crypto */
     if (delistedSet[c.sym]) reasons.push('delisted');
+    /* BINANCE MONITORING TAG, added 2.8.0. Still trading, but flagged by
+       the exchange for volatility or risk materially above listing
+       standards and under periodic review for possible delisting.
+
+       NOT a subset of `delisted`. Measured 2026-09-06: all 32
+       Monitoring-tagged USDT pairs had status TRADING, so the delisted
+       check caught none of them.
+
+       WHY IT BELONGS HERE AND NOT IN THE BROWSER. site/js/signals.js has
+       had `_isExchangeFlagged()` doing this since 2026-09-06 — but only
+       for the page. `signal_run_items.eligible` said these coins were
+       fine, and send-telegram-alerts, which reads that column and never
+       heard of monitoring, would send them as buy suggestions.
+
+       The exposure was not marginal. Across every stored run, 308 of 685
+       publishable CANDIDATE rows — 45% — were Monitoring-tagged coins
+       (GLMR and SYN). The page hid them; the alerts did not.
+
+       One owner here means the page, the alerts and the bot all inherit
+       it from `eligible` instead of three files each remembering to ask.
+
+       BUY SIDE ONLY, still. `eligible` gates the buy list; the sell path
+       keys on holdings, not eligibility, so a flagged coin you already
+       hold is still scored and still reported. Hiding it would conceal a
+       position rather than protect one. */
+    if (monitoringSet && monitoringSet[c.sym]) reasons.push('monitoring');
     var vol = c.volume24 || 0;
     if (cfg.minVolume24h > 0 && vol < cfg.minVolume24h) reasons.push('illiquid');
     /* A coin reporting no market cap at all is a data failure, not a
@@ -2059,6 +2085,12 @@
     var delistedSet = {};
     var dl = (input.eligibility && input.eligibility.delisted) || input.delisted || [];
     for (var d = 0; d < dl.length; d++) delistedSet[dl[d]] = true;
+    /* Same shape as delisted, and it FAILS OPEN: an absent or empty list
+       means "no exclusions", never "everything excluded". A Supabase
+       outage must not empty the buy list. */
+    var monitoringSet = {};
+    var ml = (input.eligibility && input.eligibility.monitoring) || input.monitoring || [];
+    for (var mo = 0; mo < ml.length; mo++) monitoringSet[ml[mo]] = true;
 
     /* Candidate classification. `rsiApplied` (measured above) is a
        feed-alive check, not a coverage-quality one — see
@@ -2083,7 +2115,7 @@
       var item = _projectItem(coins[i]);
       if (item.positioning) posCounts[item.positioning.label] = (posCounts[item.positioning.label] || 0) + 1;
       if (item.insight) insightCounts[item.insight.label] = (insightCounts[item.insight.label] || 0) + 1;
-      var el = _eligibility(coins[i], cfg, delistedSet);
+      var el = _eligibility(coins[i], cfg, delistedSet, monitoringSet);
       item.eligible = el.eligible;
       item.exclusions = el.exclusions;
 
@@ -2127,7 +2159,14 @@
          that is hysteresis or a bug. */
       hysteresis: _SIG_HYSTERESIS,
       cycleLabel: _btcCycleLabel(),
-      eligibility: cfg,
+      /* Echo what the gate actually used, including the two exchange
+         lists, so a stored run can say WHY a coin was excluded rather
+         than only that it was. Counts, not the lists themselves — the
+         per-item `exclusions` already names the reason. */
+      eligibility: Object.assign({}, cfg, {
+        delistedCount: Object.keys(delistedSet).length,
+        monitoringCount: Object.keys(monitoringSet).length
+      }),
       universeSize: coins.length,
       eligibleCount: items.filter(function(it) { return it.eligible; }).length,
       items: items,
