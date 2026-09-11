@@ -455,32 +455,73 @@ function pctChange(now: number | null, then: number | null): number | null {
 }
 
 /**
- * blockchain.info daily chart → [latest, the reading 7 days before it].
+ * blockchain.info daily chart → { level, p7, series }.
+ *
+ * WEEKLY AVERAGES, NOT TWO SINGLE DAYS. Changed 2026-09-11 after the
+ * hash rate printed +19.05% one day and -15.16% the next.
+ *
+ * Both readings were correct arithmetic on the published data, and
+ * neither was news. The daily hash rate is not measured — it is
+ * INFERRED from how many blocks were found that day, and block
+ * discovery is a Poisson process, so a single day carries about 7% of
+ * pure estimator noise. Comparing one noisy day against the noisy day
+ * seven earlier compounds it: both endpoints move, and a swing of ±19%
+ * arrives on a network that did nothing. Measured on the same series
+ * the two readings above came from, the honest week-over-week change
+ * was +0.09%.
+ *
+ * Active addresses had a second version of the same problem — a
+ * weekday cycle. Saturday and Sunday run 10-15% below Thursday, so the
+ * old reading partly reported which day of the week it happened to be.
+ *
+ * Both are fixed by the same thing: average the last seven days and
+ * compare to the seven before them. This is also what every serious
+ * hash rate display does, and why blockchain.com's own front page
+ * shows a smoothed line rather than the daily estimate.
+ *
+ * SELECTED BY TIMESTAMP, NOT BY INDEX. This series has holes — there
+ * is a real 8-day gap at 2026-08-16, and a 30-day request currently
+ * returns 23 points. Taking the last seven ENTRIES would quietly
+ * average a fortnight and call it a week. Each bucket must also carry
+ * MIN_BUCKET real days or the change is reported as null, because
+ * "not enough data to say" and "no change" are different statements
+ * (GUARDRAILS rule 4).
+ *
  * `cors=true` is their documented parameter and is harmless server-side.
  */
-async function chainSeries(chart: string): Promise<[number | null, number | null, number[]]> {
+const MIN_BUCKET = 5;
+
+function meanOf(pts: { x: number; y: number }[]): number | null {
+  if (pts.length < MIN_BUCKET) return null;
+  return pts.reduce((a, p) => a + p.y, 0) / pts.length;
+}
+
+async function chainSeries(
+  chart: string,
+): Promise<{ level: number | null; p7: number | null; series: number[] }> {
   const url = `https://api.blockchain.info/charts/${chart}`
     + '?timespan=30days&format=json&cors=true';
   const data = await safeJson(url);
   const vals = (data?.values ?? []) as { x: number; y: number }[];
-  const clean = vals.filter((v) => v && isFinite(v.y) && v.y > 0);
-  /* The daily series, for the sparkline. Widened from 9 days to 30 in
-     the SAME single call — the endpoint charges nothing for the longer
-     window and 9 points make a poor chart. */
+  const clean = vals.filter((v) => v && isFinite(v.y) && v.y > 0)
+                    .sort((a, b) => a.x - b.x);
+  /* The sparkline stays RAW daily. The headline is smoothed because a
+     single day is a poor estimate; the chart underneath it should still
+     show what the data actually looks like rather than hide the spread. */
   const series = clean.slice(-30).map((v) => Number(v.y.toPrecision(6)));
-  if (clean.length < 8) return [null, null, series];
-  const last = clean[clean.length - 1];
-  // Match on the timestamp rather than counting back 7 entries: the series
-  // is daily but a missing day would otherwise quietly become a 6-day or
-  // 8-day change reported as 7.
-  const target = last.x - 7 * 86400;
-  let best: { x: number; y: number } | null = null, bestDist = Infinity;
-  for (const v of clean) {
-    const d = Math.abs(v.x - target);
-    if (d < bestDist) { bestDist = d; best = v; }
-  }
-  if (!best || best.x === last.x || bestDist > 36 * 3600) return [last.y, null, series];
-  return [last.y, best.y, series];
+  if (!clean.length) return { level: null, p7: null, series };
+
+  const last = clean[clean.length - 1].x;
+  const wk = (from: number, to: number) =>
+    clean.filter((v) => v.x > last - from * 86400 && v.x <= last - to * 86400);
+
+  const recent = meanOf(wk(7, 0));
+  const prior  = meanOf(wk(14, 7));
+
+  /* Falls back to the latest single point rather than reporting
+     nothing, so a short or gappy series still shows a level. */
+  const level = recent != null ? recent : clean[clean.length - 1].y;
+  return { level, p7: pctChange(recent, prior), series };
 }
 
 async function fetchNetwork(
@@ -498,10 +539,12 @@ async function fetchNetwork(
 
   // ── Bitcoin hash rate. Reported in TH/s; shown in EH/s. ──
   try {
-    const [now, then, s] = await chainSeries('hash-rate');
-    if (now != null) out.hashrateEh = now / 1e6;
-    out.hashrateP7 = pctChange(now, then);
-    if (s.length > 1) series.hashrateEh = s.map((v) => Number((v / 1e6).toPrecision(6)));
+    const r = await chainSeries('hash-rate');
+    if (r.level != null) out.hashrateEh = r.level / 1e6;
+    out.hashrateP7 = r.p7;
+    if (r.series.length > 1) {
+      series.hashrateEh = r.series.map((v) => Number((v / 1e6).toPrecision(6)));
+    }
   } catch (e) {
     console.warn('[network] hash rate failed:', (e as Error).message);
   }
@@ -509,10 +552,10 @@ async function fetchNetwork(
 
   // ── Unique Bitcoin addresses used per day. ──
   try {
-    const [now, then, s] = await chainSeries('n-unique-addresses');
-    out.addrCount = now;
-    out.addrP7 = pctChange(now, then);
-    if (s.length > 1) series.addrCount = s;
+    const r = await chainSeries('n-unique-addresses');
+    out.addrCount = r.level;
+    out.addrP7 = r.p7;
+    if (r.series.length > 1) series.addrCount = r.series;
   } catch (e) {
     console.warn('[network] addresses failed:', (e as Error).message);
   }

@@ -1485,10 +1485,15 @@ function renderBriefing() {
       d: 'A rising dollar is a headwind for risk assets' },
     { v: _bfNum(n.hashrateEh, 0), u: ' EH/s', p: n.hashrateP7, s: ns.hashrateEh,
       k: 'Hash rate',
-      d: 'Computing power securing Bitcoin' },
+      d: 'Computing power securing Bitcoin, averaged over 7 days. '
+         + 'The daily figure is inferred from blocks found, so one day '
+         + 'alone carries about 7% of noise — the line below is the raw '
+         + 'daily estimate and shows that spread.' },
     { v: _bfNum(n.addrCount, 0), u: '', p: n.addrP7, s: ns.addrCount,
       k: 'Active addresses',
-      d: 'Bitcoin addresses used in a day' },
+      d: 'Bitcoin addresses used per day, averaged over 7 days. '
+         + 'Weekends run well below midweek, so a single day reports '
+         + 'partly which day of the week it is.' },
     { v: _bfUsd(n.tvlUsd), u: '', p: n.tvlP7, s: ns.tvlUsd,
       k: 'DeFi TVL',
       d: 'Value locked across every tracked chain' },
