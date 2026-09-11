@@ -142,7 +142,7 @@ Deno.serve(async (req) => {
   try {
     const stableIds = new Set(Object.keys(siteTables.STABLECOINS));
 
-    const [marketsRow, macroRow, cycleRows, delistedRows, zoneRows, techRows, fgRow, futRows, monRows] = await Promise.all([
+    const [marketsRow, macroRow, cycleRows, delistedRows, zoneRows, techRows, fgRow, futRows, monRows, unlockRows] = await Promise.all([
       supabase.from('market_cache').select('data').eq('cache_key', 'cg_markets_all').single(),
       supabase.from('market_cache').select('data').eq('cache_key', 'macro_data').single(),
       supabase.from('market_cycle').select('symbol, ma200, mayer_multiple'),
@@ -170,6 +170,11 @@ Deno.serve(async (req) => {
       // takes it last. Inserting a query in the middle silently swaps two
       // results; that broke production for four minutes on 2026-09-10.
       supabase.from('binance_monitoring_symbols').select('base_asset'),
+      // Forward-looking unlocks (sync-token-unlocks, 2026-09-11). The
+      // engine has had an `unlock30d` penalty since 2.0.0 and it has
+      // never been fed: `unlock30d > 5` costs 15 points and no coin has
+      // ever carried a figure. Appended LAST to match the destructure.
+      supabase.from('token_unlocks').select('coin_id, unlock30d_pct'),
     ]);
     if (marketsRow.error || !marketsRow.data) throw new Error('cg_markets_all not found: ' + (marketsRow.error?.message ?? 'no row'));
 
@@ -180,6 +185,32 @@ Deno.serve(async (req) => {
     const delisted = (delistedRows.data || []).map((r: { base_asset: string }) => r.base_asset);
     // Fails OPEN, like `delisted`: a read failure yields an empty list, so
     // an outage degrades to "no exclusions" and never to an empty buy list.
+    // Merge the live unlock figures onto the static tokenomics table
+    // WITHOUT mutating it — siteTables is module-level and shared.
+    //
+    // NULL IS NOT ZERO. Coverage is ~30% of the universe, so a coin with
+    // no schedule is simply left without the field and the engine's
+    // `tkx.unlock30d && tkx.unlock30d > 5` guard skips it. A coin WITH a
+    // schedule showing 0 gets a real 0. Both mean "no penalty" today,
+    // but only one of them is a measurement, and params.unlocks below
+    // records which is which.
+    const unlockPct = new Map<string, number>();
+    for (const r of (unlockRows.data || [])) {
+      if (r && r.unlock30d_pct != null) unlockPct.set(r.coin_id, Number(r.unlock30d_pct));
+    }
+    if (unlockRows.error) {
+      console.warn('[compute-signal-run] token_unlocks read failed:', unlockRows.error.message);
+    }
+    const tokenomicsWithUnlocks: Record<string, unknown> = {};
+    for (const [id, tk] of Object.entries(siteTables.TOKENOMICS_DB as Record<string, unknown>)) {
+      tokenomicsWithUnlocks[id] = tk;
+    }
+    for (const [id, pct] of unlockPct) {
+      const base = (tokenomicsWithUnlocks[id] as Record<string, unknown>)
+        ?? { deflation: 'none', unlockRisk: 'medium' };
+      tokenomicsWithUnlocks[id] = { ...(base as object), unlock30d: pct };
+    }
+
     const monitoring = (monRows.data || []).map((r: { base_asset: string }) => r.base_asset);
     if (monRows.error) {
       console.warn('[compute-signal-run] binance_monitoring_symbols read failed:', monRows.error.message);
@@ -409,7 +440,7 @@ Deno.serve(async (req) => {
     const run = Engine.computeSignalRunV2({
       asOf,
       coins: universe,
-      tokenomics: siteTables.TOKENOMICS_DB,
+      tokenomics: tokenomicsWithUnlocks,
       macro,
       marketCycle,
       volumeHistory: {},
@@ -462,6 +493,15 @@ Deno.serve(async (req) => {
           // made, and so nobody has to take a comment's word for the
           // fact that this data moved no score.
           positioning: run.positioning,
+          // How many coins carried a real unlock figure, and how many of
+          // those were large enough to cost points. A stored run can then
+          // say whether the penalty was available, not just whether it
+          // fired.
+          unlocks: {
+            covered: unlockPct.size,
+            overThreshold: [...unlockPct.values()].filter((v) => v > 5).length,
+            thresholdPct: 5,
+          },
           // Why pillar 6 did or did not run, in the run itself. A null
           // fearGreed in `insights` says "not consulted"; this says
           // whether that was because the row was absent or because it
