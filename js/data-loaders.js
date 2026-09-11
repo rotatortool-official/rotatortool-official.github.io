@@ -1295,9 +1295,29 @@ function _bfDelta(p) {
   return '<span class="bf-d ' + cls + '">' + (p >= 0 ? '+' : '')
        + p.toFixed(1) + '% 7d</span>';
 }
-/* Macro cells ARE a percentage, so the headline value is the move
-   itself rather than a level. Returns null when absent so the cell is
-   dropped instead of rendering a dash. */
+/* The LEVEL for a macro cell, taken as the last point of its own daily
+   series — the same array the sparkline draws.
+
+   The first version printed the 7-day percentage as the headline value
+   AND as the delta beneath it, so every macro cell read "-0.8% / -0.8%
+   7d". The level is the missing half: gold at $4,394 having moved -0.8%
+   says something the percentage alone does not.
+
+   Decimals follow magnitude rather than a fixed rule, because these
+   four span 99 (dollar index) to 4,394 (gold) and one format cannot
+   serve both. Returns null when there is no series, and the caller then
+   falls back to the percentage rather than dropping the cell. */
+function _bfLevel(series, prefix) {
+  if (!Array.isArray(series) || !series.length) return null;
+  var v = series[series.length - 1];
+  if (typeof v !== 'number' || !isFinite(v)) return null;
+  var dp = v >= 1000 ? 0 : v >= 100 ? 1 : 2;
+  return (prefix || '') + v.toLocaleString('en-US',
+    { minimumFractionDigits: dp, maximumFractionDigits: dp });
+}
+
+/* Fallback when a macro series is unavailable: show the move itself
+   rather than nothing, so the cell still carries information. */
 function _bfPct(p) {
   if (p == null || !isFinite(p)) return null;
   return (p >= 0 ? '+' : '') + p.toFixed(1) + '%';
@@ -1367,17 +1387,17 @@ function renderBriefing() {
   var ns = (n && n.series) || {};
 
   var cells = [
-    { v: _bfPct(m.goldP7),   u: '', p: m.goldP7,   s: ms.goldP7,
-      k: 'Gold · 7D',
+    { v: _bfLevel(ms.goldP7, '$') || _bfPct(m.goldP7),   u: '', p: m.goldP7,   s: ms.goldP7,
+      k: 'Gold',
       d: 'The oldest store of value, as a benchmark' },
-    { v: _bfPct(m.silverP7), u: '', p: m.silverP7, s: ms.silverP7,
-      k: 'Silver · 7D',
+    { v: _bfLevel(ms.silverP7, '$') || _bfPct(m.silverP7), u: '', p: m.silverP7, s: ms.silverP7,
+      k: 'Silver',
       d: 'Industrial demand as well as a metal' },
-    { v: _bfPct(m.oilP7),    u: '', p: m.oilP7,    s: ms.oilP7,
-      k: 'Oil · 7D',
+    { v: _bfLevel(ms.oilP7, '$') || _bfPct(m.oilP7),    u: '', p: m.oilP7,    s: ms.oilP7,
+      k: 'Oil · WTI',
       d: 'WTI crude — input cost for the real economy' },
-    { v: _bfPct(m.dxyP7),    u: '', p: m.dxyP7,    s: ms.dxyP7,
-      k: 'Dollar index · 7D',
+    { v: _bfLevel(ms.dxyP7, '') || _bfPct(m.dxyP7),    u: '', p: m.dxyP7,    s: ms.dxyP7,
+      k: 'Dollar index',
       d: 'A rising dollar is a headwind for risk assets' },
     { v: _bfNum(n.hashrateEh, 0), u: ' EH/s', p: n.hashrateP7, s: ns.hashrateEh,
       k: 'Hash rate',
