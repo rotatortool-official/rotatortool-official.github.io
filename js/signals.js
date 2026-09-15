@@ -495,6 +495,44 @@ function buySuggestTile(c) {
    anecdote, it's the same published record shown on track-record.html.
    Shows at most 1 recent proof, since the point is credibility, not
    a wall of self-congratulation next to a buy suggestion. */
+/* Market-wide oversold context line (engine 2.10.0).
+
+   The engine computes the flag, its definition and its evidence; this
+   only FORMATS them, and every number shown is read from the run rather
+   than typed here (GUARDRAILS, "prose that quoted a constant").
+
+   Rendered only when the SERVER run measured the flag and it is active.
+   An unmeasured flag is not a calm market (GUARDRAILS rule 4), so it is
+   not drawn as one — it is simply not drawn. The local browser pass has
+   no 4h feed and always reports no_feed, which lands here as nothing.
+
+   It describes the whole market and never a coin: in the measurement
+   behind it an oversold coin did not beat the market. See promptove/42. */
+function marketOversoldLine() {
+  var run = window.ROTATOR_RUN;
+  var mo = run && run.marketOversold;
+  if (!mo || mo.measured !== true || mo.active !== true || !mo.rules) return '';
+  var r = mo.rules, ev = r.evidence || {};
+  var d7 = ev.marketReturnPct && ev.marketReturnPct.d7;
+  var up7 = ev.marketUpCount && ev.marketUpCount.d7;
+  var since = String(ev.window || '').slice(0, 4);
+  var hist = (d7 != null && up7 != null && ev.entries)
+    ? ' In the ' + ev.entries + ' earlier cases since ' + since + ', the market averaged '
+      + (d7 >= 0 ? '+' : '') + d7 + '% over the following 7 days (' + up7 + ' of ' + ev.entries + ' higher).'
+    : '';
+  var title = ('Share of scored coins with 4h RSI(' + r.rsiPeriod + ') below ' + r.rsiBelow
+    + ', at or above ' + Math.round(r.breadthMin * 100) + '% on ' + r.minDays
+    + '+ separate UTC days within 72h. ' + ev.entries + ' occurrences in ' + ev.window
+    + ' - a small sample, drawn from coins that still exist today. It describes the whole market, not any single coin.')
+    .replace(/"/g, '&quot;');
+  return '<div class="proof-line market-oversold-line" title="' + title + '">'
+    + '<span style="color:var(--amber, #f0b90b);">◔ Market-wide oversold —</span> '
+    + Math.round(mo.breadthNow * 100) + '% of ' + mo.coins + ' coins at 4h RSI below ' + r.rsiBelow
+    + ', on ' + mo.daysAtBreadth + ' separate days.' + hist
+    + ' Small sample; describes the market, not a coin.'
+    + '</div>';
+}
+
 function provenProofLine() {
   if (typeof SignalHistory === 'undefined') return '';
   var proven = SignalHistory.getProvenSignals();
@@ -822,7 +860,7 @@ function renderTopBars() {
       gridHtml += emptyPlaceholderTile();
     }
 
-    sugEl.innerHTML = '<div class="sig-tiles-grid">' + gridHtml + '</div>' + provenProofLine();
+    sugEl.innerHTML = '<div class="sig-tiles-grid">' + gridHtml + '</div>' + marketOversoldLine() + provenProofLine();
     return;
   }
 
@@ -833,7 +871,9 @@ function renderTopBars() {
   var proTiles = _buildRotationTiles(sells, buys, allBuys, ROT_TILE_SLOTS);
 
   if (!proTiles.length) {
-    sugEl.innerHTML = '<div class="no-sug">Scanning — no rotation setups in range right now.</div>';
+    /* The context line matters most here: an empty column on a flush day
+       reads as "nothing is happening" when the market is doing a lot. */
+    sugEl.innerHTML = '<div class="no-sug">Scanning — no rotation setups in range right now.</div>' + marketOversoldLine();
     return;
   }
   var rotHtml = proTiles.map(function(t) {
@@ -842,7 +882,7 @@ function renderTopBars() {
     return buySuggestTile(t.c);
   }).join('');
   for (var rp = proTiles.length; rp < ROT_TILE_SLOTS; rp++) rotHtml += emptyPlaceholderTile();
-  sugEl.innerHTML = '<div class="sig-tiles-grid">' + rotHtml + '</div>' + provenProofLine();
+  sugEl.innerHTML = '<div class="sig-tiles-grid">' + rotHtml + '</div>' + marketOversoldLine() + provenProofLine();
 }
 
 /* ══════════════════════════════════════════════════════════════

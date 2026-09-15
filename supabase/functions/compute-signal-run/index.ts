@@ -142,7 +142,7 @@ Deno.serve(async (req) => {
   try {
     const stableIds = new Set(Object.keys(siteTables.STABLECOINS));
 
-    const [marketsRow, macroRow, cycleRows, delistedRows, zoneRows, techRows, fgRow, futRows, monRows, unlockRows] = await Promise.all([
+    const [marketsRow, macroRow, cycleRows, delistedRows, zoneRows, techRows, fgRow, futRows, monRows, unlockRows, k4Rows] = await Promise.all([
       supabase.from('market_cache').select('data').eq('cache_key', 'cg_markets_all').single(),
       supabase.from('market_cache').select('data').eq('cache_key', 'macro_data').single(),
       supabase.from('market_cycle').select('symbol, ma200, mayer_multiple'),
@@ -175,6 +175,10 @@ Deno.serve(async (req) => {
       // never been fed: `unlock30d > 5` costs 15 points and no coin has
       // ever carried a figure. Appended LAST to match the destructure.
       supabase.from('token_unlocks').select('coin_id, unlock30d_pct'),
+      // 4h closes for the market-wide oversold flag (engine 2.10.0).
+      // Context weighted at zero - see MARKET_OVERSOLD_RULES and
+      // promptove/42. Appended LAST to match the destructure.
+      supabase.from('binance_klines_4h').select('base_asset, closes, updated_at'),
     ]);
     if (marketsRow.error || !marketsRow.data) throw new Error('cg_markets_all not found: ' + (marketsRow.error?.message ?? 'no row'));
 
@@ -236,6 +240,28 @@ Deno.serve(async (req) => {
     }
     if (futRows.error) {
       console.warn('[compute-signal-run] binance_futures_metrics read failed:', futRows.error.message);
+    }
+
+    // The feed's LAST close is the candle still forming when
+    // sync-binance-klines-4h ran. Binance 4h candles open on 00/04/08/
+    // 12/16/20 UTC, so that candle's open is updated_at floored to 4h.
+    // The engine drops it and derives every closed bar's time from this.
+    // A row written a moment after a boundary would be placed one bar
+    // late; that shifts the day bucketing by 4h at worst, and the run
+    // shows it in marketOversold.latestBarOpen. Fails OPEN to "no_feed",
+    // which the engine reports as not measured rather than as calm.
+    const BAR_4H_MS = 4 * 3600 * 1000;
+    const klines4h: Record<string, { closes: number[]; lastOpenTime: number }> = {};
+    for (const r of (k4Rows.data || [])) {
+      const t = Date.parse(r?.updated_at);
+      if (!r?.base_asset || !Array.isArray(r.closes) || !Number.isFinite(t)) continue;
+      klines4h[r.base_asset] = {
+        closes: r.closes.map(Number),
+        lastOpenTime: Math.floor(t / BAR_4H_MS) * BAR_4H_MS,
+      };
+    }
+    if (k4Rows.error) {
+      console.warn('[compute-signal-run] binance_klines_4h read failed:', k4Rows.error.message);
     }
 
     if (techRows.error) {
@@ -449,6 +475,7 @@ Deno.serve(async (req) => {
       technicals,
       fearGreed,
       futures,
+      klines4h,
       previous,
     });
 
@@ -516,6 +543,11 @@ Deno.serve(async (req) => {
           // with the run so an effective_score can still be explained
           // after they are next tuned.
           insights: run.insights,
+          // Market-wide oversold (engine 2.10.0): the flag, its breadth
+          // series, the rules and the evidence behind them, and the
+          // reason when it was not measured. Stored with the run so the
+          // flag can be graded later against what the market then did.
+          marketOversold: run.marketOversold,
         },
       })
       .select('id')
@@ -615,6 +647,13 @@ Deno.serve(async (req) => {
         candidate_classes: run.candidates?.counts ?? {},
         fear_greed: run.insights?.fearGreed ?? null,
         insight_labels: run.insights?.counts ?? {},
+        market_oversold: run.marketOversold
+          ? {
+              measured: run.marketOversold.measured, reason: run.marketOversold.reason,
+              active: run.marketOversold.active, breadth_now: run.marketOversold.breadthNow,
+              coins: run.marketOversold.coins, age_hours: run.marketOversold.ageHours,
+            }
+          : null,
       }),
       { status: 200, headers: { 'Content-Type': 'application/json' } }
     );

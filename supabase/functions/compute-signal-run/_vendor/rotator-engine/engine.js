@@ -193,7 +193,13 @@
      constructs its own coins to cover the branch. Both golden checks
      also had to learn that "adding a field is allowed" applies inside
      nested objects too; see rotator-fixture/lib/golden-project.js. */
-  var ENGINE_VERSION = '2.9.0';
+  /* 2.10.0 — run.marketOversold, a market-wide flag read from 4h RSI
+     breadth. ADDITIVE: it moves no score, rank, zone, class or
+     eligibility, and test/verify-market-oversold.js asserts that by
+     running the fixture with and without the feed. The record does not
+     reset for it; see ALLOWED_DIVERGENCE in verify-tracking-labels.js.
+     Measurement and caveats: promptove/42. */
+  var ENGINE_VERSION = '2.10.0';
   var SCORING_MODELS = ['v1', 'v2'];
 
   /* ── Eligibility defaults ──────────────────────────────────────────
@@ -1150,6 +1156,7 @@
       previousZonesSupplied: !!(input.previousZones && Object.keys(input.previousZones).length),
       technicalsSupplied: !!(input.technicals && Object.keys(input.technicals).length),
       futuresSupplied: !!(input.futures && Object.keys(input.futures).length),
+      klines4hSupplied: !!(input.klines4h && Object.keys(input.klines4h).length),
       fearGreedSupplied: _fearGreed != null,
       inputAges: input.inputAges || null
     };
@@ -1543,6 +1550,187 @@
       accelerating: accelerating,
       stabilizing: stabilizing
     };
+  }
+
+  /* ── Market-wide oversold (2.10.0) ─────────────────────────────────
+     One flag for the whole market, never for a coin. It moves no score,
+     zone, class or eligibility, and `weighted: false` says so in the run.
+
+     WHAT IT MEASURES. The share of the scored crypto universe whose 4h
+     RSI(14) is below 20 — the breadth — on each recent closed 4h bar. It
+     is ACTIVE when breadth is at or above 25% on the latest closed bar
+     AND reached that level on at least 2 distinct UTC days within the
+     trailing 72h (18 bars).
+
+     WHY THOSE NUMBERS. They are the definition measured in promptove/42
+     (rotator-backtest/oversold-4h.js), not tuned afterwards: 3 years of
+     Binance 4h candles, 126 coins, statistics over episodes.
+
+       equal-weight market return after entry   n    3d     7d     14d    30d
+       >=25% below 20, single bar               11   +5.5   +6.0   +10.3  +3.7
+       >=25% below 20, on 2+ days in 72h         5   +8.7   +10.3  +13.7  +4.3
+       baseline, any day                             +0.1   +0.2   +0.5   +1.4
+
+     Five entries prove nothing. 5 of 5 is a 3% event under a coin flip,
+     the universe is today's coins (survivorship flatters every dip-buy
+     result) and the effect faded by 30 days. That is why this is context
+     and not a signal, and why `evidence` travels with the rules: a
+     consumer that shows the flag can show its sample size from here
+     instead of typing it.
+
+     WHAT IT DOES NOT SAY. Which coin. In the same measurement an oversold
+     coin did not beat the market at any horizon (excess ~0), so this has
+     no business near the rotation ranking or the buy list.
+
+     THE FEED. binance_klines_4h holds the last 100 4h closes per asset,
+     and the LAST one is the candle still forming when the sync ran. It is
+     always dropped: the measurement never read an unclosed bar. The
+     caller passes `lastOpenTime`, the forming candle's open, and every
+     closed bar's time is derived from it.
+
+     NOT MEASURED is named, never read as calm (GUARDRAILS rule 4):
+       no_feed       nothing supplied, or nothing that matched the universe
+       no_clock      asOf did not parse, so freshness cannot be checked
+       stale         newest closed bar ended more than maxAgeHours before
+                     asOf. The sync runs every 2h; 8h means several missed.
+       low_coverage  fewer than minCoins assets on the latest bar. The
+                     backtest required 60.
+     `active` is null in all four — not false. */
+  var MARKET_OVERSOLD_RULES = {
+    rsiPeriod: 14,
+    rsiBelow: 20,
+    breadthMin: 0.25,
+    minDays: 2,
+    windowBars: 18,
+    minCoins: 60,
+    /* Closed bars an asset needs before its RSI is read. The feed holds
+       99; the earliest bar evaluated sits at index 63, so Wilder has had
+       ~50 smoothing steps and is within ~3% of a full-history seed. */
+    minBars: 60,
+    maxAgeHours: 8,
+    evidence: {
+      source: 'promptove/42',
+      window: '2023-09-01/2026-09-15',
+      entries: 5,
+      entryDates: ['2024-04-13', '2024-07-05', '2024-08-05', '2025-10-11', '2026-02-06'],
+      marketReturnPct: { d3: 8.7, d7: 10.3, d14: 13.7, d30: 4.3 },
+      marketUpCount: { d3: 5, d7: 5, d14: 5, d30: 4 },
+      btcReturnPct: { d3: 2.9, d7: 2.2, d14: 5.4, d30: 2.3 },
+      baselineMarketReturnPct: { d3: 0.1, d7: 0.2, d14: 0.5, d30: 1.4 }
+    }
+  };
+
+  var _BAR_4H_MS = 4 * 3600 * 1000;
+
+  function _marketOversoldRules(override) {
+    var r = {};
+    for (var k in MARKET_OVERSOLD_RULES) r[k] = MARKET_OVERSOLD_RULES[k];
+    if (!override) return r;
+    for (var ok in override) {
+      if (Object.prototype.hasOwnProperty.call(r, ok)) r[ok] = override[ok];
+    }
+    return r;
+  }
+
+  /* Distinct UTC days, within the trailing window ending at slot s, on
+     which breadth reached the line. Bar open time decides the day, as in
+     the backtest. */
+  function _oversoldDays(breadth, s, anchor, span, rules) {
+    var days = {}, n = 0;
+    for (var j = Math.max(0, s - rules.windowBars + 1); j <= s; j++) {
+      if (breadth[j] == null || breadth[j] < rules.breadthMin) continue;
+      var d = Math.floor((anchor - (span - 1 - j) * _BAR_4H_MS) / 864e5);
+      if (!days[d]) { days[d] = true; n++; }
+    }
+    return n;
+  }
+
+  function _marketOversold(universe, klines, asOf, rules) {
+    var out = {
+      rules: rules, weighted: false,
+      measured: false, reason: null, active: null,
+      coins: 0, latestBarOpen: null, ageHours: null,
+      breadthNow: null, daysAtBreadth: null, lastFiredBarOpen: null,
+      series: []
+    };
+    if (!klines || !Object.keys(klines).length) { out.reason = 'no_feed'; return out; }
+
+    /* Each asset's CLOSED bars, and the open time of the last one. Keyed
+       by the feed entry, not by coin: sym is not unique in the universe
+       (FRAX), and one series must not be counted twice. */
+    var W = rules.windowBars, SPAN = 2 * W;
+    var assets = [], seen = {}, anchor = null;
+    for (var i = 0; i < universe.length; i++) {
+      var c = universe[i];
+      if (!c || c.isStable || c.isStock) continue;
+      var key = klines[c.id] ? c.id : (klines[c.sym] ? c.sym : null);
+      if (key == null || seen[key]) continue;
+      var k = klines[key];
+      if (!k || !k.closes || typeof k.lastOpenTime !== 'number' || !isFinite(k.lastOpenTime)) continue;
+      var closed = [], bad = false;
+      for (var j = 0; j < k.closes.length - 1; j++) {
+        var v = Number(k.closes[j]);
+        if (!(v > 0) || !isFinite(v)) { bad = true; break; }
+        closed.push(v);
+      }
+      if (bad || closed.length < rules.minBars) continue;
+      seen[key] = true;
+      var lastOpen = k.lastOpenTime - _BAR_4H_MS;
+      assets.push({ closes: closed, lastOpen: lastOpen });
+      if (anchor == null || lastOpen > anchor) anchor = lastOpen;
+    }
+    if (anchor == null) { out.reason = 'low_coverage'; return out; }
+
+    /* Breadth on each of the last SPAN bars. SPAN is two windows so the
+       day count can be evaluated for every bar of the reported window,
+       not just the latest. An asset whose feed lags the anchor is simply
+       not counted on the bars it does not have. */
+    var below = [], counted = [], breadth = [];
+    for (var s = 0; s < SPAN; s++) {
+      below.push(0); counted.push(0);
+      var slotOpen = anchor - (SPAN - 1 - s) * _BAR_4H_MS;
+      for (var a = 0; a < assets.length; a++) {
+        var as = assets[a];
+        var idx = as.closes.length - 1 - Math.round((as.lastOpen - slotOpen) / _BAR_4H_MS);
+        if (idx < rules.minBars - 1 || idx > as.closes.length - 1) continue;
+        counted[s]++;
+        if (_calcRSI(as.closes.slice(0, idx + 1), rules.rsiPeriod) < rules.rsiBelow) below[s]++;
+      }
+      breadth.push(counted[s] >= rules.minCoins ? below[s] / counted[s] : null);
+    }
+
+    var latest = SPAN - 1;
+    out.coins = counted[latest];
+    /* NativeDate, never Date: Date is shadowed by a clock frozen at asOf
+       (SEAM 2) and ignores its argument, so new Date(t) would stamp every
+       bar with the run's own time and nothing would fail. */
+    out.latestBarOpen = new NativeDate(anchor).toISOString();
+    for (var r = W; r < SPAN; r++) {
+      out.series.push({
+        barOpen: new NativeDate(anchor - (SPAN - 1 - r) * _BAR_4H_MS).toISOString(),
+        breadth: breadth[r] == null ? null : Math.round(breadth[r] * 1000) / 1000,
+        coins: counted[r]
+      });
+    }
+
+    var asOfMs = NativeDate.parse(asOf);
+    if (!isFinite(asOfMs)) { out.reason = 'no_clock'; return out; }
+    out.ageHours = Math.round((asOfMs - (anchor + _BAR_4H_MS)) / 36e4) / 10;
+    if (out.ageHours > rules.maxAgeHours) { out.reason = 'stale'; return out; }
+    if (counted[latest] < rules.minCoins) { out.reason = 'low_coverage'; return out; }
+
+    out.measured = true;
+    out.breadthNow = Math.round(breadth[latest] * 1000) / 1000;
+    out.daysAtBreadth = _oversoldDays(breadth, latest, anchor, SPAN, rules);
+    out.active = breadth[latest] >= rules.breadthMin && out.daysAtBreadth >= rules.minDays;
+    for (var f = latest; f >= W; f--) {
+      if (breadth[f] != null && breadth[f] >= rules.breadthMin
+          && _oversoldDays(breadth, f, anchor, SPAN, rules) >= rules.minDays) {
+        out.lastFiredBarOpen = new NativeDate(anchor - (SPAN - 1 - f) * _BAR_4H_MS).toISOString();
+        break;
+      }
+    }
+    return out;
   }
 
   /* ════════════════════════════════════════════════════════════════
@@ -2257,6 +2445,11 @@
         rsiApplied: rsiApplied,
         counts: insightCounts
       },
+      /* Market-wide oversold, from 4h RSI breadth. Context, weighted at
+         zero, computed after every item is final so it cannot reach one.
+         See MARKET_OVERSOLD_RULES. */
+      marketOversold: _marketOversold(coins, input.klines4h,
+        input.asOf, _marketOversoldRules(input.marketOversoldRules)),
       /* What moved since the previous run. null when the caller did
          not supply one — "no comparison available", which is not the
          same statement as "nothing changed". See _computeChanges(). */
@@ -2402,6 +2595,9 @@
        a hand-typed constant in prose is exactly the failure recorded in
        GUARDRAILS.md under "prose that quoted a constant". */
     UNLOCK_PENDING_PCT: UNLOCK_PENDING_PCT,
+    /* Exported for the same reason: the page stamps the flag's
+       definition and its sample size from here. */
+    MARKET_OVERSOLD_RULES: MARKET_OVERSOLD_RULES,
     /* Candle-derived signal lines for a tooltip. Display only — it
        returns no score, and no run calls it. See its own note. */
     insightDetail: insightDetail,
@@ -2425,7 +2621,9 @@
       calcBollinger: _calcBollinger,
       insightBudget: _insightBudget,
       computeChanges: _computeChanges,
-      changeRules: _changeRules
+      changeRules: _changeRules,
+      marketOversold: _marketOversold,
+      marketOversoldRules: _marketOversoldRules
     }
   };
 }));

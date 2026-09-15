@@ -961,7 +961,9 @@ async function runSignalEngine() {
      simply keeps whatever the local pass above already set. */
   try {
     var runRows = await supaRest('signal_runs', 'GET', {
-      select: 'id,as_of,engine_version,cycle_label',
+      /* params->marketOversold arrives as `marketOversold` (engine 2.10.0).
+         Only that key: the rest of params is provenance, not page data. */
+      select: 'id,as_of,engine_version,cycle_label,params->marketOversold',
       order:  'as_of.desc',
       limit:  '1'
     });
@@ -1011,7 +1013,10 @@ async function runSignalEngine() {
         c._insightRun     = it.insight || null;
         c.insight         = null;   /* rebuilt by computeInsights() */
       });
-      window.ROTATOR_RUN = { engineVersion: latest.engine_version, asOf: latest.as_of, cycleLabel: latest.cycle_label, source: 'server' };
+      window.ROTATOR_RUN = { engineVersion: latest.engine_version, asOf: latest.as_of, cycleLabel: latest.cycle_label, source: 'server',
+        /* null on a run older than 2.10.0, and the page then shows no
+           line — never a locally derived one. */
+        marketOversold: latest.marketOversold || null };
     } else if (localRun) {
       window.ROTATOR_RUN = localRun; /* no server row yet — e.g. cron hasn't ticked since project setup */
     }
