@@ -2150,7 +2150,13 @@ function openTileDetail(coinId, evt) {
          price does next.
 
      Not filtered by anything the visitor owns: a cross is a fact about
-     the coin. Same reasoning as the alert function's own note. */
+     the coin. Same reasoning as the alert function's own note.
+
+     CASUAL NAMES since 2026-09-15, matching the channel: golden / death
+     cross, running hot / sold off hard, longs / shorts piling up. The
+     three rules above still hold on every row — the periods are in the
+     cross label, the date is on every row, and nothing says what price
+     does next. */
   function _eventRow(e) {
     var d = e.detail || {};
     var day = e.event_date || '';
@@ -2164,7 +2170,8 @@ function openTileDetail(coinId, evt) {
       case 'death_cross': {
         var up = e.event_type === 'golden_cross';
         color = up ? 'var(--green)' : 'var(--red)';
-        label = fast + 'D moved ' + (up ? 'above ' : 'below ') + slow + 'D';
+        label = (up ? 'Golden cross · ' : 'Death cross · ')
+          + fast + 'D ' + (up ? 'above ' : 'below ') + slow + 'D';
         body = (d.ma_fast != null && d.ma_slow != null)
           ? fmtP(Number(d.ma_fast)) + ' vs ' + fmtP(Number(d.ma_slow))
           : 'moving averages crossed';
@@ -2174,18 +2181,21 @@ function openTileDetail(coinId, evt) {
       case 'rsi_oversold': {
         var above = e.event_type === 'rsi_overbought';
         color = above ? 'var(--red)' : 'var(--green)';
-        label = 'RSI(14) moved ' + (above ? 'above 80' : 'below 30');
-        body = (v != null ? v.toFixed(1) : '—')
-          + (pv != null ? ', from ' + pv.toFixed(1) + ' the day before' : '');
+        label = above ? 'Running hot · RSI(14) above 80' : 'Sold off hard · RSI(14) below 30';
+        body = 'RSI ' + (v != null ? v.toFixed(1) : '—')
+          + (pv != null ? ', ' + (above ? 'up' : 'down') + ' from ' + pv.toFixed(1) + ' the day before' : '');
         break;
       }
       case 'futures_long_crowded':
       case 'futures_short_crowded': {
         var lng = e.event_type === 'futures_long_crowded';
         color = 'var(--amber)';
-        label = 'Long/short account ratio ' + (lng ? 'reached ' : 'fell to ')
-          + (v != null ? v.toFixed(2) : '—');
-        body = pv != null ? 'from ' + pv.toFixed(2) + ' the day before' : 'Binance accounts';
+        /* Said from the crowded side, like the channel: "3.07 longs per
+           short", or "3.33 shorts per long" instead of an opaque 0.30. */
+        var per = function(x) { return (x == null || !(x > 0)) ? '—' : (lng ? x : 1 / x).toFixed(2); };
+        label = (lng ? 'Longs piling up · ' + per(v) + ' longs per short'
+                     : 'Shorts piling up · ' + per(v) + ' shorts per long');
+        body = (pv != null ? 'from ' + per(pv) + ' the day before · ' : '') + 'Binance accounts';
         break;
       }
       default:

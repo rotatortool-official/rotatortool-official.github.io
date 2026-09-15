@@ -188,7 +188,7 @@ const fmtMa = (n: number | null): string => {
 // have no futures listing; printing 0 or "balanced" for them would invent
 // a measurement that was never taken.
 const fmtRatio = (n: number | null): string =>
-  n === null ? 'not available' : `${n.toFixed(2)} : 1`;
+  n === null ? 'no futures data' : `${n.toFixed(2)} : 1`;
 
 const fmtRsi = (n: number | null): string =>
   n === null ? 'n/a' : n.toFixed(1);
@@ -214,7 +214,14 @@ function buildEventSections(
 
   const ctxRsi   = (s: string) => num(ctx.get(s)?.rsi14_daily ?? null);
   const ctxLs    = (s: string) => num(ctx.get(s)?.long_short_ratio ?? null);
-  const ctxCross = (s: string) => ctx.get(s)?.cross_state ?? 'n/a';
+  // cross_state is 'golden' / 'death' / null. Named in full with its
+  // periods, for the same reason the cross section names them.
+  const ctxCross = (s: string) => {
+    const c = ctx.get(s)?.cross_state;
+    return c === 'golden' ? 'golden cross (60d above 125d)'
+      : c === 'death' ? 'death cross (60d below 125d)'
+      : 'trend n/a';
+  };
 
   const crosses = events.filter(e => e.event_type === 'golden_cross' || e.event_type === 'death_cross');
   const rsis    = events.filter(e => e.event_type === 'rsi_overbought' || e.event_type === 'rsi_oversold');
@@ -228,25 +235,30 @@ function buildEventSections(
       b.event_date.localeCompare(a.event_date) || a.base_asset.localeCompare(b.base_asset));
     const take = crosses.slice(0, MAX_EVENT_LINES);
 
-    lines.push('', '🟡 <b>Moving-average crosses · 60-day vs 125-day</b>');
-    // The periods are named because a reader who assumes the classic
-    // 50/200 misreads every line in this section.
-    lines.push('<i>The 60-day average moved through the 125-day. This describes past price. Note these are 60/125, not the classic 50/200.</i>');
+    // Casual names since 2026-09-15 (Daniel: "golden cross" and "death
+    // cross" read better than "60d moved above 125d"). The periods stay
+    // named in the intro: a reader who assumes the classic 50/200
+    // misreads every line in this section, casual or not.
+    // "and", not "&": parse_mode is HTML and a bare & breaks the send.
+    lines.push('', '✨ <b>Golden and death crosses</b>');
+    lines.push('<i>The 60-day average crossing the 125-day (not the classic 50/200). It looks back at price; it doesn’t call the next move.</i>');
 
     const conflicts: string[] = [];
     for (const e of take) {
       const up  = e.event_type === 'golden_cross';
       const d   = e.detail ?? {};
       const rsi = ctxRsi(e.base_asset);
-      lines.push(`• <b>${e.base_asset}</b> — 60d moved ${up ? 'above' : 'below'} 125d · ${fmtDay(e.event_date)}`);
-      lines.push(`  ${fmtMa(num(d.ma_fast as number | string | null))} vs ${fmtMa(num(d.ma_slow as number | string | null))} · RSI(14) ${fmtRsi(rsi)} · L/S ${fmtRatio(ctxLs(e.base_asset))}`);
+      lines.push(up
+        ? `🟢 <b>${e.base_asset}</b> — golden cross: the 60-day average crossed above the 125-day · ${fmtDay(e.event_date)}`
+        : `🔴 <b>${e.base_asset}</b> — death cross: the 60-day average dropped below the 125-day · ${fmtDay(e.event_date)}`);
+      lines.push(`   60d ${fmtMa(num(d.ma_fast as number | string | null))} vs 125d ${fmtMa(num(d.ma_slow as number | string | null))} · RSI ${fmtRsi(rsi)} · longs/shorts ${fmtRatio(ctxLs(e.base_asset))}`);
       shown.push(e);
       if (rsi !== null && ((up && rsi >= CONFLICT_RSI_HIGH) || (!up && rsi <= CONFLICT_RSI_LOW))) {
-        conflicts.push(`${e.base_asset}'s RSI(14) is ${fmtRsi(rsi)} alongside ${up ? 'an upward' : 'a downward'} cross`);
+        conflicts.push(`${e.base_asset}'s RSI is already ${fmtRsi(rsi)} on a ${up ? 'golden' : 'death'} cross`);
       }
     }
     if (crosses.length > take.length) lines.push(`<i>+ ${crosses.length - take.length} more not shown</i>`);
-    if (conflicts.length) lines.push('', `⚠ <i>Readings pointing different ways: ${conflicts.join('; ')}.</i>`);
+    if (conflicts.length) lines.push('', `⚠ <i>Mixed signals: ${conflicts.join('; ')}.</i>`);
   }
 
   if (rsis.length) {
@@ -258,12 +270,14 @@ function buildEventSections(
     rsis.sort((a, b) => dist(b) - dist(a));
     const take = rsis.slice(0, MAX_EVENT_LINES);
 
-    lines.push('', '🔵 <b>RSI(14) daily</b>');
-    lines.push('<i>RSI compares recent gains with recent losses on a 0–100 scale. Readings above 80 and below 30 are uncommon, not outcomes.</i>');
+    lines.push('', '🌡 <b>RSI extremes</b> <i>(daily RSI 14)</i>');
+    lines.push('<i>Above 80 is a hot streak, below 30 a heavy sell-off. Rare readings, not predictions.</i>');
     for (const e of take) {
       const above = e.event_type === 'rsi_overbought';
-      lines.push(`• <b>${e.base_asset}</b> — moved ${above ? 'above 80' : 'below 30'} · ${fmtRsi(num(e.value))}, from ${fmtRsi(num(e.prev_value))} the day before · ${fmtDay(e.event_date)}`);
-      lines.push(`  60d/125d: ${ctxCross(e.base_asset)} · L/S ${fmtRatio(ctxLs(e.base_asset))}`);
+      lines.push(above
+        ? `🔥 <b>${e.base_asset}</b> — running hot: RSI ${fmtRsi(num(e.value))}, up from ${fmtRsi(num(e.prev_value))} the day before · ${fmtDay(e.event_date)}`
+        : `🧊 <b>${e.base_asset}</b> — sold off hard: RSI ${fmtRsi(num(e.value))}, down from ${fmtRsi(num(e.prev_value))} the day before · ${fmtDay(e.event_date)}`);
+      lines.push(`   ${ctxCross(e.base_asset)} · longs/shorts ${fmtRatio(ctxLs(e.base_asset))}`);
       shown.push(e);
     }
     if (rsis.length > take.length) lines.push(`<i>+ ${rsis.length - take.length} more not shown</i>`);
@@ -278,11 +292,19 @@ function buildEventSections(
     futs.sort((a, b) => dist(b) - dist(a));
     const take = futs.slice(0, MAX_EVENT_LINES);
 
-    lines.push('', '🟣 <b>Futures positioning · Binance accounts</b>');
-    lines.push('<i>The share of accounts holding each side. It describes how traders are positioned, not what price does next.</i>');
+    lines.push('', '⚖️ <b>Crowded futures trades</b> <i>(Binance accounts)</i>');
+    lines.push('<i>Which side most accounts are on. It shows how traders are positioned, not where price goes next.</i>');
     for (const e of take) {
-      lines.push(`• <b>${e.base_asset}</b> — long/short account ratio reached ${fmtRatio(num(e.value))}, from ${fmtRatio(num(e.prev_value))} · ${fmtDay(e.event_date)}`);
-      lines.push(`  RSI(14) ${fmtRsi(ctxRsi(e.base_asset))} · 60d/125d: ${ctxCross(e.base_asset)}`);
+      const longs = e.event_type === 'futures_long_crowded';
+      // Said from the crowded side: "3.07 longs per short", and for a
+      // short crowd "3.33 shorts per long" rather than an opaque 0.30 : 1.
+      const per = (x: number | null) => (x === null || x <= 0) ? 'n/a'
+        : (longs ? x : 1 / x).toFixed(2);
+      const v = num(e.value), pv = num(e.prev_value);
+      lines.push(longs
+        ? `🐂 <b>${e.base_asset}</b> — longs piling up: ${per(v)} longs per short, from ${per(pv)} · ${fmtDay(e.event_date)}`
+        : `🐻 <b>${e.base_asset}</b> — shorts piling up: ${per(v)} shorts per long, from ${per(pv)} · ${fmtDay(e.event_date)}`);
+      lines.push(`   RSI ${fmtRsi(ctxRsi(e.base_asset))} · ${ctxCross(e.base_asset)}`);
       shown.push(e);
     }
     if (futs.length > take.length) lines.push(`<i>+ ${futs.length - take.length} more not shown</i>`);
@@ -535,17 +557,17 @@ Deno.serve(async (req: Request) => {
   const day = latestRun
     ? new Date(latestRun.as_of).toISOString().slice(0, 10)
     : new Date().toISOString().slice(0, 10);
-  const lines: string[] = [`📊 <b>Rotator — what changed</b> — ${day}`];
+  const lines: string[] = [`📊 <b>Rotator · what moved</b> · ${day}`];
 
   if (sells.length) {
-    lines.push('', '🔴 <b>RELATIVE STRENGTH</b> — a holding of yours crossed into the top of the tracked range');
+    lines.push('', '🔴 <b>Running ahead</b> — one of your holdings climbed into the top of the tracked range');
     for (const s of sells) {
       lines.push(`• <b>${s.sym}</b> — ${s.score ?? '?'} (was ${s.was ?? '?'}) · ${fmtPrice(s.price)}`);
     }
   }
 
   if (buyShown.length) {
-    lines.push('', '🟢 <b>RELATIVE WEAKNESS</b> — crossed into the bottom of the tracked range');
+    lines.push('', '🟢 <b>Falling behind</b> — slipped into the bottom of the tracked range');
     for (const b of buyShown) {
       lines.push(`• <b>${b.sym}</b> — ${b.score ?? '?'} (was ${b.was ?? '?'}) · ${fmtPrice(b.price)}`);
     }
@@ -555,7 +577,7 @@ Deno.serve(async (req: Request) => {
   }
 
   if (!gate.safe && sells.length) {
-    lines.push('', `<i>Relative-weakness lines suppressed: ${gate.reason}</i>`);
+    lines.push('', `<i>Laggards left out of this one: ${gate.reason}</i>`);
   }
 
   // Technical events sit after the zone blocks: the zone lines answer
