@@ -836,7 +836,19 @@ function supaCacheGetStale(key) {
  * @param {string} key  — cache key
  * @param {object} data — JSON-serializable data
  */
+/* Since 2026-09-15 the database accepts public writes ONLY for the swap
+   chart's caches (site/sql/market_cache_write_lockdown.sql). Every other
+   row is server-owned: the coin universe, sentiment and the exchange
+   lists are what scoring and the rotation filters trust, and a browser
+   must not be able to rewrite them. Callers still read through the cache
+   and fall back to the real table when a row is stale, so skipping the
+   write here costs nothing — it only avoids a refused request and a
+   console warning on every visit. Keep this pattern in step with the
+   policy. */
+var _SUPA_CACHE_PUBLIC_WRITE = /^ratio_(price|chart)_/;
+
 function supaCacheSet(key, data) {
+  if (!_SUPA_CACHE_PUBLIC_WRITE.test(String(key))) return Promise.resolve(null);
   return supaRest('market_cache', 'POST', {
     cache_key:  key,
     data:       data,
