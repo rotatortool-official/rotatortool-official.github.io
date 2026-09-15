@@ -75,8 +75,12 @@ var SignalHistory = (function() {
 
      Tomorrow's date would have been cleaner still, and
      verify-tracking-labels rightly refuses a future one. */
+  /* 2.10.0 since 2026-09-15, WITHOUT moving STATS_FROM_DATE: 2.10.0 adds
+     a market-wide context flag and moves no score (verify-market-oversold),
+     so the record since 09-11 is the same record. See the note in
+     verify-tracking-labels.js for why the label moved anyway. */
   var STATS_FROM_DATE = '2026-09-11';
-  var ENGINE_LABEL    = '2.9.0';
+  var ENGINE_LABEL    = '2.10.0';
 
   function _passesCutoff(dateStr) {
     return typeof dateStr === 'string' && dateStr >= STATS_FROM_DATE;
