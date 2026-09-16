@@ -205,7 +205,12 @@ var RatioTracker = (function() {
   function buildFromDropdown(){
     var sel=$('rt-from'); if(!sel) return;
     sel.innerHTML='';
-    var holdIds=(typeof holdings!=='undefined'?holdings:[]).map(function(h){return h.sym;}).filter(function(id){return LABELS[id];});
+    /* LABELS is keyed by COIN ID ('bitcoin'), and this mapped h.sym
+       ('BTC'), so every entry failed the LABELS filter and the
+       "My Holdings" optgroup was ALWAYS EMPTY. Nobody noticed because
+       an empty optgroup renders as nothing at all. Holdings carry an id
+       as of 2026-09-16, so this finally does what it says. */
+    var holdIds=(typeof holdings!=='undefined'?holdings:[]).map(function(h){return h.id;}).filter(function(id){return id&&LABELS[id];});
     if(holdIds.length){
       var g=document.createElement('optgroup'); g.label='My Holdings';
       holdIds.forEach(function(id){ var o=document.createElement('option'); o.value=id; o.textContent=lbl(id)+'  —  '+id; g.appendChild(o); });

@@ -471,7 +471,7 @@ function buySuggestTile(c) {
   var unlock = (circ && maxS > 0) ? Math.round((circ / maxS) * 100) + '%' : '∞';
   /* Visual cue for the held-first sort in allBuys above — otherwise
      why this coin surfaced first is invisible to the person looking. */
-  var isHeld = (typeof holdings !== 'undefined') && holdings.some(function(h) { return h.sym === c.sym; });
+  var isHeld = (typeof isHeldCoin === 'function') && isHeldCoin(c);
   var badgeText = isHeld ? 'ALREADY HELD' : 'ROTATION SETUP';
   return '<div class="sig-tile rot" onclick="openTileDetail(\'' + c.id + '\',event)" title="Click for details">'
     + '<div class="sig-tile-top">'
@@ -747,8 +747,12 @@ function renderTopBars() {
     if (momRows.length) supaRecordMomentumSnapshot(momRows, (window.ROTATOR_RUN && window.ROTATOR_RUN.engineVersion) || null);
   }
   if (typeof supaRecordHoldingsSnapshot === 'function' && typeof holdings !== 'undefined' && holdings.length) {
+    /* This one writes a SERVER snapshot, so resolving the wrong coin
+       would record the wrong asset permanently rather than just
+       mis-drawing a tile. Goes through coinOfHolding() like everything
+       else — it already emits coin_id, which was the right instinct. */
     var heldRows = holdings.map(function(h) {
-      var c = coins.find(function(cc) { return cc.sym === h.sym; });
+      var c = (typeof coinOfHolding === 'function') ? coinOfHolding(h) : null;
       if (!c) return null;
       return { sym: c.sym, coin_id: c.id, score: c.score, price: c.price };
     }).filter(Boolean);
@@ -941,9 +945,24 @@ async function fetchInsightKlines() {
      so it would never have a row to find. A stock's momentum data comes
      from unified_market_data; there is no RSI/MACD/Bollinger equivalent
      for bStocks yet, so those rows simply go without the extra detail. */
-  var stockSyms = (typeof coins !== 'undefined') ? coins.filter(function(c) { return c.isStock; }).map(function(c) { return c.sym; }) : [];
-  var hSyms = holdings.map(function(h) { return h.sym; }).filter(function(s) { return stockSyms.indexOf(s) < 0; });
-  var wSyms = (typeof watchlist !== 'undefined') ? watchlist.filter(function(s) { return stockSyms.indexOf(s) < 0; }) : [];
+  /* This one genuinely wants TICKERS, not ids: the klines cache is
+     keyed by Binance symbol. So holdings and watchlist entries are
+     resolved to coins first and the ticker is taken from the coin —
+     rather than trusting a stored string to still be a ticker, which
+     it is not after the 2026-09-16 re-key. A stock is skipped by its
+     isStock flag rather than by matching against a list of stock
+     tickers, which was the same symbol-comparison trap one level down. */
+  var all = (typeof coins !== 'undefined' && Array.isArray(coins)) ? coins : [];
+  function symsOf(keys) {
+    var out = [];
+    keys.forEach(function(k) {
+      var c = all.find(function(x) { return x.id === k || x.sym === k; });
+      if (c && !c.isStock && out.indexOf(c.sym) < 0) out.push(c.sym);
+    });
+    return out;
+  }
+  var hSyms = symsOf(holdings.map(function(h) { return holdingKey(h); }));
+  var wSyms = (typeof watchlist !== 'undefined') ? symsOf(watchlist) : [];
   var targetSyms = hSyms.concat(wSyms.filter(function(s) { return hSyms.indexOf(s) < 0; }));
   /* Capped at 10 — not for rate limits (this is one Supabase read), but
      because this depth of detail is only surfaced for holdings and
@@ -1106,14 +1125,26 @@ function postTodaysInsights() {
 }
 
 /* ── Toggle watchlist from the leaderboard eye icon ────────── */
-function toggleWatch(sym, btn) {
+/* Takes a coin ID (2026-09-16). The watchlist used to store tickers,
+   which made a watched coin ambiguous exactly the way a held one was.
+   An entry left on a ticker by an older build still matches through
+   isWatchedCoin(), and upgradeHoldingKeys() rewrites it on the next
+   load. */
+function toggleWatch(coinId, btn) {
   if (typeof watchlist === 'undefined') return;
-  var idx = watchlist.indexOf(sym);
+  var c = (typeof coins !== 'undefined' && Array.isArray(coins))
+    ? coins.find(function(x) { return x.id === coinId || x.sym === coinId; }) : null;
+  var key = c ? c.id : coinId;
+  /* Remove BOTH shapes, so toggling off a not-yet-upgraded ticker
+     entry actually removes it rather than adding a duplicate id. */
+  var idx = watchlist.indexOf(key);
+  if (idx < 0 && c) idx = watchlist.indexOf(c.sym);
+  var sym = key;
   if (idx >= 0) {
     watchlist.splice(idx, 1);
     if (btn) { btn.classList.remove('watching'); btn.title = 'Add to watchlist'; }
   } else {
-    watchlist.push(sym);
+    watchlist.push(key);
     if (btn) { btn.classList.add('watching'); btn.title = 'Watching'; }
   }
   if (typeof saveWatchlist === 'function') saveWatchlist();
@@ -1259,7 +1290,7 @@ function renderTable() {
     var maxSup  = c.max_supply || 0;
     var unlockPct = (circSup && maxSup && maxSup > 0) ? Math.round((circSup / maxSup) * 100) : -1;
     var tipData = 'data-sym="' + c.sym + '" data-name="' + c.name + '" data-mcap="' + mcapStr + '" data-score="' + sc + '" data-p24="' + c.p24.toFixed(2) + '" data-p7="' + c.p7.toFixed(2) + '" data-p30="' + c.p30.toFixed(2) + '" data-held="' + (isH ? '1' : '0') + '" data-circ="' + circSup + '" data-maxsup="' + maxSup + '" data-unlock="' + unlockPct + '"';
-    var isW = (typeof watchlist !== 'undefined') && watchlist.indexOf(c.sym) >= 0;
+    var isW = (typeof isWatchedCoin === 'function') && isWatchedCoin(c);
     var eyeSvg = '<svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>';
     var qaBtnHtml = isH
       ? '<button class="qa-btn held" title="In holdings" onclick="event.stopPropagation()">✓</button>'
@@ -1338,11 +1369,14 @@ function renderTable() {
 
 function renderCoinSel() {
   var sel   = document.getElementById('coin-sel');
-  var hSyms = holdings.map(function(h) { return h.sym; });
+  /* The VALUE is the coin id, not the ticker (2026-09-16). addHolding()
+     resolves it back to a coin, so two coins sharing a ticker can no
+     longer be confused for one another at the moment of adding. The
+     ticker is still what the option DISPLAYS. */
   sel.innerHTML = '<option value="">Select…</option>'
     + coins.map(function(c) {
-      var held = hSyms.indexOf(c.sym) >= 0;
-      return '<option value="' + c.sym + '"' + (held ? ' disabled' : '') + '>'
+      var held = (typeof isHeldCoin === 'function') && isHeldCoin(c);
+      return '<option value="' + c.id + '"' + (held ? ' disabled' : '') + '>'
         + (held ? '✓ ' : '') + c.sym + ' — ' + c.name + '</option>';
     }).join('');
 }

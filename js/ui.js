@@ -355,7 +355,7 @@ function _ahmPrice(v) {
 }
 
 function _ahmRow(coin) {
-  var sel  = _ahmSelected && _ahmSelected.sym === coin.sym;
+  var sel  = _ahmSelected && _ahmSelected.id === coin.id;
   var scrC = coin.score >= 65 ? 'hi' : coin.score >= 40 ? 'md' : 'lo';
   var chg  = (coin.p24 >= 0 ? '+' : '') + (coin.p24 || 0).toFixed(1) + '% 24h';
   var chgC = coin.p24 >= 0 ? 'up' : 'dn';
@@ -416,8 +416,10 @@ function ahmSelect(coinId) {
   /* Legacy hidden select, still read by addHolding(). */
   var sel = document.getElementById('coin-sel');
   if (sel) {
-    sel.innerHTML = '<option value="' + _ahmSelected.sym + '">' + _ahmSelected.sym + '</option>';
-    sel.value = _ahmSelected.sym;
+    /* Value is the coin ID, matching renderCoinSel() in signals.js —
+       addHolding() reads this element and expects an id (2026-09-16). */
+    sel.innerHTML = '<option value="' + _ahmSelected.id + '">' + _ahmSelected.sym + '</option>';
+    sel.value = _ahmSelected.id;
   }
   ahmFilter();
   ahmPreview();

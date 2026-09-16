@@ -23,9 +23,129 @@
 var holdings   = loadH();
 var sparkStop  = {};
 
-/* ── Crypto (+ bStock) holdings persistence ──────────────────── */
+/* ── Crypto (+ bStock) holdings persistence ──────────────────────
+   An entry is `{id, sym, qty, avg}`. **`id` is the key; `sym` is a
+   label.** Before 2026-09-16 the key WAS `sym`, and entries written by
+   that version have no `id` until upgradeHoldingKeys() resolves one.
+   Both shapes are readable at all times — see that function. */
 function loadH()  { try { return JSON.parse(localStorage.getItem('rot_h5') || '[]'); } catch(e) { return []; } }
 function saveH()  { try { localStorage.setItem('rot_h5', JSON.stringify(holdings)); } catch(e) {} }
+
+/* ── Identity, in one place ──────────────────────────────────────
+   Every "is this coin the one in this entry?" question in the app goes
+   through these, so there is exactly one answer to it.
+
+   WHY THIS CHANGED (2026-09-16). Holdings and the watchlist were keyed
+   by SYMBOL, and a symbol is not unique. This project has already been
+   bitten twice:
+
+     • FRAX — the universe carried two coins reporting symbol FRAX, and
+       a FRAX holding matched whichever loaded first. Engine 2.4.0's
+       movement diff was re-keyed onto coin id for exactly this, and the
+       stablecoin was eventually dropped (see config.js). Holdings were
+       left on symbols.
+     • QNT — Binance lists QNTB (Quantinuum, the quantum-computing
+       company) while the universe scores QNT (Quant, the token).
+       sync-bstocks currently holds Quantinuum back SOLELY because this
+       keying would have shown the equity holder the token's price.
+
+   The resolution order made it worse than a coin flip: tiles resolved
+   with `coins.find(c => c.sym === h.sym)` over an array sorted by
+   market cap, and bStocks carry mcap 0 — so on a crypto/equity
+   collision the crypto ALWAYS won, silently, with no error and a
+   plausible-looking price.
+
+   A coin id is unique by construction (it is CoinGecko's slug, or
+   'bstock_<TICKER>' for an equity), so this removes the class of bug
+   rather than the two instances of it. */
+function holdingMatches(h, c) {
+  if (!h || !c) return false;
+  return h.id ? h.id === c.id : h.sym === c.sym;
+}
+/* The value remove/lookup handlers pass around. Ids are lowercase
+   slugs and symbols are uppercase tickers, so the two never collide. */
+function holdingKey(h) { return h.id || h.sym; }
+function coinOfHolding(h) {
+  if (!Array.isArray(coins)) return null;
+  for (var i = 0; i < coins.length; i++) if (holdingMatches(h, coins[i])) return coins[i];
+  return null;
+}
+function isHeldCoin(c) {
+  return holdings.some(function(h) { return holdingMatches(h, c); });
+}
+function isWatchedCoin(c) {
+  if (typeof watchlist === 'undefined' || !Array.isArray(watchlist)) return false;
+  return watchlist.some(function(w) { return w === c.id || w === c.sym; });
+}
+
+/* ── Re-key stored entries from symbol to coin id ────────────────
+   Runs from doLoad() once coins[] is populated, NOT at parse time:
+   resolving a symbol needs the universe, and the universe arrives long
+   after this file is evaluated. Anything still on a symbol keeps
+   working through holdingMatches() until a run can resolve it.
+
+   COLLISION RULE. If a stored symbol now matches more than one coin,
+   the non-equity wins. That is not a guess — it reproduces exactly what
+   the visitor was already being shown, because the old mcap-sorted
+   `find` always returned the crypto. Migrating to the equity would
+   silently change which asset someone's position refers to, which is
+   the one outcome worse than the bug.
+
+   Unresolvable entries are KEPT, not dropped. A symbol may be missing
+   because its category has not loaded, because bStocks failed, or
+   because the coin genuinely left the universe, and this function
+   cannot tell those apart. pruneStaleHoldings() owns deletion and now
+   only deletes what it can positively identify. */
+function upgradeHoldingKeys() {
+  if (!Array.isArray(coins) || !coins.length) return;
+
+  function resolve(sym) {
+    var m = coins.filter(function(c) { return c.sym === sym; });
+    if (!m.length) return null;
+    if (m.length === 1) return m[0];
+    var nonStock = m.filter(function(c) { return !c.isStock; });
+    console.info('[upgradeHoldingKeys] "' + sym + '" matches ' + m.length
+      + ' coins; keeping the one already being displayed ('
+      + (nonStock[0] || m[0]).id + ')');
+    return nonStock[0] || m[0];
+  }
+
+  var changed = false, stuck = [];
+  holdings.forEach(function(h) {
+    if (h.id || !h.sym) return;
+    var c = resolve(h.sym);
+    if (c) { h.id = c.id; h.sym = c.sym; changed = true; }
+    else stuck.push(h.sym);
+  });
+  if (changed) saveH();
+
+  /* Watchlist is a bare array of strings, so an upgraded entry is just
+     an id where a ticker used to be. holdingMatches()'s counterpart
+     isWatchedCoin() accepts either, so a stuck entry still works. */
+  if (typeof watchlist !== 'undefined' && Array.isArray(watchlist)) {
+    var wChanged = false;
+    for (var i = 0; i < watchlist.length; i++) {
+      var w = watchlist[i];
+      /* Already an id if any coin claims it as one. */
+      if (coins.some(function(c) { return c.id === w; })) continue;
+      var wc = resolve(w);
+      if (wc) { watchlist[i] = wc.id; wChanged = true; }
+      else stuck.push(w);
+    }
+    /* De-duplicate: two tickers can resolve to one id. */
+    if (wChanged) {
+      var seen = {};
+      watchlist = watchlist.filter(function(w) {
+        if (seen[w]) return false; seen[w] = 1; return true;
+      });
+      if (typeof saveWatchlist === 'function') saveWatchlist();
+    }
+  }
+
+  if (stuck.length) {
+    console.info('[upgradeHoldingKeys] kept on symbol, no coin matched yet: ' + stuck.join(', '));
+  }
+}
 
 /* ── One-time migration: fold old stock holdings (rot_st_h) into the
    unified holdings array, then remove the old key. Old forex holdings
@@ -73,11 +193,49 @@ function saveH()  { try { localStorage.setItem('rot_h5', JSON.stringify(holdings
    prune everything, since coins[] starts empty. */
 function pruneStaleHoldings() {
   if (!Array.isArray(coins) || !coins.length) return; /* not populated yet — don't prune blind */
-  var validSyms = coins.map(function(c) { return c.sym; });
+
+  /* Only entries that have been RESOLVED to an id are candidates for
+     deletion, and only when that id is genuinely absent from the
+     universe. Changed 2026-09-16, and it makes this strictly safer.
+
+     The old version deleted anything whose SYMBOL was not in coins[].
+     That treated "this ticker no longer exists" and "the part of the
+     universe holding this ticker has not loaded" as the same event,
+     because a symbol lookup cannot tell them apart. A partial load —
+     bStocks failing while crypto succeeded, which is a real and
+     survivable state — would have silently deleted every stock
+     holding the visitor owned, with a console.info as the only trace.
+
+     An id that is present in the store and absent from a fully loaded
+     universe is a positive identification, so that still gets removed.
+     An entry still on a symbol is left alone and shows its Unavailable
+     tile until a later run can resolve it. */
+  /* Deleting needs positive evidence that the SEGMENT of the universe
+     this entry belongs to actually loaded. An id being absent from
+     coins[] means "gone" only if its kind is represented at all;
+     otherwise it means that half of the load failed.
+
+     Caught by testing the real scenario rather than reasoning about it:
+     with bStocks failing and crypto succeeding, an id-only check still
+     deleted every stock holding — the earlier guard covered entries
+     that had never been upgraded, which after the migration is nobody.
+
+     Equity ids are prefixed 'bstock_' by loadBstocks(); everything else
+     is crypto. Two segments, one rule. */
+  var haveStocks = coins.some(function(c) { return c.isStock; });
+  var haveCrypto = coins.some(function(c) { return !c.isStock; });
+  function isEquityKey(h) {
+    return (h.id && h.id.indexOf('bstock_') === 0);
+  }
+
   var before = holdings.length;
-  holdings = holdings.filter(function(h) { return validSyms.indexOf(h.sym) >= 0; });
+  holdings = holdings.filter(function(h) {
+    if (!h.id) return true;                 /* unresolved — not evidence of anything */
+    if (isEquityKey(h) ? !haveStocks : !haveCrypto) return true;  /* segment absent — cannot judge */
+    return coins.some(function(c) { return c.id === h.id; });
+  });
   if (holdings.length !== before) {
-    console.info('[pruneStaleHoldings] removed ' + (before - holdings.length) + ' holding(s) with no matching coin (e.g. a dropped index ticker)');
+    console.info('[pruneStaleHoldings] removed ' + (before - holdings.length) + ' holding(s) whose coin id is no longer in the universe');
     saveH();
   }
 }
@@ -91,12 +249,21 @@ var FREE_HOLDINGS_LIMIT = 2;
 var PRO_HOLDINGS_LIMIT  = 10;
 
 function addHolding() {
-  var sym = document.getElementById('coin-sel').value;
+  /* The select now carries COIN IDS, not tickers — renderCoinSel() in
+     signals.js builds it and ui.js's add-holding modal injects one. A
+     ticker arriving here would mean an old cached copy of one of those
+     files, so it is resolved rather than trusted. */
+  var chosen = document.getElementById('coin-sel').value;
   var qty = parseFloat(document.getElementById('inp-qty').value) || null;
   var avg = parseFloat(document.getElementById('inp-avg').value) || null;
-  if (!sym) return;
+  if (!chosen) return;
+
+  var c = (Array.isArray(coins) ? coins : []).find(function(x) { return x.id === chosen; })
+       || (Array.isArray(coins) ? coins : []).find(function(x) { return x.sym === chosen; });
+  if (!c) return;
+
   var isFirst = holdings.length === 0;
-  var idx = holdings.findIndex(function(h) { return h.sym === sym; });
+  var idx = holdings.findIndex(function(h) { return holdingMatches(h, c); });
   /* Check limit only for new entries (not updates to existing) */
   if (idx < 0) {
     var limit = isPro ? PRO_HOLDINGS_LIMIT : FREE_HOLDINGS_LIMIT;
@@ -109,8 +276,8 @@ function addHolding() {
       return;
     }
   }
-  if (idx >= 0) holdings[idx] = {sym, qty, avg};
-  else holdings.push({sym, qty, avg});
+  if (idx >= 0) holdings[idx] = {id: c.id, sym: c.sym, qty: qty, avg: avg};
+  else holdings.push({id: c.id, sym: c.sym, qty: qty, avg: avg});
   saveH();
   if (isFirst) creditReferrer();
   document.getElementById('coin-sel').value  = '';
@@ -119,9 +286,16 @@ function addHolding() {
   renderAll();
 }
 
-function removeHolding(sym) {
-  if (sparkStop[sym]) { sparkStop[sym](); delete sparkStop[sym]; }
-  holdings = holdings.filter(function(h) { return h.sym !== sym; });
+/* Takes holdingKey(h) — a coin id, or a ticker for an entry not yet
+   upgraded. sparkStop stays keyed by ticker because it addresses a
+   canvas element (`sp-<sym>`), so the sym is looked up rather than
+   assumed to be the argument. */
+function removeHolding(key) {
+  var gone = holdings.filter(function(h) { return holdingKey(h) === key; });
+  gone.forEach(function(h) {
+    if (h.sym && sparkStop[h.sym]) { sparkStop[h.sym](); delete sparkStop[h.sym]; }
+  });
+  holdings = holdings.filter(function(h) { return holdingKey(h) !== key; });
   saveH(); renderAll();
 }
 
@@ -178,7 +352,7 @@ function renderTiles() {
   var limit = isPro ? PRO_HOLDINGS_LIMIT : FREE_HOLDINGS_LIMIT;
   if (hcEl) hcEl.textContent = holdings.length ? holdings.length + '/' + limit : '';
 
-  var heldCoins = holdings.map(function(h) { return coins.find(function(c) { return c.sym === h.sym; }); }).filter(Boolean);
+  var heldCoins = holdings.map(coinOfHolding).filter(Boolean);
   var topG = null;
   if (isPro) heldCoins.forEach(function(c) { if (!topG || c.p24 > topG.p24) topG = c; });
 
@@ -186,10 +360,12 @@ function renderTiles() {
 
   /* ── Real holding tiles ── */
   holdings.forEach(function(h) {
-    var c = coins.find(function(x) { return x.sym === h.sym; });
+    var c = coinOfHolding(h);
     if (!c) {
-      html += '<div class="tile"><div class="tile-top"><span class="tile-sym">' + h.sym + '</span>'
-            + '<button class="tile-rm" onclick="removeHolding(\'' + h.sym + '\')">×</button></div>'
+      /* `sym` is carried alongside `id` precisely so an unresolvable
+         entry can still name itself, rather than showing a slug. */
+      html += '<div class="tile"><div class="tile-top"><span class="tile-sym">' + (h.sym || h.id) + '</span>'
+            + '<button class="tile-rm" onclick="removeHolding(\'' + holdingKey(h) + '\')">×</button></div>'
             + '<div style="font-size:12px;color:var(--muted);">Unavailable</div></div>';
       return;
     }
@@ -202,7 +378,7 @@ function renderTiles() {
           + (isTop ? '<canvas class="sp" id="sp-' + c.sym + '"></canvas>' : '')
           + '<div class="tile-top"><div class="tile-ico"><img src="' + c.image + '" alt="' + c.sym + ' logo" loading="lazy" width="16" height="16" onerror="this.style.display=\'none\'"></div>'
           + '<span class="tile-sym">' + c.sym + '</span>'
-          + '<button class="tile-rm" onclick="event.stopPropagation();removeHolding(\'' + h.sym + '\')">×</button></div>'
+          + '<button class="tile-rm" onclick="event.stopPropagation();removeHolding(\'' + holdingKey(h) + '\')">×</button></div>'
           + '<div class="tile-price">' + fmtP(c.price) + '</div>'
           + '<div class="tile-perfs">'
             + '<div class="tpf"><span class="tpf-l">24H</span><span class="tpf-v ' + (c.p24>=0?'up':'dn') + '">' + (c.p24>=0?'+':'') + c.p24.toFixed(1) + '%</span></div>'
@@ -230,11 +406,16 @@ function renderTiles() {
      The empty-slot arithmetic underneath is deliberately left alone: it
      counts HOLDINGS against the tier limit, and watching a coin does not
      consume a holding slot. */
-  var _watched = (typeof watchlist !== 'undefined' ? watchlist : []).filter(function(sym) {
-    return !holdings.some(function(h) { return h.sym === sym; });
+  /* Entries are coin ids after upgradeHoldingKeys(); one that could not
+     be resolved is still a ticker, so both are accepted. The held-check
+     goes through holdingMatches() so a watch and a holding of the same
+     coin collapse even when one side is still on a ticker. */
+  var _watched = (typeof watchlist !== 'undefined' ? watchlist : []).filter(function(key) {
+    var wc = coins.find(function(x) { return x.id === key || x.sym === key; });
+    return wc ? !isHeldCoin(wc) : !holdings.some(function(h) { return holdingKey(h) === key; });
   });
   _watched.forEach(function(sym) {
-    var c = coins.find(function(x) { return x.sym === sym; });
+    var c = coins.find(function(x) { return x.id === sym || x.sym === sym; });
     if (!c) {
       html += '<div class="tile tile-watch"><div class="tile-top"><span class="tile-sym">' + sym + '</span>'
             + '<button class="tile-rm" onclick="event.stopPropagation();removeFromWatchlist(\'' + sym + '\')">×</button></div>'

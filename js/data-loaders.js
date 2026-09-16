@@ -1302,6 +1302,12 @@ async function doLoad() {
     await Promise.all([loadDelistedSymbols(), loadMonitoringSymbols(), loadBinanceTags(), loadCoinTechnicals(), loadCoinEvents()]);
     await loadCoins('all');  prog(50, 'Scoring and ranking coins…');  renderCoinSel();
     await loadBstocks();     prog(65, 'Fetching bStock data…');
+    /* Re-key stored holdings/watchlist from ticker to coin id. Must run
+       AFTER loadBstocks() — a stock holding can only resolve once the
+       stocks are in coins[] — and BEFORE pruneStaleHoldings(), which
+       deletes by id and would otherwise see every legacy entry as
+       unresolved. The two together are the whole migration. */
+    if (typeof upgradeHoldingKeys === 'function') upgradeHoldingKeys();
     if (typeof pruneStaleHoldings === 'function') pruneStaleHoldings();
     await loadFuturesMetrics(); /* modal Derivatives section — never blocks, never scores */
     await loadMacroData(); prog(80, 'Loading macro data — Gold, Oil…');
@@ -2711,9 +2717,10 @@ function openTileDetail(coinId, evt) {
   var insSec = document.getElementById('td-insight-sec');
   var insEl  = document.getElementById('td-insight-content');
   if (insSec && insEl) {
-    var hSyms = holdings.map(function(h) { return h.sym; });
-    var wSyms = (typeof watchlist !== 'undefined') ? watchlist : [];
-    var isTracked = hSyms.indexOf(c.sym) >= 0 || wSyms.indexOf(c.sym) >= 0;
+    /* Identity via the shared helpers, so a ticker shared by two coins
+       cannot unlock one coin's Insight section from the other. */
+    var isTracked = ((typeof isHeldCoin === 'function') && isHeldCoin(c))
+                 || ((typeof isWatchedCoin === 'function') && isWatchedCoin(c));
     /* Free user: try yesterday's server snapshot. Falls back to the
        old paywall if the snapshot service is offline or empty. */
     var yi = (window.yesterdayInsights && window.yesterdayInsights.map)
@@ -2801,7 +2808,7 @@ function openTileDetail(coinId, evt) {
   /* Edit Holdings section — show only for held coins */
   var editSec = document.getElementById('td-edit-hold-sec');
   if (editSec) {
-    var hIdx = holdings.findIndex(function(h) { return h.sym === c.sym; });
+    var hIdx = holdings.findIndex(function(h) { return holdingMatches(h, c); });
     if (hIdx >= 0) {
       editSec.style.display = '';
       var h = holdings[hIdx];
@@ -2820,7 +2827,7 @@ function saveTileHolding() {
   if (!_tdCoin) return;
   var avg = parseFloat(document.getElementById('td-hold-avg').value) || null;
   var qty = parseFloat(document.getElementById('td-hold-qty').value) || null;
-  var idx = holdings.findIndex(function(h) { return h.sym === _tdCoin.sym; });
+  var idx = holdings.findIndex(function(h) { return holdingMatches(h, _tdCoin); });
   if (idx >= 0) {
     holdings[idx].avg = avg;
     holdings[idx].qty = qty;
