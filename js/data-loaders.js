@@ -1934,9 +1934,17 @@ function openTileDetail(coinId, evt) {
     p24chgEl.style.color = c.p24 >= 0 ? 'var(--green)' : 'var(--red)';
   }
 
-  /* Type badge */
+  /* Type badge.
+     This said 'CRYPTO' unconditionally, for every asset, so Nokia's
+     modal was labelled CRYPTO. Wrong since bStocks launched — it just
+     took the roster going from 24 to 60 (2026-09-16) for anyone to
+     look. The `.stock` rule has been sitting in styles.css unused the
+     whole time; nothing needed writing but the branch. */
   var badge = document.getElementById('td-type-badge');
-  if (badge) { badge.textContent = 'CRYPTO'; badge.className = 'td-type-badge crypto'; }
+  if (badge) {
+    badge.textContent = c.isStock ? 'STOCK' : 'CRYPTO';
+    badge.className   = 'td-type-badge ' + (c.isStock ? 'stock' : 'crypto');
+  }
 
   /* Score breakdown — tile grid with checkmarks */
   var scC = c.score >= 65 ? 'var(--green)' : c.score <= 35 ? 'var(--red)' : '#87CEEB';
