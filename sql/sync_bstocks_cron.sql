@@ -74,6 +74,18 @@ revoke all on function public.trigger_bstocks_sync() from public, anon, authenti
 -- there's no benefit to running this twice like sync-market-data does.
 -- 22:00 UTC = after NYSE close (20:00 UTC / 4pm ET), so the day's
 -- close is final by the time this runs.
+--
+-- ⚠ ORDERING DEPENDENCY, added 2026-09-16. Since the roster stopped
+-- being hardcoded, sync-bstocks READS `binance_symbol_tags` to learn
+-- which equities exist, and `sync-binance-status-daily` is what fills
+-- that table. It runs at 17:00 UTC, five hours ahead of this job, so
+-- the roster is already fresh when this reads it.
+--
+-- That gap is now load-bearing. If either job is rescheduled, keep
+-- sync-binance-status BEFORE sync-bstocks. Running this one first
+-- does not corrupt anything — the function refuses with HTTP 503 and
+-- writes nothing rather than syncing a stale or empty roster — but the
+-- day's new listings would simply not arrive.
 select cron.schedule(
   'sync-bstocks-daily',
   '0 22 * * *',

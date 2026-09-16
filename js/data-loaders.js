@@ -13,9 +13,13 @@
        Find startAutoRefresh() and change 15*60*1000 (= 15 minutes)
 
    • ADD/REMOVE bSTOCKS:
-       Edit BSTOCK_LIST in config.js. Data itself comes from
-       unified_market_data (Supabase) via loadBstocks() below — see the
-       sync-market-data Edge Function for the write side.
+       Nothing to edit. The roster is discovered server-side by the
+       sync-bstocks Edge Function from binance_symbol_tags, so a new
+       Binance listing arrives on its own. Data reaches the page via
+       unified_market_data (Supabase) and loadBstocks() below.
+       To EXCLUDE one, add its ticker to FUND_DENYLIST in that function.
+       (BSTOCK_LIST in config.js is no longer the roster — see the note
+       on it there.)
 
    Site is crypto (+ bStocks) only now — FOREX/STOCKS as separate modes,
    Yahoo Finance, Alpha Vantage, Frankfurter, ER-API and the whole
@@ -1116,6 +1120,16 @@ async function loadBstocks() {
         id: id, sym: r.symbol, name: r.name || (listing && listing.name) || r.symbol,
         price: r.price != null ? parseFloat(r.price) : 0,
         image: _bstockIconDataUri(r.symbol), mcap: meta.mcap || 0, rank: 0,
+        /* The UNDERLYING COMPANY's market cap (price × shares
+           outstanding), from Binance's product feed via sync-bstocks.
+           Display only, and deliberately NOT folded into `mcap` above:
+           that field is scored, and the engine's size term and Pillar-4
+           turnover rule are calibrated on crypto. A bStock's Binance
+           volume measured against the whole company's cap is ~1e-7,
+           which would read as dead liquidity on every one of them.
+           `mcap` therefore stays 0 for stocks, exactly as it always
+           has. See the field note in sync-bstocks/index.ts. */
+        equityMcap: meta.equity_mcap != null ? parseFloat(meta.equity_mcap) : null,
         p24: r.change_24h != null ? parseFloat(r.change_24h) : 0,
         p7:  meta.p7  != null ? parseFloat(meta.p7)  : 0,
         p14: meta.p14 != null ? parseFloat(meta.p14) : 0,
@@ -2408,10 +2422,21 @@ function openTileDetail(coinId, evt) {
   var vol24 = c.volume24 || c.total_volume || null;
   var athPct = c.ath_change_pct || 0;
   var athC   = athPct >= 0 ? 'up' : 'dn';
+  /* bStocks: the cap shown is the UNDERLYING COMPANY's, which is a
+     different quantity from a token's market cap, so it is labelled
+     differently rather than dropped into the same cell silently. It is
+     read from equityMcap, never from `mcap` — see loadBstocks(). MC
+     RANK is a rank within the crypto universe, so it has no meaning for
+     an equity and shows a dash instead of a number that looks real. */
+  var capLabel = c.isStock ? 'CO. MKT CAP' : 'MKT CAP';
+  var capValue = c.isStock ? c.equityMcap : c.mcap;
+  var capHint  = c.isStock
+    ? ' title="The listed company&#39;s market capitalisation (share price × shares outstanding), as published by Binance. Not the size of the tokenized market on Binance, and not used in scoring."'
+    : '';
   document.getElementById('td-market').innerHTML =
-    '<div class="td-cell"><div class="td-cell-l">MKT CAP</div><div class="td-cell-v bnb">'+fmtMcap(c.mcap)+'</div></div>'
+    '<div class="td-cell"'+capHint+'><div class="td-cell-l">'+capLabel+'</div><div class="td-cell-v bnb">'+fmtMcap(capValue)+'</div></div>'
     +'<div class="td-cell"><div class="td-cell-l">24H VOL</div><div class="td-cell-v bnb">'+fmtVol(vol24)+'</div></div>'
-    +'<div class="td-cell"><div class="td-cell-l">MC RANK</div><div class="td-cell-v bnb">'+(c.rank?'#'+c.rank:'—')+'</div></div>'
+    +'<div class="td-cell"><div class="td-cell-l">MC RANK</div><div class="td-cell-v bnb">'+(c.isStock ? '—' : (c.rank?'#'+c.rank:'—'))+'</div></div>'
     +'<div class="td-cell"><div class="td-cell-l">7D</div><div class="td-cell-v '+(c.p7>=0?'up':'dn')+'">'+(c.p7>=0?'+':'')+c.p7.toFixed(2)+'%</div></div>'
     +'<div class="td-cell"><div class="td-cell-l">14D</div><div class="td-cell-v '+(c.p14>=0?'up':'dn')+'">'+(c.p14>=0?'+':'')+c.p14.toFixed(2)+'%</div></div>'
     +'<div class="td-cell"><div class="td-cell-l">30D</div><div class="td-cell-v '+(c.p30>=0?'up':'dn')+'">'+(c.p30>=0?'+':'')+c.p30.toFixed(2)+'%</div></div>';

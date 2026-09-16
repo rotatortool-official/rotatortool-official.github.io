@@ -4,8 +4,11 @@
    HOW TO EDIT THIS FILE:
    ──────────────────────
    • ADD/REMOVE COINS:        Edit FREE_COINS list
-   • ADD/REMOVE bSTOCKS:      Edit BSTOCK_LIST (Binance tokenized equities —
-                              forex removed, see rotator-bstocks-migration-plan.md)
+   • ADD/REMOVE bSTOCKS:      Nothing to edit — the roster is discovered
+                              server-side by sync-bstocks. To exclude a
+                              listing, edit FUND_DENYLIST there.
+                              BSTOCK_LIST below is frozen history, not the
+                              roster; see the note above it.
    • ADD PRO CODES:           Run an INSERT in Supabase (pro_codes table) —
                               codes live server-side, see sql/pro_codes_table.sql
    • UPDATE DONATION GOAL:    Change DONATION_GOAL and DONATION_CURRENT
@@ -367,21 +370,41 @@ var BSTOCK_LIST = [
   {sym:'IBM',   name:'IBM',                  binance:'IBMBUSDT'},
   {sym:'HOOD',  name:'Robinhood',            binance:'HOODBUSDT'},
   {sym:'DJT',   name:'Trump Media & Technology Group', binance:'DJTBUSDT'}
-  /* Named in Binance's own July batch coverage but ticker not confirmed
-     by a direct source citation — left out rather than guessed:
-     Coinbase, Alphabet, Nokia. Add once you've confirmed COINB/GOOGLB/
-     NOKB (or whatever the real symbols turn out to be) actually exist. */
 ];
-/* Deliberately excluded — Binance also lists sector/index ETFs and a
-   LEVERAGED INVERSE ETF as bStocks (QQQB/Invesco QQQ, SMHB/VanEck
-   Semiconductor, EWYB/iShares MSCI South Korea, and SOXSB/Direxion
-   Semiconductor Bear 3X — a 3x short fund, a materially different risk
-   profile from a single stock). The original migration plan said no
-   indices/funds, single-name equities only — this list honors that.
-   If you want funds included, they need their OWN badge/tooltip (not
-   "STOCK") and should NOT run through the same momentum-only partial
-   scorer as single names, since a 3x leveraged product's "momentum"
-   isn't comparable to an unlevered one. Treat as a separate follow-up. */
+/* ⚠ THIS IS NO LONGER THE bSTOCK ROSTER (changed 2026-09-16).
+   It is a FROZEN HISTORICAL SET and must not be extended.
+
+   The live roster is discovered server-side by the sync-bstocks Edge
+   Function from `binance_symbol_tags` — the table sync-binance-status
+   already fills with Binance's own tag vocabulary. Adding a ticker
+   here does nothing; the page builds its STOCKS tab from whatever
+   unified_market_data holds. To exclude a listing, add it to
+   FUND_DENYLIST in sync-bstocks/index.ts.
+
+   Keeping this list as a hand-maintained roster is what caused the
+   problem it is now a record of: it sat at 24 entries while Binance
+   grew to 77, and its own comment listed Coinbase, Alphabet and Nokia
+   as "ticker not confirmed" when COINB, GOOGLB and NOKB had existed
+   the whole time.
+
+   WHAT STILL READS IT — one thing only: the one-time migration of
+   legacy `rot_st_h` stock holdings in holdings.js, which needs the set
+   of tickers that existed WHEN THAT MIGRATION WAS WRITTEN, not today's.
+   Extending it would silently widen that migration's scope. Ongoing
+   holdings are validated against live coins[] by pruneStaleHoldings().
+   data-loaders.js also falls back to `name` here if a row arrives
+   without one, which no longer happens now that names come from
+   Binance server-side.
+
+   ── On funds, which the roster still excludes ──
+   Binance tags sector/index and LEVERAGED funds as bStocks too (SPY,
+   QQQ, TQQQ, SQQQ, SOXL, SOXS, SMH, EWY, KORU, DRAM, and four 2x
+   single-stock wrappers). The migration plan said single-name equities
+   only, and FUND_DENYLIST honors that. If you want funds included they
+   need their OWN badge/tooltip (not "STOCK") and must NOT run through
+   the same momentum-only partial scorer as single names, since a 3x
+   leveraged product's "momentum" isn't comparable to an unlevered
+   one. Still a separate follow-up. */
 
 /* ── Tokenomics database ─────────────────────────────────────────── */
 /* deflation: 'full'=active burn | 'partial'=some burn | 'fixed'=hard cap | 'none'=inflation */
