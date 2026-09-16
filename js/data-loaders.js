@@ -304,6 +304,60 @@ var _macroData = {btcP7: null, goldP7: null, silverP7: null, oilP7: null, dxyP7:
    section rather than a broken modal. Display only, never scored. */
 var _futuresBySym = {};
 
+/* Attribute-safe text for a title="..." tooltip.
+   The Derivatives notes are all literals with interpolated numbers, so
+   nothing here is currently attacker-controlled — this exists so that
+   stays true if someone later interpolates a coin name or an exchange
+   string into one of them. */
+function _esc(s) {
+  return String(s == null ? '' : s)
+    .replace(/&/g, '&amp;').replace(/"/g, '&quot;')
+    .replace(/</g, '&lt;').replace(/>/g, '&gt;');
+}
+
+/* ── Where a reading sits in TODAY'S universe, 0..1 ──────────────
+   Added 2026-09-16 with the taker-flow and basis cells.
+
+   WHY THIS EXISTS RATHER THAN A CONSTANT. The obvious way to label a
+   taker buy/sell ratio is "above 1.0 = more aggressive buying". That is
+   wrong here, and measurably so: across the 300 perpetuals we store,
+   the median ratio is 0.884, the 10th percentile 0.618 and the 90th
+   1.160. A 1.0 cut would label roughly two-thirds of the universe as
+   selling pressure at any given moment, which tells the reader nothing
+   about the coin and quite a lot about Binance's taker mix.
+
+   Perp basis has the same problem in the other direction: the median
+   (mark - index) is -0.108%, not 0, so "negative basis = discount" is
+   true of most of the market most of the time.
+
+   So both are read RELATIVE to the rest of the universe right now. The
+   tooltip prints the median it was compared against, because a
+   percentile with no stated reference is just a number with a
+   confident tone.
+
+   Cross-sectional only — this says where a coin sits among its peers
+   today, NOT whether the reading is high for that coin historically.
+   Those are different claims and only the first one is made.
+
+   Display only. Nothing here reaches a score: the Derivatives section
+   is documented as unscored in supaLoadFuturesMetrics() and this does
+   not change that. */
+function _futuresPercentile(pick, value) {
+  if (value == null || !isFinite(value)) return null;
+  var vals = [];
+  Object.keys(_futuresBySym).forEach(function(k) {
+    var v = pick(_futuresBySym[k]);
+    if (v != null && isFinite(v)) vals.push(v);
+  });
+  /* Under ~20 peers a percentile is noise dressed as precision. */
+  if (vals.length < 20) return null;
+  vals.sort(function(a, b) { return a - b; });
+  var below = 0;
+  for (var i = 0; i < vals.length; i++) { if (vals[i] < value) below++; else break; }
+  var median = vals[Math.floor(vals.length / 2)];
+  return { pct: below / vals.length, median: median, n: vals.length };
+}
+
 /* Technical events by base asset, from coin_events. Loaded once on boot —
    the whole universe produces a handful of rows a day. See
    supaLoadCoinEvents() for why the site reads rather than detects. */
@@ -2376,6 +2430,81 @@ function openTileDetail(coinId, evt) {
         ? ' Updated ' + Math.round((Date.now() - Date.parse(f.detail_updated_at)) / 60000) + ' min ago.'
         : '';
 
+      /* ── Fields that were stored and read by nothing until 2026-09-16 ──
+         All descriptive, all outside the score, same as the four above. */
+
+      /* OI over 1h. Sits beside OI 24H because the pair is the reading:
+         24h up with 1h down is a position build that has started to
+         come off, which neither number says alone. */
+      var oi1h = f.oi_change_1h_pct != null ? Number(f.oi_change_1h_pct) : null;
+      var oi1hColor = oi1h == null ? 'var(--muted)' : (oi1h >= 0 ? 'var(--green)' : 'var(--red)');
+
+      /* Aggressive flow: taker buys vs taker sells, i.e. who is crossing
+         the spread rather than resting orders. Labelled by rank in the
+         universe, not against 1.0 — see _futuresPercentile(). */
+      var taker = f.taker_buy_sell_ratio != null ? Number(f.taker_buy_sell_ratio) : null;
+      var takerP = _futuresPercentile(function(r) {
+        return r.taker_buy_sell_ratio != null ? Number(r.taker_buy_sell_ratio) : null;
+      }, taker);
+      var takerLabel = '—', takerColor = 'var(--muted)';
+      var takerNote = 'Ratio of aggressive (taker) buying to aggressive selling.';
+      if (taker != null) {
+        takerLabel = taker.toFixed(2);
+        if (takerP) {
+          if (takerP.pct >= 0.85)      { takerColor = 'var(--green)'; takerNote = 'Aggressive buying is heavy relative to the rest of the market right now — buyers are crossing the spread rather than waiting.'; }
+          else if (takerP.pct <= 0.15) { takerColor = 'var(--red)';   takerNote = 'Aggressive selling is heavy relative to the rest of the market right now — sellers are hitting bids rather than resting orders.'; }
+          else                         { takerNote = 'Aggressive buy/sell flow is unremarkable compared with the rest of the market right now.'; }
+          takerNote += ' Ranked against ' + takerP.n + ' perpetuals, median '
+                    + takerP.median.toFixed(2) + ' — the market as a whole sits below 1.0, so 1.0 is not the neutral point.';
+        } else {
+          takerNote += ' Not enough peers loaded to rank it, so it is shown unlabelled.';
+        }
+      }
+
+      /* Perp basis: mark vs the spot index the perp settles against.
+         Both halves were stored; their difference is the whole point of
+         storing them. Premium = perp trading above spot. */
+      var mark = f.mark_price  != null ? Number(f.mark_price)  : null;
+      var indx = f.index_price != null ? Number(f.index_price) : null;
+      var basis = (mark != null && indx) ? ((mark - indx) / indx) * 100 : null;
+      var basisP = _futuresPercentile(function(r) {
+        var m = r.mark_price != null ? Number(r.mark_price) : null;
+        var x = r.index_price != null ? Number(r.index_price) : null;
+        return (m != null && x) ? ((m - x) / x) * 100 : null;
+      }, basis);
+      var basisColor = 'var(--muted)';
+      var basisNote = 'How far the perpetual trades from the spot index it settles against. Premium means the perp is above spot.';
+      if (basis != null && basisP) {
+        if (basisP.pct >= 0.90)      { basisColor = 'var(--green)'; basisNote = 'The perp trades at a premium to spot that is wide compared with the rest of the market — leveraged longs are paying up.'; }
+        else if (basisP.pct <= 0.10) { basisColor = 'var(--red)';   basisNote = 'The perp trades at a discount to spot that is wide compared with the rest of the market — leveraged shorts are paying up.'; }
+        basisNote += ' Ranked against ' + basisP.n + ' perpetuals, median '
+                  + basisP.median.toFixed(3) + '% — most of the market sits slightly below spot, so 0 is not the neutral point.';
+      }
+
+      /* Countdown to the next funding charge. Computed at render, so it
+         is right when the modal opens; it does not tick afterwards. */
+      var nextFund = f.next_funding_time ? Date.parse(f.next_funding_time) : null;
+      var fundIn = '—';
+      if (nextFund && isFinite(nextFund)) {
+        var mins = Math.round((nextFund - Date.now()) / 60000);
+        /* Negative means the stored timestamp is behind — the row is
+           stale rather than funding being overdue. Say so, don't print
+           a negative countdown. */
+        fundIn = mins < 0 ? 'stale' : (mins >= 60 ? Math.floor(mins / 60) + 'h ' + (mins % 60) + 'm' : mins + 'm');
+      }
+
+      /* How long this perpetual has existed. Short-dated contracts have
+         thin open-interest history, which is why some sparklines below
+         are stubs — worth saying rather than leaving the reader to
+         wonder. */
+      var onboard = f.onboard_date ? Date.parse(f.onboard_date) : null;
+      var perpAge = '—', perpAgeNote = 'When Binance listed this perpetual.';
+      if (onboard && isFinite(onboard)) {
+        var days = Math.floor((Date.now() - onboard) / 86400000);
+        perpAge = days < 90 ? days + 'd' : (days / 365).toFixed(1) + 'y';
+        if (days < 90) perpAgeNote += ' Listed recently, so its open-interest history is short and the trend below is thin.';
+      }
+
       drvEl.innerHTML =
          '<div class="td-cell" title="' + fundNote + ' Shown per 8h funding interval'
            + (fund != null ? '; roughly ' + (fund * 3 * 365).toFixed(1) + '% annualised' : '')
@@ -2386,8 +2515,21 @@ function openTileDetail(coinId, evt) {
         + '<div class="td-cell" title="Change in open interest over 24h. Rising means positions are being opened, falling means they are closing."><div class="td-cell-l">OI 24H</div><div class="td-cell-v" style="color:' + oiColor + ';">'
            + (oi24 != null ? (oi24 >= 0 ? '+' : '') + oi24.toFixed(1) + '%' : '—') + '</div></div>'
         + '<div class="td-cell" title="' + posNote + ' Derived from price direction versus open-interest direction over 24h. Descriptive only — it does not affect the score."><div class="td-cell-l">POSITIONING</div><div class="td-cell-v" style="color:' + posColor + ';">'
-           + posLabel + '</div></div>';
-      drvEl.style.gridTemplateColumns = 'repeat(2,1fr)';
+           + posLabel + '</div></div>'
+        /* ── The six that were stored and displayed nowhere ── */
+        + '<div class="td-cell" title="Change in open interest over the last hour. Read it against OI 24H: a 24h build with a 1h fall is a position that has started coming off."><div class="td-cell-l">OI 1H</div><div class="td-cell-v" style="color:' + oi1hColor + ';">'
+           + (oi1h != null ? (oi1h >= 0 ? '+' : '') + oi1h.toFixed(1) + '%' : '—') + '</div></div>'
+        + '<div class="td-cell" title="' + _esc(takerNote) + ' Not part of the score."><div class="td-cell-l">TAKER FLOW</div><div class="td-cell-v" style="color:' + takerColor + ';">'
+           + takerLabel + '</div></div>'
+        + '<div class="td-cell" title="' + _esc(basisNote) + ' Not part of the score."><div class="td-cell-l">BASIS</div><div class="td-cell-v" style="color:' + basisColor + ';">'
+           + (basis != null ? (basis >= 0 ? '+' : '') + basis.toFixed(3) + '%' : '—') + '</div></div>'
+        + '<div class="td-cell" title="Time until the next funding payment is charged. Calculated when this modal opened — it does not count down."><div class="td-cell-l">NEXT FUNDING</div><div class="td-cell-v bnb">'
+           + fundIn + '</div></div>'
+        + '<div class="td-cell" title="' + _esc(perpAgeNote) + '"><div class="td-cell-l">PERP AGE</div><div class="td-cell-v bnb">'
+           + perpAge + '</div></div>';
+      /* 3 across — the section went from 4 readings to 9, and 2 columns
+         made a tall thin stack of it. Matches the market grid above. */
+      drvEl.style.gridTemplateColumns = 'repeat(3,1fr)';
       drvSec.style.display = '';
 
       /* History below the current readings. data-sym guards against a

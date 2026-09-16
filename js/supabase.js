@@ -595,8 +595,15 @@ function supaLoadFuturesMetrics() {
        is keyed by it and has no base_asset column — see
        supaLoadFuturesHistory(). Deriving it as base_asset + 'USDT' would
        be right for almost every pair and silently wrong for the rest. */
+    /* The six fields after detail_updated_at were written by
+       sync-binance-futures and selected by nothing until 2026-09-16.
+       taker_buy_sell_ratio in particular costs a per-symbol request on
+       the rotating OI budget every run, so it was being paid for and
+       thrown away. All six are display-only, like everything else here. */
     'select': 'symbol,base_asset,funding_rate,open_interest_value,oi_change_24h_pct,'
-            + 'price_change_pct_24h,long_short_ratio,binance_category,detail_updated_at'
+            + 'price_change_pct_24h,long_short_ratio,binance_category,detail_updated_at,'
+            + 'taker_buy_sell_ratio,oi_change_1h_pct,mark_price,index_price,'
+            + 'next_funding_time,onboard_date'
   }).then(function(rows) {
     var out = {};
     (rows || []).forEach(function(r) { out[r.base_asset] = r; });
