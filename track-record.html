@@ -1378,11 +1378,42 @@ a{color:inherit;text-decoration:none}
     var base = document.getElementById('acc-base');
     if (base) {
       base.innerHTML =
-        _bucket === 'bullish' ? 'Engine v2 managed <b>71.9%</b> on bullish calls over 90 days.'
-      : _bucket === 'under'   ? 'Engine v2 managed <b>80.8%</b> on the combined lagging bucket over 90 days.'
-      : _bucket === 'rotate'  ? 'Engine v2 did not record rotate-out separately — these sat inside its 80.8% lagging figure, so there is no like-for-like baseline.'
-      :                         'Engine v2 finished on <b>76.2%</b> across 863 graded calls. Graded on the best price in the window, so read it as an upper bound.';
+        (_bucket === 'bullish' ? 'Engine v2 managed <b>71.9%</b> on bullish calls over 90 days.'
+       : _bucket === 'under'   ? 'Engine v2 managed <b>80.8%</b> on the combined lagging bucket over 90 days.'
+       : _bucket === 'rotate'  ? 'Engine v2 did not record rotate-out separately — these sat inside its 80.8% lagging figure, so there is no like-for-like baseline.'
+       :                         'Engine v2 finished on <b>76.2%</b> across 863 graded calls. Graded on the best price in the window, so read it as an upper bound.')
+      + chanceNote();
     }
+  }
+
+  /* ── What a coin flip pays on the same bet ────────────────
+     A percentage with no null behind it cannot be read. 50% is the
+     instinct and it is wrong here, because none of these are symmetric
+     bets — a single-coin call has to clear a market-cap bar, and a
+     rotation has to clear a 2% spread, so chance pays well under half.
+
+     Measured 2026-09-17 over 144 completed 7-day windows on the 175
+     symbols in binance_daily_klines: blanket single-coin calls confirm
+     ~31% of the time, random rotation pairs ~41%.
+
+     The two behave very differently and the copy has to say so. The
+     single-coin null swings 3% to 72% purely on which way the market
+     went that week, so a single-coin accuracy figure mostly reports the
+     market. The rotation null sits at 39-42% through every regime,
+     which is why the rotation record is the number that can carry a
+     claim about skill. See promptove/47.
+
+     KEEP IN SYNC with ROTATOR_EVIDENCE in js/config.js — this page
+     deliberately loads no shared JS, so the figure is restated here
+     rather than imported. If one moves, move both. */
+  var CHANCE_SINGLE   = 31;
+  var CHANCE_ROTATION = 41;
+  function chanceNote() {
+    return '<br><span style="opacity:.9">On the same bet, chance pays about <b>'
+      + CHANCE_SINGLE + '%</b> — a blanket call on every coin, measured over 144 windows. '
+      + 'That null swings from 3% to 72% with the market, so read a single-coin figure as '
+      + 'mostly a read on the week. The rotation record below has a steadier bar: <b>'
+      + CHANCE_ROTATION + '%</b>.</span>';
   }
 
   function showError(msg) {
@@ -1405,9 +1436,16 @@ a{color:inherit;text-decoration:none}
         ? pendingList.length + ' call' + (pendingList.length === 1 ? '' : 's') + ' recorded, none old enough to grade yet (needs ' + CONFIRM_DAYS_MIN + '+ days).'
         : 'No rotation calls recorded yet.';
     } else {
-      accLine.innerHTML = '<b style="color:' + (stats.accuracy >= 50 ? 'var(--green)' : 'var(--red)') + ';">' + stats.accuracy + '%</b> spread accuracy ('
+      /* Green/red against CHANCE_ROTATION, not against 50. Beating a
+         coin flip is not the test here — two coins picked at random
+         clear a 2% spread 41% of the time, so 45% is a losing number
+         dressed as a winning one. */
+      accLine.innerHTML = '<b style="color:' + (stats.accuracy >= CHANCE_ROTATION ? 'var(--green)' : 'var(--red)') + ';">' + stats.accuracy + '%</b> spread accuracy ('
         + stats.correct + ' of ' + stats.total + ' confirmed, spread ≥ ' + ROTATION_THRESHOLD + '%)'
-        + (pendingList.length ? ' · ' + pendingList.length + ' more pending' : '');
+        + (pendingList.length ? ' · ' + pendingList.length + ' more pending' : '')
+        + '<br><span style="color:var(--muted);font-size:12px;">Random pairs from the same universe clear that spread <b>'
+        + CHANCE_ROTATION + '%</b> of the time — that, not 50%, is the bar. '
+        + 'The call is relative: a confirmed rotation often means both coins fell and the target fell less.</span>';
     }
 
     var grid  = document.getElementById('rot-grid');

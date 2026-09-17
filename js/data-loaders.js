@@ -2680,9 +2680,17 @@ function openTileDetail(coinId, evt) {
   if (typeof delistedSymbols !== 'undefined' && delistedSymbols.has(c.sym)) {
     badges.push({t:'⚠ NOT TRADING ON BINANCE', cls:'bear'});
   }
-  if (c.score >= 70)      badges.push({t:'STRONG MOM', cls:'bull'});
+  /* The score band badge states BEHAVIOUR, not a forecast.
+     'LAGGING' read as "this will fall" and sat on coins the rotation
+     panel was simultaneously offering as buys — the same coin called
+     two opposite things on one screen. What the data supports is that
+     a low score means the coin has been left behind and now amplifies
+     the market (+2.2% excess when it rises, -1.4% when it falls), and
+     that a high score means it has run and tends to give some back.
+     See ROTATOR_EVIDENCE in config.js and promptove/47. */
+  if (c.score >= 70)      badges.push({t:'RAN AHEAD',  cls:'bear'});
   else if (c.score >= 55) badges.push({t:'MOMENTUM',   cls:'bull'});
-  else if (c.score <= 30) badges.push({t:'LAGGING',    cls:'bear'});
+  else if (c.score <= 30) badges.push({t:'HIGH BETA',  cls:'beta'});
   else                    badges.push({t:'NEUTRAL',    cls:'neu'});
   if (c.p24 >=  3) badges.push({t:'24H SURGE',    cls:'bull'});
   if (c.p24 <= -3) badges.push({t:'24H DIP',      cls:'bear'});

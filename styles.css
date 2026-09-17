@@ -507,6 +507,16 @@ body::before{content:'';position:fixed;inset:0;background:repeating-linear-gradi
 .sig-tile-badge.rot{background:rgba(0,200,150,.13);color:var(--green);border:1px solid rgba(0,200,150,.28);}
 .sig-tile-badge.mom{background:rgba(240,160,48,.13);color:var(--amber);border:1px solid rgba(240,160,48,.28);}
 .sig-tile-badge.wrst{background:var(--rd);color:var(--red);border:1px solid rgba(255,69,96,.28);}
+/* Card copy rework (promptove/47): a tile now states the decision and
+   the record behind it, so it needs a headline line, an evidence note
+   and a caveat line. .hi lifts the measured figures out of the note so
+   they read at a glance without a second colour. */
+.sig-tile-head{font-size:12px;font-weight:700;color:var(--text);margin:4px 0 6px;line-height:1.35;}
+.sig-tile-note{font-size:11px;color:var(--muted);margin-top:6px;line-height:1.45;}
+.sig-tile-note .hi{color:var(--text);font-weight:600;}
+.sig-tile-note .up{color:var(--green);font-weight:600;}
+.sig-tile-note .dn{color:var(--red);font-weight:600;}
+.sig-tile-caveat{display:block;margin-top:4px;color:var(--muted);opacity:.8;}
 .sig-tile-arrow{font-size:12px;color:var(--muted);margin-bottom:4px;display:flex;align-items:center;gap:3px;}
 .sig-tile-arrow .arr-from{color:var(--red);font-weight:600;}
 .sig-tile-arrow .arr-to{color:var(--green);font-weight:600;}
@@ -805,6 +815,7 @@ body::before{content:'';position:fixed;inset:0;background:repeating-linear-gradi
 .td-badge.bull{background:rgba(0,200,150,.13);color:var(--green);}
 .td-badge.bear{background:rgba(255,69,96,.13);color:var(--red);}
 .td-badge.neu{background:rgba(135,206,235,.12);color:#87CEEB;}
+.td-badge.beta{background:rgba(240,160,48,.13);color:var(--amber);}
 .td-badge.pro-b{background:rgba(167,139,250,.13);color:var(--pro);}
 .td-badge.ob{background:rgba(255,69,96,.13);color:var(--red);}
 .td-badge.os{background:rgba(0,200,150,.13);color:var(--green);}

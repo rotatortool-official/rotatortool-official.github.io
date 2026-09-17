@@ -472,19 +472,33 @@ function buySuggestTile(c) {
   /* Visual cue for the held-first sort in allBuys above — otherwise
      why this coin surfaced first is invisible to the person looking. */
   var isHeld = (typeof isHeldCoin === 'function') && isHeldCoin(c);
-  var badgeText = isHeld ? 'ALREADY HELD' : 'ROTATION SETUP';
+  var ev = (typeof ROTATOR_EVIDENCE !== 'undefined') && ROTATOR_EVIDENCE.laggard;
+  var badgeText = isHeld ? 'ALREADY HELD' : 'HIGH BETA';
+  /* Amber, not green. Green said "buy", which is a claim about
+     direction we cannot support: the rotation buy leg is +0.4% once
+     Harmony is removed from the sample. What IS supported is
+     amplification — this coin exaggerates whatever the market does
+     next — and amber is the colour for "charged, either way". */
   return '<div class="sig-tile rot" onclick="openTileDetail(\'' + c.id + '\',event)" title="Click for details">'
     + '<div class="sig-tile-top">'
       + '<div class="sig-tile-ico"><img src="' + c.image + '" alt="' + c.sym + ' logo" loading="lazy" width="20" height="20" onerror="this.style.display=\'none\'"></div>'
-      + '<span class="sig-tile-sym" style="color:var(--green);">' + c.sym + '</span>'
-      + '<span class="sig-tile-badge rot" style="background:rgba(0,200,150,.12);color:var(--green);">' + badgeText + '</span>'
+      + '<span class="sig-tile-sym" style="color:var(--amber);">' + c.sym + '</span>'
+      + '<span class="sig-tile-badge mom">' + badgeText + '</span>'
     + '</div>'
     + '<div class="sig-tile-stats">'
       + '<div class="sig-stat"><span class="sig-stat-l">SCORE</span><span class="sig-stat-v am">' + c.score + '</span></div>'
       + '<div class="sig-stat"><span class="sig-stat-l">SENT</span><span class="sig-stat-v ' + sentCls + '">' + sentLabel + '</span></div>'
       + '<div class="sig-stat"><span class="sig-stat-l">UNLOCK</span><span class="sig-stat-v am">' + unlock + '</span></div>'
     + '</div>'
-    + (isHeld ? '<div style="font-size:11px;color:var(--muted);margin-top:6px;">Already in your holdings — still showing the same relative-weakness setup.</div>' : '')
+    + '<div class="sig-tile-note">'
+      + c.sym + ' has lagged the market. Coins in this state amplify what the market does next'
+      + (ev
+          ? ': <span class="up">' + (ev.upExcess >= 0 ? '+' : '') + ev.upExcess + '%</span> vs market when it rises, '
+            + '<span class="dn">' + ev.downExcess + '%</span> when it falls.'
+          : '.')
+      + ' Which comes next is your call, not ours.'
+    + '</div>'
+    + (isHeld ? '<div class="sig-tile-note">Already in your holdings.</div>' : '')
     + '</div>';
 }
 
@@ -551,17 +565,28 @@ function provenProofLine() {
    not a rotation plan: "this is overheated, consider trimming" without
    pretending there's a specific place to put the proceeds. */
 function takeProfitTile(c) {
+  var ev = (typeof ROTATOR_EVIDENCE !== 'undefined') && ROTATOR_EVIDENCE.giveBack;
   return '<div class="sig-tile rot" onclick="openTileDetail(\'' + c.id + '\',event)" title="Click for details">'
     + '<div class="sig-tile-top">'
       + '<div class="sig-tile-ico"><img src="' + c.image + '" alt="' + c.sym + ' logo" loading="lazy" width="20" height="20" onerror="this.style.display=\'none\'"></div>'
       + '<span class="sig-tile-sym" style="color:var(--red);">' + c.sym + '</span>'
-      + '<span class="sig-tile-badge rot" style="background:rgba(255,69,96,.12);color:var(--red);">OUTPERFORMING</span>'
+      + '<span class="sig-tile-badge wrst">GIVE-BACK ZONE</span>'
     + '</div>'
     + '<div class="sig-tile-stats">'
       + '<div class="sig-stat"><span class="sig-stat-l">SCORE</span><span class="sig-stat-v am">' + c.score + '</span></div>'
       + '<div class="sig-stat"><span class="sig-stat-l">30D</span><span class="sig-stat-v ' + (c.p30 >= 0 ? 'up' : 'dn') + '">' + (c.p30 >= 0 ? '+' : '') + c.p30.toFixed(1) + '%</span></div>'
     + '</div>'
-    + '<div style="font-size:11px;color:var(--muted);margin-top:6px;line-height:1.4;">Held, and well ahead of the tracked market over 30 days. No rotation target is implied — open it to see what is driving the move.</div>'
+    + '<div class="sig-tile-note">'
+      + c.sym + ' has run hard and you hold it.'
+      /* wereUp counts the ones that ROSE, so the ones that fell are
+         n - wereUp. Reading it straight prints "0 of 9 were lower"
+         about nine coins that all fell. */
+      + (ev && ev.n
+          ? ' The last <span class="hi">' + (ev.n - ev.wereUp) + ' of ' + ev.n + '</span> coins arriving here were lower 7 days later'
+            + ' (median <span class="dn">' + ev.medianReturn + '%</span>).'
+          : '')
+      + ' This is the give-back zone — not a short signal, and a small sample.'
+    + '</div>'
     + '</div>';
 }
 
@@ -587,12 +612,38 @@ function sigRotTile(sell, buy) {
       + '<span class="sig-tile-sym" style="color:var(--green);">' + buy.sym  + '</span>'
       + '<span class="sig-tile-badge rot">Δ' + delta + '</span>'
     + '</div>'
+    + '<div class="sig-tile-head">Holding ' + sell.sym + '? ' + buy.sym + ' is the swap.</div>'
     + '<div class="sig-tile-stats">'
       + '<div class="sig-stat"><span class="sig-stat-l">TO SENT</span><span class="sig-stat-v ' + buySentCls + '">' + buySentLabel + '</span></div>'
       + '<div class="sig-stat"><span class="sig-stat-l">UNLOCK</span><span class="sig-stat-v am">' + bUnlock + '</span></div>'
       + '<div class="sig-stat"><span class="sig-stat-l">SCR DELTA</span><span class="sig-stat-v am">' + sell.score + '→' + buy.score + '</span></div>'
     + '</div>'
+    /* The claim is RELATIVE and the copy has to say so. "Sell X buy Y"
+       reads as a forecast that Y rises; in 8 of our 19 confirmed
+       rotations both coins fell and the target simply fell less. That
+       is still the call working, and it is the only version of it the
+       record supports. Publishing the chance rate beside it is the
+       point: 63% means nothing until you know a coin flip pays 41%. */
+    + '<div class="sig-tile-note">'
+      + 'Expected to <span class="hi">outperform ' + sell.sym + '</span> over 7–14 days'
+      + (_rotEvidenceLine(buy.sym) || '.')
+    + '</div>'
     + '</div>';
+}
+
+/* The measured record behind a rotation call, or nothing if it has not
+   been measured. Never invents a figure — a card with no evidence makes
+   no claim about its own accuracy. */
+function _rotEvidenceLine(toSym) {
+  var ev = (typeof ROTATOR_EVIDENCE !== 'undefined') && ROTATOR_EVIDENCE.rotation;
+  if (!ev || !ev.confirmed || !ev.chance) return '';
+  return '.<br>Calls like this: <span class="hi">' + ev.confirmed + '% confirmed</span>'
+    + ' · chance pays <span class="hi">' + ev.chance + '%</span>'
+    + (ev.bothFellWins
+        ? '<br><span class="sig-tile-caveat">Not a forecast that ' + (toSym || 'the target')
+          + ' rises — in ' + ev.bothFellWins + ' of ' + ev.totalWins
+          + ' wins both fell, the target just fell less.</span>'
+        : '');
 }
 
 /* How many tiles the Rotation column renders. The other two columns

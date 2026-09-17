@@ -15,6 +15,48 @@
    • UPDATE TOKENOMICS:       Edit TOKENOMICS_DB
 ══════════════════════════════════════════════════════════════════ */
 
+/* ── Measured evidence behind the signal cards ────────────────────
+   Every claim a card makes about how a signal has BEHAVED comes from
+   here. Nothing in the copy states a figure of its own.
+
+   This exists because the cards used to assert direction ("LAGGING",
+   "ROTATION SETUP") with nothing behind the words, while the scoring
+   engine was measuring something different and better. See
+   promptove/47. The rule now: if a card claims it, this block measured
+   it, and the block says when.
+
+   MEASURED 2026-09-17 against binance_daily_klines (175 symbols,
+   2026-04-20 onward), signal_snapshots and rotation_snapshots.
+
+   THESE GO STALE. They are a record of a measurement, not constants of
+   nature — re-run the scripts below and update the numbers and the
+   date together, or delete the claim. A figure here that no longer
+   matches the data is worse than no figure at all.
+
+     rotation record   19 of 30 pairs cleared the 2% spread
+     rotation chance   random pairs from the same universe, 200k draws
+                       per window across 144 completed 7-day windows
+     laggard regime    bottom trailing-30d quintile, excess return vs
+                       the window's market median, split on whether that
+                       median was positive
+     give-back         coins scoring 70+, forward 7d return
+     score momentum    corr(score, trailing 30d return) over 134
+                       snapshots carrying both windows                    */
+var ROTATOR_EVIDENCE = {
+  measuredOn:      '2026-09-17',
+  universe:        { symbols: 175, since: '2026-04-20', windows: 144 },
+
+  rotation:        { confirmed: 63, chance: 41, n: 30,
+                     bothFellWins: 8, totalWins: 19 },
+
+  laggard:         { upExcess: 2.2,  upHitRate: 63,
+                     downExcess: -1.4, downHitRate: 36, windows: 114 },
+
+  giveBack:        { n: 9, wereUp: 0, medianReturn: -8.5, meanTrailing30d: 59 },
+
+  scoreMomentumR:  0.72
+};
+
 /* ── Crypto coin lists ───────────────────────────────────────────── */
 var FREE_COINS = [
   /* ── Mega caps ── */
