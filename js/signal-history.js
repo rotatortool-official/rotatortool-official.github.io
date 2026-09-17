@@ -16,19 +16,33 @@ var SignalHistory = (function() {
   var LS_KEY = 'rot_signal_history';
   var LS_DATE_KEY = 'rot_signal_history_posted';  /* last YYYY-MM-DD we posted */
   var LS_ROT_DATE_KEY = 'rot_rotation_history_posted';
-  var LS_PEAK_KEY = 'rot_peak_verdicts';          /* cached peak-window verdicts */
+  /* v2, 2026-09-17: the key is versioned because the verdicts cached
+     under v1 are one-sided. They record how far price went OUR way and
+     nothing about how far it went against us, so a lagging call on a
+     coin that tripled can sit in a visitor's localStorage as a win
+     forever. Bumping the key discards them; there is nothing to
+     migrate, since the missing side was never stored. */
+  var LS_PEAK_KEY = 'rot_peak_verdicts_v2';       /* cached peak-window verdicts */
   var MAX_DAYS = 30;
 
   /* ── Scoring window tunables ──────────────────────────────────
      CONFIRM_DAYS_MIN — earliest day the window starts being checked.
      PEAK_WINDOW_DAYS — latest day we consider for peak/trough lookup.
      CONFIRM_THRESHOLD — min absolute % change to count as confirmed.
-     A call is locked in as soon as the best price in the window crosses
-     the threshold; current price beyond that does NOT retro-demote it. */
+     A call is locked in as soon as the window crosses the threshold in
+     its favour; current price beyond that does NOT retro-demote it.
+     ADVERSE_MULTIPLE — but the window is now walked in date order, and
+     a run against the call of ADVERSE_MULTIPLE x the bar BEFORE that
+     crossing kills it. Lock-in protects a call that was right first,
+     not one that was already dead. */
   var CONFIRM_DAYS_MIN   = 7;
   var PEAK_WINDOW_DAYS   = 14;
   var CONFIRM_THRESHOLD  = 2;   /* legacy fallback when mcap unavailable */
   var ROTATION_THRESHOLD = 2;   /* rotation: spread between to-change and from-change, in % */
+  /* Adverse move that kills a call, as a multiple of its confirm bar.
+     KEEP IN SYNC with track-record.html, which carries the measurement
+     behind the value 3 and the Harmony case that forced it. */
+  var ADVERSE_MULTIPLE   = 3;
 
   /* Hard cutoff: snapshots dated before STATS_FROM_DATE are excluded from
      accuracy stats and the proven-signals list.
@@ -200,6 +214,42 @@ var SignalHistory = (function() {
     return Promise.resolve(_dailyKlines[String(sym || '').toUpperCase()] || null);
   }
 
+  /* Walk the window in DATE ORDER and report which bar price crossed
+     first — the call's bar, or the same distance against it.
+
+     Mirrors resolveWindow() in track-record.html, which carries the
+     full reasoning. The short version: taking only the favourable
+     extreme meant a lagging call could never be seen to fail. Harmony
+     (ONE), flagged LAGGING 2026-09-14, dipped 6.9% (clearing its 5%
+     micro-cap bar) and then ran +147% the other way; the scorer booked
+     a win and lock-in made it permanent.
+
+     Both directions are resolved and cached together because the cache
+     is keyed on (date, coin) and does not know which list the entry
+     came from. Same-day crosses resolve to a miss: daily candles carry
+     no intraday order, so a win we cannot prove came first is not
+     counted. */
+  function _resolveOrder(win, pt, thr, isBullish) {
+    if (!win || !win.length || !pt || pt <= 0 || !thr) return null;
+    var adv = thr * ADVERSE_MULTIPLE;
+    var goodTarget = pt * (isBullish ? 1 + thr / 100 : 1 - thr / 100);
+    var badTarget  = pt * (isBullish ? 1 - adv / 100 : 1 + adv / 100);
+    var days = win.slice().sort(function(a, b) { return a.openTime - b.openTime; });
+    var bestGood = null, worstBad = null;
+    for (var i = 0; i < days.length; i++) {
+      var d = days[i];
+      var good = isBullish ? d.high : d.low;
+      var bad  = isBullish ? d.low  : d.high;
+      if (bestGood == null || (isBullish ? good > bestGood : good < bestGood)) bestGood = good;
+      if (worstBad == null || (isBullish ? bad < worstBad : bad > worstBad)) worstBad = bad;
+      var hitGood = isBullish ? (d.high >= goodTarget) : (d.low  <= goodTarget);
+      var hitBad  = isBullish ? (d.low  <= badTarget)  : (d.high >= badTarget);
+      if (hitGood && !hitBad) return { outcome: 'win',  price: bestGood };
+      if (hitBad)             return { outcome: 'miss', price: worstBad };
+    }
+    return { outcome: 'open', price: bestGood };
+  }
+
   /* Compute best/worst change for one snapshot entry in the confirm window.
      Returns null if no kline data — caller falls back to current-price. */
   function _computePeakVerdict(entry, snapDateStr) {
@@ -220,7 +270,18 @@ var SignalHistory = (function() {
       }
       var pt = entry.price;
       if (!pt || pt <= 0) return null;
+      var thr = _confirmThresholdForEntry(entry);
+      var resBull = _resolveOrder(win, pt, thr, true);
+      var resLag  = _resolveOrder(win, pt, thr, false);
       return {
+        schema:         2,
+        thr:            thr,
+        resolution: {
+          bullish: resBull && { outcome: resBull.outcome, price: resBull.price,
+                                change: Math.round(((resBull.price - pt) / pt) * 1000) / 10 },
+          lagging: resLag  && { outcome: resLag.outcome,  price: resLag.price,
+                                change: Math.round(((resLag.price  - pt) / pt) * 1000) / 10 }
+        },
         bestHigh:       bestHigh,
         worstLow:       worstLow,
         bestChange:     Math.round(((bestHigh - pt) / pt) * 1000) / 10,   /* one decimal */
@@ -315,6 +376,30 @@ var SignalHistory = (function() {
 
   function _lookupPeak(entry, snapDate) {
     return _peakVerdicts[snapDate + '|' + entry.id] || null;
+  }
+
+  /* The one place a peak verdict is turned into a graded outcome, so
+     the four call sites below cannot drift apart on it.
+
+     Returns { change, price, correct }. `correct` comes from the
+     ordered resolution when there is one; only a verdict without it —
+     a 'current-lock' written when no candles existed — falls back to
+     comparing the favourable extreme against the bar. */
+  function _gradeFromPeak(peak, entry, isBullish) {
+    var thr = _confirmThresholdForEntry(entry);
+    var res = peak.resolution && peak.resolution[isBullish ? 'bullish' : 'lagging'];
+    if (res && res.outcome !== 'open') {
+      return { change: res.change, price: res.price, correct: res.outcome === 'win' };
+    }
+    if (res) {   /* resolved as open: neither bar was crossed */
+      return { change: res.change, price: res.price, correct: false };
+    }
+    var change = isBullish ? peak.bestChange : peak.worstChange;
+    return {
+      change: change,
+      price:  isBullish ? peak.bestHigh : peak.worstLow,
+      correct: isBullish ? change >= thr : change <= -thr
+    };
   }
 
   /* Lock-in: once a signal has cleared its threshold (peak data OR
@@ -648,18 +733,18 @@ var SignalHistory = (function() {
       snap.bullish.forEach(function(entry) {
         if (!entry.price) return;
         var peak = _lookupPeak(entry, snap.date);
-        var change, priceNow, usedPeak = false;
+        var change, priceNow, usedPeak = false, correct;
         if (peak) {
-          change = peak.bestChange;
-          priceNow = peak.bestHigh;
+          var g = _gradeFromPeak(peak, entry, true);
+          change = g.change; priceNow = g.price; correct = g.correct;
           usedPeak = true;
         } else {
           var currentPrice = priceMap[entry.id];
           if (!currentPrice) return;
           change = ((currentPrice - entry.price) / entry.price) * 100;
           priceNow = currentPrice;
+          correct = change >= _confirmThresholdForEntry(entry);
         }
-        var correct = change >= _confirmThresholdForEntry(entry);
         if (correct) {
           if (!usedPeak) _maybeLockInVerdict(entry, snap.date, 'bullish', change);
           proven.push({
@@ -679,18 +764,18 @@ var SignalHistory = (function() {
       snap.lagging.forEach(function(entry) {
         if (!entry.price) return;
         var peak = _lookupPeak(entry, snap.date);
-        var change, priceNow, usedPeak = false;
+        var change, priceNow, usedPeak = false, correct;
         if (peak) {
-          change = peak.worstChange;
-          priceNow = peak.worstLow;
+          var g = _gradeFromPeak(peak, entry, false);
+          change = g.change; priceNow = g.price; correct = g.correct;
           usedPeak = true;
         } else {
           var currentPrice = priceMap[entry.id];
           if (!currentPrice) return;
           change = ((currentPrice - entry.price) / entry.price) * 100;
           priceNow = currentPrice;
+          correct = change <= -_confirmThresholdForEntry(entry);
         }
-        var correct = change <= -_confirmThresholdForEntry(entry);
         if (correct) {
           if (!usedPeak) _maybeLockInVerdict(entry, snap.date, 'lagging', change);
           proven.push({
@@ -744,17 +829,19 @@ var SignalHistory = (function() {
       snap.bullish.forEach(function(entry) {
         if (!entry.price) return;
         var peak = _lookupPeak(entry, snap.date);
-        var change;
-        if (peak) { change = peak.bestChange; peakCovered++; }
-        else {
+        var change, correct;
+        if (peak) {
+          var g = _gradeFromPeak(peak, entry, true);
+          change = g.change; correct = g.correct; peakCovered++;
+        } else {
           var cp = priceMap[entry.id];
           if (!cp) return;
           change = ((cp - entry.price) / entry.price) * 100;
+          correct = change >= _confirmThresholdForEntry(entry);
           currentCovered++;
         }
         totalBull++;
-        var thr = _confirmThresholdForEntry(entry);
-        if (change >= thr) {
+        if (correct) {
           correctBull++;
           _maybeLockInVerdict(entry, snap.date, 'bullish', change);
         }
@@ -763,17 +850,19 @@ var SignalHistory = (function() {
       snap.lagging.forEach(function(entry) {
         if (!entry.price) return;
         var peak = _lookupPeak(entry, snap.date);
-        var change;
-        if (peak) { change = peak.worstChange; peakCovered++; }
-        else {
+        var change, correct;
+        if (peak) {
+          var g = _gradeFromPeak(peak, entry, false);
+          change = g.change; correct = g.correct; peakCovered++;
+        } else {
           var cp = priceMap[entry.id];
           if (!cp) return;
           change = ((cp - entry.price) / entry.price) * 100;
+          correct = change <= -_confirmThresholdForEntry(entry);
           currentCovered++;
         }
         totalLag++;
-        var thrL = _confirmThresholdForEntry(entry);
-        if (change <= -thrL) {
+        if (correct) {
           correctLag++;
           _maybeLockInVerdict(entry, snap.date, 'lagging', change);
         }

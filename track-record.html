@@ -89,6 +89,7 @@ a{color:inherit;text-decoration:none}
   padding:14px 16px;transition:border-color .15s,transform .15s;}
 .card:hover{border-color:var(--bdr2);transform:translateY(-1px);}
 .card.win{border-left:3px solid var(--green)}
+.card.near{border-left:3px solid var(--amber)}
 .card.miss{border-left:3px solid var(--red)}
 .card-top{display:flex;align-items:center;gap:8px;margin-bottom:10px;}
 .card-sym{font-family:var(--font-mono);font-size:18px;font-weight:800;letter-spacing:.04em;color:var(--bnb);}
@@ -192,7 +193,7 @@ a{color:inherit;text-decoration:none}
     <div class="hero-kicker">◆ SIGNAL TRACK RECORD</div>
     <h1>Every call, tracked.</h1>
     <p class="hero-sub">
-      Rotator snapshots its top bullish, rotate-out and underperforming signals every day. After 7 days, we compare the call to the actual price. The result is published here — wins and misses both. The counter below restarted on <span id="copy-reset-date"></span> with scoring engine <span id="copy-engine-hero"></span>; the retired v2 engine's final record is kept underneath it. <a href="engine-changelog.html" style="color:#f3ba2f;text-decoration:underline;text-underline-offset:2px;">Every model change is logged here.</a>
+      Rotator snapshots its top bullish, rotate-out and underperforming signals every day. After 7 days, we compare the call to the actual price. The result is published here — the calls that confirmed, the ones that moved our way without clearing the bar, and the ones that went against us. The counter below restarted on <span id="copy-reset-date"></span> with scoring engine <span id="copy-engine-hero"></span>; the retired v2 engine's final record is kept underneath it. <a href="engine-changelog.html" style="color:#f3ba2f;text-decoration:underline;text-underline-offset:2px;">Every model change is logged here.</a>
     </p>
     <div id="accuracy-box" class="acc-box">
       <div class="acc-big" id="acc-pct">—</div>
@@ -263,6 +264,15 @@ a{color:inherit;text-decoration:none}
 
   <section class="section">
     <div class="section-hdr">
+      <span class="section-title">🟡 Right direction — below the bar</span>
+      <span class="section-count" id="near-count"></span>
+    </div>
+    <div id="near-grid" class="grid"></div>
+    <div id="near-empty"></div>
+  </section>
+
+  <section class="section">
+    <div class="section-hdr">
       <span class="section-title">🔴 Misses — Where we were wrong</span>
       <span class="section-count" id="miss-count"></span>
     </div>
@@ -294,7 +304,7 @@ a{color:inherit;text-decoration:none}
 <footer class="footer">
   <div class="wrap">
     <div class="disclaimer">
-      The live counter reflects Rotator's <span id="copy-engine-disc"></span> scoring engine, tracking from <span id="copy-disc-date"></span>. Engine v2 (2026-04-26 → 2026-09-07) finished on 76.2% across 863 graded calls; its record is shown separately and is not blended into the live number — 2.1.0 changed how market cap enters the score, and 2.2.0 narrowed which coins are published at all. A signal is "confirmed" when price clears a market-cap-aware threshold within 7–14 days (1.5% mega · 2% large · 3% mid · 5% small/micro). Once a signal hits its target inside the window, the call is locked in and cannot be retroactively demoted by later price moves. Not financial advice — DYOR before any trade.
+      The live counter reflects Rotator's <span id="copy-engine-disc"></span> scoring engine, tracking from <span id="copy-disc-date"></span>. Engine v2 (2026-04-26 → 2026-09-07) finished on 76.2% across 863 graded calls; its record is shown separately and is not blended into the live number — 2.1.0 changed how market cap enters the score, and 2.2.0 narrowed which coins are published at all. A signal is "confirmed" when price clears a market-cap-aware threshold within 7–14 days (1.5% mega · 2% large · 3% mid · 5% small/micro). The window is read in date order and the first bar crossed decides it: if price hits the target the call is locked in and cannot be retroactively demoted by later moves, but if it first runs <b>three times that distance the other way</b>, the call is dead and no later move revives it. Same-day crosses count against us, since daily candles cannot prove which came first. A call that fails to confirm is shown in one of two lists, because they say different things: <b>right direction, below the bar</b> means price moved the way we flagged but stopped short of the threshold, and <b>misses</b> means price moved against the call. Only confirmed calls count toward the accuracy figure — a sub-1% drift is noise and is never credited as a win. Not financial advice — DYOR before any trade.
     </div>
     <div style="margin-top:10px;display:flex;justify-content:center;gap:14px;flex-wrap:wrap;">
       <span><span style="color:#22c55e;">•</span> Powered by <a href="https://www.coingecko.com" target="_blank" rel="noopener">CoinGecko</a></span>
@@ -320,6 +330,28 @@ a{color:inherit;text-decoration:none}
   var ROTATION_THRESHOLD = 2;    /* rotation: spread between to-change and from-change, in % — mirrors js/signal-history.js */
   var PEAK_WINDOW_DAYS   = 14;   /* upper bound of the confirm window for peak-capture */
   var CONFIRM_THRESHOLD  = 2;    /* legacy fallback when mcap unknown */
+
+  /* How far price has to run AGAINST a call before the call is dead,
+     as a multiple of that coin's confirm bar. Mirrors js/signal-history.js.
+
+     Measured on the 16 graded calls in the window, 2026-09-17:
+
+       1x -> 31%   2x -> 50%   3x -> 63%   4x -> 69% (no effect)
+
+     1x reads every wiggle as invalidation: INJ fell 13.4% after ticking
+     4% up first, which is a good call with a normal drawdown, and 1x
+     scores it a miss. 4x is loose enough that nothing in the current
+     window changes, which means it is untested. 3x sits where a move
+     three times the size of the one we predicted, in the wrong
+     direction, before we were ever right, counts as the thesis being
+     broken — and ordinary noise does not.
+
+     This number is a judgement, not a measurement, and it is the only
+     knob in the fix. The bug it exists to close — Harmony running +147%
+     against a LAGGING call and booking a win off an earlier 6.9% dip —
+     is caught at every value above, so moving it trades strictness for
+     the headline figure and nothing else. */
+  var ADVERSE_MULTIPLE   = 3;
 
   /* ── Engine 2.3.0 tracking reset ─────────────────────────────
      Third reset, 2026-09-08. Different reason from the 2.1.0 one, and
@@ -772,6 +804,78 @@ a{color:inherit;text-decoration:none}
     return { bestHigh: bestHigh, worstLow: worstLow };
   }
 
+  /* ── Which way did the window break FIRST ────────────────
+     peakInWindow() answers "how far did it go our way", and for a
+     bullish call that is the whole question. For a lagging call it is
+     half of one, and the missing half was never asked.
+
+     Harmony (ONE), flagged LAGGING on 2026-09-14 at $0.000706:
+
+       worstLow   -6.9%   cleared the 5% micro-cap bar -> "confirmed"
+       bestHigh +147.3%   never looked at
+
+     The coin went up 147% against a call that said it would fall, and
+     the scorer booked it as a win because it dipped 6.9% on the way.
+     Lock-in then made that permanent. Three more ONE calls in the same
+     week had the same shape. A grader that cannot see a lagging call
+     being wrong is not measuring anything.
+
+     So the window is walked in DATE ORDER and the first bar crossed
+     decides:
+
+       · our bar first          -> confirmed, and lock-in still applies
+       · the adverse bar first  -> miss, and we report the move that
+                                   went against us, not the dip before it
+       · neither                -> unresolved; caller grades on the
+                                   favourable extreme exactly as before
+
+     The adverse bar is ADVERSE_MULTIPLE times the confirm bar — see
+     the constant for why it is not 1x. Symmetry reads every ordinary
+     drawdown as a failure; the bar has to be wide enough that only a
+     broken thesis crosses it.
+
+     SAME-DAY CROSSES GO TO THE MISS. Daily candles carry a high and a
+     low with no intraday order, so when both bars fall on one day we
+     cannot show the win came first — and an unprovable win is not a
+     win. This is the conservative direction on purpose: every other
+     part of this page rounds toward flattering the model, and that is
+     exactly how ONE got booked as a win. */
+  function resolveWindow(candles, snapDateStr, priceThen, thr, isBullish) {
+    if (!candles || !candles.length || !priceThen || !thr) return null;
+    var snapTs = new Date(snapDateStr + 'T00:00:00').getTime();
+    var winStart = snapTs + 864e5;
+    var winEnd   = Math.min(snapTs + PEAK_WINDOW_DAYS * 864e5, Date.now());
+    if (winStart >= winEnd) return null;
+
+    var adv = thr * ADVERSE_MULTIPLE;
+    var goodTarget = priceThen * (isBullish ? 1 + thr / 100 : 1 - thr / 100);
+    var badTarget  = priceThen * (isBullish ? 1 - adv / 100 : 1 + adv / 100);
+
+    var inWindow = [];
+    for (var i = 0; i < candles.length; i++) {
+      var c = candles[i];
+      if (c.openTime >= winStart && c.openTime <= winEnd) inWindow.push(c);
+    }
+    if (!inWindow.length) return null;
+    inWindow.sort(function(a, b) { return a.openTime - b.openTime; });
+
+    var bestGood = null, worstBad = null;
+    for (var j = 0; j < inWindow.length; j++) {
+      var d = inWindow[j];
+      var goodExtreme = isBullish ? d.high : d.low;
+      var badExtreme  = isBullish ? d.low  : d.high;
+      if (bestGood == null || (isBullish ? goodExtreme > bestGood : goodExtreme < bestGood)) bestGood = goodExtreme;
+      if (worstBad == null || (isBullish ? badExtreme < worstBad : badExtreme > worstBad)) worstBad = badExtreme;
+
+      var hitGood = isBullish ? (d.high >= goodTarget) : (d.low  <= goodTarget);
+      var hitBad  = isBullish ? (d.low  <= badTarget)  : (d.high >= badTarget);
+
+      if (hitGood && !hitBad) return { outcome: 'win',  price: bestGood, on: d.openTime };
+      if (hitBad)             return { outcome: 'miss', price: worstBad, on: d.openTime };
+    }
+    return { outcome: 'open', price: bestGood, adverse: worstBad };
+  }
+
   /* Pre-fetch klines in batches before evaluating, so the per-snap
      lookup is synchronous against the cache. */
   function warmKlines(snaps) {
@@ -804,7 +908,7 @@ a{color:inherit;text-decoration:none}
   /* ── Evaluate snapshots → wins/misses lists + stats ────── */
   function evaluate(snaps, priceMap, mcapMap) {
     mcapMap = mcapMap || {};
-    var wins = [], misses = [];
+    var wins = [], nears = [], misses = [];
     var tBull = 0, cBull = 0, tRot = 0, cRot = 0, tUnd = 0, cUnd = 0;
     var peakCovered = 0, fallbackCovered = 0;
     var now = new Date();
@@ -818,19 +922,28 @@ a{color:inherit;text-decoration:none}
       var priceThen = r.price != null ? Number(r.price) : null;
       if (!priceThen) return;
 
-      var change, priceNow, usedPeak = false;
+      if (r.signal_type !== 'bullish' && r.signal_type !== 'lagging') return;
+      var isBull = r.signal_type === 'bullish';
+
+      /* The bar has to be known BEFORE the window is read now — a
+         resolution is "which bar was crossed first", so the bar is an
+         input to grading rather than a comparison made afterwards. */
+      var thr = confirmThresholdFor(r.mcap || mcapMap[r.coin_id]);
+
+      var change, priceNow, usedPeak = false, resolved = null;
       var candles = _klineMap[r.coin_sym];
       var peak = (candles && candles.length) ? peakInWindow(candles, r.snap_date) : null;
 
       if (peak) {
         usedPeak = true;
-        if (r.signal_type === 'bullish') {
-          priceNow = peak.bestHigh;
-          change = ((peak.bestHigh - priceThen) / priceThen) * 100;
-        } else {
-          priceNow = peak.worstLow;
-          change = ((peak.worstLow - priceThen) / priceThen) * 100;
-        }
+        resolved = resolveWindow(candles, r.snap_date, priceThen, thr, isBull);
+        /* resolveWindow returns the extreme that DECIDED the call —
+           the run in our favour when it confirmed, the run against us
+           when it did not. Falling back to the old one-sided extreme
+           here would put the -0.8% dip back on ONE's card. */
+        priceNow = resolved ? resolved.price
+                 : (isBull ? peak.bestHigh : peak.worstLow);
+        change = ((priceNow - priceThen) / priceThen) * 100;
       } else {
         priceNow = priceMap[r.coin_id];
         if (!priceNow) return;
@@ -849,12 +962,25 @@ a{color:inherit;text-decoration:none}
       };
       if (usedPeak) peakCovered++; else fallbackCovered++;
 
-      var thr = confirmThresholdFor(r.mcap || mcapMap[r.coin_id]);
-      var correct;
+      record.threshold = thr;
+
+      /* A resolved window has already answered this by walking the days
+         in order, and its answer wins. `change >= thr` is only consulted
+         when nothing resolved — the current-price fallback for coins with
+         no Binance listing, and windows where neither bar was ever
+         crossed. Deriving `correct` from `change` alone is what let a
+         lagging call keep the win it earned from a dip it later erased. */
+      var decided = resolved && resolved.outcome !== 'open'
+                  ? resolved.outcome === 'win'
+                  : null;
+      record.decidedBy = resolved ? resolved.outcome : 'fallback';
+
+      var correct, rightWay;
       if (r.signal_type === 'bullish') {
         record.bucket = 'bullish';
         tBull++;
-        correct = change >= thr;
+        correct = decided != null ? decided : change >= thr;
+        rightWay = change > 0;
         if (correct) cBull++;
       } else if (r.signal_type === 'lagging') {
         /* signal_type carries only bullish/lagging, but TWO different
@@ -866,14 +992,33 @@ a{color:inherit;text-decoration:none}
            while still being graded identically. */
         var isRot = String(r.signal_label || '').toUpperCase() === 'ROTATE OUT';
         record.bucket = isRot ? 'rotate' : 'under';
-        correct = change <= -thr;
+        correct = decided != null ? decided : change <= -thr;
+        rightWay = change < 0;
         if (isRot) { tRot++; if (correct) cRot++; }
         else       { tUnd++; if (correct) cUnd++; }
       } else {
         return;
       }
       record.correct = correct;
-      (correct ? wins : misses).push(record);
+
+      /* THREE outcomes, not two. Grading is unchanged — `correct` still
+         means the move cleared the mcap-aware bar, and the headline
+         accuracy is still correct/total. What changed is that a call
+         which moved the way we said but stopped short of the bar is no
+         longer filed under "where we were wrong".
+
+         It was wrong on the page and wrong on the facts. On 2026-09-17
+         every one of the five not-confirmed calls in the window had
+         moved in the flagged direction — SUN +2.1% on a 3% bar, ONE
+         -0.8% on a 5% bar — and the section above them read "Where we
+         were wrong". Zero had gone against the call.
+
+         The bar stays because a 0.8% drift over 7 days is noise and
+         crediting it would publish a 100% accuracy number. But
+         "did not clear the bar" and "moved against us" are different
+         claims about the model, and only the second one is a miss. */
+      record.rightWay = rightWay;
+      (correct ? wins : (rightWay ? nears : misses)).push(record);
     });
 
     /* Deduplicate by coin (keep the most impressive move per coin). */
@@ -891,6 +1036,7 @@ a{color:inherit;text-decoration:none}
     }
 
     wins   = dedupe(wins,   true);
+    nears  = dedupe(nears,  true);
     misses = dedupe(misses, true);
 
     var total   = tBull + tRot + tUnd;
@@ -898,8 +1044,9 @@ a{color:inherit;text-decoration:none}
     var acc = total > 0 ? Math.round((correct / total) * 100) : null;
 
     return {
-      wins: wins, misses: misses,
+      wins: wins, nears: nears, misses: misses,
       stats: { total: total, correct: correct, accuracy: acc,
+               near: nears.length, against: misses.length,
                bullTotal: tBull, bullCorrect: cBull,
                rotTotal: tRot, rotCorrect: cRot,
                undTotal: tUnd, undCorrect: cUnd,
@@ -921,7 +1068,8 @@ a{color:inherit;text-decoration:none}
 
   function renderCard(r) {
     var isBull = r.type === 'bullish';
-    var card = el('div', { className: 'card ' + (r.correct ? 'win' : 'miss') });
+    var outcome = r.correct ? 'win' : (r.rightWay ? 'near' : 'miss');
+    var card = el('div', { className: 'card ' + outcome });
     card.innerHTML =
       '<div class="card-top">'
     +   '<span class="card-sym">' + escape(r.sym) + '</span>'
@@ -941,7 +1089,13 @@ a{color:inherit;text-decoration:none}
     + '<div class="card-proof">'
     +   'Flagged as ' + escape(r.signal || (isBull ? 'BULLISH' : 'LAGGING'))
     +   (r.score != null ? ' (score ' + r.score + ')' : '')
-    +   ' — ' + (r.correct ? 'confirmed ✓' : 'did not confirm')
+    +   ' — ' + (r.correct ? 'confirmed ✓'
+                : outcome === 'near'
+                  ? 'moved the right way, short of the ' + r.threshold + '% bar'
+                  : r.decidedBy === 'miss'
+                    ? 'invalidated — ran ' + Math.round(r.threshold * ADVERSE_MULTIPLE * 10) / 10
+                      + '% against the call before it ever cleared ' + r.threshold + '%'
+                    : 'moved against the call')
     + '</div>';
     return card;
   }
@@ -1086,11 +1240,11 @@ a{color:inherit;text-decoration:none}
     });
   });
 
-  /* ── Search — filters all three grids (wins/misses/rotation) live ── */
+  /* ── Search — filters all four grids (wins/near/misses/rotation) live ── */
   document.getElementById('search-input').addEventListener('input', function() {
     var q = this.value.toLowerCase().trim();
     document.getElementById('search-wrap').classList.toggle('search-active', !!q);
-    ['wins-grid', 'miss-grid', 'rot-grid'].forEach(function(gridId) {
+    ['wins-grid', 'near-grid', 'miss-grid', 'rot-grid'].forEach(function(gridId) {
       var grid = document.getElementById(gridId);
       Array.prototype.forEach.call(grid.children, function(card) {
         var text = card.dataset.searchText || card.textContent.toLowerCase();
@@ -1156,16 +1310,22 @@ a{color:inherit;text-decoration:none}
       });
     }
 
-    function fill(gridId, emptyId, countId, list, emptyMsg) {
+    /* `empty` overrides the icon and heading. The default "⏳ Nothing to
+       show yet" reads as "still waiting" — right for the wins list on day
+       one, wrong for the two lists below it, where empty is a RESULT and
+       not a pending state. Now that near-misses have their own bucket,
+       an empty misses list is the normal case, not a stalled one. */
+    function fill(gridId, emptyId, countId, list, emptyMsg, empty) {
       var grid  = document.getElementById(gridId);
-      var empty = document.getElementById(emptyId);
+      var slot  = document.getElementById(emptyId);
       var count = document.getElementById(countId);
       grid.innerHTML = '';
-      empty.innerHTML = '';
+      slot.innerHTML = '';
       count.textContent = list.length ? list.length + (list.length === 1 ? ' call' : ' calls') : '';
       if (!list.length) {
-        empty.innerHTML = '<div class="status"><div class="status-icon">⏳</div>'
-                        + '<h3>Nothing to show yet</h3>'
+        empty = empty || {};
+        slot.innerHTML = '<div class="status"><div class="status-icon">' + (empty.icon || '⏳') + '</div>'
+                        + '<h3>' + (empty.title || 'Nothing to show yet') + '</h3>'
                         + '<p>' + emptyMsg + '</p></div>';
         return;
       }
@@ -1178,9 +1338,15 @@ a{color:inherit;text-decoration:none}
     }
 
     fill('wins-grid',  'wins-empty',  'wins-count',
-         ofBucket(result.wins),   'Signals reach the wins list once they move ≥2% in the direction we flagged, 7+ days after being called.');
+         ofBucket(result.wins),   'Signals reach the wins list once they clear their market-cap bar in the direction we flagged, 7+ days after being called.');
+    fill('near-grid',  'near-empty',  'near-count',
+         ofBucket(result.nears || []),
+         'Every graded call in this window either cleared its bar or moved against us.',
+         { icon: '🟡', title: 'No near-misses' });
     fill('miss-grid',  'miss-empty',  'miss-count',
-         ofBucket(result.misses), 'No confirmed misses yet in this window. This list is published alongside the wins for honest accounting.');
+         ofBucket(result.misses),
+         'No call in this window moved against the direction we flagged. Misses are published beside the wins for honest accounting, so this list is shown empty rather than hidden.',
+         { icon: '🔴', title: 'Nothing went against us' });
 
     /* What the retired v2 engine managed on the same kind of call, so a
        group can be read against something. v2 recorded only two buckets,
