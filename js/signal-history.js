@@ -16,33 +16,32 @@ var SignalHistory = (function() {
   var LS_KEY = 'rot_signal_history';
   var LS_DATE_KEY = 'rot_signal_history_posted';  /* last YYYY-MM-DD we posted */
   var LS_ROT_DATE_KEY = 'rot_rotation_history_posted';
-  /* v2, 2026-09-17: the key is versioned because the verdicts cached
-     under v1 are one-sided. They record how far price went OUR way and
-     nothing about how far it went against us, so a lagging call on a
-     coin that tripled can sit in a visitor's localStorage as a win
-     forever. Bumping the key discards them; there is nothing to
-     migrate, since the missing side was never stored. */
-  var LS_PEAK_KEY = 'rot_peak_verdicts_v2';       /* cached peak-window verdicts */
+  /* LS_PEAK_KEY and its cached verdicts are gone: a market-relative
+     grade is a pure function of the candles, so there is nothing worth
+     persisting and no stale verdict that can outlive a fix in a
+     visitor's browser. */
   var MAX_DAYS = 30;
 
   /* ── Scoring window tunables ──────────────────────────────────
-     CONFIRM_DAYS_MIN — earliest day the window starts being checked.
-     PEAK_WINDOW_DAYS — latest day we consider for peak/trough lookup.
-     CONFIRM_THRESHOLD — min absolute % change to count as confirmed.
-     A call is locked in as soon as the window crosses the threshold in
-     its favour; current price beyond that does NOT retro-demote it.
-     ADVERSE_MULTIPLE — but the window is now walked in date order, and
-     a run against the call of ADVERSE_MULTIPLE x the bar BEFORE that
-     crossing kills it. Lock-in protects a call that was right first,
-     not one that was already dead. */
-  var CONFIRM_DAYS_MIN   = 7;
-  var PEAK_WINDOW_DAYS   = 14;
-  var CONFIRM_THRESHOLD  = 2;   /* legacy fallback when mcap unavailable */
-  var ROTATION_THRESHOLD = 2;   /* rotation: spread between to-change and from-change, in % */
-  /* Adverse move that kills a call, as a multiple of its confirm bar.
-     KEEP IN SYNC with track-record.html, which carries the measurement
-     behind the value 3 and the Harmony case that forced it. */
-  var ADVERSE_MULTIPLE   = 3;
+     HORIZON_DAYS       the window every call is measured over.
+     CONFIRM_DAYS_MIN   and therefore when a call becomes gradeable.
+     ROTATION_THRESHOLD spread the target must beat the source by.
+
+     A call is graded on whether the coin BEAT THE MEDIAN COIN over
+     HORIZON_DAYS. There is no absolute bar, no peak capture, no lock-in
+     and no adverse multiple, because there is no threshold for price to
+     sneak across: the benchmark moves with the market, so the null is
+     50% and volatility cannot clear it.
+
+     Retired 2026-09-17: CONFIRM_THRESHOLD (2), PEAK_WINDOW_DAYS (14),
+     ADVERSE_MULTIPLE (3) and the mcap-tiered bars of 1.5/2/3/5%. A
+     blanket call on every coin cleared those 66-72% of the time.
+     promptove/49.
+
+     KEEP IN SYNC with track-record.html. */
+  var HORIZON_DAYS       = 30;   /* the window every call is measured over */
+  var CONFIRM_DAYS_MIN   = HORIZON_DAYS;
+  var ROTATION_THRESHOLD = 0;   /* target simply has to out-return the source; null 50.3% */
 
   /* ── One clock, shared with track-record.html ──────────────
      A snapshot date is a UTC calendar day, and age is the number of
@@ -114,31 +113,11 @@ var SignalHistory = (function() {
     return typeof dateStr === 'string' && dateStr >= STATS_FROM_DATE;
   }
 
-  /* Step 4: Volatility-normalized confirmation by mcap tier.
-     A 2% move on BTC in a week is a real signal; a 2% move on a
-     small-cap is intraday noise. Tier the threshold so accuracy
-     reflects what's a meaningful move FOR THAT ASSET. */
-  function _confirmThresholdForMcap(mcap) {
-    if (!mcap || mcap <= 0) return CONFIRM_THRESHOLD;
-    if (mcap >= 30e9) return 1.5;   /* mega: BTC, ETH */
-    if (mcap >=  3e9) return 2;     /* large */
-    if (mcap >= 300e6) return 3;    /* mid */
-    return 5;                       /* small/micro: noise floor */
-  }
+  /* The mcap-tiered confirm bars lived here. Market-relative grading
+     judges every coin against the same median on the same day, so
+     there is no tier to pick. */
 
-  /* Look up an entry's mcap — prefer what was stored at snapshot time
-     (added by _mapEntry), fall back to the live coins[] mcap by id.
-     Returns 0 if neither is available; caller falls back to CONFIRM_THRESHOLD. */
-  function _entryMcap(entry) {
-    if (entry && typeof entry.mcap === 'number' && entry.mcap > 0) return entry.mcap;
-    if (typeof coins === 'undefined' || !coins.length) return 0;
-    var c = coins.find(function(x) { return x.id === entry.id; });
-    return (c && c.mcap) ? c.mcap : 0;
-  }
 
-  function _confirmThresholdForEntry(entry) {
-    return _confirmThresholdForMcap(_entryMcap(entry));
-  }
 
   /* ── In-memory cache of the server history (source of truth). ──
      Populated by loadServerHistory() on module init. Until it
@@ -186,28 +165,13 @@ var SignalHistory = (function() {
   }
 
   /* ══════════════════════════════════════════════════════════════
-     PEAK-CAPTURE SCORING
-     Binance daily klines → max(high) / min(low) inside the confirm
-     window. A call is "correct" if the best move inside the window
-     crossed CONFIRM_THRESHOLD, regardless of today's price. Solves the
-     retroactive-bad problem: a good call at day 7 stays good even if
-     momentum fades by day 20. Falls back to current-price comparison
-     when klines are unavailable (coins not on Binance, offline, etc).
-  ══════════════════════════════════════════════════════════════ */
-  var _peakVerdicts    = {};   /* "YYYY-MM-DD|coin_id" → {bestChange, worstChange, ...} */
-  var _peakWarmStarted = false;
-  var _peakWarmDone    = false;
+     MARKET-RELATIVE SCORING
+     Binance daily closes -> the coin's return over HORIZON_DAYS against
+     the median coin's return over the same window. No bar to clear, no
+     window extreme, no lock-in: the benchmark moves with the market so
+     the null is 50%. A coin with no candles on either endpoint is not
+     graded rather than graded against another source. promptove/49. */
 
-  /* Restore persisted verdict cache so re-opening the app doesn't
-     re-grade calls that already have a locked verdict. */
-  try {
-    var _savedPeak = localStorage.getItem(LS_PEAK_KEY);
-    if (_savedPeak) _peakVerdicts = JSON.parse(_savedPeak) || {};
-  } catch(e) { _peakVerdicts = {}; }
-
-  function _savePeakVerdicts() {
-    try { localStorage.setItem(LS_PEAK_KEY, JSON.stringify(_peakVerdicts)); } catch(e) {}
-  }
 
   /* Daily candles now come from Supabase (binance_daily_klines), loaded
      in ONE bulk read before grading starts, instead of one Binance
@@ -217,203 +181,9 @@ var SignalHistory = (function() {
      was the entire source of the console error noise. */
   var _dailyKlines = {};   /* base asset -> [{openTime, high, low, close}] */
 
-  function _preloadDailyKlines(syms, sinceIso) {
-    if (typeof supaLoadDailyKlines !== 'function') return Promise.resolve();
-    return supaLoadDailyKlines(syms, sinceIso).then(function(map) {
-      _dailyKlines = map || {};
-    }).catch(function() { _dailyKlines = {}; });
-  }
 
-  function _fetchDailyKlines(sym) {
-    return Promise.resolve(_dailyKlines[String(sym || '').toUpperCase()] || null);
-  }
 
-  /* Walk the window in DATE ORDER and report which bar price crossed
-     first — the call's bar, or the same distance against it.
 
-     Mirrors resolveWindow() in track-record.html, which carries the
-     full reasoning. The short version: taking only the favourable
-     extreme meant a lagging call could never be seen to fail. Harmony
-     (ONE), flagged LAGGING 2026-09-14, dipped 6.9% (clearing its 5%
-     micro-cap bar) and then ran +147% the other way; the scorer booked
-     a win and lock-in made it permanent.
-
-     Both directions are resolved and cached together because the cache
-     is keyed on (date, coin) and does not know which list the entry
-     came from. Same-day crosses resolve to a miss: daily candles carry
-     no intraday order, so a win we cannot prove came first is not
-     counted. */
-  function _resolveOrder(win, pt, thr, isBullish) {
-    if (!win || !win.length || !pt || pt <= 0 || !thr) return null;
-    var adv = thr * ADVERSE_MULTIPLE;
-    var goodTarget = pt * (isBullish ? 1 + thr / 100 : 1 - thr / 100);
-    var badTarget  = pt * (isBullish ? 1 - adv / 100 : 1 + adv / 100);
-    var days = win.slice().sort(function(a, b) { return a.openTime - b.openTime; });
-    var bestGood = null, worstBad = null;
-    for (var i = 0; i < days.length; i++) {
-      var d = days[i];
-      var good = isBullish ? d.high : d.low;
-      var bad  = isBullish ? d.low  : d.high;
-      if (bestGood == null || (isBullish ? good > bestGood : good < bestGood)) bestGood = good;
-      if (worstBad == null || (isBullish ? bad < worstBad : bad > worstBad)) worstBad = bad;
-      var hitGood = isBullish ? (d.high >= goodTarget) : (d.low  <= goodTarget);
-      var hitBad  = isBullish ? (d.low  <= badTarget)  : (d.high >= badTarget);
-      if (hitGood && !hitBad) return { outcome: 'win',  price: bestGood };
-      if (hitBad)             return { outcome: 'miss', price: worstBad };
-    }
-    return { outcome: 'open', price: bestGood };
-  }
-
-  /* Compute best/worst change for one snapshot entry in the confirm window.
-     Returns null if no kline data — caller falls back to current-price. */
-  function _computePeakVerdict(entry, snapDateStr) {
-    var snapTs = _snapTs(snapDateStr);
-    var windowStart = snapTs + 864e5;                        /* day +1 */
-    var windowEnd   = snapTs + PEAK_WINDOW_DAYS * 864e5;     /* day +14 */
-    var nowTs = Date.now();
-    if (windowEnd > nowTs) windowEnd = nowTs;
-    if (windowStart >= windowEnd) return Promise.resolve(null);
-    return _fetchDailyKlines(entry.sym).then(function(candles) {
-      if (!candles || !candles.length) return null;
-      var win = candles.filter(function(c) { return c.openTime >= windowStart && c.openTime <= windowEnd; });
-      if (!win.length) return null;
-      var bestHigh = win[0].high, worstLow = win[0].low;
-      for (var i = 1; i < win.length; i++) {
-        if (win[i].high > bestHigh) bestHigh = win[i].high;
-        if (win[i].low  < worstLow) worstLow = win[i].low;
-      }
-      var pt = entry.price;
-      if (!pt || pt <= 0) return null;
-      var thr = _confirmThresholdForEntry(entry);
-      var resBull = _resolveOrder(win, pt, thr, true);
-      var resLag  = _resolveOrder(win, pt, thr, false);
-      return {
-        schema:         2,
-        thr:            thr,
-        resolution: {
-          bullish: resBull && { outcome: resBull.outcome, price: resBull.price,
-                                change: Math.round(((resBull.price - pt) / pt) * 1000) / 10 },
-          lagging: resLag  && { outcome: resLag.outcome,  price: resLag.price,
-                                change: Math.round(((resLag.price  - pt) / pt) * 1000) / 10 }
-        },
-        bestHigh:       bestHigh,
-        worstLow:       worstLow,
-        bestChange:     Math.round(((bestHigh - pt) / pt) * 1000) / 10,   /* one decimal */
-        worstChange:    Math.round(((worstLow - pt) / pt) * 1000) / 10,
-        windowDaysUsed: Math.min(PEAK_WINDOW_DAYS, Math.floor((nowTs - snapTs) / 864e5)),
-        candleCount:    win.length,
-        computedAt:     nowTs
-      };
-    });
-  }
-
-  /* Background warm-up: iterate snapshots, fetch klines, cache verdicts.
-     Triggers a re-render on completion so the UI picks up the new numbers.
-     Runs at most once per session; each (date, coin) is only fetched once. */
-  function _warmPeakCache() {
-    if (_peakWarmStarted) return Promise.resolve();
-    _peakWarmStarted = true;
-    var hist = loadHistory();
-    if (!hist.length) { _peakWarmDone = true; return Promise.resolve(); }
-
-    var tasks = [];
-    var oldest = null;
-    hist.forEach(function(snap) {
-      var daysAgo = _daysSince(snap.date);
-      if (daysAgo < CONFIRM_DAYS_MIN) return;   /* too fresh — not scored yet */
-      var entries = (snap.bullish || []).concat(snap.lagging || []);
-      entries.forEach(function(entry) {
-        if (!entry || !entry.id || !entry.sym || !entry.price) return;
-        var key = snap.date + '|' + entry.id;
-        var cached = _peakVerdicts[key];
-        /* Skip only real, kline-derived verdicts. A 'current-lock' was
-           written *because* no candles were available at the time — and
-           for every call graded while the kline read was truncating
-           (see js/supabase.js, KLINE_PAGE_LIMIT) that was the fetch bug
-           rather than a coin with no Binance listing. Those locks are
-           cached in localStorage and would otherwise outlive the fix on
-           every visitor's device. Re-attempt them: if candles exist now
-           the peak verdict replaces the lock, and if they genuinely
-           don't, _computePeakVerdict returns null and the lock stands
-           untouched. Nothing is lost either way, and a lock that
-           comes back empty is stamped 'regraded' so this costs one
-           retry per lock rather than one on every page load. */
-        if (cached && (cached.source !== 'current-lock' || cached.regraded)) return;
-        if (!oldest || snap.date < oldest) oldest = snap.date;
-        tasks.push({ snap: snap, entry: entry, key: key });
-      });
-    });
-
-    if (!tasks.length) { _peakWarmDone = true; return Promise.resolve(); }
-
-    /* One bulk read covers every symbol these tasks need, so the loop
-       below now does no network I/O at all. The oldest task date bounds
-       it: grading reads [snap+1d, snap+14d], so nothing older than the
-       oldest snapshot still being graded can matter, and the bound is
-       what lets the read size its chunks against PostgREST's row cap
-       instead of guessing at a symbol count. */
-    return _preloadDailyKlines(
-        tasks.map(function(t) { return t.entry.sym; }),
-        oldest ? oldest + 'T00:00:00Z' : null)
-      .then(function() { return _gradeTasks(tasks); });
-  }
-
-  function _gradeTasks(tasks) {
-    /* Batching is kept from when each task issued its own Binance
-       request. It is cheap now that candles are already in memory. */
-    return new Promise(function(resolve) {
-      var BATCH = 5;
-      function step(i) {
-        if (i >= tasks.length) {
-          _peakWarmDone = true;
-          _savePeakVerdicts();
-          try { render(); } catch(e) {}
-          return resolve();
-        }
-        var batch = tasks.slice(i, i + BATCH);
-        Promise.all(batch.map(function(t) {
-          return _computePeakVerdict(t.entry, t.snap.date).then(function(v) {
-            if (v) { _peakVerdicts[t.key] = v; return; }
-            /* Still no candles — this coin genuinely has no Binance
-               listing rather than a truncated fetch. Stamp the lock so
-               the re-attempt above happens exactly once per lock and
-               not on every page load forever. */
-            var prev = _peakVerdicts[t.key];
-            if (prev && prev.source === 'current-lock') prev.regraded = true;
-          });
-        })).then(function() { setTimeout(function() { step(i + BATCH); }, 50); });
-      }
-      step(0);
-    });
-  }
-
-  function _lookupPeak(entry, snapDate) {
-    return _peakVerdicts[snapDate + '|' + entry.id] || null;
-  }
-
-  /* The one place a peak verdict is turned into a graded outcome, so
-     the four call sites below cannot drift apart on it.
-
-     Returns { change, price, correct }. `correct` comes from the
-     ordered resolution when there is one; only a verdict without it —
-     a 'current-lock' written when no candles existed — falls back to
-     comparing the favourable extreme against the bar. */
-  function _gradeFromPeak(peak, entry, isBullish) {
-    var thr = _confirmThresholdForEntry(entry);
-    var res = peak.resolution && peak.resolution[isBullish ? 'bullish' : 'lagging'];
-    if (res && res.outcome !== 'open') {
-      return { change: res.change, price: res.price, correct: res.outcome === 'win' };
-    }
-    if (res) {   /* resolved as open: neither bar was crossed */
-      return { change: res.change, price: res.price, correct: false };
-    }
-    var change = isBullish ? peak.bestChange : peak.worstChange;
-    return {
-      change: change,
-      price:  isBullish ? peak.bestHigh : peak.worstLow,
-      correct: isBullish ? change >= thr : change <= -thr
-    };
-  }
 
   /* Lock-in: once a signal has cleared its threshold (peak data OR
      current price), persist a verdict so a later price retracement
@@ -423,28 +193,6 @@ var SignalHistory = (function() {
      Only writes a NEW lock; pre-existing peak verdicts are never
      overwritten (those are the authoritative kline-derived ones). */
   var _lockDirty = false;
-  function _maybeLockInVerdict(entry, snapDate, kind, change) {
-    var key = snapDate + '|' + entry.id;
-    if (_peakVerdicts[key]) return;   /* already have a real peak verdict */
-    var lock = {
-      lockedAt:    Date.now(),
-      source:      'current-lock',
-      kind:        kind,
-      bestChange:  kind === 'bullish' ? change : 0,
-      worstChange: kind === 'lagging' ? change : 0,
-      bestHigh:    kind === 'bullish' ? entry.price * (1 + change/100) : entry.price,
-      worstLow:    kind === 'lagging' ? entry.price * (1 + change/100) : entry.price
-    };
-    _peakVerdicts[key] = lock;
-    _lockDirty = true;
-    /* Debounce: flush all locks captured in this render pass to LS once. */
-    if (typeof _flushLocksTimer === 'undefined' || !_flushLocksTimer) {
-      _flushLocksTimer = setTimeout(function() {
-        if (_lockDirty) { _savePeakVerdicts(); _lockDirty = false; }
-        _flushLocksTimer = null;
-      }, 250);
-    }
-  }
   var _flushLocksTimer = null;
 
   /* ── Determine signal label for a coin ── */
@@ -720,209 +468,185 @@ var SignalHistory = (function() {
      for lagging. A call that hit +15% at day 8 stays "confirmed" even
      if the coin is back to flat today. Current-price comparison is
      only used when Binance daily klines aren't available for the coin. */
-  /* ── RETIRED 2026-09-17, pending migration ─────────────────────
-     Both of the functions below grade on the ABSOLUTE confirm bar:
-     "did price move 1.5-5% in the called direction at some point inside
-     the window". Measured over 175 symbols and 151 days, a blanket call
-     on every coin passes that test 66-72% of the time. It is not a bar,
-     and track-record.html stopped using it today in favour of "did the
-     coin beat the median coin over 30 days", which has a 50% null by
-     construction. See promptove/49.
+  /* ── Klines, and the market they are measured against ──────────
+     A grade is a pure function of the candles: the coin's return over
+     HORIZON_DAYS against the median coin over the same window. Nothing
+     is cached across sessions and nothing is locked in, because there
+     is no threshold for price to sneak across — the benchmark moves
+     with the market.
 
-     They are switched off rather than left running, because the
-     alternative is the dashboard asserting an accuracy number under a
-     definition the track record has publicly retired — the same
-     two-implementations-of-one-fact split that produced five separate
-     bugs on 2026-09-17.
+     KEEP IN SYNC with track-record.html, which carries the same four
+     helpers. The two files are deliberately separate implementations
+     that point at each other; on 2026-09-17 that arrangement produced
+     five bugs in one day, so if one of these moves, move both. */
+  var _relKlines = {};
+  var _relLoaded = false;
+  var _relWarmStarted = false;
+  var _marketRetCache = {};
+  var MARKET_MIN_SYMBOLS = 20;
 
-     Switching them off is safe by design: getAccuracyStats() already
-     returns null when there is nothing to grade, and getProvenSignals()
-     already returns an empty list, so every caller handles this state.
-     provenProofLine() renders nothing and the accuracy widget hides.
+  function _snapTsOf(d) { return new Date(d + 'T00:00:00Z').getTime(); }
+  function _shiftDate(d, n) {
+    var t = new Date(_snapTsOf(d));
+    t.setUTCDate(t.getUTCDate() + n);
+    return t.toISOString().slice(0, 10);
+  }
+  function _closeOn(candles, d) {
+    if (!candles || !candles.length) return null;
+    var want = _snapTsOf(d);
+    for (var i = 0; i < candles.length; i++) if (candles[i].openTime === want) return candles[i].close;
+    return null;
+  }
+  function _returnOver(candles, from, n) {
+    var a = _closeOn(candles, from); if (!a) return null;
+    var b = _closeOn(candles, _shiftDate(from, n)); if (!b) return null;
+    return ((b - a) / a) * 100;
+  }
 
-     TO MIGRATE: the relative rule needs the median return across the
-     WHOLE universe, and _preloadDailyKlines() currently fetches only
-     the symbols that appear in snapshots — which are the extremes, so
-     their median is a median of our own opinions. track-record.html
-     solved this by fetching the table unfiltered (loadAllDailyKlines
-     with a null symbol list). Do the same here, then grade on
-     coinReturn - marketMedian over HORIZON_DAYS and delete this block. */
-  var GRADING_RETIRED = true;
+  /* Median symbol return over the same window. Median not mean, so one
+     coin doing +160% cannot move the bar every other call is judged
+     against; equal-weight, because the calls are equal-weight. */
+  function _marketReturn(d) {
+    if (Object.prototype.hasOwnProperty.call(_marketRetCache, d)) return _marketRetCache[d];
+    var rets = [];
+    for (var sym in _relKlines) {
+      if (!Object.prototype.hasOwnProperty.call(_relKlines, sym)) continue;
+      var r = _returnOver(_relKlines[sym], d, HORIZON_DAYS);
+      if (r != null && isFinite(r)) rets.push(r);
+    }
+    if (rets.length < MARKET_MIN_SYMBOLS) { _marketRetCache[d] = null; return null; }
+    rets.sort(function(x, y) { return x - y; });
+    var mid = Math.floor(rets.length / 2);
+    _marketRetCache[d] = { median: rets.length % 2 ? rets[mid] : (rets[mid - 1] + rets[mid]) / 2, n: rets.length };
+    return _marketRetCache[d];
+  }
 
+  /* Null when the coin has no candles on either endpoint, or the
+     cross-section is too thin to be a market. A call we cannot measure
+     is not graded against a price from another source; it is not
+     graded. */
+  function _gradeEntry(entry, snapDate, isBullish) {
+    var candles = _relKlines[String(entry.sym || '').toUpperCase()];
+    var then = _closeOn(candles, snapDate);
+    var now  = _closeOn(candles, _shiftDate(snapDate, HORIZON_DAYS));
+    if (then == null || now == null) return null;
+    var mkt = _marketReturn(snapDate);
+    if (!mkt) return null;
+    var change = ((now - then) / then) * 100;
+    var excess = change - mkt.median;
+    return {
+      priceThen: then, priceNow: now,
+      change: Math.round(change * 10) / 10,
+      market: Math.round(mkt.median * 10) / 10,
+      excess: Math.round(excess * 10) / 10,
+      correct: isBullish ? excess > 0 : excess < 0
+    };
+  }
+
+  /* One bulk read of the WHOLE table. null asks supaLoadDailyKlines for
+     every symbol: the median needs the universe, and the symbols that
+     appear in snapshots are by construction the extremes — their median
+     would be a median of our own opinions. */
+  function _warmRelKlines() {
+    if (_relWarmStarted) return Promise.resolve();
+    _relWarmStarted = true;
+    if (typeof supaLoadDailyKlines !== 'function') return Promise.resolve();
+    var oldest = null;
+    loadHistory().forEach(function(snap) {
+      if (_daysSince(snap.date) < CONFIRM_DAYS_MIN) return;
+      if (!oldest || snap.date < oldest) oldest = snap.date;
+    });
+    if (!oldest) return Promise.resolve();
+    return supaLoadDailyKlines(null, oldest + 'T00:00:00Z').then(function(map) {
+      _relKlines = map || {};
+      _marketRetCache = {};
+      _relLoaded = true;
+      try { render(); } catch (e) {}
+    }).catch(function() { _relKlines = {}; });
+  }
+
+
+  /* ── Proven calls: the ones that beat the market ───────────────
+     Same rule as track-record.html — the coin out-returned the median
+     coin over HORIZON_DAYS. No cache, no lock-in: the grade is a pure
+     function of the candles. */
   function getProvenSignals() {
-    if (GRADING_RETIRED) return [];
+    if (!_relLoaded) { _warmRelKlines(); return []; }
     var hist = loadHistory();
     if (!hist.length) return [];
 
-    /* Build current price map (fallback only). Coins list may be empty
-       on very first load; peak verdicts still work without it. */
-    var priceMap = {};
-    if (typeof coins !== 'undefined' && coins.length) {
-      coins.forEach(function(c) { priceMap[c.id] = c.price; });
-    }
-
     var proven = [];
-
     hist.forEach(function(snap) {
       if (!_passesCutoff(snap.date)) return;
       var daysAgo = _daysSince(snap.date);
-
-      /* Only show signals that are CONFIRM_DAYS_MIN+ days old */
       if (daysAgo < CONFIRM_DAYS_MIN) return;
-
-      /* Bullish — correct if best high in window ≥ +threshold */
-      snap.bullish.forEach(function(entry) {
-        if (!entry.price) return;
-        var peak = _lookupPeak(entry, snap.date);
-        var change, priceNow, usedPeak = false, correct;
-        if (peak) {
-          var g = _gradeFromPeak(peak, entry, true);
-          change = g.change; priceNow = g.price; correct = g.correct;
-          usedPeak = true;
-        } else {
-          var currentPrice = priceMap[entry.id];
-          if (!currentPrice) return;
-          change = ((currentPrice - entry.price) / entry.price) * 100;
-          priceNow = currentPrice;
-          correct = change >= _confirmThresholdForEntry(entry);
-        }
-        if (correct) {
-          if (!usedPeak) _maybeLockInVerdict(entry, snap.date, 'bullish', change);
+      [['bullish', true], ['lagging', false]].forEach(function(pair) {
+        (snap[pair[0]] || []).forEach(function(entry) {
+          if (!entry || !entry.sym) return;
+          var g = _gradeEntry(entry, snap.date, pair[1]);
+          if (!g || !g.correct) return;
           proven.push({
             id: entry.id, sym: entry.sym, name: entry.name,
             signal: entry.signal, extras: entry.extras || [],
             date: snap.date, daysAgo: daysAgo,
-            priceThen: entry.price, priceNow: priceNow,
+            priceThen: g.priceThen, priceNow: g.priceNow,
             scoreThen: entry.score,
-            change: Math.round(change * 10) / 10,
-            type: 'bullish', correct: true,
-            source: usedPeak ? 'peak' : 'current'
+            change: g.change, market: g.market, excess: g.excess,
+            type: pair[0], correct: true, source: 'close'
           });
-        }
-      });
-
-      /* Lagging — correct if worst low in window ≤ -threshold */
-      snap.lagging.forEach(function(entry) {
-        if (!entry.price) return;
-        var peak = _lookupPeak(entry, snap.date);
-        var change, priceNow, usedPeak = false, correct;
-        if (peak) {
-          var g = _gradeFromPeak(peak, entry, false);
-          change = g.change; priceNow = g.price; correct = g.correct;
-          usedPeak = true;
-        } else {
-          var currentPrice = priceMap[entry.id];
-          if (!currentPrice) return;
-          change = ((currentPrice - entry.price) / entry.price) * 100;
-          priceNow = currentPrice;
-          correct = change <= -_confirmThresholdForEntry(entry);
-        }
-        if (correct) {
-          if (!usedPeak) _maybeLockInVerdict(entry, snap.date, 'lagging', change);
-          proven.push({
-            id: entry.id, sym: entry.sym, name: entry.name,
-            signal: entry.signal, extras: entry.extras || [],
-            date: snap.date, daysAgo: daysAgo,
-            priceThen: entry.price, priceNow: priceNow,
-            scoreThen: entry.score,
-            change: Math.round(change * 10) / 10,
-            type: 'lagging', correct: true,
-            source: usedPeak ? 'peak' : 'current'
-          });
-        }
+        });
       });
     });
 
-    /* Sort by absolute change magnitude — most impressive first */
-    proven.sort(function(a, b) { return Math.abs(b.change) - Math.abs(a.change); });
-
-    /* Deduplicate by coin ID — keep the most impressive result */
+    /* Sorted by how far it beat the MARKET, not by raw move. A coin that
+       rose 30% in a month the market rose 35% proved nothing, and used
+       to top this list. */
+    proven.sort(function(x, y) { return Math.abs(y.excess) - Math.abs(x.excess); });
     var seen = {};
     proven = proven.filter(function(p) {
       if (seen[p.id]) return false;
       seen[p.id] = true;
       return true;
     });
-
-    return proven.slice(0, 8); /* Top 8 proven signals */
+    return proven.slice(0, 8);
   }
 
-  /* ── Get accuracy stats (peak-capture, falls back to current price) ── */
+  /* ── Accuracy: share of calls that beat the market ─────────────
+     50% is the bar, by construction: half of all coins beat the median
+     coin. What this replaced had a null of ~68% and was publishing
+     63%. promptove/49. */
   function getAccuracyStats() {
-    if (GRADING_RETIRED) return null;
+    if (!_relLoaded) { _warmRelKlines(); return null; }
     var hist = loadHistory();
     if (!hist.length) return null;
 
-    var priceMap = {};
-    if (typeof coins !== 'undefined' && coins.length) {
-      coins.forEach(function(c) { priceMap[c.id] = c.price; });
-    }
-
-    var totalBull = 0, correctBull = 0, totalLag = 0, correctLag = 0;
-    var peakCovered = 0, currentCovered = 0;
-
+    var totalBull = 0, correctBull = 0, totalLag = 0, correctLag = 0, uncovered = 0;
     hist.forEach(function(snap) {
-      if (!_passesCutoff(snap.date)) return;   /* exclude pre-v2-engine snapshots */
-      var daysAgo = _daysSince(snap.date);
-      if (daysAgo < CONFIRM_DAYS_MIN) return;
-
-      snap.bullish.forEach(function(entry) {
-        if (!entry.price) return;
-        var peak = _lookupPeak(entry, snap.date);
-        var change, correct;
-        if (peak) {
-          var g = _gradeFromPeak(peak, entry, true);
-          change = g.change; correct = g.correct; peakCovered++;
-        } else {
-          var cp = priceMap[entry.id];
-          if (!cp) return;
-          change = ((cp - entry.price) / entry.price) * 100;
-          correct = change >= _confirmThresholdForEntry(entry);
-          currentCovered++;
-        }
-        totalBull++;
-        if (correct) {
-          correctBull++;
-          _maybeLockInVerdict(entry, snap.date, 'bullish', change);
-        }
+      if (!_passesCutoff(snap.date)) return;
+      if (_daysSince(snap.date) < CONFIRM_DAYS_MIN) return;
+      (snap.bullish || []).forEach(function(entry) {
+        if (!entry || !entry.sym) return;
+        var g = _gradeEntry(entry, snap.date, true);
+        if (!g) { uncovered++; return; }
+        totalBull++; if (g.correct) correctBull++;
       });
-
-      snap.lagging.forEach(function(entry) {
-        if (!entry.price) return;
-        var peak = _lookupPeak(entry, snap.date);
-        var change, correct;
-        if (peak) {
-          var g = _gradeFromPeak(peak, entry, false);
-          change = g.change; correct = g.correct; peakCovered++;
-        } else {
-          var cp = priceMap[entry.id];
-          if (!cp) return;
-          change = ((cp - entry.price) / entry.price) * 100;
-          correct = change <= -_confirmThresholdForEntry(entry);
-          currentCovered++;
-        }
-        totalLag++;
-        if (correct) {
-          correctLag++;
-          _maybeLockInVerdict(entry, snap.date, 'lagging', change);
-        }
+      (snap.lagging || []).forEach(function(entry) {
+        if (!entry || !entry.sym) return;
+        var g = _gradeEntry(entry, snap.date, false);
+        if (!g) { uncovered++; return; }
+        totalLag++; if (g.correct) correctLag++;
       });
     });
 
     var total = totalBull + totalLag;
     var correct = correctBull + correctLag;
     if (total === 0) return null;
-
     return {
-      total: total,
-      correct: correct,
+      total: total, correct: correct,
       accuracy: Math.round((correct / total) * 100),
-      bullTotal: totalBull,
-      bullCorrect: correctBull,
-      lagTotal: totalLag,
-      lagCorrect: correctLag,
-      peakCovered: peakCovered,
-      currentCovered: currentCovered
+      bullTotal: totalBull, bullCorrect: correctBull,
+      lagTotal: totalLag, lagCorrect: correctLag,
+      benchmark: 50, horizonDays: HORIZON_DAYS, uncovered: uncovered
     };
   }
 
@@ -987,30 +711,15 @@ var SignalHistory = (function() {
 
       pairs.forEach(function(p) {
         if (!p.from_price || !p.to_price) return;
-        /* For the from-coin we want "what would they have lost by holding"
-           → prefer the worst-low (down move avoided). For to-coin we want
-           "what did the rotation deliver" → best-high. */
-        var fromPeak = _lookupPeak({ id: p.from_id, sym: p.from_sym, price: p.from_price }, snapDate);
-        var toPeak   = _lookupPeak({ id: p.to_id,   sym: p.to_sym,   price: p.to_price   }, snapDate);
-        var fromChange, toChange;
-        if (fromPeak) {
-          /* For the FROM coin, the realised change for the holder who
-             didn't rotate is roughly the close — but we don't have that
-             cheap. Approximate as the avg of best-high and worst-low,
-             which centres around the path's midpoint. */
-          fromChange = (fromPeak.bestChange + fromPeak.worstChange) / 2;
-        } else {
-          var cpf = priceMap[p.from_id];
-          if (!cpf) return;
-          fromChange = ((cpf - p.from_price) / p.from_price) * 100;
-        }
-        if (toPeak) {
-          toChange = (toPeak.bestChange + toPeak.worstChange) / 2;
-        } else {
-          var cpt = priceMap[p.to_id];
-          if (!cpt) return;
-          toChange = ((cpt - p.to_price) / p.to_price) * 100;
-        }
+        /* Real closes over the fixed window. This averaged bestHigh and
+           worstLow as a "proxy for the close" — a number the price never
+           traded at, which track-record.html already flagged as an
+           honesty concern. The candles carry closes; use them. A pair we
+           cannot measure on both legs is skipped rather than patched up
+           from a current price captured at a different moment. */
+        var fromChange = _returnOver(_relKlines[String(p.from_sym || '').toUpperCase()], snapDate, HORIZON_DAYS);
+        var toChange   = _returnOver(_relKlines[String(p.to_sym   || '').toUpperCase()], snapDate, HORIZON_DAYS);
+        if (fromChange == null || toChange == null) return;
         var spread = toChange - fromChange;
         var correct = spread >= ROTATION_THRESHOLD;
 
@@ -1062,19 +771,15 @@ var SignalHistory = (function() {
       if (daysAgo < CONFIRM_DAYS_MIN) return;
       pairs.forEach(function(p) {
         if (!p.from_price || !p.to_price) return;
-        var fromPeak = _lookupPeak({ id: p.from_id, sym: p.from_sym, price: p.from_price }, snapDate);
-        var toPeak   = _lookupPeak({ id: p.to_id,   sym: p.to_sym,   price: p.to_price   }, snapDate);
-        var fromChange, toChange;
-        if (fromPeak) fromChange = (fromPeak.bestChange + fromPeak.worstChange) / 2;
-        else {
-          var cpf = priceMap[p.from_id]; if (!cpf) return;
-          fromChange = ((cpf - p.from_price) / p.from_price) * 100;
-        }
-        if (toPeak) toChange = (toPeak.bestChange + toPeak.worstChange) / 2;
-        else {
-          var cpt = priceMap[p.to_id]; if (!cpt) return;
-          toChange = ((cpt - p.to_price) / p.to_price) * 100;
-        }
+        /* Real closes over the fixed window. This averaged bestHigh and
+           worstLow as a "proxy for the close" — a number the price never
+           traded at, which track-record.html already flagged as an
+           honesty concern. The candles carry closes; use them. A pair we
+           cannot measure on both legs is skipped rather than patched up
+           from a current price captured at a different moment. */
+        var fromChange = _returnOver(_relKlines[String(p.from_sym || '').toUpperCase()], snapDate, HORIZON_DAYS);
+        var toChange   = _returnOver(_relKlines[String(p.to_sym   || '').toUpperCase()], snapDate, HORIZON_DAYS);
+        if (fromChange == null || toChange == null) return;
         total++;
         if ((toChange - fromChange) >= ROTATION_THRESHOLD) correct++;
       });
@@ -1099,7 +804,7 @@ var SignalHistory = (function() {
     /* Kick off async peak-capture warmup on first render. When it
        finishes, it calls render() again so the UI reflects the locked
        verdicts instead of the current-price fallback. */
-    if (!_peakWarmStarted) _warmPeakCache();
+    _warmRelKlines();
 
     var proven = getProvenSignals();
     var stats  = getAccuracyStats();

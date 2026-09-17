@@ -410,13 +410,18 @@ function supaKlineChunkSize(sinceIso) {
 function supaFetchKlinePages(group, sinceIso) {
   var rows = [];
   function page(offset, pageNo) {
+    /* group === null asks for every symbol. Market-relative grading
+       needs a median across the whole universe, and the symbols that
+       appear in snapshots are by construction the extremes — their
+       median would be a median of our own opinions. Mirrors the same
+       switch in track-record.html. */
     var params = {
-      'base_asset': 'in.(' + group.join(',') + ')',
       'select':     'base_asset,open_time,high,low,close',
       'order':      'base_asset.asc,open_time.asc',
       'limit':      String(KLINE_PAGE_LIMIT),
       'offset':     String(offset)
     };
+    if (group) params['base_asset'] = 'in.(' + group.join(',') + ')';
     if (sinceIso) params['open_time'] = 'gte.' + sinceIso;
     return supaRest('binance_daily_klines', 'GET', params).then(function(batch) {
       batch = batch || [];
@@ -504,11 +509,18 @@ function supaLoadDailyKlines(syms, sinceIso) {
     s = String(s || '').toUpperCase();
     if (s && unique.indexOf(s) < 0) unique.push(s);
   });
-  if (!unique.length) return Promise.resolve({});
+  /* null (not an empty array) means the whole table — see below. */
+  var wantAll = syms == null;
+  if (!wantAll && !unique.length) return Promise.resolve({});
 
-  var size = supaKlineChunkSize(sinceIso);
-  var chunks = [];
-  for (var i = 0; i < unique.length; i += size) chunks.push(unique.slice(i, i + size));
+  var chunks;
+  if (wantAll) {
+    chunks = [null];
+  } else {
+    var size = supaKlineChunkSize(sinceIso);
+    chunks = [];
+    for (var i = 0; i < unique.length; i += size) chunks.push(unique.slice(i, i + size));
+  }
 
   return supaKlinePool(chunks, function(group) {
     return supaFetchKlinePages(group, sinceIso);
@@ -524,7 +536,7 @@ function supaLoadDailyKlines(syms, sinceIso) {
         });
       });
     });
-    supaWarnIfKlinesStale(unique, out);
+    supaWarnIfKlinesStale(wantAll ? Object.keys(out) : unique, out);
     return out;
   }).catch(function(e) {
     console.warn('[Supabase] daily klines read failed:', e.message);
