@@ -49,6 +49,19 @@ var ROTATOR_EVIDENCE = {
   rotation:        { confirmed: 63, chance: 41, n: 30,
                      bothFellWins: 8, totalWins: 19 },
 
+  /* The single-coin confirm metric, measured the way the track record
+     actually grades it: ordered window over [snap+1d, snap+14d], window
+     extreme, adverse bar at 3x. A blanket call on every coin confirms
+     ~68% of the time, because a 1.5-5% bar checked against the best
+     moment in two weeks is cleared by ordinary volatility.
+
+     It is here so nothing can quote a single-coin accuracy figure
+     without the bar it has to beat. Published 2026-09-17 as 31% - that
+     was a close-to-close measurement of a grader that does not work
+     close-to-close, and it flattered the tool by more than double.
+     See promptove/49. */
+  singleCoin:      { chance: 68, method: 'ordered window, peak capture, 14d' },
+
   laggard:         { upExcess: 2.2,  upHitRate: 63,
                      downExcess: -1.4, downHitRate: 36, windows: 114 },
 

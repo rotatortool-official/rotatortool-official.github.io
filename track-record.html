@@ -1392,27 +1392,44 @@ a{color:inherit;text-decoration:none}
      bets — a single-coin call has to clear a market-cap bar, and a
      rotation has to clear a 2% spread, so chance pays well under half.
 
-     Measured 2026-09-17 over 144 completed 7-day windows on the 175
-     symbols in binance_daily_klines: blanket single-coin calls confirm
-     ~31% of the time, random rotation pairs ~41%.
+     CORRECTED 2026-09-17, same day, after publishing it wrong.
 
-     The two behave very differently and the copy has to say so. The
-     single-coin null swings 3% to 72% purely on which way the market
-     went that week, so a single-coin accuracy figure mostly reports the
-     market. The rotation null sits at 39-42% through every regime,
-     which is why the rotation record is the number that can carry a
-     claim about skill. See promptove/47.
+     The first version of this said 31%. That figure came from a
+     close-to-close move over exactly 7 days. THE GRADER DOES NOT WORK
+     THAT WAY: it walks [snap+1d, snap+14d] and takes the window
+     extreme, so a call confirms if price ever touches the bar at any
+     point inside two weeks. Almost everything does.
 
+     Re-measured the null the way evaluate() actually grades — ordered
+     window, adverse bar at ADVERSE_MULTIPLE, same-day cross against —
+     over 175 symbols and 151 days:
+
+       bar 1.5% (mega)   66.6% of blanket calls confirm
+       bar 2%   (large)  70.5%
+       bar 3%   (mid)    71.5%
+       bar 5%   (small)  65.8%
+
+     So the single-coin null is about 68%, not 31%, and this page's own
+     figure sits at or below it. That metric is not measuring the
+     engine; it is measuring crypto's daily range against a bar two
+     weeks of noise clears on its own.
+
+     The rotation null is unaffected — evaluateRotation() compares
+     then-vs-now closes with no peak capture, which is what 41% was
+     measured on. It stays the number that can carry a claim.
      KEEP IN SYNC with ROTATOR_EVIDENCE in js/config.js — this page
      deliberately loads no shared JS, so the figure is restated here
-     rather than imported. If one moves, move both. */
-  var CHANCE_SINGLE   = 31;
+     rather than imported. If one moves, move both.
+     See promptove/49. */
+  var CHANCE_SINGLE   = 68;
   var CHANCE_ROTATION = 41;
   function chanceNote() {
-    return '<br><span style="opacity:.9">On the same bet, chance pays about <b>'
-      + CHANCE_SINGLE + '%</b> — a blanket call on every coin, measured over 144 windows. '
-      + 'That null swings from 3% to 72% with the market, so read a single-coin figure as '
-      + 'mostly a read on the week. The rotation record below has a steadier bar: <b>'
+    return '<br><span style="opacity:.9">Graded this way, a blanket call on <i>every</i> coin '
+      + 'confirms about <b>' + CHANCE_SINGLE + '%</b> of the time — because a 1.5–5% bar, '
+      + 'checked against the best moment in a two-week window, is something ordinary '
+      + 'volatility clears on its own. <b>This figure is at or below that bar, so read it '
+      + 'as a measure of the market and not of the model.</b> The rotation record below is '
+      + 'graded on closing prices with no such window, and its bar is <b>'
       + CHANCE_ROTATION + '%</b>.</span>';
   }
 
