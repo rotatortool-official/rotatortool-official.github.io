@@ -592,6 +592,7 @@ function takeProfitTile(c) {
 
 function sigRotTile(sell, buy) {
   var delta = sell.score - buy.score;
+  _noteRotationContext(sell, buy, delta);
 
   /* Buy-side sentiment */
   var buySent = (buy.p24 || 0) * 0.4 + (buy.p7 || 0) * 0.6;
@@ -612,38 +613,52 @@ function sigRotTile(sell, buy) {
       + '<span class="sig-tile-sym" style="color:var(--green);">' + buy.sym  + '</span>'
       + '<span class="sig-tile-badge rot">Δ' + delta + '</span>'
     + '</div>'
-    + '<div class="sig-tile-head">Holding ' + sell.sym + '? ' + buy.sym + ' is the swap.</div>'
+    /* "X is the swap" overstated it — it read as an instruction, and
+       the record behind it is a 63% relative edge, not a directive.
+       "A potential swap" plus the reason lets the reader judge the
+       setup instead of taking the sentence on trust. */
+    + '<div class="sig-tile-head">Holding ' + sell.sym + '? ' + buy.sym + ' is a potential swap.</div>'
     + '<div class="sig-tile-stats">'
       + '<div class="sig-stat"><span class="sig-stat-l">TO SENT</span><span class="sig-stat-v ' + buySentCls + '">' + buySentLabel + '</span></div>'
       + '<div class="sig-stat"><span class="sig-stat-l">UNLOCK</span><span class="sig-stat-v am">' + bUnlock + '</span></div>'
       + '<div class="sig-stat"><span class="sig-stat-l">SCR DELTA</span><span class="sig-stat-v am">' + sell.score + '→' + buy.score + '</span></div>'
     + '</div>'
-    /* The claim is RELATIVE and the copy has to say so. "Sell X buy Y"
-       reads as a forecast that Y rises; in 8 of our 19 confirmed
-       rotations both coins fell and the target simply fell less. That
-       is still the call working, and it is the only version of it the
-       record supports. Publishing the chance rate beside it is the
-       point: 63% means nothing until you know a coin flip pays 41%. */
+    /* The claim is RELATIVE and the copy has to say so — the tile
+       states WHY the pair exists, then what the record is. The
+       "not a forecast that it rises" qualifier moved to the detail
+       modal (window.ROTATION_CONTEXT below): at column width it pushed
+       the tile past a readable height, and the caveat was the least
+       scannable line on it. Publishing the chance rate stays here,
+       because 63% means nothing until you know chance pays 41%. */
     + '<div class="sig-tile-note">'
-      + 'Expected to <span class="hi">outperform ' + sell.sym + '</span> over 7–14 days'
-      + (_rotEvidenceLine(buy.sym) || '.')
+      + 'Because <span class="hi">' + sell.sym + '</span> has run ahead and '
+      + '<span class="hi">' + buy.sym + '</span> has lagged it by ' + delta + ' points.'
+      + ' Expected to <span class="hi">outperform ' + sell.sym + '</span> over 7–14 days'
+      + (_rotRecordLine() || '.')
     + '</div>'
     + '</div>';
+}
+
+/* What the detail modal needs to explain a rotation target, keyed by
+   the coin the tile opens. Written as the tiles are built so the modal
+   never has to re-derive a pairing the run already decided. */
+function _noteRotationContext(sell, buy, delta) {
+  if (typeof window === 'undefined') return;
+  window.ROTATION_CONTEXT = window.ROTATION_CONTEXT || {};
+  window.ROTATION_CONTEXT[buy.id] = {
+    fromSym: sell.sym, toSym: buy.sym, delta: delta,
+    fromScore: sell.score, toScore: buy.score
+  };
 }
 
 /* The measured record behind a rotation call, or nothing if it has not
    been measured. Never invents a figure — a card with no evidence makes
    no claim about its own accuracy. */
-function _rotEvidenceLine(toSym) {
+function _rotRecordLine() {
   var ev = (typeof ROTATOR_EVIDENCE !== 'undefined') && ROTATOR_EVIDENCE.rotation;
   if (!ev || !ev.confirmed || !ev.chance) return '';
   return '.<br>Calls like this: <span class="hi">' + ev.confirmed + '% confirmed</span>'
-    + ' · chance pays <span class="hi">' + ev.chance + '%</span>'
-    + (ev.bothFellWins
-        ? '<br><span class="sig-tile-caveat">Not a forecast that ' + (toSym || 'the target')
-          + ' rises — in ' + ev.bothFellWins + ' of ' + ev.totalWins
-          + ' wins both fell, the target just fell less.</span>'
-        : '');
+    + ' · chance pays <span class="hi">' + ev.chance + '%</span>';
 }
 
 /* How many tiles the Rotation column renders. The other two columns
@@ -693,6 +708,15 @@ function _buildRotationTiles(sells, buys, allBuys, slots) {
   var tiles = [];
   var sl = (typeof slots === 'number' && slots > 0) ? slots : 4;
   var bl = buys || [];
+
+  /* Every render rebuilds the pairings, so the context map is rebuilt
+     with them. Without this it only ever grows: renderSuggestions runs
+     several times per session, and a coin paired in an earlier pass
+     kept its entry forever — SAND was still registered as a rotation
+     target while being rendered as a standalone HIGH BETA tile, which
+     would have opened a detail modal describing a pairing the current
+     run never made. */
+  if (typeof window !== 'undefined') window.ROTATION_CONTEXT = {};
 
   /* 1. Holdings first — a sell-zone coin paired with a buy target, or a
         standalone take-profit tile when there is no target left to pair

@@ -371,6 +371,14 @@
   <div class="td-section" id="td-signals-sec">
     <div class="td-section-title">Signals</div>
     <div class="td-badge-row" id="td-badges"></div>
+    <!-- Rotation context: filled only when this coin is currently the
+         target of a rotation call. Carries the caveat that used to sit
+         on the tile itself — the tile got too tall to read at column
+         width, and a qualifier nobody reads is worse than one click
+         away. Populated by renderRotationContext() in data-loaders.js
+         from window.ROTATION_CONTEXT, which signals.js writes as it
+         builds the tiles. -->
+    <div id="td-rot-ctx" hidden></div>
   </div>
 
   <!-- Insight Engine (shown for holdings + watchlist coins) -->

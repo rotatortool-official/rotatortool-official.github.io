@@ -511,12 +511,21 @@ body::before{content:'';position:fixed;inset:0;background:repeating-linear-gradi
    the record behind it, so it needs a headline line, an evidence note
    and a caveat line. .hi lifts the measured figures out of the note so
    they read at a glance without a second colour. */
+/* Rotation context block in the coin detail modal — home of the
+   relative-call caveat that used to crowd the tile. */
+.td-rot-ctx-in{margin-top:10px;padding:11px 13px;background:var(--bg3);border:1px solid var(--bdr2);border-left:2px solid var(--amber);border-radius:6px;}
+.td-rot-ctx-hd{font-size:11px;font-weight:700;letter-spacing:.09em;text-transform:uppercase;color:var(--amber);margin-bottom:7px;}
+.td-rot-ctx-hd .arr{opacity:.6;}
+.td-rot-ctx-in p{margin:0 0 7px;font-size:12.5px;line-height:1.55;color:var(--muted);}
+.td-rot-ctx-in p:last-child{margin-bottom:0;}
+.td-rot-ctx-rec b{color:var(--text);}
+.td-rot-ctx-caveat{padding-top:7px;border-top:1px dashed var(--bdr2);}
+.td-rot-ctx-caveat b{color:var(--text);}
 .sig-tile-head{font-size:12px;font-weight:700;color:var(--text);margin:4px 0 6px;line-height:1.35;}
 .sig-tile-note{font-size:11px;color:var(--muted);margin-top:6px;line-height:1.45;}
 .sig-tile-note .hi{color:var(--text);font-weight:600;}
 .sig-tile-note .up{color:var(--green);font-weight:600;}
 .sig-tile-note .dn{color:var(--red);font-weight:600;}
-.sig-tile-caveat{display:block;margin-top:4px;color:var(--muted);opacity:.8;}
 .sig-tile-arrow{font-size:12px;color:var(--muted);margin-bottom:4px;display:flex;align-items:center;gap:3px;}
 .sig-tile-arrow .arr-from{color:var(--red);font-weight:600;}
 .sig-tile-arrow .arr-to{color:var(--green);font-weight:600;}

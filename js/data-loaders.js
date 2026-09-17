@@ -1956,6 +1956,49 @@ function _positionPanel(panel, evt) {
   document.getElementById('td-overlay').classList.add('show');
 }
 
+/* ── Rotation context in the detail modal ──────────────────────
+   Shown only when this coin is currently the TARGET of a rotation
+   call. It carries the qualifier that used to sit on the tile:
+
+     "Not a forecast that DEXE rises — in 8 of 19 wins both coins fell,
+      the target just fell less."
+
+   That sentence is the most important thing on a rotation call and the
+   least scannable, so at tile width it was making the card too tall to
+   read while being the line most likely skipped. Here it has room, and
+   the reader arrives having already clicked through to find out more.
+
+   Reads window.ROTATION_CONTEXT, which signals.js writes as it builds
+   the tiles, and ROTATOR_EVIDENCE for every figure. Renders nothing at
+   all if either is missing — an unmeasured claim is not made. */
+function renderRotationContext(c) {
+  var box = document.getElementById('td-rot-ctx');
+  if (!box) return;
+  var ctx = (window.ROTATION_CONTEXT || {})[c && c.id];
+  var ev  = (typeof ROTATOR_EVIDENCE !== 'undefined') && ROTATOR_EVIDENCE.rotation;
+  if (!ctx || !ev || !ev.confirmed) { box.hidden = true; box.innerHTML = ''; return; }
+
+  box.innerHTML =
+      '<div class="td-rot-ctx-in">'
+    +   '<div class="td-rot-ctx-hd">Rotation target &middot; '
+    +     ctx.fromSym + ' <span class="arr">&rarr;</span> ' + ctx.toSym
+    +   '</div>'
+    +   '<p>' + ctx.fromSym + ' has run ahead (score ' + ctx.fromScore + ') while '
+    +     ctx.toSym + ' has lagged (score ' + ctx.toScore + '). Coins that have lagged '
+    +     'tend to outperform the ones that ran, over the next 7&ndash;14 days.</p>'
+    +   '<p class="td-rot-ctx-rec">Calls like this: <b>' + ev.confirmed + '% confirmed</b>'
+    +     ' &middot; two coins picked at random clear the same spread <b>' + ev.chance + '%</b>'
+    +     ' of the time.</p>'
+    + (ev.bothFellWins
+        ? '<p class="td-rot-ctx-caveat"><b>This is a relative call, not a forecast that '
+          + ctx.toSym + ' rises.</b> In ' + ev.bothFellWins + ' of ' + ev.totalWins
+          + ' confirmed rotations both coins fell &mdash; the target simply fell less. '
+          + 'Whether the market rises from here is not something this signal knows.</p>'
+        : '')
+    + '</div>';
+  box.hidden = false;
+}
+
 function openTileDetail(coinId, evt) {
   if (evt) evt.stopPropagation();
   var c = coins.find(function(x) { return x.id === coinId || x.sym === coinId; });
@@ -2720,6 +2763,7 @@ function openTileDetail(coinId, evt) {
     badgesHtml += '</span>';
   }
   document.getElementById('td-badges').innerHTML = badgesHtml;
+  renderRotationContext(c);
 
   /* Insight Engine section — PRO only, show for holdings + watchlist coins */
   var insSec = document.getElementById('td-insight-sec');
