@@ -1976,7 +1976,7 @@ function renderRotationContext(c) {
   if (!box) return;
   var ctx = (window.ROTATION_CONTEXT || {})[c && c.id];
   var ev  = (typeof ROTATOR_EVIDENCE !== 'undefined') && ROTATOR_EVIDENCE.rotation;
-  if (!ctx || !ev || !ev.confirmed) { box.hidden = true; box.innerHTML = ''; return; }
+  if (!ctx || !ev) { box.hidden = true; box.innerHTML = ''; return; }
 
   box.innerHTML =
       '<div class="td-rot-ctx-in">'
@@ -1985,16 +1985,21 @@ function renderRotationContext(c) {
     +   '</div>'
     +   '<p>' + ctx.fromSym + ' has run ahead (score ' + ctx.fromScore + ') while '
     +     ctx.toSym + ' has lagged (score ' + ctx.toScore + '). Coins that have lagged '
-    +     'tend to outperform the ones that ran, over the next 7&ndash;14 days.</p>'
-    +   '<p class="td-rot-ctx-rec">Calls like this: <b>' + ev.confirmed + '% confirmed</b>'
-    +     ' &middot; two coins picked at random clear the same spread <b>' + ev.chance + '%</b>'
-    +     ' of the time.</p>'
-    + (ev.bothFellWins
-        ? '<p class="td-rot-ctx-caveat"><b>This is a relative call, not a forecast that '
-          + ctx.toSym + ' rises.</b> In ' + ev.bothFellWins + ' of ' + ev.totalWins
-          + ' confirmed rotations both coins fell &mdash; the target simply fell less. '
-          + 'Whether the market rises from here is not something this signal knows.</p>'
-        : '')
+    +     'tend to outperform the ones that ran, over the next ' + (ev.horizonDays || 30) + ' days.</p>'
+    +   '<p class="td-rot-ctx-rec">'
+    +     (ev.confirmed
+            ? 'Calls like this: <b>' + ev.confirmed + '% confirmed</b>'
+              + ' &middot; two coins picked at random clear the same spread <b>'
+              + ev.chance + '%</b> of the time.'
+            : 'No ' + (ev.horizonDays || 30) + '-day record yet &mdash; the first calls grade '
+              + (ev.firstGradesOn || 'once they are old enough') + '. Two coins picked at random '
+              + 'clear a positive spread <b>' + ev.chance + '%</b> of the time, which is the bar '
+              + 'it will be read against.')
+    +   '</p>'
+    +   '<p class="td-rot-ctx-caveat"><b>This is a relative call, not a forecast that '
+    +     ctx.toSym + ' rises.</b> A confirmed rotation often means both coins fell and the '
+    +     'target simply fell less. Whether the market rises from here is not something this '
+    +     'signal knows.</p>'
     + '</div>';
   box.hidden = false;
 }

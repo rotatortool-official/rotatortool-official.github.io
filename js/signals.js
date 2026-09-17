@@ -633,8 +633,9 @@ function sigRotTile(sell, buy) {
     + '<div class="sig-tile-note">'
       + 'Because <span class="hi">' + sell.sym + '</span> has run ahead and '
       + '<span class="hi">' + buy.sym + '</span> has lagged it by ' + delta + ' points.'
-      + ' Expected to <span class="hi">outperform ' + sell.sym + '</span> over 7–14 days'
+      + ' Expected to <span class="hi">outperform ' + sell.sym + '</span> over 30 days'
       + (_rotRecordLine() || '.')
+      + _entryLine()
     + '</div>'
     + '</div>';
 }
@@ -651,12 +652,37 @@ function _noteRotationContext(sell, buy, delta) {
   };
 }
 
+/* How the entry was timed in the historical record. Descriptive, not
+   advice: it reports what spreading the entry did to the spread of
+   OUTCOMES, and says nothing about what anyone should do. Rendered only
+   when the measurement exists. */
+function _entryLine() {
+  var e = (typeof ROTATOR_EVIDENCE !== 'undefined') && ROTATOR_EVIDENCE.entry;
+  if (!e || !e.days) return '';
+  return '<br><span class="sig-tile-caveat">Averaged in over <span class="hi">'
+    + e.days + ' days</span> rather than one, the same calls historically returned the '
+    + 'same on average with <span class="hi">' + Math.round((1 - e.stdev / e.stdevSingle) * 100)
+    + '% less variance</span> and a worst-5% of ' + e.worst5 + '% instead of '
+    + e.worst5Single + '%.</span>';
+}
+
 /* The measured record behind a rotation call, or nothing if it has not
    been measured. Never invents a figure — a card with no evidence makes
    no claim about its own accuracy. */
 function _rotRecordLine() {
   var ev = (typeof ROTATOR_EVIDENCE !== 'undefined') && ROTATOR_EVIDENCE.rotation;
-  if (!ev || !ev.confirmed || !ev.chance) return '';
+  if (!ev) return '';
+  /* Saying "no record yet" is the honest version of having none. The
+     alternative — carrying forward the 63% measured at 1-7 days against
+     a 2% spread — would attach a number to a test that no longer
+     exists. */
+  if (!ev.confirmed) {
+    return '.<br><span class="sig-tile-caveat">No ' + (ev.horizonDays || 30)
+      + '-day record yet — the first calls grade '
+      + (ev.firstGradesOn || 'once they are old enough') + '. '
+      + 'Two coins picked at random clear a positive spread <span class="hi">'
+      + ev.chance + '%</span> of the time, which is the bar it will be read against.</span>';
+  }
   return '.<br>Calls like this: <span class="hi">' + ev.confirmed + '% confirmed</span>'
     + ' · chance pays <span class="hi">' + ev.chance + '%</span>';
 }

@@ -357,7 +357,7 @@ a{color:inherit;text-decoration:none}
      implementations on this site could drift. See promptove/49. */
   var HORIZON_DAYS       = 30;   /* the window a call is measured over */
   var CONFIRM_DAYS_MIN   = HORIZON_DAYS;  /* and therefore when it can be graded */
-  var ROTATION_THRESHOLD = 2;    /* rotation: spread between to-change and from-change, in % — mirrors js/signal-history.js */
+  var ROTATION_THRESHOLD = 0;    /* rotation: target must simply out-return the source over HORIZON_DAYS. Null 50.3%. */
 
 
   /* ── One clock for the whole page ────────────────────────
@@ -522,20 +522,31 @@ a{color:inherit;text-decoration:none}
          retired engine are archived, not carried into the live count. */
       if (!s.snap_date || s.snap_date < TRACKING_START) return;
       var daysAgo = daysSince(s.snap_date);
-      var fromNow = priceMap[s.from_id], toNow = priceMap[s.to_id];
+      /* Both legs over exactly HORIZON_DAYS of closes, like every other
+         grade on this page. It used to compare the snapshot price to
+         TODAY's CoinGecko price, which meant a 40-day-old call was
+         graded over 40 days and a 31-day-old one over 31 — the window
+         grew every time the page was opened, so the same call could
+         change verdict between two refreshes. */
+      var fromRet = returnOver(_klineMap[s.from_sym], s.snap_date, HORIZON_DAYS);
+      var toRet   = returnOver(_klineMap[s.to_sym],   s.snap_date, HORIZON_DAYS);
       var row = {
         snap_date: s.snap_date, daysAgo: daysAgo,
         fromId: s.from_id, fromSym: s.from_sym, fromPriceThen: s.from_price, fromScore: s.from_score,
         toId: s.to_id, toSym: s.to_sym, toPriceThen: s.to_price, toScore: s.to_score,
-        fromPriceNow: fromNow, toPriceNow: toNow
+        fromPriceNow: priceMap[s.from_id], toPriceNow: priceMap[s.to_id]
       };
-      if (daysAgo < CONFIRM_DAYS_MIN || fromNow == null || toNow == null) { pending.push(row); return; }
-      var fromChange = ((fromNow - s.from_price) / s.from_price) * 100;
-      var toChange   = ((toNow   - s.to_price)   / s.to_price)   * 100;
-      row.fromChange = Math.round(fromChange * 10) / 10;
-      row.toChange   = Math.round(toChange   * 10) / 10;
-      row.spread     = Math.round((toChange - fromChange) * 10) / 10;
-      row.correct    = row.spread >= ROTATION_THRESHOLD;
+      if (daysAgo < CONFIRM_DAYS_MIN || fromRet == null || toRet == null) { pending.push(row); return; }
+      row.fromChange = Math.round(fromRet * 10) / 10;
+      row.toChange   = Math.round(toRet   * 10) / 10;
+      row.spread     = Math.round((toRet - fromRet) * 10) / 10;
+      /* Threshold 0: the call is "the target outperforms the source",
+         so the test is whether it did. Measured over 30 days, random
+         pairs clear a 0% spread 50.3% of the time — a clean coin-flip
+         bar that needs no calibration. The old 2% margin existed to
+         discount noise, but at 30 days it just moves the null to 45.3%
+         and makes the published figure harder to read against it. */
+      row.correct    = row.spread > ROTATION_THRESHOLD;
       evaluated.push(row);
     });
     var correct = evaluated.filter(function(r) { return r.correct; }).length;
@@ -562,7 +573,7 @@ a{color:inherit;text-decoration:none}
     + '</div>'
     + '<div class="rot-scores">Called: <b>' + escape(r.fromSym) + ' ' + r.fromScore + '</b> vs <b>' + escape(r.toSym) + ' ' + r.toScore + '</b></div>'
     + spreadHtml
-    + '<div class="rot-verdict">' + (isPending ? 'Not old enough to grade yet' : (r.correct ? 'Confirmed ✓ — spread ≥ ' + ROTATION_THRESHOLD + '%' : 'Did not confirm')) + '</div>';
+    + '<div class="rot-verdict">' + (isPending ? 'Not old enough to grade yet' : (r.correct ? 'Confirmed ✓ — the target out-returned the source' : 'Did not confirm')) + '</div>';
     card.addEventListener('click', function() { openRotationModal(r); });
     return card;
   }
@@ -1365,13 +1376,14 @@ a{color:inherit;text-decoration:none}
      coins' closes, no benchmark) and keeps its own measured null.
      KEEP IN SYNC with ROTATOR_EVIDENCE in js/config.js. */
   var CHANCE_SINGLE   = 50;
-  var CHANCE_ROTATION = 41;
+  var CHANCE_ROTATION = 50;
   function chanceNote() {
     return '<br><span style="opacity:.9">Every call is scored against the median coin over the '
       + 'same 30 days, so the bar is <b>' + CHANCE_SINGLE + '%</b> — half of all coins beat the '
       + 'median by definition. Above it is skill; below it is not. '
-      + 'The rotation record below compares two coins directly and has its own bar of <b>'
-      + CHANCE_ROTATION + '%</b>.</span>';
+      + 'The rotation record below compares two coins directly, and its bar is the same <b>'
+      + CHANCE_ROTATION + '%</b> — measured, not assumed: random pairs over 30 days clear a '
+      + 'positive spread 50.3% of the time.</span>';
   }
 
 
@@ -1400,10 +1412,10 @@ a{color:inherit;text-decoration:none}
          clear a 2% spread 41% of the time, so 45% is a losing number
          dressed as a winning one. */
       accLine.innerHTML = '<b style="color:' + (stats.accuracy >= CHANCE_ROTATION ? 'var(--green)' : 'var(--red)') + ';">' + stats.accuracy + '%</b> spread accuracy ('
-        + stats.correct + ' of ' + stats.total + ' confirmed, spread ≥ ' + ROTATION_THRESHOLD + '%)'
+        + stats.correct + ' of ' + stats.total + ' confirmed over ' + HORIZON_DAYS + ' days)'
         + (pendingList.length ? ' · ' + pendingList.length + ' more pending' : '')
-        + '<br><span style="color:var(--muted);font-size:12px;">Random pairs from the same universe clear that spread <b>'
-        + CHANCE_ROTATION + '%</b> of the time — that, not 50%, is the bar. '
+        + '<br><span style="color:var(--muted);font-size:12px;">Two coins picked at random clear a positive spread <b>'
+        + CHANCE_ROTATION + '%</b> of the time, so that is the bar. '
         + 'The call is relative: a confirmed rotation often means both coins fell and the target fell less.</span>';
     }
 

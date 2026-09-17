@@ -46,8 +46,25 @@ var ROTATOR_EVIDENCE = {
   measuredOn:      '2026-09-17',
   universe:        { symbols: 175, since: '2026-04-20', windows: 144 },
 
-  rotation:        { confirmed: 63, chance: 41, n: 30,
-                     bothFellWins: 8, totalWins: 19 },
+  /* ── Rotation ────────────────────────────────────────────────────
+     confirmed/bothFellWins were 63% and 8-of-19, measured over mixed
+     1-to-7 day horizons against a 2% spread. On 2026-09-17 rotation
+     grading moved to a fixed 30-day window with a 0% spread, so those
+     figures describe a test that no longer runs and are GONE rather
+     than restated — the rule in this file's header is that a number
+     which no longer matches the data is worse than no number.
+
+     No rotation call is 30 days old yet. The first ones grade
+     2026-10-07, and `confirmed` stays null until then; the cards read
+     `firstGradesOn` and say so instead of implying a record.
+
+     `chance` is measured and does not depend on our calls: two coins
+     picked at random from the universe clear a positive 30-day spread
+     50.3% of the time. That is the bar the record will be read
+     against. */
+  rotation:        { confirmed: null, chance: 50, n: 0,
+                     bothFellWins: null, totalWins: null,
+                     horizonDays: 30, firstGradesOn: '2026-10-07' },
 
   /* The single-coin confirm metric, measured the way the track record
      actually grades it: ordered window over [snap+1d, snap+14d], window
@@ -67,7 +84,32 @@ var ROTATOR_EVIDENCE = {
 
   giveBack:        { n: 9, wereUp: 0, medianReturn: -8.5, meanTrailing30d: 59 },
 
-  scoreMomentumR:  0.72
+  scoreMomentumR:  0.72,
+
+  /* ── Entry timing ────────────────────────────────────────────────
+     Measured 2026-09-17: buy the bottom trailing-30d quintile, hold to
+     day 30 from the call, and vary only how many days the entry is
+     spread across. 3,031 observations per row.
+
+       days   mean ret   median   stdev   worst 5%
+         1      4.57%    -1.49%    59.3    -29.4%
+         3      4.65%    -1.11%    57.7    -28.6%
+         5      4.54%    -0.91%    55.5    -27.5%
+         7      4.33%    -1.01%    52.7    -26.0%
+
+     Averaging the entry costs nothing in expected return out to five
+     days, and takes about 9% off the variance and 2 points off the
+     worst 5%. Past day five the mean starts to erode.
+
+     Note the shape while reading it: the MEDIAN is negative and the
+     mean is strongly positive, so this is a right-skewed bet — most of
+     these lose a little and a few win a lot. Spreading the entry moves
+     the median toward zero, which is the outcome most calls actually
+     get. This is a property of the historical record, not a
+     recommendation. */
+  entry:           { days: 5, meanSingle: 4.57, mean: 4.54,
+                     stdevSingle: 59.3, stdev: 55.5,
+                     worst5Single: -29.4, worst5: -27.5, n: 3031 }
 };
 
 /* ── Crypto coin lists ───────────────────────────────────────────── */
