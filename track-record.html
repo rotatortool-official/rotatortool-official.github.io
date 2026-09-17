@@ -193,7 +193,7 @@ a{color:inherit;text-decoration:none}
     <div class="hero-kicker">◆ SIGNAL TRACK RECORD</div>
     <h1>Every call, tracked.</h1>
     <p class="hero-sub">
-      Rotator snapshots its top bullish, rotate-out and underperforming signals every day. After 7 days, we compare the call to the actual price. The result is published here — the calls that confirmed, the ones that moved our way without clearing the bar, and the ones that went against us. The counter below restarted on <span id="copy-reset-date"></span> with scoring engine <span id="copy-engine-hero"></span>; the retired v2 engine's final record is kept underneath it. <a href="engine-changelog.html" style="color:#f3ba2f;text-decoration:underline;text-underline-offset:2px;">Every model change is logged here.</a>
+      Rotator snapshots its top bullish, rotate-out and underperforming signals every day. After 30 days, we compare the call against <b>the median coin over the same 30 days</b> — beating the market is the whole test, and half of all coins beat it by definition. The result is published here: the calls that beat it, the ones that moved our way but trailed it, and the ones that went the wrong way outright. The counter below restarted on <span id="copy-reset-date"></span> with scoring engine <span id="copy-engine-hero"></span>; the retired v2 engine's final record is kept underneath it. <a href="engine-changelog.html" style="color:#f3ba2f;text-decoration:underline;text-underline-offset:2px;">Every model change is logged here.</a>
     </p>
     <div id="accuracy-box" class="acc-box">
       <div class="acc-big" id="acc-pct">—</div>
@@ -255,7 +255,7 @@ a{color:inherit;text-decoration:none}
 
   <section class="section">
     <div class="section-hdr">
-      <span class="section-title">🟢 Wins — Calls that confirmed</span>
+      <span class="section-title">🟢 Wins — Beat the market</span>
       <span class="section-count" id="wins-count"></span>
     </div>
     <div id="wins-grid" class="grid"></div>
@@ -264,7 +264,7 @@ a{color:inherit;text-decoration:none}
 
   <section class="section">
     <div class="section-hdr">
-      <span class="section-title">🟡 Right direction — below the bar</span>
+      <span class="section-title">🟡 Right direction — but the market did better</span>
       <span class="section-count" id="near-count"></span>
     </div>
     <div id="near-grid" class="grid"></div>
@@ -273,7 +273,7 @@ a{color:inherit;text-decoration:none}
 
   <section class="section">
     <div class="section-hdr">
-      <span class="section-title">🔴 Misses — Where we were wrong</span>
+      <span class="section-title">🔴 Misses — Moved against the call</span>
       <span class="section-count" id="miss-count"></span>
     </div>
     <div id="miss-grid" class="grid"></div>
@@ -304,7 +304,7 @@ a{color:inherit;text-decoration:none}
 <footer class="footer">
   <div class="wrap">
     <div class="disclaimer">
-      The live counter reflects Rotator's <span id="copy-engine-disc"></span> scoring engine, tracking from <span id="copy-disc-date"></span>. Engine v2 (2026-04-26 → 2026-09-07) finished on 76.2% across 863 graded calls; its record is shown separately and is not blended into the live number — 2.1.0 changed how market cap enters the score, and 2.2.0 narrowed which coins are published at all. A signal is "confirmed" when price clears a market-cap-aware threshold within 7–14 days (1.5% mega · 2% large · 3% mid · 5% small/micro). The window is read in date order and the first bar crossed decides it: if price hits the target the call is locked in and cannot be retroactively demoted by later moves, but if it first runs <b>three times that distance the other way</b>, the call is dead and no later move revives it. Same-day crosses count against us, since daily candles cannot prove which came first. A call that fails to confirm is shown in one of two lists, because they say different things: <b>right direction, below the bar</b> means price moved the way we flagged but stopped short of the threshold, and <b>misses</b> means price moved against the call. Only confirmed calls count toward the accuracy figure — a sub-1% drift is noise and is never credited as a win. Not financial advice — DYOR before any trade.
+      The live counter reflects Rotator's <span id="copy-engine-disc"></span> scoring engine, tracking from <span id="copy-disc-date"></span>. Engine v2 (2026-04-26 → 2026-09-07) finished on 76.2% across 863 graded calls; its record is shown separately and is not blended into the live number — 2.1.0 changed how market cap enters the score, and 2.2.0 narrowed which coins are published at all. A call is "confirmed" when the coin <b>beats the median coin</b> over the 30 days following the snapshot, measured close-to-close on the same Binance daily candles for both. Half of all coins beat the median by definition, so <b>50% is the bar</b>, and a figure below it means the calls were worse than picking at random. Calls that fail are split in two, because they say different things: <b>right direction</b> means the coin moved the way we flagged but trailed the market, and <b>misses</b> means it moved the wrong way outright. Until 2026-09-17 this page graded against an absolute 1.5&ndash;5% bar checked at the best moment inside a fortnight; a blanket call on every coin cleared that ~68% of the time, so it measured volatility rather than skill and was replaced. The 30-day window is where the engine’s signal is actually measurable (rank IC 0.053, t = 2.51, against 0.017 at 7 days). Not financial advice — DYOR before any trade.
     </div>
     <div style="margin-top:10px;display:flex;justify-content:center;gap:14px;flex-wrap:wrap;">
       <span><span style="color:#22c55e;">•</span> Powered by <a href="https://www.coingecko.com" target="_blank" rel="noopener">CoinGecko</a></span>
@@ -326,32 +326,39 @@ a{color:inherit;text-decoration:none}
   var SUPA_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Ind5dnd5Y2F0Z2V4cGJ1Z3prZGZ3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU0ODcwNTAsImV4cCI6MjA5MTA2MzA1MH0.msUPOUjd1iZwuG6SxFlhr-0xYPt6fqTUy5iOYnf8Z20';
 
   var WINDOW_DAYS        = 30;
-  var CONFIRM_DAYS_MIN   = 7;    /* snapshot must be 7+ days old to be evaluated */
+  /* ── The metric, rebuilt 2026-09-17 ───────────────────────
+     A call is now graded on whether the coin BEAT THE MARKET over 30
+     days, not on whether it cleared an absolute percentage bar.
+
+     The old test asked "did price move 1.5-5% in the called direction
+     at any point inside a fortnight". Measured against 175 symbols over
+     151 days, a blanket call on every coin passed that test 66-72% of
+     the time, and this page was publishing 63%. The metric sat below
+     its own null: it measured crypto's daily range, not the engine.
+
+     Two things forced the shape of the replacement:
+
+       HORIZON. The engine's rank IC against forward returns is 0.053
+       at 30 days (t = 2.51, significant) and 0.017 at 7 days (t = 1.27,
+       not). 771 days, every naive baseline beaten at every horizon.
+       The signal is real and it is a 30-day signal; the old window
+       graded it where it cannot be seen. See promptove/48.
+
+       BENCHMARK. "Beat the median coin" has a 50% null by construction,
+       needs no calibration, cannot be cleared by volatility, and is the
+       cross-sectional question the engine is actually good at — IC
+       measures exactly this. It is also the same shape as the rotation
+       metric, which was the one number here that already worked.
+
+     What this deletes: peak capture, lock-in, the mcap-tiered bars, the
+     adverse bar and the ordered window. All of that machinery existed
+     to make an absolute bar survivable. A relative endpoint comparison
+     needs none of it, and every one of those pieces was a place the two
+     implementations on this site could drift. See promptove/49. */
+  var HORIZON_DAYS       = 30;   /* the window a call is measured over */
+  var CONFIRM_DAYS_MIN   = HORIZON_DAYS;  /* and therefore when it can be graded */
   var ROTATION_THRESHOLD = 2;    /* rotation: spread between to-change and from-change, in % — mirrors js/signal-history.js */
-  var PEAK_WINDOW_DAYS   = 14;   /* upper bound of the confirm window for peak-capture */
-  var CONFIRM_THRESHOLD  = 2;    /* legacy fallback when mcap unknown */
 
-  /* How far price has to run AGAINST a call before the call is dead,
-     as a multiple of that coin's confirm bar. Mirrors js/signal-history.js.
-
-     Measured on the 16 graded calls in the window, 2026-09-17:
-
-       1x -> 31%   2x -> 50%   3x -> 63%   4x -> 69% (no effect)
-
-     1x reads every wiggle as invalidation: INJ fell 13.4% after ticking
-     4% up first, which is a good call with a normal drawdown, and 1x
-     scores it a miss. 4x is loose enough that nothing in the current
-     window changes, which means it is untested. 3x sits where a move
-     three times the size of the one we predicted, in the wrong
-     direction, before we were ever right, counts as the thesis being
-     broken — and ordinary noise does not.
-
-     This number is a judgement, not a measurement, and it is the only
-     knob in the fix. The bug it exists to close — Harmony running +147%
-     against a LAGGING call and booking a win off an earlier 6.9% dip —
-     is caught at every value above, so moving it trades strictness for
-     the headline figure and nothing else. */
-  var ADVERSE_MULTIPLE   = 3;
 
   /* ── One clock for the whole page ────────────────────────
      A snapshot date is a UTC calendar day — that is what the sync
@@ -406,15 +413,12 @@ a{color:inherit;text-decoration:none}
   var TRACKING_START     = '2026-09-11';
   var ENGINE_LABEL       = '2.10.0';   /* 2026-09-15: additive bump, record not reset — see js/signal-history.js */
 
-  /* Vol-normalized confirmation by mcap tier (mirrors signal-history.js).
-     Falls back to CONFIRM_THRESHOLD when mcap is unavailable on the row. */
-  function confirmThresholdFor(mcap) {
-    if (!mcap || mcap <= 0) return CONFIRM_THRESHOLD;
-    if (mcap >= 30e9) return 1.5;
-    if (mcap >=  3e9) return 2;
-    if (mcap >= 300e6) return 3;
-    return 5;
-  }
+  /* The mcap-tiered confirm bars (1.5% mega / 2% large / 3% mid / 5%
+     small) lived here until 2026-09-17. They are gone with the absolute
+     test they served: a blanket call cleared them 66-72% of the time,
+     so they were not a bar. Market-relative grading needs no tier —
+     every coin is judged against the same median on the same day.
+     promptove/49 has the measurement. */
   var MAX_CARDS_PER_LIST = 12;
 
   /* Every place the page NAMES the engine or the reset date, stamped
@@ -703,10 +707,15 @@ a{color:inherit;text-decoration:none}
   function fetchKlinePages(group, sinceIso) {
     var rows = [];
     function page(offset, pageNo) {
+      /* group === null means the WHOLE universe. Grading is now
+         relative to the median symbol, so the benchmark needs every
+         coin with candles — not just the ones we made calls on, which
+         are by construction the extremes and would make a median of
+         our own opinions. */
       var url = SUPA_URL + '/rest/v1/binance_daily_klines'
-        + '?base_asset=in.(' + group.join(',') + ')'
-        + (sinceIso ? '&open_time=gte.' + sinceIso : '')
-        + '&select=base_asset,open_time,high,low'
+        + '?' + (group ? 'base_asset=in.(' + group.join(',') + ')&' : '')
+        + (sinceIso ? 'open_time=gte.' + sinceIso : '')
+        + '&select=base_asset,open_time,close'
         + '&order=base_asset.asc,open_time.asc'
         + '&limit=' + KLINE_PAGE_LIMIT + '&offset=' + offset;
       return fetch(url, {
@@ -782,11 +791,18 @@ a{color:inherit;text-decoration:none}
       s = String(s || '').toUpperCase();
       if (s && unique.indexOf(s) < 0) unique.push(s);
     });
-    if (!unique.length) { _klinesAll = Promise.resolve({}); return _klinesAll; }
+    /* null (not empty) asks for the whole table — the benchmark path. */
+    var wantAll = syms == null;
+    if (!wantAll && !unique.length) { _klinesAll = Promise.resolve({}); return _klinesAll; }
 
-    var size = klineChunkSize(sinceIso);
-    var chunks = [];
-    for (var i = 0; i < unique.length; i += size) chunks.push(unique.slice(i, i + size));
+    var chunks;
+    if (wantAll) {
+      chunks = [null];
+    } else {
+      var size = klineChunkSize(sinceIso);
+      chunks = [];
+      for (var i = 0; i < unique.length; i += size) chunks.push(unique.slice(i, i + size));
+    }
 
     _klinesAll = klinePool(chunks, function(group) {
       return fetchKlinePages(group, sinceIso);
@@ -796,13 +812,12 @@ a{color:inherit;text-decoration:none}
         (rows || []).forEach(function(r) {
           (out[r.base_asset] = out[r.base_asset] || []).push({
             openTime: Date.parse(r.open_time),
-            high: parseFloat(r.high),
-            low:  parseFloat(r.low)
+            close: parseFloat(r.close)
           });
         });
       });
       _klineMap = out;          /* for evaluate()'s synchronous lookup */
-      warnIfKlinesStale(unique, out);
+      warnIfKlinesStale(wantAll ? Object.keys(out) : unique, out);
       return out;
     }).catch(function() { _klineMap = {}; return {}; });
 
@@ -814,94 +829,61 @@ a{color:inherit;text-decoration:none}
       .then(function(map) { return map[String(sym || '').toUpperCase()] || null; });
   }
 
-  function peakInWindow(candles, snapDateStr) {
+  /* ── Close on a date, and the market it is measured against ──
+     Both sides of every grade read the SAME series: the coin's close on
+     the snapshot date and on snapshot+HORIZON, and the median of every
+     symbol that has both. Mixing a CoinGecko snapshot price with a
+     Binance close would compare two different measurements of two
+     different moments and call the difference alpha. */
+  function closeOn(candles, dateStr) {
     if (!candles || !candles.length) return null;
-    var snapTs0 = snapTs(snapDateStr);
-    var winStart = snapTs0 + 864e5;
-    var winEnd   = Math.min(snapTs0 + PEAK_WINDOW_DAYS * 864e5, Date.now());
-    if (winStart >= winEnd) return null;
-    var bestHigh = null, worstLow = null;
+    var want = snapTs(dateStr);
     for (var i = 0; i < candles.length; i++) {
-      var c = candles[i];
-      if (c.openTime < winStart || c.openTime > winEnd) continue;
-      if (bestHigh == null || c.high > bestHigh) bestHigh = c.high;
-      if (worstLow == null || c.low  < worstLow) worstLow = c.low;
+      if (candles[i].openTime === want) return candles[i].close;
     }
-    if (bestHigh == null) return null;
-    return { bestHigh: bestHigh, worstLow: worstLow };
+    return null;
   }
 
-  /* ── Which way did the window break FIRST ────────────────
-     peakInWindow() answers "how far did it go our way", and for a
-     bullish call that is the whole question. For a lagging call it is
-     half of one, and the missing half was never asked.
-
-     Harmony (ONE), flagged LAGGING on 2026-09-14 at $0.000706:
-
-       worstLow   -6.9%   cleared the 5% micro-cap bar -> "confirmed"
-       bestHigh +147.3%   never looked at
-
-     The coin went up 147% against a call that said it would fall, and
-     the scorer booked it as a win because it dipped 6.9% on the way.
-     Lock-in then made that permanent. Three more ONE calls in the same
-     week had the same shape. A grader that cannot see a lagging call
-     being wrong is not measuring anything.
-
-     So the window is walked in DATE ORDER and the first bar crossed
-     decides:
-
-       · our bar first          -> confirmed, and lock-in still applies
-       · the adverse bar first  -> miss, and we report the move that
-                                   went against us, not the dip before it
-       · neither                -> unresolved; caller grades on the
-                                   favourable extreme exactly as before
-
-     The adverse bar is ADVERSE_MULTIPLE times the confirm bar — see
-     the constant for why it is not 1x. Symmetry reads every ordinary
-     drawdown as a failure; the bar has to be wide enough that only a
-     broken thesis crosses it.
-
-     SAME-DAY CROSSES GO TO THE MISS. Daily candles carry a high and a
-     low with no intraday order, so when both bars fall on one day we
-     cannot show the win came first — and an unprovable win is not a
-     win. This is the conservative direction on purpose: every other
-     part of this page rounds toward flattering the model, and that is
-     exactly how ONE got booked as a win. */
-  function resolveWindow(candles, snapDateStr, priceThen, thr, isBullish) {
-    if (!candles || !candles.length || !priceThen || !thr) return null;
-    var snapTs0 = snapTs(snapDateStr);
-    var winStart = snapTs0 + 864e5;
-    var winEnd   = Math.min(snapTs0 + PEAK_WINDOW_DAYS * 864e5, Date.now());
-    if (winStart >= winEnd) return null;
-
-    var adv = thr * ADVERSE_MULTIPLE;
-    var goodTarget = priceThen * (isBullish ? 1 + thr / 100 : 1 - thr / 100);
-    var badTarget  = priceThen * (isBullish ? 1 - adv / 100 : 1 + adv / 100);
-
-    var inWindow = [];
-    for (var i = 0; i < candles.length; i++) {
-      var c = candles[i];
-      if (c.openTime >= winStart && c.openTime <= winEnd) inWindow.push(c);
-    }
-    if (!inWindow.length) return null;
-    inWindow.sort(function(a, b) { return a.openTime - b.openTime; });
-
-    var bestGood = null, worstBad = null;
-    for (var j = 0; j < inWindow.length; j++) {
-      var d = inWindow[j];
-      var goodExtreme = isBullish ? d.high : d.low;
-      var badExtreme  = isBullish ? d.low  : d.high;
-      if (bestGood == null || (isBullish ? goodExtreme > bestGood : goodExtreme < bestGood)) bestGood = goodExtreme;
-      if (worstBad == null || (isBullish ? badExtreme < worstBad : badExtreme > worstBad)) worstBad = badExtreme;
-
-      var hitGood = isBullish ? (d.high >= goodTarget) : (d.low  <= goodTarget);
-      var hitBad  = isBullish ? (d.low  <= badTarget)  : (d.high >= badTarget);
-
-      if (hitGood && !hitBad) return { outcome: 'win',  price: bestGood, on: d.openTime };
-      if (hitBad)             return { outcome: 'miss', price: worstBad, on: d.openTime };
-    }
-    return { outcome: 'open', price: bestGood, adverse: worstBad };
+  function returnOver(candles, fromDate, days) {
+    var a = closeOn(candles, fromDate);
+    if (!a) return null;
+    var b = closeOn(candles, shiftDate(fromDate, days));
+    if (!b) return null;
+    return ((b - a) / a) * 100;
   }
+
+  function shiftDate(dateStr, days) {
+    var t = new Date(snapTs(dateStr));
+    t.setUTCDate(t.getUTCDate() + days);
+    return t.toISOString().slice(0, 10);
+  }
+
+  /* The benchmark: the MEDIAN symbol's return over the same window.
+     Median rather than mean because one Harmony doing +160% should not
+     move the bar every other call is judged against, and equal-weight
+     rather than cap-weight because the calls are equal-weight.
+
+     Cached per date — every snapshot on a given day is graded against
+     one number, computed once. */
+  var _marketRet = {};
+  function marketReturn(dateStr) {
+    if (Object.prototype.hasOwnProperty.call(_marketRet, dateStr)) return _marketRet[dateStr];
+    var rets = [];
+    for (var sym in _klineMap) {
+      if (!Object.prototype.hasOwnProperty.call(_klineMap, sym)) continue;
+      var r = returnOver(_klineMap[sym], dateStr, HORIZON_DAYS);
+      if (r != null && isFinite(r)) rets.push(r);
+    }
+    /* Too thin a cross-section is not a market. Refusing to grade beats
+       grading against a benchmark made of four coins. */
+    if (rets.length < MARKET_MIN_SYMBOLS) { _marketRet[dateStr] = null; return null; }
+    rets.sort(function(a, b) { return a - b; });
+    var mid = Math.floor(rets.length / 2);
+    var med = rets.length % 2 ? rets[mid] : (rets[mid - 1] + rets[mid]) / 2;
+    _marketRet[dateStr] = { median: med, n: rets.length };
+    return _marketRet[dateStr];
+  }
+  var MARKET_MIN_SYMBOLS = 20;
 
   /* Pre-fetch klines in batches before evaluating, so the per-snap
      lookup is synchronous against the cache. */
@@ -916,6 +898,9 @@ a{color:inherit;text-decoration:none}
     });
     var list = Object.keys(symbols);
     if (!list.length) return Promise.resolve();
+    /* We fetch the whole universe regardless of which symbols were
+       called, because marketReturn() needs a median across all of them.
+       `list` still decides whether there is anything to grade at all. */
     /* The window bound the chunk budget is sized from. evaluate() drops
        anything before STATS_FROM_DATE, so a snapshot older than that
        cannot need candles no matter what warmKlines() collected — take
@@ -926,8 +911,8 @@ a{color:inherit;text-decoration:none}
     _klineSince = since + 'T00:00:00Z';
     /* One bulk read replaces the old batched, rate-limit-paced loop of
        one Binance request per symbol. */
-    _klineSymsNeeded = list;
-    return loadAllDailyKlines(list, _klineSince).then(function() {});
+    _klineSymsNeeded = null;   /* null = whole universe, see loadAllDailyKlines */
+    return loadAllDailyKlines(null, _klineSince).then(function() {});
   }
 
   /* ── Evaluate snapshots → wins/misses lists + stats ────── */
@@ -942,37 +927,25 @@ a{color:inherit;text-decoration:none}
       var daysAgo = daysSince(r.snap_date);
       if (daysAgo < CONFIRM_DAYS_MIN) return;
 
-      var priceThen = r.price != null ? Number(r.price) : null;
-      if (!priceThen) return;
-
       if (r.signal_type !== 'bullish' && r.signal_type !== 'lagging') return;
       var isBull = r.signal_type === 'bullish';
 
-      /* The bar has to be known BEFORE the window is read now — a
-         resolution is "which bar was crossed first", so the bar is an
-         input to grading rather than a comparison made afterwards. */
-      var thr = confirmThresholdFor(r.mcap || mcapMap[r.coin_id]);
-
-      var change, priceNow, usedPeak = false, resolved = null;
+      /* Both legs from the same series — see closeOn(). A row whose coin
+         has no candles is not graded against the current CoinGecko
+         price as a fallback: that would measure the coin at one moment
+         and the market at another and report the gap as skill. It is
+         counted as uncovered instead, and the count is published. */
       var candles = _klineMap[r.coin_sym];
-      var peak = (candles && candles.length) ? peakInWindow(candles, r.snap_date) : null;
+      var priceThen = closeOn(candles, r.snap_date);
+      var priceNow  = closeOn(candles, shiftDate(r.snap_date, HORIZON_DAYS));
+      if (priceThen == null || priceNow == null) { fallbackCovered++; return; }
 
-      if (peak) {
-        usedPeak = true;
-        resolved = resolveWindow(candles, r.snap_date, priceThen, thr, isBull);
-        /* resolveWindow returns the extreme that DECIDED the call —
-           the run in our favour when it confirmed, the run against us
-           when it did not. Falling back to the old one-sided extreme
-           here would put the -0.8% dip back on ONE's card. */
-        priceNow = resolved ? resolved.price
-                 : (isBull ? peak.bestHigh : peak.worstLow);
-        change = ((priceNow - priceThen) / priceThen) * 100;
-      } else {
-        priceNow = priceMap[r.coin_id];
-        if (!priceNow) return;
-        change = ((priceNow - priceThen) / priceThen) * 100;
-      }
+      var mkt = marketReturn(r.snap_date);
+      if (!mkt) { fallbackCovered++; return; }
+      peakCovered++;
 
+      var change = ((priceNow - priceThen) / priceThen) * 100;
+      var excess = change - mkt.median;
       var rounded = Math.round(change * 10) / 10;
 
       var record = {
@@ -981,47 +954,38 @@ a{color:inherit;text-decoration:none}
         date: r.snap_date, daysAgo: daysAgo,
         priceThen: priceThen, priceNow: priceNow,
         change: rounded, type: r.signal_type,
-        source: usedPeak ? 'peak' : 'current'
+        market: Math.round(mkt.median * 10) / 10,
+        marketN: mkt.n,
+        excess: Math.round(excess * 10) / 10,
+        source: 'close'
       };
-      if (usedPeak) peakCovered++; else fallbackCovered++;
 
-      record.threshold = thr;
-
-      /* A resolved window has already answered this by walking the days
-         in order, and its answer wins. `change >= thr` is only consulted
-         when nothing resolved — the current-price fallback for coins with
-         no Binance listing, and windows where neither bar was ever
-         crossed. Deriving `correct` from `change` alone is what let a
-         lagging call keep the win it earned from a dip it later erased. */
-      var decided = resolved && resolved.outcome !== 'open'
-                  ? resolved.outcome === 'win'
-                  : null;
-      record.decidedBy = resolved ? resolved.outcome : 'fallback';
-
+      /* THE WHOLE TEST. A bullish call is right if the coin beat the
+         median coin; a lagging call is right if it lagged it. No bar,
+         no window extreme, no lock-in — and a 50% null by construction,
+         so the number means something the moment it is read. */
       var correct, rightWay;
-      if (r.signal_type === 'bullish') {
+      if (isBull) {
         record.bucket = 'bullish';
         tBull++;
-        correct = decided != null ? decided : change >= thr;
+        correct = excess > 0;
         rightWay = change > 0;
         if (correct) cBull++;
-      } else if (r.signal_type === 'lagging') {
+      } else {
         /* signal_type carries only bullish/lagging, but TWO different
            calls live under 'lagging': ROTATE OUT is a strong asset that
            has run ahead, everything else is one that is behind. Both
-           predict the price falls from here, so one grading rule fits
-           both and always has. What a single bucket could not say is
-           WHICH kind of call works — so they are counted apart here
-           while still being graded identically. */
+           predict the coin trails the market from here, so one rule
+           fits both — they are counted apart to show which KIND of call
+           works, not graded apart. */
         var isRot = String(r.signal_label || '').toUpperCase() === 'ROTATE OUT';
         record.bucket = isRot ? 'rotate' : 'under';
-        correct = decided != null ? decided : change <= -thr;
+        correct = excess < 0;
         rightWay = change < 0;
         if (isRot) { tRot++; if (correct) cRot++; }
         else       { tUnd++; if (correct) cUnd++; }
-      } else {
-        return;
       }
+
       record.correct = correct;
 
       /* THREE outcomes, not two. Grading is unchanged — `correct` still
@@ -1112,13 +1076,10 @@ a{color:inherit;text-decoration:none}
     + '<div class="card-proof">'
     +   'Flagged as ' + escape(r.signal || (isBull ? 'BULLISH' : 'LAGGING'))
     +   (r.score != null ? ' (score ' + r.score + ')' : '')
-    +   ' — ' + (r.correct ? 'confirmed ✓'
-                : outcome === 'near'
-                  ? 'moved the right way, short of the ' + r.threshold + '% bar'
-                  : r.decidedBy === 'miss'
-                    ? 'invalidated — ran ' + Math.round(r.threshold * ADVERSE_MULTIPLE * 10) / 10
-                      + '% against the call before it ever cleared ' + r.threshold + '%'
-                    : 'moved against the call')
+    +   ' — market did ' + (r.market >= 0 ? '+' : '') + r.market + '% over the same ' + HORIZON_DAYS + ' days, '
+    +   'so this ' + (r.correct ? 'beat it by ' : 'missed by ')
+    +   Math.abs(r.excess) + ' points'
+    +   (r.correct ? ' ✓' : '')
     + '</div>';
     return card;
   }
@@ -1297,8 +1258,11 @@ a{color:inherit;text-decoration:none}
       box.style.opacity = '.6';
     } else {
       pct.textContent = stats.accuracy + '%';
-      pct.style.color = stats.accuracy >= 65 ? 'var(--green)'
-                      : stats.accuracy >= 50 ? 'var(--bnb)' : 'var(--red)';
+      /* Judged against the null, not against a round number. 50% is
+         where the metric says nothing; below it the calls are worse
+         than picking at random. */
+      pct.style.color = stats.accuracy >= 60 ? 'var(--green)'
+                      : stats.accuracy > CHANCE_SINGLE ? 'var(--bnb)' : 'var(--red)';
       box.style.opacity = '';
     }
     {
@@ -1361,14 +1325,14 @@ a{color:inherit;text-decoration:none}
     }
 
     fill('wins-grid',  'wins-empty',  'wins-count',
-         ofBucket(result.wins),   'Signals reach the wins list once they clear their market-cap bar in the direction we flagged, 7+ days after being called.');
+         ofBucket(result.wins),   'A call reaches the wins list by beating the median coin, in the direction we flagged, over the 30 days after it was made.');
     fill('near-grid',  'near-empty',  'near-count',
          ofBucket(result.nears || []),
-         'Every graded call in this window either cleared its bar or moved against us.',
-         { icon: '🟡', title: 'No near-misses' });
+         'Every graded call either beat the market or moved against the call outright.',
+         { icon: '🟡', title: 'Nothing in between' });
     fill('miss-grid',  'miss-empty',  'miss-count',
          ofBucket(result.misses),
-         'No call in this window moved against the direction we flagged. Misses are published beside the wins for honest accounting, so this list is shown empty rather than hidden.',
+         'No call moved against the direction we flagged. Misses are published beside the wins for honest accounting, so this list is shown empty rather than hidden.',
          { icon: '🔴', title: 'Nothing went against us' });
 
     /* What the retired v2 engine managed on the same kind of call, so a
@@ -1386,52 +1350,30 @@ a{color:inherit;text-decoration:none}
     }
   }
 
-  /* ── What a coin flip pays on the same bet ────────────────
-     A percentage with no null behind it cannot be read. 50% is the
-     instinct and it is wrong here, because none of these are symmetric
-     bets — a single-coin call has to clear a market-cap bar, and a
-     rotation has to clear a 2% spread, so chance pays well under half.
+  /* ── The bar the number has to beat ──────────────────────
+     50%, by construction. Half the coins beat the median coin; a call
+     that gets it right more often than that is the only evidence of
+     skill this page can offer.
 
-     CORRECTED 2026-09-17, same day, after publishing it wrong.
+     Worth remembering what it replaced. The absolute-bar test published
+     here until 2026-09-17 had a null of ~68% — a blanket call on every
+     coin cleared it — and the figure on this page was 63%. A metric
+     whose null you have not measured is not a metric, and this one was
+     below its own. promptove/49.
 
-     The first version of this said 31%. That figure came from a
-     close-to-close move over exactly 7 days. THE GRADER DOES NOT WORK
-     THAT WAY: it walks [snap+1d, snap+14d] and takes the window
-     extreme, so a call confirms if price ever touches the bar at any
-     point inside two weeks. Almost everything does.
-
-     Re-measured the null the way evaluate() actually grades — ordered
-     window, adverse bar at ADVERSE_MULTIPLE, same-day cross against —
-     over 175 symbols and 151 days:
-
-       bar 1.5% (mega)   66.6% of blanket calls confirm
-       bar 2%   (large)  70.5%
-       bar 3%   (mid)    71.5%
-       bar 5%   (small)  65.8%
-
-     So the single-coin null is about 68%, not 31%, and this page's own
-     figure sits at or below it. That metric is not measuring the
-     engine; it is measuring crypto's daily range against a bar two
-     weeks of noise clears on its own.
-
-     The rotation null is unaffected — evaluateRotation() compares
-     then-vs-now closes with no peak capture, which is what 41% was
-     measured on. It stays the number that can carry a claim.
-     KEEP IN SYNC with ROTATOR_EVIDENCE in js/config.js — this page
-     deliberately loads no shared JS, so the figure is restated here
-     rather than imported. If one moves, move both.
-     See promptove/49. */
-  var CHANCE_SINGLE   = 68;
+     The rotation record is graded differently (spread between two
+     coins' closes, no benchmark) and keeps its own measured null.
+     KEEP IN SYNC with ROTATOR_EVIDENCE in js/config.js. */
+  var CHANCE_SINGLE   = 50;
   var CHANCE_ROTATION = 41;
   function chanceNote() {
-    return '<br><span style="opacity:.9">Graded this way, a blanket call on <i>every</i> coin '
-      + 'confirms about <b>' + CHANCE_SINGLE + '%</b> of the time — because a 1.5–5% bar, '
-      + 'checked against the best moment in a two-week window, is something ordinary '
-      + 'volatility clears on its own. <b>This figure is at or below that bar, so read it '
-      + 'as a measure of the market and not of the model.</b> The rotation record below is '
-      + 'graded on closing prices with no such window, and its bar is <b>'
+    return '<br><span style="opacity:.9">Every call is scored against the median coin over the '
+      + 'same 30 days, so the bar is <b>' + CHANCE_SINGLE + '%</b> — half of all coins beat the '
+      + 'median by definition. Above it is skill; below it is not. '
+      + 'The rotation record below compares two coins directly and has its own bar of <b>'
       + CHANCE_ROTATION + '%</b>.</span>';
   }
+
 
   function showError(msg) {
     var pct = document.getElementById('acc-pct');

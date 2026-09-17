@@ -720,7 +720,37 @@ var SignalHistory = (function() {
      for lagging. A call that hit +15% at day 8 stays "confirmed" even
      if the coin is back to flat today. Current-price comparison is
      only used when Binance daily klines aren't available for the coin. */
+  /* ── RETIRED 2026-09-17, pending migration ─────────────────────
+     Both of the functions below grade on the ABSOLUTE confirm bar:
+     "did price move 1.5-5% in the called direction at some point inside
+     the window". Measured over 175 symbols and 151 days, a blanket call
+     on every coin passes that test 66-72% of the time. It is not a bar,
+     and track-record.html stopped using it today in favour of "did the
+     coin beat the median coin over 30 days", which has a 50% null by
+     construction. See promptove/49.
+
+     They are switched off rather than left running, because the
+     alternative is the dashboard asserting an accuracy number under a
+     definition the track record has publicly retired — the same
+     two-implementations-of-one-fact split that produced five separate
+     bugs on 2026-09-17.
+
+     Switching them off is safe by design: getAccuracyStats() already
+     returns null when there is nothing to grade, and getProvenSignals()
+     already returns an empty list, so every caller handles this state.
+     provenProofLine() renders nothing and the accuracy widget hides.
+
+     TO MIGRATE: the relative rule needs the median return across the
+     WHOLE universe, and _preloadDailyKlines() currently fetches only
+     the symbols that appear in snapshots — which are the extremes, so
+     their median is a median of our own opinions. track-record.html
+     solved this by fetching the table unfiltered (loadAllDailyKlines
+     with a null symbol list). Do the same here, then grade on
+     coinReturn - marketMedian over HORIZON_DAYS and delete this block. */
+  var GRADING_RETIRED = true;
+
   function getProvenSignals() {
+    if (GRADING_RETIRED) return [];
     var hist = loadHistory();
     if (!hist.length) return [];
 
@@ -819,6 +849,7 @@ var SignalHistory = (function() {
 
   /* ── Get accuracy stats (peak-capture, falls back to current price) ── */
   function getAccuracyStats() {
+    if (GRADING_RETIRED) return null;
     var hist = loadHistory();
     if (!hist.length) return null;
 
