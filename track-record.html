@@ -353,6 +353,35 @@ a{color:inherit;text-decoration:none}
      the headline figure and nothing else. */
   var ADVERSE_MULTIPLE   = 3;
 
+  /* ── One clock for the whole page ────────────────────────
+     A snapshot date is a UTC calendar day — that is what the sync
+     functions write and what binance_daily_klines is keyed on — so it
+     is read back at UTC midnight, and age is the number of WHOLE days
+     since, which is what "7+ days old" means.
+
+     Both halves of this page used to do this for themselves, and they
+     did it differently:
+
+       rotation:  T00:00:00Z + Math.floor   -> 6
+       signals:   T00:00:00  + Math.round   -> 7
+
+     for the same 2026-09-11 snapshot at 6.74 days elapsed, on a browser
+     at UTC+2. Nothing chose that; the two were written months apart.
+     The effect was that on 2026-09-17 the page published the LAGGING
+     call on Harmony as a +70.7% miss while hiding the MINA -> ONE
+     rotation of the SAME DATE at +176.4% spread behind "pending". It
+     showed the bad half of a day and withheld the good half.
+
+     Math.round was also just wrong: 6.74 days is not 7 days, so the
+     signals half had been grading roughly six hours early against a
+     rule the footer states as 7-14 days. Every other timing decision
+     here rounds toward the model looking good, which is the reason to
+     be strict about this one. */
+  function snapTs(dateStr)  { return new Date(dateStr + 'T00:00:00Z').getTime(); }
+  function daysSince(dateStr) {
+    return Math.floor((Date.now() - snapTs(dateStr)) / 864e5);
+  }
+
   /* ── Engine 2.3.0 tracking reset ─────────────────────────────
      Third reset, 2026-09-08. Different reason from the 2.1.0 one, and
      the difference matters:
@@ -419,8 +448,7 @@ a{color:inherit;text-decoration:none}
   /* Day counter for the tracking reset, so the pre-grading state can say
      how far in we are instead of showing a bare em-dash. */
   function daysTracking() {
-    var start = new Date(TRACKING_START + 'T00:00:00');
-    return Math.max(0, Math.floor((Date.now() - start.getTime()) / 864e5));
+    return Math.max(0, daysSince(TRACKING_START));
   }
   function trackingLine() {
     var d = daysTracking();
@@ -489,8 +517,7 @@ a{color:inherit;text-decoration:none}
       /* Same 2.3.0 reset as evaluate(): rotation calls scored by the
          retired engine are archived, not carried into the live count. */
       if (!s.snap_date || s.snap_date < TRACKING_START) return;
-      var snapTs = new Date(s.snap_date + 'T00:00:00Z').getTime();
-      var daysAgo = Math.floor((Date.now() - snapTs) / 864e5);
+      var daysAgo = daysSince(s.snap_date);
       var fromNow = priceMap[s.from_id], toNow = priceMap[s.to_id];
       var row = {
         snap_date: s.snap_date, daysAgo: daysAgo,
@@ -789,9 +816,9 @@ a{color:inherit;text-decoration:none}
 
   function peakInWindow(candles, snapDateStr) {
     if (!candles || !candles.length) return null;
-    var snapTs = new Date(snapDateStr + 'T00:00:00').getTime();
-    var winStart = snapTs + 864e5;
-    var winEnd   = Math.min(snapTs + PEAK_WINDOW_DAYS * 864e5, Date.now());
+    var snapTs0 = snapTs(snapDateStr);
+    var winStart = snapTs0 + 864e5;
+    var winEnd   = Math.min(snapTs0 + PEAK_WINDOW_DAYS * 864e5, Date.now());
     if (winStart >= winEnd) return null;
     var bestHigh = null, worstLow = null;
     for (var i = 0; i < candles.length; i++) {
@@ -842,9 +869,9 @@ a{color:inherit;text-decoration:none}
      exactly how ONE got booked as a win. */
   function resolveWindow(candles, snapDateStr, priceThen, thr, isBullish) {
     if (!candles || !candles.length || !priceThen || !thr) return null;
-    var snapTs = new Date(snapDateStr + 'T00:00:00').getTime();
-    var winStart = snapTs + 864e5;
-    var winEnd   = Math.min(snapTs + PEAK_WINDOW_DAYS * 864e5, Date.now());
+    var snapTs0 = snapTs(snapDateStr);
+    var winStart = snapTs0 + 864e5;
+    var winEnd   = Math.min(snapTs0 + PEAK_WINDOW_DAYS * 864e5, Date.now());
     if (winStart >= winEnd) return null;
 
     var adv = thr * ADVERSE_MULTIPLE;
@@ -881,10 +908,8 @@ a{color:inherit;text-decoration:none}
   function warmKlines(snaps) {
     var symbols = {};
     var oldest = null;
-    var now = new Date();
     snaps.forEach(function(r) {
-      var snapDate = new Date(r.snap_date + 'T00:00:00');
-      var daysAgo = Math.round((now - snapDate) / 864e5);
+      var daysAgo = daysSince(r.snap_date);
       if (daysAgo < CONFIRM_DAYS_MIN) return;
       if (r.coin_sym) symbols[r.coin_sym] = true;
       if (r.snap_date && (!oldest || r.snap_date < oldest)) oldest = r.snap_date;
@@ -911,12 +936,10 @@ a{color:inherit;text-decoration:none}
     var wins = [], nears = [], misses = [];
     var tBull = 0, cBull = 0, tRot = 0, cRot = 0, tUnd = 0, cUnd = 0;
     var peakCovered = 0, fallbackCovered = 0;
-    var now = new Date();
 
     snaps.forEach(function(r) {
       if (!r.snap_date || r.snap_date < STATS_FROM_DATE) return;   /* v2 cutoff */
-      var snapDate = new Date(r.snap_date + 'T00:00:00');
-      var daysAgo = Math.round((now - snapDate) / 864e5);
+      var daysAgo = daysSince(r.snap_date);
       if (daysAgo < CONFIRM_DAYS_MIN) return;
 
       var priceThen = r.price != null ? Number(r.price) : null;

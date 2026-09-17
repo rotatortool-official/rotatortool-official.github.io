@@ -44,6 +44,20 @@ var SignalHistory = (function() {
      behind the value 3 and the Harmony case that forced it. */
   var ADVERSE_MULTIPLE   = 3;
 
+  /* ── One clock, shared with track-record.html ──────────────
+     A snapshot date is a UTC calendar day, and age is the number of
+     WHOLE days since — what "7+ days old" actually means. This file had
+     Math.round with local midnight in five places; track-record.html's
+     rotation half had Math.floor with UTC. On a UTC+2 browser the same
+     2026-09-11 snapshot came out 7 days old in one and 6 in the other,
+     so one half of the site graded a call while the other still called
+     it pending. Math.round was the wrong one: 6.74 days is not 7.
+     KEEP IN SYNC with snapTs()/daysSince() in track-record.html. */
+  function _snapTs(dateStr) { return new Date(dateStr + 'T00:00:00Z').getTime(); }
+  function _daysSince(dateStr) {
+    return Math.floor((Date.now() - _snapTs(dateStr)) / 864e5);
+  }
+
   /* Hard cutoff: snapshots dated before STATS_FROM_DATE are excluded from
      accuracy stats and the proven-signals list.
 
@@ -253,7 +267,7 @@ var SignalHistory = (function() {
   /* Compute best/worst change for one snapshot entry in the confirm window.
      Returns null if no kline data — caller falls back to current-price. */
   function _computePeakVerdict(entry, snapDateStr) {
-    var snapTs = new Date(snapDateStr + 'T00:00:00').getTime();
+    var snapTs = _snapTs(snapDateStr);
     var windowStart = snapTs + 864e5;                        /* day +1 */
     var windowEnd   = snapTs + PEAK_WINDOW_DAYS * 864e5;     /* day +14 */
     var nowTs = Date.now();
@@ -286,7 +300,7 @@ var SignalHistory = (function() {
         worstLow:       worstLow,
         bestChange:     Math.round(((bestHigh - pt) / pt) * 1000) / 10,   /* one decimal */
         worstChange:    Math.round(((worstLow - pt) / pt) * 1000) / 10,
-        windowDaysUsed: Math.min(PEAK_WINDOW_DAYS, Math.round((nowTs - snapTs) / 864e5)),
+        windowDaysUsed: Math.min(PEAK_WINDOW_DAYS, Math.floor((nowTs - snapTs) / 864e5)),
         candleCount:    win.length,
         computedAt:     nowTs
       };
@@ -302,11 +316,10 @@ var SignalHistory = (function() {
     var hist = loadHistory();
     if (!hist.length) { _peakWarmDone = true; return Promise.resolve(); }
 
-    var now = new Date();
     var tasks = [];
     var oldest = null;
     hist.forEach(function(snap) {
-      var daysAgo = Math.round((now - new Date(snap.date + 'T00:00:00')) / 864e5);
+      var daysAgo = _daysSince(snap.date);
       if (daysAgo < CONFIRM_DAYS_MIN) return;   /* too fresh — not scored yet */
       var entries = (snap.bullish || []).concat(snap.lagging || []);
       entries.forEach(function(entry) {
@@ -719,12 +732,10 @@ var SignalHistory = (function() {
     }
 
     var proven = [];
-    var now = new Date();
 
     hist.forEach(function(snap) {
       if (!_passesCutoff(snap.date)) return;
-      var snapDate = new Date(snap.date + 'T00:00:00');
-      var daysAgo = Math.round((now - snapDate) / (1000 * 60 * 60 * 24));
+      var daysAgo = _daysSince(snap.date);
 
       /* Only show signals that are CONFIRM_DAYS_MIN+ days old */
       if (daysAgo < CONFIRM_DAYS_MIN) return;
@@ -816,14 +827,12 @@ var SignalHistory = (function() {
       coins.forEach(function(c) { priceMap[c.id] = c.price; });
     }
 
-    var now = new Date();
     var totalBull = 0, correctBull = 0, totalLag = 0, correctLag = 0;
     var peakCovered = 0, currentCovered = 0;
 
     hist.forEach(function(snap) {
       if (!_passesCutoff(snap.date)) return;   /* exclude pre-v2-engine snapshots */
-      var snapDate = new Date(snap.date + 'T00:00:00');
-      var daysAgo = Math.round((now - snapDate) / (1000 * 60 * 60 * 24));
+      var daysAgo = _daysSince(snap.date);
       if (daysAgo < CONFIRM_DAYS_MIN) return;
 
       snap.bullish.forEach(function(entry) {
@@ -937,14 +946,12 @@ var SignalHistory = (function() {
       coins.forEach(function(c) { priceMap[c.id] = c.price; });
     }
     var results = [];
-    var now = new Date();
 
     hist.forEach(function(snap) {
       if (!_passesCutoff(snap.date)) return;
       var pairs = snap.pairs || (snap.pair ? [snap.pair] : []);
       var snapDate = snap.date;
-      var snapTs = new Date(snapDate + 'T00:00:00').getTime();
-      var daysAgo = Math.round((now - snapTs) / 864e5);
+      var daysAgo = _daysSince(snapDate);
       if (daysAgo < CONFIRM_DAYS_MIN) return;
 
       pairs.forEach(function(p) {
@@ -1016,12 +1023,11 @@ var SignalHistory = (function() {
       coins.forEach(function(c) { priceMap[c.id] = c.price; });
     }
     var total = 0, correct = 0;
-    var now = new Date();
     hist.forEach(function(snap) {
       if (!_passesCutoff(snap.date)) return;
       var pairs = snap.pairs || (snap.pair ? [snap.pair] : []);
       var snapDate = snap.date;
-      var daysAgo = Math.round((now - new Date(snapDate + 'T00:00:00')) / 864e5);
+      var daysAgo = _daysSince(snapDate);
       if (daysAgo < CONFIRM_DAYS_MIN) return;
       pairs.forEach(function(p) {
         if (!p.from_price || !p.to_price) return;
