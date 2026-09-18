@@ -506,6 +506,28 @@ a{color:inherit;text-decoration:none}
       .catch(function() { return []; }); /* non-fatal — page still shows single-coin sections */
   }
 
+  /* ── The rotation verdict, in one place ──────────────────────────
+     A rotation call says the target will out-return the source. This
+     is that sentence and nothing else.
+
+     It exists as a named function in BOTH files so the acceptance
+     test can run the two against each other. Inline, the rule had
+     already drifted: track-record.html compared the ROUNDED spread
+     with > and signal-history.js compared the RAW spread with >=, so
+     a raw spread of +0.04 rounded to 0.0 was a miss on the page and a
+     win on the dashboard. Neither file was wrong about anything it
+     could see on its own.
+
+     Raw, not rounded: rounding is for display, and a verdict that
+     depends on it is a verdict that depends on a display decision.
+     Strict >, not >=: a dead heat is not the target out-returning the
+     source. Exact ties are effectively impossible on real prices, so
+     this costs nothing and removes a case the two files would
+     otherwise keep disagreeing about. */
+  function rotationCorrect(fromRet, toRet) {
+    return (toRet - fromRet) > ROTATION_THRESHOLD;
+  }
+
   /* ── Evaluate rotation pairs ─────────────────────────────────
      Simple then-vs-now comparison, NOT the peak/trough-average proxy
      the live dashboard widget uses internally — that approach has a
@@ -539,14 +561,15 @@ a{color:inherit;text-decoration:none}
       if (daysAgo < CONFIRM_DAYS_MIN || fromRet == null || toRet == null) { pending.push(row); return; }
       row.fromChange = Math.round(fromRet * 10) / 10;
       row.toChange   = Math.round(toRet   * 10) / 10;
-      row.spread     = Math.round((toRet - fromRet) * 10) / 10;
+      row.spread     = Math.round((toRet - fromRet) * 10) / 10;   /* display only */
       /* Threshold 0: the call is "the target outperforms the source",
          so the test is whether it did. Measured over 30 days, random
          pairs clear a 0% spread 50.3% of the time — a clean coin-flip
          bar that needs no calibration. The old 2% margin existed to
          discount noise, but at 30 days it just moves the null to 45.3%
          and makes the published figure harder to read against it. */
-      row.correct    = row.spread > ROTATION_THRESHOLD;
+      /* Reads the RAW returns, not row.spread — see rotationCorrect(). */
+      row.correct    = rotationCorrect(fromRet, toRet);
       evaluated.push(row);
     });
     var correct = evaluated.filter(function(r) { return r.correct; }).length;

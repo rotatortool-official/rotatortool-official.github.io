@@ -649,6 +649,28 @@ var SignalHistory = (function() {
     };
   }
 
+  /* ── The rotation verdict, in one place ──────────────────────────
+     A rotation call says the target will out-return the source. This
+     is that sentence and nothing else.
+
+     It exists as a named function in BOTH files so the acceptance
+     test can run the two against each other. Inline, the rule had
+     already drifted: track-record.html compared the ROUNDED spread
+     with > and signal-history.js compared the RAW spread with >=, so
+     a raw spread of +0.04 rounded to 0.0 was a miss on the page and a
+     win on the dashboard. Neither file was wrong about anything it
+     could see on its own.
+
+     Raw, not rounded: rounding is for display, and a verdict that
+     depends on it is a verdict that depends on a display decision.
+     Strict >, not >=: a dead heat is not the target out-returning the
+     source. Exact ties are effectively impossible on real prices, so
+     this costs nothing and removes a case the two files would
+     otherwise keep disagreeing about. */
+  function _rotationCorrect(fromRet, toRet) {
+    return (toRet - fromRet) > ROTATION_THRESHOLD;
+  }
+
   /* ══════════════════════════════════════════════════════════════
      ROTATION-PAIR SCORING  (A → B)
      A rotation call is "right" when, after the confirm window, the
@@ -720,7 +742,7 @@ var SignalHistory = (function() {
         var toChange   = _returnOver(_relKlines[String(p.to_sym   || '').toUpperCase()], snapDate, HORIZON_DAYS);
         if (fromChange == null || toChange == null) return;
         var spread = toChange - fromChange;
-        var correct = spread >= ROTATION_THRESHOLD;
+        var correct = _rotationCorrect(fromChange, toChange);
 
         /* Outcome classification */
         var outcome;
@@ -780,7 +802,7 @@ var SignalHistory = (function() {
         var toChange   = _returnOver(_relKlines[String(p.to_sym   || '').toUpperCase()], snapDate, HORIZON_DAYS);
         if (fromChange == null || toChange == null) return;
         total++;
-        if ((toChange - fromChange) >= ROTATION_THRESHOLD) correct++;
+        if (_rotationCorrect(fromChange, toChange)) correct++;
       });
     });
     if (!total) return null;
