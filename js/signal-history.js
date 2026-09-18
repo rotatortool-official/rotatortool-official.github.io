@@ -485,15 +485,14 @@ var SignalHistory = (function() {
   var _marketRetCache = {};
   var MARKET_MIN_SYMBOLS = 20;
 
-  function _snapTsOf(d) { return new Date(d + 'T00:00:00Z').getTime(); }
   function _shiftDate(d, n) {
-    var t = new Date(_snapTsOf(d));
+    var t = new Date(_snapTs(d));
     t.setUTCDate(t.getUTCDate() + n);
     return t.toISOString().slice(0, 10);
   }
   function _closeOn(candles, d) {
     if (!candles || !candles.length) return null;
-    var want = _snapTsOf(d);
+    var want = _snapTs(d);
     for (var i = 0; i < candles.length; i++) if (candles[i].openTime === want) return candles[i].close;
     return null;
   }
