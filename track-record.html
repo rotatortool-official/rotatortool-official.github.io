@@ -596,7 +596,7 @@ a{color:inherit;text-decoration:none}
     + '</div>'
     + '<div class="rot-scores">Called: <b>' + escape(r.fromSym) + ' ' + r.fromScore + '</b> vs <b>' + escape(r.toSym) + ' ' + r.toScore + '</b></div>'
     + spreadHtml
-    + '<div class="rot-verdict">' + (isPending ? 'Not old enough to grade yet' : (r.correct ? 'Confirmed ✓ — the target out-returned the source' : 'Did not confirm')) + '</div>';
+    + '<div class="rot-verdict">' + (isPending ? 'Not old enough to grade yet' : (r.correct ? 'Confirmed ✓ — the target out-returned the source' : 'The source out-returned the target')) + '</div>';
     card.addEventListener('click', function() { openRotationModal(r); });
     return card;
   }

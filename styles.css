@@ -526,6 +526,12 @@ body::before{content:'';position:fixed;inset:0;background:repeating-linear-gradi
 .sig-tile-note .hi{color:var(--text);font-weight:600;}
 .sig-tile-note .up{color:var(--green);font-weight:600;}
 .sig-tile-note .dn{color:var(--red);font-weight:600;}
+/* One evidence block per column, under the grid — the figures that
+   belong to the signal TYPE rather than to any coin carrying it. */
+.sig-evidence{margin-top:8px;padding:9px 11px;background:var(--bg3);border:1px solid var(--bdr);border-left:2px solid var(--bdr2);border-radius:5px;}
+.sig-evidence p{margin:0 0 6px;font-size:11px;line-height:1.5;color:var(--muted);}
+.sig-evidence p:last-child{margin-bottom:0;}
+.sig-evidence b{color:var(--text);font-weight:600;}
 .sig-tile-caveat{display:block;margin-top:5px;padding-top:5px;border-top:1px dashed var(--bdr2);color:var(--muted);opacity:.85;}
 .sig-tile-arrow{font-size:12px;color:var(--muted);margin-bottom:4px;display:flex;align-items:center;gap:3px;}
 .sig-tile-arrow .arr-from{color:var(--red);font-weight:600;}

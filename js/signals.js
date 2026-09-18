@@ -490,13 +490,11 @@ function buySuggestTile(c) {
       + '<div class="sig-stat"><span class="sig-stat-l">SENT</span><span class="sig-stat-v ' + sentCls + '">' + sentLabel + '</span></div>'
       + '<div class="sig-stat"><span class="sig-stat-l">UNLOCK</span><span class="sig-stat-v am">' + unlock + '</span></div>'
     + '</div>'
+    /* The amplification figures are a property of the BUCKET, not of
+       this coin, so they live in the column footer. What belongs here is
+       which coin, and how far behind it is. */
     + '<div class="sig-tile-note">'
-      + c.sym + ' has lagged the market. Coins in this state amplify what the market does next'
-      + (ev
-          ? ': <span class="up">' + (ev.upExcess >= 0 ? '+' : '') + ev.upExcess + '%</span> vs market when it rises, '
-            + '<span class="dn">' + ev.downExcess + '%</span> when it falls.'
-          : '.')
-      + ' Which comes next is your call, not ours.'
+      + c.sym + ' has lagged the market — this is the amplifying end of the book.'
     + '</div>'
     + (isHeld ? '<div class="sig-tile-note">Already in your holdings.</div>' : '')
     + '</div>';
@@ -577,15 +575,7 @@ function takeProfitTile(c) {
       + '<div class="sig-stat"><span class="sig-stat-l">30D</span><span class="sig-stat-v ' + (c.p30 >= 0 ? 'up' : 'dn') + '">' + (c.p30 >= 0 ? '+' : '') + c.p30.toFixed(1) + '%</span></div>'
     + '</div>'
     + '<div class="sig-tile-note">'
-      + c.sym + ' has run hard and you hold it.'
-      /* wereUp counts the ones that ROSE, so the ones that fell are
-         n - wereUp. Reading it straight prints "0 of 9 were lower"
-         about nine coins that all fell. */
-      + (ev && ev.n
-          ? ' The last <span class="hi">' + (ev.n - ev.wereUp) + ' of ' + ev.n + '</span> coins arriving here were lower 7 days later'
-            + ' (median <span class="dn">' + ev.medianReturn + '%</span>).'
-          : '')
-      + ' This is the give-back zone — not a short signal, and a small sample.'
+      + c.sym + ' has run hard and you hold it — this is the give-back zone.'
     + '</div>'
     + '</div>';
 }
@@ -630,12 +620,17 @@ function sigRotTile(sell, buy) {
        the tile past a readable height, and the caveat was the least
        scannable line on it. Publishing the chance rate stays here,
        because 63% means nothing until you know chance pays 41%. */
+    /* Only what is true of THIS pair. The record, the chance bar and
+       the entry-timing note are identical on every rotation tile, so
+       they are rendered once under the column instead of three or four
+       times inside it — see rotationEvidenceFooter(). Four tiles each
+       repeating the same two sentences is not four times the evidence,
+       it is one piece of evidence and three times the noise. */
     + '<div class="sig-tile-note">'
       + 'Because <span class="hi">' + sell.sym + '</span> has run ahead and '
       + '<span class="hi">' + buy.sym + '</span> has lagged it by ' + delta + ' points.'
-      + ' Expected to <span class="hi">outperform ' + sell.sym + '</span> over 30 days'
-      + (_rotRecordLine() || '.')
-      + _entryLine()
+      + ' Expected to <span class="hi">outperform ' + sell.sym + '</span> over '
+      + _horizonDays() + ' days.'
     + '</div>'
     + '</div>';
 }
@@ -652,40 +647,74 @@ function _noteRotationContext(sell, buy, delta) {
   };
 }
 
-/* How the entry was timed in the historical record. Descriptive, not
-   advice: it reports what spreading the entry did to the spread of
-   OUTCOMES, and says nothing about what anyone should do. Rendered only
-   when the measurement exists. */
-function _entryLine() {
-  var e = (typeof ROTATOR_EVIDENCE !== 'undefined') && ROTATOR_EVIDENCE.entry;
-  if (!e || !e.days) return '';
-  return '<br><span class="sig-tile-caveat">Averaged in over <span class="hi">'
-    + e.days + ' days</span> rather than one, the same calls historically returned the '
-    + 'same on average with <span class="hi">' + Math.round((1 - e.stdev / e.stdevSingle) * 100)
-    + '% less variance</span> and a worst-5% of ' + e.worst5 + '% instead of '
-    + e.worst5Single + '%.</span>';
+/* ── One evidence block per column, not one per tile ──────────────
+   Every figure below is a property of the SIGNAL TYPE, not of any coin
+   carrying it, so repeating it on each tile told the reader the same
+   thing three or four times and made every tile taller than it needed
+   to be. It is rendered once, under the grid, and the tiles carry only
+   what is specific to their own pair or coin.
+
+   Renders nothing for a figure ROTATOR_EVIDENCE does not hold — an
+   unmeasured claim is not made. */
+function rotationEvidenceFooter(kinds) {
+  if (typeof ROTATOR_EVIDENCE === 'undefined') return '';
+  var bits = [];
+  var has = function(k) { return kinds && kinds.indexOf(k) >= 0; };
+
+  if (has('pair')) {
+    var rv = ROTATOR_EVIDENCE.rotation;
+    if (rv && rv.chance) {
+      bits.push(rv.confirmed
+        ? 'Rotation calls: <b>' + rv.confirmed + '% confirmed</b>, against <b>'
+          + rv.chance + '%</b> for two coins picked at random.'
+        : 'No ' + (rv.horizonDays || 30) + '-day rotation record yet — the first calls grade <b>'
+          + (rv.firstGradesOn || 'once they are old enough') + '</b>. '
+          + 'Two coins picked at random clear a positive spread <b>' + rv.chance
+          + '%</b> of the time, which is the bar it will be read against.');
+    }
+    var e = ROTATOR_EVIDENCE.entry;
+    if (e && e.days) {
+      bits.push('Averaged in over <b>' + e.days + ' days</b> rather than one, the same calls '
+        + 'historically returned the same on average, with '
+        + Math.round((1 - e.stdev / e.stdevSingle) * 100) + '% less variance and a worst-5% of '
+        + e.worst5 + '% instead of ' + e.worst5Single + '%.');
+    }
+    bits.push('A rotation is a <b>relative</b> call: a confirmed one often means both coins '
+      + 'fell and the target fell less.');
+  }
+
+  if (has('buy')) {
+    var l = ROTATOR_EVIDENCE.laggard;
+    if (l) {
+      bits.push('Coins that have lagged amplify what the market does next: <b>'
+        + (l.upExcess >= 0 ? '+' : '') + l.upExcess + '%</b> against the market when it rises, <b>'
+        + l.downExcess + '%</b> when it falls. Which comes next is your call, not ours.');
+    }
+  }
+
+  if (has('profit')) {
+    var g = ROTATOR_EVIDENCE.giveBack;
+    if (g && g.n) {
+      bits.push('The last <b>' + (g.n - g.wereUp) + ' of ' + g.n + '</b> coins reaching the '
+        + 'give-back zone were lower ' + _horizonDays() + ' days later (median <b>'
+        + g.medianReturn + '%</b>). Not a short signal, and a small sample.');
+    }
+  }
+
+  if (!bits.length) return '';
+  return '<div class="sig-evidence">' + bits.map(function(b) {
+    return '<p>' + b + '</p>';
+  }).join('') + '</div>';
 }
 
-/* The measured record behind a rotation call, or nothing if it has not
-   been measured. Never invents a figure — a card with no evidence makes
-   no claim about its own accuracy. */
-function _rotRecordLine() {
-  var ev = (typeof ROTATOR_EVIDENCE !== 'undefined') && ROTATOR_EVIDENCE.rotation;
-  if (!ev) return '';
-  /* Saying "no record yet" is the honest version of having none. The
-     alternative — carrying forward the 63% measured at 1-7 days against
-     a 2% spread — would attach a number to a test that no longer
-     exists. */
-  if (!ev.confirmed) {
-    return '.<br><span class="sig-tile-caveat">No ' + (ev.horizonDays || 30)
-      + '-day record yet — the first calls grade '
-      + (ev.firstGradesOn || 'once they are old enough') + '. '
-      + 'Two coins picked at random clear a positive spread <span class="hi">'
-      + ev.chance + '%</span> of the time, which is the bar it will be read against.</span>';
-  }
-  return '.<br>Calls like this: <span class="hi">' + ev.confirmed + '% confirmed</span>'
-    + ' · chance pays <span class="hi">' + ev.chance + '%</span>';
+/* The horizon every card quotes, read from one place so a card cannot
+   state a window the grader does not use. */
+function _horizonDays() {
+  return (typeof ROTATOR_EVIDENCE !== 'undefined' && ROTATOR_EVIDENCE.rotation
+    && ROTATOR_EVIDENCE.rotation.horizonDays) || 30;
 }
+
+
 
 /* How many tiles the Rotation column renders. The other two columns
    document .slice(0, 6) in the file header as their knob; this is
@@ -965,7 +994,9 @@ function renderTopBars() {
       gridHtml += emptyPlaceholderTile();
     }
 
-    sugEl.innerHTML = '<div class="sig-tiles-grid">' + gridHtml + '</div>' + marketOversoldLine() + provenProofLine();
+    sugEl.innerHTML = '<div class="sig-tiles-grid">' + gridHtml + '</div>'
+      + rotationEvidenceFooter(previewTiles.map(function(t) { return t.type; }))
+      + marketOversoldLine() + provenProofLine();
     return;
   }
 
@@ -987,7 +1018,9 @@ function renderTopBars() {
     return buySuggestTile(t.c);
   }).join('');
   for (var rp = proTiles.length; rp < ROT_TILE_SLOTS; rp++) rotHtml += emptyPlaceholderTile();
-  sugEl.innerHTML = '<div class="sig-tiles-grid">' + rotHtml + '</div>' + marketOversoldLine() + provenProofLine();
+  sugEl.innerHTML = '<div class="sig-tiles-grid">' + rotHtml + '</div>'
+    + rotationEvidenceFooter(proTiles.map(function(t) { return t.type; }))
+    + marketOversoldLine() + provenProofLine();
 }
 
 /* ══════════════════════════════════════════════════════════════
