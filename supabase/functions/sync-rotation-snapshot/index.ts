@@ -131,6 +131,31 @@ Deno.serve(async (req) => {
 
     const today = new Date().toISOString().slice(0, 10);
     const pairs = [];
+    // ── SHADOW: the same pairs, reversed ────────────────────────────
+    // Written 2026-09-18. Backtested over 771 days and 3,855 pairs, the
+    // published rule (sell top-5 by score, buy bottom-5) returns a mean
+    // spread of -1.1% and is positive on 46.8% of pairs, against ~50.3%
+    // for two coins picked at random. Score deciles beat the market
+    // 45.1% of the time at the bottom and 51.8% at the top, and rank IC
+    // is +0.053 — so the score predicts outperformance and this rule
+    // sells it. See promptove/52.
+    //
+    // That evidence is IN-SAMPLE, which is exactly the situation
+    // promptove/50 records getting wrong, so nothing is inverted here.
+    // Instead both directions are recorded from today and graded side
+    // by side on live, out-of-sample data. The live pairs are unchanged
+    // and remain the only ones the site publishes.
+    //
+    // The shadow is the SAME five pairs with from/to swapped, not a
+    // fresh pick. Re-selecting coins would compare two different
+    // strategies; swapping isolates the single variable under test.
+    //
+    // The monitoring-tag gate is deliberately NOT applied to the
+    // shadow's buy side. That gate exists so the site never recommends
+    // ACQUIRING a flagged coin; the shadow is graded, never published as
+    // a recommendation, and re-filtering it would break the one-variable
+    // comparison above.
+    const shadowPairs = [];
     for (let i = 0; i < Math.min(sells.length, buys.length); i++) {
       const from = sells[i], to = buys[i];
       if (from.coin_id === to.coin_id) continue; // shouldn't happen given disjoint sort directions, guard anyway
@@ -146,6 +171,18 @@ Deno.serve(async (req) => {
         to_score:    to.score,
         source:      'sync-rotation-snapshot'
       });
+      shadowPairs.push({
+        snap_date:   today,
+        from_id:     to.coin_id,
+        from_sym:    (to.coin_sym || to.coin_id).toUpperCase(),
+        from_price:  to.price,
+        from_score:  to.score,
+        to_id:       from.coin_id,
+        to_sym:      (from.coin_sym || from.coin_id).toUpperCase(),
+        to_price:    from.price,
+        to_score:    from.score,
+        source:      'sync-rotation-snapshot-inverted'
+      });
     }
 
     if (!pairs.length) throw new Error('no valid rotation pairs produced');
@@ -156,9 +193,27 @@ Deno.serve(async (req) => {
 
     if (upsertErr) throw new Error('upsert failed: ' + upsertErr.message);
 
+    // The shadow fails SOFT. It is an experiment running alongside the
+    // product; if it cannot be written, the published snapshot has
+    // already succeeded above and must not be rolled back or reported
+    // as failed because a test could not record itself.
+    let shadowSynced = 0;
+    if (shadowPairs.length) {
+      const { error: shadowErr } = await supabase
+        .from('rotation_snapshots')
+        .upsert(shadowPairs, { onConflict: 'snap_date,from_id,to_id' });
+      if (shadowErr) {
+        console.warn('[sync-rotation-snapshot] shadow upsert failed, live pairs unaffected:',
+          shadowErr.message);
+      } else {
+        shadowSynced = shadowPairs.length;
+      }
+    }
+
     return new Response(
       JSON.stringify({
         synced: pairs.length,
+        shadow_synced: shadowSynced,
         snap_date: today,
         run_id: run.id,
         engine_version: run.engine_version,

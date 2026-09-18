@@ -115,6 +115,11 @@ a{color:inherit;text-decoration:none}
 .search-active .search-clear{display:block;}
 
 /* ── Rotation cards ───────────────────────────────────── */
+.shadow-in{margin-top:16px;padding:12px 14px;background:var(--bg3);border:1px dashed var(--bdr2);border-radius:6px;}
+.shadow-hd{font-family:var(--font-mono);font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);margin-bottom:7px;}
+.shadow-in p{margin:0 0 6px;font-size:12.5px;line-height:1.55;color:var(--muted);}
+.shadow-in p:last-child{margin-bottom:0;}
+.shadow-in b{color:var(--text);}
 .rot-card{background:var(--bg2);border:1px solid var(--bdr);border-radius:6px;
   padding:14px 16px;transition:border-color .15s,transform .15s;cursor:pointer;}
 .rot-card:hover{border-color:var(--bdr2);transform:translateY(-1px);}
@@ -251,6 +256,7 @@ a{color:inherit;text-decoration:none}
     <div id="rot-acc-line" style="font-family:var(--font-mono);font-size:12px;color:var(--muted);margin-bottom:16px;"></div>
     <div id="rot-grid" class="grid"></div>
     <div id="rot-empty"></div>
+    <div id="shadow-block"></div>
   </section>
 
   <section class="section">
@@ -537,9 +543,22 @@ a{color:inherit;text-decoration:none}
      best-case peak and a worst-case trough that may never have
      coincided with any real moment. Same CONFIRM_DAYS_MIN/ROTATION_
      THRESHOLD rules as the rest of the site for consistency. */
-  function evaluateRotation(snaps, priceMap) {
+  /* Rows written by the shadow experiment, which records the INVERTED
+     rotation rule alongside the published one so both can be graded on
+     live data. They are the same pairs with from/to swapped, and they
+     must never reach the published record — see promptove/52.
+
+     This filter exists BEFORE the first shadow row was ever written.
+     Without it, the inverted pairs would have been graded as published
+     calls the moment the sync ran, and the rotation percentage on this
+     page would have become a mix of a strategy and its own opposite. */
+  var SHADOW_SOURCE = 'sync-rotation-snapshot-inverted';
+  function isShadowRow(s) { return s && s.source === SHADOW_SOURCE; }
+
+  function evaluateRotation(snaps, priceMap, wantShadow) {
     var evaluated = [], pending = [];
     snaps.forEach(function(s) {
+      if (isShadowRow(s) !== !!wantShadow) return;
       /* Same 2.3.0 reset as evaluate(): rotation calls scored by the
          retired engine are archived, not carried into the live count. */
       if (!s.snap_date || s.snap_date < TRACKING_START) return;
@@ -1421,6 +1440,52 @@ a{color:inherit;text-decoration:none}
   }
 
   /* ── Go ────────────────────────────────────────────────── */
+  /* ── The shadow test ─────────────────────────────────────────────
+     The published rotation rule sells the top 5 by score and buys the
+     bottom 5. Backtested over 771 days and 3,855 pairs that returns a
+     mean spread of -1.1% and is positive on 46.8% of pairs, against
+     ~50.3% for two coins picked at random — and rank IC is +0.053, so
+     the score predicts outperformance and the rule sells it.
+
+     That evidence is in-sample, so nothing was inverted on the strength
+     of it. Both directions are recorded from 2026-09-18 and graded here
+     side by side on live, out-of-sample data. This block is published
+     rather than kept private because a test the site runs on itself is
+     exactly the kind of thing a reader is entitled to see, and because
+     hiding it until it agrees with us would make it worthless.
+
+     It is explicitly NOT a recommendation: the inverted pairs are never
+     rendered as calls, only counted. */
+  function renderShadow(shadow, allRows) {
+    var box = document.getElementById('shadow-block');
+    if (!box) return;
+    var st = shadow.stats;
+    var haveAny = (allRows || []).some(isShadowRow);
+    if (!haveAny) {
+      box.innerHTML = '<div class="shadow-in"><b>Shadow test — starts tonight.</b> '
+        + 'From today the site also records the <i>reverse</i> of every rotation call and grades '
+        + 'it alongside the real one. Over ' + HORIZON_DAYS + ' days that answers, on live data, '
+        + 'whether the rule is pointed the right way. Nothing here is a recommendation.</div>';
+      return;
+    }
+    var line;
+    if (st.accuracy == null) {
+      line = shadow.pending.length + ' reversed pair' + (shadow.pending.length === 1 ? '' : 's')
+        + ' recorded, none old enough to grade yet (needs ' + CONFIRM_DAYS_MIN + '+ days).';
+    } else {
+      line = '<b>' + st.accuracy + '%</b> of the reversed calls confirmed ('
+        + st.correct + ' of ' + st.total + ')'
+        + (shadow.pending.length ? ' · ' + shadow.pending.length + ' more pending' : '');
+    }
+    box.innerHTML = '<div class="shadow-in">'
+      + '<div class="shadow-hd">Shadow test · the same calls, reversed</div>'
+      + '<p>' + line + '</p>'
+      + '<p>Read it against the published rotation figure above. If the reverse scores higher over '
+      + 'a real sample, the rule is pointed the wrong way and will be turned around. '
+      + 'The reversed pairs are counted, never shown as calls.</p>'
+      + '</div>';
+  }
+
   function renderRotation(result) {
     var evalList = result.evaluated, pendingList = result.pending;
     var stats = result.stats;
@@ -1469,7 +1534,8 @@ a{color:inherit;text-decoration:none}
       var mcapMap  = pricePack.mcapMap  || {};
       var rotSnaps = vals[2] || [];
 
-      renderRotation(evaluateRotation(rotSnaps, priceMap));
+      renderRotation(evaluateRotation(rotSnaps, priceMap, false));
+      renderShadow(evaluateRotation(rotSnaps, priceMap, true), rotSnaps);
 
       if (!snaps.length) {
         var pct = document.getElementById('acc-pct');
