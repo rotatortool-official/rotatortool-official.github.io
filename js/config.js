@@ -98,8 +98,15 @@ var ROTATOR_EVIDENCE = {
          7      4.33%    -1.01%    52.7    -26.0%
 
      Averaging the entry costs nothing in expected return out to five
-     days, and takes about 9% off the variance and 2 points off the
+     days, and takes about 6% off the volatility and 2 points off the
      worst 5%. Past day five the mean starts to erode.
+
+     6% is 1 - stdev/stdevSingle (55.5/59.3), which is what the card
+     renders and what promptove/49 recorded. It said 9% until
+     2026-09-22 and that matched neither. VOLATILITY, not variance:
+     the figure is a reduction in standard deviation. The variance
+     reduction is 12.4%, and calling a stdev number "variance" quietly
+     understated the effect while misnaming it.
 
      Note the shape while reading it: the MEDIAN is negative and the
      mean is strongly positive, so this is a right-skewed bet — most of

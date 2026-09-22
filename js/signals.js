@@ -676,7 +676,12 @@ function rotationEvidenceFooter(kinds) {
     if (e && e.days) {
       bits.push('Averaged in over <b>' + e.days + ' days</b> rather than one, the same calls '
         + 'historically returned the same on average, with '
-        + Math.round((1 - e.stdev / e.stdevSingle) * 100) + '% less variance and a worst-5% of '
+        /* VOLATILITY, not variance. The expression is a reduction in
+           standard deviation; the variance reduction is twice as large
+           (12.4% against these numbers). The card said "variance" until
+           2026-09-22, which named the wrong statistic AND understated
+           the effect. See the entry block in config.js. */
+        + Math.round((1 - e.stdev / e.stdevSingle) * 100) + '% less volatility and a worst-5% of '
         + e.worst5 + '% instead of ' + e.worst5Single + '%.');
     }
     bits.push('A rotation is a <b>relative</b> call: a confirmed one often means both coins '
