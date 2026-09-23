@@ -66,7 +66,7 @@
 //
 // ── TECHNICAL EVENTS section (added 2026-09-07) ─────────────
 // A second, independent block: golden/death crosses, RSI(14) crossing
-// 80/30, and extreme futures positioning. Written by
+// 80/30, extreme futures positioning, and (since 2026-09-23) RSI reclaims. Written by
 // detect_coin_events() (sql/create_coin_events.sql) at 00:45 UTC; this
 // function only READS coin_events. It never derives an indicator, for
 // the same reason it never re-derives the engine's zone thresholds —
@@ -226,6 +226,7 @@ function buildEventSections(
   const crosses = events.filter(e => e.event_type === 'golden_cross' || e.event_type === 'death_cross');
   const rsis    = events.filter(e => e.event_type === 'rsi_overbought' || e.event_type === 'rsi_oversold');
   const futs    = events.filter(e => e.event_type === 'futures_long_crowded' || e.event_type === 'futures_short_crowded');
+  const reclaims = events.filter(e => e.event_type === 'rsi_reclaim');
 
   lines.push('', '━━━━━━━━━━━━━━━━━━━━━━', '📐 <b>TECHNICAL EVENTS</b>');
 
@@ -308,6 +309,44 @@ function buildEventSections(
       shown.push(e);
     }
     if (futs.length > take.length) lines.push(`<i>+ ${futs.length - take.length} more not shown</i>`);
+  }
+
+  // RSI reclaim (2026-09-23, promptove/59; sql/rsi_reclaim_events.sql).
+  // Daily RSI back at or above 30 after closes below it, on closed
+  // candles. HOW LONG it stayed below is the whole reading, and in the
+  // backtest it cut both ways (promptove/53): 1-2 days beat the market over
+  // the next week 53.2% of 1,083 times, 11+ days only 31.0% of 58. So each
+  // line says which kind it is, quick ones first, and the intro says the
+  // past result in the past tense. The site's coin modal uses the same
+  // three kinds.
+  if (reclaims.length) {
+    const d = (e: EventRow) => (e.detail ?? {}) as Record<string, unknown>;
+    const daysBelow = (e: EventRow) => num(d(e).days_below as number | string | null);
+    const kind = (e: EventRow): 0 | 1 | 2 => {          // 0 quick, 1 slow (6+), 2 in between
+      if (d(e).fast === true) return 0;
+      const n = daysBelow(e);
+      return n === null || n >= 6 || d(e).days_below_is_floor === true ? 1 : 2;
+    };
+    reclaims.sort((a, b) => kind(a) - kind(b)
+      || b.event_date.localeCompare(a.event_date) || a.base_asset.localeCompare(b.base_asset));
+    const take = reclaims.slice(0, MAX_EVENT_LINES);
+
+    lines.push('', '↩️ <b>RSI bouncing back above 30</b> <i>(daily RSI 14)</i>');
+    lines.push('<i>Back above 30 after a dip. In past data, how long it stayed below mattered: quick bounces beat the market over the next week 53% of the time, slow ones mostly trailed it. Past results, not a prediction.</i>');
+    for (const e of take) {
+      const n = daysBelow(e);
+      const nTxt = n === null ? 'some' : `${n}${d(e).days_below_is_floor === true ? '+' : ''} ${n === 1 ? 'day' : 'days'}`;
+      const rsi = fmtRsi(num(e.value));
+      const k = kind(e);
+      lines.push(k === 0
+        ? `⚡ <b>${e.base_asset}</b> — quick bounce: RSI ${rsi}, back above 30 after ${nTxt} below · ${fmtDay(e.event_date)}`
+        : k === 1
+        ? `🐢 <b>${e.base_asset}</b> — slow bounce: RSI ${rsi}, back above 30 after ${nTxt} below · ${fmtDay(e.event_date)}`
+        : `↩️ <b>${e.base_asset}</b> — back above 30: RSI ${rsi}, after ${nTxt} below · ${fmtDay(e.event_date)}`);
+      lines.push(`   lowest RSI ${fmtRsi(num(d(e).min_rsi as number | string | null))} · ${ctxCross(e.base_asset)} · longs/shorts ${fmtRatio(ctxLs(e.base_asset))}`);
+      shown.push(e);
+    }
+    if (reclaims.length > take.length) lines.push(`<i>+ ${reclaims.length - take.length} more not shown</i>`);
   }
 
   lines.push('━━━━━━━━━━━━━━━━━━━━━━');
