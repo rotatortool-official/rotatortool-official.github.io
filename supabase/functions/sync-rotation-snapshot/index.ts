@@ -63,32 +63,44 @@ Deno.serve(async (req) => {
   }
 
   try {
-    // ── Latest canonical run — same source the site and the bot read. ──
-    const { data: run, error: runErr } = await supabase
+    // ── Latest COMPLETE canonical run — same source the site and the bot read. ──
+    // Not simply the newest row. compute-signal-run runs every 15 minutes
+    // and this cron fires at 19:00, the same instant: on 2026-09-20 and
+    // 2026-09-22 it read run #1654's header ~0.2s after it was inserted,
+    // before its 285 items were, found 0 scorable coins and wrote nothing.
+    // pg_cron logged both days as "succeeded". So walk back from the
+    // newest run to the first one that is actually populated.
+    const { data: runs, error: runErr } = await supabase
       .from('signal_runs')
       .select('id,as_of,engine_version')
       .order('as_of', { ascending: false })
-      .limit(1)
-      .single();
-    if (runErr || !run) throw new Error('no signal_runs row found: ' + (runErr?.message ?? 'empty'));
+      .limit(3);
+    if (runErr || !runs?.length) throw new Error('no signal_runs row found: ' + (runErr?.message ?? 'empty'));
 
-    const { data: items, error: itemsErr } = await supabase
-      .from('signal_run_items')
-      .select('coin_id,coin_sym,price,score,eligible,data_complete')
-      .eq('run_id', run.id);
-    if (itemsErr || !items) throw new Error('signal_run_items fetch failed: ' + (itemsErr?.message ?? 'empty'));
+    let run: { id: number; as_of: string; engine_version: string } | null = null;
+    let scorable: RunItem[] = [];
+    const skippedRuns: number[] = [];
+    for (const candidate of runs) {
+      const { data: items, error: itemsErr } = await supabase
+        .from('signal_run_items')
+        .select('coin_id,coin_sym,price,score,eligible,data_complete')
+        .eq('run_id', candidate.id);
+      if (itemsErr || !items) throw new Error('signal_run_items fetch failed: ' + (itemsErr?.message ?? 'empty'));
 
-    // Stablecoins/delisted are already excluded upstream by compute-signal-run
-    // (its own eligibility gate) — no re-filtering needed here beyond that.
-    const scorable = (items as RunItem[]).filter((it) =>
-      it.eligible !== false &&
-      it.data_complete !== false &&
-      it.score != null &&
-      it.price != null && it.price > 0
-    );
+      // Stablecoins/delisted are already excluded upstream by compute-signal-run
+      // (its own eligibility gate) — no re-filtering needed here beyond that.
+      const ok = (items as RunItem[]).filter((it) =>
+        it.eligible !== false &&
+        it.data_complete !== false &&
+        it.score != null &&
+        it.price != null && it.price > 0
+      );
+      if (ok.length >= 10) { run = candidate; scorable = ok; break; }
+      skippedRuns.push(candidate.id);
+    }
 
-    if (scorable.length < 10) {
-      throw new Error(`only ${scorable.length} scorable coins in run #${run.id} — too few for a meaningful snapshot`);
+    if (!run) {
+      throw new Error(`none of the last ${runs.length} runs (#${skippedRuns.join(', #')}) had 10+ scorable coins — too few for a meaningful snapshot`);
     }
 
     // ── Binance Monitoring Tag, buy side only (added 2026-09-06) ──
@@ -210,12 +222,76 @@ Deno.serve(async (req) => {
       }
     }
 
+    // ── SHADOW 2: park in gold (added 2026-09-23) ───────────────────
+    // Every coin in the give-back zone (score >= GOLD_FROM_SCORE) paired
+    // with PAXG. It is the candidate "Park in gold" card, recorded before
+    // anything is published.
+    //
+    // The in-sample case (Apr–Sep 2026 daily candles): hot coin -> PAXG
+    // beat the coin by >2% over 7d on 53.3% of pairs, against 44.8% for a
+    // random coin, but the mean spread was only +0.18%. It was +2.54% after
+    // BTC 30d was UP and -2.22% after it was DOWN. PAXG–BTC daily
+    // correlation is 0.56, so gold is a low-beta place to park, not a hedge.
+    // No regime gate is applied here: both regimes are recorded so the gate
+    // can be graded on live data rather than adopted from the backtest.
+    // BTC's 30d return for any snap_date comes from binance_daily_klines.
+    //
+    // Deliberately wider than the five live sells. The card would fire for
+    // any holding in that zone, so the shadow grades what the card would say.
+    //
+    // A pair the live snapshot already wrote is skipped: PAXG scores low
+    // enough to land in the live buys, and the upsert key has no source
+    // column, so a gold row would overwrite that live row's source.
+    //
+    // Fails soft, like the inverted shadow above.
+    const GOLD_FROM_SCORE = 70;
+    const GOLD_SOURCE     = 'sync-rotation-snapshot-gold';
+    let goldSynced = 0;
+    let goldNote: string | null = null;
+    const gold = scorable.find((it) => (it.coin_sym || '').toUpperCase() === 'PAXG');
+    if (!gold) {
+      goldNote = 'PAXG not scorable in this run';
+    } else {
+      const liveKeys = new Set(pairs.map((p) => p.from_id + '>' + p.to_id));
+      const goldPairs = scorable
+        .filter((it) => (it.score as number) >= GOLD_FROM_SCORE && it.coin_id !== gold.coin_id)
+        .filter((it) => !liveKeys.has(it.coin_id + '>' + gold.coin_id))
+        .map((from) => ({
+          snap_date:   today,
+          from_id:     from.coin_id,
+          from_sym:    (from.coin_sym || from.coin_id).toUpperCase(),
+          from_price:  from.price,
+          from_score:  from.score,
+          to_id:       gold.coin_id,
+          to_sym:      'PAXG',
+          to_price:    gold.price,
+          to_score:    gold.score,
+          source:      GOLD_SOURCE
+        }));
+      if (goldPairs.length) {
+        const { error: goldErr } = await supabase
+          .from('rotation_snapshots')
+          .upsert(goldPairs, { onConflict: 'snap_date,from_id,to_id' });
+        if (goldErr) {
+          console.warn('[sync-rotation-snapshot] gold shadow upsert failed, live pairs unaffected:',
+            goldErr.message);
+          goldNote = 'upsert failed: ' + goldErr.message;
+        } else {
+          goldSynced = goldPairs.length;
+        }
+      }
+    }
+
     return new Response(
       JSON.stringify({
         synced: pairs.length,
         shadow_synced: shadowSynced,
+        gold_synced: goldSynced,
+        gold_note: goldNote,
         snap_date: today,
         run_id: run.id,
+        // Runs passed over because their items were not written yet.
+        skipped_runs: skippedRuns,
         engine_version: run.engine_version,
         scorable_count: scorable.length,
         // Named separately from scorable_count so "the tag sync is broken"
