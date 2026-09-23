@@ -1448,49 +1448,25 @@ a{color:inherit;text-decoration:none}
   }
 
   /* ── Go ────────────────────────────────────────────────── */
-  /* ── The shadow test ─────────────────────────────────────────────
-     The published rotation rule sells the top 5 by score and buys the
-     bottom 5. Backtested over 771 days and 3,855 pairs that returns a
-     mean spread of -1.1% and is positive on 46.8% of pairs, against
-     ~50.3% for two coins picked at random — and rank IC is +0.053, so
-     the score predicts outperformance and the rule sells it.
-
-     That evidence is in-sample, so nothing was inverted on the strength
-     of it. Both directions are recorded from 2026-09-18 and graded here
-     side by side on live, out-of-sample data. This block is published
-     rather than kept private because a test the site runs on itself is
-     exactly the kind of thing a reader is entitled to see, and because
-     hiding it until it agrees with us would make it worthless.
-
-     It is explicitly NOT a recommendation: the inverted pairs are never
-     rendered as calls, only counted. */
-  function renderShadow(shadow, allRows) {
+  /* ── The shadow test, retired 2026-09-23 (promptove/61) ─────────────
+     From 2026-09-18 the site recorded the reverse of every rotation call
+     and graded it here beside the real one. It was retired because it
+     could never add information: a reversed pair is the same two coins at
+     the same prices, so its spread is exactly minus the live pair's. The
+     live figure above already answers "is the rule pointed the right
+     way", and it is now tested against ranges fixed in advance
+     (rotator-backtest/rotation-verdict.js). The 15 reversed rows stay in
+     the table as history. The block says so rather than vanishing, because
+     a test this page announced should not disappear without a word. */
+  function renderShadow() {
     var box = document.getElementById('shadow-block');
     if (!box) return;
-    var st = shadow.stats;
-    var haveAny = (allRows || []).some(isShadowRow);
-    if (!haveAny) {
-      box.innerHTML = '<div class="shadow-in"><b>Shadow test — starts tonight.</b> '
-        + 'From today the site also records the <i>reverse</i> of every rotation call and grades '
-        + 'it alongside the real one. Over ' + HORIZON_DAYS + ' days that answers, on live data, '
-        + 'whether the rule is pointed the right way. Nothing here is a recommendation.</div>';
-      return;
-    }
-    var line;
-    if (st.accuracy == null) {
-      line = shadow.pending.length + ' reversed pair' + (shadow.pending.length === 1 ? '' : 's')
-        + ' recorded, none old enough to grade yet (needs ' + CONFIRM_DAYS_MIN + '+ days).';
-    } else {
-      line = '<b>' + st.accuracy + '%</b> of the reversed calls confirmed ('
-        + st.correct + ' of ' + st.total + ')'
-        + (shadow.pending.length ? ' · ' + shadow.pending.length + ' more pending' : '');
-    }
     box.innerHTML = '<div class="shadow-in">'
-      + '<div class="shadow-hd">Shadow test · the same calls, reversed</div>'
-      + '<p>' + line + '</p>'
-      + '<p>Read it against the published rotation figure above. If the reverse scores higher over '
-      + 'a real sample, the rule is pointed the wrong way and will be turned around. '
-      + 'The reversed pairs are counted, never shown as calls.</p>'
+      + '<div class="shadow-hd">Shadow test · retired 2026-09-23</div>'
+      + '<p>From Sep 18 to Sep 21 this page also graded the <i>reverse</i> of every rotation call. '
+      + 'A reversed call is the same two coins at the same prices, so its result is always the exact '
+      + 'opposite of the real call: it could not tell us anything the figure above does not. '
+      + 'The rotation rule is now judged against ranges written down before any call was old enough to grade.</p>'
       + '</div>';
   }
 
@@ -1543,7 +1519,7 @@ a{color:inherit;text-decoration:none}
       var rotSnaps = vals[2] || [];
 
       renderRotation(evaluateRotation(rotSnaps, priceMap, false));
-      renderShadow(evaluateRotation(rotSnaps, priceMap, true), rotSnaps);
+      renderShadow();
 
       if (!snaps.length) {
         var pct = document.getElementById('acc-pct');
