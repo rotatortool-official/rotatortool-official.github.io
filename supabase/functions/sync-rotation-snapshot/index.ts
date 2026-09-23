@@ -50,6 +50,8 @@ interface RunItem {
   score: number | null;
   eligible: boolean | null;
   data_complete: boolean | null;
+  asset_type: string | null;
+  p30: number | null;   // percent, e.g. -7.03
 }
 
 Deno.serve(async (req) => {
@@ -83,7 +85,7 @@ Deno.serve(async (req) => {
     for (const candidate of runs) {
       const { data: items, error: itemsErr } = await supabase
         .from('signal_run_items')
-        .select('coin_id,coin_sym,price,score,eligible,data_complete')
+        .select('coin_id,coin_sym,price,score,eligible,data_complete,asset_type,p30')
         .eq('run_id', candidate.id);
       if (itemsErr || !items) throw new Error('signal_run_items fetch failed: ' + (itemsErr?.message ?? 'empty'));
 
@@ -223,9 +225,10 @@ Deno.serve(async (req) => {
     }
 
     // ── SHADOW 2: park in gold (added 2026-09-23) ───────────────────
-    // Every coin in the give-back zone (score >= GOLD_FROM_SCORE) paired
-    // with PAXG. It is the candidate "Park in gold" card, recorded before
-    // anything is published.
+    // Hot coins paired with PAXG: every coin in the give-back zone (score
+    // >= GOLD_FROM_SCORE), plus the top GOLD_TOP_P30 crypto by 30d return.
+    // It is the candidate "Park in gold" card, recorded before anything is
+    // published.
     //
     // The in-sample case (Apr–Sep 2026 daily candles): hot coin -> PAXG
     // beat the coin by >2% over 7d on 53.3% of pairs, against 44.8% for a
@@ -239,22 +242,51 @@ Deno.serve(async (req) => {
     // Deliberately wider than the five live sells. The card would fire for
     // any holding in that zone, so the shadow grades what the card would say.
     //
+    // TWO definitions of "hot", recorded side by side (added the same day).
+    // The backtest picked the top 5 crypto by 30d RETURN; the card was
+    // drafted to fire on SCORE >= 70. They are not the same claim. A high
+    // score predicts outperformance (promptove/52), so parking a
+    // high-score coin may simply lose: the five live sells -> PAXG over
+    // 09-07..09-16 graded spread7 -7.26%, win7 27.5%. Trailing return
+    // mean-reverts instead, which is what the backtest's +2.54% rests on.
+    // Recording both lets the live data say which trigger the card needs.
+    //
+    // The 30d pick mirrors the backtest: crypto only (the backtest ranked
+    // binance_daily_klines, which has no bstocks), gold itself excluded.
+    //
+    // A coin picked by BOTH rules gets ONE row, source '-gold-both'. The
+    // upsert key has no source column, so two rows are impossible, and
+    // tagging it with either single source would drop it from the other
+    // rule's grade. Grade the score rule on ('-gold','-gold-both') and the
+    // 30d rule on ('-gold-30d','-gold-both').
+    //
     // A pair the live snapshot already wrote is skipped: PAXG scores low
-    // enough to land in the live buys, and the upsert key has no source
-    // column, so a gold row would overwrite that live row's source.
+    // enough to land in the live buys, and a gold row would overwrite that
+    // live row's source.
     //
     // Fails soft, like the inverted shadow above.
     const GOLD_FROM_SCORE = 70;
-    const GOLD_SOURCE     = 'sync-rotation-snapshot-gold';
+    const GOLD_TOP_P30    = 5;
+    const GOLD_SYMS       = new Set(['PAXG', 'XAUT']);
     let goldSynced = 0;
     let goldNote: string | null = null;
+    const goldBySource: Record<string, number> = {};
     const gold = scorable.find((it) => (it.coin_sym || '').toUpperCase() === 'PAXG');
     if (!gold) {
       goldNote = 'PAXG not scorable in this run';
     } else {
       const liveKeys = new Set(pairs.map((p) => p.from_id + '>' + p.to_id));
+      const notGold = (it: RunItem) => !GOLD_SYMS.has((it.coin_sym || '').toUpperCase());
+      const byScore = new Set(scorable
+        .filter((it) => notGold(it) && (it.score as number) >= GOLD_FROM_SCORE)
+        .map((it) => it.coin_id));
+      const by30d = new Set(scorable
+        .filter((it) => notGold(it) && it.asset_type === 'crypto' && it.p30 != null)
+        .sort((a, b) => (b.p30 as number) - (a.p30 as number))
+        .slice(0, GOLD_TOP_P30)
+        .map((it) => it.coin_id));
       const goldPairs = scorable
-        .filter((it) => (it.score as number) >= GOLD_FROM_SCORE && it.coin_id !== gold.coin_id)
+        .filter((it) => byScore.has(it.coin_id) || by30d.has(it.coin_id))
         .filter((it) => !liveKeys.has(it.coin_id + '>' + gold.coin_id))
         .map((from) => ({
           snap_date:   today,
@@ -266,7 +298,9 @@ Deno.serve(async (req) => {
           to_sym:      'PAXG',
           to_price:    gold.price,
           to_score:    gold.score,
-          source:      GOLD_SOURCE
+          source:      byScore.has(from.coin_id) && by30d.has(from.coin_id) ? 'sync-rotation-snapshot-gold-both'
+                     : byScore.has(from.coin_id)                           ? 'sync-rotation-snapshot-gold'
+                     :                                                       'sync-rotation-snapshot-gold-30d'
         }));
       if (goldPairs.length) {
         const { error: goldErr } = await supabase
@@ -278,6 +312,7 @@ Deno.serve(async (req) => {
           goldNote = 'upsert failed: ' + goldErr.message;
         } else {
           goldSynced = goldPairs.length;
+          for (const p of goldPairs) goldBySource[p.source] = (goldBySource[p.source] ?? 0) + 1;
         }
       }
     }
@@ -287,6 +322,7 @@ Deno.serve(async (req) => {
         synced: pairs.length,
         shadow_synced: shadowSynced,
         gold_synced: goldSynced,
+        gold_by_source: goldBySource,
         gold_note: goldNote,
         snap_date: today,
         run_id: run.id,
