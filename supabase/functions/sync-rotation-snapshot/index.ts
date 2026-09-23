@@ -52,6 +52,7 @@ interface RunItem {
   data_complete: boolean | null;
   asset_type: string | null;
   p30: number | null;   // percent, e.g. -7.03
+  mcap: number | null;  // USD; ranks the top-20 shadow
 }
 
 Deno.serve(async (req) => {
@@ -88,7 +89,7 @@ Deno.serve(async (req) => {
     for (const candidate of runs) {
       const { data: items, error: itemsErr } = await supabase
         .from('signal_run_items')
-        .select('coin_id,coin_sym,price,score,eligible,data_complete,asset_type,p30')
+        .select('coin_id,coin_sym,price,score,eligible,data_complete,asset_type,p30,mcap')
         .eq('run_id', candidate.id);
       if (itemsErr || !items) throw new Error('signal_run_items fetch failed: ' + (itemsErr?.message ?? 'empty'));
 
@@ -320,9 +321,61 @@ Deno.serve(async (req) => {
       }
     }
 
+    // ── SHADOW 3: top-20 by market cap, inverted (added 2026-09-23) ──
+    // The only rule that stayed above random in both halves of the
+    // 771-day history at every horizon (promptove/58, rule R3): within the
+    // 20 largest scorable coins, rotate OUT of the 5 lowest scores INTO the
+    // 5 highest, paired rank by rank. ~53% of 7-day pairs won in the
+    // backtest. It is graded at 7 days by rotator-backtest/rotation-verdict.js
+    // against bands fixed the same day. Never published.
+    //
+    // Built exactly as the backtest ran it, so the live grade tests the
+    // same rule: no monitoring-tag filter (the backtest had none, and a
+    // top-20 coin rarely carries one), bstocks are never scorable here.
+    // Fails soft, like the shadows above.
+    let top20Synced = 0;
+    let top20Note: string | null = null;
+    {
+      const big = scorable.filter((it) => it.mcap != null && it.mcap > 0)
+        .sort((a, b) => (b.mcap as number) - (a.mcap as number)).slice(0, 20);
+      const out = [...big].sort((a, b) => (a.score as number) - (b.score as number)).slice(0, 5);
+      const into = [...big].sort((a, b) => (b.score as number) - (a.score as number)).slice(0, 5);
+      const top20Pairs = [];
+      for (let i = 0; i < Math.min(out.length, into.length); i++) {
+        const from = out[i], to = into[i];
+        if (from.coin_id === to.coin_id) continue;
+        top20Pairs.push({
+          snap_date:   today,
+          from_id:     from.coin_id,
+          from_sym:    (from.coin_sym || from.coin_id).toUpperCase(),
+          from_price:  from.price,
+          from_score:  from.score,
+          to_id:       to.coin_id,
+          to_sym:      (to.coin_sym || to.coin_id).toUpperCase(),
+          to_price:    to.price,
+          to_score:    to.score,
+          source:      'sync-rotation-snapshot-top20'
+        });
+      }
+      if (big.length < 20) top20Note = `only ${big.length} scorable coins with a market cap`;
+      if (top20Pairs.length) {
+        const { error: t20Err } = await supabase
+          .from('rotation_snapshots')
+          .upsert(top20Pairs, { onConflict: 'snap_date,from_id,to_id,source' });
+        if (t20Err) {
+          console.warn('[sync-rotation-snapshot] top-20 shadow upsert failed, live pairs unaffected:', t20Err.message);
+          top20Note = 'upsert failed: ' + t20Err.message;
+        } else {
+          top20Synced = top20Pairs.length;
+        }
+      }
+    }
+
     return new Response(
       JSON.stringify({
         synced: pairs.length,
+        top20_synced: top20Synced,
+        top20_note: top20Note,
         shadow_synced: shadowSynced,
         gold_synced: goldSynced,
         gold_by_source: goldBySource,

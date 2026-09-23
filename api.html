@@ -189,7 +189,7 @@ curl "https://wyvwycatgexpbugzkdfw.supabase.co/rest/v1/signal_runs?select=id,as_
         <tr><td class="col-field">from_price / from_score</td><td class="col-type">numeric</td><td>price and score at call time</td></tr>
         <tr><td class="col-field">to_id / to_sym</td><td class="col-type">text</td><td>the "rotate into" asset</td></tr>
         <tr><td class="col-field">to_price / to_score</td><td class="col-type">numeric</td><td>price and score at call time</td></tr>
-        <tr><td class="col-field">source</td><td class="col-type">text</td><td><code>sync-rotation-snapshot</code> = the published calls. Unpublished experiments: <code>-inverted</code> (the same pairs reversed), <code>-gold</code>, <code>-gold-30d</code>, <code>-gold-both</code> (a hot asset paired with PAXG).</td></tr>
+        <tr><td class="col-field">source</td><td class="col-type">text</td><td><code>sync-rotation-snapshot</code> = the published calls. Unpublished experiments: <code>-inverted</code> (the same pairs reversed), <code>-gold</code>, <code>-gold-30d</code>, <code>-gold-both</code> (a hot asset paired with PAXG), <code>-top20</code> (within the 20 largest by market cap, lowest scores into highest; from 2026-09-23).</td></tr>
       </table></div>
     </div>
 
