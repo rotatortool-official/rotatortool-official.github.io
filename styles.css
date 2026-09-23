@@ -803,6 +803,11 @@ body::before{content:'';position:fixed;inset:0;background:repeating-linear-gradi
 .td-ev-sub{font-size:10.5px;color:var(--muted);margin-top:2px;line-height:1.45;}
 .td-ev-more{font-size:10.5px;color:var(--muted);padding-top:7px;}
 .td-ev-note{font-size:10px;color:var(--muted);line-height:1.5;margin-top:9px;padding-top:8px;border-top:1px solid rgba(255,255,255,.05);}
+/* Quick RSI reclaim (promptove/59): pulses three times when the modal opens, then stays tinted. */
+@keyframes tdEvFlash{0%,100%{background:rgba(0,200,150,.06);box-shadow:0 0 0 1px rgba(0,200,150,.18);}50%{background:rgba(0,200,150,.18);box-shadow:0 0 0 1px rgba(0,200,150,.55);}}
+.td-ev-row.td-ev-flash{border-radius:6px;padding:7px 8px;margin:2px 0;background:rgba(0,200,150,.06);box-shadow:0 0 0 1px rgba(0,200,150,.18);animation:tdEvFlash 1.1s ease-in-out 3;border-bottom:0;}
+.td-ev-flash .td-ev-dot{box-shadow:0 0 0 3px rgba(0,200,150,.25);}
+@media (prefers-reduced-motion:reduce){.td-ev-row.td-ev-flash{animation:none;}}
 .td-hist-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-top:10px;}
 .td-hist-grid:empty{display:none;}
 .td-hist-cell{background:rgba(255,255,255,.02);border:1px solid rgba(255,255,255,.06);border-radius:6px;padding:9px 11px 8px;min-width:0;}

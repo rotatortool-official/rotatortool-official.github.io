@@ -2293,7 +2293,7 @@ function openTileDetail(coinId, evt) {
     var v = e.value != null ? Number(e.value) : null;
     var pv = e.prev_value != null ? Number(e.prev_value) : null;
     var fast = d.ma_fast_period || 60, slow = d.ma_slow_period || 125;
-    var label, body, color;
+    var label, body, color, flash = false;
 
     switch (e.event_type) {
       case 'golden_cross':
@@ -2316,6 +2316,34 @@ function openTileDetail(coinId, evt) {
           + (pv != null ? ', ' + (above ? 'up' : 'down') + ' from ' + pv.toFixed(1) + ' the day before' : '');
         break;
       }
+      /* RSI reclaim (2026-09-23, promptove/59, sql/rsi_reclaim_events.sql):
+         back at or above 30 after closes below it. How LONG it was below
+         is the whole signal, and it cuts both ways in the backtest
+         (promptove/53): 1-2 days beat the market over the next week 53.2%
+         of 1,083 times, 11+ days only 31.0% of 58. So the row says which
+         kind this is, and only the quick kind flashes. Past results, in
+         the past tense, and never what price does next. */
+      case 'rsi_reclaim': {
+        var nb = d.days_below != null ? Number(d.days_below) : null;
+        var nbTxt = nb == null ? '' : nb + (d.days_below_is_floor ? '+' : '') + (nb === 1 ? ' day' : ' days');
+        var from = 'RSI ' + (v != null ? v.toFixed(1) : '—')
+          + (pv != null ? ', up from ' + pv.toFixed(1) : '');
+        if (d.fast) {
+          color = 'var(--green)';
+          flash = true;
+          label = 'Quick RSI reclaim · back above 30 after ' + nbTxt;
+          body = from + ' · in past data, quick reclaims beat the market over the next week 53% of the time (1,083 cases)';
+        } else if (nb != null && nb <= 5 && !d.days_below_is_floor) {
+          color = 'var(--muted)';
+          label = 'RSI back above 30 · after ' + nbTxt + ' below';
+          body = from + ' · in past data, reclaims this slow did about as well as the market';
+        } else {
+          color = 'var(--amber)';
+          label = 'Slow RSI reclaim · after ' + nbTxt + ' below 30';
+          body = from + ' · in past data, reclaims after 6+ days below mostly trailed the market';
+        }
+        break;
+      }
       case 'futures_long_crowded':
       case 'futures_short_crowded': {
         var lng = e.event_type === 'futures_long_crowded';
@@ -2333,7 +2361,7 @@ function openTileDetail(coinId, evt) {
         label = String(e.event_type || '').replace(/_/g, ' ');
         body = v != null ? String(v) : '';
     }
-    return '<div class="td-ev-row"><span class="td-ev-dot" style="background:' + color + ';"></span>'
+    return '<div class="td-ev-row' + (flash ? ' td-ev-flash' : '') + '"><span class="td-ev-dot" style="background:' + color + ';"></span>'
       + '<div class="td-ev-body"><div class="td-ev-lbl">' + label + '</div>'
       + '<div class="td-ev-sub">' + body + ' · ' + day + '</div></div></div>';
   }
@@ -2427,7 +2455,12 @@ function openTileDetail(coinId, evt) {
     if (evs.length) {
       /* Newest first, and capped: one coin crossing three thresholds in a
          week is interesting, twenty rows is a wall. */
-      evs.sort(function(a, b) { return String(b.event_date).localeCompare(String(a.event_date)); });
+      /* A quick RSI reclaim goes first: it is the one row that flashes,
+         and a flash below the fold is a flash nobody sees. */
+      var quick = function(x) { return x.event_type === 'rsi_reclaim' && x.detail && x.detail.fast ? 1 : 0; };
+      evs.sort(function(a, b) {
+        return (quick(b) - quick(a)) || String(b.event_date).localeCompare(String(a.event_date));
+      });
       var take = evs.slice(0, 6);
       evEl.innerHTML = take.map(_eventRow).join('')
         + (evs.length > take.length
