@@ -1106,8 +1106,14 @@ function supaLoadRotationHistory(days) {
                  + String(cutoff.getMonth() + 1).padStart(2, '0') + '-'
                  + String(cutoff.getDate()).padStart(2, '0');
 
+  /* Published calls only. The table also holds shadow experiments
+     (sync-rotation-snapshot-inverted, -gold) that are graded on the
+     track record and must never count toward the dashboard's accuracy.
+     This had no filter at all; the inverted rows would have entered the
+     stats once they turned 30 days old, on 2026-10-18. */
   return supaRest('rotation_snapshots', 'GET', {
     'snap_date': 'gte.' + cutoffDate,
+    'source':    'eq.sync-rotation-snapshot',
     'select':    'snap_date,from_id,from_sym,from_price,from_score,to_id,to_sym,to_price,to_score,source',
     'order':     'snap_date.asc'
   }).then(function(rows) {

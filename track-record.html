@@ -551,14 +551,22 @@ a{color:inherit;text-decoration:none}
      This filter exists BEFORE the first shadow row was ever written.
      Without it, the inverted pairs would have been graded as published
      calls the moment the sync ran, and the rotation percentage on this
-     page would have become a mix of a strategy and its own opposite. */
+     page would have become a mix of a strategy and its own opposite.
+
+     2026-09-23: an ALLOWLIST, not a blocklist. It used to publish every
+     row that was not the inverted source, so the second experiment (the
+     gold shadow, hot coin -> PAXG) would have gone straight onto the
+     record under its own source name. Each view now takes exactly one
+     source; a new experiment is invisible here until someone adds it. */
+  var LIVE_SOURCE   = 'sync-rotation-snapshot';
   var SHADOW_SOURCE = 'sync-rotation-snapshot-inverted';
   function isShadowRow(s) { return s && s.source === SHADOW_SOURCE; }
 
   function evaluateRotation(snaps, priceMap, wantShadow) {
     var evaluated = [], pending = [];
+    var want = wantShadow ? SHADOW_SOURCE : LIVE_SOURCE;
     snaps.forEach(function(s) {
-      if (isShadowRow(s) !== !!wantShadow) return;
+      if (!s || s.source !== want) return;
       /* Same 2.3.0 reset as evaluate(): rotation calls scored by the
          retired engine are archived, not carried into the live count. */
       if (!s.snap_date || s.snap_date < TRACKING_START) return;
