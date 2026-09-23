@@ -100,9 +100,11 @@ revoke all on function public.trigger_rotation_snapshot_sync() from public, anon
 -- Once daily. Run AFTER sync-market-data has refreshed cg_markets_all
 -- for the day (that function runs at 06:00/18:00 UTC per the original
 -- migration plan) — 19:00 UTC gives a safety margin after the 18:00 run.
+-- MOVED to 19:07 on 2026-09-23 (sql/measurement_hardening_2026-09-23.sql):
+-- at :00 it raced compute-signal-run and lost 09-20 and 09-22.
 select cron.schedule(
   'sync-rotation-snapshot-daily',
-  '0 19 * * *',
+  '7 19 * * *',
   $$ select public.trigger_rotation_snapshot_sync(); $$
 );
 

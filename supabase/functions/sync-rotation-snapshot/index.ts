@@ -72,6 +72,9 @@ Deno.serve(async (req) => {
     // before its 285 items were, found 0 scorable coins and wrote nothing.
     // pg_cron logged both days as "succeeded". So walk back from the
     // newest run to the first one that is actually populated.
+    // Since 2026-09-23 the cron fires at 19:07 instead, off the quarter
+    // hour (sql/measurement_hardening_2026-09-23.sql). The walk-back stays:
+    // it costs nothing and covers a slow or failed 19:00 run.
     const { data: runs, error: runErr } = await supabase
       .from('signal_runs')
       .select('id,as_of,engine_version')
@@ -203,7 +206,7 @@ Deno.serve(async (req) => {
 
     const { error: upsertErr } = await supabase
       .from('rotation_snapshots')
-      .upsert(pairs, { onConflict: 'snap_date,from_id,to_id' });
+      .upsert(pairs, { onConflict: 'snap_date,from_id,to_id,source' });
 
     if (upsertErr) throw new Error('upsert failed: ' + upsertErr.message);
 
@@ -215,7 +218,7 @@ Deno.serve(async (req) => {
     if (shadowPairs.length) {
       const { error: shadowErr } = await supabase
         .from('rotation_snapshots')
-        .upsert(shadowPairs, { onConflict: 'snap_date,from_id,to_id' });
+        .upsert(shadowPairs, { onConflict: 'snap_date,from_id,to_id,source' });
       if (shadowErr) {
         console.warn('[sync-rotation-snapshot] shadow upsert failed, live pairs unaffected:',
           shadowErr.message);
@@ -254,15 +257,17 @@ Deno.serve(async (req) => {
     // The 30d pick mirrors the backtest: crypto only (the backtest ranked
     // binance_daily_klines, which has no bstocks), gold itself excluded.
     //
-    // A coin picked by BOTH rules gets ONE row, source '-gold-both'. The
-    // upsert key has no source column, so two rows are impossible, and
-    // tagging it with either single source would drop it from the other
-    // rule's grade. Grade the score rule on ('-gold','-gold-both') and the
-    // 30d rule on ('-gold-30d','-gold-both').
+    // A coin picked by BOTH rules gets ONE row, source '-gold-both', so
+    // it is recorded once and counted by both grades: grade the score
+    // rule on ('-gold','-gold-both') and the 30d rule on
+    // ('-gold-30d','-gold-both').
     //
-    // A pair the live snapshot already wrote is skipped: PAXG scores low
-    // enough to land in the live buys, and a gold row would overwrite that
-    // live row's source.
+    // Since v16 (2026-09-23) the upsert key includes source
+    // (sql/measurement_hardening_2026-09-23.sql). v15 had to SKIP a gold
+    // pair the live snapshot had already written, because PAXG scores low
+    // enough to land in the live buys and the shared key would have
+    // overwritten the live row. Now each source owns its own row and no
+    // pair is dropped from the gold grade.
     //
     // Fails soft, like the inverted shadow above.
     const GOLD_FROM_SCORE = 70;
@@ -275,7 +280,6 @@ Deno.serve(async (req) => {
     if (!gold) {
       goldNote = 'PAXG not scorable in this run';
     } else {
-      const liveKeys = new Set(pairs.map((p) => p.from_id + '>' + p.to_id));
       const notGold = (it: RunItem) => !GOLD_SYMS.has((it.coin_sym || '').toUpperCase());
       const byScore = new Set(scorable
         .filter((it) => notGold(it) && (it.score as number) >= GOLD_FROM_SCORE)
@@ -287,7 +291,6 @@ Deno.serve(async (req) => {
         .map((it) => it.coin_id));
       const goldPairs = scorable
         .filter((it) => byScore.has(it.coin_id) || by30d.has(it.coin_id))
-        .filter((it) => !liveKeys.has(it.coin_id + '>' + gold.coin_id))
         .map((from) => ({
           snap_date:   today,
           from_id:     from.coin_id,
@@ -305,7 +308,7 @@ Deno.serve(async (req) => {
       if (goldPairs.length) {
         const { error: goldErr } = await supabase
           .from('rotation_snapshots')
-          .upsert(goldPairs, { onConflict: 'snap_date,from_id,to_id' });
+          .upsert(goldPairs, { onConflict: 'snap_date,from_id,to_id,source' });
         if (goldErr) {
           console.warn('[sync-rotation-snapshot] gold shadow upsert failed, live pairs unaffected:',
             goldErr.message);
