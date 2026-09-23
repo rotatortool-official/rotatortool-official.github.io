@@ -994,6 +994,11 @@
          did not change. -->
     <div class="rot-beside" id="rot-beside">
       <div class="bar-col-title" style="color:var(--green);">↑ Rotation Opportunities</div>
+      <!-- 2026-09-23 (promptove/56). The 771-day backtest put this rule
+           below two coins picked at random, and live data cannot settle
+           the direction for months. Kept, and said so. Remove only when
+           rotator-backtest/rotation-verdict.js gives a reason to. -->
+      <div class="rot-test-note">Under test: across 771 days of history this rule did not beat picking two coins at random. Live calls are graded at 30 days on the <a href="track-record.html">track record</a>.</div>
       <div id="sug-cards"></div>
     </div>
 
