@@ -1,0 +1,225 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "Rotator public API",
+    "version": "2026-09-23",
+    "summary": "Read-only scored universe of ~290 crypto assets and tokenized stocks, rescored every 15 minutes, plus the published call history.",
+    "description": "PostgREST over Supabase. Every request sends the public anon key as both the `apikey` header and a Bearer token; it is not a secret and grants read access only.\n\nTypical agent flow: GET /signal_runs?order=as_of.desc&limit=2, take the first run whose items are non-empty (the header is written a moment before its items), then GET /signal_run_items?run_id=eq.<id>&select=<columns>.\n\nFilters use PostgREST syntax on any column: `col=eq.value`, `gte.`, `lte.`, `in.(a,b)`, `is.true`, `is.null`. Always pass `select=` on signal_run_items: its jsonb columns are large.\n\nEvidence, from a 771-day backtest and not from live results: a higher `score` preceded better 30-day relative performance (rank IC +0.053). `zone='buy'` is the LOW end of the score and is not a prediction of outperformance. There is no live accuracy claim yet; see https://rotatortool-official.github.io/track-record.html. Not financial advice.\n\nHuman-readable docs: https://rotatortool-official.github.io/api.html",
+    "contact": { "url": "https://rotatortool-official.github.io/api.html" }
+  },
+  "servers": [{ "url": "https://wyvwycatgexpbugzkdfw.supabase.co/rest/v1" }],
+  "security": [{ "apikey": [], "bearer": [] }],
+  "components": {
+    "securitySchemes": {
+      "apikey": {
+        "type": "apiKey", "in": "header", "name": "apikey",
+        "description": "Public anon key: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Ind5dnd5Y2F0Z2V4cGJ1Z3prZGZ3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU0ODcwNTAsImV4cCI6MjA5MTA2MzA1MH0.msUPOUjd1iZwuG6SxFlhr-0xYPt6fqTUy5iOYnf8Z20"
+      },
+      "bearer": { "type": "http", "scheme": "bearer", "description": "The same anon key as `apikey`." }
+    },
+    "parameters": {
+      "select": { "name": "select", "in": "query", "schema": { "type": "string" }, "description": "Comma-separated columns, e.g. coin_sym,score,zone. Embedding is supported: signal_run_items(coin_sym,score)." },
+      "order": { "name": "order", "in": "query", "schema": { "type": "string" }, "description": "e.g. as_of.desc or strength.desc" },
+      "limit": { "name": "limit", "in": "query", "schema": { "type": "integer", "minimum": 1 } },
+      "offset": { "name": "offset", "in": "query", "schema": { "type": "integer", "minimum": 0 } }
+    },
+    "schemas": {
+      "SignalRun": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "integer", "description": "Join key for signal_run_items.run_id." },
+          "as_of": { "type": "string", "format": "date-time" },
+          "engine_version": { "type": "string", "description": "Scores from different versions are not directly comparable." },
+          "scoring_model": { "type": "string" },
+          "cycle_label": { "type": ["string", "null"], "enum": ["neutral", "oversold", "stretched", null], "description": "BTC regime from the Mayer multiple; zone thresholds depend on it." },
+          "universe_size": { "type": "integer" },
+          "eligible_count": { "type": "integer" },
+          "eligibility": { "type": "object" },
+          "params": { "type": "object", "description": "Every threshold and input the run used, including params.zoneRules.thresholds {buy, sell} and hysteresis." },
+          "changes": { "type": "object", "description": "Zone/class transitions and biggest score and rank moves versus the run ~24h earlier." },
+          "input_freshness": { "type": "object" },
+          "created_at": { "type": "string", "format": "date-time" }
+        }
+      },
+      "SignalRunItem": {
+        "type": "object",
+        "properties": {
+          "run_id": { "type": "integer" },
+          "coin_id": { "type": "string", "description": "CoinGecko id; tokenized stocks are bstock_<TICKER>. Use as the key: tickers are not unique." },
+          "coin_sym": { "type": "string" },
+          "asset_type": { "type": "string", "enum": ["crypto", "bstock"] },
+          "price": { "type": ["number", "null"], "description": "USD" },
+          "mcap": { "type": ["number", "null"], "description": "USD" },
+          "p7": { "type": ["number", "null"], "description": "Trailing 7-day return, percent." },
+          "p14": { "type": ["number", "null"] },
+          "p30": { "type": ["number", "null"] },
+          "r7": { "type": ["integer", "null"], "description": "Rank of p7 in the run, 1 = best, 0 = not ranked." },
+          "r14": { "type": ["integer", "null"] },
+          "r30": { "type": ["integer", "null"] },
+          "score": { "type": ["number", "null"], "description": "Composite of momentum rank, macro-relative strength and tokenomics. Higher = stronger recent relative performance. Unbounded; can be negative." },
+          "effective_score": { "type": ["number", "null"], "description": "Score after the insight cross-check; sets the zone." },
+          "zone": { "type": "string", "enum": ["buy", "neutral", "sell"], "description": "Band of effective_score, not an instruction: buy = low end (has lagged), sell = high end (has run)." },
+          "strength": { "type": ["number", "null"], "description": "0-100, high = relative strength. Rank on this." },
+          "setup": { "type": ["number", "null"], "description": "0-100 mean-reversion setup quality; null when there is none." },
+          "eligible": { "type": ["boolean", "null"] },
+          "exclusions": { "type": "array", "items": { "type": "string", "enum": ["equity", "delisted", "illiquid", "no_market_cap", "incomplete_history", "monitoring", "unlock_pending"] } },
+          "data_complete": { "type": ["boolean", "null"], "description": "false = inputs missing; treat the score as unreliable." },
+          "candidate_class": { "type": ["string", "null"], "enum": ["CANDIDATE", "STRONG", "EXTENDED", "COOLDOWN", "FALLING_KNIFE", "NOT_OVERSOLD", "UNCONFIRMED", null], "description": "Mean-reversion classification; null when not eligible." },
+          "rsi": { "type": ["number", "null"], "description": "Daily RSI(14)." },
+          "rsi_state": { "type": ["string", "null"], "enum": ["oversold", "low", "neutral", "elevated", "overbought", null] },
+          "breakdown": { "type": "object", "description": "Score components: layer1 (momentum), layer2 (macro-relative), layer3 (tokenomics), supplyPts, unlockPts, sizeAdj." },
+          "candidate": { "type": ["object", "null"], "description": "Numbers behind candidate_class: p24, recentWeek, priorWeek, pace30, flags." },
+          "insight": { "type": ["object", "null"], "description": "label STRONG|NEUTRAL|WARN, points, signals[] (human-readable)." },
+          "positioning": { "type": ["object", "null"], "description": "Derivatives readings; label NEUTRAL|CROWDED LONG|CROWDED SHORT|UNWINDING. Zero weight: does not move the score." },
+          "unlock30d": { "type": ["number", "null"], "description": "Percent of supply unlocking in the next 30 days. null = no published schedule, NOT 'no unlock due'." }
+        }
+      },
+      "RotationSnapshot": {
+        "type": "object",
+        "properties": {
+          "snap_date": { "type": "string", "format": "date" },
+          "from_id": { "type": "string" }, "from_sym": { "type": "string" },
+          "from_price": { "type": "number" }, "from_score": { "type": "number" },
+          "to_id": { "type": "string" }, "to_sym": { "type": "string" },
+          "to_price": { "type": "number" }, "to_score": { "type": "number" },
+          "source": { "type": "string", "enum": ["sync-rotation-snapshot", "sync-rotation-snapshot-inverted", "sync-rotation-snapshot-gold", "sync-rotation-snapshot-gold-30d", "sync-rotation-snapshot-gold-both"], "description": "Only sync-rotation-snapshot is published; the others are unpublished experiments recorded for grading." },
+          "created_at": { "type": "string", "format": "date-time" }
+        }
+      },
+      "SignalSnapshot": {
+        "type": "object",
+        "properties": {
+          "snap_date": { "type": "string", "format": "date" },
+          "coin_id": { "type": "string" }, "coin_sym": { "type": "string" }, "coin_name": { "type": "string" },
+          "signal_type": { "type": "string", "enum": ["bullish", "lagging"] },
+          "signal_label": { "type": "string" },
+          "score": { "type": ["number", "null"] }, "zone": { "type": ["string", "null"] },
+          "price": { "type": ["number", "null"] }, "p24": { "type": ["number", "null"] },
+          "p7": { "type": ["number", "null"] }, "p30": { "type": ["number", "null"] },
+          "mcap": { "type": ["number", "null"] },
+          "engine_version": { "type": ["string", "null"] },
+          "source": { "type": ["string", "null"], "enum": ["dashboard", "bot", null] }
+        }
+      },
+      "CoinEvent": {
+        "type": "object",
+        "properties": {
+          "base_asset": { "type": "string" },
+          "event_date": { "type": "string", "format": "date" },
+          "event_type": { "type": "string", "enum": ["golden_cross", "death_cross", "rsi_overbought", "rsi_oversold", "futures_long_crowded"] },
+          "value": { "type": ["number", "null"] }, "prev_value": { "type": ["number", "null"] },
+          "detail": { "type": ["object", "null"] },
+          "detected_at": { "type": "string", "format": "date-time" }
+        }
+      },
+      "CoinTechnicals": {
+        "type": "object",
+        "properties": {
+          "base_asset": { "type": "string" },
+          "rsi14_daily": { "type": ["number", "null"] }, "rsi14_weekly": { "type": ["number", "null"] },
+          "ma_fast": { "type": ["number", "null"], "description": "60-day MA" },
+          "ma_slow": { "type": ["number", "null"], "description": "125-day MA" },
+          "cross_state": { "type": ["string", "null"] }, "cross_days_ago": { "type": ["integer", "null"] },
+          "bars_used": { "type": ["integer", "null"] },
+          "updated_at": { "type": "string", "format": "date-time" }
+        }
+      },
+      "MarketCycle": {
+        "type": "object",
+        "properties": {
+          "symbol": { "type": "string" }, "price": { "type": "number" }, "ma200": { "type": "number" },
+          "mayer_multiple": { "type": "number", "description": "Only BTC has calibrated bands (2.4x stretched / 0.8x oversold)." },
+          "sample_size": { "type": "integer" }, "computed_at": { "type": "string", "format": "date-time" }
+        }
+      }
+    }
+  },
+  "paths": {
+    "/signal_runs": {
+      "get": {
+        "operationId": "listSignalRuns",
+        "summary": "Scoring runs, one every 15 minutes. Newest first with order=as_of.desc.",
+        "parameters": [
+          { "$ref": "#/components/parameters/select" }, { "$ref": "#/components/parameters/order" },
+          { "$ref": "#/components/parameters/limit" }, { "$ref": "#/components/parameters/offset" },
+          { "name": "id", "in": "query", "schema": { "type": "string" }, "example": "eq.1732" }
+        ],
+        "responses": { "200": { "description": "Runs", "content": { "application/json": { "schema": { "type": "array", "items": { "$ref": "#/components/schemas/SignalRun" } } } } } }
+      }
+    },
+    "/signal_run_items": {
+      "get": {
+        "operationId": "listSignalRunItems",
+        "summary": "Per-asset scores and labels for a run. Always filter on run_id and pass select.",
+        "parameters": [
+          { "name": "run_id", "in": "query", "required": true, "schema": { "type": "string" }, "example": "eq.1732" },
+          { "$ref": "#/components/parameters/select" }, { "$ref": "#/components/parameters/order" },
+          { "$ref": "#/components/parameters/limit" }, { "$ref": "#/components/parameters/offset" },
+          { "name": "eligible", "in": "query", "schema": { "type": "string" }, "example": "is.true" },
+          { "name": "zone", "in": "query", "schema": { "type": "string" }, "example": "eq.neutral" },
+          { "name": "coin_id", "in": "query", "schema": { "type": "string" }, "example": "eq.bitcoin" },
+          { "name": "asset_type", "in": "query", "schema": { "type": "string" }, "example": "eq.crypto" }
+        ],
+        "responses": { "200": { "description": "Items", "content": { "application/json": { "schema": { "type": "array", "items": { "$ref": "#/components/schemas/SignalRunItem" } } } } } }
+      }
+    },
+    "/rotation_snapshots": {
+      "get": {
+        "operationId": "listRotationSnapshots",
+        "summary": "Daily rotation pairs. Filter source=eq.sync-rotation-snapshot for the published calls only.",
+        "parameters": [
+          { "name": "source", "in": "query", "schema": { "type": "string" }, "example": "eq.sync-rotation-snapshot" },
+          { "name": "snap_date", "in": "query", "schema": { "type": "string" }, "example": "gte.2026-09-15" },
+          { "$ref": "#/components/parameters/select" }, { "$ref": "#/components/parameters/order" },
+          { "$ref": "#/components/parameters/limit" }, { "$ref": "#/components/parameters/offset" }
+        ],
+        "responses": { "200": { "description": "Pairs", "content": { "application/json": { "schema": { "type": "array", "items": { "$ref": "#/components/schemas/RotationSnapshot" } } } } } }
+      }
+    },
+    "/signal_snapshots": {
+      "get": {
+        "operationId": "listSignalSnapshots",
+        "summary": "Daily single-asset calls since 2026-09-07; graded from 2026-09-11 against the market median.",
+        "parameters": [
+          { "name": "snap_date", "in": "query", "schema": { "type": "string" }, "example": "gte.2026-09-11" },
+          { "name": "coin_id", "in": "query", "schema": { "type": "string" } },
+          { "$ref": "#/components/parameters/select" }, { "$ref": "#/components/parameters/order" },
+          { "$ref": "#/components/parameters/limit" }, { "$ref": "#/components/parameters/offset" }
+        ],
+        "responses": { "200": { "description": "Calls", "content": { "application/json": { "schema": { "type": "array", "items": { "$ref": "#/components/schemas/SignalSnapshot" } } } } } }
+      }
+    },
+    "/coin_events": {
+      "get": {
+        "operationId": "listCoinEvents",
+        "summary": "Technical events, detected daily at 00:45 UTC.",
+        "parameters": [
+          { "name": "event_type", "in": "query", "schema": { "type": "string" }, "example": "eq.golden_cross" },
+          { "name": "event_date", "in": "query", "schema": { "type": "string" }, "example": "gte.2026-09-20" },
+          { "$ref": "#/components/parameters/select" }, { "$ref": "#/components/parameters/order" },
+          { "$ref": "#/components/parameters/limit" }
+        ],
+        "responses": { "200": { "description": "Events", "content": { "application/json": { "schema": { "type": "array", "items": { "$ref": "#/components/schemas/CoinEvent" } } } } } }
+      }
+    },
+    "/coin_technicals": {
+      "get": {
+        "operationId": "listCoinTechnicals",
+        "summary": "RSI, moving averages and cross state per Binance base asset; refreshed every 3 hours.",
+        "parameters": [
+          { "name": "base_asset", "in": "query", "schema": { "type": "string" }, "example": "eq.BTC" },
+          { "$ref": "#/components/parameters/select" }, { "$ref": "#/components/parameters/limit" }
+        ],
+        "responses": { "200": { "description": "Technicals", "content": { "application/json": { "schema": { "type": "array", "items": { "$ref": "#/components/schemas/CoinTechnicals" } } } } } }
+      }
+    },
+    "/market_cycle": {
+      "get": {
+        "operationId": "listMarketCycle",
+        "summary": "200-day MA and Mayer multiple for BTC, ETH, BNB, SOL, XRP, PAXG.",
+        "parameters": [ { "$ref": "#/components/parameters/select" } ],
+        "responses": { "200": { "description": "Cycle readings", "content": { "application/json": { "schema": { "type": "array", "items": { "$ref": "#/components/schemas/MarketCycle" } } } } } }
+      }
+    }
+  }
+}

@@ -4,8 +4,9 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>ROTATOR — Public API</title>
-<meta name="description" content="Free, public, read-only API for Rotator's crypto and tokenized-stock momentum data, tokenomics scoring, and published call history. No key, no signup, no rate-limit tier.">
+<meta name="description" content="Free, public, read-only API for Rotator's scored crypto and tokenized-stock universe: every coin rescored every 15 minutes, with the reasoning behind each score, plus the published call history. Machine-readable OpenAPI spec for agents.">
 <link rel="icon" href="icon-192.png" type="image/png">
+<link rel="alternate" type="application/json" title="OpenAPI 3.1 specification" href="openapi.json">
 <style>
 :root{
   --bg:#05080c; --bg2:#0a0f17; --bg3:#0f1620; --bg4:#18212e;
@@ -19,6 +20,7 @@
 html,body{background:var(--bg);color:var(--text);font-family:var(--font-ui);-webkit-font-smoothing:antialiased;}
 a{color:var(--bnb);text-decoration:none}
 a:hover{text-decoration:underline}
+code{font-family:var(--font-mono);font-size:.92em;color:#a8e6c8;}
 .wrap{max-width:900px;margin:0 auto;width:100%;padding:0 20px;}
 .topbar{border-bottom:1px solid var(--bdr);background:var(--bg2);padding:14px 0;}
 .topbar-inner{display:flex;align-items:center;justify-content:space-between;gap:16px;max-width:900px;margin:0 auto;padding:0 20px;}
@@ -34,6 +36,7 @@ a:hover{text-decoration:underline}
 .badge-row{display:flex;gap:8px;flex-wrap:wrap;margin-top:16px;}
 .badge{font-family:var(--font-mono);font-size:11px;letter-spacing:.06em;padding:5px 10px;border-radius:4px;
   background:rgba(0,200,150,.1);color:var(--green);border:1px solid rgba(0,200,150,.25);}
+a.badge:hover{text-decoration:none;background:rgba(0,200,150,.18);}
 main{padding:36px 0 60px;}
 .section{margin-bottom:44px;}
 .section-title{font-family:var(--font-mono);font-size:13px;letter-spacing:.16em;text-transform:uppercase;color:var(--bnb);margin-bottom:6px;}
@@ -43,13 +46,16 @@ main{padding:36px 0 60px;}
 .endpoint-desc{font-size:13px;color:var(--muted);line-height:1.5;margin-bottom:14px;}
 .codebox{background:var(--bg);border:1px solid var(--bdr);border-radius:6px;padding:12px 14px;
   font-family:var(--font-mono);font-size:12.5px;color:#a8e6c8;overflow-x:auto;white-space:pre;margin-bottom:12px;}
+.tbl{overflow-x:auto;}
 table{width:100%;border-collapse:collapse;font-family:var(--font-mono);font-size:12px;margin-top:10px;}
 th{text-align:left;color:var(--muted);font-weight:600;padding:6px 10px 6px 0;border-bottom:1px solid var(--bdr);letter-spacing:.04em;}
-td{padding:7px 10px 7px 0;border-bottom:1px solid var(--bdr);color:var(--text);}
-td.col-field{color:var(--bnb);}
-td.col-type{color:var(--muted);}
+td{padding:7px 10px 7px 0;border-bottom:1px solid var(--bdr);color:var(--text);vertical-align:top;line-height:1.45;}
+td.col-field{color:var(--bnb);white-space:nowrap;}
+td.col-type{color:var(--muted);white-space:nowrap;}
 .limits-box{background:rgba(255,179,71,.06);border:1px solid rgba(255,179,71,.2);border-radius:6px;padding:14px 16px;font-size:13px;color:var(--muted);line-height:1.6;}
 .limits-box b{color:var(--amber);}
+.note-box{background:rgba(0,200,150,.05);border:1px solid rgba(0,200,150,.18);border-radius:6px;padding:14px 16px;font-size:13px;color:var(--muted);line-height:1.6;margin-bottom:14px;}
+.note-box b{color:var(--green);}
 .warn-box{background:rgba(255,69,96,.06);border:1px solid rgba(255,69,96,.2);border-radius:6px;padding:14px 16px;font-size:13px;color:var(--muted);line-height:1.6;margin-top:20px;}
 .warn-box b{color:var(--red);}
 footer{border-top:1px solid var(--bdr);padding:24px 0;text-align:center;font-family:var(--font-mono);font-size:11px;color:var(--muted);}
@@ -67,13 +73,14 @@ footer{border-top:1px solid var(--bdr);padding:24px 0;text-align:center;font-fam
 <section class="hero">
   <div class="wrap">
     <div class="hero-kicker">◆ PUBLIC API</div>
-    <h1>Read-only. Free. No key required.</h1>
-    <p>Every endpoint below is the exact same data Rotator's own frontend reads — nothing held back, nothing behind a paywall or signup. This page exists so both human developers and AI agents can query it directly instead of scraping the UI.</p>
-    <p>All endpoints are standard <a href="https://postgrest.org/en/stable/references/api.html" target="_blank" rel="noopener">PostgREST</a> — plain HTTPS GET requests, JSON responses, filterable and sortable via query params.</p>
+    <h1>Read-only. Free. No signup.</h1>
+    <p>The same data Rotator's own site and Telegram bot read: about 290 crypto assets and tokenized stocks, rescored every 15 minutes, with the numbers behind every score. This page exists so developers and AI agents can query it directly instead of scraping the UI.</p>
+    <p>All endpoints are standard <a href="https://postgrest.org/en/stable/references/api.html" target="_blank" rel="noopener">PostgREST</a>: plain HTTPS GET requests, JSON responses, filterable and sortable with query parameters. Agents: the machine-readable contract is <a href="openapi.json">openapi.json</a>.</p>
     <div class="badge-row">
-      <span class="badge">No API key</span>
-      <span class="badge">No rate-limit tier</span>
-      <span class="badge">Read-only (write attempts are rejected)</span>
+      <span class="badge">Public key, no signup</span>
+      <span class="badge">Rescored every 15 min</span>
+      <span class="badge">Read-only (writes are rejected)</span>
+      <a class="badge" href="openapi.json">OpenAPI 3.1 spec</a>
     </div>
   </div>
 </section>
@@ -83,7 +90,7 @@ footer{border-top:1px solid var(--bdr);padding:24px 0;text-align:center;font-fam
   <div class="section">
     <div class="section-title">Authentication</div>
     <div class="section-desc">
-      Every request needs the public anon key below as both the <code>apikey</code> header and a Bearer token — this is the same key already embedded in Rotator's own frontend JavaScript (visible to anyone via browser devtools), not a secret. It grants read-only access; Row Level Security on every table below rejects any insert/update/delete attempt regardless of what key is used.
+      Every request needs the public anon key below, as both the <code>apikey</code> header and a Bearer token. It is the same key Rotator's own frontend ships to every browser, so it is not a secret. It grants read access only: Row Level Security rejects any insert, update or delete, whatever key is used.
     </div>
     <div class="codebox">apikey: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Ind5dnd5Y2F0Z2V4cGJ1Z3prZGZ3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU0ODcwNTAsImV4cCI6MjA5MTA2MzA1MH0.msUPOUjd1iZwuG6SxFlhr-0xYPt6fqTUy5iOYnf8Z20
 Authorization: Bearer &lt;same value as apikey&gt;</div>
@@ -91,92 +98,183 @@ Authorization: Bearer &lt;same value as apikey&gt;</div>
   </div>
 
   <div class="section">
-    <div class="section-title">Endpoints</div>
+    <div class="section-title">Start here: the scored universe</div>
+    <div class="section-desc">
+      Every 15 minutes the scoring engine runs once over the whole universe and writes one <b>run</b> (a header row) and one <b>item</b> per asset. This is the core dataset; everything else on this page is derived from it or recorded alongside it.
+    </div>
 
-    <div class="endpoint">
-      <div class="endpoint-name">GET /unified_market_data</div>
-      <div class="endpoint-desc">Live price + 24h change for every tracked bStock (tokenized equity). Crypto's live feed is client-cached rather than persisted here — see signal_snapshots below for crypto's daily historical record instead.</div>
-      <div class="codebox">curl "https://wyvwycatgexpbugzkdfw.supabase.co/rest/v1/unified_market_data?asset_type=eq.stock&select=*" \
-  -H "apikey: &lt;anon key above&gt;"</div>
-      <table>
-        <tr><th>field</th><th>type</th><th>notes</th></tr>
-        <tr><td class="col-field">asset_type</td><td class="col-type">text</td><td>'stock' (crypto is tracked separately, client-side)</td></tr>
-        <tr><td class="col-field">symbol</td><td class="col-type">text</td><td>display ticker, e.g. 'AAPL'</td></tr>
-        <tr><td class="col-field">name</td><td class="col-type">text</td><td>company name</td></tr>
-        <tr><td class="col-field">price</td><td class="col-type">numeric</td><td>USD</td></tr>
-        <tr><td class="col-field">change_24h</td><td class="col-type">numeric</td><td>percent</td></tr>
-        <tr><td class="col-field">source_name</td><td class="col-type">text</td><td>'binance' — these are Binance bStocks (tokenized certificates, not direct share ownership)</td></tr>
-        <tr><td class="col-field">metadata</td><td class="col-type">jsonb</td><td>{p7, p14, p30, volume24, binance_symbol}</td></tr>
-        <tr><td class="col-field">last_updated</td><td class="col-type">timestamptz</td><td>synced once daily</td></tr>
-      </table>
+    <div class="note-box">
+      <b>Read the newest run that has items, not simply the newest run.</b> The run header is written a moment before its items. A request that lands in that gap gets a run with zero items. Ask for the newest two runs and use the first one that returns items, or use the embedded form below and check that the item list is not empty.
     </div>
 
     <div class="endpoint">
-      <div class="endpoint-name">GET /market_cycle</div>
-      <div class="endpoint-desc">Real 200-day moving average + Mayer Multiple (price ÷ MA200) for BTC, ETH, BNB, SOL, XRP, PAXG. <b style="color:var(--amber);">Only BTC has calibrated stretched/oversold bands</b> — the 2.4×/0.8× thresholds are specific to Bitcoin's own multi-year price history. Treat the other five as raw ratios, not verdicts.</div>
-      <div class="codebox">curl "https://wyvwycatgexpbugzkdfw.supabase.co/rest/v1/market_cycle?select=*" \
-  -H "apikey: &lt;anon key above&gt;"</div>
-      <table>
+      <div class="endpoint-name">GET /signal_runs</div>
+      <div class="endpoint-desc">One row per scoring run. The newest is the current state of the market as the engine sees it.</div>
+      <div class="codebox">curl "https://wyvwycatgexpbugzkdfw.supabase.co/rest/v1/signal_runs?select=id,as_of,engine_version,cycle_label,universe_size,eligible_count&amp;order=as_of.desc&amp;limit=2" \
+  -H "apikey: &lt;anon key&gt;" -H "Authorization: Bearer &lt;anon key&gt;"</div>
+      <div class="tbl"><table>
         <tr><th>field</th><th>type</th><th>notes</th></tr>
-        <tr><td class="col-field">symbol</td><td class="col-type">text</td><td>'BTC','ETH','BNB','SOL','XRP','PAXG'</td></tr>
-        <tr><td class="col-field">price</td><td class="col-type">numeric</td><td>USD, as of last sync</td></tr>
-        <tr><td class="col-field">ma200</td><td class="col-type">numeric</td><td>real average of actual daily closes, not an estimate</td></tr>
-        <tr><td class="col-field">mayer_multiple</td><td class="col-type">numeric</td><td>price / ma200</td></tr>
-        <tr><td class="col-field">sample_size</td><td class="col-type">integer</td><td>how many daily closes actually went into ma200 — true 200-day only when this = 200</td></tr>
-        <tr><td class="col-field">computed_at</td><td class="col-type">timestamptz</td><td>synced once daily</td></tr>
-      </table>
+        <tr><td class="col-field">id</td><td class="col-type">bigint</td><td>run id; join key for signal_run_items.run_id</td></tr>
+        <tr><td class="col-field">as_of</td><td class="col-type">timestamptz</td><td>when the run was scored</td></tr>
+        <tr><td class="col-field">engine_version</td><td class="col-type">text</td><td>scores from different versions are not directly comparable; see the <a href="engine-changelog.html">engine changelog</a></td></tr>
+        <tr><td class="col-field">cycle_label</td><td class="col-type">text</td><td>BTC market regime from the Mayer multiple: 'neutral', 'oversold' or 'stretched'. Zone thresholds depend on it.</td></tr>
+        <tr><td class="col-field">universe_size / eligible_count</td><td class="col-type">integer</td><td>assets scored / assets that passed every eligibility check</td></tr>
+        <tr><td class="col-field">params</td><td class="col-type">jsonb</td><td>every threshold and input the run used (zone thresholds, macro readings, Fear &amp; Greed, rule tables), so a score can be reproduced</td></tr>
+        <tr><td class="col-field">changes</td><td class="col-type">jsonb</td><td>what moved since the run ~24h earlier: zone and class transitions, biggest score and rank changes</td></tr>
+        <tr><td class="col-field">input_freshness</td><td class="col-type">jsonb</td><td>age in ms of the price and macro inputs when the run was scored</td></tr>
+      </table></div>
     </div>
+
+    <div class="endpoint">
+      <div class="endpoint-name">GET /signal_run_items</div>
+      <div class="endpoint-desc">One row per asset per run: its score, its label, and the components behind them. About 290 rows per run. The jsonb columns are large, so select only the columns you need.</div>
+      <div class="codebox"># the strongest eligible assets in run 1732
+curl "https://wyvwycatgexpbugzkdfw.supabase.co/rest/v1/signal_run_items?run_id=eq.1732&amp;eligible=is.true&amp;select=coin_sym,score,strength,zone,candidate_class,p7,p30&amp;order=strength.desc&amp;limit=10" \
+  -H "apikey: &lt;anon key&gt;" -H "Authorization: Bearer &lt;anon key&gt;"
+
+# the newest run and its items in one request
+curl "https://wyvwycatgexpbugzkdfw.supabase.co/rest/v1/signal_runs?select=id,as_of,signal_run_items(coin_sym,score,zone)&amp;order=as_of.desc&amp;limit=1" \
+  -H "apikey: &lt;anon key&gt;" -H "Authorization: Bearer &lt;anon key&gt;"</div>
+      <div class="tbl"><table>
+        <tr><th>field</th><th>type</th><th>notes</th></tr>
+        <tr><td class="col-field">run_id</td><td class="col-type">bigint</td><td>signal_runs.id</td></tr>
+        <tr><td class="col-field">coin_id</td><td class="col-type">text</td><td>CoinGecko id for crypto; tokenized stocks are <code>bstock_&lt;TICKER&gt;</code>. Use this as the key, not the ticker: tickers are not unique.</td></tr>
+        <tr><td class="col-field">coin_sym</td><td class="col-type">text</td><td>display ticker</td></tr>
+        <tr><td class="col-field">asset_type</td><td class="col-type">text</td><td>'crypto' or 'bstock' (Binance tokenized equity certificates; never eligible)</td></tr>
+        <tr><td class="col-field">price / mcap</td><td class="col-type">numeric</td><td>USD at scoring time</td></tr>
+        <tr><td class="col-field">p7 / p14 / p30</td><td class="col-type">numeric</td><td>trailing return in percent</td></tr>
+        <tr><td class="col-field">r7 / r14 / r30</td><td class="col-type">integer</td><td>rank of that return within the run, 1 = best; 0 = not ranked (incomplete data)</td></tr>
+        <tr><td class="col-field">score</td><td class="col-type">numeric</td><td>composite: momentum rank, macro-relative strength, tokenomics (supply and unlocks). Higher = stronger recent relative performance. Not bounded to 0–100; it can go negative.</td></tr>
+        <tr><td class="col-field">effective_score</td><td class="col-type">numeric</td><td>score after the insight cross-check; this is what sets the zone</td></tr>
+        <tr><td class="col-field">zone</td><td class="col-type">text</td><td>'buy', 'neutral' or 'sell': a band of effective_score, not an instruction. 'buy' is the LOW end (has lagged), 'sell' the HIGH end (has run). Thresholds and hysteresis are in <code>params.zoneRules</code>. See "What the evidence says" below before using it.</td></tr>
+        <tr><td class="col-field">strength</td><td class="col-type">numeric</td><td>0–100, high = relative strength (second model). Rank on this.</td></tr>
+        <tr><td class="col-field">setup</td><td class="col-type">numeric</td><td>0–100 mean-reversion setup quality; null when there is no setup</td></tr>
+        <tr><td class="col-field">eligible</td><td class="col-type">boolean</td><td>false when any exclusion applies</td></tr>
+        <tr><td class="col-field">exclusions</td><td class="col-type">text[]</td><td>why not eligible: 'equity', 'delisted', 'illiquid', 'no_market_cap', 'incomplete_history', 'monitoring' (Binance monitoring tag), 'unlock_pending' (large token unlock within 30 days)</td></tr>
+        <tr><td class="col-field">data_complete</td><td class="col-type">boolean</td><td>false = inputs missing; treat the score as unreliable</td></tr>
+        <tr><td class="col-field">candidate_class</td><td class="col-type">text</td><td>mean-reversion classification, see the table below; null when not eligible</td></tr>
+        <tr><td class="col-field">rsi / rsi_state</td><td class="col-type">numeric / text</td><td>daily RSI(14); state 'oversold' (≤30), 'low' (≤45), 'neutral' (&lt;60), 'elevated' (&lt;70), 'overbought'; null when no candles</td></tr>
+        <tr><td class="col-field">breakdown</td><td class="col-type">jsonb</td><td>score components: layer1 (momentum), layer2 (macro-relative), layer3 (tokenomics), supplyPts, unlockPts, sizeAdj, …</td></tr>
+        <tr><td class="col-field">candidate</td><td class="col-type">jsonb</td><td>the numbers the class was reached from: p24, recentWeek, priorWeek, pace30, flags</td></tr>
+        <tr><td class="col-field">insight</td><td class="col-type">jsonb</td><td>technical read: label 'STRONG' / 'NEUTRAL' / 'WARN', points, and human-readable <code>signals[]</code></td></tr>
+        <tr><td class="col-field">positioning</td><td class="col-type">jsonb</td><td>derivatives: funding, open interest and its 24h change, long/short and taker ratios; label 'NEUTRAL', 'CROWDED LONG', 'CROWDED SHORT' or 'UNWINDING'. <b>Published at zero weight</b>: it does not move the score.</td></tr>
+        <tr><td class="col-field">unlock30d</td><td class="col-type">numeric</td><td>percent of supply unlocking in the next 30 days. <b>null means no published schedule</b>, not "no unlock due"; roughly 30% of the universe has one.</td></tr>
+      </table></div>
+
+      <div class="tbl"><table>
+        <tr><th>candidate_class</th><th>meaning</th></tr>
+        <tr><td class="col-field">CANDIDATE</td><td>in a pullback, not accelerating down, RSI agrees it is low</td></tr>
+        <tr><td class="col-field">STRONG</td><td>no pullback; a strong asset, not a mean-reversion entry</td></tr>
+        <tr><td class="col-field">EXTENDED</td><td>already made an extreme one-day move</td></tr>
+        <tr><td class="col-field">COOLDOWN</td><td>large one-day gain, short of extreme</td></tr>
+        <tr><td class="col-field">FALLING_KNIFE</td><td>decline accelerating, or deep with no sign of stabilising</td></tr>
+        <tr><td class="col-field">NOT_OVERSOLD</td><td>in a pullback, but RSI does not support the setup</td></tr>
+        <tr><td class="col-field">UNCONFIRMED</td><td>RSI is in use this run but missing for this asset</td></tr>
+      </table></div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-title">Published calls</div>
 
     <div class="endpoint">
       <div class="endpoint-name">GET /rotation_snapshots</div>
-      <div class="endpoint-desc">Every "rotate strong asset → weak asset" call Rotator has published, one row per pair per day, computed server-side using the exact same scoring formula as the live dashboard (momentum rank + macro relative strength + tokenomics). A call needs 7+ days of age before it's meaningful to grade — compare from_price/to_price against current prices yourself, or see the searchable, pre-graded version at <a href="track-record.html">/track-record.html</a>.</div>
-      <div class="codebox">curl "https://wyvwycatgexpbugzkdfw.supabase.co/rest/v1/rotation_snapshots?order=snap_date.desc&limit=20" \
-  -H "apikey: &lt;anon key above&gt;"</div>
-      <table>
+      <div class="endpoint-desc">The daily "rotate out of A, into B" pairs, written once a day at 19:07 UTC from the latest run: the five highest scores paired with the five lowest eligible ones. <b style="color:var(--amber);">Always filter on <code>source</code>.</b> The table also holds experiments that are recorded for grading and never published (see below); an unfiltered query mixes them in. Calls are graded at 30 days; the pre-graded record is at <a href="track-record.html">/track-record.html</a>.</div>
+      <div class="codebox">curl "https://wyvwycatgexpbugzkdfw.supabase.co/rest/v1/rotation_snapshots?source=eq.sync-rotation-snapshot&amp;order=snap_date.desc&amp;limit=20" \
+  -H "apikey: &lt;anon key&gt;" -H "Authorization: Bearer &lt;anon key&gt;"</div>
+      <div class="tbl"><table>
         <tr><th>field</th><th>type</th><th>notes</th></tr>
-        <tr><td class="col-field">snap_date</td><td class="col-type">date</td><td>the day this call was made</td></tr>
-        <tr><td class="col-field">from_id / from_sym</td><td class="col-type">text</td><td>the "rotate out of" coin (CoinGecko id / ticker)</td></tr>
-        <tr><td class="col-field">from_price / from_score</td><td class="col-type">numeric</td><td>price and composite score at call time</td></tr>
-        <tr><td class="col-field">to_id / to_sym</td><td class="col-type">text</td><td>the "rotate into" coin</td></tr>
-        <tr><td class="col-field">to_price / to_score</td><td class="col-type">numeric</td><td>price and composite score at call time</td></tr>
-        <tr><td class="col-field">source</td><td class="col-type">text</td><td>always 'sync-rotation-snapshot' — a server-side cron, immune to whether anyone visited the site that day</td></tr>
-      </table>
+        <tr><td class="col-field">snap_date</td><td class="col-type">date</td><td>the day the call was made</td></tr>
+        <tr><td class="col-field">from_id / from_sym</td><td class="col-type">text</td><td>the "rotate out of" asset</td></tr>
+        <tr><td class="col-field">from_price / from_score</td><td class="col-type">numeric</td><td>price and score at call time</td></tr>
+        <tr><td class="col-field">to_id / to_sym</td><td class="col-type">text</td><td>the "rotate into" asset</td></tr>
+        <tr><td class="col-field">to_price / to_score</td><td class="col-type">numeric</td><td>price and score at call time</td></tr>
+        <tr><td class="col-field">source</td><td class="col-type">text</td><td><code>sync-rotation-snapshot</code> = the published calls. Unpublished experiments: <code>-inverted</code> (the same pairs reversed), <code>-gold</code>, <code>-gold-30d</code>, <code>-gold-both</code> (a hot asset paired with PAXG).</td></tr>
+      </table></div>
     </div>
 
     <div class="endpoint">
       <div class="endpoint-name">GET /signal_snapshots</div>
-      <div class="endpoint-desc">Rotator's longest-running, most complete published record — daily bullish/lagging single-coin calls since 2026-04-18. This is the real historical dataset behind the "Signal Track Record" accuracy figure shown on the main site.</div>
-      <div class="codebox">curl "https://wyvwycatgexpbugzkdfw.supabase.co/rest/v1/signal_snapshots?snap_date=gte.2026-08-01&order=snap_date.desc" \
-  -H "apikey: &lt;anon key above&gt;"</div>
-      <table>
+      <div class="endpoint-desc">Daily single-asset calls, 'bullish' or 'lagging', recorded since 2026-09-07. Each row carries the engine version that made it. The track record grades these against the market median over the same window, from 2026-09-11 on.</div>
+      <div class="codebox">curl "https://wyvwycatgexpbugzkdfw.supabase.co/rest/v1/signal_snapshots?snap_date=gte.2026-09-11&amp;order=snap_date.desc" \
+  -H "apikey: &lt;anon key&gt;" -H "Authorization: Bearer &lt;anon key&gt;"</div>
+      <div class="tbl"><table>
         <tr><th>field</th><th>type</th><th>notes</th></tr>
         <tr><td class="col-field">snap_date</td><td class="col-type">date</td><td></td></tr>
         <tr><td class="col-field">coin_id / coin_sym / coin_name</td><td class="col-type">text</td><td></td></tr>
         <tr><td class="col-field">signal_type</td><td class="col-type">text</td><td>'bullish' or 'lagging'</td></tr>
-        <tr><td class="col-field">signal_label</td><td class="col-type">text</td><td>display label at call time</td></tr>
-        <tr><td class="col-field">score</td><td class="col-type">numeric</td><td>composite score at call time</td></tr>
-        <tr><td class="col-field">price / p24 / p7 / p30</td><td class="col-type">numeric</td><td>price and momentum at call time</td></tr>
-        <tr><td class="col-field">mcap</td><td class="col-type">numeric</td><td>used for market-cap-aware confirmation thresholds — see track-record.html methodology</td></tr>
-      </table>
+        <tr><td class="col-field">signal_label</td><td class="col-type">text</td><td>display label at call time, e.g. 'MOMENTUM', 'LAGGING', 'ROTATE IN'</td></tr>
+        <tr><td class="col-field">score / zone</td><td class="col-type">numeric / text</td><td>at call time</td></tr>
+        <tr><td class="col-field">price / p24 / p7 / p30 / mcap</td><td class="col-type">numeric</td><td>at call time</td></tr>
+        <tr><td class="col-field">engine_version / source</td><td class="col-type">text</td><td>which engine made the call; 'dashboard' or 'bot'</td></tr>
+      </table></div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-title">Supporting data</div>
+
+    <div class="endpoint">
+      <div class="endpoint-name">GET /coin_events</div>
+      <div class="endpoint-desc">Technical events detected once a day at 00:45 UTC: 'golden_cross', 'death_cross', 'rsi_overbought', 'rsi_oversold', 'futures_long_crowded'.</div>
+      <div class="codebox">curl "https://wyvwycatgexpbugzkdfw.supabase.co/rest/v1/coin_events?select=base_asset,event_date,event_type,value,prev_value&amp;order=event_date.desc&amp;limit=50" \
+  -H "apikey: &lt;anon key&gt;" -H "Authorization: Bearer &lt;anon key&gt;"</div>
     </div>
 
+    <div class="endpoint">
+      <div class="endpoint-name">GET /coin_technicals</div>
+      <div class="endpoint-desc">Per Binance base asset: daily and weekly RSI(14), 60/125-day moving averages, cross state and how many days ago it crossed. Refreshed every 3 hours.</div>
+      <div class="codebox">curl "https://wyvwycatgexpbugzkdfw.supabase.co/rest/v1/coin_technicals?base_asset=eq.BTC" \
+  -H "apikey: &lt;anon key&gt;" -H "Authorization: Bearer &lt;anon key&gt;"</div>
+    </div>
+
+    <div class="endpoint">
+      <div class="endpoint-name">GET /market_cycle</div>
+      <div class="endpoint-desc">Real 200-day moving average and Mayer multiple (price ÷ MA200) for BTC, ETH, BNB, SOL, XRP and PAXG. <b style="color:var(--amber);">Only BTC has calibrated bands</b>: the 2.4× / 0.8× thresholds come from Bitcoin's own history. Treat the other five as raw ratios.</div>
+      <div class="codebox">curl "https://wyvwycatgexpbugzkdfw.supabase.co/rest/v1/market_cycle?select=*" \
+  -H "apikey: &lt;anon key&gt;" -H "Authorization: Bearer &lt;anon key&gt;"</div>
+      <div class="tbl"><table>
+        <tr><th>field</th><th>type</th><th>notes</th></tr>
+        <tr><td class="col-field">symbol</td><td class="col-type">text</td><td>'BTC','ETH','BNB','SOL','XRP','PAXG'</td></tr>
+        <tr><td class="col-field">price / ma200 / mayer_multiple</td><td class="col-type">numeric</td><td>ma200 is the average of actual daily closes</td></tr>
+        <tr><td class="col-field">sample_size</td><td class="col-type">integer</td><td>closes that went into ma200; a true 200-day average only when this is 200</td></tr>
+        <tr><td class="col-field">computed_at</td><td class="col-type">timestamptz</td><td>synced once a day</td></tr>
+      </table></div>
+    </div>
+
+    <div class="endpoint">
+      <div class="endpoint-name">GET /unified_market_data</div>
+      <div class="endpoint-desc">Price, 24h change and market cap for every tracked Binance bStock (tokenized equity certificate, not direct share ownership). Crypto prices are in signal_run_items.</div>
+      <div class="codebox">curl "https://wyvwycatgexpbugzkdfw.supabase.co/rest/v1/unified_market_data?asset_type=eq.stock&amp;select=*" \
+  -H "apikey: &lt;anon key&gt;" -H "Authorization: Bearer &lt;anon key&gt;"</div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-title">What the evidence says</div>
+    <div class="limits-box">
+      Measured on 771 days of history (2024-06 to 2026-08, about 115 assets a day), not on live results:<br>
+      · <b>The score ranks in the right direction.</b> A higher score preceded better 30-day relative performance: rank correlation +0.053. The share of each score decile that beat the market median rose from 45.1% (lowest) to 51.8% (highest). It is a small edge, and it was measured on the history the engine was tuned on.<br>
+      · <b>So the 'buy' zone is not a prediction of outperformance.</b> It marks the low end of the score, the assets that have lagged. The published rotation pairs (sell the five highest scores, buy the five lowest) had a positive 30-day spread on 46.8% of 3,855 pairs, below the ~50% of two assets picked at random. The pairs are published and graded as a test.<br>
+      · <b>No live accuracy claim yet.</b> Live calls are graded at 30 days on the <a href="track-record.html">track record</a>. It will take months of live data before it can confirm or contradict the figures above.
+    </div>
   </div>
 
   <div class="section">
     <div class="section-title">Rate limits &amp; fair use</div>
     <div class="limits-box">
-      No API key tiers, no published hard rate limit — this runs on Supabase's free-tier infrastructure alongside the live site, so <b>be reasonable</b>: cache responses client-side (all of this updates once daily at most), avoid polling faster than every few minutes, and avoid parallel bulk-scraping. If you're building something that needs a real SLA or higher volume, <a href="/#" onclick="event.preventDefault();alert('Contact us via the CONTACT link on the main site.');">reach out</a> before you build against this at scale.
+      No key tiers and no published hard limit yet. This runs on the same infrastructure as the live site, so <b>be reasonable</b>: runs change every 15 minutes, so polling faster buys nothing; cache what you read; select only the columns you need; and do not bulk-scrape in parallel. If you need higher volume or an SLA, get in touch through the CONTACT link on the <a href="/">main site</a> before building against this at scale.
     </div>
   </div>
 
   <div class="warn-box">
-    <b>Scope, stated plainly:</b> nothing on this page or the underlying scoring is a security audit, a long-term valuation, a usage/TVL metric, or sentiment analysis. The composite scores measure 7–30 day price momentum, macro relative strength, and (for crypto) supply/unlock mechanics — nothing else. A high score means "strong recent relative momentum with reasonable tokenomics", not "guaranteed future profit". This is not financial advice; nothing here, machine-readable or not, should be the sole basis for deploying capital.
+    <b>Scope, stated plainly:</b> nothing here is a security audit, a long-term valuation, a usage or TVL metric, or sentiment analysis. The scores measure 7–30 day price momentum, macro-relative strength and, for crypto, supply and unlock mechanics. Nothing else. This is not financial advice; nothing here, machine-readable or not, should be the sole basis for deploying capital.
   </div>
 
 </main>
 
 <footer>
-  <div class="wrap">© 2026 ROTATOR · NOT FINANCIAL ADVICE · <a href="/">rotatortool-official.github.io</a></div>
+  <div class="wrap">© 2026 ROTATOR · NOT FINANCIAL ADVICE · <a href="/">rotatortool-official.github.io</a> · <a href="openapi.json">openapi.json</a></div>
 </footer>
 
 </body>
