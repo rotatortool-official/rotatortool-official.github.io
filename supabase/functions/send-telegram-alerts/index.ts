@@ -441,7 +441,23 @@ Deno.serve(async (req: Request) => {
     .is('notified_at', null)
     .gte('event_date', evSince);
   if (evErr) return json({ ok: false, reason: evErr.message }, 500);
-  const events = (evRows ?? []) as EventRow[];
+
+  // Coins Binance has delisted, does not list, or has announced it will
+  // delist (binance_delisted_symbols: BREAK / NOT_LISTED /
+  // DELIST_ANNOUNCED) get no technical events here, added 2026-09-25. This
+  // section goes to the whole channel, and "quick bounces beat the market
+  // 53% of the time" next to STG, days before its delisting, reads as an
+  // entry for a coin nobody should enter. The buy section already skips
+  // them through `eligible`.
+  //
+  // FAILS OPEN like every other reader of that table: a read error
+  // filters nothing. The rows are not stamped notified, and the lookback
+  // ages them out.
+  const { data: dlRows, error: dlErr } = await supabase
+    .from('binance_delisted_symbols').select('base_asset');
+  if (dlErr) console.warn('[send-telegram-alerts] binance_delisted_symbols read failed:', dlErr.message);
+  const notOnBinance = new Set((dlRows ?? []).map((r: { base_asset: string }) => r.base_asset));
+  const events = ((evRows ?? []) as EventRow[]).filter((e) => !notOnBinance.has(e.base_asset));
 
   // Context readings, so a bullet can show supporting and contrary
   // evidence together instead of one number in isolation.

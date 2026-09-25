@@ -987,6 +987,18 @@ async function runSignalEngine() {
            if it is not, the engine sees 0% coverage and says so rather
            than confirming on nothing. */
         technicals:    (typeof coinTechnicals !== 'undefined') ? coinTechnicals : {},
+        /* The same exchange lists compute-signal-run passes, so the local
+           pass's `eligible` agrees with the server's. Added 2026-09-25:
+           until then this run never heard of them, and any consumer of
+           c._eligible (the track-record snapshot among them) relied on
+           the server overlay arriving to exclude delisted, NOT_LISTED and
+           DELIST_ANNOUNCED coins. Both Sets load before loadCoins() and
+           are empty on a failed fetch, which the engine reads as "no
+           exclusions" — the same fail-open as the server. */
+        eligibility: {
+          delisted:   (typeof delistedSymbols   !== 'undefined') ? Array.from(delistedSymbols)   : [],
+          monitoring: (typeof monitoringSymbols !== 'undefined') ? Array.from(monitoringSymbols) : []
+        },
         /* Pillar 6, the contrarian sentiment read. Passed as the whole
            row so the engine can tell "no reading this run" from
            "neutral" — it skips the pillar for the first and would score

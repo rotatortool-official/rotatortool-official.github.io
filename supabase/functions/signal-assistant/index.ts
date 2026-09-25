@@ -79,6 +79,7 @@ Your job is to help Pro users understand what the current Rotator model sees. Yo
 - A low score = relative weakness (not automatically "buy").
 - A high score = relative strength (not automatically "sell").
 - Only call something a "rotation setup" or "swap" if the canonical engine explicitly qualified that pair.
+- A coin with \`eligible: false\` is NEVER a rotation target, rotate-in candidate or swap destination, whatever its score or zone. If asked about one, say the model excludes it and give the reason from \`exclusions\`. \`delisted\` means Binance has delisted it, does not list it, or has announced a delisting. Rotating OUT of such a coin is a legitimate thing to discuss.
 - Never invent scores, prices, indicators, or pairs.
 - Never give personalized financial instructions ("you should buy X").
 - Always respect the current BTC regime and data timestamp supplied with the signal run.
@@ -177,7 +178,7 @@ Deno.serve(async (req: Request): Promise<Response> => {
 
     const { data: items, error: itemsErr } = await supabase
       .from('signal_run_items')
-      .select('coin_sym, score, zone, eligible, data_complete, p7, p14, p30, setup')
+      .select('coin_sym, score, zone, eligible, exclusions, data_complete, p7, p14, p30, setup')
       .eq('run_id', run.id);
     if (itemsErr) throw new Error('signal_run_items read failed: ' + itemsErr.message);
 
@@ -194,6 +195,11 @@ Deno.serve(async (req: Request): Promise<Response> => {
           score: it.score,
           zone: it.zone,
           eligible: it.eligible,
+          // The reasons, so the assistant can say WHY a coin is excluded
+          // (e.g. delisted / being delisted on Binance) instead of just
+          // skipping it. Only sent when there is something to say.
+          ...(it.eligible === false && Array.isArray(it.exclusions) && it.exclusions.length
+            ? { exclusions: it.exclusions } : {}),
           p7: it.p7, p14: it.p14, p30: it.p30,
           setup: it.setup,
         })),
