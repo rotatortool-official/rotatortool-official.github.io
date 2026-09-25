@@ -107,6 +107,79 @@ const ANNOUNCED_DELISTINGS: { base: string; date: string; note: string }[] = [
   { base: 'STG', date: '2026-10-06', note: 'STG -> ZRO merger, fixed ratio' },
 ];
 
+// ── ...and read from Binance's announcement feed, added 2026-09-25 ──
+// The hand list above only works if someone remembers. Binance's
+// announcements page is fed by a JSON list endpoint (undocumented, same
+// caveat as get-products). Two title shapes mean a coin is going away:
+//
+//   Delisting catalog (161):
+//     "Binance Will Delist ICX, SCRT, STORJ on 2026-09-03"
+//   Maintenance catalog (157):
+//     "Binance Will Support the Stargate Finance (STG) Token Merge to
+//      LayerZero (ZRO)"
+//
+// Deliberately NOT matched: "Binance Margin And Loan Will Delist ...",
+// "Binance Alpha Will Remove ...", "Notice of Removal of Spot Trading
+// Pairs" (single pairs such as XXX/BTC, not the coin), "Network
+// Migration" and "Contract Swap" (the coin carries on; KITE had one).
+//
+// A dated delisting is kept until its date passes; after that exchangeInfo
+// says BREAK and then NOT_LISTED on its own. A merge title carries no date,
+// so it is kept for MERGE_WINDOW_DAYS from the announcement. That is longer
+// than any merge notice-to-delist gap seen so far (STG: 18 days).
+//
+// FAILS SAFE: if the feed breaks, the hand list still applies and the
+// response says announcements_ok:false. Nothing is ever un-excluded
+// because this feed failed; it only ever adds rows.
+const CMS_LIST_URL = (catalogId: number) =>
+  'https://www.binance.com/bapi/composite/v1/public/cms/article/list/query'
+  + `?type=1&catalogId=${catalogId}&pageNo=1&pageSize=50`;
+const MERGE_WINDOW_DAYS = 60;
+
+type Announced = { base: string; date: string; note: string };
+
+// Pure, so it can be tested against real titles.
+function parseAnnouncement(title: string, releasedMs: number, todayIso: string): Announced[] {
+  const released = new Date(releasedMs).toISOString().slice(0, 10);
+  const del = title.match(/^Binance Will Delist (.+?) on (\d{4}-\d{2}-\d{2})\b/);
+  if (del) {
+    const date = del[2];
+    if (date < todayIso) return [];
+    return del[1]
+      .split(/,|\band\b|&/)
+      .map((t) => t.replace(/\(.*?\)/g, '').trim())
+      .filter((t) => /^[A-Z0-9]{1,15}$/.test(t))
+      .map((base) => ({ base, date, note: title }));
+  }
+  const merge = title.match(/^Binance Will Support the .*?\(([A-Z0-9]{1,15})\) Token Merge\b/);
+  if (merge) {
+    const until = new Date(releasedMs + MERGE_WINDOW_DAYS * 864e5).toISOString().slice(0, 10);
+    if (until < todayIso) return [];
+    return [{ base: merge[1], date: released, note: title }];
+  }
+  return [];
+}
+
+async function fetchAnnouncedDelistings(): Promise<Announced[]> {
+  const todayIso = new Date().toISOString().slice(0, 10);
+  const out: Announced[] = [];
+  for (const catalogId of [161, 157]) {
+    const res = await fetch(CMS_LIST_URL(catalogId), { headers: { 'Accept': 'application/json' } });
+    if (!res.ok) throw new Error(`cms catalog ${catalogId} -> HTTP ${res.status}`);
+    const j = await res.json();
+    const articles: { title?: string; releaseDate?: number }[] = j?.data?.catalogs?.[0]?.articles ?? [];
+    if (!Array.isArray(articles) || !articles.length) {
+      throw new Error(`cms catalog ${catalogId} returned no articles (shape may have changed)`);
+    }
+    for (const a of articles) {
+      if (typeof a.title === 'string' && typeof a.releaseDate === 'number') {
+        out.push(...parseAnnouncement(a.title, a.releaseDate, todayIso));
+      }
+    }
+  }
+  return out;
+}
+
 // Shape of one row from get-products. Terse single-letter keys are
 // Binance's, not ours: s=symbol, b=base, q=quote, st=status.
 interface BinanceProduct {
@@ -212,9 +285,20 @@ Deno.serve(async (req) => {
 
     // A base already flagged by exchangeInfo keeps that row: a real
     // status beats an announcement.
+    let fromFeed: Announced[] = [];
+    let announcementsOk = true;
+    let announcementsErr: string | null = null;
+    try {
+      fromFeed = await fetchAnnouncedDelistings();
+    } catch (e) {
+      announcementsOk = false;
+      announcementsErr = e instanceof Error ? e.message : String(e);
+      console.error('[sync-binance-status] announcement feed failed:', announcementsErr);
+    }
     const flaggedBases = new Set([...notTrading, ...notListed].map((r) => r.base_asset));
-    const announced = ANNOUNCED_DELISTINGS
-      .filter((a) => !flaggedBases.has(a.base))
+    const announcedBases = new Set<string>();
+    const announced = [...ANNOUNCED_DELISTINGS, ...fromFeed]
+      .filter((a) => !flaggedBases.has(a.base) && !announcedBases.has(a.base) && announcedBases.add(a.base))
       .map((a) => ({
         base_asset: a.base,
         binance_symbol: a.base + 'USDT',
@@ -299,6 +383,9 @@ Deno.serve(async (req) => {
         not_listed_symbols: notListed.map((s) => s.base_asset),
         ...(notListedErr ? { not_listed_error: notListedErr } : {}),
         delist_announced: announced.map((a) => a.base_asset),
+        announcements_ok: announcementsOk,
+        announcements_from_feed: fromFeed.map((a) => `${a.base} (${a.date})`),
+        ...(announcementsErr ? { announcements_error: announcementsErr } : {}),
         monitoring_ok: monitoringOk,
         tagged_symbols: monitoringOk ? tagged.length : null,
         monitoring_flagged: monitoringOk ? monitoring.length : null,
