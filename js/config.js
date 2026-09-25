@@ -126,7 +126,7 @@ var FREE_COINS = [
   /* ── Large caps ── */
   'dogecoin','cardano','avalanche-2','shiba-inu','chainlink',
   'polkadot','bitcoin-cash','near','litecoin','uniswap',
-  'internet-computer','ethereum-classic','stellar','monero','okb',
+  'internet-computer','ethereum-classic','stellar','monero',
   /* ── Mid caps ── */
   'hedera-hashgraph','filecoin','cosmos','vechain','tron',
   'sui','aptos','sei-network','render-token','jupiter-exchange-solana',
@@ -142,32 +142,32 @@ var FREE_COINS = [
   'hyperliquid','the-sandbox','decentraland','axie-infinity',
   'gala','illuvium','stepn','flow','wax',
   'ocean-protocol','fetch-ai','singularitynet','numeraire','bittensor',
-  'zetachain','celestia','dymension','altlayer','omni-network',
-  'saga-2','manta-network','parcl',
-  'kamino','meteora','drift-protocol',
+  'celestia','dymension','altlayer','omni-network',
+  'saga-2','manta-network',
+  'kamino','meteora',
   'raydium','orca','lifinity','saber','serum',
   'wormhole','layerzero','across-protocol','synapse-2','stargate-finance',
   'gmx','gains-network',
   'pendle','spectra-finance','convex-finance','frax-share',
   /* ── Batch 101–150: more L1s, gaming, AI, privacy ── */
-  'kaspa','mantle','flare-networks','kava','zilliqa',
+  'kava','zilliqa',
   'harmony','celo','moonbeam','astar','fantom',
   'theta-token','enjincoin','gods-unchained','ultra',
-  'ronin','beam-2','echelon-prime','myria','xai-blockchain',
+  'beam-2','myria','xai-blockchain',
   'arkham','dextools','mask-network','1inch','sushi',
   'pancakeswap-token','thorchain','osmosis','neutron-3',
-  'akash-network','arweave','livepeer','theta-fuel','helium',
+  'arweave','livepeer','theta-fuel','helium',
   'quant-network','algorand','elrond-erd-2','iota','eos',
   'neo','qtum','waves','conflux-token','icon',
   /* ── Batch 151–200: DeFi, stables, bridges, memes, infra ── */
   'compound-governance-token','yearn-finance','ribbon-finance','morpho','euler',
-  'balancer','rocket-pool','frax-ether','ankr','ssv-network',
+  'balancer','rocket-pool','ankr','ssv-network',
   'oasis-network','secret','nucypher','keep-network','hopr',
-  'floki','cat-in-a-dogs-world','popcat','brett','turbo-eth',
-  'toshi','ponke','wen-4',
-  'magic-eden','tensor','marinade','sanctum-2',
-  'polymarket','grass','nosana','hivemapper',
-  'reserve-rights-token','clearpool','centrifuge',
+  'floki','brett','turbo-eth',
+  'wen-4',
+  'magic-eden','tensor','sanctum-2',
+  'polymarket',
+  'reserve-rights-token','centrifuge',
   /* ── Stablecoins — shown with APR instead of % change ── */
   /* 'frax' (the stablecoin) was REMOVED 2026-09-09. It collided with
      'frax-share', which CoinGecko also reports as symbol FRAX, so the
@@ -237,7 +237,25 @@ var FREE_COINS = [
   'midnight-3','kite-2','zama','vaulta','sentient',
   'genius-3','walrus-2','gas','rif-token','cow-protocol',
   'banana-for-scale-2','vethor-token','re','allora','nervos-network',
-  'bio-protocol','espresso','pha'
+  'bio-protocol','espresso','pha',
+
+  /* ── 20 more Binance pairs, 2026-09-25, replacing 20 coins Binance
+     does not list ──
+     Run 1934 had 20 eligible coins with no USDT pair on Binance under
+     any status or quote (okb, mantle, kaspa, flare-networks, grass,
+     akash-network, frax-ether, zetachain, popcat, toshi, ronin,
+     cat-in-a-dogs-world, nosana, clearpool, echelon-prime, ponke,
+     drift-protocol, marinade, hivemapper, parcl). sync-binance-status
+     now flags such coins NOT_LISTED, so they could never be published;
+     keeping them only spent slots. Re-checked against exchangeInfo
+     before removal: none had any Binance listing.
+
+     Replacements: the next 20 from the same selection as the batch
+     above, with the same checks. */
+  'nillion','axelar','io','threshold-network-token','babylon',
+  'space-id','polymesh','ontology','tellor','peanut-the-squirrel',
+  'dusk-network','zero-gravity','lombard-protocol','holoworld','megaeth',
+  'verge','notcoin','constitutiondao','huma-finance','succinct'
 ];
 
 var PRO_EXTRA_COINS = []; /* All 200 in free tier — Pro reserved for future expansion */
