@@ -64,7 +64,7 @@ function _saRender() {
       + '<div style="font-size:12px;color:var(--muted);line-height:1.7;">'
       + 'This feature is built but switched off for now. Answering questions calls a paid AI service — '
       + 'and Rotator is built and run by one person on a very small budget, so it stays off until that cost '
-      + "makes sense to carry. Everything else on the site (scores, zones, rotation signals) is unaffected — "
+      + "makes sense to carry. Everything else on the site (scores, zones, score gaps) is unaffected — "
       + "this only touches the chat."
       + '</div></div>';
     return;
@@ -73,7 +73,7 @@ function _saRender() {
 
   if (!_saMessages.length) {
     box.innerHTML = '<div style="color:var(--muted);font-size:12px;text-align:center;padding:24px 12px;">'
-      + 'Ask about the current rotation signals — e.g. <em>"what looks weak right now?"</em> or <em>"how is SOL doing?"</em>'
+      + 'Ask about the current scores — e.g. <em>"what looks weak right now?"</em> or <em>"how is SOL doing?"</em>'
       + '</div>';
     return;
   }

@@ -3045,7 +3045,7 @@ function _shareText() {
   if (signals.length) text += '⚡ ' + signals.join(' · ') + '\n';
   text += '━━━━━━━━━━━━━━━━\n'
     + '🔍 Full analysis → ' + coinUrl + '\n'
-    + 'Rotator — Free crypto rotation screener';
+    + 'Rotator — an honest market pulse for Binance traders';
   return { sym: sym, text: text, url: coinUrl };
 }
 
@@ -3325,7 +3325,7 @@ function shareAsImage() {
   ctx.fillText('ROTATOR', 70, H - 22);
   ctx.fillStyle = 'rgba(255,255,255,0.35)';
   ctx.font = '20px Inter, sans-serif';
-  ctx.fillText('Real-time rotation signals & momentum scoring', 250, H - 22);
+  ctx.fillText('Scores, holder warnings & a public track record', 250, H - 22);
 
   /* URL right-aligned */
   ctx.fillStyle = 'rgba(243,186,47,0.7)';
@@ -3387,7 +3387,7 @@ var _viralCopyTemplates = [
     return 'Level up your trading edge — ' + sym + ' is showing strong momentum (' + score + '/100)\n\n' + link + ' 🔥';
   },
   function(sym, score, chg, link) {
-    return sym + ' ' + chg + ' · Score: ' + score + '/100\nRotation signals + momentum scoring, all free.\n\n→ ' + link;
+    return sym + ' ' + chg + ' · Score: ' + score + '/100\nScores for 250 coins, holder warnings and a public track record, all free.\n\n→ ' + link;
   },
   function(sym, score, chg, link) {
     return '⚡ ' + sym + ' momentum alert — ' + score + '/100 composite score\n\nCheck the full analysis: ' + link;

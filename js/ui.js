@@ -516,31 +516,34 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
 /* ── Swap Tool Tutorial ─────────────────────────────────────── */
+/* Swap tour. Plain text with **bold**, turned into markup by _tutMd()
+   in tutorial.js. Rewritten 2026-09-25 (promptove/66): it used to promise
+   "the best moment to swap" and call ▲ Peak "the best swap moment". The
+   tool shows where the ratio is, not where it goes next. */
 var SWAP_TUT_STEPS = [
   {
-    title: 'Swap Tool — Price Ratio Tracker',
-    desc: 'This tool helps you find the <strong>best moment to swap</strong> one asset for another — not by guessing, but by tracking the live price ratio between them over time.',
-    anchor: 'ratio-section'
+    title: "Swap Tool — the ratio between two assets",
+    desc: "This tool tracks the live price ratio between two assets over time, so you can see where today sits in its recent range. It shows where the ratio is, not where it goes next.",
+    anchor: "ratio-section"
   },
   {
-    title: 'Pick Your Pair',
-    desc: 'Select the coin you <strong>HOLD</strong> (FROM) and the coin you <strong>WANT</strong> (TO). The ratio shows how many TO coins you\'d receive per 1 FROM coin at current prices.',
-    anchor: 'rt-from'
+    title: "Pick your pair",
+    desc: "Select the coin you **hold** (FROM) and the coin you are **considering** (TO). The ratio shows how many TO coins you would receive per 1 FROM coin at current prices.",
+    anchor: "rt-from"
   },
   {
-    title: 'Read the Ratio Chart',
-    desc: 'The range bar shows the ratio over your chosen timeframe. <strong>▲ Peak</strong> = the best swap moment. When current ratio is near the peak, you get more value for your swap.',
-    anchor: 'rt-bar-track'
+    title: "Read the ratio chart",
+    desc: "The range bar shows the ratio over your chosen timeframe. **peak** marks the highest ratio in that period: the most TO coins one FROM coin could buy. Where the ratio goes next is not known.",
+    anchor: "rt-bar-track"
   },
   {
-    title: 'Amount and Result',
-    /* Anchored on the amount box itself. This used to point at 'rt-calc',
-       which was a CLASS on the calculator card and never an id, so
-       getElementById returned null and the step highlighted nothing. */
-    desc: 'Enter your amount on the FROM card and the TO card shows what you\'d receive. Underneath, the dollar value, both ratio directions, and price overrides for hypothetical scenarios. Always verify on your exchange before executing — prices shift fast.',
-    anchor: 'rt-hero-amt'
+    title: "Amount and result",
+    desc: "Enter your amount on the FROM card and the TO card shows what you would receive. Underneath: the dollar value, both ratio directions, and price overrides for what-if scenarios. Always check on your exchange before trading, because prices move fast.",
+    anchor: "rt-hero-amt"
   }
 ];
+/* English snapshot; applyLang() falls back to it (see i18n.js). */
+var SWAP_EN = JSON.parse(JSON.stringify(SWAP_TUT_STEPS));
 var _swapTutStep = 0;
 var _swapTutHighlighted = null;
 
@@ -563,7 +566,7 @@ function swapTutRender() {
   var step = SWAP_TUT_STEPS[_swapTutStep];
   document.getElementById('swap-tut-step-lbl').textContent = 'STEP ' + (_swapTutStep+1) + ' OF ' + SWAP_TUT_STEPS.length;
   document.getElementById('swap-tut-title').textContent = step.title;
-  document.getElementById('swap-tut-desc').innerHTML = step.desc;
+  document.getElementById('swap-tut-desc').innerHTML = (typeof _tutMd === 'function') ? _tutMd(step.desc) : step.desc;
   var nextBtn = document.getElementById('swap-tut-next');
   nextBtn.textContent = _swapTutStep === SWAP_TUT_STEPS.length - 1 ? 'Got it ✓' : 'Next →';
   // dots

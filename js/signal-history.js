@@ -1085,7 +1085,7 @@ var SignalHistory = (function() {
     ctx.fillStyle = 'rgba(243,186,47,0.85)';
     ctx.font = 'bold 18px "IBM Plex Mono", monospace';
     ctx.textAlign = 'center';
-    ctx.fillText('Free rotation signals at Rotator — see what\'s next', W / 2, 502);
+    ctx.fillText('Scores and a public track record, free at Rotator', W / 2, 502);
     ctx.textAlign = 'left';
 
     /* Footer */

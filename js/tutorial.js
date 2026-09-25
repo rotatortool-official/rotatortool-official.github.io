@@ -1,121 +1,177 @@
 /* ══════════════════════════════════════════════════════════════════
    tutorial.js — Step-by-step onboarding tutorial
+
+   REDESIGNED 2026-09-25 (promptove/66). The old tour walked a page that
+   no longer exists: a three-column "Signal Center" with a "↑ Rotate"
+   column, a left holdings sidebar, a swap tool in a right panel and a
+   `.pro-btn` that was removed. It also stated things that stopped being
+   true: 200 coins (250 now), a "5-pillar" Insight Engine (7), the swap
+   tool finding "the optimal moment", and rotation as the product.
+
+   The tour now follows the rail on the left, one step per section, in
+   rail order: TODAY, MOMENTUM, RECORD, YOURS, COINS, SWAP. Each step
+   opens its section if it is collapsed, scrolls to it with the rail's
+   own railGo(), and highlights the part that is on screen. One placement
+   ('section') replaces the four hand-tuned ones, because the sections
+   share one layout.
+
+   The copy follows promptove/19 (research-first): past results in the
+   past tense, no forecasts, and every tool described as what it shows,
+   never as what it predicts.
 ══════════════════════════════════════════════════════════════════ */
 
 var TUT_KEY = 'rot_tutorial_on';
 var tutStep_ = 0;
 var tutActive = false;
 
+var _TUT_P = '<div style="font-size:14px;line-height:1.8;">';
+var _TUT_SMALL = 'font-size:12px;color:var(--muted);';
+
 /* ── Tutorial steps ──────────────────────────────────────────── */
 var TUT_STEPS = [
 
-  /* Step 1: Welcome */
+  /* 1. Welcome */
   {
-    target: '.topbar',
-    title: 'Welcome to ROTATOR',
-    desc: '<strong>Rotator</strong> is a daily performance tracker for crypto (plus tokenized bStocks). It measures price momentum across <strong>24H, 7D, 14D and 30D</strong> and reports which assets are performing relatively strongly, which are performing relatively weakly, and what changed.<br><br>'
-        + '<strong>What is rotation?</strong> If you hold two assets and one has fallen 17% while the other only fell 5%, the relative-strength gap between them is 12 points. Rotator measures those gaps, shows the evidence behind each one, and records what happened to them afterwards.<br><br>'
-        + '<strong>Multi-timeframe scoring</strong> surfaces sustained trends, not just recent noise. A coin ranked highly across 7D, 14D <em>and</em> 30D is behaving very differently from one that just had a single good week.',
-    arrow: 'top', pos: 'center', wide: true
+    "target": ".topbar",
+    "pos": "center",
+    "wide": true,
+    "title": "Welcome to Rotator",
+    "p": [
+      "**Rotator is an honest market pulse for Binance traders.** It scores 250 coins and tokenized stocks every 15 minutes, tracks your portfolio, and warns you about delistings and unlocks before they hit.",
+      "Every claim comes with its evidence and the bar it has to beat. When one of its own rules does no better than picking coins at random, it says so."
+    ],
+    "note": "This tour follows the menu on the left: Today, Momentum, Record, Yours, Coins and Swap. About a minute."
   },
 
-  /* Step 2: Holdings Panel — highlight left panel */
+  /* 2. TODAY */
   {
-    target: '#my-holdings-panel',
-    title: 'Your Holdings Panel',
-    desc: '<div style="font-size:14px;line-height:1.85;">Track any coin with quantity and average buy price — all saved locally, <strong>no account needed</strong>.<br><br>'
-        + 'Once added, the <strong style="color:var(--bnb);">Portfolio Signal</strong> box above scores your portfolio and flags which assets are lagging or outperforming.<br><br>'
-        + '<span style="font-size:12px;color:rgba(255,255,255,.6);">Free tier: <strong>2 crypto</strong> slots · Pro: up to 10 holdings, Insight Engine, Best Time to Swap & more.</span></div>',
-    arrow: 'left', pos: 'left-panel-right'
+    "target": "#sec-today",
+    "goto": "sec-today",
+    "pos": "section",
+    "title": "Today — the market pulse",
+    "p": [
+      "What the networks and the market are doing right now: network activity, macro readings, Fear & Greed, and where BTC sits against its 200-day average.",
+      "The ticker runs through the biggest movers of the day."
+    ],
+    "note": "It describes the market. It does not forecast it."
   },
 
-  /* Step 3: Signal Center — colored columns, arrow pointing up to tiles */
+  /* 3. MOMENTUM */
   {
-    target: '.neon-section',
-    title: 'Signal Center',
-    desc: '<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:18px;font-size:14px;line-height:1.85;">'
-        + '<div style="border-left:3px solid #00bd8e;padding-left:12px;">'
-          + '<div style="font-size:12px;letter-spacing:.13em;color:rgba(0,200,150,.7);margin-bottom:6px;font-weight:700;">↑ ROTATION OPPS</div>'
-          + '<div style="color:#00bd8e;font-size:16px;font-weight:700;margin-bottom:7px;">↑ Rotate</div>'
-          + '<span style="color:rgba(200,220,210,.85);">Pairs from your holdings with the widest relative-strength gap. The score gap shows how much one coin has outpaced another.</span>'
-          + '<div style="margin-top:7px;font-size:12px;color:rgba(167,139,250,.9);font-weight:600;">⚡ Pro feature — unlock free</div>'
-        + '</div>'
-        + '<div style="border-left:3px solid #f0a030;padding-left:12px;">'
-          + '<div style="font-size:12px;letter-spacing:.13em;color:rgba(240,160,48,.7);margin-bottom:6px;font-weight:700;">⚡ HIGH MOMENTUM</div>'
-          + '<div style="color:#f0a030;font-size:16px;font-weight:700;margin-bottom:7px;">⚡ Leading</div>'
-          + '<span style="color:rgba(220,210,195,.85);">Top coins by composite score across all timeframes. Sustained strength — not single-week spikes. Click any tile for full breakdown.</span>'
-        + '</div>'
-        + '<div style="border-left:3px solid #f03e58;padding-left:12px;">'
-          + '<div style="font-size:12px;letter-spacing:.13em;color:rgba(240,62,88,.7);margin-bottom:6px;font-weight:700;">↓ WORST 30D</div>'
-          + '<div style="color:#f03e58;font-size:16px;font-weight:700;margin-bottom:7px;">↓ Lagging</div>'
-          + '<span style="color:rgba(220,200,200,.85);">The weakest 30-day performers in the tracked market. Weakness can persist or reverse — open a coin to see what is driving it.</span>'
-        + '</div>'
-        + '</div>',
-    arrow: 'top', pos: 'neon-below', wide: true
+    "target": "#sec-rotation",
+    "goto": "sec-rotation",
+    "open": "hot",
+    "pos": "section",
+    "title": "Momentum — strongest and weakest",
+    "p": [
+      "**High Momentum** lists the coins scoring highest across 7, 14 and 30 days. Strength over all three is steadier than one good week.",
+      "**Worst 30d** lists the weakest. Weakness can last or reverse, and the score does not know which."
+    ],
+    "note": "Click any tile for the full breakdown."
   },
 
-  /* Step 4: Leaderboard + disclaimer */
+  /* 4. RECORD */
   {
-    target: '.leaderboard',
-    title: 'Leaderboard — Scores — Disclaimer',
-    desc: '<div style="font-size:14px;line-height:1.85;">'
-        + '<strong>200 coins</strong> (including stablecoins with APR yields) ranked across <strong style="color:#fff;">24H · 7D · 14D · 30D</strong>. Click any column header to sort. Click any row for a full score breakdown.<br><br>'
-        + 'The <strong>Score</strong> combines three layers: <strong>L1</strong> Momentum rank · <strong>L2</strong> Relative strength vs BTC, Gold, Oil · <strong>L3</strong> Tokenomics quality<br><br>'
-        + '<div style="background:rgba(255,69,96,.07);border:1px solid rgba(255,69,96,.3);border-radius:4px;padding:10px 12px;">'
-        + '<strong style="color:#ff4560;">⚠ NOT FINANCIAL ADVICE</strong><br>'
-        + 'Rotator tracks historical price data only. Scores do not predict future performance. Always research before trading. <strong>Never risk money you cannot afford to lose.</strong>'
-        + '</div></div>',
-    arrow: 'bottom', pos: 'above', wide: true, agree: true,
-    agreeText: 'I understand that Rotator is not financial advice and I am solely responsible for my own investment decisions.'
+    "target": "#sec-record",
+    "goto": "sec-record",
+    "open": "trackrecord",
+    "pos": "section",
+    "title": "Record — what held up",
+    "p": [
+      "Every published observation is graded 30 days later against the median coin. Half of all coins beat the median, so **50% is the bar**. Above it is evidence of skill, below it is not.",
+      "Live tests show how many days they have graded and when they can first give a verdict. They are never judged early."
+    ],
+    "note": "The full record is on the track record page."
   },
 
-  /* Step 5: Swap Tool — positioned BESIDE ratio section, arrow pointing right toward it */
+  /* 5. YOURS */
   {
-    target: '#ratio-section',
-    title: '↔ Swap Tool — Best Time to Swap',
-    desc: '<div style="font-size:14px;line-height:1.85;">'
-        + 'The <strong style="color:var(--bnb);">Swap Tool</strong> helps you find the <strong>optimal moment</strong> to swap one asset for another — by tracking the live price <strong>ratio</strong> between them over time.<br><br>'
-        + 'Pick your <strong>FROM</strong> asset (what you hold) and <strong>TO</strong> asset (what you want). The ratio shows how many TO coins you get per 1 FROM coin right now.<br><br>'
-        + 'When the ratio is near its <strong style="color:var(--green);">▲ Period Peak</strong>, you get maximum value. The range bar and chart show exactly where you are in the cycle.<br><br>'
-        + '<span style="font-size:12px;color:rgba(255,255,255,.5);">Use the Swap Calculator to simulate exact amounts before executing on your exchange.</span>'
-        + '</div>',
-    arrow: 'right', pos: 'swap-tool', wide: false
+    "target": "#sec-yours",
+    "goto": "sec-yours",
+    "open": "holdings",
+    "pos": "section",
+    "title": "Yours — what you hold",
+    "p": [
+      "Add a coin with its quantity and average price. It is saved in this browser only, with **no account**.",
+      "Each tile shows your profit or loss and the coin's score, plus an **amber warning** if Binance has announced a delisting, the coin carries Binance's Monitoring tag, or a large unlock is due within 30 days.",
+      "**Score gaps** show how your coins score against the rest. They are information, not recommendations: across 771 days of history, moving from a high score into a low one did not beat a random pick."
+    ],
+    "note": "Free: 2 holdings · Pro: 10."
   },
 
-  /* Step 6: How to unlock Pro */
+  /* 6. COINS (the scores, and the agreement) */
   {
-    target: '.pro-btn',
-    title: '⚡ How to Unlock Pro',
-    desc: '<div style="font-size:14px;line-height:1.85;">'
-        + '<strong style="color:var(--pro);">Pro</strong> unlocks 200 coins, all categories, Insight Engine, Swap Tool, and 10 portfolio slots.<br><br>'
-        + '<div style="background:var(--bg3);border:1px solid rgba(0,200,150,.2);border-radius:4px;padding:10px 12px;margin-bottom:10px;">'
-        + '<strong style="color:var(--green);">Option 1 — Crypto (instant, auto-verified)</strong><br>'
-        + '<span style="font-size:12px;">Send $20+ USDT/BNB/ETH → submit your TX hash → Pro activates in seconds. No manual review needed.</span>'
-        + '</div>'
-        + '<div style="background:var(--bg3);border:1px solid rgba(167,139,250,.2);border-radius:4px;padding:10px 12px;margin-bottom:10px;">'
-        + '<strong style="color:var(--pro);">Option 2 — Refer 5 friends</strong><br>'
-        + '<span style="font-size:12px;">Share your referral link. When 5 people join and use Rotator, Pro unlocks automatically. Verification usually takes a few hours.</span>'
-        + '</div>'
-        + '<div style="background:var(--bg3);border:1px solid var(--bdr2);border-radius:4px;padding:10px 12px;">'
-        + '<strong style="color:var(--muted);">Option 3 — Pro code</strong><br>'
-        + '<span style="font-size:12px;">Enter a code from giveaways or promotions.</span>'
-        + '</div>'
-        + '</div>',
-    arrow: 'top', pos: 'center', wide: false
+    "target": "#sec-coins",
+    "goto": "sec-coins",
+    "pos": "section",
+    "agree": true,
+    "title": "Coins — every tracked coin",
+    "p": [
+      "All 250 coins, sortable by any column. Scores run from **−50 to 100** and combine three layers: **L1** momentum across timeframes, **L2** strength against BTC, gold and oil, and **L3** tokenomics.",
+      "The lenses beside the table turn it into a heatmap of open interest, funding, long/short and RSI. Click a row for the full breakdown."
+    ],
+    "warn": {
+      "title": "NOT FINANCIAL ADVICE",
+      "text": "Rotator describes past price and market data. Scores do not predict future performance. **Never risk money you cannot afford to lose.**"
+    },
+    "agreeText": "I understand that Rotator is not financial advice and I am solely responsible for my own investment decisions."
   },
 
-  /* Step 7: All set — LAST STEP */
+  /* 7. SWAP */
   {
-    target: '.settings-btn',
-    title: "You're all set.",
-    desc: '<div style="font-size:14px;line-height:1.85;">'
-        + 'Data refreshes every 15 minutes automatically. Hit <strong>↻ REFRESH</strong> to force a fresh fetch at any time.<br><br>'
-        + 'Click the <strong>⚙ gear icon</strong> (highlighted) to change language, toggle asset modes, or replay this tutorial.<br><br>'
-        + '<span style="font-size:12px;color:var(--muted);">Need help? Contact <a href="mailto:rotatortool@gmail.com" style="color:var(--bnb);text-decoration:none;">rotatortool@gmail.com</a></span>'
-        + '</div>',
-    arrow: 'right', pos: 'gear'
+    "target": "#sec-swap",
+    "goto": "sec-swap",
+    "open": "swap",
+    "pos": "section",
+    "title": "Swap — one asset against another",
+    "p": [
+      "Pick what you hold and what you are considering. The ratio shows how many of one you get for the other, where today sits in its recent range, and what a swap would give you at current prices.",
+      "It shows where the ratio is, not where it goes next."
+    ],
+    "note": "Choosing your own pair is a Pro feature."
+  },
+
+  /* 8. Pro */
+  {
+    "target": "button.tb-icon-btn[title=\"Unlock Pro\"]",
+    "pos": "below",
+    "title": "⚡ Pro",
+    "p": [
+      "**Pro** unlocks 10 holdings instead of 2, every score-gap and momentum tile, the Insight read updated every run instead of yesterday's, your own swap pairs, the Telegram channel and the AI assistant."
+    ],
+    "opts": [
+      {
+        "h": "Crypto",
+        "t": "Send $20 or more in USDT, BNB or ETH, submit the transaction hash, and Pro activates in seconds."
+      },
+      {
+        "h": "Refer 5 friends",
+        "t": "Pro unlocks when five people join through your link."
+      },
+      {
+        "h": "Pro code",
+        "t": "From giveaways or promotions."
+      }
+    ]
+  },
+
+  /* 9. Done */
+  {
+    "target": ".settings-btn",
+    "pos": "gear",
+    "title": "You're all set",
+    "p": [
+      "Data refreshes every 15 minutes on its own.",
+      "The **⚙ gear** changes the language and asset modes, and replays this tour."
+    ],
+    "note": "Questions: rotatortool@gmail.com"
   }
 ];
+
+/* The English text, kept so switching back from another language
+   restores it: applyLang() copies a language's fields over these
+   steps, and falls back to this when a language has none. */
+var TUT_EN = JSON.parse(JSON.stringify(TUT_STEPS));
 
 /* ── Tutorial engine ─────────────────────────────────────────── */
 
@@ -126,16 +182,50 @@ function tutCheckAgree() {
 
 function tutGetEl(selector) { return document.querySelector(selector); }
 
+/* Steps carry plain text (title, p[], note, warn, opts[]) so a
+   translation is plain text too; this is the one place that turns it
+   into markup. **x** becomes bold. A step with a ready-made desc (the
+   Pro tour) is used as is. */
+function _tutEsc(x) { return String(x).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;'); }
+function _tutMd(x)  { return _tutEsc(x).replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>'); }
+function _tutDesc(step) {
+  if (step.desc && !step.p) return step.desc;
+  var h = '<div style="font-size:14px;line-height:1.8;">';
+  h += (step.p || []).map(_tutMd).join('<br><br>');
+  if (step.opts && step.opts.length) {
+    h += '<div style="display:grid;gap:8px;font-size:12.5px;line-height:1.6;margin-top:12px;">'
+      + step.opts.map(function(o) { return '<div><strong style="color:var(--pro);">' + _tutEsc(o.h) + '</strong> — ' + _tutMd(o.t) + '</div>'; }).join('')
+      + '</div>';
+  }
+  if (step.warn) {
+    h += '<div style="margin-top:12px;background:rgba(255,69,96,.07);border:1px solid rgba(255,69,96,.3);border-radius:4px;padding:10px 12px;">'
+      + '<strong style="color:#ff4560;">⚠ ' + _tutEsc(step.warn.title) + '</strong><br>' + _tutMd(step.warn.text) + '</div>';
+  }
+  if (step.note) h += '<br><br><span style="font-size:12px;color:var(--muted);">' + _tutMd(step.note) + '</span>';
+  return h + '</div>';
+}
+
 /* ── Positioning ─────────────────────────────────────────────── */
+function _tutCenter(box, hole, wide, vw, vh) {
+  hole.style.display = 'none';
+  var bw = wide ? Math.min(vw - 40, 600) : 380;
+  box.style.width = bw + 'px';
+  box.style.left  = ((vw - bw) / 2) + 'px';
+  box.style.top   = Math.max(60, vh * 0.16) + 'px';
+  box.className   = 'tut-box';
+}
+
 function tutPosition() {
   var step = TUT_STEPS[tutStep_];
+  if (!step) return;
   var el   = tutGetEl(step.target);
   var hole = document.getElementById('tut-hole');
   var box  = document.getElementById('tut-box');
   var vw   = window.innerWidth;
   var vh   = window.innerHeight;
 
-  /* Mobile: always center */
+  /* Phones: always a centred card, no cut-out. The section has already
+     been scrolled into view behind it. */
   if (vw < 700) {
     hole.style.display = 'none';
     var mg = 12;
@@ -151,137 +241,106 @@ function tutPosition() {
   box.style.maxHeight = '';
   box.style.overflowY = '';
 
-  if (!el) { tutGoNext(); return; }
-  var r = el.getBoundingClientRect();
+  if (step.pos === 'center') { _tutCenter(box, hole, step.wide, vw, vh); return; }
 
-  if (r.width === 0 && r.height === 0) {
-    hole.style.display = 'none';
-    var bw = step.wide ? Math.min(vw - 40, 620) : 360;
+  /* A missing or hidden target never skips a step silently (the old
+     engine did, which is how a tour quietly lost its Pro step when
+     .pro-btn was removed). It shows the card centred instead. */
+  var r = el ? el.getBoundingClientRect() : null;
+  if (!r || (r.width === 0 && r.height === 0)) { _tutCenter(box, hole, step.wide, vw, vh); return; }
+
+  var pad = 6;
+
+  /* ── section: highlight what of the section is on screen, card below
+     it (or above when there is no room). A section can be taller than
+     the viewport, so the cut-out is clipped to the top ~55% and the card
+     takes the rest. ── */
+  if (step.pos === 'section') {
+    /* The card is measured FIRST and the cut-out gets whatever height is
+       left below the section's top, so the two never overlap. A section
+       taller than the screen is shown from its top down; a short one is
+       shown whole. (The first version clipped the cut-out to a fixed 55%
+       of the screen, and on a 1133px screen the taller cards landed on
+       top of it for four of the six sections.) */
+    var bw = Math.min(460, vw - 40);
+    var bx = Math.max(10, Math.min(r.left + (r.width - bw) / 2, vw - bw - 10));
     box.style.width = bw + 'px';
-    box.style.left  = ((vw - bw) / 2) + 'px';
-    box.style.top   = Math.max(60, vh * 0.12) + 'px';
-    box.className   = 'tut-box';
+    box.className   = 'tut-box arrow-top';
+    hole.style.display = 'block';
+    /* Synchronous on purpose: offsetHeight forces the layout it needs,
+       and requestAnimationFrame does not run in a background tab. */
+    (function() {
+      var bh = box.offsetHeight || 260;
+      var gap = pad + 12;
+      var top = Math.max(r.top, 8);
+      var room = vh - 10 - bh - gap - top - pad;   /* cut-out height that still leaves the card room below */
+      var bottom = Math.min(r.bottom, top + Math.max(80, room));
+      hole.style.left   = (r.left - pad) + 'px';
+      hole.style.top    = (top - pad) + 'px';
+      hole.style.width  = (r.width + pad * 2) + 'px';
+      hole.style.height = Math.max(40, bottom - top + pad * 2) + 'px';
+      var by = bottom + gap;
+      if (by + bh > vh - 10) {
+        /* Not enough room for the whole card (the COINS step, with its
+           disclaimer, on a 720px laptop): let it scroll inside the space
+           that is left rather than cover what it is describing. Only if
+           even that is too small does it fall back to overlapping. */
+        var space = vh - 10 - by;
+        if (space >= 240) { box.style.maxHeight = space + 'px'; box.style.overflowY = 'auto'; }
+        else { by = Math.max(10, vh - bh - 10); box.className = 'tut-box'; }
+      }
+      box.style.left = bx + 'px';
+      box.style.top  = by + 'px';
+    })();
     return;
   }
 
-  var pad = 6;
   hole.style.display = 'block';
   hole.style.left   = (r.left - pad) + 'px';
   hole.style.top    = (r.top  - pad) + 'px';
   hole.style.width  = (r.width  + pad * 2) + 'px';
   hole.style.height = (r.height + pad * 2) + 'px';
 
-  /* ── center (step 1 welcome) ── */
-  if (step.pos === 'center') {
-    hole.style.display = 'none';
-    var bw = step.wide ? Math.min(vw - 40, 620) : 380;
-    box.style.width = bw + 'px';
-    box.style.left  = ((vw - bw) / 2) + 'px';
-    box.style.top   = Math.max(60, vh * 0.18) + 'px';
-    box.className   = 'tut-box';
-    return;
-  }
-
-  /* ── gear (step 6 all set) — left of gear icon ── */
+  /* ── gear: left of the settings button ── */
   if (step.pos === 'gear') {
-    var bw = 320;
-    var bx = Math.max(10, r.left - bw - 12);
-    var by = Math.max(10, Math.min(r.bottom + 10, vh - 280));
-    box.style.width = bw + 'px';
-    box.style.left  = bx + 'px';
-    box.style.top   = by + 'px';
+    var gw = 320;
+    box.style.width = gw + 'px';
+    box.style.left  = Math.max(10, r.left - gw - 12) + 'px';
+    box.style.top   = Math.max(10, Math.min(r.bottom + 10, vh - 280)) + 'px';
     box.className   = 'tut-box arrow-right';
     return;
   }
 
-  /* ── left-panel-right (step 2 holdings) — to the right of left sidebar ── */
-  if (step.pos === 'left-panel-right') {
-    var bw = 310;
-    /* Place box just to the right of the sidebar (left panel is ~310px wide) */
-    var sidebar = document.querySelector('.sidebar');
-    var sRect   = sidebar ? sidebar.getBoundingClientRect() : r;
-    /* Highlight the tiles area specifically */
-    var tilesEl = document.getElementById('tiles-grid');
-    if (tilesEl) {
-      var tr = tilesEl.getBoundingClientRect();
-      hole.style.left   = (sRect.left) + 'px';
-      hole.style.top    = (sRect.top) + 'px';
-      hole.style.width  = (sRect.width) + 'px';
-      hole.style.height = (sRect.height) + 'px';
+  /* ── below: under a top-bar control ── */
+  var w = step.wide ? Math.min(vw - 40, 600) : 360;
+  box.style.width = w + 'px';
+  box.className   = 'tut-box arrow-top';
+  var bh = box.offsetHeight || 260;   /* synchronous, as in 'section' */
+  box.style.left = Math.max(10, Math.min(r.left + r.width / 2 - w + 40, vw - w - 10)) + 'px';
+  box.style.top  = Math.max(10, Math.min(r.bottom + pad + 12, vh - bh - 10)) + 'px';
+}
+
+/* Open a collapsed section, then scroll to it, then place the card.
+   The collapse animation runs ~320ms and the scroll is smooth, so the
+   card is placed after both; the scroll listener below keeps it in
+   place if the page settles later. */
+function _tutPrepare(step, done) {
+  var wait = 0;
+  if (step.open) {
+    var body = document.getElementById('cb-' + step.open);
+    if (body && body.classList.contains('collapsed') && typeof toggleCollapse === 'function') {
+      toggleCollapse(step.open);
+      wait = 340;
     }
-    var bx = sRect.right + 14;
-    /* Vertically center on the panel */
-    box.style.width = bw + 'px';
-    box.className   = 'tut-box arrow-left';
-    requestAnimationFrame(function() {
-      var bh = box.offsetHeight || 200;
-      var by = sRect.top + (sRect.height - bh) / 2;
-      by = Math.max(40, Math.min(by, vh - bh - 10));
-      bx = Math.min(bx, vw - bw - 10);
-      box.style.left = bx + 'px';
-      box.style.top  = by + 'px';
-    });
-    return;
   }
-
-  /* ── neon-below (step 3 signal center) — below the neon section tiles ── */
-  if (step.pos === 'neon-below') {
-    var bw = step.wide ? Math.min(vw - 40, Math.max(620, r.width - 20)) : 500;
-    /* Center horizontally over the neon section */
-    var bx = r.left + (r.width - bw) / 2;
-    bx = Math.max(10, Math.min(bx, vw - bw - 10));
-    box.style.width = bw + 'px';
-    box.className   = 'tut-box arrow-top';
-    requestAnimationFrame(function() {
-      var bh = box.offsetHeight || 220;
-      var by = r.bottom + 10;
-      if (by + bh > vh - 10) { by = r.top - bh - 10; box.className = 'tut-box arrow-bottom'; }
-      box.style.left = bx + 'px';
-      box.style.top  = by + 'px';
-    });
-    return;
-  }
-
-  /* ── swap-tool (step 5) — to the LEFT of the right panel, arrow pointing right ── */
-  if (step.pos === 'swap-tool') {
-    hole.style.display = 'none'; /* don't highlight the whole right panel */
-    var bw = 360;
-    /* right panel starts at r.left — place box just to its left */
-    var bx = r.left - bw - 18;
-    if (bx < 10) bx = 10;
-    box.style.width = bw + 'px';
-    box.className   = 'tut-box arrow-right';
-    requestAnimationFrame(function() {
-      var bh = box.offsetHeight || 300;
-      /* Align vertically to the ratio section top area */
-      var by = r.top + 40;
-      by = Math.max(40, Math.min(by, vh - bh - 10));
-      box.style.left = bx + 'px';
-      box.style.top  = by + 'px';
-    });
-    return;
-  }
-
-  /* ── General fallback ── */
-  var bw = step.wide ? Math.min(vw - 40, Math.max(600, r.width)) : 320;
-  box.style.width = bw + 'px';
-  box.className   = 'tut-box arrow-' + step.arrow;
-
-  requestAnimationFrame(function() {
-    var bh = box.offsetHeight || 260;
-    var margin = 14;
-    var bx, by;
-    if      (step.pos === 'below')      { bx = r.left; by = r.bottom + pad + margin; }
-    else if (step.pos === 'above')      { bx = r.left; by = r.top - pad - margin - bh; }
-    else if (step.pos === 'right')      { bx = r.right + pad + margin; by = r.top; }
-    else if (step.pos === 'right-high') { bx = r.right + pad + margin; by = Math.max(50, r.top); }
-    else                                { bx = r.left - bw - pad - margin; by = r.top; }
-
-    bx = Math.max(10, Math.min(bx, vw - bw - 10));
-    by = Math.max(10, Math.min(by, vh - bh - 10));
-    box.style.left = bx + 'px';
-    box.style.top  = by + 'px';
-  });
+  setTimeout(function() {
+    if (step.goto && typeof railGo === 'function') {
+      railGo(step.goto);
+      setTimeout(done, 450);
+    } else {
+      done();
+    }
+  }, wait);
 }
 
 function tutRender() {
@@ -291,7 +350,7 @@ function tutRender() {
   var _o = (typeof t === 'function') ? t('tut_of') : 'OF';
   document.getElementById('tut-step-label').textContent = _s + ' ' + (tutStep_+1) + ' ' + _o + ' ' + TUT_STEPS.length;
   document.getElementById('tut-title').textContent      = step.title;
-  document.getElementById('tut-desc').innerHTML         = step.desc;
+  document.getElementById('tut-desc').innerHTML         = _tutDesc(step);
 
   var showDisclaimer = !!step.disclaimer;
   document.getElementById('tut-disclaimer').style.display = showDisclaimer ? 'block' : 'none';
@@ -316,14 +375,18 @@ function tutRender() {
   document.getElementById('tut-prev').style.display = tutStep_ === 0 ? 'none' : '';
 
   var nextBtn = document.getElementById('tut-next');
-  var _fin = (typeof t === 'function') ? t('tut_finish') : 'Finish \u2713';
-  var _agr = (typeof t === 'function') ? t('tut_agree_btn') : 'I Agree \u2192';
-  var _nxt = (typeof t === 'function') ? t('tut_next') : 'Next \u2192';
+  var _fin = (typeof t === 'function') ? t('tut_finish') : 'Finish ✓';
+  var _agr = (typeof t === 'function') ? t('tut_agree_btn') : 'I Agree →';
+  var _nxt = (typeof t === 'function') ? t('tut_next') : 'Next →';
   if      (tutStep_ === TUT_STEPS.length - 1) nextBtn.textContent = _fin;
   else if (showAgree)                          nextBtn.textContent = _agr;
   else                                         nextBtn.textContent = _nxt;
 
+  /* Place once straight away (so the card never sits on the previous
+     step's spot), then again once the section is open and in view. */
   tutPosition();
+  var stepAtRender = tutStep_;
+  _tutPrepare(step, function() { if (tutActive && tutStep_ === stepAtRender) tutPosition(); });
 }
 
 function tutGoNext() {
@@ -368,105 +431,97 @@ function initTutorial() {
   if (isOn) setTimeout(startTutorial, 800);
 }
 
-window.addEventListener('resize', function() { if (tutActive) tutPosition(); });
+/* Keep the cut-out on its section while the page moves: resize, and any
+   scroll (the reader's own, or a section settling after it opened).
+   One frame per burst of events. */
+var _tutRaf = 0;
+function _tutReflow() {
+  if (!tutActive || _tutRaf) return;
+  _tutRaf = requestAnimationFrame(function() { _tutRaf = 0; tutPosition(); });
+}
+window.addEventListener('resize', _tutReflow);
+window.addEventListener('scroll', _tutReflow, { passive: true });
 
 /* ══════════════════════════════════════════════════════════════════
    PRO TUTORIAL — shown once after Pro is unlocked
-   Reuses the same engine but with Pro-specific steps.
+   Reuses the same engine with Pro-specific steps. Rewritten 2026-09-25
+   to match what Pro unlocks today (holdings.js limits, signals.js tile
+   counts, the live Insight read, ratio.js own pairs, the Telegram
+   channel and the assistant). "All categories unlocked" and "Top 200
+   coins" were removed: neither is gated any more.
 ══════════════════════════════════════════════════════════════════ */
 
 var PRO_TUT_KEY = 'rot_pro_tutorial_done';
 
 var PRO_TUT_STEPS = [
 
-  /* Step 1: Welcome to Pro */
   {
     target: '.topbar',
-    title: '⚡ Welcome to Pro!',
-    desc: '<div style="font-size:14px;line-height:1.85;">'
-        + 'Thank you for supporting Rotator! You\'ve unlocked the full experience.<br><br>'
-        + 'Let\'s quickly walk through <strong style="color:var(--pro);">what\'s new</strong> so you get the most out of your upgrade.'
+    title: '⚡ Welcome to Pro',
+    desc: _TUT_P
+        + 'Thank you for supporting Rotator. Here is what just unlocked, section by section.'
         + '</div>',
-    arrow: 'top', pos: 'center', wide: false
+    pos: 'center'
   },
 
-  /* Step 2: All categories unlocked */
   {
-    target: '#cat-bar',
-    title: 'All Categories Unlocked',
-    desc: '<div style="font-size:14px;line-height:1.85;">'
-        + 'You now have access to <strong>all 10 categories</strong> — L2, AI, Gaming, RWA, Infra, and Stablecoins are all unlocked.<br><br>'
-        + 'Each category filters the leaderboard to show sector-specific performance. Use this to spot <strong>sector rotation</strong> trends.'
+    target: '#sec-yours', goto: 'sec-yours', open: 'holdings',
+    title: '10 holdings and every score gap',
+    desc: _TUT_P
+        + 'You can now track <strong>10 holdings</strong>, and all four score-gap tiles are visible.<br><br>'
+        + 'Holder warnings (announced delistings, Monitoring tags, large unlocks) apply to every coin you add.'
         + '</div>',
-    arrow: 'top', pos: 'neon-below', wide: true
+    pos: 'section'
   },
 
-  /* Step 3: Top 200 coins */
   {
-    target: '.leaderboard',
-    title: 'Top 200 Coins',
-    desc: '<div style="font-size:14px;line-height:1.85;">'
-        + 'The leaderboard now shows <strong>200 coins</strong> including stablecoins with live DeFi <strong style="color:#8dffc0;">APR yields</strong>.<br><br>'
-        + 'More coins means better coverage of trends across sectors.'
+    target: '#sec-rotation', goto: 'sec-rotation', open: 'hot',
+    title: 'Every momentum tile',
+    desc: _TUT_P
+        + 'All six High Momentum tiles are unlocked, not just the first.'
         + '</div>',
-    arrow: 'bottom', pos: 'above', wide: true
+    pos: 'section'
   },
 
-  /* Step 4: Insight Engine */
   {
-    target: '#td-insight-sec',
-    title: '⚡ Insight Engine',
-    desc: '<div style="font-size:14px;line-height:1.85;">'
-        + 'The <strong style="color:var(--pro);">Insight Engine</strong> gives you a 5-pillar forward-looking signal on any coin in your holdings or watchlist:<br><br>'
-        + '<div style="display:grid;gap:6px;font-size:12px;line-height:1.6;">'
-          + '<div><strong style="color:var(--green);">Momentum Reset</strong> — oversold/overbought detection</div>'
-          + '<div><strong style="color:var(--bnb);">Liquidity Trap</strong> — volume vs market cap analysis</div>'
-          + '<div><strong style="color:var(--pro);">Dilution Shield</strong> — token unlock risk assessment</div>'
-          + '<div><strong style="color:#87CEEB;">Contrarian Sentiment</strong> — Fear & Greed signals</div>'
-          + '<div><strong style="color:var(--green);">Relative Strength</strong> — performance vs BTC</div>'
-        + '</div><br>'
-        + '<span style="font-size:12px;color:var(--muted);">Click any coin in your holdings to see its Insight score.</span>'
+    target: '.topbar',
+    title: '⚡ The Insight read, live',
+    desc: _TUT_P
+        + 'Open any coin to see its Insight read. It now updates with every 15-minute run instead of showing yesterday\'s.<br><br>'
+        + '<span style="' + _TUT_SMALL + '">The Insight read describes how a coin is behaving. It is not a forecast.</span>'
         + '</div>',
-    arrow: 'top', pos: 'center', wide: true
+    pos: 'center'
   },
 
-  /* Step 5: Best Time to Swap */
   {
-    target: '#ratio-section',
-    title: '↔ Best Time to Swap',
-    desc: '<div style="font-size:14px;line-height:1.85;">'
-        + 'The Swap Tool now shows <strong style="color:var(--green);">support and resistance levels</strong> on the ratio chart — green dashed lines marking the best swap zone.<br><br>'
-        + '<strong>BEST SWAP ▲</strong> — when the ratio hits the <strong>resistance level</strong> (75th percentile), you get maximum value for your swap.<br><br>'
-        + '<strong style="color:var(--bnb);">SUPPORT ▼</strong> — when the ratio drops to the <strong>support level</strong> (25th percentile), it may be better to wait.<br><br>'
-        + '<span style="font-size:12px;color:var(--muted);">Use the calculator below the chart to simulate exact amounts before executing.</span>'
+    target: '#sec-swap', goto: 'sec-swap', open: 'swap',
+    title: 'Your own swap pairs',
+    desc: _TUT_P
+        + 'Choose any two assets and see how their ratio has moved, where today sits in the recent range, and what a swap would give you at current prices.'
         + '</div>',
-    arrow: 'right', pos: 'swap-tool', wide: false
+    pos: 'section'
   },
 
-  /* Step 6: Pro holdings */
   {
-    target: '#my-holdings-panel',
-    title: 'Pro Holdings (Up to 10)',
-    desc: '<div style="font-size:14px;line-height:1.85;">'
-        + 'Your holdings limit has been raised to <strong>10 assets</strong>. Track your full portfolio with advanced insights on each coin.<br><br>'
-        + 'The <strong style="color:var(--bnb);">Portfolio Signal</strong> improves with more data — it compares your holdings against each other and against the broader market.<br><br>'
-        + '<strong>Full score gaps</strong> — all 4 slots in the Signal Center above are now unlocked.'
+    target: '.topbar',
+    title: 'Telegram channel and AI assistant',
+    desc: _TUT_P
+        + 'The <strong>Telegram channel</strong> link is now open to you, and the <strong>AI assistant</strong> answers questions about the current scores, using only the latest run.'
         + '</div>',
-    arrow: 'left', pos: 'left-panel-right'
+    pos: 'center'
   },
 
-  /* Step 7: Recovery key */
   {
     target: '.settings-btn',
-    title: 'Save Your Recovery Key',
-    desc: '<div style="font-size:14px;line-height:1.85;">'
-        + 'Your Pro status is <strong>synced to the cloud</strong>. To access it on another device or browser:<br><br>'
-        + '<strong>1.</strong> Open Pro settings (click ⚡ in the top bar)<br>'
-        + '<strong>2.</strong> Copy your <strong>Recovery Key</strong><br>'
-        + '<strong>3.</strong> Paste it on the new device to restore Pro<br><br>'
-        + '<span style="font-size:12px;color:var(--muted);">You can replay this tutorial anytime from the ⚙ gear menu.</span>'
+    title: 'Save your recovery key',
+    desc: _TUT_P
+        + 'Your Pro status is <strong>synced to the cloud</strong>. To use it on another device or browser:<br><br>'
+        + '<strong>1.</strong> Open Pro settings (⚡ in the top bar)<br>'
+        + '<strong>2.</strong> Copy your <strong>recovery key</strong><br>'
+        + '<strong>3.</strong> Paste it on the new device<br><br>'
+        + '<span style="' + _TUT_SMALL + '">Replay this tour any time from the ⚙ gear menu.</span>'
         + '</div>',
-    arrow: 'right', pos: 'gear'
+    pos: 'gear'
   }
 ];
 

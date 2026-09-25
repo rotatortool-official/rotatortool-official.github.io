@@ -988,7 +988,7 @@ document.addEventListener('DOMContentLoaded',function(){
 /* ── Share Rotator ── */
 function shareRotation() {
   var url   = 'https://rotatortool-official.github.io';
-  var title = 'Rotator — Free Crypto Rotation Screener';
+  var title = 'Rotator — an honest market pulse for Binance traders';
   var text  = 'I use Rotator to time my crypto rotations — real-time signals and momentum scores for 200+ coins, completely free.\n\nStop guessing when to swap. Let the data decide.';
 
   /* Try native Web Share API first (mobile + modern browsers) */
@@ -1353,7 +1353,7 @@ function shareSwapCard() {
   ctx.fillText('ROTATOR', 60, H - 22);
   ctx.fillStyle = 'rgba(255,255,255,0.35)';
   ctx.font = '18px Inter, sans-serif';
-  ctx.fillText('Real-time rotation signals & swap calculator', 230, H - 22);
+  ctx.fillText('Ratio tracker & swap calculator', 230, H - 22);
   ctx.fillStyle = 'rgba(243,186,47,0.7)';
   ctx.font = 'bold 18px Inter, sans-serif';
   ctx.textAlign = 'right';

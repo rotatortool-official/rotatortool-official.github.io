@@ -114,7 +114,7 @@ function checkMyReferrals() {
 function showProToast() {
   var t = document.createElement('div');
   t.style.cssText = 'position:fixed;top:56px;left:50%;transform:translateX(-50%);background:#1a2030;border:1px solid #a78bfa;border-radius:6px;padding:14px 22px;font-family:IBM Plex Mono,monospace;font-size:12px;color:#a78bfa;z-index:900;text-align:center;box-shadow:0 0 30px rgba(167,139,250,.2);letter-spacing:.06em;';
-  t.innerHTML = '⚡ PRO UNLOCKED — 5 friends joined!<br><span style="font-size:12px;color:#3e4d60;margin-top:4px;display:block;">All 200 coins + stablecoin yields available.</span>';
+  t.innerHTML = '⚡ PRO UNLOCKED — 5 friends joined!<br><span style="font-size:12px;color:#3e4d60;margin-top:4px;display:block;">10 holdings, every score gap and the live Insight read are now open.</span>';
   document.body.appendChild(t);
   setTimeout(function() { t.style.transition = 'opacity .5s'; t.style.opacity = '0'; setTimeout(function() { t.remove(); }, 500); }, 4000);
   /* Start Pro tutorial after toast */
@@ -128,7 +128,7 @@ function updateTierBadge() {
   var count = getRefData().refs.length;
   if (isPro) {
     var daysLeft = getProDaysLeft();
-    var badgeText = '⚡ PRO · TOP 200';
+    var badgeText = '⚡ PRO';
     if (daysLeft >= 0) badgeText = '⚡ PRO · ' + daysLeft + 'd left';
     b.className = 'tier-badge pro'; b.textContent = badgeText;
     if (pb) {
@@ -138,7 +138,7 @@ function updateTierBadge() {
     /* 3-day warning */
     if (daysLeft >= 0 && daysLeft <= 3) showExpiryWarning(daysLeft);
   } else {
-    b.className = 'tier-badge free'; b.textContent = 'FREE · TOP 200';
+    b.className = 'tier-badge free'; b.textContent = 'FREE';
     var refNeeded = (typeof REFERRAL_NEEDED !== 'undefined') ? REFERRAL_NEEDED : 5;
     if (pb) { pb.textContent = count > 0 ? '⚡ UNLOCK PRO (' + count + '/' + refNeeded + ')' : '⚡ UNLOCK PRO'; pb.style.opacity = ''; }
   }
@@ -178,7 +178,7 @@ function openPro() {
       + '<div style="margin-top:10px;background:var(--gd);border:1px solid rgba(0,200,150,.2);border-radius:4px;padding:8px 14px;text-align:center;font-size:12px;color:var(--green);font-weight:600;">Lifetime Pro — your support keeps Rotator independent</div>'
       + '<div style="margin-top:14px;background:var(--bg3);border:1px solid var(--bdr2);border-radius:4px;padding:12px 14px;">'
         + '<div style="font-size:12px;color:var(--muted);letter-spacing:.12em;margin-bottom:8px;">' + _('pro_coming') + '</div>'
-        + '<div style="font-size:12px;color:var(--text);line-height:2;">◈ <strong style="color:var(--bnb)">' + _('pro_coming_1') + '</strong> rotation tracker<br>◈ <strong style="color:var(--pro)">' + _('pro_coming_2') + '</strong> performance screener<br>◈ ' + _('pro_coming_3') + '</div>'
+        + '<div style="font-size:12px;color:var(--text);line-height:2;">◈ <strong style="color:var(--bnb)">' + _('pro_coming_1') + '</strong><br>◈ <strong style="color:var(--pro)">' + _('pro_coming_2') + '</strong><br>◈ ' + _('pro_coming_3') + '</div>'
       + '</div>'
       + '<div style="margin-top:14px;background:var(--bg3);border:1px solid var(--bdr2);border-radius:4px;padding:12px 14px;">'
         + '<div style="font-size:12px;color:var(--muted);letter-spacing:.12em;margin-bottom:8px;">YOUR RECOVERY KEY</div>'
@@ -386,8 +386,8 @@ function copyRefLink() {
 /* ── Pre-composed share intents for the referral link ────────── */
 function shareReferral(channel) {
   var link = getMyReferralLink();
-  var text = 'I\'ve been using Rotator to find which crypto is rotating before the crowd — real-time signals, momentum scoring, and a public track record. Free to try:';
-  var title = 'Rotator — Crypto Rotation Screener';
+  var text = 'I\'ve been using Rotator: an honest market pulse for Binance traders. 250 coins scored every 15 minutes, holder warnings for delistings and unlocks, and a public track record. Free to try:';
+  var title = 'Rotator — an honest market pulse for Binance traders';
   var url;
   if (channel === 'x') {
     url = 'https://x.com/intent/tweet?text=' + encodeURIComponent(text + '\n\n' + link);
