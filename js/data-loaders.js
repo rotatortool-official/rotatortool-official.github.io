@@ -1030,11 +1030,21 @@ async function runSignalEngine() {
      run doesn't know about (bStocks, or a coin outside its universe)
      simply keeps whatever the local pass above already set. */
   try {
-    var runRows = await supaRest('signal_runs', 'GET', {
+    /* The newest run whose items are WRITTEN, not the newest header
+       (promptove/63). compute-signal-run inserts the header, then every
+       item in one insert; a visitor landing in between got a run with no
+       items, kept the local scores, and the page stamped them with that
+       empty run's time and version. The highest run_id in
+       signal_run_items is the newest populated run: one PK index read. */
+    var lastItem = await supaRest('signal_run_items', 'GET', {
+      select: 'run_id', order: 'run_id.desc', limit: '1'
+    });
+    var latestId = lastItem && lastItem[0] && lastItem[0].run_id;
+    var runRows = latestId == null ? [] : await supaRest('signal_runs', 'GET', {
+      id:     'eq.' + latestId,
       /* params->marketOversold arrives as `marketOversold` (engine 2.10.0).
          Only that key: the rest of params is provenance, not page data. */
       select: 'id,as_of,engine_version,cycle_label,params->marketOversold',
-      order:  'as_of.desc',
       limit:  '1'
     });
     var latest = runRows && runRows[0];

@@ -199,8 +199,13 @@ Deno.serve(async (req: Request) => {
     // symbols; an RSI lens on the leaderboard needs the coins actually
     // ON the leaderboard, or it renders for a third of the book and
     // reads as broken data rather than as a narrow universe.
-    const { data: latestRun } = await supabase
-      .from('signal_runs').select('id').order('as_of', { ascending: false }).limit(1).maybeSingle();
+    //
+    // The newest run WITH items, not the newest header: a header read in
+    // the instant before its items land has none, and this sync would
+    // then fetch klines for the called coins only (promptove/63).
+    const { data: lastItem } = await supabase
+      .from('signal_run_items').select('run_id').order('run_id', { ascending: false }).limit(1).maybeSingle();
+    const latestRun = lastItem ? { id: lastItem.run_id } : null;
 
     const [{ data: snapRows }, { data: spotRows }, { data: itemRows }] = await Promise.all([
       supabase.from('signal_snapshots').select('coin_sym').gte('snap_date', cutoff),

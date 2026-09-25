@@ -166,11 +166,25 @@ Deno.serve(async (req: Request): Promise<Response> => {
       return json({ error: 'rate_limited', limit: MAX_QUESTIONS_PER_DAY, count: usage?.count ?? null }, 429);
     }
 
-    // ── 3. Latest signal run — the ONLY data source the assistant sees ──
+    // ── 3. Latest COMPLETE signal run — the ONLY data source the assistant sees ──
+    // Not the newest signal_runs row. compute-signal-run inserts the
+    // header, then every item in ONE insert, so a run has all its items or
+    // none. Reading the newest header races that insert every quarter hour,
+    // and a failed insert used to leave a header with no items at all
+    // (promptove/63). The highest run_id in signal_run_items is the newest
+    // run that is actually populated, and it is one index read on the PK.
+    const { data: lastItem, error: lastErr } = await supabase
+      .from('signal_run_items')
+      .select('run_id')
+      .order('run_id', { ascending: false })
+      .limit(1)
+      .maybeSingle();
+    if (lastErr) throw new Error('latest run lookup failed: ' + lastErr.message);
+    if (!lastItem) return json({ error: 'no_signal_run' }, 503);
     const { data: runRows, error: runErr } = await supabase
       .from('signal_runs')
       .select('id, as_of, engine_version, cycle_label, universe_size, eligible_count')
-      .order('as_of', { ascending: false })
+      .eq('id', lastItem.run_id)
       .limit(1);
     if (runErr) throw new Error('signal_runs read failed: ' + runErr.message);
     const run = runRows?.[0];

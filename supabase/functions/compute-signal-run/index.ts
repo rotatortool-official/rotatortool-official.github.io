@@ -419,13 +419,22 @@ Deno.serve(async (req) => {
     let previousAsOf: string | null = null;
     try {
       const since = new Date(Date.now() - CHANGE_WINDOW_HOURS * 3600 * 1000).toISOString();
-      let { data: prevRun } = await supabase
+      // The newest POPULATED run inside the window, not merely the newest
+      // header (promptove/63). A header whose items never landed would
+      // otherwise make `previous` null, and the whole movement report for
+      // this run would read "no comparison available".
+      let prevRun: { id: number; as_of: string } | null = null;
+      const { data: prevCands } = await supabase
         .from('signal_runs')
         .select('id, as_of')
         .lte('as_of', since)
         .order('as_of', { ascending: false })
-        .limit(1)
-        .maybeSingle();
+        .limit(5);
+      for (const cand of prevCands ?? []) {
+        const { data: one } = await supabase
+          .from('signal_run_items').select('run_id').eq('run_id', cand.id).limit(1);
+        if (one && one.length) { prevRun = cand; break; }
+      }
       if (!prevRun) {
         // Less history than the window: fall back to the OLDEST run
         // rather than the newest, so the comparison spans as much time
@@ -615,7 +624,17 @@ Deno.serve(async (req) => {
       }));
 
     const { error: itemsErr } = await supabase.from('signal_run_items').insert(items);
-    if (itemsErr) throw new Error('signal_run_items insert failed: ' + itemsErr.message);
+    if (itemsErr) {
+      // Take the header back out (promptove/63). The items insert is one
+      // statement, so it wrote all or nothing; a header left behind with
+      // no items becomes the "newest run" for every reader that orders
+      // signal_runs by as_of, and pipeline_health() counts it as a
+      // healthy run. Best effort: if the delete fails too, the readers'
+      // own walk-back to a populated run still protects them.
+      const { error: undoErr } = await supabase.from('signal_runs').delete().eq('id', runRow.id);
+      if (undoErr) console.error('[compute-signal-run] could not remove orphan header', runRow.id, undoErr.message);
+      throw new Error('signal_run_items insert failed: ' + itemsErr.message);
+    }
 
     // ── Keep signal_zone_state fed — the site no longer writes it
     //    itself (Step B site rewiring), so this cron is now the SOLE

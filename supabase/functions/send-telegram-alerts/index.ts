@@ -477,25 +477,41 @@ Deno.serve(async (req: Request) => {
   const { lines: eventLines, shown: shownEvents } = buildEventSections(events, ctx);
 
   // ── The two runs being compared ──────────────────────────────
-  const { data: latestRun, error: lrErr } = await supabase
-    .from('signal_runs').select('id, as_of')
-    .order('as_of', { ascending: false }).limit(1).maybeSingle();
+  // Both sides must be runs whose items are WRITTEN (promptove/63).
+  // compute-signal-run inserts the header, then every item in one insert.
+  // A header read in between, or left behind by a failed insert, has no
+  // items. On the "now" side that reads as a quiet day, and on the
+  // baseline side every coin loses its baseline and is skipped. Either
+  // way the message silently says nothing. So walk back to the newest
+  // populated run on each side.
+  async function completeRun(atOrBefore?: string): Promise<{ id: string; as_of: string } | null> {
+    let q = supabase.from('signal_runs').select('id, as_of')
+      .order('as_of', { ascending: false }).limit(5);
+    if (atOrBefore) q = q.lte('as_of', atOrBefore);
+    const { data, error } = await q;
+    if (error) throw new Error(error.message);
+    for (const r of data ?? []) {
+      const { data: one, error: e2 } = await supabase
+        .from('signal_run_items').select('run_id').eq('run_id', r.id).limit(1);
+      if (e2) throw new Error(e2.message);
+      if (one && one.length) return r;
+    }
+    return null;
+  }
 
-  if (lrErr) return json({ ok: false, reason: lrErr.message }, 500);
+  let latestRun: { id: string; as_of: string } | null = null;
+  try { latestRun = await completeRun(); }
+  catch (e) { return json({ ok: false, reason: (e as Error).message }, 500); }
 
   let prevRun: { id: string; as_of: string } | null = null;
   let zoneSkipped = '';
 
   if (!latestRun) {
-    zoneSkipped = 'no signal_runs yet';
+    zoneSkipped = 'no populated signal_runs yet';
   } else {
     const cutoff = new Date(new Date(latestRun.as_of).getTime() - LOOKBACK_HOURS * 3600000);
-    const { data: pr, error: prErr } = await supabase
-      .from('signal_runs').select('id, as_of')
-      .lte('as_of', cutoff.toISOString())
-      .order('as_of', { ascending: false }).limit(1).maybeSingle();
-    if (prErr) return json({ ok: false, reason: prErr.message }, 500);
-    prevRun = pr;
+    try { prevRun = await completeRun(cutoff.toISOString()); }
+    catch (e) { return json({ ok: false, reason: (e as Error).message }, 500); }
     // Without a baseline every coin looks like it "just entered" its zone,
     // which on a fresh database means a 90-coin message. Stay silent until
     // there is real history to compare against.
