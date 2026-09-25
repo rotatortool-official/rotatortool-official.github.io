@@ -85,6 +85,28 @@ const PRODUCTS_URL =
 // live feed on 2026-09-06: 32 USDT pairs matched, including SYN and GLMR.
 const MONITORING_TAG = 'Monitoring';
 
+// ── ANNOUNCED DELISTINGS, added 2026-09-25 ─────────────────────
+// The "does not catch" note in the header, answered by hand. Binance
+// announces a delisting in a blog post, not an API, so a coin keeps
+// status TRADING until the day it goes. For that stretch it is still
+// eligible, and a buy suggestion for a coin with a known end date is the
+// exact harm this function exists to prevent.
+//
+// Entries are written as status DELIST_ANNOUNCED, so they exclude from
+// the BUY side only, like every other row here; a held coin is still
+// shown. Once the date passes exchangeInfo takes over (BREAK, then
+// NOT_LISTED), and the entry can be deleted, though it is harmless to
+// leave it.
+//
+// Only add a coin from Binance's own announcement.
+const ANNOUNCED_DELISTINGS: { base: string; date: string; note: string }[] = [
+  // STG/USDT spot delists 2026-10-06 11:00 UTC; deposits/withdrawals stop
+  // 11:30. Stargate merges into LayerZero at a fixed 1 STG = 0.08634 ZRO,
+  // which valued STG ~32% below market when announced. The perps settled
+  // 2026-09-24. Binance converts balances for its users.
+  { base: 'STG', date: '2026-10-06', note: 'STG -> ZRO merger, fixed ratio' },
+];
+
 // Shape of one row from get-products. Terse single-letter keys are
 // Binance's, not ours: s=symbol, b=base, q=quote, st=status.
 interface BinanceProduct {
@@ -188,7 +210,19 @@ Deno.serve(async (req) => {
     const { error: delErr } = await supabase.from('binance_delisted_symbols').delete().neq('base_asset', '');
     if (delErr) throw new Error('clear failed: ' + delErr.message);
 
-    const rows = [...notTrading, ...notListed];
+    // A base already flagged by exchangeInfo keeps that row: a real
+    // status beats an announcement.
+    const flaggedBases = new Set([...notTrading, ...notListed].map((r) => r.base_asset));
+    const announced = ANNOUNCED_DELISTINGS
+      .filter((a) => !flaggedBases.has(a.base))
+      .map((a) => ({
+        base_asset: a.base,
+        binance_symbol: a.base + 'USDT',
+        status: 'DELIST_ANNOUNCED',
+        checked_at: new Date().toISOString(),
+      }));
+
+    const rows = [...notTrading, ...notListed, ...announced];
     for (let i = 0; i < rows.length; i += 200) {
       const { error: insErr } = await supabase.from('binance_delisted_symbols').insert(rows.slice(i, i + 200));
       if (insErr) throw new Error('insert failed: ' + insErr.message);
@@ -264,6 +298,7 @@ Deno.serve(async (req) => {
         not_listed: notListed.length,
         not_listed_symbols: notListed.map((s) => s.base_asset),
         ...(notListedErr ? { not_listed_error: notListedErr } : {}),
+        delist_announced: announced.map((a) => a.base_asset),
         monitoring_ok: monitoringOk,
         tagged_symbols: monitoringOk ? tagged.length : null,
         monitoring_flagged: monitoringOk ? monitoring.length : null,
