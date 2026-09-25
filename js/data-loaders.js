@@ -2344,7 +2344,14 @@ function openTileDetail(coinId, evt) {
           color = 'var(--green)';
           flash = true;
           label = 'Quick RSI reclaim · back above 30 after ' + nbTxt;
-          body = from + ' · in past data, quick reclaims beat the market over the next week 53% of the time (1,083 cases)';
+          /* The figure comes from ROTATOR_EVIDENCE.rsiReclaim, never
+             typed here; without it the row says the direction only. */
+          var rq = (typeof ROTATOR_EVIDENCE !== 'undefined' && ROTATOR_EVIDENCE.rsiReclaim) || null;
+          body = from + ' · in past data, quick reclaims beat the market over the next '
+            + (rq ? (rq.horizonDays === 7 ? 'week ' : rq.horizonDays + ' days ')
+                  + Math.round(rq.quick.beatPct) + '% of the time ('
+                  + rq.quick.n.toLocaleString('en-US') + ' cases)'
+                : 'week more often than not');
         } else if (nb != null && nb <= 5 && !d.days_below_is_floor) {
           color = 'var(--muted)';
           label = 'RSI back above 30 · after ' + nbTxt + ' below';

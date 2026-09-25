@@ -86,6 +86,23 @@ var ROTATOR_EVIDENCE = {
 
   scoreMomentumR:  0.72,
 
+  /* ── RSI reclaim ─────────────────────────────────────────────────
+     Measured 2026-09-18 (promptove/53): daily RSI(14) back at or above
+     30 after closes below it, 7-day forward return against the market,
+     three years of the universe. How long RSI stayed below 30 is the
+     whole signal, and it cuts both ways:
+
+       days below    n     beat the market
+         1-2       1083        53.2%   significant
+         11+         58        31.0%   significant, negative
+
+     The coin modal quotes `quick` for a fast reclaim. Moved here on
+     2026-09-25 from a figure typed into data-loaders.js, which
+     verify-grading-invariants rightly refused. */
+  rsiReclaim:      { measuredOn: '2026-09-18', horizonDays: 7,
+                     quick: { maxDaysBelow: 2,  beatPct: 53.2, n: 1083 },
+                     slow:  { minDaysBelow: 11, beatPct: 31.0, n: 58 } },
+
   /* ── Entry timing ────────────────────────────────────────────────
      Measured 2026-09-17: buy the bottom trailing-30d quintile, hold to
      day 30 from the call, and vary only how many days the entry is
