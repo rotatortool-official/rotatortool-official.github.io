@@ -131,14 +131,66 @@ Deno.serve(async (req) => {
         checked_at: new Date().toISOString()
       }));
 
+    // ── NOT_LISTED, added 2026-09-25 ─────────────────────────────
+    // The filter above only sees pairs that are still IN exchangeInfo.
+    // Binance drops a delisted pair from exchangeInfo entirely some time
+    // after it stops trading, and a coin that never had a USDT pair was
+    // never in it at all. Neither ever reached this table, so both stayed
+    // eligible. Measured on run 1934: 20 of 182 eligible coins had no
+    // USDT pair on Binance under any status (OKB, KAS, MNT, FLR, AKT,
+    // POPCAT, RON, ...), and the swap tool cannot execute any of them.
+    //
+    // So every universe coin whose symbol has no USDT pair at all is
+    // written here too, as status NOT_LISTED. Same table, so every
+    // existing consumer inherits it without a change: the engine's
+    // `delisted` eligibility reason, the page's buy-side filter and its
+    // "NOT TRADING ON BINANCE" badge. The status column says which kind
+    // of row it is.
+    //
+    // The universe is read from cg_markets_all, whose `symbol` is the
+    // exact string the engine and the page key on (uppercased). It FAILS
+    // OPEN: an unreadable cache, or an exchangeInfo too small to be real,
+    // adds no rows rather than flagging everything.
+    const listedBases = new Set(usdtPairs.map((s) => s.baseAsset));
+    let notListed: typeof notTrading = [];
+    let notListedOk = true;
+    let notListedErr: string | null = null;
+    try {
+      if (usdtPairs.length < 300) {
+        throw new Error(`only ${usdtPairs.length} USDT pairs in exchangeInfo — too few to trust an absence`);
+      }
+      const { data: mRow, error: mErr } = await supabase
+        .from('market_cache').select('data').eq('cache_key', 'cg_markets_all').maybeSingle();
+      if (mErr) throw new Error('cg_markets_all read failed: ' + mErr.message);
+      const markets: { id: string; symbol: string }[] = Array.isArray(mRow?.data) ? mRow!.data : [];
+      if (markets.length < 100) throw new Error(`cg_markets_all has ${markets.length} rows — too few to trust`);
+      const seen = new Set<string>();
+      const now = new Date().toISOString();
+      for (const c of markets) {
+        const sym = String(c.symbol || '').toUpperCase();
+        // bStocks are a separate universe with their own feed; USDT is
+        // the quote asset itself, so it can never have a USDT pair.
+        if (!sym || sym === 'USDT' || String(c.id).startsWith('bstock_')) continue;
+        if (listedBases.has(sym) || seen.has(sym)) continue;
+        seen.add(sym);
+        notListed.push({ base_asset: sym, binance_symbol: sym + 'USDT', status: 'NOT_LISTED', checked_at: now });
+      }
+    } catch (e) {
+      notListed = [];
+      notListedOk = false;
+      notListedErr = e instanceof Error ? e.message : String(e);
+      console.error('[sync-binance-status] not-listed check skipped:', notListedErr);
+    }
+
     // Replace the table wholesale each run — a symbol that returns to
     // TRADING status (relisted, or was a temporary HALT) should stop
     // being flagged, not linger forever from a stale row.
     const { error: delErr } = await supabase.from('binance_delisted_symbols').delete().neq('base_asset', '');
     if (delErr) throw new Error('clear failed: ' + delErr.message);
 
-    if (notTrading.length) {
-      const { error: insErr } = await supabase.from('binance_delisted_symbols').insert(notTrading);
+    const rows = [...notTrading, ...notListed];
+    for (let i = 0; i < rows.length; i += 200) {
+      const { error: insErr } = await supabase.from('binance_delisted_symbols').insert(rows.slice(i, i + 200));
       if (insErr) throw new Error('insert failed: ' + insErr.message);
     }
 
@@ -208,6 +260,10 @@ Deno.serve(async (req) => {
         checked: usdtPairs.length,
         flagged: notTrading.length,
         flagged_symbols: notTrading.map((s) => s.base_asset),
+        not_listed_ok: notListedOk,
+        not_listed: notListed.length,
+        not_listed_symbols: notListed.map((s) => s.base_asset),
+        ...(notListedErr ? { not_listed_error: notListedErr } : {}),
         monitoring_ok: monitoringOk,
         tagged_symbols: monitoringOk ? tagged.length : null,
         monitoring_flagged: monitoringOk ? monitoring.length : null,

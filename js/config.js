@@ -133,29 +133,29 @@ var FREE_COINS = [
   /* ── DeFi ── */
   'aave','the-graph','curve-dao-token','maker','lido-dao',
   /* ── L2 & Infrastructure ── */
-  'arbitrum','optimism','stacks','immutable-x','injective-protocol',
+  'arbitrum','optimism','immutable-x','injective-protocol',
   /* ── Meme & Emerging ── */
   'blur','bonk','dogwifcoin','book-of-meme','pepe',
   /* ── RWA & New ── */
   'ondo-finance','worldcoin-wld','pyth-network','jito-governance-token','ethena',
   /* ── Batch 51–100 ── */
-  'hyperliquid','toncoin','the-sandbox','decentraland','axie-infinity',
+  'hyperliquid','the-sandbox','decentraland','axie-infinity',
   'gala','illuvium','stepn','flow','wax',
   'ocean-protocol','fetch-ai','singularitynet','numeraire','bittensor',
   'zetachain','celestia','dymension','altlayer','omni-network',
-  'saga-2','manta-network','mew','nyan-heroes','parcl',
-  'io-net','kamino','meteora','drift-protocol','marginfi',
+  'saga-2','manta-network','parcl',
+  'kamino','meteora','drift-protocol',
   'raydium','orca','lifinity','saber','serum',
   'wormhole','layerzero','across-protocol','synapse-2','stargate-finance',
-  'gmx','gains-network','kwenta','polynomial-protocol','vertex-protocol',
-  'pendle','spectra-finance','time-wonderland','convex-finance','frax-share',
+  'gmx','gains-network',
+  'pendle','spectra-finance','convex-finance','frax-share',
   /* ── Batch 101–150: more L1s, gaming, AI, privacy ── */
   'kaspa','mantle','flare-networks','kava','zilliqa',
   'harmony','celo','moonbeam','astar','fantom',
-  'theta-token','enjincoin','gods-unchained','ultra','treasure-lol',
+  'theta-token','enjincoin','gods-unchained','ultra',
   'ronin','beam-2','echelon-prime','myria','xai-blockchain',
   'arkham','dextools','mask-network','1inch','sushi',
-  'pancakeswap-token','thorchain','osmosis','kujira','neutron-3',
+  'pancakeswap-token','thorchain','osmosis','neutron-3',
   'akash-network','arweave','livepeer','theta-fuel','helium',
   'quant-network','algorand','elrond-erd-2','iota','eos',
   'neo','qtum','waves','conflux-token','icon',
@@ -164,10 +164,10 @@ var FREE_COINS = [
   'balancer','rocket-pool','frax-ether','ankr','ssv-network',
   'oasis-network','secret','nucypher','keep-network','hopr',
   'floki','cat-in-a-dogs-world','popcat','brett','turbo-eth',
-  'memecoin','neiro-on-eth','toshi','ponke','wen-4',
-  'jup','magic-eden','tensor','marinade','sanctum-2',
-  'polymarket','grass','nosana','shadow-token','hivemapper',
-  'mantra-dao','reserve-rights-token','maple-finance','clearpool','centrifuge',
+  'toshi','ponke','wen-4',
+  'magic-eden','tensor','marinade','sanctum-2',
+  'polymarket','grass','nosana','hivemapper',
+  'reserve-rights-token','clearpool','centrifuge',
   /* ── Stablecoins — shown with APR instead of % change ── */
   /* 'frax' (the stablecoin) was REMOVED 2026-09-09. It collided with
      'frax-share', which CoinGecko also reports as symbol FRAX, so the
@@ -215,6 +215,29 @@ var FREE_COINS = [
   'kaito','kusama','holotoken','goplus-security','dexe',
   'turbo','redstone-oracles','spark-2','linea','berachain-bera',
   'coti',
+
+  /* ── 18 Binance pairs, 2026-09-25, in the slots of 18 dead ids ──
+     promptove/36 found 18 ids CoinGecko never answers (stacks, toncoin,
+     mew, nyan-heroes, io-net, marginfi, kwenta, polynomial-protocol,
+     vertex-protocol, time-wonderland, treasure-lol, kujira, memecoin,
+     neiro-on-eth, jup, shadow-token, mantra-dao, maple-finance). They
+     cost nothing but used 18 of the 250 ids one request can carry.
+
+     Same mechanical selection as the 2026-09-11 batch: CoinGecko's top
+     1000 by market cap, intersected with Binance USDT pairs TRADING
+     above $300k/day, minus tickers already rendered here, stablecoins,
+     wrapped assets and Monitoring-tagged symbols; then the largest 18.
+     Three checks were added this time:
+       - CoinGecko price within 3% of Binance's last price, so the id
+         really is the coin Binance lists under that ticker;
+       - at least 31 Binance daily candles, or the coin would only be
+         excluded as incomplete_history (MARSCOIN had 22);
+       - plain A-Z/0-9 tickers, and no tokenised stocks (those belong
+         to the bStocks universe). 币安人生 and 牛来 were skipped here. */
+  'midnight-3','kite-2','zama','vaulta','sentient',
+  'genius-3','walrus-2','gas','rif-token','cow-protocol',
+  'banana-for-scale-2','vethor-token','re','allora','nervos-network',
+  'bio-protocol','espresso','pha'
 ];
 
 var PRO_EXTRA_COINS = []; /* All 200 in free tier — Pro reserved for future expansion */
