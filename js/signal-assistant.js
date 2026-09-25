@@ -30,6 +30,7 @@ var _saBusy = false;
 function openSignalAssistant() {
   if (!isPro) { openPro(); return; }
   if (window.Analytics) Analytics.track('Signal Assistant Opened');
+  if (typeof supaCountFeature === 'function') supaCountFeature('assistant_open');
   openModal('signal-assistant-modal');
   _saRender();
   if (!SIGNAL_ASSISTANT_LIVE) return;

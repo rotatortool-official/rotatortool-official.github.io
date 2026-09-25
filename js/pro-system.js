@@ -221,7 +221,7 @@ function openPro() {
           + '<div style="display:flex;justify-content:space-between;"><span>Default swap pair</span><span style="color:var(--pro);">Choose any swap pair</span></div>'
           + '<div style="display:flex;justify-content:space-between;"><span style="color:var(--muted);">—</span><span style="color:var(--pro);">⚡ Insight Engine</span></div>'
           + '<div style="display:flex;justify-content:space-between;"><span style="color:var(--muted);">—</span><span style="color:var(--pro);">↔ Best Time to Swap</span></div>'
-          + '<div style="display:flex;justify-content:space-between;"><span style="color:var(--muted);">—</span><span style="color:var(--pro);">🔄 Rotation Opportunities</span></div>'
+          + '<div style="display:flex;justify-content:space-between;"><span style="color:var(--muted);">—</span><span style="color:var(--pro);">🔄 Score gaps</span></div>'
           + '<div style="display:flex;justify-content:space-between;"><span style="color:var(--muted);">—</span><span style="color:var(--pro);">📊 Score Breakdown</span></div>'
         + '</div>'
       + '</div>'
@@ -621,6 +621,7 @@ function joinTelegram(ev) {
     return false;
   }
   if (window.Analytics) Analytics.track('Telegram Channel Opened');
+  if (typeof supaCountFeature === 'function') supaCountFeature('telegram_click');
   return true;
 }
 

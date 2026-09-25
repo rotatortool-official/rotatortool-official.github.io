@@ -1313,6 +1313,7 @@ function startAutoRefresh() {
 }
 
 async function doLoad() {
+  if (typeof supaCountFeature === 'function') supaCountFeature('page_view', true);   /* usage count, promptove/64 */
   processIncomingRef();
   var _d = checkMyReferrals();
   isPro  = _d.pro || loadPro();
@@ -2014,26 +2015,23 @@ function renderRotationContext(c) {
 
   box.innerHTML =
       '<div class="td-rot-ctx-in">'
-    +   '<div class="td-rot-ctx-hd">Rotation target &middot; '
-    +     ctx.fromSym + ' <span class="arr">&rarr;</span> ' + ctx.toSym
+    /* INFORMATION ONLY since 2026-09-25 (promptove/64). This used to say
+       "coins that have lagged tend to outperform the ones that ran". The
+       771-day backtest says the opposite, so the box now states the gap
+       and what history showed, stamped from ROTATOR_EVIDENCE. */
+    +   '<div class="td-rot-ctx-hd">Score gap &middot; '
+    +     ctx.fromSym + ' vs ' + ctx.toSym
     +   '</div>'
     +   '<p>' + ctx.fromSym + ' has run ahead (score ' + ctx.fromScore + ') while '
-    +     ctx.toSym + ' has lagged (score ' + ctx.toScore + '). Coins that have lagged '
-    +     'tend to outperform the ones that ran, over the next ' + (ev.horizonDays || 30) + ' days.</p>'
-    +   '<p class="td-rot-ctx-rec">'
-    +     (ev.confirmed
-            ? 'Calls like this: <b>' + ev.confirmed + '% confirmed</b>'
-              + ' &middot; two coins picked at random clear the same spread <b>'
-              + ev.chance + '%</b> of the time.'
-            : 'No ' + (ev.horizonDays || 30) + '-day record yet &mdash; the first calls grade '
-              + (ev.firstGradesOn || 'once they are old enough') + '. Two coins picked at random '
-              + 'clear a positive spread <b>' + ev.chance + '%</b> of the time, which is the bar '
-              + 'it will be read against.')
-    +   '</p>'
-    +   '<p class="td-rot-ctx-caveat"><b>This is a relative call, not a forecast that '
-    +     ctx.toSym + ' rises.</b> A confirmed rotation often means both coins fell and the '
-    +     'target simply fell less. Whether the market rises from here is not something this '
-    +     'signal knows.</p>'
+    +     ctx.toSym + ' has lagged (score ' + ctx.toScore + ').</p>'
+    +   (ev.backtest && ev.backtest.lowerWonPct != null
+          ? '<p class="td-rot-ctx-rec">Over ' + ev.backtest.days + ' days of history, the lower-scored '
+            + 'coin in pairs like this did better in only <b>' + ev.backtest.lowerWonPct + '%</b> of '
+            + ev.backtest.lowerWonHorizon + '-day periods, against about <b>' + ev.chance
+            + '%</b> for two coins picked at random.</p>'
+          : '')
+    +   '<p class="td-rot-ctx-caveat"><b>Information, not a call.</b> A lagging score does not '
+    +     'mean ' + ctx.toSym + ' will catch up.</p>'
     + '</div>';
   box.hidden = false;
 }
@@ -2042,6 +2040,7 @@ function openTileDetail(coinId, evt) {
   if (evt) evt.stopPropagation();
   var c = coins.find(function(x) { return x.id === coinId || x.sym === coinId; });
   if (!c) return;
+  if (typeof supaCountFeature === 'function') supaCountFeature('coin_window');
   _tdCoin = c;
   var panel = document.getElementById('td-panel');
   var icoEl = document.getElementById('td-ico');

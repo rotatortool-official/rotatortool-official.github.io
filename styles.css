@@ -4238,3 +4238,5 @@ header{background:var(--bg2);}
   background:transparent;border-color:var(--bdr2);color:var(--muted);cursor:default;
 }
 .ahm-confirm-btn:focus-visible{outline:2px solid var(--bnb);outline-offset:2px;}
+/* Holder risk line on a holding tile (promptove/64): exchange and unlock facts, amber, wraps rather than clips. */
+.tile-risk{font-size:10.5px;line-height:1.35;color:var(--amber);background:var(--ad);border-radius:5px;padding:3px 6px;margin:4px 0 2px;overflow-wrap:anywhere;font-family:var(--font-ui);}

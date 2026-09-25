@@ -5,12 +5,12 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta http-equiv="X-Content-Type-Options" content="nosniff">
 <meta name="referrer" content="no-referrer-when-downgrade">
-<meta name="description" content="Rotation Screener — Find the best crypto, forex and stock rotation opportunities. 200 coins including stablecoin yields.">
+<meta name="description" content="Rotation Screener — scores and relative strength for 250 crypto coins and tokenized stocks, rescored every 15 minutes, with a public track record.">
 <meta name="robots" content="index, follow">
 <link rel="canonical" href="https://rotatortool-official.github.io/">
 <meta property="og:type" content="website">
 <meta property="og:title" content="Rotator — Crypto Rotation Screener">
-<meta property="og:description" content="Real-time rotation signals, momentum scoring & multi-timeframe analysis for 200+ coins. Find what's rotating before the crowd.">
+<meta property="og:description" content="Scores, relative strength and multi-timeframe data for 250+ coins, rescored every 15 minutes, with a public track record.">
 <meta property="og:url" content="https://rotatortool-official.github.io/">
 <meta property="og:image" content="https://rotatortool-official.github.io/og-card.png">
 <meta property="og:image:width" content="1200">
@@ -18,7 +18,7 @@
 <meta property="og:site_name" content="Rotator">
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="Rotator — Crypto Rotation Screener">
-<meta name="twitter:description" content="Real-time rotation signals, momentum scoring & multi-timeframe analysis. Find what's rotating before the crowd.">
+<meta name="twitter:description" content="Scores, relative strength and multi-timeframe data for 250+ coins, rescored every 15 minutes, with a public track record.">
 <meta name="twitter:image" content="https://rotatortool-official.github.io/og-card.png">
 <title>⬡ ROTATOR — Binance Rotation Screener</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -537,7 +537,7 @@
       <div style="font-size:12px;letter-spacing:.14em;color:var(--muted);margin-bottom:10px;text-transform:uppercase;">Your donation helps build:</div>
       <div style="display:flex;flex-direction:column;gap:7px;">
         <div style="display:flex;align-items:center;gap:8px;font-size:12px;color:var(--text);">
-          <span style="color:var(--green);font-size:13px;">✓</span><span><strong style="color:var(--green)">Live now:</strong> 200 coins · Insight Engine · Best Time to Swap · Rotation Opportunities</span>
+          <span style="color:var(--green);font-size:13px;">✓</span><span><strong style="color:var(--green)">Live now:</strong> 200 coins · Insight Engine · Best Time to Swap · Score gaps</span>
         </div>
         <div style="display:flex;align-items:center;gap:8px;font-size:12px;color:var(--text);">
           <span style="color:var(--bnb);font-size:13px;">◈</span><span><strong style="color:var(--bnb)">Coming next:</strong> Rotation alerts · Advanced scoring breakdown · Mobile view</span>
@@ -993,12 +993,13 @@
          in js/signals.js; the id is what that function looks up, and it
          did not change. -->
     <div class="rot-beside" id="rot-beside">
-      <div class="bar-col-title" style="color:var(--green);">↑ Rotation Opportunities</div>
-      <!-- 2026-09-23 (promptove/56). The 771-day backtest put this rule
-           below two coins picked at random, and live data cannot settle
-           the direction for months. Kept, and said so. Remove only when
-           rotator-backtest/rotation-verdict.js gives a reason to. -->
-      <div class="rot-test-note">Under test: across 771 days of history this rule did not beat picking two coins at random. Live calls are graded at 30 days on the <a href="track-record.html">track record</a>.</div>
+      <div class="bar-col-title">Score gaps</div>
+      <!-- 2026-09-25 (promptove/64): information only. The 771-day backtest
+           put the rotation rule below two coins picked at random at every
+           horizon (7-30 days), so the panel no longer makes calls: it shows
+           where coins score against each other. The live test keeps being
+           graded on the track record. -->
+      <div class="rot-test-note">Where coins score against each other. Information, not calls: across 771 days of history, moving from a high score into a low one did not beat picking two coins at random. The live test is graded on the <a href="track-record.html">track record</a>.</div>
       <div id="sug-cards"></div>
     </div>
 
@@ -1122,7 +1123,7 @@
               <input type="number" id="rt-hero-amt" class="new-coin-qty-inp" value="100" step="any"
                      inputmode="decimal" aria-label="Amount to swap"
                      onclick="event.stopPropagation();"
-                     oninput="RatioTracker.calcSwap()">
+                     oninput="RatioTracker.calcSwap(); if (window.supaCountFeature) supaCountFeature('swap_tool', true)">
             </div>
           </div>
 
@@ -1181,11 +1182,11 @@
           <div class="new-adv-panel" id="new-adv-panel">
             <div class="rt-ci" style="margin-bottom:8px;">
               <label id="rt-calc-from-ov-lbl">Override FROM ($)</label>
-              <input type="number" id="rt-calc-from-ov" aria-label="Override from price" placeholder="auto" step="any" oninput="RatioTracker.calcSwap()">
+              <input type="number" id="rt-calc-from-ov" aria-label="Override from price" placeholder="auto" step="any" oninput="RatioTracker.calcSwap(); if (window.supaCountFeature) supaCountFeature('swap_tool', true)">
             </div>
             <div class="rt-ci">
               <label id="rt-calc-to-ov-lbl">Override TO ($)</label>
-              <input type="number" id="rt-calc-to-ov" aria-label="Override to price" placeholder="auto" step="any" oninput="RatioTracker.calcSwap()">
+              <input type="number" id="rt-calc-to-ov" aria-label="Override to price" placeholder="auto" step="any" oninput="RatioTracker.calcSwap(); if (window.supaCountFeature) supaCountFeature('swap_tool', true)">
             </div>
           </div>
 

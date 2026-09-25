@@ -569,15 +569,17 @@ function takeProfitTile(c) {
   return '<div class="sig-tile rot" onclick="openTileDetail(\'' + c.id + '\',event)" title="Click for details">'
     + '<div class="sig-tile-top">'
       + '<div class="sig-tile-ico"><img src="' + c.image + '" alt="' + c.sym + ' logo" loading="lazy" width="20" height="20" onerror="this.style.display=\'none\'"></div>'
-      + '<span class="sig-tile-sym" style="color:var(--red);">' + c.sym + '</span>'
-      + '<span class="sig-tile-badge wrst">GIVE-BACK ZONE</span>'
+      /* Information only (promptove/64): the high score is the fact; "give-back
+         zone" was a forecast resting on 9 cases (ROTATOR_EVIDENCE.giveBack). */
+      + '<span class="sig-tile-sym" style="color:var(--amber);">' + c.sym + '</span>'
+      + '<span class="sig-tile-badge wrst">TOP OF RANGE</span>'
     + '</div>'
     + '<div class="sig-tile-stats">'
       + '<div class="sig-stat"><span class="sig-stat-l">SCORE</span><span class="sig-stat-v am">' + c.score + '</span></div>'
       + '<div class="sig-stat"><span class="sig-stat-l">30D</span><span class="sig-stat-v ' + (c.p30 >= 0 ? 'up' : 'dn') + '">' + (c.p30 >= 0 ? '+' : '') + c.p30.toFixed(1) + '%</span></div>'
     + '</div>'
     + '<div class="sig-tile-note">'
-      + c.sym + ' has run hard and you hold it — this is the give-back zone.'
+      + 'You hold ' + c.sym + ' and it scores near the top of the range. Information, not a call to sell.'
     + '</div>'
     + '</div>';
 }
@@ -599,17 +601,18 @@ function sigRotTile(sell, buy) {
   return '<div class="sig-tile rot" onclick="openTileDetail(\'' + buy.id + '\',event)" title="Click for details">'
     + '<div class="sig-tile-top">'
       + '<div class="sig-tile-ico"><img src="' + sell.image + '" alt="' + sell.sym + ' logo" loading="lazy" width="20" height="20" onerror="this.style.display=\'none\'"></div>'
-      + '<span class="sig-tile-sym" style="color:var(--red);">'   + sell.sym + '</span>'
-      + '<span style="color:var(--muted);font-size:12px;">→</span>'
+      /* INFORMATION ONLY since 2026-09-25 (promptove/64). No arrow, no
+         sell-red / buy-green: those read as an instruction, and over
+         771 days moving from the higher score into the lower one did
+         WORSE than a random pick (ROTATOR_EVIDENCE.rotation.backtest).
+         The tile now states the gap and nothing it cannot support. */
+      + '<span class="sig-tile-sym">' + sell.sym + '</span>'
+      + '<span style="color:var(--muted);font-size:12px;">vs</span>'
       + '<div class="sig-tile-ico"><img src="' + buy.image + '" alt="' + buy.sym + ' logo" loading="lazy" width="20" height="20" onerror="this.style.display=\'none\'"></div>'
-      + '<span class="sig-tile-sym" style="color:var(--green);">' + buy.sym  + '</span>'
+      + '<span class="sig-tile-sym">' + buy.sym  + '</span>'
       + '<span class="sig-tile-badge rot">Δ' + delta + '</span>'
     + '</div>'
-    /* "X is the swap" overstated it — it read as an instruction, and
-       the record behind it is a 63% relative edge, not a directive.
-       "A potential swap" plus the reason lets the reader judge the
-       setup instead of taking the sentence on trust. */
-    + '<div class="sig-tile-head">Holding ' + sell.sym + '? ' + buy.sym + ' is a potential swap.</div>'
+    + '<div class="sig-tile-head">You hold ' + sell.sym + ', scoring ' + delta + ' points above ' + buy.sym + '.</div>'
     + '<div class="sig-tile-stats">'
       + '<div class="sig-stat"><span class="sig-stat-l">TO SENT</span><span class="sig-stat-v ' + buySentCls + '">' + buySentLabel + '</span></div>'
       + '<div class="sig-stat"><span class="sig-stat-l">UNLOCK</span><span class="sig-stat-v am">' + bUnlock + '</span></div>'
@@ -629,10 +632,8 @@ function sigRotTile(sell, buy) {
        repeating the same two sentences is not four times the evidence,
        it is one piece of evidence and three times the noise. */
     + '<div class="sig-tile-note">'
-      + 'Because <span class="hi">' + sell.sym + '</span> has run ahead and '
-      + '<span class="hi">' + buy.sym + '</span> has lagged it by ' + delta + ' points.'
-      + ' Expected to <span class="hi">outperform ' + sell.sym + '</span> over '
-      + _horizonDays() + ' days.'
+      + '<span class="hi">' + sell.sym + '</span> has run ahead and '
+      + '<span class="hi">' + buy.sym + '</span> has lagged it. Information, not a call.'
     + '</div>'
     + '</div>';
 }
@@ -667,27 +668,22 @@ function rotationEvidenceFooter(kinds) {
     var rv = ROTATOR_EVIDENCE.rotation;
     if (rv && rv.chance) {
       bits.push(rv.confirmed
-        ? 'Rotation calls: <b>' + rv.confirmed + '% confirmed</b>, against <b>'
+        ? 'Live test of this pairing: <b>' + rv.confirmed + '% confirmed</b>, against <b>'
           + rv.chance + '%</b> for two coins picked at random.'
-        : 'No ' + (rv.horizonDays || 30) + '-day rotation record yet — the first calls grade <b>'
-          + (rv.firstGradesOn || 'once they are old enough') + '</b>. '
-          + 'Two coins picked at random clear a positive spread <b>' + rv.chance
-          + '%</b> of the time, which is the bar it will be read against.');
+        : 'The live test of this pairing has no ' + (rv.horizonDays || 30) + '-day result yet; the first pairs grade <b>'
+          + (rv.firstGradesOn || 'once they are old enough') + '</b> on the track record.');
     }
-    var e = ROTATOR_EVIDENCE.entry;
-    if (e && e.days) {
-      bits.push('Averaged in over <b>' + e.days + ' days</b> rather than one, the same calls '
-        + 'historically returned the same on average, with '
-        /* VOLATILITY, not variance. The expression is a reduction in
-           standard deviation; the variance reduction is twice as large
-           (12.4% against these numbers). The card said "variance" until
-           2026-09-22, which named the wrong statistic AND understated
-           the effect. See the entry block in config.js. */
-        + Math.round((1 - e.stdev / e.stdevSingle) * 100) + '% less volatility and a worst-5% of '
-        + e.worst5 + '% instead of ' + e.worst5Single + '%.');
+    /* What history says about the gap itself, stamped from the evidence
+       block. This is why the tiles make no call (promptove/64). The
+       entry-timing note that used to sit here described how to ENTER a
+       call; with no call there is nothing to enter, so it is gone. */
+    var bt = rv && rv.backtest;
+    if (bt && bt.lowerWonPct != null) {
+      bits.push('Over <b>' + bt.days + ' days</b> of history, the lower-scored coin in pairs like '
+        + 'these did better in only <b>' + bt.lowerWonPct + '%</b> of ' + bt.lowerWonHorizon
+        + '-day periods, against about <b>' + rv.chance + '%</b> for two coins picked at random. '
+        + 'So the gap is shown as information, not as a call.');
     }
-    bits.push('A rotation is a <b>relative</b> call: a confirmed one often means both coins '
-      + 'fell and the target fell less.');
   }
 
   if (has('buy')) {
@@ -703,7 +699,7 @@ function rotationEvidenceFooter(kinds) {
     var g = ROTATOR_EVIDENCE.giveBack;
     if (g && g.n) {
       bits.push('The last <b>' + (g.n - g.wereUp) + ' of ' + g.n + '</b> coins reaching the '
-        + 'give-back zone were lower ' + _horizonDays() + ' days later (median <b>'
+        + 'top of the range were lower ' + _horizonDays() + ' days later (median <b>'
         + g.medianReturn + '%</b>). Not a short signal, and a small sample.');
     }
   }

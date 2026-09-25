@@ -279,6 +279,7 @@ function addHolding() {
   if (idx >= 0) holdings[idx] = {id: c.id, sym: c.sym, qty: qty, avg: avg};
   else holdings.push({id: c.id, sym: c.sym, qty: qty, avg: avg});
   saveH();
+  if (typeof supaCountFeature === 'function') supaCountFeature('holdings_edit');
   if (isFirst) creditReferrer();
   document.getElementById('coin-sel').value  = '';
   document.getElementById('inp-qty').value   = '';
@@ -345,6 +346,36 @@ function holdingPL(price, qty, avg) {
    on a row with three holes beside it. Two rows of four fill exactly. */
 var TOTAL_TILE_SLOTS = 8;
 
+/* ── Holder risk (promptove/64, audit item 2) ───────────────────────
+   Exchange and unlock facts about a coin you HOLD, on its tile: a
+   Binance delisting (announced or done), no Binance pair, a Monitoring
+   tag, or an unlock above the engine's UNLOCK_PENDING_PCT within 30
+   days. These already kept the coin off the buy side; the holder was
+   never told. send-telegram-alerts reports the same facts for the
+   owner's my_holdings.
+
+   Reads the page's own sets (loaded before tiles render) and fails
+   quiet: a missing set means no line, never a wrong one. */
+function _holderRisk(c) {
+  if (!c || !c.sym) return '';
+  var out = [];
+  var st = (typeof delistedStatus !== 'undefined' && delistedStatus[c.sym]) || '';
+  if (typeof delistedSymbols !== 'undefined' && delistedSymbols.has(c.sym)) {
+    out.push(st === 'DELIST_ANNOUNCED' ? 'Binance delisting announced'
+           : st === 'NOT_LISTED'       ? 'Not listed on Binance'
+           :                             'Not trading on Binance');
+  }
+  if (typeof monitoringSymbols !== 'undefined' && monitoringSymbols.has(c.sym)) {
+    out.push('Binance Monitoring tag');
+  }
+  var u = (typeof _tokenUnlocks !== 'undefined' && c.id && _tokenUnlocks[c.id]) || null;
+  var pct = u && u.unlock30d_pct != null ? Number(u.unlock30d_pct) : null;
+  var line = (window.RotatorEngine && window.RotatorEngine.UNLOCK_PENDING_PCT != null)
+    ? window.RotatorEngine.UNLOCK_PENDING_PCT : null;
+  if (pct != null && line != null && pct > line) out.push(pct.toFixed(1) + '% unlocks within 30 days');
+  return out.join(' · ');
+}
+
 function renderTiles() {
   Object.keys(sparkStop).forEach(function(k) { sparkStop[k](); delete sparkStop[k]; });
   var grid  = document.getElementById('tiles-grid');
@@ -385,6 +416,7 @@ function renderTiles() {
             + '<div class="tpf"><span class="tpf-l">7D</span><span class="tpf-v '  + (c.p7>=0?'up':'dn')  + '">' + (c.p7>=0?'+':'')  + c.p7.toFixed(1)  + '%</span></div>'
             + '<div class="tpf"><span class="tpf-l">30D</span><span class="tpf-v ' + (c.p30>=0?'up':'dn') + '">' + (c.p30>=0?'+':'') + c.p30.toFixed(1) + '%</span></div>'
           + '</div>'
+          + (function() { var r = _holderRisk(c); return r ? '<div class="tile-risk" title="' + r + '">⚠ ' + r + '</div>' : ''; })()
           + (c.insight ? '<div class="tile-insight"><div class="insight-pulse ' + c.insight.color + '" data-tip="' + c.insight.tooltip.replace(/"/g, '&quot;') + '" title="' + c.insight.tooltip.replace(/"/g, '&quot;') + '"><span class="insight-dot"></span><span class="insight-lbl">' + c.insight.label + '</span><span class="insight-score">' + c.insight.score + '</span></div></div>' : '')
           + '<div class="tile-foot">' + (pl ? '<span class="tile-pl ' + plC + '">' + pl + '</span>' : '<span></span>')
           + '<span class="tile-scr ' + scrC + '">' + c.score + '</span></div>'

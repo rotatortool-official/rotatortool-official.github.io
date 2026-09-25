@@ -407,7 +407,7 @@ var PRO_TUT_STEPS = [
     title: 'Top 200 Coins',
     desc: '<div style="font-size:14px;line-height:1.85;">'
         + 'The leaderboard now shows <strong>200 coins</strong> including stablecoins with live DeFi <strong style="color:#8dffc0;">APR yields</strong>.<br><br>'
-        + 'More coins means more rotation opportunities and better coverage of emerging trends across sectors.'
+        + 'More coins means better coverage of trends across sectors.'
         + '</div>',
     arrow: 'bottom', pos: 'above', wide: true
   },
@@ -449,8 +449,8 @@ var PRO_TUT_STEPS = [
     title: 'Pro Holdings (Up to 10)',
     desc: '<div style="font-size:14px;line-height:1.85;">'
         + 'Your holdings limit has been raised to <strong>10 assets</strong>. Track your full portfolio with advanced insights on each coin.<br><br>'
-        + 'The <strong style="color:var(--bnb);">Portfolio Signal</strong> improves with more data — it compares your holdings against each other and against the broader market to surface rotation opportunities.<br><br>'
-        + '<strong>Full Rotation Signals</strong> — all 4 rotation pair slots are now unlocked in the Signal Center above.'
+        + 'The <strong style="color:var(--bnb);">Portfolio Signal</strong> improves with more data — it compares your holdings against each other and against the broader market.<br><br>'
+        + '<strong>Full score gaps</strong> — all 4 slots in the Signal Center above are now unlocked.'
         + '</div>',
     arrow: 'left', pos: 'left-panel-right'
   },

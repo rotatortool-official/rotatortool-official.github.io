@@ -603,8 +603,94 @@ Deno.serve(async (req: Request) => {
 
   const buyShown = buys.slice(0, MAX_BUY_LINES);
 
-  if (!sells.length && !buys.length && !shownEvents.length) {
+  // ── Holder risk (promptove/64, audit item 2) ─────────────────
+  // Exchange and unlock facts about coins YOU HOLD, before they hit:
+  // a Binance delisting (announced, or already happened), no Binance
+  // USDT pair, a Monitoring tag, or an unlock above 5% of supply within
+  // 30 days (the engine's UNLOCK_PENDING_PCT). Everything here was
+  // already detected. It kept those coins off the buy side, but it
+  // never told the holder, and holders are the people it affects.
+  // STG holders, for one, face a fixed conversion ~32% below market
+  // on 2026-10-06.
+  //
+  // NEW RISKS ONLY. A risk is reported once, then remembered in
+  // market_cache['holder_risk_notified']. Once it clears (the coin is sold,
+  // the tag lifts, the unlock passes) it is forgotten, so a later return
+  // is reported again. The memory is written only after a successful send,
+  // so a failed send is retried the next evening instead of lost.
+  //
+  // Fails quiet: any read error skips the section and never blocks the
+  // rest of the digest.
+  type Risk = { sym: string; key: string; text: string };
+  const holderRisks: Risk[] = [];
+  let riskKeysNow: string[] = [];
+  let riskKeysPrev: string[] = [];
+  let holderOk = false;
+  // The memory is only ever replaced by a list this run computed in full.
+  // A failed holder check must not wipe it, or tomorrow would repeat
+  // every risk already reported.
+  const saveRiskMemory = async () => {
+    if (!holderOk || dryRun) return;
+    await supabase.from('market_cache').upsert(
+      { cache_key: 'holder_risk_notified', data: { keys: riskKeysNow }, updated_at: new Date().toISOString() },
+      { onConflict: 'cache_key' },
+    );
+  };
+  try {
+    const [hRes, dlRes, monRes, memRes] = await Promise.all([
+      supabase.from('my_holdings').select('sym'),
+      supabase.from('binance_delisted_symbols').select('base_asset, status'),
+      supabase.from('binance_monitoring_symbols').select('base_asset'),
+      supabase.from('market_cache').select('data').eq('cache_key', 'holder_risk_notified').maybeSingle(),
+    ]);
+    if (hRes.error) throw new Error(hRes.error.message);
+    const heldSyms = [...new Set((hRes.data ?? []).map((h: { sym: string }) => (h.sym || '').toUpperCase()))].filter(Boolean);
+    const dlStatus = new Map((dlRes.data ?? []).map((r: { base_asset: string; status: string }) => [r.base_asset, r.status]));
+    const monSet = new Set((monRes.data ?? []).map((r: { base_asset: string }) => r.base_asset));
+    riskKeysPrev = Array.isArray((memRes.data as { data?: { keys?: string[] } } | null)?.data?.keys)
+      ? (memRes.data as { data: { keys: string[] } }).data.keys : [];
+
+    // Unlocks come from the run the rest of the digest is about.
+    const unlock = new Map<string, number>();
+    if (latestRun && heldSyms.length) {
+      const { data: uRows } = await supabase.from('signal_run_items')
+        .select('coin_sym, unlock30d').eq('run_id', latestRun.id).in('coin_sym', heldSyms);
+      for (const r of (uRows ?? []) as { coin_sym: string; unlock30d: number | string | null }[]) {
+        const v = num(r.unlock30d);
+        if (v !== null) unlock.set((r.coin_sym || '').toUpperCase(), v);
+      }
+    }
+
+    for (const sym of heldSyms) {
+      const st = dlStatus.get(sym);
+      if (st === 'DELIST_ANNOUNCED') {
+        holderRisks.push({ sym, key: `${sym}|delist_announced`, text: 'Binance has announced it will delist this coin' });
+      } else if (st === 'NOT_LISTED') {
+        holderRisks.push({ sym, key: `${sym}|not_listed`, text: 'has no USDT pair on Binance' });
+      } else if (st) {
+        holderRisks.push({ sym, key: `${sym}|not_trading`, text: `its Binance USDT pair is not trading (${st})` });
+      }
+      if (monSet.has(sym)) {
+        holderRisks.push({ sym, key: `${sym}|monitoring`, text: "carries Binance's Monitoring tag (reviewed for possible delisting)" });
+      }
+      const u = unlock.get(sym);
+      if (u !== undefined && u > 5) {
+        holderRisks.push({ sym, key: `${sym}|unlock`, text: `${u.toFixed(1)}% of supply unlocks within 30 days` });
+      }
+    }
+    riskKeysNow = holderRisks.map((r) => r.key);
+    holderOk = true;
+  } catch (e) {
+    console.warn('[send-telegram-alerts] holder-risk section skipped:', (e as Error).message);
+  }
+  const prevSet = new Set(riskKeysPrev);
+  const newRisks = holderRisks.filter((r) => !prevSet.has(r.key));
+
+  if (!sells.length && !buys.length && !shownEvents.length && !newRisks.length) {
     // The point of the redesign: most days say nothing at all.
+    // Nothing new to report, but risks may have CLEARED; forget those so
+    // a later return is reported again.
+    if (riskKeysNow.length !== riskKeysPrev.length) await saveRiskMemory();
     return json({
       ok: true, sent: 0, buys: 0, sells: 0, events: 0,
       reason: zoneSkipped ||
@@ -629,6 +715,13 @@ Deno.serve(async (req: Request) => {
     ? new Date(latestRun.as_of).toISOString().slice(0, 10)
     : new Date().toISOString().slice(0, 10);
   const lines: string[] = [`📊 <b>Rotator · what moved</b> · ${day}`];
+
+  // Holder risk goes first: it is about money already committed.
+  if (newRisks.length) {
+    lines.push('', '⚠️ <b>Check your holdings</b>');
+    lines.push('<i>Exchange and unlock facts about coins you hold. Facts, not predictions.</i>');
+    for (const r of newRisks) lines.push(`• <b>${r.sym}</b> — ${r.text}`);
+  }
 
   if (sells.length) {
     lines.push('', '🔴 <b>Running ahead</b> — one of your holdings climbed into the top of the tracked range');
@@ -695,6 +788,8 @@ Deno.serve(async (req: Request) => {
       sells: sells.length,
       buys: buyShown.length,
       events: shownEvents.length,
+      holder_risks_new: newRisks.map((r) => r.key),
+      holder_risks_all: riskKeysNow,
       chunks: chunks.length,
       chars: chunks.reduce((n, c) => n + c.length, 0),
       preview: chunks,
@@ -725,6 +820,10 @@ Deno.serve(async (req: Request) => {
   // A loop rather than one statement because the primary key is
   // composite and PostgREST has no clean composite IN. At the measured
   // volume (six events on a busy day) that is a handful of updates.
+  // Holder risks are remembered on the same terms as events: only when
+  // every chunk landed.
+  if (failed === 0) await saveRiskMemory();
+
   let stamped = 0;
   if (failed === 0 && shownEvents.length) {
     const at = new Date().toISOString();

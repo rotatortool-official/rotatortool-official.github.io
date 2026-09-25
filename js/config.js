@@ -64,7 +64,19 @@ var ROTATOR_EVIDENCE = {
      against. */
   rotation:        { confirmed: null, chance: 50, n: 0,
                      bothFellWins: null, totalWins: null,
-                     horizonDays: 30, firstGradesOn: '2026-10-07' },
+                     horizonDays: 30, firstGradesOn: '2026-10-07',
+  /* What history says about the pairing itself, so the page can show
+     score gaps as INFORMATION without implying the lower-scored coin
+     does better. Measured 2026-09-25 (rotator-backtest/rotation-
+     horizons.js, promptove/64): out of the 5 highest scores into the 5
+     lowest eligible, 771 days, ~3,800 pairs per horizon. The lower-scored
+     coin beat the higher one in this share of pairs, against ~50% for a
+     random pair:
+         7d 48.8   14d 48.3   21d 47.8   30d 46.9
+     Below random at every horizon, in both halves of the history. This
+     is why the rotation panel shows scores and gaps and makes no call. */
+                     backtest: { measuredOn: '2026-09-25', days: 771,
+                                 lowerWonPct: 46.9, lowerWonHorizon: 30 } },
 
   /* The single-coin confirm metric, measured the way the track record
      actually grades it: ordered window over [snap+1d, snap+14d], window

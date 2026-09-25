@@ -930,6 +930,34 @@ function supaRecordHoldingsSnapshot(rows, engineVersion) {
   });
 }
 
+/* ── Feature usage counter (promptove/64) ──────────────────────────
+   Adds 1 to today's count for one feature, via count_feature() (see
+   sql/feature_usage.sql). Sends the feature NAME only: no user id, no
+   coin, no holding, nothing that identifies a visitor. The server ignores
+   any name not on its list.
+
+   `oncePerSession` counts a feature at most once per browser session,
+   for things that fire repeatedly (page loads, the swap calculator
+   recomputing on every keystroke). Fire-and-forget: a failure is
+   swallowed, so counting can never break the page. */
+function supaCountFeature(feature, oncePerSession) {
+  try {
+    if (oncePerSession) {
+      var k = 'rot_counted_' + feature;
+      if (sessionStorage.getItem(k)) return;
+      sessionStorage.setItem(k, '1');
+    }
+  } catch (e) { /* storage blocked: count anyway */ }
+  try {
+    fetch(SUPA_URL + '/rest/v1/rpc/count_feature', {
+      method: 'POST',
+      headers: { 'apikey': SUPA_KEY, 'Authorization': 'Bearer ' + SUPA_KEY, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ p_feature: feature }),
+      keepalive: true
+    }).catch(function() {});
+  } catch (e) {}
+}
+
 /* ── Shared zone hysteresis ──────────────────────────────────────────
    _classifyZones() used to hold a coin inside its band using THIS
    browser's cached rot_last_zone, so the same market could classify

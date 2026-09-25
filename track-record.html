@@ -223,6 +223,7 @@ a{color:inherit;text-decoration:none}
         <div class="legacy-pct">76.2%</div>
         <div class="legacy-meta">
           <b>658</b> of <b>863</b> graded calls confirmed<br>
+          <span id="legacy-bar-row" hidden><b>Bar for this method: <span id="legacy-bar"></span></b>. A blanket call on every coin scored that, so the edge is the gap, not the distance to 50%<br></span>
           Bullish <b>71.9%</b> · Underperforming <b>80.8%</b><br>
           <span style="opacity:.7">v2 did not separate rotate-out calls; they sit inside that 80.8%</span><br>
           90 trading days · 2026-04-26 → 2026-08-31
@@ -329,6 +330,22 @@ a{color:inherit;text-decoration:none}
 ─────────────────────────────────────────────────────────────── */
 (function() {
   var SUPA_URL = 'https://wyvwycatgexpbugzkdfw.supabase.co';
+  /* Usage count, once per session: the feature name only, nothing that
+     identifies the visitor (sql/feature_usage.sql, promptove/64). Runs
+     after SUPA_KEY below is defined, via setTimeout 0. */
+  setTimeout(function () {
+    try {
+      if (sessionStorage.getItem('rot_counted_track_record_view')) return;
+      sessionStorage.setItem('rot_counted_track_record_view', '1');
+    } catch (e) {}
+    try {
+      fetch(SUPA_URL + '/rest/v1/rpc/count_feature', {
+        method: 'POST', keepalive: true,
+        headers: { 'apikey': SUPA_KEY, 'Authorization': 'Bearer ' + SUPA_KEY, 'Content-Type': 'application/json' },
+        body: JSON.stringify({ p_feature: 'track_record_view' })
+      }).catch(function () {});
+    } catch (e) {}
+  }, 0);
   var SUPA_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Ind5dnd5Y2F0Z2V4cGJ1Z3prZGZ3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU0ODcwNTAsImV4cCI6MjA5MTA2MzA1MH0.msUPOUjd1iZwuG6SxFlhr-0xYPt6fqTUy5iOYnf8Z20';
 
   var WINDOW_DAYS        = 30;
@@ -1427,6 +1444,18 @@ a{color:inherit;text-decoration:none}
      KEEP IN SYNC with ROTATOR_EVIDENCE in js/config.js. */
   var CHANCE_SINGLE   = 50;
   var CHANCE_ROTATION = 50;
+  /* The bar the RETIRED v2 record has to be read against. v2 was graded
+     by the old peak-capture method (ordered 1-14d window, 3x adverse),
+     where a blanket call on every coin confirms ~68%. Its 76.2% badge
+     sat beside "50% is the bar" with nothing saying so (promptove/64).
+     KEEP IN SYNC with ROTATOR_EVIDENCE.singleCoin.chance;
+     verify-grading-invariants checks it. */
+  var CHANCE_V2_METHOD = 68;
+  (function () {
+    var el = document.getElementById('legacy-bar');
+    var row = document.getElementById('legacy-bar-row');
+    if (el && row) { el.textContent = CHANCE_V2_METHOD + '%'; row.hidden = false; }
+  })();
   function chanceNote() {
     return '<br><span style="opacity:.9">Every call is scored against the median coin over the '
       + 'same 30 days, so the bar is <b>' + CHANCE_SINGLE + '%</b> — half of all coins beat the '
