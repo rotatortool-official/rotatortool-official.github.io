@@ -14,7 +14,8 @@
 // real exchange listing status; FREE_COINS (config.js) is a static
 // list that has no awareness of what Binance is currently doing.
 //
-// WHAT THIS DOES NOT CATCH:
+// WHAT THIS DID NOT CATCH, until 2026-09-25 (see ANNOUNCED DELISTINGS
+// below, which now reads the announcement feed and keeps a hand list):
 // Binance announces upcoming delistings in advance via blog posts, not
 // a structured API. A coin can be status='TRADING' today and scheduled
 // for removal next week — this function has no way to see that

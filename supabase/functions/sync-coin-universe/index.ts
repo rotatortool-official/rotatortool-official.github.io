@@ -2,7 +2,7 @@
 // sync-coin-universe — Supabase Edge Function
 //
 // Fetches the scored coin universe from CoinGecko and writes it to
-// market_cache['cg_markets_all']. One call, all 194 ids.
+// market_cache['cg_markets_all']. One call, all 250 ids (the per_page cap).
 //
 // WHY THIS EXISTS, added 2026-09-10.
 //
@@ -60,9 +60,11 @@ const SIGNAL_RUN_SYNC_SECRET = Deno.env.get('SIGNAL_RUN_SYNC_SECRET')!;
 const supabase = createClient(SUPABASE_URL, SERVICE_ROLE_KEY);
 
 /* Below this share of ids resolving, treat the response as broken rather
-   than as "those coins are gone". Measured baseline is 167/194 = 86%;
-   27 ids simply do not resolve on CoinGecko and that is longstanding.
-   0.70 sits clear of the baseline and still catches a truncated page. */
+   than as "those coins are gone". Measured baseline was 167/194 = 86%
+   when this was written; since the dead ids were replaced on 2026-09-25
+   (promptove/62) it is 250/250. 0.70 still catches a truncated page, and
+   a single coin CoinGecko drops is the engine's dataComplete to handle,
+   not a reason to refuse the whole universe. */
 const MIN_RESOLVED_SHARE = 0.70;
 
 /* The fields the engine and the site actually read. Checked on the

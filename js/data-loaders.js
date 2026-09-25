@@ -383,14 +383,24 @@ async function loadFuturesMetrics() {
 /* ── Delisted/suspended Binance symbols — real reported harm fix ────
    The rotation/buy suggestions were recommending tokens no longer
    actively trading on Binance. binance_delisted_symbols is populated
-   daily by the sync-binance-status Edge Function from Binance's own
-   exchangeInfo. Any coin whose sym appears here gets excluded from
+   daily by the sync-binance-status Edge Function, and since 2026-09-25
+   it holds three kinds of row, named in `status`:
+     BREAK, HALT, ...   exchangeInfo says the USDT pair stopped trading
+     NOT_LISTED         no USDT pair on Binance at all
+     DELIST_ANNOUNCED   still trading, but Binance has announced its end
+   Any coin whose sym appears here gets excluded from
    buy-zone/rotation-target eligibility everywhere — see _isBuySide()/
    the sell-side filters in signals.js. Read-only, same fail-safe
    design as the server side: if this fetch fails, the Set stays
    empty and nothing gets excluded (fail open on THIS specific check
-   only — not a reason to block the whole page). */
+   only — not a reason to block the whole page).
+
+   delistedStatus keeps the status per sym for the badge only, so a coin
+   with an announced delisting is not labelled "not trading" while it
+   still is. A cached row from before `status` was read has none, and
+   the badge falls back to the generic wording. */
 var delistedSymbols = new Set();
+var delistedStatus  = {};
 
 async function loadDelistedSymbols() {
   try {
@@ -400,13 +410,15 @@ async function loadDelistedSymbols() {
       catch (e) { console.warn('[SupaCache] delisted-symbols read skipped:', e.message); }
     }
     if (!rows || !Array.isArray(rows)) {
-      rows = await supaRest('binance_delisted_symbols', 'GET', { 'select': 'base_asset' });
+      rows = await supaRest('binance_delisted_symbols', 'GET', { 'select': 'base_asset,status' });
       if (Array.isArray(rows) && typeof supaCacheSet === 'function') {
         supaCacheSet('binance_delisted_symbols', rows);
       }
     }
     if (Array.isArray(rows)) {
       delistedSymbols = new Set(rows.map(function(r) { return r.base_asset; }));
+      delistedStatus  = {};
+      rows.forEach(function(r) { if (r.status) delistedStatus[r.base_asset] = r.status; });
     }
   } catch (e) {
     console.warn('[loadDelistedSymbols] failed, no exclusions applied this load:', e.message);
@@ -2788,7 +2800,13 @@ function openTileDetail(coinId, evt) {
     badges.push({t:'⚠ BINANCE MONITORING', cls:'bear'});
   }
   if (typeof delistedSymbols !== 'undefined' && delistedSymbols.has(c.sym)) {
-    badges.push({t:'⚠ NOT TRADING ON BINANCE', cls:'bear'});
+    /* The row's status says which of three things is true (see
+       loadDelistedSymbols). STG trades until its delisting date, so
+       "not trading" would be false for it. */
+    var dls = (typeof delistedStatus !== 'undefined' && delistedStatus[c.sym]) || '';
+    badges.push({t: dls === 'DELIST_ANNOUNCED' ? '⚠ BINANCE DELISTING ANNOUNCED'
+                  : dls === 'NOT_LISTED'       ? '⚠ NOT LISTED ON BINANCE'
+                  :                              '⚠ NOT TRADING ON BINANCE', cls:'bear'});
   }
   /* The score band badge states BEHAVIOUR, not a forecast.
      'LAGGING' read as "this will fall" and sat on coins the rotation

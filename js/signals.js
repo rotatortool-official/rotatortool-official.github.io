@@ -267,8 +267,10 @@ function _isPresentable(c) {
    Two separate Binance signals, deliberately checked together because
    every buy-side filter wants both:
 
-     delistedSymbols   — the USDT pair has already stopped trading
-                         (status != TRADING in exchangeInfo).
+     delistedSymbols   — the USDT pair has stopped trading, does not
+                         exist on Binance, or has an announced
+                         delisting date (BREAK... / NOT_LISTED /
+                         DELIST_ANNOUNCED; see loadDelistedSymbols).
      monitoringSymbols — still trading, but carrying Binance's
                          Monitoring Tag: volatility/risk materially
                          above listing standards, under periodic review
@@ -937,8 +939,9 @@ function renderTopBars() {
      tiles (pair / take-profit / standalone buy) that reflect what's
      actually true for the visitor. */
   /* Real reported harm fix: exclude coins whose Binance USDT pair is
-     delisted/suspended (see loadDelistedSymbols() in data-loaders.js,
-     populated daily from Binance's own exchangeInfo). Only excluded
+     delisted/suspended, missing, or announced for delisting (see
+     loadDelistedSymbols() in data-loaders.js, populated daily by
+     sync-binance-status). Only excluded
      from the BUY side — if someone already holds a coin that's since
      been delisted, take-profit/sell advice is still valid, arguably
      more urgent (get out before it's fully illiquid), so the sell
