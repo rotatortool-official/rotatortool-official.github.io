@@ -287,10 +287,11 @@ function _twTgCoins() {
 
 function _twTgSync(force) {
   if (!isPro || typeof getMyId !== 'function' || typeof SUPA_URL === 'undefined') return;
-  var list = _twTgCoins(), sig = JSON.stringify(list);
+  var lang = (typeof currentLang !== 'undefined' && currentLang === 'mk') ? 'mk' : 'en';
+  var list = _twTgCoins(), sig = lang + JSON.stringify(list);
   if (!force && sig === _twTg.sig) return;
   _twTg.sig = sig;
-  _twRpc('alert_set_coins', { p_uid: getMyId(), p_coins: list }).then(function (linked) {
+  _twRpc('alert_set_coins', { p_uid: getMyId(), p_coins: list, p_lang: lang }).then(function (linked) {
     var was = _twTg.linked;
     _twTg.linked = linked === true;
     if (was !== _twTg.linked) renderCoinAlerts();
@@ -313,7 +314,7 @@ function _twTgConnect() {
   var w = null; try { w = window.open('about:blank', '_blank'); } catch (e) {}
   _twTg.busy = true; _twTg.note = ''; renderCoinAlerts();
   Promise.all([
-    _twRpc('alert_link_start', { p_uid: getMyId() }),
+    _twRpc('alert_link_start', { p_uid: getMyId(), p_lang: (typeof currentLang !== 'undefined' && currentLang === 'mk') ? 'mk' : 'en' }),
     (typeof supaCacheGetStale === 'function') ? supaCacheGetStale('telegram_bot_info') : Promise.resolve(null)
   ]).then(function (res) {
     var code = res[0], bot = res[1] && res[1].data && res[1].data.username;

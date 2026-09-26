@@ -1,5 +1,5 @@
 // ============================================================
-// send-dm-alerts — Supabase Edge Function (promptove/71)
+// send-dm-alerts — Supabase Edge Function (promptove/71, /73)
 //
 // Hourly (:50, sql/telegram_dm_alerts.sql). For every linked Pro chat in
 // telegram_subscribers, works out what is new on its coins and sends ONE
@@ -17,6 +17,13 @@
 //              extreme day or a turn, for BTC and ETH holders
 // The site's in-page alerts also show intraday futures readings (taker
 // flow, short covering). Those flip within hours, so they are not DMed.
+//
+// LANGUAGE (promptove/73). Each message is written in the subscriber's
+// site language (telegram_subscribers.lang, kept current by the site
+// through alert_set_coins). Alert keys carry no words, so a change of
+// language never re-sends an alert. The Macedonian follows the glossary
+// in copy/glossary-mk.md; ETF headlines come from the server's own
+// headline_mk.
 //
 // Wording follows the coin window. Tested signs say "tested: weak, not
 // proven"; the figures stay on the site (ROTATOR_EVIDENCE, one owner),
@@ -37,32 +44,88 @@ const SITE = 'https://rotatortool-official.github.io/';
 const UNLOCK_LINE = 5;          // mirrors RotatorEngine.UNLOCK_PENDING_PCT
 const EVENT_DAYS = 3;
 const SENT_KEEP_DAYS = 90;
-const MON = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+const MON: Record<Lang, string[]> = {
+  en: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
+  mk: ['јан', 'фев', 'мар', 'апр', 'мај', 'јун', 'јул', 'авг', 'сеп', 'окт', 'ное', 'дек'],
+};
 
+type Lang = 'en' | 'mk';
 const he = (s: unknown) => String(s ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
-const nice = (d: string) => { const t = new Date(String(d).slice(0, 10) + 'T00:00:00Z'); return isNaN(+t) ? '' : t.getUTCDate() + ' ' + MON[t.getUTCMonth()]; };
+const nice = (d: string, L: Lang) => { const t = new Date(String(d).slice(0, 10) + 'T00:00:00Z'); return isNaN(+t) ? '' : t.getUTCDate() + ' ' + MON[L][t.getUTCMonth()]; };
 const fmtM = (v: number) => { const a = Math.abs(v); return (v < 0 ? '−' : '+') + (a >= 1000 ? '$' + (a / 1000).toFixed(2) + 'B' : '$' + Math.round(a) + 'M'); };
+
+/* Every sentence the message can contain, in both languages. */
+const W = {
+  en: {
+    held: 'held', watching: 'watching',
+    delist: 'Binance delisting announced', notListed: 'Not listed on Binance', notTrading: 'Not trading on Binance',
+    checkBinance: "Check Binance's announcement for dates.",
+    monitoring: 'Binance Monitoring tag. Binance reviews tagged coins for possible delisting.',
+    unlock: (p: string, when: string) => `${p}% of supply unlocks within 30 days${when ? `, next on ${when}` : ''}.`,
+    etf: (h: string, v: string, d: string, s5: string) => `ETF flows, <b>${h}</b>. ${v} on ${d}, ${s5} over 5 days. <i>Source: Farside Investors.</i>`,
+    header: '🔔 <b>Rotator · alerts for your coins</b>',
+    more: (n: number) => `<i>…and ${n} more on the site.</i>`,
+    footer: `<i>A reading of what already happened, not a forecast.</i> <a href="${SITE}">Open Rotator</a> for each coin's full window. /stop turns these off.`,
+    tested: 'tested: weak, not proven',
+    ev: {
+      quick: 'Quick RSI bounce', slow: 'Slow RSI bounce', back: 'RSI back above 30',
+      backAfter: (nb: string) => `RSI back above 30 after ${nb} below`,
+      slowDetail: (nb: string) => `RSI back above 30 only after ${nb} below; slow bounces mostly trailed the market`,
+      days: (n: number, floor: boolean) => `${n}${floor ? '+' : ''} day${n === 1 ? '' : 's'}`,
+      golden: 'Golden cross', goldenD: '60-day average crossed above the 125-day',
+      death: 'Death cross', deathD: '60-day average crossed below the 125-day', deathN: 'tested: it was not a warning',
+      ob: 'Overbought', os: 'Oversold', rsi: (v: string) => `Daily RSI ${v}`, obNone: 'Daily RSI above 70', osNone: 'Daily RSI below 30',
+      osN: 'oversold alone has not beaten the market',
+      longs: 'Crowded longs', longsD: 'Futures traders lean heavily long. Crowded trades can unwind fast',
+      shorts: 'Crowded shorts', shortsD: 'Futures traders lean heavily short. This is the setup a short squeeze needs',
+    },
+  },
+  mk: {
+    held: 'држите', watching: 'следите',
+    delist: 'Binance најави отстранување од листата', notListed: 'Не е листана на Binance', notTrading: 'Не се тргува на Binance',
+    checkBinance: 'Проверете ја објавата на Binance за датумите.',
+    monitoring: 'Ознака Monitoring на Binance. Binance ги разгледува означените монети за можно отстранување од листата.',
+    unlock: (p: string, when: string) => `${p}% од понудата се отклучува во рок од 30 дена${when ? `, следно на ${when}` : ''}.`,
+    etf: (h: string, v: string, d: string, s5: string) => `Текови во ETF-овите, <b>${h}</b>. ${v} на ${d}, ${s5} за 5 дена. <i>Извор: Farside Investors.</i>`,
+    header: '🔔 <b>Rotator · известувања за вашите монети</b>',
+    more: (n: number) => `<i>…и уште ${n} на страницата.</i>`,
+    footer: `<i>Опис на она што веќе се случи, не прогноза.</i> <a href="${SITE}">Отворете го Rotator</a> за целиот прозорец на секоја монета. /stop ги исклучува.`,
+    tested: 'тестирано: слабо, не е докажано',
+    ev: {
+      quick: 'Брз RSI отскок', slow: 'Бавен RSI отскок', back: 'RSI повторно над 30',
+      backAfter: (nb: string) => `RSI повторно над 30 по ${nb} под таа граница`,
+      slowDetail: (nb: string) => `RSI повторно над 30 дури по ${nb} под таа граница; бавните отскоци главно заостануваа зад пазарот`,
+      days: (n: number, floor: boolean) => `${n}${floor ? '+' : ''} ${n === 1 ? 'ден' : 'дена'}`,
+      golden: 'Златен крст', goldenD: '60-дневниот просек мина над 125-дневниот',
+      death: 'Крст на смртта', deathD: '60-дневниот просек падна под 125-дневниот', deathN: 'тестирано: не беше предупредување',
+      ob: 'Прекупена', os: 'Препродадена', rsi: (v: string) => `Дневен RSI ${v}`, obNone: 'Дневен RSI над 70', osNone: 'Дневен RSI под 30',
+      osN: 'самата препродаденост не го победи пазарот',
+      longs: 'Преполни лонг позиции', longsD: 'Трговците со фјучерси силно се наклонети кон лонг. Преполните позиции може брзо да се одмотаат',
+      shorts: 'Преполни шорт позиции', shortsD: 'Трговците со фјучерси силно се наклонети кон шорт. Тоа е условот што му треба на шорт-стискање',
+    },
+  },
+};
 
 type Alert = { key: string; sym: string; sev: number; line: string };
 
 /* One event row in the coin window's words. null = not worth a DM. */
-function eventLine(e: any): { icon: string; title: string; detail: string; note: string } | null {
-  const d = e.detail || {};
+function eventLine(e: any, L: Lang): { icon: string; title: string; detail: string; note: string } | null {
+  const d = e.detail || {}, w = W[L].ev, tested = W[L].tested;
   const v = e.value != null ? Number(e.value) : null;
   switch (e.event_type) {
     case 'rsi_reclaim': {
       const nb = d.days_below != null ? Number(d.days_below) : null;
-      const nbTxt = nb == null ? '' : ` after ${nb}${d.days_below_is_floor ? '+' : ''} day${nb === 1 ? '' : 's'} below`;
-      if (d.fast) return { icon: '▲', title: 'Quick RSI bounce', detail: 'RSI back above 30' + nbTxt, note: 'tested: weak, not proven' };
-      if ((nb != null && nb >= 6) || d.days_below_is_floor) return { icon: '▼', title: 'Slow RSI bounce', detail: 'RSI back above 30 only' + nbTxt + '; slow bounces mostly trailed the market', note: '' };
-      return { icon: '•', title: 'RSI back above 30', detail: nbTxt.trim(), note: '' };
+      const nbTxt = nb == null ? '' : w.days(nb, !!d.days_below_is_floor);
+      if (d.fast) return { icon: '▲', title: w.quick, detail: nbTxt ? w.backAfter(nbTxt) : w.back, note: tested };
+      if ((nb != null && nb >= 6) || d.days_below_is_floor) return { icon: '▼', title: w.slow, detail: w.slowDetail(nbTxt), note: '' };
+      return { icon: '•', title: w.back, detail: nbTxt ? w.backAfter(nbTxt) : '', note: '' };
     }
-    case 'golden_cross': return { icon: '▲', title: 'Golden cross', detail: '60-day average crossed above the 125-day', note: 'tested: weak, not proven' };
-    case 'death_cross': return { icon: '•', title: 'Death cross', detail: '60-day average crossed below the 125-day', note: 'tested: it was not a warning' };
-    case 'rsi_overbought': return { icon: '▼', title: 'Overbought', detail: v != null ? `Daily RSI ${v.toFixed(1)}` : 'Daily RSI above 70', note: '' };
-    case 'rsi_oversold': return { icon: '•', title: 'Oversold', detail: v != null ? `Daily RSI ${v.toFixed(1)}` : 'Daily RSI below 30', note: 'oversold alone has not beaten the market' };
-    case 'futures_long_crowded': return { icon: '▼', title: 'Crowded longs', detail: 'Futures traders lean heavily long. Crowded trades can unwind fast', note: '' };
-    case 'futures_short_crowded': return { icon: '▲', title: 'Crowded shorts', detail: 'Futures traders lean heavily short. This is the setup a short squeeze needs', note: '' };
+    case 'golden_cross': return { icon: '▲', title: w.golden, detail: w.goldenD, note: tested };
+    case 'death_cross': return { icon: '•', title: w.death, detail: w.deathD, note: w.deathN };
+    case 'rsi_overbought': return { icon: '▼', title: w.ob, detail: v != null ? w.rsi(v.toFixed(1)) : w.obNone, note: '' };
+    case 'rsi_oversold': return { icon: '•', title: w.os, detail: v != null ? w.rsi(v.toFixed(1)) : w.osNone, note: w.osN };
+    case 'futures_long_crowded': return { icon: '▼', title: w.longs, detail: w.longsD, note: '' };
+    case 'futures_short_crowded': return { icon: '▲', title: w.shorts, detail: w.shortsD, note: '' };
     default: return null;
   }
 }
@@ -81,7 +144,7 @@ Deno.serve(async (req: Request) => {
   if (!BOT) return new Response(JSON.stringify({ error: 'TELEGRAM_BOT_TOKEN not set' }), { status: 500 });
   const report = { subscribers: 0, notPro: 0, sent: 0, quiet: 0, blocked: 0, failed: 0 };
   try {
-    const { data: subs, error } = await supabase.from('telegram_subscribers').select('rot_uid,chat_id,coins,sent').eq('active', true);
+    const { data: subs, error } = await supabase.from('telegram_subscribers').select('rot_uid,chat_id,coins,sent,lang').eq('active', true);
     if (error) throw new Error(error.message);
     report.subscribers = (subs || []).length;
     if (!report.subscribers) return new Response(JSON.stringify({ ok: true, ...report }));
@@ -111,44 +174,46 @@ Deno.serve(async (req: Request) => {
 
     for (const s of subs!) {
       if (!proSet.has(s.rot_uid)) { report.notPro++; continue; }
+      const L: Lang = s.lang === 'mk' ? 'mk' : 'en', t = W[L];
       const sent: Record<string, string> = { ...(s.sent || {}) };
       const alerts: Alert[] = [];
       for (const c of coinsOf(s)) {
-        const sym = String(c.sym).toUpperCase(), role = c.role === 'watching' ? 'watching' : 'held';
+        const sym = String(c.sym).toUpperCase(), role = c.role === 'watching' ? t.watching : t.held;
         const tag = `<b>${he(sym)}</b> <i>(${role})</i>`;
         const st = delBy.get(sym);
         if (st) {
-          const t = st === 'DELIST_ANNOUNCED' ? 'Binance delisting announced' : st === 'NOT_LISTED' ? 'Not listed on Binance' : 'Not trading on Binance';
-          alerts.push({ key: `${sym}|exchange|${st}`, sym, sev: 3, line: `⚠ ${tag}: ${t}. Check Binance's announcement for dates.` });
+          const x = st === 'DELIST_ANNOUNCED' ? t.delist : st === 'NOT_LISTED' ? t.notListed : t.notTrading;
+          alerts.push({ key: `${sym}|exchange|${st}`, sym, sev: 3, line: `⚠ ${tag}: ${x}. ${t.checkBinance}` });
         }
-        if (monSet.has(sym)) alerts.push({ key: `${sym}|exchange|MONITORING`, sym, sev: 2, line: `⚠ ${tag}: Binance Monitoring tag. Binance reviews tagged coins for possible delisting.` });
+        if (monSet.has(sym)) alerts.push({ key: `${sym}|exchange|MONITORING`, sym, sev: 2, line: `⚠ ${tag}: ${t.monitoring}` });
         const u: any = c.id ? unlBy.get(c.id) : null;
         const pct = u && u.unlock30d_pct != null ? Number(u.unlock30d_pct) : null;
         if (pct != null && pct > UNLOCK_LINE) {
           const when = u.next_unlock_at ? String(u.next_unlock_at).slice(0, 10) : '';
-          alerts.push({ key: `${sym}|unlock|${when}`, sym, sev: 2, line: `🔓 ${tag}: ${pct.toFixed(1)}% of supply unlocks within 30 days${when ? `, next on ${nice(when)}` : ''}.` });
+          alerts.push({ key: `${sym}|unlock|${when}`, sym, sev: 2, line: `🔓 ${tag}: ${t.unlock(pct.toFixed(1), when ? nice(when, L) : '')}` });
         }
         for (const e of evBy.get(sym) || []) {
-          const L = eventLine(e);
-          if (!L) continue;
+          const E = eventLine(e, L);
+          if (!E) continue;
           alerts.push({ key: `${sym}|event|${e.event_type}|${e.event_date}`, sym, sev: 1,
-            line: `${L.icon} ${tag}: <b>${he(L.title)}</b> · ${nice(e.event_date)}${L.detail ? `. ${he(L.detail)}` : ''}${L.note ? ` <i>(${he(L.note)})</i>` : ''}` });
+            line: `${E.icon} ${tag}: <b>${he(E.title)}</b> · ${nice(e.event_date, L)}${E.detail ? `. ${he(E.detail)}` : ''}${E.note ? ` <i>(${he(E.note)})</i>` : ''}` });
         }
         const a = c.id === 'bitcoin' ? 'BTC' : c.id === 'ethereum' ? 'ETH' : null;
         const f = a && etf[a];
         if (f && f.last && !f.error && /^(reversal|extreme|turned)_/.test(f.state || '')) {
+          const head = L === 'mk' && f.headline_mk ? f.headline_mk : f.headline;
           alerts.push({ key: `${sym}|etf|${f.state}|${f.last.day}`, sym, sev: 1,
-            line: `🏦 ${tag}: ETF flows, <b>${he(f.headline)}</b>. ${he(fmtM(f.last.total))} on ${nice(f.last.day)}, ${he(fmtM(f.sum5))} over 5 days. <i>Source: Farside Investors.</i>` });
+            line: `🏦 ${tag}: ${t.etf(he(head), he(fmtM(f.last.total)), nice(f.last.day, L), he(fmtM(f.sum5)))}` });
         }
       }
       const fresh = alerts.filter((x) => !sent[x.key]).sort((x, y) => y.sev - x.sev);
       if (!fresh.length) { report.quiet++; continue; }
 
-      let body = '🔔 <b>Rotator · alerts for your coins</b>\n\n';
+      let body = t.header + '\n\n';
       const shown: Alert[] = [];
       for (const x of fresh) { if (body.length + x.line.length > 3400) break; body += x.line + '\n\n'; shown.push(x); }
-      if (shown.length < fresh.length) body += `<i>…and ${fresh.length - shown.length} more on the site.</i>\n\n`;
-      body += `<i>A reading of what already happened, not a forecast.</i> <a href="${SITE}">Open Rotator</a> for each coin's full window. /stop turns these off.`;
+      if (shown.length < fresh.length) body += t.more(fresh.length - shown.length) + '\n\n';
+      body += t.footer;
 
       const status = await send(Number(s.chat_id), body);
       if (status === 200) {

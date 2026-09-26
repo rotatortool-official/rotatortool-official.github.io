@@ -116,3 +116,42 @@ revoke all on function public.trigger_telegram_webhook_setup() from public, anon
 -- prompt without being chatty; each alert is sent once per subscriber.
 select cron.unschedule('send-dm-alerts') where exists (select 1 from cron.job where jobname = 'send-dm-alerts');
 select cron.schedule('send-dm-alerts', '50 * * * *', $$ select public.trigger_send_dm_alerts(); $$);
+
+-- ── Language (promptove/73) ─────────────────────────────────────────
+-- DMs and bot replies follow each subscriber's site language. The site
+-- sends it with the link code and with every coin-list sync.
+alter table public.telegram_subscribers add column if not exists lang text not null default 'en' check (lang in ('en','mk'));
+alter table public.telegram_link_codes add column if not exists lang text not null default 'en' check (lang in ('en','mk'));
+
+drop function if exists public.alert_link_start(text);
+create or replace function public.alert_link_start(p_uid text, p_lang text default 'en')
+returns text language plpgsql volatile security definer set search_path = public as $$
+declare v_code text;
+begin
+  if p_uid is null or length(p_uid) < 6 or not public._rot_is_pro(p_uid) then return null; end if;
+  delete from telegram_link_codes where created_at < now() - interval '30 minutes' or rot_uid = p_uid;
+  v_code := 'r' || substr(md5(gen_random_uuid()::text || clock_timestamp()::text), 1, 15);
+  insert into telegram_link_codes (code, rot_uid, lang) values (v_code, p_uid, case when p_lang = 'mk' then 'mk' else 'en' end);
+  return v_code;
+end;
+$$;
+
+drop function if exists public.alert_set_coins(text, jsonb);
+create or replace function public.alert_set_coins(p_uid text, p_coins jsonb, p_lang text default null)
+returns boolean language plpgsql volatile security definer set search_path = public as $$
+begin
+  if p_uid is null or not public._rot_is_pro(p_uid) then return false; end if;
+  if p_coins is not null and jsonb_typeof(p_coins) = 'array' and jsonb_array_length(p_coins) <= 60 then
+    update telegram_subscribers set coins = p_coins, coins_at = now() where rot_uid = p_uid and active;
+  end if;
+  if p_lang in ('en','mk') then
+    update telegram_subscribers set lang = p_lang where rot_uid = p_uid and active;
+  end if;
+  return exists (select 1 from telegram_subscribers where rot_uid = p_uid and active);
+end;
+$$;
+
+revoke all on function public.alert_link_start(text, text) from public;
+revoke all on function public.alert_set_coins(text, jsonb, text) from public;
+grant execute on function public.alert_link_start(text, text) to anon, authenticated;
+grant execute on function public.alert_set_coins(text, jsonb, text) to anon, authenticated;

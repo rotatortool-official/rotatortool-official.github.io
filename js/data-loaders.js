@@ -2033,6 +2033,7 @@ function setLang(lang) {
   if (typeof applyLang === 'function') applyLang();
   /* ETF tiles and an open ETF window carry their own en/mk text. */
   if (typeof renderEtfFlows === 'function') renderEtfFlows();
+  if (typeof _twTgSync === 'function') _twTgSync(false);   /* Telegram alerts follow the site language */
   var etfM = document.getElementById('etf-modal');
   if (etfM && etfM.classList.contains('show') && typeof openEtfModal === 'function') openEtfModal();
 }
