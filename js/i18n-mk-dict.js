@@ -524,7 +524,7 @@ Object.assign(MK_TEXT, {
   P(/^Slight Edge vs BTC \(([^)]+)\)$/, function (m) { return 'Мала предност наспроти BTC (' + m[1] + ')'; });
   P(/^Underperforming BTC \(([^)]+)\)$/, function (m) { return 'Послаба од BTC (' + m[1] + ')'; });
   P(/^Lagging BTC \(([^)]+)\)$/, function (m) { return 'Заостанува зад BTC (' + m[1] + ')'; });
-  P(/^BB Squeeze \(width ([^)]+)\) — Breakout Likely$/, function (m) { return 'BB стеснување (ширина ' + m[1] + ') — веројатен пробив'; });
+  P(/^BB Squeeze \(width ([^)]+)\) — volatility compressed$/, function (m) { return 'BB стеснување (ширина ' + m[1] + ') — компресирана волатилност'; });
   P(/^Price at (Lower|Upper) Band \(([^)]+)\)$/, function (m) { return 'Цена на ' + (m[1] === 'Lower' ? 'долната' : 'горната') + ' лента (' + m[2] + ')'; });
   P(/^Volume (Surge|Breakout) \(([^)]+) avg\)$/, function (m) { return (m[1] === 'Surge' ? 'Скок на обемот' : 'Пробив на обемот') + ' (' + m[2] + ' од просекот)'; });
   P(/^F&G: (\d+) \((Extreme Fear|Fear|Neutral|Greed|Extreme Greed)\)$/, function (m) { return 'F&G: ' + m[1] + ' (' + { 'Extreme Fear': 'екстремен страв', 'Fear': 'страв', 'Neutral': 'неутрално', 'Greed': 'алчност', 'Extreme Greed': 'екстремна алчност' }[m[2]] + ')'; });

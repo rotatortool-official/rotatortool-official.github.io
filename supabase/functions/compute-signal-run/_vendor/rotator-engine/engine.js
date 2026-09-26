@@ -987,7 +987,7 @@
     if (out.macd.line > out.macd.signal && out.macd.hist > 0) out.signals.push('MACD Bullish Cross');
     else if (out.macd.line < out.macd.signal && out.macd.hist < 0) out.signals.push('MACD Bearish Cross');
 
-    if      (out.bb.width < d.bbSqueeze) out.signals.push('BB Squeeze (width ' + out.bb.width.toFixed(1) + '%) — Breakout Likely');
+    if      (out.bb.width < d.bbSqueeze) out.signals.push('BB Squeeze (width ' + out.bb.width.toFixed(1) + '%) — volatility compressed');   /* was "Breakout Likely": a forecast nothing here tested, and a squeeze says nothing about direction (promptove/75) */
     else if (out.bb.width > d.bbWide)    out.signals.push('BB Wide — High Volatility');
     if      (out.bb.pctB < d.bbLow)      out.signals.push('Price at Lower Band (' + out.bb.pctB.toFixed(0) + '%B)');
     else if (out.bb.pctB > d.bbHigh)     out.signals.push('Price at Upper Band (' + out.bb.pctB.toFixed(0) + '%B)');
