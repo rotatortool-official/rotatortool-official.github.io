@@ -4435,3 +4435,50 @@ details.td-reading-trust[open] > summary::before{content:'▾ ';}
 .ca-tg{font-size:11.5px;color:var(--green);}
 .ca-tg .ca-act{margin-left:6px;}
 .ca-tg-note{font-size:11px;color:var(--amber);}
+
+/* ── YOURS on desktop, relaid (promptove/72) ─────────────────────────
+   Row 1: portfolio signal | your coins in ONE horizontal row, to the edge.
+   Row 2: alerts for your coins, cards side by side | score gaps.
+   Row 3: the DYOR bar.
+   The alerts panel had no grid placement, so it auto-placed into a
+   230px column under the DYOR bar and ran a short list down half a
+   screen (Daniel's screenshot, 2026-09-26). The coin grid showed two
+   coins and eight "Add coin" slots in two rows; now the coins sit in a
+   row that scrolls sideways past what fits, followed by one add slot. */
+@media(min-width:901px){
+  #sec-yours .sidebar{grid-template-columns:230px minmax(0,1fr) minmax(280px,380px);gap:14px 16px;}
+  #sec-yours .sig-box{grid-column:1;grid-row:1;}
+  #sec-yours #cb-holdings,#sec-yours .collapse-hdr{grid-column:2 / -1;grid-row:1;}
+  #sec-yours .rot-beside{grid-column:3;grid-row:2;}
+  #sec-yours .coin-alerts{grid-column:1 / 3;grid-row:2;margin:0;}
+  #sec-yours .signal-dyor{grid-row:3;margin-top:0;}
+  #sec-yours .tiles-grid{
+    grid-template-columns:none;grid-auto-flow:column;grid-auto-columns:minmax(168px,1fr);
+    overflow-x:auto;overflow-y:hidden;padding-bottom:6px;scrollbar-width:thin;
+  }
+  #sec-yours .tiles-grid > .tile-placeholder ~ .tile-placeholder{display:none;}
+  #sec-yours .tiles-grid > .tile-placeholder{min-height:140px;}
+  .coin-alerts{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));column-gap:14px;align-items:start;}
+  .coin-alerts > .ca-hd,.coin-alerts > .ca-lock,.coin-alerts > .ca-foot,.coin-alerts > .ca-empty{grid-column:1 / -1;}
+  .coin-alerts > .ca-foot{flex-direction:row;flex-wrap:wrap;align-items:center;gap:6px 18px;}
+}
+
+/* ── Macedonian side banners (promptove/72) ─────────────────────────
+   Two tall artworks in the side margins, only while Macedonian is the
+   language (html.lang-mk, set in setLang()) and only on screens wide
+   enough to have margins. The page gives up the width they need rather
+   than being covered. background-image on a display:none element is not
+   downloaded, so English visitors never fetch them. */
+.mk-banner{display:none;}
+@media(min-width:1500px){
+  html.lang-mk{--mkb-w:clamp(130px, calc((100vw - 1600px) / 2 - 8px), 260px);}
+  html.lang-mk .mk-banner{
+    display:block;position:fixed;top:0;bottom:0;width:var(--mkb-w);z-index:1;pointer-events:none;
+    background-size:cover;background-repeat:no-repeat;background-position:center;
+  }
+  html.lang-mk .mk-banner-l{left:0;background-image:url('img/mk-banner-left.jpg');background-position:left center;
+    -webkit-mask-image:linear-gradient(to right,#000 80%,transparent);mask-image:linear-gradient(to right,#000 80%,transparent);}
+  html.lang-mk .mk-banner-r{right:0;background-image:url('img/mk-banner-right.jpg');background-position:right center;
+    -webkit-mask-image:linear-gradient(to left,#000 80%,transparent);mask-image:linear-gradient(to left,#000 80%,transparent);}
+  html.lang-mk .root,html.lang-mk .topbar{max-width:min(1600px, calc(100vw - 2 * var(--mkb-w) - 16px));}
+}

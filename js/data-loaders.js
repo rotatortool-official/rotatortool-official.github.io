@@ -2014,6 +2014,9 @@ var LANG_STRINGS = {
 var currentLang = 'en';
 function setLang(lang) {
   currentLang = lang;
+  /* Macedonian side banners key off this class (styles.css, promptove/72). */
+  document.documentElement.classList.toggle('lang-mk', lang === 'mk');
+  document.documentElement.lang = lang;
   var s = LANG_STRINGS[lang] || LANG_STRINGS.en;
   var flagEl  = document.getElementById('lang-flag');
   if (flagEl) flagEl.textContent = s.flag;
