@@ -39,6 +39,11 @@ function prog(p, m) {
   var el = document.getElementById('lmsg');
   if (!el) return;
   if (_twTimer) clearTimeout(_twTimer);
+  /* Typed letter by letter, so the page-wide translator only ever saw
+     fragments: translate the whole message first (promptove/73). */
+  el.setAttribute('data-no-i18n', '');
+  var _lang = (typeof currentLang !== 'undefined' && currentLang !== 'en') ? currentLang : (function () { try { return localStorage.getItem('rot_lang'); } catch (e) { return null; } })();
+  if (_lang === 'mk' && typeof mkTranslate === 'function') m = mkTranslate(m);
   el.textContent = '';
   var i = 0;
   function type() {
@@ -2031,6 +2036,8 @@ function setLang(lang) {
   if (pro && !pro.textContent.includes('ACTIVE')) pro.textContent = s.unlockpro;
   try { localStorage.setItem('rot_lang', lang); } catch(e) {}
   if (typeof applyLang === 'function') applyLang();
+  /* The rest of the page (promptove/73): js/i18n-mk.js translates what is on it. */
+  if (typeof applyMkLayer === 'function') applyMkLayer(lang);
   /* ETF tiles and an open ETF window carry their own en/mk text. */
   if (typeof renderEtfFlows === 'function') renderEtfFlows();
   if (typeof _twTgSync === 'function') _twTgSync(false);   /* Telegram alerts follow the site language */
