@@ -848,7 +848,7 @@ function renderTopBars() {
     worstEl.innerHTML = '<div class="sig-tiles-grid">' + worstTiles + '</div>';
   } else {
     var w3 = worstAll.slice(0, 2).map(function(c) { return sigTile(c, 'wrst'); }).join('');
-    var wLocked = proUnlockTile('2 more in Pro') + emptyPlaceholderTile();
+    var wLocked = proUnlockTile('4 more in Pro') + emptyPlaceholderTile();
     worstEl.innerHTML = '<div class="sig-tiles-grid">' + w3 + wLocked + '</div>';
   }
 
@@ -911,7 +911,7 @@ function renderTopBars() {
   } else {
     if (momAll.length) {
       var m1 = sigTile(momAll[0], 'mom');
-      var mLocked = proUnlockTile('unlock 3 more') + emptyPlaceholderTile() + emptyPlaceholderTile();
+      var mLocked = proUnlockTile('unlock 5 more') + emptyPlaceholderTile() + emptyPlaceholderTile();
       momEl.innerHTML = '<div class="sig-tiles-grid">' + m1 + mLocked + '</div>';
     } else {
       momEl.innerHTML = '<div class="no-sug">Scanning \u2014 no coins above momentum threshold right now.</div>';

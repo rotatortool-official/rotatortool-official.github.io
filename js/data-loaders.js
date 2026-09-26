@@ -1642,9 +1642,10 @@ function renderBriefing() {
    READ ONLY. sync-etf-flows (twice each morning, UTC) reads Farside
    Investors' daily tables, stores them in etf_flows, and writes ONE
    interpretation per asset to market_cache.etf_flows_summary: a state,
-   a headline, a detail line, the totals and the last 20 days. The
-   headline is decided on the server so the page, the Telegram briefing
-   and the reversal alert can never disagree.
+   a headline and a detail line in English AND Macedonian (headline_mk,
+   detail_mk), the totals and the last 20 days. The wording is decided on
+   the server so the page, the Telegram briefing and the reversal alert
+   can never disagree.
 
    What the numbers can say is stamped from ROTATOR_EVIDENCE.etfFlows:
    flows mostly follow price, so every line here describes money that
@@ -1657,8 +1658,60 @@ function renderBriefing() {
 var _etfFlows = null;
 var _etfAgeMs = null;
 var _etfAsset = 'BTC';
-var _ETF_NAME = { BTC: 'Bitcoin ETFs', ETH: 'Ether ETFs' };
 var _ETF_PAGE = { BTC: 'https://farside.co.uk/btc/', ETH: 'https://farside.co.uk/eth/' };
+
+/* The window's own labels, English and Macedonian. The headline and
+   detail come from the server in both languages; everything else a
+   visitor reads in the tile and the window is here. */
+var _ETF_TXT = {
+  en: {
+    name: { BTC: 'Bitcoin ETFs', ETH: 'Ether ETFs' }, asset: { BTC: 'Bitcoin', ETH: 'Ether' },
+    netFlow: 'net flow', d5: '5d ', d20: '20d ', details: 'details ›', on: 'on ', title: 'US spot ETF flows', strip: 'US spot ETF flows',
+    source: 'Source', open: 'Open details', months: ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'],
+    latest: 'Latest day', last5: 'Last 5 days', last20: 'Last 20 days', run: 'Current run',
+    tradingDays: 'trading days', month: 'about a month', sameDir: 'same direction', none: 'none',
+    runIn: function (n) { return n + ' days in'; }, runOut: function (n) { return n + ' days out'; },
+    axis: 'net flow per trading day', still: 'still being reported',
+    prov: function (d, v) { return d + ' is still being reported (' + v + ' so far, the hollow bar). It is left out of the reading until every fund has reported.'; },
+    bigHd: 'What counts as a big day',
+    big: function (n, p10, p90, p5, p95) { return 'Over the past ' + n + ' trading days, 1 day in 10 saw outflows above ' + p10 + ' or inflows above ' + p90
+      + ', and 1 day in 20 went beyond ' + p5 + ' out or ' + p95 + ' in. A <b>sharp reversal</b> is a day in that 1-in-10 group going against the previous 5 days.'; },
+    canHd: 'What this can and cannot tell you',
+    can: function (ev) { return 'We tested ' + ev.days + ' trading days of Bitcoin ETF flows (' + ev.measuredOn + '). Flows mostly <b>follow</b> the price: '
+      + 'a week of inflows usually came after a week of rising prices (correlation ' + ev.chaseCorr.toFixed(2) + '). '
+      + 'Big inflow weeks did not lead Bitcoin higher. Big outflow weeks were followed by a slightly weaker Bitcoin week ('
+      + ev.strongOutflow.excess7.toFixed(2) + '% against an average week), but not reliably enough to call it a signal. '; },
+    canEnd: 'Read this as where money already moved, not where the price goes next.',
+    failed: 'The last update failed, so this is the previous reading.',
+    srcTail: function (a) { return ', daily net flows of every US spot ' + a + ' ETF, in US dollars. The fund-by-fund table is on their site.'; },
+    reading: 'Reading'
+  },
+  mk: {
+    name: { BTC: 'Биткоин ETF-ови', ETH: 'Етер ETF-ови' }, asset: { BTC: 'Биткоин', ETH: 'Етер' },
+    netFlow: 'нето тек', d5: '5д ', d20: '20д ', details: 'детали ›', on: 'на ', title: 'Текови во американските спот ETF-ови', strip: 'Текови во американските спот ETF-ови',
+    source: 'Извор', open: 'Отвори детали', months: ['јан','фев','мар','апр','мај','јун','јул','авг','сеп','окт','ное','дек'],
+    latest: 'Последен ден', last5: 'Последни 5 дена', last20: 'Последни 20 дена', run: 'Тековна низа',
+    tradingDays: 'дена на тргување', month: 'околу еден месец', sameDir: 'иста насока', none: 'нема',
+    runIn: function (n) { return n + ' дена прилив'; }, runOut: function (n) { return n + ' дена одлив'; },
+    axis: 'нето тек по ден на тргување', still: 'сè уште се пријавува',
+    prov: function (d, v) { return 'За ' + d + ' податоците сè уште пристигнуваат (засега ' + v + ', празната столбица). Денот не влегува во оценката додека сите фондови не пријават.'; },
+    bigHd: 'Што е голем ден',
+    big: function (n, p10, p90, p5, p95) { return 'Во последните ' + n + ' дена на тргување, 1 од 10 дена имаше одлив поголем од ' + p10 + ' или прилив поголем од ' + p90
+      + ', а 1 од 20 дена надмина ' + p5 + ' одлив или ' + p95 + ' прилив. <b>Нагло свртување</b> е ден од таа група 1 од 10 што оди спротивно на претходните 5 дена.'; },
+    canHd: 'Што може, а што не може да ви каже ова',
+    can: function (ev) { return 'Тестиравме ' + ev.days + ' дена на тргување со текови во Биткоин ETF-овите (' + ev.measuredOn + '). Тековите главно ја <b>следат</b> цената: '
+      + 'недела со приливи обично доаѓаше по недела со пораст на цената (корелација ' + ev.chaseCorr.toFixed(2) + '). '
+      + 'Неделите со големи приливи не го туркаа Биткоин нагоре. По неделите со големи одливи следуваше малку послаба недела за Биткоин ('
+      + ev.strongOutflow.excess7.toFixed(2) + '% во однос на просечна недела), но не доволно сигурно за да се нарече сигнал. '; },
+    canEnd: 'Читајте го ова како каде парите веќе отидоа, а не каде ќе оди цената.',
+    failed: 'Последното ажурирање не успеа, па ова е претходното читање.',
+    srcTail: function (a) { return ', дневни нето текови на сите американски спот ' + a + ' ETF-ови, во американски долари. Табелата по фондови е на нивната страница.'; },
+    reading: 'Читање'
+  }
+};
+function _etfL() { return (typeof currentLang !== 'undefined' && currentLang === 'mk') ? _ETF_TXT.mk : _ETF_TXT.en; }
+function _etfHead(s) { return (_etfL() === _ETF_TXT.mk && s.headline_mk) ? s.headline_mk : s.headline; }
+function _etfDetail(s) { return (_etfL() === _ETF_TXT.mk && s.detail_mk) ? s.detail_mk : s.detail; }
 
 async function loadEtfFlows() {
   if (typeof supaCacheGetStale !== 'function') return;
@@ -1680,13 +1733,14 @@ function _etfM(v, signed) {
 function _etfDay(d) {
   if (!d) return '';
   var t = new Date(d + 'T00:00:00Z');
-  return t.getUTCDate() + ' ' + ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'][t.getUTCMonth()];
+  return t.getUTCDate() + ' ' + _etfL().months[t.getUTCMonth()];
 }
 function _etfTone(s) { return s && /^(in|out|warn)$/.test(s.tone) ? s.tone : 'neutral'; }
 
 /* Bars around a zero line: inflow up in green, outflow down in red. A
    day still being reported is drawn hollow. `big` is the modal chart. */
 function _etfBars(bars, prov, big) {
+  var L = _etfL();
   var pts = (bars || []).slice();
   if (prov) pts.push({ day: prov.day, total: prov.total, prov: true });
   if (pts.length < 2) return '';
@@ -1694,14 +1748,14 @@ function _etfBars(bars, prov, big) {
   var hi = Math.max.apply(null, pts.map(function (p) { return Math.abs(p.total); })) || 1;
   var mid = H / 2, scale = (H / 2 - PAD) / hi, bw = W / pts.length;
   var out = '<svg class="' + (big ? 'etf-chart' : 'etf-mini') + '" viewBox="0 0 ' + W + ' ' + H
-    + '" preserveAspectRatio="none" role="img" aria-label="Daily net flows, last ' + pts.length + ' trading days">';
+    + '" preserveAspectRatio="none" role="img" aria-label="' + L.axis + ', ' + pts.length + '">';
   out += '<line x1="0" x2="' + W + '" y1="' + mid + '" y2="' + mid + '" class="etf-zero"/>';
   pts.forEach(function (p, i) {
     var h = Math.max(1, Math.abs(p.total) * scale);
     var y = p.total >= 0 ? mid - h : mid;
     out += '<rect x="' + (i * bw + bw * 0.15).toFixed(1) + '" y="' + y.toFixed(1) + '" width="' + (bw * 0.7).toFixed(1)
       + '" height="' + h.toFixed(1) + '" class="' + (p.total >= 0 ? 'etf-in' : 'etf-out') + (p.prov ? ' etf-prov' : '')
-      + '"><title>' + _etfDay(p.day) + ': ' + _etfM(p.total) + (p.prov ? ' (still being reported)' : '') + '</title></rect>';
+      + '"><title>' + _etfDay(p.day) + ': ' + _etfM(p.total) + (p.prov ? ' (' + L.still + ')' : '') + '</title></rect>';
   });
   return out + '</svg>';
 }
@@ -1709,74 +1763,66 @@ function _etfBars(bars, prov, big) {
 function renderEtfFlows() {
   var host = document.getElementById('etf-strip');
   if (!host) return;
-  var f = _etfFlows;
+  var f = _etfFlows, L = _etfL();
   var assets = ['BTC', 'ETH'].filter(function (a) { return f && f[a] && f[a].last; });
   if (!assets.length) { host.style.display = 'none'; return; }
   host.style.display = '';
   host.innerHTML = assets.map(function (a) {
     var s = f[a];
     return '<button type="button" class="etf-tile etf-' + _etfTone(s) + '" onclick="openEtfModal(\'' + a + '\')"'
-      + ' aria-label="' + _ETF_NAME[a] + ' flows: ' + _esc(s.headline) + '. Open details.">'
-      + '<div class="etf-tile-top"><span class="bf-k">' + _ETF_NAME[a] + ' · net flow</span><span class="etf-more">details ›</span></div>'
-      + '<div class="etf-head">' + _esc(s.headline) + '</div>'
+      + ' aria-label="' + L.name[a] + ': ' + _esc(_etfHead(s)) + '. ' + L.open + '.">'
+      + '<div class="etf-tile-top"><span class="bf-k">' + L.name[a] + ' · ' + L.netFlow + '</span><span class="etf-more">' + L.details + '</span></div>'
+      + '<div class="etf-head">' + _esc(_etfHead(s)) + '</div>'
       + '<div class="etf-nums"><span class="etf-num ' + (s.last.total >= 0 ? 'up' : 'dn') + '">' + _etfM(s.last.total) + '</span>'
-      + '<span class="etf-sub">on ' + _etfDay(s.last.day) + '</span>'
-      + '<span class="etf-sub">5d ' + _etfM(s.sum5) + '</span>'
-      + '<span class="etf-sub">20d ' + _etfM(s.sum20) + '</span></div>'
+      + '<span class="etf-sub">' + L.on + _etfDay(s.last.day) + '</span>'
+      + '<span class="etf-sub">' + L.d5 + _etfM(s.sum5) + '</span>'
+      + '<span class="etf-sub">' + L.d20 + _etfM(s.sum20) + '</span></div>'
       + _etfBars(s.bars, s.provisional, false)
       + '</button>';
   }).join('')
-  + '<div class="etf-src">US spot ETF flows · Source: <a href="https://farside.co.uk/" target="_blank" rel="noopener">Farside Investors</a>'
-  + (_etfAgeMs != null ? ' · ' + _bfAge(_etfAgeMs) : '') + '</div>';
+  + '<div class="etf-src">' + L.strip + ' · ' + L.source + ': <a href="https://farside.co.uk/" target="_blank" rel="noopener">Farside Investors</a>'
+  + (_etfAgeMs != null && L === _ETF_TXT.en ? ' · ' + _bfAge(_etfAgeMs) : '') + '</div>';
 }
 
 function openEtfModal(asset) {
   if (asset) _etfAsset = asset;
   var body = document.getElementById('etf-modal-body');
-  var f = _etfFlows;
+  var f = _etfFlows, L = _etfL();
   if (!body || !f) return;
   var a = f[_etfAsset] ? _etfAsset : 'BTC', s = f[a];
   if (!s || !s.last) return;
   var ev = (typeof ROTATOR_EVIDENCE !== 'undefined' && ROTATOR_EVIDENCE.etfFlows) || null;
   var bars = s.bars || [];
   var streak = s.streak && s.streak.len >= 2
-    ? s.streak.len + ' days ' + (s.streak.dir > 0 ? 'in' : 'out') : 'none';
+    ? (s.streak.dir > 0 ? L.runIn(s.streak.len) : L.runOut(s.streak.len)) : L.none;
   var tabs = ['BTC', 'ETH'].filter(function (x) { return f[x] && f[x].last; }).map(function (x) {
-    return '<button type="button" class="etf-tab' + (x === a ? ' on' : '') + '" onclick="openEtfModal(\'' + x + '\')">' + _ETF_NAME[x] + '</button>';
+    return '<button type="button" class="etf-tab' + (x === a ? ' on' : '') + '" onclick="openEtfModal(\'' + x + '\')">' + L.name[x] + '</button>';
   }).join('');
   var r = s.ref || {};
   body.innerHTML =
-      '<div class="modal-title">US spot ETF flows</div>'
+      '<div class="modal-title">' + L.title + '</div>'
     + '<div class="etf-tabs">' + tabs + '</div>'
     + '<div class="etf-scroll">'
-    + '<div class="etf-m-head etf-' + _etfTone(s) + '">' + _esc(s.headline) + '</div>'
-    + '<div class="etf-m-detail">' + _esc(s.detail) + '</div>'
-    + (s.provisional ? '<div class="etf-m-note">' + _etfDay(s.provisional.day) + ' is still being reported (' + _etfM(s.provisional.total)
-        + ' so far, the hollow bar). It is left out of the reading until every fund has reported.</div>' : '')
+    + '<div class="etf-m-head etf-' + _etfTone(s) + '">' + _esc(_etfHead(s)) + '</div>'
+    + '<div class="etf-m-detail">' + _esc(_etfDetail(s)) + '</div>'
+    + (s.provisional ? '<div class="etf-m-note">' + L.prov(_etfDay(s.provisional.day), _etfM(s.provisional.total)) + '</div>' : '')
     + '<div class="etf-stats">'
-    +   '<div><span class="bf-k">Latest day</span><b class="' + (s.last.total >= 0 ? 'up' : 'dn') + '">' + _etfM(s.last.total) + '</b><em>' + _etfDay(s.last.day) + '</em></div>'
-    +   '<div><span class="bf-k">Last 5 days</span><b class="' + (s.sum5 >= 0 ? 'up' : 'dn') + '">' + _etfM(s.sum5) + '</b><em>trading days</em></div>'
-    +   '<div><span class="bf-k">Last 20 days</span><b class="' + (s.sum20 >= 0 ? 'up' : 'dn') + '">' + _etfM(s.sum20) + '</b><em>about a month</em></div>'
-    +   '<div><span class="bf-k">Current run</span><b>' + streak + '</b><em>same direction</em></div>'
+    +   '<div><span class="bf-k">' + L.latest + '</span><b class="' + (s.last.total >= 0 ? 'up' : 'dn') + '">' + _etfM(s.last.total) + '</b><em>' + _etfDay(s.last.day) + '</em></div>'
+    +   '<div><span class="bf-k">' + L.last5 + '</span><b class="' + (s.sum5 >= 0 ? 'up' : 'dn') + '">' + _etfM(s.sum5) + '</b><em>' + L.tradingDays + '</em></div>'
+    +   '<div><span class="bf-k">' + L.last20 + '</span><b class="' + (s.sum20 >= 0 ? 'up' : 'dn') + '">' + _etfM(s.sum20) + '</b><em>' + L.month + '</em></div>'
+    +   '<div><span class="bf-k">' + L.run + '</span><b>' + streak + '</b><em>' + L.sameDir + '</em></div>'
     + '</div>'
     + '<div class="etf-chart-wrap">' + _etfBars(bars, s.provisional, true)
-    +   '<div class="etf-axis"><span>' + _etfDay((bars[0] || {}).day) + '</span><span>net flow per trading day</span><span>'
+    +   '<div class="etf-axis"><span>' + _etfDay((bars[0] || {}).day) + '</span><span>' + L.axis + '</span><span>'
     +   _etfDay((s.provisional || bars[bars.length - 1] || {}).day) + '</span></div></div>'
-    + (r.days ? '<div class="etf-m-sec"><div class="bf-k">What counts as a big day</div><p>Over the past ' + r.days
-        + ' trading days, 1 day in 10 saw outflows above ' + _etfM(r.p10, false) + ' or inflows above ' + _etfM(r.p90, false)
-        + ', and 1 day in 20 went beyond ' + _etfM(r.p5, false) + ' out or ' + _etfM(r.p95, false) + ' in. '
-        + 'A <b>sharp reversal</b> is a day in that 1-in-10 group going against the previous 5 days.</p></div>' : '')
-    + '<div class="etf-m-sec"><div class="bf-k">What this can and cannot tell you</div><p>'
-    + (ev ? 'We tested ' + ev.days + ' trading days of Bitcoin ETF flows (' + ev.measuredOn + '). Flows mostly <b>follow</b> the price: '
-          + 'a week of inflows usually came after a week of rising prices (correlation ' + ev.chaseCorr.toFixed(2) + '). '
-          + 'Big inflow weeks did not lead Bitcoin higher. Big outflow weeks were followed by a slightly weaker Bitcoin week ('
-          + ev.strongOutflow.excess7.toFixed(2) + '% against an average week), but not reliably enough to call it a signal. '
-          : '')
-    + 'Read this as where money already moved, not where the price goes next.</p></div>'
-    + (s.error ? '<div class="etf-m-note">The last update failed, so this is the previous reading.</div>' : '')
-    + '<div class="etf-src">Source: <a href="' + _ETF_PAGE[a] + '" target="_blank" rel="noopener">Farside Investors</a>, daily net flows of every US spot '
-    + (a === 'BTC' ? 'Bitcoin' : 'Ether') + ' ETF, in US dollars. The fund-by-fund table is on their site.'
-    + (_etfAgeMs != null ? ' Reading ' + _bfAge(_etfAgeMs) + '.' : '') + '</div>'
+    + (r.days ? '<div class="etf-m-sec"><div class="bf-k">' + L.bigHd + '</div><p>'
+        + L.big(r.days, _etfM(r.p10, false), _etfM(r.p90, false), _etfM(r.p5, false), _etfM(r.p95, false)) + '</p></div>' : '')
+    + '<div class="etf-m-sec"><div class="bf-k">' + L.canHd + '</div><p>'
+    + (ev ? L.can(ev) : '') + L.canEnd + '</p></div>'
+    + (s.error ? '<div class="etf-m-note">' + L.failed + '</div>' : '')
+    + '<div class="etf-src">' + L.source + ': <a href="' + _ETF_PAGE[a] + '" target="_blank" rel="noopener">Farside Investors</a>'
+    + L.srcTail(L.asset[a])
+    + (_etfAgeMs != null && L === _ETF_TXT.en ? ' ' + L.reading + ' ' + _bfAge(_etfAgeMs) + '.' : '') + '</div>'
     + '</div>';
   openModal('etf-modal');
   if (typeof supaCountFeature === 'function') supaCountFeature('etf_flows', true);
@@ -1981,6 +2027,10 @@ function setLang(lang) {
   if (pro && !pro.textContent.includes('ACTIVE')) pro.textContent = s.unlockpro;
   try { localStorage.setItem('rot_lang', lang); } catch(e) {}
   if (typeof applyLang === 'function') applyLang();
+  /* ETF tiles and an open ETF window carry their own en/mk text. */
+  if (typeof renderEtfFlows === 'function') renderEtfFlows();
+  var etfM = document.getElementById('etf-modal');
+  if (etfM && etfM.classList.contains('show') && typeof openEtfModal === 'function') openEtfModal();
 }
 (function() { try { var l = localStorage.getItem('rot_lang'); if (l) setTimeout(function() { setLang(l); }, 50); } catch(e) {} })();
 

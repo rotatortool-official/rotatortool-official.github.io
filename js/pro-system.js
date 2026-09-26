@@ -217,12 +217,16 @@ function openPro() {
           + '<div style="flex:1;font-size:12px;letter-spacing:.12em;color:var(--pro);text-transform:uppercase;text-align:right;">⚡ PRO</div>'
         + '</div>'
         + '<div style="font-size:12px;color:var(--text);line-height:2.4;">'
-          + '<div style="display:flex;justify-content:space-between;"><span>2 holdings</span><span style="color:var(--pro);">10 holdings</span></div>'
-          + '<div style="display:flex;justify-content:space-between;"><span>Default swap pair</span><span style="color:var(--pro);">Choose any swap pair</span></div>'
-          + '<div style="display:flex;justify-content:space-between;"><span style="color:var(--muted);">—</span><span style="color:var(--pro);">⚡ Insight Engine</span></div>'
-          + '<div style="display:flex;justify-content:space-between;"><span style="color:var(--muted);">—</span><span style="color:var(--pro);">↔ Best Time to Swap</span></div>'
-          + '<div style="display:flex;justify-content:space-between;"><span style="color:var(--muted);">—</span><span style="color:var(--pro);">🔄 Score gaps</span></div>'
-          + '<div style="display:flex;justify-content:space-between;"><span style="color:var(--muted);">—</span><span style="color:var(--pro);">📊 Score Breakdown</span></div>'
+          /* What Pro actually changes, checked against the code 2026-09-26
+             (promptove/69). Score gaps, the score breakdown and the swap
+             tool's support/resistance cues are free for everyone, so they
+             are not listed here: the list used to claim them as Pro. */
+          + '<div style="display:flex;justify-content:space-between;gap:10px;"><span>2 holdings</span><span style="color:var(--pro);text-align:right;">10 holdings</span></div>'
+          + '<div style="display:flex;justify-content:space-between;gap:10px;"><span>Default swap pair</span><span style="color:var(--pro);text-align:right;">Any swap pair</span></div>'
+          + '<div style="display:flex;justify-content:space-between;gap:10px;"><span>Insight Engine, 24h delayed</span><span style="color:var(--pro);text-align:right;">⚡ Insight Engine, live</span></div>'
+          + '<div style="display:flex;justify-content:space-between;gap:10px;"><span>1 strongest, 2 weakest tiles</span><span style="color:var(--pro);text-align:right;">All 6 of each</span></div>'
+          + '<div style="display:flex;justify-content:space-between;gap:10px;"><span>First 2 coin badges</span><span style="color:var(--pro);text-align:right;">Every coin badge</span></div>'
+          + '<div style="display:flex;justify-content:space-between;gap:10px;"><span><span style="color:var(--muted);">—</span></span><span style="color:var(--pro);text-align:right;">Telegram channel</span></div>'
         + '</div>'
       + '</div>'
 

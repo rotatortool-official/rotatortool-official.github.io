@@ -148,6 +148,8 @@ function interpret(asset: string, all: Day[]) {
   const word = dir > 0 ? 'inflows' : 'outflows';
 
   let state = 'mixed', headline = '', detail = '', tone = 'neutral';
+  const streakDays = days.slice(n - len);
+  const peak = streakDays.length ? streakDays.reduce((a, b) => (Math.abs(b.total) > Math.abs(a.total) ? b : a)) : last;
   const reversalsSince = (() => {
     let inN = 0, outN = 0;
     for (let i = 0; i < n; i++) if (isReversal(days, i)) { if (days[i].total < 0) outN++; else inN++; }
@@ -173,8 +175,6 @@ function interpret(asset: string, all: Day[]) {
     tone = s5 > 0 ? 'in' : 'out';
   } else if (len >= 3 && l3[2] < l3[1] && l3[1] < l3[0]) {
     state = dir > 0 ? 'slowing_in' : 'slowing_out';
-    const streak = days.slice(n - len);
-    const peak = streak.reduce((a, b) => (Math.abs(b.total) > Math.abs(a.total) ? b : a));
     headline = dir > 0 ? 'Inflows continuing, but slowing' : 'Outflows continuing, but easing';
     detail = `${ord(len)} straight day of ${word}, each of the last 3 smaller: ${fmtAbs(peak.total)} on ${nice(peak.day)} down to ${fmtAbs(last.total)} on ${nice(last.day)}.`;
     tone = 'warn';
@@ -198,8 +198,12 @@ function interpret(asset: string, all: Day[]) {
     detail = `${fmt(s5)} over the last 5 trading days, with no clear direction day to day. ${fmt(last.total)} on ${nice(last.day)}.`;
   }
 
+  const cntAll = dir < 0 ? reversalsSince.out : reversalsSince.in;
+  const mk = textMk(state, { day: last.day, last: last.total, prev5, s5, s5prev, len, dir, cnt: cntAll, since: reversalsSince.since,
+    peakDay: peak.day, peakTotal: peak.total, streakSum: sum(streakDays) });
+
   return {
-    asset, state, headline, detail, tone,
+    asset, state, headline, detail, tone, headline_mk: mk.headline, detail_mk: mk.detail,
     last: { day: last.day, total: last.total },
     provisional: provisional ? { day: provisional.day, total: provisional.total } : null,
     sum5: s5, sum20: s20, streak: { dir, len },
@@ -208,6 +212,49 @@ function interpret(asset: string, all: Day[]) {
     reversals: reversalsSince,
     firstDay: days[0].day,
   };
+}
+
+/* The same eight readings in Macedonian, from the same facts, so the
+   site's mk view says what the English one says. Written by hand
+   (2026-09-26), for Daniel to check; the figures are shared with the
+   English text. */
+const MON_MK = ['јан', 'фев', 'мар', 'апр', 'мај', 'јун', 'јул', 'авг', 'сеп', 'окт', 'ное', 'дек'];
+const niceMk = (d: string) => { const t = new Date(d + 'T00:00:00Z'); return t.getUTCDate() + ' ' + MON_MK[t.getUTCMonth()]; };
+type Facts = { day: string; last: number; prev5: number; s5: number; s5prev: number; len: number; dir: number; cnt: number;
+  since: string; peakDay: string; peakTotal: number; streakSum: number };
+function textMk(state: string, f: Facts): { headline: string; detail: string } {
+  const ins = f.dir > 0, flowsWord = ins ? 'приливи' : 'одливи';
+  switch (state) {
+    case 'reversal_out': case 'reversal_in':
+      return {
+        headline: `Нагло свртување: ${state === 'reversal_out' ? 'одлив' : 'прилив'} од ${fmtAbs(f.last)} за еден ден`,
+        detail: `На ${niceMk(f.day)}, откако во претходните 5 дена ${f.prev5 > 0 ? 'влегоа' : 'излегоа'} ${fmtAbs(f.prev5)}. `
+          + `Еден од 10% најголемите денови со ${state === 'reversal_out' ? 'одлив' : 'прилив'} во изминатата година. Вакви денови од ${f.since}: ${f.cnt}, вклучувајќи го и овој.`,
+      };
+    case 'extreme_out': case 'extreme_in': {
+      const w = state === 'extreme_out' ? 'одлив' : 'прилив';
+      return { headline: `Еден од најголемите денови со ${w} во годината: ${fmt(f.last)}`,
+        detail: `На ${niceMk(f.day)}. Само 5% од деновите во изминатата година имаа поголем ${w}.` };
+    }
+    case 'turned_in': case 'turned_out':
+      return { headline: `Тековите се свртеа во нето ${state === 'turned_in' ? 'прилив' : 'одлив'}`,
+        detail: `${fmt(f.s5)} во последните 5 дена на тргување, по ${fmt(f.s5prev)} во претходните 5.` };
+    case 'slowing_in': case 'slowing_out':
+      return { headline: ins ? 'Приливите продолжуваат, но забавуваат' : 'Одливите продолжуваат, но слабеат',
+        detail: `${f.len} последователни дена со ${flowsWord}, секој од последните 3 помал: од ${fmtAbs(f.peakTotal)} на ${niceMk(f.peakDay)} до ${fmtAbs(f.last)} на ${niceMk(f.day)}.` };
+    case 'accel_in': case 'accel_out':
+      return { headline: ins ? 'Приливите забрзуваат' : 'Одливите забрзуваат',
+        detail: `${f.len} последователни дена со ${flowsWord}, секој од последните 3 поголем, до ${fmtAbs(f.last)} на ${niceMk(f.day)}.` };
+    case 'streak_in': case 'streak_out':
+      return { headline: `${f.len} последователни дена со ${flowsWord}`,
+        detail: `${fmt(f.streakSum)} во текот на низата. ${fmt(f.last)} на ${niceMk(f.day)}.` };
+    case 'stalled':
+      return { headline: 'Тековите во ETF-овите застанаа',
+        detail: `Помалку од $${STALL_M}M во која било насока во секој од последните 3 дена на тргување.` };
+    default:
+      return { headline: 'Мешани текови',
+        detail: `${fmt(f.s5)} во последните 5 дена на тргување, без јасна насока од ден на ден. ${fmt(f.last)} на ${niceMk(f.day)}.` };
+  }
 }
 
 async function sendTelegram(text: string) {

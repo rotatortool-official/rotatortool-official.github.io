@@ -147,7 +147,7 @@ function _tdSigns(c) {
   var etfA = c.id === 'bitcoin' ? 'BTC' : c.id === 'ethereum' ? 'ETH' : null;
   var etfS = etfA && typeof _etfFlows !== 'undefined' && _etfFlows && _etfFlows[etfA];
   if (etfS && etfS.last && !etfS.error) {
-    var etfRow = { title: 'ETF flows: ' + etfS.headline, when: etfS.last.day ? _etfDay(etfS.last.day) : '',
+    var etfRow = { title: 'ETF flows: ' + etfS.headline, when: etfS.last.day ? Number(etfS.last.day.slice(8, 10)) + ' ' + ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'][Number(etfS.last.day.slice(5, 7)) - 1] : '',
       detail: _etfM(etfS.last.total) + ' on the latest day, ' + _etfM(etfS.sum5) + ' over 5 trading days. Source: Farside Investors', ev: null };
     if (etfS.tone === 'out') { etfRow.ev = etfA === 'BTC' ? 'etfOutflowBTC' : 'etfOutflowETH'; down.push(etfRow); }
     else info.push(etfRow);
