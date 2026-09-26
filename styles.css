@@ -4464,21 +4464,35 @@ details.td-reading-trust[open] > summary::before{content:'▾ ';}
 }
 
 /* ── Macedonian side banners (promptove/72) ─────────────────────────
-   Two tall artworks in the side margins, only while Macedonian is the
-   language (html.lang-mk, set in setLang()) and only on screens wide
-   enough to have margins. The page gives up the width they need rather
-   than being covered. background-image on a display:none element is not
-   downloaded, so English visitors never fetch them. */
+   Decoration only. They live in the empty side margins and never take
+   width from the page: they appear only where the screen is wider than
+   the 1600px page plus room for them, capped at 140px, click-through,
+   and faded toward the content so there is no hard edge.
+
+   Left: the embroidery; right: the sun (swapped, Daniel 2026-09-26).
+   Switching to Macedonian fades them in, switching away fades them out.
+   The images are attached only once Macedonian has been chosen in this
+   visit (html.mk-seen, set in setLang), so English visitors never
+   download them, and the fade-out still has an image to fade. */
 .mk-banner{display:none;}
-@media(min-width:1500px){
-  html.lang-mk{--mkb-w:clamp(130px, calc((100vw - 1600px) / 2 - 8px), 260px);}
-  html.lang-mk .mk-banner{
-    display:block;position:fixed;top:0;bottom:0;width:var(--mkb-w);z-index:1;pointer-events:none;
-    background-size:cover;background-repeat:no-repeat;background-position:center;
+@media(min-width:1780px){
+  .mk-banner{
+    display:block;position:fixed;top:0;bottom:0;z-index:0;pointer-events:none;
+    width:min(140px, calc((100vw - 1600px) / 2 - 10px));
+    background-size:cover;background-repeat:no-repeat;
+    opacity:0;visibility:hidden;
+    transition:opacity .7s ease, visibility 0s linear .7s;
   }
-  html.lang-mk .mk-banner-l{left:0;background-image:url('img/mk-banner-left.jpg');background-position:left center;
-    -webkit-mask-image:linear-gradient(to right,#000 80%,transparent);mask-image:linear-gradient(to right,#000 80%,transparent);}
-  html.lang-mk .mk-banner-r{right:0;background-image:url('img/mk-banner-right.jpg');background-position:right center;
-    -webkit-mask-image:linear-gradient(to left,#000 80%,transparent);mask-image:linear-gradient(to left,#000 80%,transparent);}
-  html.lang-mk .root,html.lang-mk .topbar{max-width:min(1600px, calc(100vw - 2 * var(--mkb-w) - 16px));}
+  html.lang-mk .mk-banner{opacity:.85;visibility:visible;transition:opacity .7s ease, visibility 0s;}
+  .mk-banner-l{left:0;
+    -webkit-mask-image:linear-gradient(to right,#000 35%,transparent),linear-gradient(to bottom,transparent,#000 12%,#000 88%,transparent);
+    -webkit-mask-composite:source-in;mask-composite:intersect;
+    mask-image:linear-gradient(to right,#000 35%,transparent),linear-gradient(to bottom,transparent,#000 12%,#000 88%,transparent);}
+  .mk-banner-r{right:0;
+    -webkit-mask-image:linear-gradient(to left,#000 35%,transparent),linear-gradient(to bottom,transparent,#000 12%,#000 88%,transparent);
+    -webkit-mask-composite:source-in;mask-composite:intersect;
+    mask-image:linear-gradient(to left,#000 35%,transparent),linear-gradient(to bottom,transparent,#000 12%,#000 88%,transparent);}
+  html.mk-seen .mk-banner-l{background-image:url('img/mk-banner-right.jpg');background-position:left center;}
+  html.mk-seen .mk-banner-r{background-image:url('img/mk-banner-left.jpg');background-position:left center;}
 }
+@media(prefers-reduced-motion:reduce){ .mk-banner{transition:none !important;} }
