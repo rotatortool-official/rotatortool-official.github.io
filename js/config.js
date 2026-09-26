@@ -139,6 +139,18 @@ var ROTATOR_EVIDENCE = {
                      rsiSlowReclaim:  { verdict: 'few',      n: 59 },
                      rsiOversold:     { verdict: 'noedge' } },
 
+  /* ── US spot ETF flows (Farside Investors) ─────────────────────────
+     rotator-backtest/etf-flow-test.js, pre-registered 2026-09-26, 695
+     trading days of BTC ETF flows. Nothing passed. The 5-day flow moved
+     WITH BTC's previous week (correlation 0.64): flows mostly follow
+     price. Strong outflow weeks came before a weaker BTC week in both
+     halves (-1.38% vs the average week, tNW -1.65), short of the bar.
+     So the Market Pulse flow card describes money that already moved
+     and never forecasts. */
+  etfFlows:        { measuredOn: '2026-09-26', days: 695, chaseCorr: 0.64,
+                     strongOutflow: { verdict: 'weak', excess7: -1.38, tNW: -1.65 },
+                     strongInflow:  { verdict: 'noedge' } },
+
   /* ── Entry timing ────────────────────────────────────────────────
      Measured 2026-09-17: buy the bottom trailing-30d quintile, hold to
      day 30 from the call, and vary only how many days the entry is

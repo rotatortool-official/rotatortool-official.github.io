@@ -51,7 +51,8 @@ begin
     'holdings_edit',      -- a holding was added or changed
     'track_record_view',  -- the track-record page loaded
     'assistant_open',     -- the Pro AI assistant was opened
-    'telegram_click'      -- a link to the Telegram channel was clicked
+    'telegram_click',     -- a link to the Telegram channel was clicked
+    'etf_flows'           -- the ETF flows window was opened (promptove/68)
   ) then
     return;  -- unknown names are ignored, never stored
   end if;

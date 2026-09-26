@@ -37,6 +37,10 @@ function _tdEvChip(ev) {
   var E = (typeof ROTATOR_EVIDENCE !== 'undefined' && ROTATOR_EVIDENCE.turnSignals) || {};
   var t = ev && E[ev];
   var html = function(cls, text) { return '<span class="td-ev-chip ' + cls + '">' + text + '</span>'; };
+  if (ev === 'etfOutflowBTC') {
+    var F = (typeof ROTATOR_EVIDENCE !== 'undefined' && ROTATOR_EVIDENCE.etfFlows) || null;
+    if (F && F.strongOutflow) return html('weak', 'Tested: big outflow weeks were followed by a weaker BTC week (' + F.strongOutflow.excess7.toFixed(2) + '% vs average, ' + F.days + ' trading days) · weak, not proven');
+  }
   if (!t) return html('untested', 'Not tested yet');
   if (t.verdict === 'weak' && ev === 'goldenCross') {
     return html('weak', 'Tested: ' + t.win + '% at ' + t.h + ' days, ' + t.win30 + '% at 30 (' + t.n + ' cases) · not proven');
@@ -133,6 +137,20 @@ function _tdSigns(c) {
     var tp = _futuresPercentile(function(r) { return r.taker_buy_sell_ratio != null ? Number(r.taker_buy_sell_ratio) : null; }, tk);
     if (tp && tp.pct >= 0.85) up.push({ title: 'Heavy aggressive buying', when: 'now', detail: 'Taker buy/sell ' + tk.toFixed(2) + ', top 15% of ' + tp.n + ' perpetuals', ev: null });
     else if (tp && tp.pct <= 0.15) down.push({ title: 'Heavy aggressive selling', when: 'now', detail: 'Taker buy/sell ' + tk.toFixed(2) + ', bottom 15% of ' + tp.n + ' perpetuals', ev: null });
+  }
+
+  /* ── US spot ETF flows, Bitcoin and Ether only (promptove/68) ──
+     The server's own reading (sync-etf-flows). Money leaving is a
+     weakening sign: strong outflow weeks came before a weaker BTC week in
+     the test, weakly. Everything else is context, since inflows mostly
+     follow the price rather than lead it. ETH flows were never tested. */
+  var etfA = c.id === 'bitcoin' ? 'BTC' : c.id === 'ethereum' ? 'ETH' : null;
+  var etfS = etfA && typeof _etfFlows !== 'undefined' && _etfFlows && _etfFlows[etfA];
+  if (etfS && etfS.last && !etfS.error) {
+    var etfRow = { title: 'ETF flows: ' + etfS.headline, when: etfS.last.day ? _etfDay(etfS.last.day) : '',
+      detail: _etfM(etfS.last.total) + ' on the latest day, ' + _etfM(etfS.sum5) + ' over 5 trading days. Source: Farside Investors', ev: null };
+    if (etfS.tone === 'out') { etfRow.ev = etfA === 'BTC' ? 'etfOutflowBTC' : 'etfOutflowETH'; down.push(etfRow); }
+    else info.push(etfRow);
   }
 
   /* ── Market context ── */

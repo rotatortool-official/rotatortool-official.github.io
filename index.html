@@ -657,6 +657,14 @@
   </div>
 </div>
 
+<!-- ETF FLOWS MODAL — filled by openEtfModal() in js/data-loaders.js -->
+<div class="overlay" id="etf-modal" onclick="if(event.target===this)closeModal('etf-modal')">
+  <div class="modal etf-modal">
+    <button class="modal-x" onclick="closeModal('etf-modal')" aria-label="Close">×</button>
+    <div id="etf-modal-body"></div>
+  </div>
+</div>
+
 <!-- PRO UNLOCK MODAL -->
 <div class="overlay" id="pro-modal" onclick="if(event.target===this)closeModal('pro-modal')">
   <div class="modal" style="padding-top:20px;">
@@ -906,6 +914,11 @@
          sync-market-data has run once; the block hides itself rather
          than showing a row of dashes. -->
     <div class="briefing" id="briefing" style="display:none;"></div>
+    <!-- ETF FLOWS — US spot Bitcoin and Ether ETF net flows, interpreted
+         server-side by sync-etf-flows into market_cache.etf_flows_summary
+         and drawn by renderEtfFlows() in js/data-loaders.js. Each tile
+         opens #etf-modal. Source: Farside Investors, always credited. -->
+    <div class="etf-strip" id="etf-strip" style="display:none;"></div>
     <!-- MARKET TICKER — BTC anchor + infinite-loop global movers -->
     <div class="market-ticker" id="market-ticker">
       <div class="mt-anchor">
