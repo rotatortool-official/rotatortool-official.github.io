@@ -920,6 +920,10 @@ function applySignalRun(run) {
     c._rsi            = (typeof it.rsi === 'number') ? it.rsi : null;
     c._rsiState       = it.rsiState || null;
     c._candidate      = it.candidate || null;
+    /* Read by coin-reading.js (promptove/67): the engine's futures
+       positioning and v2 relative strength were computed and never shown. */
+    c._positioning    = it.positioning || null;
+    c._strength       = it.strength != null ? it.strength : null;
   });
   window.ROTATOR_RUN = run;
 }
@@ -1064,7 +1068,7 @@ async function runSignalEngine() {
       var items = await supaRest('signal_run_items', 'GET', {
         run_id: 'eq.' + latest.id,
         select: 'coin_id,score,effective_score,zone,r7,r14,r30,breakdown,eligible,'
-                + 'candidate_class,rsi,rsi_state,candidate,insight'
+                + 'candidate_class,rsi,rsi_state,candidate,insight,positioning,strength,exclusions'
       });
       var byId = {};
       (items || []).forEach(function(it) { byId[it.coin_id] = it; });
@@ -1081,11 +1085,14 @@ async function runSignalEngine() {
         /* Server-side eligibility — same gate, same thresholds, computed
            once by compute-signal-run instead of per visitor. */
         c._eligible       = it.eligible !== false;
-        /* signal_run_items stores the verdict but not the reasons, so
-           any _exclusions left by the local pass now describe a
-           different run. Clear it rather than leave a stale list that
-           disagrees with the flag beside it. */
-        c._exclusions     = null;
+        /* Until 2026-09-26 this cleared _exclusions, because the table
+           stored the verdict but not the reasons. The reasons ARE stored
+           now (sql/signal_run_items_exclusions.sql),
+           so the server's own list replaces the local pass's instead of
+           being cleared. The coin window shows them (promptove/67). */
+        c._exclusions     = Array.isArray(it.exclusions) ? it.exclusions : null;
+        c._positioning    = it.positioning || null;
+        c._strength       = it.strength != null ? Number(it.strength) : null;
         /* Same classification, from the server run. A run older than
            engine 2.2.0 has these null on every row; the page then shows
            no class rather than falling back to the local pass, because
@@ -2287,6 +2294,20 @@ function openTileDetail(coinId, evt) {
         + cell('FUNDING' + (hrs ? ' · ' + hrs + 'H' : ''), fundSvg,
                fund.length ? 'now ' + (fund[fund.length - 1] >= 0 ? '+' : '')
                  + fund[fund.length - 1].toFixed(4) + '% per 8h' : '', fund.length);
+
+      /* Daily long/short ratio, from coin_indicator_daily. It was already
+         fetched with the RSI history (supaLoadIndicatorHistory selects
+         long_short_ratio) and never drawn (promptove/67). Cached, so this
+         costs no second request when the RSI panel has loaded it. */
+      if (typeof supaLoadIndicatorHistory === 'function') {
+        supaLoadIndicatorHistory(sym).then(function(ir) {
+          if (box.getAttribute('data-sym') !== sym) return;
+          var ls = _seriesOf(ir, 'long_short_ratio');
+          var lsSvg = _sparkline(ls, 'var(--amber)', 200, 30);
+          if (lsSvg) box.insertAdjacentHTML('beforeend', cell('LONG/SHORT · DAILY', lsSvg,
+            ls[0].toFixed(2) + ' → ' + ls[ls.length - 1].toFixed(2) + ' long accounts per short', ls.length));
+        });
+      }
     });
   }
 
@@ -2716,7 +2737,17 @@ function openTileDetail(coinId, evt) {
     +'<div class="td-cell"><div class="td-cell-l">MC RANK</div><div class="td-cell-v bnb">'+(c.isStock ? '—' : (c.rank?'#'+c.rank:'—'))+'</div></div>'
     +'<div class="td-cell"><div class="td-cell-l">7D</div><div class="td-cell-v '+(c.p7>=0?'up':'dn')+'">'+(c.p7>=0?'+':'')+c.p7.toFixed(2)+'%</div></div>'
     +'<div class="td-cell"><div class="td-cell-l">14D</div><div class="td-cell-v '+(c.p14>=0?'up':'dn')+'">'+(c.p14>=0?'+':'')+c.p14.toFixed(2)+'%</div></div>'
-    +'<div class="td-cell"><div class="td-cell-l">30D</div><div class="td-cell-v '+(c.p30>=0?'up':'dn')+'">'+(c.p30>=0?'+':'')+c.p30.toFixed(2)+'%</div></div>';
+    +'<div class="td-cell"><div class="td-cell-l">30D</div><div class="td-cell-v '+(c.p30>=0?'up':'dn')+'">'+(c.p30>=0?'+':'')+c.p30.toFixed(2)+'%</div></div>'
+    /* Binance's own category tags (binance_symbol_tags). Loaded for the
+       category tabs and never shown on the coin itself (promptove/67).
+       "Seed" in particular is Binance saying the coin is higher-risk. */
+    + ((typeof binanceTags !== 'undefined' && Array.isArray(binanceTags[c.sym]) && binanceTags[c.sym].length)
+        ? '<div class="td-cell" style="grid-column:1/-1;" title="Binance&#39;s own category tags for this coin. Seed marks projects Binance treats as higher volatility and risk."><div class="td-cell-l">BINANCE TAGS</div><div class="td-cell-v" style="font-size:12px;font-weight:500;">'
+          + binanceTags[c.sym].map(function(t) {
+              /* Binance's raw names: "Layer1_Layer2", "newListing". */
+              return _esc(t === 'newListing' ? 'New listing' : String(t).replace(/_/g, ' / '));
+            }).join(' · ') + '</div></div>'
+        : '');
   /* override grid to 3 cols */
   document.getElementById('td-market').style.gridTemplateColumns = 'repeat(3,1fr)';
 
@@ -2954,6 +2985,9 @@ function openTileDetail(coinId, evt) {
       editSec.style.display = 'none';
     }
   }
+
+  /* Warnings, the reading and the turn signals at the top (coin-reading.js). */
+  if (typeof renderCoinReading === 'function') renderCoinReading(c);
 
   _positionPanel(panel, evt);
 }

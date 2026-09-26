@@ -4240,3 +4240,43 @@ header{background:var(--bg2);}
 .ahm-confirm-btn:focus-visible{outline:2px solid var(--bnb);outline-offset:2px;}
 /* Holder risk line on a holding tile (promptove/64): exchange and unlock facts, amber, wraps rather than clips. */
 .tile-risk{font-size:10.5px;line-height:1.35;color:var(--amber);background:var(--ad);border-radius:5px;padding:3px 6px;margin:4px 0 2px;overflow-wrap:anywhere;font-family:var(--font-ui);}
+
+/* ── Coin window: reading, turn signals, folded details (promptove/67) ── */
+.td-warn-row{font-size:12px;line-height:1.45;color:var(--amber);background:var(--ad);border-radius:6px;padding:7px 10px;margin-bottom:6px;font-family:var(--font-ui);}
+.td-reading{border:1px solid var(--bdr2);border-left:3px solid var(--muted);border-radius:0 8px 8px 0;padding:11px 13px;font-family:var(--font-ui);}
+.td-reading.good{border-left-color:var(--green);}
+.td-reading.warn{border-left-color:var(--amber);}
+.td-reading.bad{border-left-color:var(--red);}
+.td-reading-hd{font-size:14.5px;font-weight:700;color:var(--text);line-height:1.35;}
+.td-reading-sub{font-size:12.5px;color:var(--text);opacity:.85;line-height:1.5;margin-top:4px;}
+.td-reading-facts{font-size:11.5px;color:var(--muted);margin-top:7px;font-variant-numeric:tabular-nums;}
+.td-reading-trust{font-size:11.5px;color:var(--muted);line-height:1.5;margin-top:7px;padding-top:7px;border-top:1px solid var(--bdr);}
+.td-turn-grp{font-size:10px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);margin:10px 0 2px;font-family:var(--font-ui);}
+.td-turn-grp:first-child{margin-top:0;}
+.td-turn-row{padding:8px 0;border-bottom:1px solid var(--bdr);font-family:var(--font-ui);}
+.td-turn-row:last-child{border-bottom:0;}
+.td-turn-hd{display:flex;align-items:baseline;gap:7px;}
+.td-turn-ico{font-size:10px;flex:0 0 auto;}
+.td-turn-row.up .td-turn-ico{color:var(--green);}
+.td-turn-row.down .td-turn-ico{color:var(--amber);}
+.td-turn-row.info .td-turn-ico{color:var(--muted);}
+.td-turn-title{font-size:13px;font-weight:600;color:var(--text);flex:1;}
+.td-turn-when{font-size:11px;color:var(--muted);white-space:nowrap;}
+.td-turn-detail{font-size:12px;color:var(--text);opacity:.8;line-height:1.45;margin:3px 0 5px 17px;}
+.td-ev-chip{display:inline-block;margin-left:17px;font-size:10.5px;line-height:1.4;padding:2px 8px;border-radius:10px;}
+.td-ev-chip.weak{background:var(--ad);color:var(--amber);}
+.td-ev-chip.contrary{background:var(--rd);color:var(--red);}
+.td-ev-chip.untested{background:transparent;color:var(--muted);border:1px solid var(--bdr2);}
+.td-turn-none{font-size:12.5px;color:var(--muted);padding:6px 0;font-family:var(--font-ui);}
+.td-score-extra{display:flex;flex-wrap:wrap;gap:6px 14px;margin-top:10px;font-size:12px;color:var(--muted);font-family:var(--font-ui);}
+.td-score-extra b{color:var(--text);font-weight:600;margin-right:4px;}
+.td-details-lbl{font-size:10px;font-weight:700;letter-spacing:.16em;text-transform:uppercase;color:var(--muted);margin:4px 0 4px;font-family:var(--font-ui);}
+.td-fold-sec{margin-bottom:0;}
+.td-fold > summary{list-style:none;cursor:pointer;margin:0;padding:10px 0;opacity:.85;user-select:none;}
+.td-fold > summary::-webkit-details-marker{display:none;}
+.td-fold > summary::before{content:'▸';display:inline-block;width:10px;transition:transform .15s;}
+.td-fold[open] > summary::before{transform:rotate(90deg);}
+.td-fold > summary:focus-visible{outline:2px solid var(--bnb);outline-offset:2px;}
+.td-fold[open] > summary{margin-bottom:8px;}
+.td-fold-sec + .td-fold-sec{border-top:1px solid var(--bdr);}
+@media (prefers-reduced-motion:reduce){.td-fold > summary::before{transition:none;}}

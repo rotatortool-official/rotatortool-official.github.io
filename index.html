@@ -286,108 +286,51 @@
   <!-- Accent bar that changes color by score -->
   <div id="td-accent-bar" style="height:2px;margin:-2px -2px 12px -2px;border-radius:0;transition:background .3s;"></div>
 
-  <!-- Score + breakdown bars -->
+  <!-- ═══ Redesigned 2026-09-26 (promptove/67) ═══════════════════════════
+       The window reads top-down to a conclusion instead of making the
+       reader assemble one from thirteen sections:
+
+         1. Warnings      exchange and unlock facts, and why a coin is
+                          kept off the buy list (td-warn)
+         2. Reading       where the coin stands, and whether it shows
+                          cooling signs (if it has run) or turn-up signs
+                          (if it has lagged), with every sign's tested
+                          record (td-reading, td-turns)
+         3. Score         one section, not two
+         4. Details       everything that was here before, folded
+
+       Every id the code fills is unchanged, so no feature was lost; the
+       fill code in js/data-loaders.js is the same, plus _tdReading(). -->
+
+  <div class="td-section" id="td-reading-sec">
+    <div id="td-warn"></div>
+    <div id="td-reading"></div>
+  </div>
+
+  <div class="td-section" id="td-turns-sec">
+    <div class="td-section-title">Turn signals</div>
+    <div id="td-turns"></div>
+  </div>
+
+  <!-- Score: the number, the 7/14/30D ranks, and what it is made of -->
   <div class="td-section">
-    <div class="td-section-title">Score Breakdown</div>
+    <div class="td-section-title">Score</div>
     <div class="td-score-wrap">
       <div class="td-score-big" id="td-score-num"></div>
       <div class="td-score-bars-col" id="td-score-bars"></div>
     </div>
+    <div id="td-score-extra"></div>
   </div>
 
-  <!-- Market data -->
-  <div class="td-section">
-    <div class="td-section-title">Market Data</div>
-    <div class="td-mkt-grid" id="td-market"></div>
-  </div>
-
-  <!-- Supply / extra data (crypto only) -->
-  <div class="td-section" id="td-supply-sec" style="display:none;">
-    <div class="td-section-title">Supply</div>
-    <div class="td-mkt-grid" id="td-supply"></div>
-  </div>
-
-  <!-- Market Cycle — only shown for BTC/ETH/BNB/SOL/XRP/PAXG, the 6
-       assets sync-market-cycle actually tracks (see data-loaders.js
-       loadMarketCycle()). Real 200-day-average Mayer Multiple; only BTC
-       gets a qualitative label, the rest show the raw ratio only —
-       no calibrated thresholds exist for them, see index.ts comments. -->
-  <div class="td-section" id="td-cycle-sec" style="display:none;">
-    <div class="td-section-title">Market Cycle</div>
-    <div class="td-mkt-grid" id="td-cycle"></div>
-  </div>
-
-  <!-- Score Breakdown — the three layers behind the composite SCORE,
-       previously computed (c.scoreBreakdown) but never shown anywhere.
-       An honest score should be inspectable, not a black-box number. -->
+  <!-- The three layers behind the composite SCORE. An honest score should
+       be inspectable, not a black-box number. -->
   <div class="td-section" id="td-breakdown-sec" style="display:none;">
-    <div class="td-section-title">Score Breakdown</div>
+    <div class="td-section-title">What the score is made of</div>
     <div class="td-mkt-grid" id="td-breakdown"></div>
   </div>
 
-  <!-- Liquidity — 24h volume vs market cap, a basic but real signal for
-       "can I actually exit this position without moving the price
-       myself". Not part of the composite score (deliberately — this is
-       a risk flag, not a momentum input), always shown when data exists. -->
-  <div class="td-section" id="td-liquidity-sec" style="display:none;">
-    <div class="td-section-title">Liquidity</div>
-    <div class="td-mkt-grid" id="td-liquidity"></div>
-  </div>
-
-  <!-- Derivatives — Binance USDⓈ-M perpetual data, read from Supabase
-       (binance_futures_metrics), never from the browser. Hidden for the
-       ~59 site coins with no perpetual, same as Liquidity hides itself.
-       Display only: none of this feeds the score. These metrics DO vary
-       per coin (unlike L2's macro terms, which were identical for every
-       coin and so could never rank anything), but "capable of ranking"
-       is not "predicts returns" — that needs measuring against forward
-       returns first. See promptove/14. -->
-  <div class="td-section" id="td-deriv-sec" style="display:none;">
-    <div class="td-section-title">Derivatives</div>
-    <div class="td-mkt-grid" id="td-deriv"></div>
-    <!-- Hourly history from binance_futures_history, filled lazily when the
-         modal opens. Stays empty for pairs with too few readings to draw
-         honestly — see _renderDerivHistory() in js/data-loaders.js. -->
-    <div class="td-hist-grid" id="td-deriv-hist"></div>
-  </div>
-
-  <!-- RSI(14): current reading from coin_technicals, history from
-       coin_indicator_daily. Two sources on purpose — see the comment in
-       js/data-loaders.js. Hidden when the coin has no Binance pair. -->
-  <div class="td-section" id="td-rsi-sec" style="display:none;">
-    <div class="td-section-title">Momentum · RSI(14)</div>
-    <div id="td-rsi"></div>
-  </div>
-
-  <!-- Technical events from coin_events, detected daily at 00:45 UTC by
-       detect_coin_events(). Hidden unless this coin has one in the
-       window — most coins do not on most days. -->
-  <div class="td-section" id="td-events-sec" style="display:none;">
-    <div class="td-section-title">Technical events</div>
-    <div id="td-events"></div>
-  </div>
-
-  <!-- Signal badges -->
-  <div class="td-section" id="td-signals-sec">
-    <div class="td-section-title">Signals</div>
-    <div class="td-badge-row" id="td-badges"></div>
-    <!-- Rotation context: filled only when this coin is currently the
-         target of a rotation call. Carries the caveat that used to sit
-         on the tile itself — the tile got too tall to read at column
-         width, and a qualifier nobody reads is worse than one click
-         away. Populated by renderRotationContext() in data-loaders.js
-         from window.ROTATION_CONTEXT, which signals.js writes as it
-         builds the tiles. -->
-    <div id="td-rot-ctx" hidden></div>
-  </div>
-
-  <!-- Insight Engine (shown for holdings + watchlist coins) -->
-  <div class="td-section td-insight-sec" id="td-insight-sec" style="display:none;">
-    <div class="td-section-title"><span style="display:inline-flex;align-items:center;gap:5px;">⚡ Insight Engine <span class="td-pro-tag">PRO</span></span></div>
-    <div id="td-insight-content"></div>
-  </div>
-
-  <!-- Edit Holdings (shown only for held coins) -->
+  <!-- Edit Holdings (shown only for held coins). Not folded: a holder
+       opening their own coin is usually here to update it. -->
   <div class="td-section" id="td-edit-hold-sec" style="display:none;">
     <div class="td-section-title">Edit Holdings</div>
     <div style="display:flex;gap:8px;align-items:flex-end;">
@@ -401,6 +344,87 @@
       </div>
       <button id="td-hold-save" onclick="saveTileHolding()" style="padding:6px 14px;background:var(--green);color:#000;border:none;border-radius:4px;font-size:12px;font-weight:700;cursor:pointer;white-space:nowrap;">SAVE</button>
     </div>
+  </div>
+
+  <div class="td-details-lbl">Details</div>
+
+  <!-- RSI(14): current reading from coin_technicals, history from
+       coin_indicator_daily. Two sources on purpose — see the comment in
+       js/data-loaders.js. Hidden when the coin has no Binance pair. -->
+  <div class="td-section td-fold-sec" id="td-rsi-sec" style="display:none;">
+    <details class="td-fold"><summary class="td-section-title">Momentum · RSI(14)</summary>
+      <div id="td-rsi"></div>
+    </details>
+  </div>
+
+  <!-- Technical events from coin_events, detected daily at 00:45 UTC by
+       detect_coin_events(). The recent ones also appear under Turn
+       signals; this is the full list with its caveats. -->
+  <div class="td-section td-fold-sec" id="td-events-sec" style="display:none;">
+    <details class="td-fold"><summary class="td-section-title">Technical events</summary>
+      <div id="td-events"></div>
+    </details>
+  </div>
+
+  <!-- Derivatives — Binance USDⓈ-M perpetual data, read from Supabase
+       (binance_futures_metrics), never from the browser. Hidden for coins
+       with no perpetual. Display only: none of this feeds the score, and
+       "capable of ranking" is not "predicts returns". See promptove/14. -->
+  <div class="td-section td-fold-sec" id="td-deriv-sec" style="display:none;">
+    <details class="td-fold"><summary class="td-section-title">Derivatives</summary>
+      <div class="td-mkt-grid" id="td-deriv"></div>
+      <!-- Hourly history from binance_futures_history, filled lazily when the
+           modal opens. Stays empty for pairs with too few readings to draw
+           honestly — see _renderDerivHistory() in js/data-loaders.js. -->
+      <div class="td-hist-grid" id="td-deriv-hist"></div>
+    </details>
+  </div>
+
+  <!-- Market data -->
+  <div class="td-section td-fold-sec" id="td-market-sec">
+    <details class="td-fold"><summary class="td-section-title">Market data</summary>
+      <div class="td-mkt-grid" id="td-market"></div>
+    </details>
+  </div>
+
+  <!-- Supply / extra data (crypto only) -->
+  <div class="td-section td-fold-sec" id="td-supply-sec" style="display:none;">
+    <details class="td-fold"><summary class="td-section-title">Supply and unlocks</summary>
+      <div class="td-mkt-grid" id="td-supply"></div>
+    </details>
+  </div>
+
+  <!-- Market Cycle — only shown for BTC/ETH/BNB/SOL/XRP/PAXG, the 6
+       assets sync-market-cycle actually tracks. Real 200-day-average Mayer
+       Multiple; only BTC gets a qualitative label. -->
+  <div class="td-section td-fold-sec" id="td-cycle-sec" style="display:none;">
+    <details class="td-fold"><summary class="td-section-title">Market cycle</summary>
+      <div class="td-mkt-grid" id="td-cycle"></div>
+    </details>
+  </div>
+
+  <!-- Liquidity — 24h volume vs market cap: "can I exit without moving
+       the price myself". A risk flag, not a momentum input. -->
+  <div class="td-section td-fold-sec" id="td-liquidity-sec" style="display:none;">
+    <details class="td-fold"><summary class="td-section-title">Liquidity</summary>
+      <div class="td-mkt-grid" id="td-liquidity"></div>
+    </details>
+  </div>
+
+  <!-- Signal badges, and the score-gap context when this coin is in a
+       pair on the Score gaps panel (renderRotationContext). -->
+  <div class="td-section td-fold-sec" id="td-signals-sec">
+    <details class="td-fold"><summary class="td-section-title">Badges</summary>
+      <div class="td-badge-row" id="td-badges"></div>
+      <div id="td-rot-ctx" hidden></div>
+    </details>
+  </div>
+
+  <!-- Insight Engine (shown for holdings + watchlist coins) -->
+  <div class="td-section td-fold-sec td-insight-sec" id="td-insight-sec" style="display:none;">
+    <details class="td-fold"><summary class="td-section-title"><span style="display:inline-flex;align-items:center;gap:5px;">⚡ Insight Engine <span class="td-pro-tag">PRO</span></span></summary>
+      <div id="td-insight-content"></div>
+    </details>
   </div>
 
   <!-- Share buttons -->
@@ -1499,6 +1523,7 @@
   <script src="js/signal-history.js"></script>
   <script src="js/global-movers.js"></script>
   <script src="js/data-loaders.js"></script>
+  <script src="js/coin-reading.js"></script>
   <!-- Register Service Worker — required for PWA install prompt -->
   <script>
   if ('serviceWorker' in navigator) {

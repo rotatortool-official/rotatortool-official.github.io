@@ -115,6 +115,30 @@ var ROTATOR_EVIDENCE = {
                      quick: { maxDaysBelow: 2,  beatPct: 53.2, n: 1083 },
                      slow:  { minDaysBelow: 11, beatPct: 31.0, n: 58 } },
 
+  /* ── Turn signals ────────────────────────────────────────────────
+     Measured 2026-09-26 by rotator-backtest/trend-turn-test.js, which was
+     committed (74847eb) before it first ran: 771 days, 131 coins, a 14-day
+     cooldown per coin, and excess return over the day's market median. A
+     random pick beats the median half the time. The pass bar was a 52%+ win
+     rate and a positive mean in BOTH halves, with a Newey-West t of 2+.
+     NOTHING PASSED, and the coin window says so on every sign.
+
+       signal                 win% 7d   30d    n     verdict
+       quick RSI reclaim        52.0   51.3   744   closest, just under the bar
+       golden cross 60/125      50.0   53.2   331   no edge at 7d
+       death cross 60/125       47.7   53.2   329   NOT a warning: beat the market at 30d
+       slow RSI reclaim (11+)    —      —      59   too few to judge
+
+     RSI below 30 on its own (promptove/53): mildly positive and not
+     significant at any horizon. Signals with no measurement are shown as
+     "not tested yet", never as neutral. */
+  turnSignals:     { measuredOn: '2026-09-26', days: 771, random: 50,
+                     rsiQuickReclaim: { verdict: 'weak',     win: 52.0, h: 7,  n: 744 },
+                     goldenCross:     { verdict: 'weak',     win: 50.0, h: 7,  win30: 53.2, n: 331 },
+                     deathCross:      { verdict: 'contrary', win30: 53.2, n: 329 },
+                     rsiSlowReclaim:  { verdict: 'few',      n: 59 },
+                     rsiOversold:     { verdict: 'noedge' } },
+
   /* ── Entry timing ────────────────────────────────────────────────
      Measured 2026-09-17: buy the bottom trailing-30d quintile, hold to
      day 30 from the call, and vary only how many days the entry is
