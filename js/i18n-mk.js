@@ -35,6 +35,7 @@
 
 var MK_TEXT = {};        /* filled below, section by section */
 var MK_PATTERNS = [];    /* [RegExp, function(match) → string] */
+var MK_BLOCKS = {};      /* CSS selector → Macedonian innerHTML, for legal prose (js/i18n-mk-legal.js) */
 
 (function () {
   var ON = false, observer = null, busy = false;
@@ -157,11 +158,25 @@ var MK_PATTERNS = [];    /* [RegExp, function(match) → string] */
     tracked = []; trackedAttr = [];
   }
 
+  /* Whole blocks: the Terms and the Privacy Policy are legal prose broken up
+     by bold words and links, so they are swapped as complete Macedonian
+     HTML instead of translated phrase by phrase. The English HTML is kept
+     on the element and put back when English is chosen. */
+  function blocks(on) {
+    Object.keys(MK_BLOCKS).forEach(function (sel) {
+      var el = document.querySelector(sel);
+      if (!el) return;
+      if (on) { if (el.__enHTML === undefined) el.__enHTML = el.innerHTML; el.innerHTML = MK_BLOCKS[sel]; }
+      else if (el.__enHTML !== undefined) { el.innerHTML = el.__enHTML; }
+    });
+  }
+
   var TITLE_EN = document.title;
   window.applyMkLayer = function (lang) {
     var want = lang === 'mk';
     if (want === ON) { if (want) walk(document.body); return; }
     ON = want;
+    blocks(want);
     if (want) { start(); var tt = translate(fold(TITLE_EN)); if (tt != null) document.title = tt; }
     else { stop(); document.title = TITLE_EN; }
   };

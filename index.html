@@ -53,7 +53,7 @@
     <div style="font-size:13px;color:var(--text);line-height:2;">
       <strong style="color:var(--bnb);">Rotator</strong> was built with one goal: show, from data, <em style="color:var(--green);">what is performing relatively strongly and what is performing relatively weakly</em> across the crypto market — and what changed.<br><br>
       Rotator scores every coin across 7, 14, and 30-day timeframes, then shows which coins in your portfolio have <strong style="color:var(--amber);">outperformed</strong> the rest of the tracked market and which have <strong style="color:var(--red);">underperformed</strong> it. It reports the evidence and the evidence against — what you do with it is your decision.<br><br>
-      The tool is <strong style="color:var(--green);">100% free, no account required</strong>, and runs entirely in your browser. Your holdings are stored locally — we never see your data.<br><br>
+      The tool is <strong style="color:var(--green);">100% free, no account required</strong>, and runs in your browser. Your holdings stay there: quantities and buy prices never reach our server. The Privacy Policy lists the little that does.<br><br>
       <strong style="color:var(--pro);">Coming soon:</strong> Forex pairs, stock portfolio tracking, and a unified multi-asset dashboard so you can track all your investments in one place.
     </div>
     <div style="margin-top:16px;padding:12px 14px;background:var(--bg3);border:1px solid var(--bdr2);border-radius:4px;font-size:12px;color:var(--muted);line-height:1.8;text-align:center;">
@@ -114,7 +114,7 @@
   <div class="modal" style="max-width:560px;max-height:85vh;overflow-y:auto;">
     <button class="modal-x" onclick="closeModal('tos-modal')">×</button>
     <div class="modal-title" style="color:var(--bnb);">Terms of Service</div>
-    <div class="modal-sub">Last updated: April 2026</div>
+    <div class="modal-sub">Last updated: September 2026</div>
     <div class="legal-content">
       <p>By accessing or using Rotator ("the Application"), you agree to be bound by these Terms of Service. If you do not agree, please do not use the Application.</p>
 
@@ -128,16 +128,16 @@
       <p>You are solely responsible for your own investment decisions and any financial outcomes that result from using the information provided by Rotator. Always conduct your own research (DYOR) and consider consulting a qualified financial advisor before making investment decisions.</p>
 
       <h4>4. Data & Privacy</h4>
-      <p>Rotator runs entirely in your browser. Your holdings, watchlist, and preferences are stored locally on your device via localStorage. We do not collect, transmit, or store any personal data or portfolio information on any server. See our <a onclick="closeModal('tos-modal');setTimeout(function(){openModal('privacy-modal')},200)" style="color:var(--bnb);cursor:pointer;text-decoration:underline;">Privacy Policy</a> for full details.</p>
+      <p>Rotator has no accounts. Your holdings, quantities, buy prices, watchlist and settings are stored in your browser. Some data does reach our server: anonymous usage counts, the names of held coins once a day without quantities, and the records needed for Pro, referrals, Telegram alerts and the Signal Assistant. See our <a onclick="closeModal('tos-modal');setTimeout(function(){openModal('privacy-modal')},200)" style="color:var(--bnb);cursor:pointer;text-decoration:underline;">Privacy Policy</a> for full details.</p>
 
       <h4>5. Intellectual Property</h4>
       <p>All source code, design, algorithms, scoring logic, and associated files are the exclusive property of the Author. All rights reserved. You may not copy, modify, distribute, or create derivative works without prior written permission.</p>
 
       <h4>6. Third-Party Data</h4>
-      <p>Market data is sourced from third-party providers including CoinGecko, Binance, Alpha Vantage, Yahoo Finance, and Frankfurter (ECB). Rotator is not affiliated with any of these providers and does not guarantee the availability or accuracy of their data.</p>
+      <p>Market data is sourced from third-party providers including Binance, CoinGecko, GeckoTerminal, Farside Investors, alternative.me, DefiLlama, blockchain.info and Yahoo Finance. Rotator is not affiliated with any of these providers and does not guarantee the availability or accuracy of their data.</p>
 
       <h4>7. Pro Features & Donations</h4>
-      <p>Pro features are unlocked via one-time contributions or Pro codes. Contributions are voluntary and non-refundable. Pro features are provided "as is" and may change at any time without notice.</p>
+      <p>Pro features, including Telegram alerts, are unlocked via one-time contributions, referrals or Pro codes. Contributions are voluntary and non-refundable. Pro features are provided "as is" and may change at any time without notice. Alerts describe what has already happened in the market; a delayed or missed alert is not a basis for any claim.</p>
 
       <h4>8. Limitation of Liability</h4>
       <p>To the maximum extent permitted by law, Rotator and its creator shall not be liable for any direct, indirect, incidental, consequential, or special damages arising from your use of this Application, including but not limited to financial losses from investment decisions.</p>
@@ -157,39 +157,47 @@
   <div class="modal" style="max-width:560px;max-height:85vh;overflow-y:auto;">
     <button class="modal-x" onclick="closeModal('privacy-modal')">×</button>
     <div class="modal-title" style="color:var(--green);">Privacy Policy</div>
-    <div class="modal-sub">Last updated: April 2026</div>
+    <div class="modal-sub">Last updated: September 2026</div>
     <div class="legal-content">
-      <p>Your privacy is important to us. This Privacy Policy explains what data Rotator collects, how it is used, and your rights.</p>
+      <p>This policy explains what Rotator keeps on your device, what reaches our server, and who else sees your browser's requests. Rotator has no accounts, no logins and no passwords, and it never asks for your name or email.</p>
 
-      <h4>1. No Data Collection</h4>
-      <p>Rotator does <strong>not</strong> collect, store, or transmit any personal information. There are no user accounts, no logins, no registration, and no server-side databases storing your data.</p>
+      <h4>1. On your device</h4>
+      <p>Your holdings (which coins, quantities and buy prices), watchlist, settings (language, theme), Pro status, which alerts you have read, and a randomly generated browser ID are stored in your browser's localStorage. <strong>Quantities and buy prices never leave your browser.</strong> Clearing this site's data in your browser deletes all of it. The browser ID is also your Pro recovery key.</p>
 
-      <h4>2. Local Storage Only</h4>
-      <p>All user data — including your holdings, watchlist, preferences, Pro status, and visit history — is stored exclusively in your browser's localStorage. This data never leaves your device. Clearing your browser data will permanently delete this information.</p>
+      <h4>2. What reaches our server</h4>
+      <p>Our database runs on Supabase. None of the following contains your name, email, quantities or buy prices:</p>
+      <ul>
+        <li><strong>Anonymous usage counts.</strong> When you open the page or use a feature (a coin window, the swap tool, the ETF window, and similar), a daily counter for that feature goes up by one. The counter stores no ID and no IP address.</li>
+        <li><strong>Held coins, anonymously, once a day.</strong> The names of the coins held in your browser, with their score and price at that moment, so the track record can be graded. No quantities, no buy prices, no browser ID.</li>
+        <li><strong>Pro.</strong> Your browser ID and how Pro was granted: the Pro code used, the referrals counted, or for a crypto payment the transaction hash, network, amount and any contact you chose to type in the optional field.</li>
+        <li><strong>Referrals.</strong> The random browser IDs of the person who shared the link and the person who opened it.</li>
+        <li><strong>Telegram alerts (Pro, only if you connect them).</strong> Your Telegram chat ID, your browser ID, the names of the coins you hold and watch (marked held or watching, without quantities), your site language, and which alerts have already been sent to you.</li>
+        <li><strong>Signal Assistant (Pro, only when you use it).</strong> Your questions and browser ID go to our server, which sends the questions, together with the current signal data, to Anthropic's Claude API to write the answer.</li>
+      </ul>
 
-      <h4>3. No Cookies</h4>
-      <p>Rotator does not use cookies for tracking or any other purpose.</p>
+      <h4>3. Analytics</h4>
+      <p>Rotator uses Umami Cloud, a privacy-focused analytics service, to count page views and a few button clicks (for example sharing, or opening the Telegram link). Umami uses no cookies, does not store your IP address and does not build a profile of you. An ad-blocker can block it; the site works the same without it.</p>
 
-      <h4>4. Third-Party APIs</h4>
-      <p>Rotator fetches market data from public APIs (CoinGecko, Binance, Alpha Vantage, Yahoo Finance, Frankfurter). These requests are made directly from your browser. We do not proxy, log, or monitor these requests. Please refer to each provider's own privacy policy for details on how they handle API requests.</p>
+      <h4>4. Cookies</h4>
+      <p>Rotator sets no cookies. It uses your browser's localStorage, described in section 1.</p>
 
-      <h4>5. No Analytics or Tracking</h4>
-      <p>Rotator does not use Google Analytics, Facebook Pixel, or any other analytics or tracking service. We do not track page views, clicks, or user behavior.</p>
+      <h4>5. Other services your browser contacts</h4>
+      <p>Loading Rotator makes your browser contact GitHub Pages (which hosts the site), Supabase (our database), CoinGecko (prices and coin logos), Google Fonts (typefaces), jsDelivr (the chart library) and Umami (analytics). If the main price source fails, the public proxies corsproxy.io and allorigins.win may be used instead. Like any website, these services can see your IP address and browser details when your browser contacts them, and their own privacy policies apply. Binance, Farside Investors, alternative.me, DefiLlama, blockchain.info and GeckoTerminal are contacted by our server, not by your browser. If you connect Telegram alerts, Telegram's privacy policy applies to the messages.</p>
 
-      <h4>6. Referral Links</h4>
-      <p>The Pro referral system uses URL parameters to credit referrals. Referral data (a randomly generated user ID) is stored in our database to verify unique referrals across devices. No personal information is collected — only anonymous IDs are used to count referrals.</p>
+      <h4>6. Crypto payments</h4>
+      <p>A crypto payment is recorded on its public blockchain. We check your transaction hash against that public record and store what is listed in section 2. We never ask for, and cannot access, your wallet's private keys.</p>
 
-      <h4>7. Donations</h4>
-      <p>If you choose to donate via cryptocurrency, the transaction is processed entirely by the blockchain network. We do not collect your wallet address or transaction details beyond what is publicly visible on the blockchain.</p>
+      <h4>7. How long we keep it</h4>
+      <p>Anonymous usage counts and daily coin snapshots are kept to build statistics and the public track record. Pro records are kept so Pro can be restored on another device. Telegram alert data is kept while alerts are on; sending /stop to the bot, or Disconnect on the site, turns them off, and we delete the record on request.</p>
 
-      <h4>8. Children's Privacy</h4>
-      <p>Rotator is not intended for use by individuals under the age of 18. We do not knowingly collect any information from minors.</p>
+      <h4>8. Your choices</h4>
+      <p>You can clear this site's data in your browser at any time, disconnect Telegram alerts, and block analytics. To have the Pro, referral or Telegram records tied to your browser ID deleted, email us with that ID (shown as your recovery key in the Pro window).</p>
 
-      <h4>9. Your Rights</h4>
-      <p>Since all data is stored locally on your device, you have full control over it at all times. You can view, modify, or delete your data by clearing your browser's localStorage for this site.</p>
+      <h4>9. Children</h4>
+      <p>Rotator is not intended for anyone under 18, and we do not knowingly collect information about minors.</p>
 
-      <h4>10. Changes to This Policy</h4>
-      <p>We may update this Privacy Policy from time to time. The "Last updated" date at the top will reflect the most recent revision.</p>
+      <h4>10. Changes to this policy</h4>
+      <p>When this policy changes, the date at the top changes with it.</p>
 
       <div style="margin-top:16px;padding:12px 14px;background:var(--bg3);border:1px solid var(--bdr2);border-radius:4px;font-size:12px;color:var(--muted);line-height:1.8;text-align:center;">
         Questions? Reach out at <a href="mailto:rotatortool@gmail.com" style="color:var(--bnb);text-decoration:underline;">rotatortool@gmail.com</a>
@@ -1425,7 +1433,7 @@
       <span style="font-size:12px;color:#8899aa;font-family:'DM Sans',sans-serif;">Data powered by</span>
       <img src="coingecko-api-logo.svg" alt="CoinGecko API" style="height:18px;">
     </a>
-    <span>Market data also sourced from Frankfurter (ECB), Yahoo Finance and Alpha Vantage. All data is for informational purposes only. Past performance does not guarantee future results. Always conduct your own research before making any investment decision.</span>
+    <span>Market data also sourced from GeckoTerminal, Farside Investors, alternative.me, DefiLlama and Yahoo Finance. All data is for informational purposes only. Past performance does not guarantee future results. Always conduct your own research before making any investment decision.</span>
   </div>
 </footer>
 
@@ -1547,6 +1555,7 @@
   <script src="js/i18n.js"></script>
   <script src="js/i18n-mk.js"></script>
   <script src="js/i18n-mk-dict.js"></script>
+  <script src="js/i18n-mk-legal.js"></script>
   <script src="js/signals.js"></script>
   <script src="js/holdings.js"></script>
   <script src="js/ratio.js"></script>

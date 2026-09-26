@@ -330,8 +330,8 @@ Object.assign(MK_TEXT, {
   'underperformed': 'заостанаа зад', 'it. It reports the evidence and the evidence against — what you do with it is your decision.':
     'него. Ги прикажува доказите и доказите против — што ќе направите со тоа е ваша одлука.',
   'The tool is': 'Алатката е', '100% free, no account required': '100% бесплатна, без сметка',
-  ', and runs entirely in your browser. Your holdings are stored locally — we never see your data.':
-    ', и работи целосно во вашиот прелистувач. Вашите позиции се чуваат локално — ние никогаш не ги гледаме вашите податоци.',
+  ', and runs in your browser. Your holdings stay there: quantities and buy prices never reach our server. The Privacy Policy lists the little that does.':
+    ', и работи во вашиот прелистувач. Вашите позиции остануваат таму: количините и набавните цени никогаш не стигнуваат до нашиот сервер. Политиката за приватност го наведува малкуто што стигнува.',
   'Coming soon:': 'Наскоро:',
   'Forex pairs, stock portfolio tracking, and a unified multi-asset dashboard so you can track all your investments in one place.':
     'Форекс парови, следење на портфолио со акции и обединета табла за повеќе средства, за да ги следите сите ваши инвестиции на едно место.',
@@ -424,8 +424,8 @@ Object.assign(MK_TEXT, {
   '"Time in the market beats timing the market."': '„Времето на пазарот го победува тајмингот на пазарот.“',
   'Price data provided by': 'Ценовните податоци ги обезбедува', 'Powered by': 'Овозможено од', 'On-chain by': 'On-chain податоци од',
   'Data powered by': 'Податоци од',
-  'Market data also sourced from Frankfurter (ECB), Yahoo Finance and Alpha Vantage. All data is for informational purposes only. Past performance does not guarantee future results. Always conduct your own research before making any investment decision.':
-    'Пазарните податоци доаѓаат и од Frankfurter (ECB), Yahoo Finance и Alpha Vantage. Сите податоци се само за информативни цели. Минатиот учинок не гарантира идни резултати. Секогаш истражувајте сами пред инвестициска одлука.',
+  'Market data also sourced from GeckoTerminal, Farside Investors, alternative.me, DefiLlama and Yahoo Finance. All data is for informational purposes only. Past performance does not guarantee future results. Always conduct your own research before making any investment decision.':
+    'Пазарните податоци доаѓаат и од GeckoTerminal, Farside Investors, alternative.me, DefiLlama и Yahoo Finance. Сите податоци се само за информативни цели. Минатиот учинок не гарантира идни резултати. Секогаш истражувајте сами пред инвестициска одлука.',
   'details ›': 'детали ›',
   'Scoring and ranking coins…': 'Се оценуваат и рангираат монетите…', 'Fetching bStock data…': 'Се вчитуваат податоците за bStocks…',
   'Loading macro data — Gold, Oil…': 'Се вчитуваат макро податоците — злато, нафта…', 'Fetching sentiment data…': 'Се вчитуваат податоците за расположението…',
