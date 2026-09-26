@@ -1573,6 +1573,9 @@ function renderAll() {
      an eye icon. It reads the same `coins` array as renderTiles(), so it
      belongs on the same line. */
   if (typeof renderWatchlist === 'function') renderWatchlist();
+  /* promptove/70: the turn-sign list and the alerts read the same coins. */
+  if (typeof renderTurnScan === 'function') renderTurnScan();
+  if (typeof renderCoinAlerts === 'function') renderCoinAlerts();
   /* Async: fetch Binance klines for holdings to enrich Insight Engine */
   if (holdings.length && !_klinesFetched) {
     _klinesFetched = true;

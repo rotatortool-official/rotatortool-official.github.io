@@ -295,6 +295,7 @@ function saveWatchlist() { try { localStorage.setItem('rot_watchlist', JSON.stri
    say. It just is not a second renderer any more. */
 function renderWatchlist() {
   if (typeof renderTiles === 'function') renderTiles();
+  if (typeof renderCoinAlerts === 'function') renderCoinAlerts();
 }
 function removeFromWatchlist(sym) {
   watchlist = watchlist.filter(function(s) { return s !== sym; });

@@ -167,14 +167,58 @@ function _tdStatus(c) {
   return 'middle';
 }
 
+/* One sign, folded: the title and when are the summary line, the detail
+   and the tested record open on a tap. The window should read like a
+   short summary of the coin, with the reasons one tap away
+   (promptove/70). */
 function _tdRow(s, dir) {
   var icon = dir === 'up' ? '▲' : dir === 'down' ? '▼' : '•';
-  return '<div class="td-turn-row ' + dir + '">'
-    + '<div class="td-turn-hd"><span class="td-turn-ico">' + icon + '</span><span class="td-turn-title">' + _esc(s.title) + '</span>'
-    + '<span class="td-turn-when">' + _esc(s.when || '') + '</span></div>'
+  return '<details class="td-turn-row ' + dir + '">'
+    + '<summary class="td-turn-hd"><span class="td-turn-ico">' + icon + '</span><span class="td-turn-title">' + _esc(s.title) + '</span>'
+    + '<span class="td-turn-when">' + _esc(s.when || '') + '</span></summary>'
     + '<div class="td-turn-detail">' + _esc(s.detail || '') + '</div>'
     + (dir === 'info' && !s.ev ? '' : _tdEvChip(s.ev))
-    + '</div>';
+    + '</details>';
+}
+
+/* Open one of the folded Details sections and bring it into view. */
+function _tdOpenFold(secId) {
+  var sec = document.getElementById(secId);
+  if (!sec || sec.style.display === 'none') return;
+  var d = sec.querySelector('details');
+  if (d) d.open = true;
+  try { sec.scrollIntoView({ block: 'nearest' }); } catch (e) {}
+}
+
+/* The key facts, one short chip each, in the order a holder asks:
+   how has it done, is it stretched or washed out, what is the trend,
+   and is new supply coming. Each chip opens the section with the rest. */
+function _tdKeyFacts(c, tech) {
+  var chips = [];
+  var chip = function (txt, cls, sec, tip) {
+    chips.push('<button type="button" class="td-fact ' + (cls || '') + '"' + (sec ? ' onclick="_tdOpenFold(\'' + sec + '\')"' : ' tabindex="-1"')
+      + (tip ? ' title="' + _esc(tip) + '"' : '') + '>' + txt + '</button>');
+  };
+  chip('7D ' + _tdPct(c.p7 || 0), (c.p7 || 0) >= 0 ? 'up' : 'dn');
+  chip('30D ' + _tdPct(c.p30 || 0), (c.p30 || 0) >= 0 ? 'up' : 'dn');
+  var rsi = tech && tech.rsiD != null ? tech.rsiD : null;
+  if (rsi != null) {
+    var rl = rsi <= 30 ? ' · oversold' : rsi >= 70 ? ' · overbought' : '';
+    chip('RSI ' + rsi.toFixed(0) + rl, rsi <= 30 ? 'dn' : rsi >= 70 ? 'warn' : '', 'td-rsi-sec', 'Daily RSI(14). 30 and below is called oversold, 70 and above overbought.');
+  }
+  if (tech && tech.cross) {
+    chip('Trend ' + (tech.cross === 'golden' ? 'up' : 'down') + ' (60D ' + (tech.cross === 'golden' ? '>' : '<') + ' 125D)', tech.cross === 'golden' ? 'up' : 'dn', 'td-events-sec',
+      '60-day average ' + (tech.cross === 'golden' ? 'above' : 'below') + ' the 125-day' + (tech.crossDays != null ? ', for ' + tech.crossDays + ' days' : ''));
+  }
+  var circ = c.circulating_supply, basis = c.max_supply > 0 ? c.max_supply : (c.total_supply > 0 ? c.total_supply : null);
+  if (circ && basis) chip('Supply ' + Math.round((circ / basis) * 100) + '% unlocked', '', 'td-supply-sec', 'Circulating supply as a share of ' + (c.max_supply > 0 ? 'max' : 'total') + ' supply');
+  var u = (typeof _tokenUnlocks !== 'undefined' && c.id && _tokenUnlocks[c.id]) || null;
+  var pct = u && u.unlock30d_pct != null ? Number(u.unlock30d_pct) : null;
+  var line = (window.RotatorEngine && window.RotatorEngine.UNLOCK_PENDING_PCT != null) ? window.RotatorEngine.UNLOCK_PENDING_PCT : 5;
+  if (pct == null) chip('No unlock schedule', 'muted', 'td-supply-sec', 'No published vesting schedule. That is not the same as no unlock due.');
+  else if (pct > 0) chip('Unlock ' + pct.toFixed(1) + '% in 30D' + (u.next_unlock_at ? ' · ' + String(u.next_unlock_at).slice(5, 10) : ''), pct > line ? 'dn' : 'warn', 'td-supply-sec');
+  else chip('No unlock in 30D', 'up', 'td-supply-sec');
+  return '<div class="td-facts">' + chips.join('') + '</div>';
 }
 
 /* Fill #td-warn, #td-reading, #td-turns and #td-score-extra. */
@@ -255,21 +299,13 @@ function renderCoinReading(c) {
       : 'None of these signs has been tested yet. A reading, not a forecast.';
 
   var tech = (typeof coinTechnicals !== 'undefined' && coinTechnicals[c.sym]) || null;
-  var facts = [];
-  facts.push('7D ' + _tdPct(c.p7 || 0));
-  facts.push('30D ' + _tdPct(c.p30 || 0));
-  if (tech && tech.cross) {
-    facts.push('60D avg ' + (tech.cross === 'golden' ? 'above' : 'below') + ' 125D'
-      + (tech.crossDays != null ? ' for ' + tech.crossDays + ' days' : ''));
-  }
-  if (tech && tech.rsiD != null) facts.push('RSI ' + tech.rsiD.toFixed(0));
 
   readEl.innerHTML = '<div class="td-reading ' + tone + '">'
     + '<div class="td-reading-hd">' + _esc(head) + '</div>'
     + '<div class="td-reading-sub">' + _esc(sub) + '</div>'
-    + '<div class="td-reading-facts">' + facts.map(_esc).join(' · ') + '</div>'
-    + (trust ? '<div class="td-reading-trust">' + _esc(trust) + '</div>' : '')
-    + '</div>';
+    + (trust ? '<details class="td-reading-trust"><summary>How far to trust this</summary>' + _esc(trust) + '</details>' : '')
+    + '</div>'
+    + _tdKeyFacts(c, tech);
 
   /* ── 3. The signs, grouped, with their records ── */
   /* Group names follow the status, so an up-sign on a coin that has
@@ -281,7 +317,8 @@ function renderCoinReading(c) {
   if (nUp)   html += '<div class="td-turn-grp">' + LBL[0] + '</div>' + S.up.map(function(s) { return _tdRow(s, 'up'); }).join('');
   if (nDown) html += '<div class="td-turn-grp">' + LBL[1] + '</div>' + S.down.map(function(s) { return _tdRow(s, 'down'); }).join('');
   if (!nUp && !nDown) html += '<div class="td-turn-none">No turn signal on this coin right now.</div>';
-  if (S.info.length) html += '<div class="td-turn-grp">Context</div>' + S.info.map(function(s) { return _tdRow(s, 'info'); }).join('');
+  if (S.info.length) html += '<details class="td-ctx"><summary class="td-turn-grp">Context · ' + S.info.length + '</summary>'
+    + S.info.map(function(s) { return _tdRow(s, 'info'); }).join('') + '</details>';
   turnsEl.innerHTML = html;
 
   /* ── 4. Score extras: data the engine produced that the window never showed ── */

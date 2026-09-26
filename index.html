@@ -324,9 +324,10 @@
 
   <!-- The three layers behind the composite SCORE. An honest score should
        be inspectable, not a black-box number. -->
-  <div class="td-section" id="td-breakdown-sec" style="display:none;">
-    <div class="td-section-title">What the score is made of</div>
+  <div class="td-section td-fold-sec" id="td-breakdown-sec" style="display:none;">
+    <details class="td-fold"><summary class="td-section-title">What the score is made of</summary>
     <div class="td-mkt-grid" id="td-breakdown"></div>
+    </details>
   </div>
 
   <!-- Edit Holdings (shown only for held coins). Not folded: a holder
@@ -806,6 +807,14 @@
       </div>
     </div>
 
+    <!-- Alerts for your coins — the badge counts what is new since you last looked -->
+    <div class="tb-dropdown-wrap">
+      <button class="tb-icon-btn tw-bell" onclick="openCoinAlerts()" title="Alerts for your coins" aria-label="Alerts for your coins">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+        <span class="tw-badge" id="tw-badge" style="display:none;"></span>
+      </button>
+    </div>
+
     <!-- Pro -->
     <div class="tb-dropdown-wrap">
       <button class="tb-icon-btn" onclick="openPro()" title="Unlock Pro" style="color:var(--pro);">
@@ -935,7 +944,10 @@
     </div>
   </section>
   <section class="rsec" id="sec-rotation">
-    <div class="rsec-hdr"><span class="rsec-label">MOMENTUM</span><span class="rsec-meta" id="rsec-meta-momentum">the strongest and the weakest in this run</span></div>
+    <div class="rsec-hdr"><span class="rsec-label">MOMENTUM</span><span class="rsec-meta" id="rsec-meta-momentum">turn signs across the market, and the strongest and weakest in this run</span></div>
+    <!-- TURN SIGNS — every coin run through the coin window's own reader.
+         Filled by renderTurnScan() in js/turn-watch.js (promptove/70). -->
+    <div class="turn-scan" id="turn-scan"></div>
     <!-- WHAT'S HOT — collapsible on mobile -->
     <div class="collapse-hdr hot" id="ch-hot" onclick="toggleCollapse('hot')">
       <div class="collapse-hdr-left">
@@ -983,6 +995,8 @@
   <section class="rsec" id="sec-yours">
     <div class="rsec-hdr"><span class="rsec-label">YOURS</span><span class="rsec-meta" id="rsec-meta-yours">what you hold and watch, with warnings and score gaps</span></div>
   <div class="sidebar">
+    <!-- ALERTS FOR YOUR COINS — renderCoinAlerts() in js/turn-watch.js -->
+    <div class="coin-alerts" id="coin-alerts"></div>
     <!-- PORTFOLIO SIGNAL: direct sidebar child — zero gap guaranteed -->
     <div class="sig-box" id="sig-box-crypto">
       <h2 class="sig-title">◈ Portfolio Signal</h2>
@@ -1537,6 +1551,7 @@
   <script src="js/global-movers.js"></script>
   <script src="js/data-loaders.js"></script>
   <script src="js/coin-reading.js"></script>
+  <script src="js/turn-watch.js"></script>
   <!-- Register Service Worker — required for PWA install prompt -->
   <script>
   if ('serviceWorker' in navigator) {
