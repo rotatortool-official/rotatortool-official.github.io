@@ -25,7 +25,9 @@
       held, and the holding tile shows them free anyway. Turn signs and
       ETF alerts are Pro. "New" is remembered in this browser only
       (localStorage), since Rotator has no accounts. Pro can also turn on
-      browser notifications, which fire while Rotator is open in a tab.
+      browser notifications, which fire while Rotator is open in a tab,
+      and link Telegram for direct messages (see _twTgConnect below and
+      promptove/71).
 ══════════════════════════════════════════════════════════════════ */
 
 var _TW_FREE_ROWS = 2;
@@ -253,11 +255,94 @@ function renderCoinAlerts() {
     + (locked ? '<button type="button" class="ca-lock" onclick="openPro()">⚡ ' + locked + ' turn-sign and ETF alert' + (locked === 1 ? '' : 's')
         + ' on your coins. Unlock with Pro</button>' : '')
     + '<div class="ca-foot">' + (isPro
-        ? '<button type="button" class="ca-act" onclick="_twToggleNotify()">' + (notifyOn ? '🔕 Turn off browser notifications' : '🔔 Notify me in this browser') + '</button>'
-          + '<span>Notifications fire while Rotator is open in a tab. "New" is remembered in this browser.</span>'
-        : '<span>Exchange and unlock warnings are free. Pro adds turn signs, ETF alerts and browser notifications.</span>')
+        ? _twTgFoot()
+          + '<button type="button" class="ca-act" onclick="_twToggleNotify()">' + (notifyOn ? '🔕 Turn off browser notifications' : '🔔 Notify me in this browser') + '</button>'
+          + '<span>Browser notifications fire while Rotator is open in a tab. "New" is remembered in this browser.</span>'
+        : '<span>Exchange and unlock warnings are free. Pro adds turn signs, ETF alerts, Telegram messages and browser notifications.</span>')
     + '</div>';
+  _twTgSync(false);
 }
+
+/* ── Telegram DMs for Pro (promptove/71) ───────────────────────────
+   The browser has no account, so it links by its rot_uid: a one-time
+   code from alert_link_start() opens t.me/<bot>?start=<code>, and the
+   telegram-webhook function ties the chat to this browser. From then
+   on this browser keeps the server's copy of its coin list current
+   (alert_set_coins, only when the list changes), and send-dm-alerts
+   messages what is new every hour. The bot's username is read from
+   market_cache, where the webhook's setup stored it. */
+var _twTg = { linked: null, sig: '', busy: false, note: '' };
+
+function _twRpc(fn, args) {
+  return fetch(SUPA_URL + '/rest/v1/rpc/' + fn, {
+    method: 'POST',
+    headers: { 'apikey': SUPA_KEY, 'Authorization': 'Bearer ' + SUPA_KEY, 'Content-Type': 'application/json' },
+    body: JSON.stringify(args)
+  }).then(function (r) { return r.ok ? r.json() : null; }).catch(function () { return null; });
+}
+
+function _twTgCoins() {
+  return _twMyCoins().slice(0, 60).map(function (c) { return { id: c.id, sym: c.sym, role: c._twRole }; });
+}
+
+function _twTgSync(force) {
+  if (!isPro || typeof getMyId !== 'function' || typeof SUPA_URL === 'undefined') return;
+  var list = _twTgCoins(), sig = JSON.stringify(list);
+  if (!force && sig === _twTg.sig) return;
+  _twTg.sig = sig;
+  _twRpc('alert_set_coins', { p_uid: getMyId(), p_coins: list }).then(function (linked) {
+    var was = _twTg.linked;
+    _twTg.linked = linked === true;
+    if (was !== _twTg.linked) renderCoinAlerts();
+  });
+}
+
+function _twTgFoot() {
+  if (_twTg.linked) {
+    return '<span class="ca-tg on">📨 Telegram connected. New alerts are messaged to you every hour.'
+      + ' <button type="button" class="ca-act" onclick="_twTgUnlink()">Disconnect</button></span>';
+  }
+  return '<button type="button" class="ca-act ca-tg-btn" onclick="_twTgConnect()"' + (_twTg.busy ? ' disabled' : '') + '>📨 Get these on Telegram</button>'
+    + (_twTg.note ? '<span class="ca-tg-note">' + _esc(_twTg.note) + '</span>' : '');
+}
+
+function _twTgConnect() {
+  if (!isPro) { openPro(); return; }
+  /* Open the tab inside the click, so popup blockers allow it, then
+     point it at the bot once the code is back. */
+  var w = null; try { w = window.open('about:blank', '_blank'); } catch (e) {}
+  _twTg.busy = true; _twTg.note = ''; renderCoinAlerts();
+  Promise.all([
+    _twRpc('alert_link_start', { p_uid: getMyId() }),
+    (typeof supaCacheGetStale === 'function') ? supaCacheGetStale('telegram_bot_info') : Promise.resolve(null)
+  ]).then(function (res) {
+    var code = res[0], bot = res[1] && res[1].data && res[1].data.username;
+    _twTg.busy = false;
+    if (!code || !bot) {
+      if (w) try { w.close(); } catch (e) {}
+      _twTg.note = !code
+        ? 'Our server does not have Pro on record for this browser. Restore Pro with your recovery key, then try again.'
+        : 'The Telegram bot is not reachable right now. Try again in a few minutes.';
+      renderCoinAlerts();
+      return;
+    }
+    var link = 'https://t.me/' + encodeURIComponent(bot) + '?start=' + encodeURIComponent(code);
+    if (w) w.location.href = link; else window.location.href = link;
+    _twTg.note = 'In Telegram, tap Start. This panel updates once the bot confirms.';
+    renderCoinAlerts();
+    /* Check back a few times while the user is in Telegram. */
+    [15000, 40000, 90000].forEach(function (ms) { setTimeout(function () { if (!_twTg.linked) _twTgSync(true); }, ms); });
+  });
+}
+
+function _twTgUnlink() {
+  _twRpc('alert_unlink', { p_uid: getMyId() }).then(function () {
+    _twTg.linked = false; _twTg.note = 'Telegram disconnected.'; renderCoinAlerts();
+  });
+}
+
+/* Back from Telegram: check whether the link went through. */
+window.addEventListener('focus', function () { if (isPro && !_twTg.linked && _twTg.note) _twTgSync(true); });
 
 function openCoinAlerts() {
   if (typeof railGo === 'function') railGo('sec-yours');

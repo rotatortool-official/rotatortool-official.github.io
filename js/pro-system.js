@@ -223,7 +223,7 @@ function openPro() {
              are not listed here: the list used to claim them as Pro. */
           + '<div style="display:flex;justify-content:space-between;gap:10px;"><span>2 holdings</span><span style="color:var(--pro);text-align:right;">10 holdings</span></div>'
           + '<div style="display:flex;justify-content:space-between;gap:10px;"><span>Turn signs: top 2 of each list</span><span style="color:var(--pro);text-align:right;">⚡ Every coin with a turn sign</span></div>'
-          + '<div style="display:flex;justify-content:space-between;gap:10px;"><span>Exchange and unlock alerts</span><span style="color:var(--pro);text-align:right;">+ turn-sign and ETF alerts, notifications</span></div>'
+          + '<div style="display:flex;justify-content:space-between;gap:10px;"><span>Exchange and unlock alerts</span><span style="color:var(--pro);text-align:right;">+ turn signs, ETF, Telegram DMs</span></div>'
           + '<div style="display:flex;justify-content:space-between;gap:10px;"><span>Default swap pair</span><span style="color:var(--pro);text-align:right;">Any swap pair</span></div>'
           + '<div style="display:flex;justify-content:space-between;gap:10px;"><span>Insight Engine, 24h delayed</span><span style="color:var(--pro);text-align:right;">⚡ Insight Engine, live</span></div>'
           + '<div style="display:flex;justify-content:space-between;gap:10px;"><span>1 strongest, 2 weakest tiles</span><span style="color:var(--pro);text-align:right;">All 6 of each</span></div>'

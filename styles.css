@@ -4430,3 +4430,8 @@ details.td-reading-trust[open] > summary::before{content:'▾ ';}
 .td-ctx > summary::-webkit-details-marker{display:none;}
 .td-ctx > summary::before{content:'▸ ';}
 .td-ctx[open] > summary::before{content:'▾ ';}
+.ca-tg-btn{color:var(--pro);font-size:12px;}
+.ca-tg-btn[disabled]{opacity:.5;cursor:wait;}
+.ca-tg{font-size:11.5px;color:var(--green);}
+.ca-tg .ca-act{margin-left:6px;}
+.ca-tg-note{font-size:11px;color:var(--amber);}
