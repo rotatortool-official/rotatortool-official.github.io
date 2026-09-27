@@ -91,23 +91,59 @@ function _paperSave(a) { try { localStorage.setItem(PAPER_KEY, JSON.stringify(a)
 function paperList() { return _paperLoad(); }
 function isPaperCoin(c) { return !!c && _paperLoad().some(function (p) { return p.id === c.id; }); }
 
-function addPaperTrade(coinId, sign) {
+function addPaperTrade(coinId, sign, opts) {
   var c = (typeof coins !== 'undefined') && coins.find(function (x) { return x.id === coinId; });
   if (!c) return;
   var list = _paperLoad();
   var limit = isPro ? PAPER_PRO : PAPER_FREE;
   if (list.length >= limit) { if (!isPro) openPro(); else alert('Paper trade limit reached (' + PAPER_PRO + ').'); return; }
-  var row = _sinceFor(c.sym, sign);
-  var entry = row && _sinceNum(row.entry) != null ? Number(row.entry) : Number(c.price);
-  var date = row ? String(row.event_date).slice(0, 10) : new Date().toISOString().slice(0, 10);
-  var key = c.id + '|' + sign + '|' + date;
-  if (list.some(function (p) { return p.key === key; })) { _paperToast('Already tracking this sign.'); return; }
-  list.push({ key: key, id: c.id, sym: c.sym, sign: sign || 'Manual', date: date, entry: entry, dated: !!row, added: new Date().toISOString() });
+  /* opts (from "Track from now"): { entry, date } typed by the user.
+     Without opts the entry is the sign day's close, or today's price. */
+  var row = opts ? null : _sinceFor(c.sym, sign);
+  var entry = opts && opts.entry > 0 ? Number(opts.entry)
+    : row && _sinceNum(row.entry) != null ? Number(row.entry) : Number(c.price);
+  var today = new Date().toISOString().slice(0, 10);
+  var date = opts && /^\d{4}-\d{2}-\d{2}$/.test(opts.date || '') && opts.date <= today ? opts.date
+    : row ? String(row.event_date).slice(0, 10) : today;
+  var key = c.id + '|' + sign + '|' + date + (opts ? '|' + entry : '');
+  if (list.some(function (p) { return p.key === key; })) { _paperToast(opts ? 'Already tracking this entry.' : 'Already tracking this sign.'); return; }
+  list.push({ key: key, id: c.id, sym: c.sym, sign: sign || 'Manual', date: date, entry: entry, dated: !!row, manual: !!opts, added: new Date().toISOString() });
   _paperSave(list);
   renderPaperTrades();
   if (typeof renderCoinAlerts === 'function') renderCoinAlerts();
   _paperToast(c.sym + ' added as a paper trade from ' + _sinceDay(date) + '.');
   if (typeof supaCountFeature === 'function') supaCountFeature('paper_trade');
+}
+
+/* ── "Track from now" (any coin, promptove/77) ────────────────────
+   The block in the coin window: a button that opens a two-field form,
+   entry price (today's price to start) and start date (today to start).
+   Changing either records "Your entry"; leaving both is "From now".
+   This is how someone who already follows a coin by hand, at a price
+   they noted earlier, carries it over. */
+function paperFormHtml(c) {
+  if (!c || c.isStable || !(Number(c.price) > 0)) return '';
+  var today = new Date().toISOString().slice(0, 10);
+  var price = Number(c.price);
+  var tracked = _paperLoad().filter(function (p) { return p.id === c.id; }).length;
+  return '<div class="td-paper">'
+    + '<button type="button" class="td-track" data-coin="' + _esc(c.id) + '" onclick="this.nextElementSibling.hidden=!this.nextElementSibling.hidden">📌 Track from now</button>'
+    + (tracked ? '<span class="td-paper-note">' + tracked + ' paper ' + (tracked === 1 ? 'trade' : 'trades') + ' on this coin</span>' : '')
+    + '<div class="td-paper-form" hidden>'
+    +   '<label><span>Entry price ($)</span><input type="number" step="any" min="0" value="' + price + '" data-now="' + price + '"></label>'
+    +   '<label><span>From</span><input type="date" value="' + today + '" max="' + today + '"></label>'
+    +   '<button type="button" class="td-paper-go" data-coin="' + _esc(c.id) + '" onclick="_paperFromForm(this)">Track</button>'
+    + '</div></div>';
+}
+
+function _paperFromForm(btn) {
+  var form = btn.parentElement, inputs = form.querySelectorAll('input');
+  var entry = parseFloat(inputs[0].value), now = parseFloat(inputs[0].getAttribute('data-now'));
+  var date = inputs[1].value, today = new Date().toISOString().slice(0, 10);
+  if (!(entry > 0)) { _paperToast('Enter an entry price above zero.'); return; }
+  var own = Math.abs(entry - now) > 1e-12 || (date && date !== today);
+  addPaperTrade(btn.getAttribute('data-coin'), own ? 'Your entry' : 'From now', { entry: entry, date: date || today });
+  form.hidden = true;
 }
 
 function removePaperTrade(key) {

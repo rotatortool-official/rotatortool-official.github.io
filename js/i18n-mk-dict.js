@@ -708,3 +708,14 @@ Object.assign(MK_TEXT, {
   P(/^([A-Z0-9]+) added as a paper trade from (\d{1,2}) (\w{3})\.$/, function (m) { return m[1] + ' е додадена како пробна позиција од ' + m[2] + ' ' + (MON[m[3]] || m[3]) + '.'; });
   P(/^Paper trade limit reached \((\d+)\)\.$/, function (m) { return 'Достигнат е лимитот на пробни позиции (' + m[1] + ').'; });
 })();
+
+/* ── Track from now (promptove/77) ──────────────────────────────── */
+Object.assign(MK_TEXT, {
+  'Track from now': 'Следи од сега', 'Entry price ($)': 'Влезна цена ($)', 'From': 'Од', 'Track': 'Следи',
+  'From now': 'Од сега', 'Your entry': 'Ваш влез',
+  'Already tracking this entry.': 'Овој влез веќе го следите.',
+  'Enter an entry price above zero.': 'Внесете влезна цена поголема од нула.',
+});
+(function () {
+  MK_PATTERNS.push([/^(\d+) paper trades? on this coin$/, function (m) { return m[1] + ' ' + (Number(m[1]) === 1 ? 'пробна позиција' : 'пробни позиции') + ' за оваа монета'; }]);
+})();

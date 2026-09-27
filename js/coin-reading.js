@@ -272,6 +272,7 @@ function renderCoinReading(c) {
     readEl.innerHTML = c.isStock
       ? '<div class="td-reading"><div class="td-reading-hd">Tokenized stock</div>'
         + '<div class="td-reading-sub">Turn signals are measured on crypto only. The score for a stock is partial (out of 70) and not comparable with crypto.</div></div>'
+        + (typeof paperFormHtml === 'function' ? paperFormHtml(c) : '')
       : '<div class="td-reading"><div class="td-reading-hd">Stablecoin</div>'
         + '<div class="td-reading-sub">Pegged to a currency, so it has no trend to turn. Its score is not a signal.</div></div>';
     turnsEl.innerHTML = '';
@@ -324,7 +325,8 @@ function renderCoinReading(c) {
     + '<div class="td-reading-sub">' + _esc(sub) + '</div>'
     + (trust ? '<details class="td-reading-trust"><summary>How far to trust this</summary>' + _esc(trust) + '</details>' : '')
     + '</div>'
-    + _tdKeyFacts(c, tech);
+    + _tdKeyFacts(c, tech)
+    + (typeof paperFormHtml === 'function' ? paperFormHtml(c) : '');   /* Track from now (promptove/77) */
 
   /* ── 3. The signs, grouped, with their records ── */
   /* Group names follow the status, so an up-sign on a coin that has
