@@ -1576,6 +1576,7 @@ function renderAll() {
   /* promptove/70: the turn-sign list and the alerts read the same coins. */
   if (typeof renderTurnScan === 'function') renderTurnScan();
   if (typeof renderCoinAlerts === 'function') renderCoinAlerts();
+  if (typeof renderPaperTrades === 'function') renderPaperTrades();
   /* Async: fetch Binance klines for holdings to enrich Insight Engine */
   if (holdings.length && !_klinesFetched) {
     _klinesFetched = true;

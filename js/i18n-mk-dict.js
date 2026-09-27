@@ -679,3 +679,32 @@ Object.assign(MK_TEXT, {
   P(/^Loaded (\d+) coins from shared cache$/, function (m) { return 'Вчитани ' + m[1] + ' монети од заедничкиот кеш'; });
   P(/^Fetching data for (\d+) coins \((\d+) batch(es)?\)(.*)$/, function (m) { return 'Се вчитуваат податоци за ' + m[1] + ' монети (' + m[2] + (Number(m[2]) === 1 ? ' серија' : ' серии') + ')' + m[4]; });
 })();
+
+/* ── Since the sign + paper trades (promptove/76) ───────────────── */
+Object.assign(MK_TEXT, {
+  'PAPER TRADES': 'ПРОБНИ ПОЗИЦИИ', 'PAPER': 'ПРОБНА', 'paper': 'пробно',
+  'Track from this sign': 'Следи од овој знак',
+  'Remove paper trade': 'Отстрани ја пробната позиција',
+  'Already tracking this sign.': 'Овој знак веќе го следите.',
+  'Open a coin, expand a turn sign and tap “Track from this sign” to see how it would have done if you had bought then. Paper trades never count as holdings.':
+    'Отворете монета, отворете знак за свртување и допрете „Следи од овој знак“ за да видите како би поминале ако сте купиле тогаш. Пробните позиции никогаш не се бројат како позиции.',
+  'new': 'ново',
+  'The sign is from the latest close; its result starts tomorrow.': 'Знакот е од последното затворање; неговиот резултат почнува од утре.',
+});
+(function () {
+  var P = function (re, fn) { MK_PATTERNS.push([re, fn]); };
+  var MON = { Jan: 'јан', Feb: 'фев', Mar: 'мар', Apr: 'апр', May: 'мај', Jun: 'јун', Jul: 'јул', Aug: 'авг', Sep: 'сеп', Oct: 'окт', Nov: 'ное', Dec: 'дек' };
+  var plur = function (k, one, many) { return Number(k) === 1 ? one : many; };
+  P(/^(\d{1,2}) (Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)$/, function (m) { return m[1] + ' ' + MON[m[2]]; });
+  P(/^([+−\-][\d.]+) vs mkt$/, function (m) { return m[1] + ' наспроти пазарот'; });
+  P(/^Since the (\d{1,2}) (\w{3}) close: ([^,]+), market median ([^ ]+) \(([^ ]+) points\), (\d+) days?\.$/,
+    function (m) { return 'Од затворањето на ' + m[1] + ' ' + (MON[m[2]] || m[2]) + ': ' + m[3] + ', медијана на пазарот ' + m[4] + ' (' + m[5] + ' поени), ' + m[6] + ' ' + plur(m[6], 'ден', 'дена') + '.'; });
+  P(/^Since (\d{1,2}) (\w{3}): too early, the result starts after the next daily close\.$/,
+    function (m) { return 'Од ' + m[1] + ' ' + (MON[m[2]] || m[2]) + ': прерано е, резултатот почнува по следното дневно затворање.'; });
+  /* An alert's detail with the result sentence appended: translate the two halves. */
+  P(/^(.+?) (Since (?:the )?\d{1,2} \w{3}.+)$/, function (m) { return window.mkTranslate(m[1]) + ' ' + window.mkTranslate(m[2]); });
+  P(/^from (\$[\d.e+\-]+|—)$/, function (m) { return 'од ' + m[1]; });
+  P(/^(\d+) days?$/, function (m) { return m[1] + ' ' + plur(m[1], 'ден', 'дена'); });
+  P(/^([A-Z0-9]+) added as a paper trade from (\d{1,2}) (\w{3})\.$/, function (m) { return m[1] + ' е додадена како пробна позиција од ' + m[2] + ' ' + (MON[m[3]] || m[3]) + '.'; });
+  P(/^Paper trade limit reached \((\d+)\)\.$/, function (m) { return 'Достигнат е лимитот на пробни позиции (' + m[1] + ').'; });
+})();

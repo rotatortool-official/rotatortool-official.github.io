@@ -69,7 +69,11 @@ function _twRow(r, dir) {
   var c = r.c;
   var held = (typeof isHeldCoin === 'function') && isHeldCoin(c);
   var chips = r.signs.map(function (s) {
-    return '<span class="tw-chip ' + dir + (_twTested(s) ? ' tested' : '') + '">' + _esc(s.title) + '</span>';
+    /* The sign's result since it appeared, when dated (promptove/76). */
+    var ex = s.since && s.since.excess != null ? Number(s.since.excess) : null;
+    var tip = s.since && typeof sinceSentence === 'function' ? ' title="' + _esc(sinceSentence(s.since)) + '"' : '';
+    return '<span class="tw-chip ' + dir + (_twTested(s) ? ' tested' : '') + '"' + tip + '>' + _esc(s.title)
+      + (ex != null ? ' <b class="' + (ex >= 0 ? 'up' : 'dn') + '">' + (ex >= 0 ? '+' : '') + ex.toFixed(1) + '</b>' : '') + '</span>';
   }).join('');
   if (r.other.length) {
     chips += '<span class="tw-chip mixed" title="' + _esc(r.other.map(function (s) { return s.title; }).join(', ')) + '">+'
@@ -135,7 +139,8 @@ function _twMyCoins() {
   return coins.filter(function (c) {
     var h = (typeof isHeldCoin === 'function') && isHeldCoin(c);
     var w = (typeof isWatchedCoin === 'function') && isWatchedCoin(c);
-    if (h || w) { c._twRole = h ? 'held' : 'watching'; return true; }
+    var pp = (typeof isPaperCoin === 'function') && isPaperCoin(c);
+    if (h || w || pp) { c._twRole = h ? 'held' : w ? 'watching' : 'paper'; return true; }
     return false;
   });
 }
@@ -174,8 +179,9 @@ function _twAlerts() {
           /* Only a real date goes into the key. "3 days ago" changes every
              day and would bring the same sign back as new each morning. */
           var dated = /^\d{4}-\d{2}-\d{2}/.test(s.when || '') ? String(s.when).slice(0, 10) : '';
+          var sinceTxt = s.since && typeof sinceSentence === 'function' ? ' ' + sinceSentence(s.since) : '';
           out.push(Object.assign({ key: c.sym + '|sign|' + s.title + '|' + dated, kind: isUp ? 'up' : 'down', pro: true, sev: 1,
-            title: (isUp ? '▲ ' : '▼ ') + s.title, detail: s.detail || '' }, base));
+            title: (isUp ? '▲ ' : '▼ ') + s.title, detail: (s.detail || '') + sinceTxt }, base));
         });
       }
     }
@@ -282,7 +288,7 @@ function _twRpc(fn, args) {
 }
 
 function _twTgCoins() {
-  return _twMyCoins().slice(0, 60).map(function (c) { return { id: c.id, sym: c.sym, role: c._twRole }; });
+  return _twMyCoins().slice(0, 60).map(function (c) { return { id: c.id, sym: c.sym, role: c._twRole === 'paper' ? 'watching' : c._twRole }; });
 }
 
 function _twTgSync(force) {

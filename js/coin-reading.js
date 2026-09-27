@@ -62,7 +62,7 @@ function _tdPct(v) { return (v >= 0 ? '+' : '') + v.toFixed(1) + '%'; }
    title, detail, ev }. 'up' = turn-up sign, 'down' = cooling or
    weakening sign, 'info' = context that is shown but not counted
    (including readings whose test says they are NOT what they look like). */
-function _tdSigns(c) {
+function _tdSignsRaw(c) {
   var up = [], down = [], info = [];
   var tech = (typeof coinTechnicals !== 'undefined' && coinTechnicals[c.sym]) || null;
   var rsi = tech && tech.rsiD != null ? tech.rsiD : (c._rsi != null ? c._rsi : null);
@@ -171,13 +171,32 @@ function _tdStatus(c) {
    and the tested record open on a tap. The window should read like a
    short summary of the coin, with the reasons one tap away
    (promptove/70). */
+/* Each sign carries its result since it appeared, when the detector
+   dated it (paper-trades.js, promptove/76), and the coin it belongs to,
+   so the row can offer "Track from this sign". */
+function _tdSigns(c) {
+  var S = _tdSignsRaw(c);
+  ['up', 'down', 'info'].forEach(function (k) {
+    S[k].forEach(function (s) {
+      s.coinId = c.id;
+      s.since = (typeof _sinceFor === 'function') ? _sinceFor(c.sym, s.title) : null;
+    });
+  });
+  return S;
+}
+
 function _tdRow(s, dir) {
   var icon = dir === 'up' ? '▲' : dir === 'down' ? '▼' : '•';
+  var track = (dir !== 'info' && s.coinId && typeof addPaperTrade === 'function')
+    ? '<button type="button" class="td-track" data-coin="' + _esc(s.coinId) + '" data-sign="' + _esc(s.title) + '" onclick="event.stopPropagation();addPaperTrade(this.dataset.coin, this.dataset.sign)">📌 Track from this sign</button>' : '';
   return '<details class="td-turn-row ' + dir + '">'
     + '<summary class="td-turn-hd"><span class="td-turn-ico">' + icon + '</span><span class="td-turn-title">' + _esc(s.title) + '</span>'
+    + (s.since && typeof sinceTag === 'function' ? sinceTag(s.since) : '')
     + '<span class="td-turn-when">' + _esc(s.when || '') + '</span></summary>'
     + '<div class="td-turn-detail">' + _esc(s.detail || '') + '</div>'
+    + (s.since && typeof sinceSentence === 'function' ? '<div class="td-turn-detail td-since-line">' + _esc(sinceSentence(s.since)) + '</div>' : '')
     + (dir === 'info' && !s.ev ? '' : _tdEvChip(s.ev))
+    + track
     + '</details>';
 }
 

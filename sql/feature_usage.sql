@@ -52,7 +52,8 @@ begin
     'track_record_view',  -- the track-record page loaded
     'assistant_open',     -- the Pro AI assistant was opened
     'telegram_click',     -- a link to the Telegram channel was clicked
-    'etf_flows'           -- the ETF flows window was opened (promptove/68)
+    'etf_flows',          -- the ETF flows window was opened (promptove/68)
+    'paper_trade'         -- a paper trade was added from a turn sign (promptove/76)
   ) then
     return;  -- unknown names are ignored, never stored
   end if;

@@ -1360,6 +1360,7 @@ async function doLoad() {
     await loadMacroData(); prog(80, 'Loading macro data — Gold, Oil…');
     await loadNetworkData(); renderBriefing();
     await loadEtfFlows(); renderEtfFlows();
+    if (typeof loadSignSince === 'function') await loadSignSince();   /* each turn sign's result since it appeared (promptove/76) */
     await loadFearGreed(); prog(88, 'Fetching sentiment data…');
     /* Unlock schedules for the coin modal. Read-only and cached an
        hour; a failure leaves the map empty and the modal simply shows
