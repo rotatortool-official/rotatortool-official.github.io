@@ -3835,7 +3835,7 @@ td.qa-cell{text-align:center;width:28px;padding:0 4px !important;}
   .rsec-hdr{padding:14px 12px 8px;}
   /* Below 900px the collapse headers come back and name the sections
      themselves — two labels would be one too many. */
-  #sec-yours .rsec-hdr,#sec-rotation .rsec-hdr,#sec-swap .rsec-hdr,#sec-record .rsec-hdr{display:none;}
+  #sec-yours .rsec-hdr,#sec-rotation .rsec-hdr,#sec-swap .rsec-hdr,#sec-record .rsec-hdr,#sec-coins .rsec-hdr{display:none;}
 }
 
 /* ── The document scrolls, not the body ────────────────────────────
@@ -4680,4 +4680,50 @@ details.td-reading-trust[open] > summary::before{content:'▾ ';}
 @media (max-width:700px){
   .lens-rail{padding:5px 3px;gap:4px;}
   .lens-btn{min-width:28px;padding:11px 5px;font-size:11px;}
+}
+
+/* ── 5. Reading order: sections first, details after ─────────────────
+   The six sections were introduced by the quietest text on the page
+   (11px muted caps), so every card inside competed at the same level and
+   the page read as twenty things at once. Now three levels:
+     1. section: 18px, full contrast, gold tick, with air above it
+     2. card titles: unchanged
+     3. section description: 12px muted, on its own line
+   The lens rail beside the coin list moves to the right edge of the
+   table and steps back: plain labels, more space between them, only the
+   active lens filled. */
+.rsec{border-bottom:none;}
+.rsec + .rsec{margin-top:26px;border-top:1px solid var(--bdr2);}
+.rsec-hdr{
+  flex-direction:column;align-items:flex-start;gap:4px;
+  padding:26px 16px 14px;
+}
+#sec-today .rsec-hdr{padding-top:16px;}
+.rsec-label{
+  display:flex;align-items:center;gap:9px;
+  font-size:18px;font-weight:800;letter-spacing:.08em;color:var(--text);
+}
+.rsec-label::before{
+  content:'';width:4px;height:17px;border-radius:2px;background:var(--bnb);
+}
+.rsec-meta{font-size:12px;opacity:.85;padding-left:13px;}
+@media(max-width:900px){
+  .rsec + .rsec{margin-top:18px;}
+  .rsec-hdr{padding:20px 12px 10px;}
+  .rsec-label{font-size:16px;}
+}
+
+.lens-rail{
+  order:2;gap:9px;padding:4px 0;
+  background:none;border:none;
+}
+.lens-cap{color:var(--muted);font-weight:600;}
+.lens-btn{
+  background:none;border-color:var(--bdr);color:var(--muted);
+  font-weight:600;
+}
+.lens-btn:hover{background:var(--bg3);}
+.lens-btn.on{box-shadow:none;font-weight:700;}
+@media (max-width:700px){
+  .lens-rail{gap:7px;}
 }
