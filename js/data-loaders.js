@@ -192,8 +192,8 @@ async function loadCoins(categoryOverride) {
        and it is what made a server-side cron look too expensive for the
        free tier when it is not. */
     var batches = [];
-    for (var b = 0; b < uniqueIds.length; b += 250) {
-      batches.push(uniqueIds.slice(b, b + 250).join(','));
+    for (var b = 0; b < uniqueIds.length; b += 125) {
+      batches.push(uniqueIds.slice(b, b + 125).join(','));
     }
     var baseUrl  = 'https://api.coingecko.com/api/v3/coins/markets'
       + '?vs_currency=usd&order=market_cap_desc&per_page=250&page=1'
