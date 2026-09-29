@@ -4643,3 +4643,41 @@ details.td-reading-trust[open] > summary::before{content:'▾ ';}
   .rail-support .rail-label{font-size:13px;}
   .rail-support .rail-sub{font-size:11px;}
 }
+
+/* ── 4. The lens rail beside the coin list ──────────────────────────
+   OI · OIΔ · L/S · FND · RSI·D · RSI·W re-sort the list. They were 10px
+   muted labels on the page background and read as decoration. Now a
+   framed strip with a caption, full-contrast labels, and the active
+   lens filled solid. Markup from renderLensRail() in js/signals.js. */
+.lens-rail{
+  flex:0 0 auto;display:flex;flex-direction:column;align-items:stretch;gap:5px;
+  position:sticky;top:8px;
+  padding:6px 4px;background:var(--bg2);
+  border:1px solid var(--bdr2);border-radius:8px;
+}
+.lens-cap{
+  font-size:9px;font-weight:700;letter-spacing:.08em;text-align:center;
+  color:var(--bnb);padding-bottom:1px;
+}
+.lens-btn{
+  writing-mode:vertical-rl;text-orientation:mixed;
+  min-width:30px;padding:12px 6px;border-radius:6px;cursor:pointer;
+  font-family:var(--font-mono);font-size:12px;font-weight:700;letter-spacing:.1em;
+  background:var(--bg3);border:1px solid var(--bdr2);color:var(--text);
+  transition:background .15s,border-color .15s,color .15s,box-shadow .15s;
+}
+.lens-btn:hover{border-color:var(--bnb);color:var(--bnb);}
+.lens-btn:focus-visible{outline:2px solid var(--bnb);outline-offset:1px;}
+.lens-btn.on{
+  background:var(--bnb);border-color:var(--bnb);color:var(--bg);
+  box-shadow:0 0 0 3px var(--bnbd);
+}
+.lens-btn.lens-clear{
+  writing-mode:horizontal-tb;padding:6px 0;margin-top:2px;
+  font-size:15px;line-height:1;color:var(--muted);
+}
+.lens-btn.lens-clear:hover{color:var(--red);border-color:var(--red);}
+@media (max-width:700px){
+  .lens-rail{padding:5px 3px;gap:4px;}
+  .lens-btn{min-width:28px;padding:11px 5px;font-size:11px;}
+}
