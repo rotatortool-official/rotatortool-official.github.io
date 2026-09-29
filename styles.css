@@ -4557,13 +4557,13 @@ details.td-reading-trust[open] > summary::before{content:'▾ ';}
     height:calc((100vh - var(--topbar-h,45px)) / var(--page-zoom));
   }
 }
-/* The Macedonian side banners measure the 1600px page; zoomed, the page
-   is 1760px on screen, so they need that much more room. */
-@media (min-width:1780px) and (max-width:1939px) and (hover:hover) and (pointer:fine){
+/* The Macedonian side banners measure the 1600px page; zoomed (and 1648px
+   wide with the bigger rail), the page is 1813px on screen, so they need that much more room. */
+@media (min-width:1780px) and (max-width:1993px) and (hover:hover) and (pointer:fine){
   .mk-banner{display:none !important;}
 }
-@media (min-width:1940px) and (hover:hover) and (pointer:fine){
-  .mk-banner{width:min(140px, calc((100vw - 1760px) / 2 - 10px));}
+@media (min-width:1994px) and (hover:hover) and (pointer:fine){
+  .mk-banner{width:min(140px, calc((100vw - 1813px) / 2 - 10px));}
 }
 
 /* ── 2. Phones ─────────────────────────────────────────────── */
@@ -4604,4 +4604,42 @@ details.td-reading-trust[open] > summary::before{content:'▾ ';}
   .tw-chip{font-size:12px;}
   .etf-sub,.bf-d{font-size:12px;}
   .bf-k,.bf-d-note{font-size:11px;}
+}
+
+/* ── 3. The section rail on PC: real buttons ────────────────────────
+   Each section is its own button with a surface, a border and a 36px
+   icon, the current one filled and marked with an accent bar, instead
+   of small labels on a line. The rail column grows by 48px and so does
+   the page cap, so the content keeps its width and the rail takes the
+   space that was empty margin. */
+@media (min-width:1100px) and (hover:hover) and (pointer:fine){
+  .root{grid-template-columns:196px minmax(0,1fr);max-width:1648px;}
+  .topbar{max-width:1648px;}
+  .rail{padding:14px 10px;gap:6px;}
+  .rail-item{
+    position:relative;align-items:center;gap:11px;
+    width:100%;padding:8px 10px;
+    background:var(--bg3);border:1px solid var(--bdr);border-radius:10px;
+    transition:background .15s,border-color .15s,transform .15s;
+  }
+  .rail-item:not(.rail-last) .rail-mark::after{display:none;}
+  .rail-mark{width:36px;height:36px;border-radius:9px;background:var(--bg2);}
+  .rail-mark svg{width:19px;height:19px;}
+  .rail-text{padding:0;}
+  .rail-label{font-size:13px;letter-spacing:.06em;color:var(--text);opacity:.85;}
+  .rail-sub{font-size:11px;margin-top:2px;}
+  .rail-item:hover{background:var(--bg4);border-color:var(--bnb);transform:translateX(2px);}
+  .rail-item:hover .rail-label{opacity:1;}
+  .rail-item:focus-visible{outline:2px solid var(--bnb);outline-offset:2px;}
+  .rail-item.on{background:var(--bnbd);border-color:var(--bnb);}
+  .rail-item.on::before{
+    content:'';position:absolute;left:-1px;top:8px;bottom:8px;width:3px;
+    border-radius:0 3px 3px 0;background:var(--bnb);
+  }
+  .rail-item.on .rail-label{opacity:1;}
+  .rail-item.on .rail-sub{color:var(--text);opacity:.75;}
+  .rail-support{padding:12px 10px 2px;}
+  .rail-support-icon{width:36px;height:36px;border-radius:9px;font-size:16px;}
+  .rail-support .rail-label{font-size:13px;}
+  .rail-support .rail-sub{font-size:11px;}
 }
