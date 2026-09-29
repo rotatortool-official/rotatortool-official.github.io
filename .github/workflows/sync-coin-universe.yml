@@ -1,0 +1,37 @@
+name: Sync coin universe
+
+# Refreshes market_cache.cg_markets_all from CoinGecko. Runs here rather
+# than in the Supabase edge function because CoinGecko blocks Supabase's
+# egress IPs (HTTP 403 since 2026-09-29). See scripts/sync-coin-universe.mjs.
+#
+# Minutes 11/26/41/56, a few minutes ahead of compute-signal-run's */15.
+# GitHub may start scheduled runs a few minutes late; the Supabase
+# "if stale" fallback cron and the site's 15-minute TTL tolerate that.
+
+on:
+  schedule:
+    - cron: '11,26,41,56 * * * *'
+  workflow_dispatch: {}
+
+concurrency:
+  group: sync-coin-universe
+  cancel-in-progress: false
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          sparse-checkout: |
+            scripts
+            supabase/functions/sync-coin-universe/_vendor
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Fetch CoinGecko and write the shared cache
+        run: node scripts/sync-coin-universe.mjs
+        env:
+          COINGECKO_API_KEY: ${{ secrets.COINGECKO_API_KEY }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
