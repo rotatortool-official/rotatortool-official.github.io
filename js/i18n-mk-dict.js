@@ -377,8 +377,8 @@ Object.assign(MK_TEXT, {
   'TX hash (from your wallet or block explorer)': 'TX хеш (од вашиот паричник или блок-истражувач)',
   'Contact (optional — Telegram/Discord/Email)': 'Контакт (незадолжително — Telegram/Discord/е-пошта)',
   'VERIFY TX & ACTIVATE PRO': 'ПРОВЕРИ TX И АКТИВИРАЈ PRO',
-  'Community & Signals': 'Заедница и сигнали', 'Join the community channels for live signals and discussion.': 'Приклучете се на каналите на заедницата за сигнали во живо и дискусија.',
-  'Telegram signals are Pro-only.': 'Сигналите на Telegram се само за Pro.', 'Pro signals': 'Pro сигнали', 'Coming soon': 'Наскоро',
+  'Community & Notifications': 'Заедница и известувања', 'Join the community channels for market pulse updates and discussion.': 'Приклучете се на каналите на заедницата за новости за пазарниот пулс и дискусија.',
+  'Telegram market pulse notifications are Pro-only.': 'Известувањата за пазарниот пулс на Telegram се само за Pro.', 'Market pulse notifications': 'Известувања за пазарниот пулс', 'Coming soon': 'Наскоро',
   'Thank You!': 'Ви благодариме!',
   'Your donation ensures the future development of this tool and better quality of its products — faster API calls, more accurate live data, and new features.':
     'Вашата донација го обезбедува идниот развој на оваа алатка и подобар квалитет на нејзините производи — побрзи API повици, попрецизни податоци во живо и нови функции.',
@@ -386,32 +386,32 @@ Object.assign(MK_TEXT, {
     'Овие подобрувања бараат платен CoinGecko API. Засега одиме полека — вашата поддршка нè носи таму.',
   'CLOSE': 'ЗАТВОРИ',
   'Support the Project & Unlock Pro': 'Поддржете го проектот и отклучете Pro',
-  'No subscriptions.': 'Без претплати.', 'One-time contribution': 'Еднократен придонес', 'for lifetime Pro access.': 'за доживотен Pro пристап.',
+  'No subscriptions.': 'Без претплати.', 'One-time contribution': 'Еднократен придонес', 'unlocks the full features.': 'ги отклучува сите функции.',
   'The core tool stays free — Pro is your reward for supporting development.': 'Основната алатка останува бесплатна — Pro е вашата награда за поддршката на развојот.',
   'FREE': 'БЕСПЛАТНО',
   '2 holdings': '2 позиции', '10 holdings': '10 позиции', 'Default swap pair': 'Стандарден пар за замена', 'Any swap pair': 'Кој било пар за замена',
   'Insight Engine, 24h delayed': 'Insight Engine, доцни 24ч', 'Insight Engine, live': 'Insight Engine, во живо',
   '1 strongest, 2 weakest tiles': '1 најсилна, 2 најслаби плочки', 'All 6 of each': 'Сите 6 од секоја',
-  'First 2 coin badges': 'Првите 2 ознаки на монетата', 'Every coin badge': 'Сите ознаки на монетата', 'Telegram channel': 'Telegram канал',
+  'First 2 coin badges': 'Првите 2 ознаки на монетата', 'Every coin badge': 'Сите ознаки на монетата', 'Telegram market pulse notifications': 'Известувања за пазарниот пулс на Telegram',
   'Turn signs: top 2 of each list': 'Знаци за свртување: првите 2 од секоја листа', 'Every coin with a turn sign': 'Секоја монета со знак за свртување',
   'Exchange and unlock alerts': 'Известувања од берзата и за отклучувања', '+ turn signs, ETF, Telegram DMs': '+ знаци за свртување, ETF, пораки на Telegram',
   'PAY WITH CRYPTO — AUTO-VERIFIED, INSTANT PRO': 'ПЛАТЕТЕ СО КРИПТО — АВТОМАТСКА ПРОВЕРКА, PRO ВЕДНАШ',
   'Send': 'Испратете', '(or equivalent BNB/ETH) to any wallet below. Submit your TX hash and': '(или еквивалент во BNB/ETH) на кој било паричник подолу. Внесете го TX хешот и',
   '— fully automated, no waiting.': '— целосно автоматски, без чекање.',
   'View full donation page with copy buttons →': 'Погледнете ја целата страница за донации со копчиња за копирање →',
-  'COMMUNITY & SIGNALS': 'ЗАЕДНИЦА И СИГНАЛИ', 'Pro members get access to the private': 'Pro членовите добиваат пристап до приватниот',
-  'Telegram signals channel': 'Telegram канал за сигнали', '. Discord coming soon.': '. Discord наскоро.',
+  'COMMUNITY & NOTIFICATIONS': 'ЗАЕДНИЦА И ИЗВЕСТУВАЊА', 'Pro members get': 'Pro членовите добиваат',
+  'market pulse notifications on Telegram': 'известувања за пазарниот пулс на Telegram', '. Discord coming soon.': '. Discord наскоро.',
   'HAVE A PRO CODE?': 'ИМАТЕ PRO КОД?', 'Enter your Pro code': 'Внесете го вашиот Pro код',
   'ALREADY HAVE PRO ON ANOTHER DEVICE?': 'ВЕЌЕ ИМАТЕ PRO НА ДРУГ УРЕД?', 'Enter your recovery key': 'Внесете го клучот за враќање',
   'REDEEM': 'ИСКОРИСТИ', 'RESTORE': 'ВРАТИ',
-  'Thank You, Supporter!': 'Ви благодариме, поддржувачу!', 'Pro is active — lifetime access unlocked': 'Pro е активен — доживотниот пристап е отклучен',
-  'Lifetime Pro — your support keeps Rotator independent': 'Доживотен Pro — вашата поддршка го одржува Rotator независен',
+  'Thank You, Supporter!': 'Ви благодариме, поддржувачу!', 'Pro is active — full features unlocked': 'Pro е активен — сите функции се отклучени',
+  'Full features — your support keeps Rotator independent': 'Сите функции — вашата поддршка го одржува Rotator независен',
   'Keeping Rotator free and ad-free': 'Rotator да остане бесплатен и без реклами',
   'YOUR RECOVERY KEY': 'ВАШИОТ КЛУЧ ЗА ВРАЌАЊЕ', 'Save this key to restore Pro on another device or browser:': 'Зачувајте го овој клуч за да го вратите Pro на друг уред или прелистувач:',
   'COPY': 'КОПИРАЈ', 'SHARE ROTATOR WITH FRIENDS': 'СПОДЕЛЕТЕ ГО ROTATOR СО ПРИЈАТЕЛИ',
   'Rotator stays independent because supporters like you spread the word. Share the love:': 'Rotator останува независен затоа што поддржувачи како вас го шират гласот. Споделете ја љубовта:',
   'COPY REFERRAL LINK': 'КОПИРАЈ ЛИНК ЗА ПРЕПОРАКА', 'COPY ADDRESS': 'КОПИРАЈ АДРЕСА', '✓ COPIED!': '✓ КОПИРАНО!',
-  'Share your link. When 5 more friends open Rotator through it, Pro unlocks for life.': 'Споделете го вашиот линк. Кога уште 5 пријатели ќе го отворат Rotator преку него, Pro се отклучува доживотно.',
+  'Share your link. When 5 more friends open Rotator through it, the full features unlock.': 'Споделете го вашиот линк. Кога уште 5 пријатели ќе го отворат Rotator преку него, се отклучуваат сите функции.',
   'INVITE 5 FRIENDS → UNLOCK PRO FREE': 'ПОКАНЕТЕ 5 ПРИЈАТЕЛИ → ОТКЛУЧЕТЕ PRO БЕСПЛАТНО',
   'Ask about the current scores. Answers come only from the latest run, never invented.': 'Прашајте за тековните резултати. Одговорите доаѓаат само од последното пресметување, никогаш измислени.',
   'e.g. what looks weak right now?': 'пр. што изгледа слабо во моментов?',
@@ -730,9 +730,9 @@ Object.assign(MK_TEXT, {
 });
 (function () {
   var P = function (re, fn) { MK_PATTERNS.push([re, fn]); };
-  P(/^Share your link\. When (\d+) more friends? opens? Rotator through it, Pro unlocks for life\.$/, function (m) {
+  P(/^Share your link\. When (\d+) more friends? opens? Rotator through it, the full features unlock\.$/, function (m) {
     return 'Споделете го вашиот линк. Кога уште ' + m[1] + ' ' + (m[1] === '1' ? 'пријател ќе го отвори' : 'пријатели ќе го отворат')
-      + ' Rotator преку него, Pro се отклучува доживотно.';
+      + ' Rotator преку него, се отклучуваат сите функции.';
   });
   P(/^(\d+) friends? (?:is|are) waiting for the 1-hour check\.$/, function (m) {
     return m[1] + ' ' + (m[1] === '1' ? 'пријател чека' : 'пријатели чекаат') + ' на проверката од 1 час.';
