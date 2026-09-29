@@ -40,7 +40,7 @@ var TUT_STEPS = [
       "**Rotator is an honest market pulse for Binance traders.** It scores 250 coins and tokenized stocks every 15 minutes, tracks your portfolio, and warns you about delistings and unlocks before they hit.",
       "Every claim comes with its evidence and the bar it has to beat. When one of its own rules does no better than picking coins at random, it says so."
     ],
-    "note": "This tour follows the menu on the left: Today, Momentum, Record, Yours, Coins and Swap. About a minute."
+    "note": "This tour follows the menu on the left: Today, Momentum, Yours, Coins, Swap and Record. About a minute."
   },
 
   /* 2. TODAY */
@@ -68,20 +68,6 @@ var TUT_STEPS = [
       "**Worst 30d** lists the weakest. Weakness can last or reverse, and the score does not know which."
     ],
     "note": "Click any tile for the full breakdown."
-  },
-
-  /* 4. RECORD */
-  {
-    "target": "#sec-record",
-    "goto": "sec-record",
-    "open": "trackrecord",
-    "pos": "section",
-    "title": "Record — what held up",
-    "p": [
-      "Every published observation is graded 30 days later against the median coin. Half of all coins beat the median, so **50% is the bar**. Above it is evidence of skill, below it is not.",
-      "Live tests show how many days they have graded and when they can first give a verdict. They are never judged early."
-    ],
-    "note": "The full record is on the track record page."
   },
 
   /* 5. YOURS */
@@ -129,6 +115,20 @@ var TUT_STEPS = [
       "It shows where the ratio is, not where it goes next."
     ],
     "note": "Choosing your own pair is a Pro feature."
+  },
+
+  /* 7b. RECORD — last, as "learn more" (2026-09-29) */
+  {
+    "target": "#sec-record",
+    "goto": "sec-record",
+    "open": "trackrecord",
+    "pos": "section",
+    "title": "Record — what held up",
+    "p": [
+      "Every published observation is graded 30 days later against the median coin. Half of all coins beat the median, so **50% is the bar**. Above it is evidence of skill, below it is not.",
+      "Live tests show how many days they have graded and when they can first give a verdict. They are never judged early."
+    ],
+    "note": "The full record is on the track record page."
   },
 
   /* 8. Pro */
