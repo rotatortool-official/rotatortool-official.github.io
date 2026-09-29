@@ -732,7 +732,7 @@ var DONATION_LABEL   = 'monthly server costs';
 /* ══════════════════════════════════════════════════════════════════
    PRO TIER PLANS
    ──────────────
-   One-time contribution tiers. All unlock lifetime Pro.
+   One-time contribution tiers. All unlock the full features.
    Different amounts = different supporter levels, same features.
    Codes bypass payment.
 ══════════════════════════════════════════════════════════════════ */
