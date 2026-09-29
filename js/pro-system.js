@@ -140,7 +140,7 @@ function referralSubText(p, needed) {
   var left = needed - p.joined;
   if (left > 0) {
     return 'Share your link. When ' + left + ' more ' + (left === 1 ? 'friend opens' : 'friends open')
-      + ' Rotator through it, Pro unlocks for life.';
+      + ' Rotator through it, the full features unlock.';
   }
   return 'All ' + needed + ' friends have joined. Pro unlocks automatically once the 1-hour check has passed: refresh the page to check.';
 }
@@ -228,8 +228,8 @@ function openPro() {
     body.innerHTML = '<div class="already-pro">'
       + '<div class="already-pro-icon">⚡</div>'
       + '<div class="already-pro-txt">Thank You, Supporter!</div>'
-      + '<div class="already-pro-sub" style="color:var(--green);font-weight:600;">Pro is active — lifetime access unlocked</div>'
-      + '<div style="margin-top:10px;background:var(--gd);border:1px solid rgba(0,200,150,.2);border-radius:4px;padding:8px 14px;text-align:center;font-size:12px;color:var(--green);font-weight:600;">Lifetime Pro — your support keeps Rotator independent</div>'
+      + '<div class="already-pro-sub" style="color:var(--green);font-weight:600;">Pro is active — full features unlocked</div>'
+      + '<div style="margin-top:10px;background:var(--gd);border:1px solid rgba(0,200,150,.2);border-radius:4px;padding:8px 14px;text-align:center;font-size:12px;color:var(--green);font-weight:600;">Full features — your support keeps Rotator independent</div>'
       + '<div style="margin-top:14px;background:var(--bg3);border:1px solid var(--bdr2);border-radius:4px;padding:12px 14px;">'
         + '<div style="font-size:12px;color:var(--muted);letter-spacing:.12em;margin-bottom:8px;">' + _('pro_coming') + '</div>'
         + '<div style="font-size:12px;color:var(--text);line-height:2;">◈ <strong style="color:var(--bnb)">' + _('pro_coming_1') + '</strong><br>◈ <strong style="color:var(--pro)">' + _('pro_coming_2') + '</strong><br>◈ ' + _('pro_coming_3') + '</div>'
@@ -262,7 +262,7 @@ function openPro() {
       + '</div>';
   } else {
     body.innerHTML = '<div class="modal-title">⚡ Support the Project & Unlock Pro</div>'
-      + '<div class="modal-sub">No subscriptions. <strong>One-time contribution</strong> for lifetime Pro access.<br>The core tool stays free — Pro is your reward for supporting development.</div>'
+      + '<div class="modal-sub">No subscriptions. <strong>One-time contribution</strong> unlocks the full features.<br>The core tool stays free — Pro is your reward for supporting development.</div>'
 
       /* ── FREE vs PRO comparison ── */
       + '<div style="background:var(--bg3);border:1px solid rgba(167,139,250,.2);border-radius:4px;padding:12px 14px;margin-bottom:14px;">'
@@ -282,7 +282,7 @@ function openPro() {
           + '<div style="display:flex;justify-content:space-between;gap:10px;"><span>Insight Engine, 24h delayed</span><span style="color:var(--pro);text-align:right;">⚡ Insight Engine, live</span></div>'
           + '<div style="display:flex;justify-content:space-between;gap:10px;"><span>1 strongest, 2 weakest tiles</span><span style="color:var(--pro);text-align:right;">All 6 of each</span></div>'
           + '<div style="display:flex;justify-content:space-between;gap:10px;"><span>First 2 coin badges</span><span style="color:var(--pro);text-align:right;">Every coin badge</span></div>'
-          + '<div style="display:flex;justify-content:space-between;gap:10px;"><span><span style="color:var(--muted);">—</span></span><span style="color:var(--pro);text-align:right;">Telegram channel</span></div>'
+          + '<div style="display:flex;justify-content:space-between;gap:10px;"><span><span style="color:var(--muted);">—</span></span><span style="color:var(--pro);text-align:right;">Telegram market pulse notifications</span></div>'
         + '</div>'
       + '</div>'
 
@@ -321,14 +321,14 @@ function openPro() {
         + '<a href="#" onclick="closeModal(\'pro-modal\');openModal(\'donate-modal\');return false;" style="display:block;text-align:center;font-size:12px;color:var(--green);text-decoration:none;font-weight:600;">View full donation page with copy buttons →</a>'
       + '</div>'
 
-      /* ── SECONDARY: Community channels (Telegram = Pro signals, Discord placeholder) ── */
-      + '<div style="font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);margin-bottom:8px;">COMMUNITY &amp; SIGNALS</div>'
+      /* ── SECONDARY: Community channels (Telegram = market pulse notifications, Discord placeholder) ── */
+      + '<div style="font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);margin-bottom:8px;">COMMUNITY &amp; NOTIFICATIONS</div>'
       + '<div style="background:var(--bg3);border:1px solid var(--bdr2);border-radius:6px;padding:14px;margin-bottom:14px;">'
-        + '<div style="font-size:12px;color:var(--muted);margin-bottom:8px;line-height:1.6;">Pro members get access to the private <strong style="color:var(--pro);">Telegram signals channel</strong>. Discord coming soon.</div>'
+        + '<div style="font-size:12px;color:var(--muted);margin-bottom:8px;line-height:1.6;">Pro members get <strong style="color:var(--pro);">market pulse notifications on Telegram</strong>. Discord coming soon.</div>'
         + '<div class="community-tier-row">'
           + '<a href="https://t.me/rotatortool" target="_blank" rel="noopener" class="community-btn community-btn-tg" data-pro-only="1" onclick="return joinTelegram(event)">'
             + '<div style="font-size:14px;font-weight:800;">Telegram</div>'
-            + '<div style="font-size:12px;color:inherit;opacity:.75;margin-top:2px;">⚡ Pro signals</div>'
+            + '<div style="font-size:12px;color:inherit;opacity:.75;margin-top:2px;">⚡ Market pulse notifications</div>'
           + '</a>'
           + '<a href="#" class="community-btn community-btn-dc community-btn-soon" onclick="event.preventDefault();return false;" aria-disabled="true">'
             + '<div style="font-size:14px;font-weight:800;">Discord</div>'
