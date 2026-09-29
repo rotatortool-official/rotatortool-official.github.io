@@ -719,3 +719,21 @@ Object.assign(MK_TEXT, {
 (function () {
   MK_PATTERNS.push([/^(\d+) paper trades? on this coin$/, function (m) { return m[1] + ' ' + (Number(m[1]) === 1 ? 'пробна позиција' : 'пробни позиции') + ' за оваа монета'; }]);
 })();
+
+/* ── Referral progress (2026-09-29) ─────────────────────────────── */
+Object.assign(MK_TEXT, {
+  'A friend counts once Rotator has fully loaded for them through your link. Each friend counts once, and is confirmed 1 hour after their visit.':
+    'Пријателот се брои откако Rotator целосно ќе му се вчита преку вашиот линк. Секој пријател се брои еднаш и се потврдува 1 час по посетата.',
+  'All 5 friends have joined. Pro unlocks automatically once the 1-hour check has passed: refresh the page to check.':
+    'Сите 5 пријатели се приклучија. Pro се отклучува автоматски штом помине проверката од 1 час: освежете ја страницата за да проверите.',
+});
+(function () {
+  var P = function (re, fn) { MK_PATTERNS.push([re, fn]); };
+  P(/^Share your link\. When (\d+) more friends? opens? Rotator through it, Pro unlocks for life\.$/, function (m) {
+    return 'Споделете го вашиот линк. Кога уште ' + m[1] + ' ' + (m[1] === '1' ? 'пријател ќе го отвори' : 'пријатели ќе го отворат')
+      + ' Rotator преку него, Pro се отклучува доживотно.';
+  });
+  P(/^(\d+) friends? (?:is|are) waiting for the 1-hour check\.$/, function (m) {
+    return m[1] + ' ' + (m[1] === '1' ? 'пријател чека' : 'пријатели чекаат') + ' на проверката од 1 час.';
+  });
+})();
