@@ -900,10 +900,6 @@
       <span class="rail-mark"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M17 2.1 21 6l-4 3.9"/><path d="M3 12a9 9 0 0 1 9-9h9"/><path d="M7 21.9 3 18l4-3.9"/><path d="M21 12a9 9 0 0 1-9 9H3"/></svg></span>
       <span class="rail-text"><span class="rail-label">MOMENTUM</span><span class="rail-sub" id="rail-sub-momentum">best and worst</span></span>
     </button>
-    <button class="rail-item" id="rail-record" data-sec="sec-record" onclick="railGo('sec-record')" title="RECORD">
-      <span class="rail-mark"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M12 8v4l3 2"/><circle cx="12" cy="12" r="9"/></svg></span>
-      <span class="rail-text"><span class="rail-label">RECORD</span><span class="rail-sub" id="rail-sub-record">what held up</span></span>
-    </button>
     <button class="rail-item" id="rail-yours" data-sec="sec-yours" onclick="railGo('sec-yours')" title="YOURS">
       <span class="rail-mark"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M20 7h-9"/><path d="M14 17H5"/><circle cx="17" cy="17" r="3"/><circle cx="7" cy="7" r="3"/></svg></span>
       <span class="rail-text"><span class="rail-label">YOURS</span><span class="rail-sub" id="rail-sub-yours">holdings and warnings</span></span>
@@ -913,9 +909,13 @@
       <span class="rail-text"><span class="rail-label">COINS</span><span class="rail-sub" id="rail-sub-coins">every tracked coin</span></span>
     </button>
 
-    <button class="rail-item rail-last" id="rail-swap" data-sec="sec-swap" onclick="railGo('sec-swap')" title="SWAP">
+    <button class="rail-item" id="rail-swap" data-sec="sec-swap" onclick="railGo('sec-swap')" title="SWAP">
       <span class="rail-mark"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M7 16V4m0 0L4 7m3-3 3 3"/><path d="M17 8v12m0 0 3-3m-3 3-3-3"/></svg></span>
       <span class="rail-text"><span class="rail-label">SWAP</span><span class="rail-sub" id="rail-sub-swap">pair ratio</span></span>
+    </button>
+    <button class="rail-item rail-last" id="rail-record" data-sec="sec-record" onclick="railGo('sec-record')" title="RECORD">
+      <span class="rail-mark"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M12 8v4l3 2"/><circle cx="12" cy="12" r="9"/></svg></span>
+      <span class="rail-text"><span class="rail-label">RECORD</span><span class="rail-sub" id="rail-sub-record">what held up</span></span>
     </button>
     <!-- The pitch, asked once. It used to be two purple tiles taking a
          quarter of the holdings grid on every load; here it sits at the
@@ -983,25 +983,6 @@
         </div>
       </div>
     </div>
-    </div>
-  </section>
-  <section class="rsec" id="sec-record">
-    <div class="rsec-hdr"><span class="rsec-label">RECORD</span><span class="rsec-meta">every observation published, and what happened next</span></div>
-    <!-- SIGNAL TRACK RECORD — "Told You So" section -->
-    <div class="str-section">
-      <div class="collapse-hdr" id="ch-trackrecord" onclick="toggleCollapse('trackrecord')">
-        <div class="collapse-hdr-left">
-          <span class="collapse-hdr-icon">📊</span>
-          <span class="collapse-hdr-title">Signal Track Record</span>
-          <span class="str-section-badge" id="str-accuracy-badge" style="display:none;"></span>
-        </div>
-        <span class="collapse-chevron" id="chev-trackrecord">▼</span>
-      </div>
-      <div class="collapse-body collapsed" id="cb-trackrecord">
-      <div class="str-body">
-        <div id="signal-track-record"></div>
-      </div>
-      </div>
     </div>
   </section>
   <section class="rsec" id="sec-yours">
@@ -1352,7 +1333,31 @@
     </div><!-- /cb-swap -->
 
     <!-- PRO PROMO removed — right panel dedicated to Swap Tool + Ratio Chart -->
-  </div>
+  </section>
+  <section class="rsec" id="sec-record">
+    <div class="rsec-hdr"><span class="rsec-label">RECORD</span><span class="rsec-meta">learn more: how our readings have held up so far</span></div>
+    <!-- The honest version of the record, in plain words (2026-09-29).
+         Numbers from engine-changelog.html and track-record.html. -->
+    <div class="rec-intro">
+      <p><strong>Our old engine</strong> (April to September 2026) was confirmed on <strong>76.2% of 863 graded calls</strong>. That grading was generous: it counted the best price reached inside a 7 to 14 day window, where calling every coin would have scored about 68%. Read it as an upper bound, roughly 8 points better than chance.</p>
+      <p><strong>The current engine</strong> is held to a stricter test: a call counts only if the coin beats the median coin over the next 30 days, where chance is 50%. It started on 11 September, so its first results arrive from 11 October. Until then there is nothing to claim yet.</p>
+    </div>
+    <!-- SIGNAL TRACK RECORD — "Told You So" section -->
+    <div class="str-section">
+      <div class="collapse-hdr" id="ch-trackrecord" onclick="toggleCollapse('trackrecord')">
+        <div class="collapse-hdr-left">
+          <span class="collapse-hdr-icon">📊</span>
+          <span class="collapse-hdr-title">Signal Track Record</span>
+          <span class="str-section-badge" id="str-accuracy-badge" style="display:none;"></span>
+        </div>
+        <span class="collapse-chevron" id="chev-trackrecord">▼</span>
+      </div>
+      <div class="collapse-body collapsed" id="cb-trackrecord">
+      <div class="str-body">
+        <div id="signal-track-record"></div>
+      </div>
+      </div>
+    </div>
   </section>
   </div>
 </div>
