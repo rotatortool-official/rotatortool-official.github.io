@@ -4534,3 +4534,74 @@ details.td-reading-trust[open] > summary::before{content:'▾ ';}
 .td-paper-form input{padding:5px 7px;background:var(--bg1,var(--bg));border:1px solid var(--bdr2);border-radius:4px;color:var(--text);font-family:var(--font-mono);font-size:12px;width:130px;}
 .td-paper-go{all:unset;cursor:pointer;background:var(--pro);color:#fff;font-weight:700;font-size:12px;border-radius:6px;padding:6px 14px;}
 .td-paper-form[hidden]{display:none;}
+
+/* ══════════════════════════════════════════════════════════════
+   2026-09-29 · Desktop reading size + mobile pass
+══════════════════════════════════════════════════════════════ */
+
+/* ── 1. PC at 110% ────────────────────────────────────────────
+   Every size in this file is in px, so the page is scaled with zoom
+   rather than a root font-size. Only the page's own layout (header,
+   main, footer) and the centred dialogs are zoomed. Popups that script
+   places from getBoundingClientRect (tooltips, the coin panel, the tour,
+   the settings panel) sit outside those and are deliberately left at
+   100%: inside a zoomed box their pixel positions land 10% off target
+   (measured, Chromium 141). Screen-height units inside a zoomed box are
+   divided by the zoom so they still mean "the screen". Mouse + wide
+   screen only, so phones and tablets are untouched. */
+@media (min-width:1100px) and (hover:hover) and (pointer:fine){
+  :root{--page-zoom:1.1;}
+  header, main, footer.site-footer, .overlay > .modal{zoom:var(--page-zoom);}
+  .rail{
+    top:calc(var(--topbar-h,45px) / var(--page-zoom));
+    height:calc((100vh - var(--topbar-h,45px)) / var(--page-zoom));
+  }
+}
+/* The Macedonian side banners measure the 1600px page; zoomed, the page
+   is 1760px on screen, so they need that much more room. */
+@media (min-width:1780px) and (max-width:1939px) and (hover:hover) and (pointer:fine){
+  .mk-banner{display:none !important;}
+}
+@media (min-width:1940px) and (hover:hover) and (pointer:fine){
+  .mk-banner{width:min(140px, calc((100vw - 1760px) / 2 - 10px));}
+}
+
+/* ── 2. Phones ─────────────────────────────────────────────── */
+@media (max-width:700px) and (orientation:portrait){
+  /* Coin list: one compact card per coin, price and the three returns
+     in a single row, score top-right. Twice as many coins per screen
+     (was ~180px a card). 14D stays in the coin window. */
+  #crypto-panel tbody tr{
+    grid-template-columns:repeat(4,minmax(0,1fr));
+    gap:2px 8px;
+    padding:8px 10px;
+  }
+  #crypto-panel tbody td:nth-child(3){grid-column:1 / 4;grid-row:1;margin-bottom:2px;}
+  #crypto-panel tbody td:last-child{grid-column:4;grid-row:1;margin-bottom:2px;}
+  #crypto-panel tbody td:nth-child(4){grid-column:1;grid-row:2;}
+  #crypto-panel tbody td:nth-child(5){grid-column:2;grid-row:2;}
+  #crypto-panel tbody td:nth-child(6){grid-column:3;grid-row:2;}
+  #crypto-panel tbody td:nth-child(7){display:none;}
+  #crypto-panel tbody td:nth-child(8){grid-column:4;grid-row:2;}
+  #crypto-panel tbody td[data-label]::before{font-size:10px;margin-bottom:1px;}
+  #crypto-panel tbody td{font-size:13px;}
+  #crypto-panel .tsym{font-size:16px;}
+  #crypto-panel .tname{font-size:12px;opacity:.8;}
+
+  /* Momentum / worst-30D cards: wide enough for the ticker, stats 2x2. */
+  .sig-tile{width:168px;}
+  .sig-tile-sym{font-size:13px;}
+  .sig-tile-badge{font-size:10px;padding:1px 5px;}
+  .sig-tile-stats{display:grid;grid-template-columns:1fr 1fr;gap:3px;}
+  .sig-stat-l{font-size:10px;}
+  .sig-stat-v{font-size:12px;}
+
+  /* Tap targets: at least 36px tall. */
+  .cat-tab{min-height:36px;padding:6px 12px;}
+
+  /* Small print that was 9-10px. */
+  .footer-link,.footer-copy{font-size:11px !important;}
+  .tw-chip{font-size:12px;}
+  .etf-sub,.bf-d{font-size:12px;}
+  .bf-k,.bf-d-note{font-size:11px;}
+}
