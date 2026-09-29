@@ -84,6 +84,19 @@ function checkMyReferrals() {
      The client cannot forge a count by padding localStorage. */
   if (typeof supaGrantProViaReferrals === 'function' && !d.pro) {
     supaGrantProViaReferrals(getMyId()).then(function(res) {
+      /* The server's own count (credited AND at least 1 hour old) — the
+         only number that can unlock Pro. Remembered so the Pro window and
+         the tier badge show real progress; the localStorage list below
+         only ever saw friends who opened the link in THIS browser. */
+      if (res && typeof res.count === 'number') {
+        try { localStorage.setItem('rot_ref_verified', String(res.count)); } catch (e) {}
+      }
+      if (typeof supaCountJoinedReferrals === 'function') {
+        supaCountJoinedReferrals(getMyId()).then(function (n) {
+          if (n != null) { try { localStorage.setItem('rot_ref_joined', String(n)); } catch (e) {} }
+          refreshReferralProgressUI();
+        });
+      }
       if (res && res.ok && !isPro) {
         isPro = true; savePro(true);
         if (window.Analytics) Analytics.track('Pro Unlocked', { method: 'referral' });
@@ -111,6 +124,45 @@ function checkMyReferrals() {
   saveRefData(d); return d;
 }
 
+/* Referral progress as the server sees it (2026-09-29).
+   joined   = friends whose visit through my link has been credited
+   verified = those at least 1 hour old — what grant_pro_via_referrals
+              counts. Never below the same-browser list, for old data. */
+function getReferralProgress() {
+  var local = getRefData().refs.length;
+  var num = function (k) { var v = parseInt(localStorage.getItem(k) || '', 10); return isNaN(v) ? 0 : v; };
+  var verified = num('rot_ref_verified');
+  var joined = Math.max(num('rot_ref_joined'), verified, local);
+  return { joined: joined, verified: verified };
+}
+
+function referralSubText(p, needed) {
+  var left = needed - p.joined;
+  if (left > 0) {
+    return 'Share your link. When ' + left + ' more ' + (left === 1 ? 'friend opens' : 'friends open')
+      + ' Rotator through it, Pro unlocks for life.';
+  }
+  return 'All ' + needed + ' friends have joined. Pro unlocks automatically once the 1-hour check has passed: refresh the page to check.';
+}
+
+/* Redraws the progress in an open Pro window and the tier badge once the
+   server's numbers arrive, so nobody stares at a stale 0/5. */
+function refreshReferralProgressUI() {
+  if (isPro) return;
+  var needed = (typeof REFERRAL_NEEDED !== 'undefined') ? REFERRAL_NEEDED : 5;
+  var p = getReferralProgress();
+  var el;
+  if ((el = document.getElementById('refx-count'))) el.textContent = Math.min(p.joined, needed) + '/' + needed;
+  if ((el = document.getElementById('refx-bar-fill'))) el.style.width = Math.min(100, Math.round(p.joined / needed * 100)) + '%';
+  if ((el = document.getElementById('refx-sub'))) el.textContent = referralSubText(p, needed);
+  if ((el = document.getElementById('refx-pending'))) {
+    var waiting = Math.max(0, Math.min(p.joined, needed) - p.verified);
+    el.textContent = waiting > 0 ? waiting + ' ' + (waiting === 1 ? 'friend is' : 'friends are') + ' waiting for the 1-hour check.' : '';
+    el.style.display = waiting > 0 ? '' : 'none';
+  }
+  if (typeof updateTierBadge === 'function') updateTierBadge();
+}
+
 function showProToast() {
   var t = document.createElement('div');
   t.style.cssText = 'position:fixed;top:56px;left:50%;transform:translateX(-50%);background:#1a2030;border:1px solid #a78bfa;border-radius:6px;padding:14px 22px;font-family:IBM Plex Mono,monospace;font-size:12px;color:#a78bfa;z-index:900;text-align:center;box-shadow:0 0 30px rgba(167,139,250,.2);letter-spacing:.06em;';
@@ -125,7 +177,7 @@ function showProToast() {
 function updateTierBadge() {
   var b  = document.getElementById('tier-badge');
   var pb = document.querySelector('.btn.pro-btn');
-  var count = getRefData().refs.length;
+  var count = getReferralProgress().joined;
   if (isPro) {
     var daysLeft = getProDaysLeft();
     var badgeText = '⚡ PRO';
@@ -165,7 +217,9 @@ function openPro() {
   if (window.Analytics) Analytics.track('Pro Modal Opened');
   var body  = document.getElementById('pro-modal-body');
   var d     = checkMyReferrals();
-  var count = d.refs.length, needed = (typeof REFERRAL_NEEDED !== 'undefined') ? REFERRAL_NEEDED : 5, link = getMyReferralLink();
+  var needed = (typeof REFERRAL_NEEDED !== 'undefined') ? REFERRAL_NEEDED : 5, link = getMyReferralLink();
+  var prog  = getReferralProgress(), count = Math.min(prog.joined, needed);
+  var waiting = Math.max(0, count - prog.verified);
   var pct   = Math.round(count / needed * 100);
 
   var _ = (typeof t === 'function') ? t : function(k){ return k; };
@@ -236,10 +290,12 @@ function openPro() {
       + '<div class="refx-section">'
         + '<div class="refx-hdr">'
           + '<span class="refx-title">🎁 INVITE ' + needed + ' FRIENDS → UNLOCK PRO FREE</span>'
-          + '<span class="refx-count">' + count + '/' + needed + '</span>'
+          + '<span class="refx-count" id="refx-count">' + count + '/' + needed + '</span>'
         + '</div>'
-        + '<div class="refx-bar"><div class="refx-bar-fill" style="width:' + Math.min(100, pct) + '%;"></div></div>'
-        + '<div class="refx-sub">' + (count >= needed ? 'You\'ve hit the goal — refresh to unlock Pro.' : 'Share your link. When ' + (needed - count) + ' more friends open Rotator through it, Pro unlocks for life.') + '</div>'
+        + '<div class="refx-bar"><div class="refx-bar-fill" id="refx-bar-fill" style="width:' + Math.min(100, pct) + '%;"></div></div>'
+        + '<div class="refx-sub" id="refx-sub">' + referralSubText(prog, needed) + '</div>'
+        + '<div class="refx-sub" id="refx-pending" style="color:var(--amber);' + (waiting > 0 ? '' : 'display:none;') + '">' + (waiting > 0 ? waiting + ' ' + (waiting === 1 ? 'friend is' : 'friends are') + ' waiting for the 1-hour check.' : '') + '</div>'
+        + '<div class="refx-sub" style="opacity:.75;">A friend counts once Rotator has fully loaded for them through your link. Each friend counts once, and is confirmed 1 hour after their visit.</div>'
         + '<div class="refx-row">'
           + '<input class="refx-link" id="refx-link" value="' + link + '" readonly onclick="this.select()">'
           + '<button class="refx-copy" id="copy-ref-btn" onclick="copyRefLink()">COPY</button>'
