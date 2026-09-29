@@ -201,7 +201,15 @@ function _tutDesc(step) {
     h += '<div style="margin-top:12px;background:rgba(255,69,96,.07);border:1px solid rgba(255,69,96,.3);border-radius:4px;padding:10px 12px;">'
       + '<strong style="color:#ff4560;">⚠ ' + _tutEsc(step.warn.title) + '</strong><br>' + _tutMd(step.warn.text) + '</div>';
   }
-  if (step.note) h += '<br><br><span style="font-size:12px;color:var(--muted);">' + _tutMd(step.note) + '</span>';
+  if (step.note) {
+    /* On a phone the section menu is not on the left (2026-09-29). */
+    var note = step.note;
+    if (window.matchMedia && window.matchMedia('(max-width:700px)').matches) {
+      note = note.replace('follows the menu on the left', 'walks through the sections')
+                 .replace('го следи менито од левата страна', 'поминува низ секциите');
+    }
+    h += '<br><br><span style="font-size:12px;color:var(--muted);">' + _tutMd(note) + '</span>';
+  }
   return h + '</div>';
 }
 
@@ -428,7 +436,13 @@ function initTutorial() {
   var val; try { val = localStorage.getItem(TUT_KEY); } catch(e) {}
   var isOn = (val === null || val === 'on');
   document.getElementById('tut-toggle').checked = isOn;
-  if (isOn) setTimeout(startTutorial, 800);
+  if (!isOn) return;
+  /* First visit: the consent banner comes first, the tour after it is
+     accepted (acceptConsent in ui.js), instead of both at once. */
+  var consented = true;
+  try { consented = !!localStorage.getItem('rot_consent'); } catch(e) {}
+  if (consented) setTimeout(startTutorial, 800);
+  else window.__tutAfterConsent = true;
 }
 
 /* Keep the cut-out on its section while the page moves: resize, and any
