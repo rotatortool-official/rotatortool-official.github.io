@@ -236,26 +236,77 @@ function supaSaveReferral(referrerUid, referredUid) {
 function supaActivateMyReferral() {
   var myUid = localStorage.getItem('rot_uid');
   var from  = localStorage.getItem('rot_came_from');
-  if (!myUid || !from) return Promise.resolve();
+  if (!myUid || !from || from === myUid) return Promise.resolve();
   if (localStorage.getItem('rot_ref_activated')) return Promise.resolve();
 
-  /* PATCH: set credited=true where referred_uid = me */
-  var url = SUPA_URL + '/rest/v1/referrals?referred_uid=eq.' + myUid;
-  return fetch(url, {
-    method: 'PATCH',
-    headers: {
+  /* FIXED 2026-09-29. The referral row used to be created only when
+     this visitor added a FIRST HOLDING (holdings.js → creditReferrer),
+     which almost always happens after this function has already run
+     against no row at all and remembered itself as done. So no
+     referral was ever credited. Now: create the row here (a second
+     referrer for the same visitor is refused by the unique index on
+     referred_uid, which is correct), flip it to credited, and only
+     remember "done" once the server really holds a credited row. */
+  var hdr = function (prefer) {
+    return {
       'apikey':        SUPA_KEY,
       'Authorization': 'Bearer ' + SUPA_KEY,
       'Content-Type':  'application/json',
-      'Prefer':        'return=minimal'
-    },
-    body: JSON.stringify({ credited: true })
-  }).then(function() {
-    try { localStorage.setItem('rot_ref_activated', '1'); } catch(e) {}
+      'Prefer':        prefer
+    };
+  };
+  var base = SUPA_URL + '/rest/v1/referrals';
+  var done = function () {
+    try {
+      localStorage.setItem('rot_ref_activated', '1');
+      localStorage.setItem('rot_credited_' + from, '1');
+    } catch (e) {}
     console.log('[Supabase] referral activated for uid:', myUid);
-  }).catch(function(e) {
+  };
+
+  return fetch(base, {
+    method: 'POST',
+    headers: hdr('return=minimal'),
+    body: JSON.stringify({ referrer_uid: from, referred_uid: myUid, credited: false })
+  }).catch(function () { /* an existing row is fine — see above */ })
+  .then(function () {
+    return fetch(base + '?referred_uid=eq.' + encodeURIComponent(myUid) + '&credited=eq.false', {
+      method: 'PATCH',
+      headers: hdr('return=representation'),
+      body: JSON.stringify({ credited: true })
+    });
+  }).then(function (r) {
+    return r.ok ? r.json() : [];
+  }).then(function (rows) {
+    if (Array.isArray(rows) && rows.length) return done();
+    /* Nothing flipped: either already credited on an earlier visit, or
+       the row could not be written. Only the first counts as done. */
+    return fetch(base + '?referred_uid=eq.' + encodeURIComponent(myUid) + '&select=credited', {
+      headers: hdr('')
+    }).then(function (r) { return r.ok ? r.json() : []; })
+      .then(function (rows2) {
+        if (Array.isArray(rows2) && rows2.length && rows2[0].credited === true) done();
+      });
+  }).catch(function (e) {
     console.warn('[Supabase] referral activation failed:', e.message);
   });
+}
+
+/**
+ * How many friends have joined through my link — credited rows of ANY
+ * age, so the Pro window can show progress before the 1-hour gate the
+ * server applies when it grants Pro (grant_pro_via_referrals).
+ * @param {string} uid — the referrer's rot_uid
+ * @returns {Promise<number|null>} null when the count could not be read
+ */
+function supaCountJoinedReferrals(uid) {
+  return supaRest('referrals', 'GET', {
+    'referrer_uid': 'eq.' + uid,
+    'credited':     'eq.true',
+    'select':       'referred_uid'
+  }).then(function (rows) {
+    return Array.isArray(rows) ? rows.length : null;
+  }).catch(function () { return null; });
 }
 
 /**
