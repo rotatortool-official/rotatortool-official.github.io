@@ -783,6 +783,11 @@ function acceptConsent() {
     banner.style.opacity = '0';
     setTimeout(function() { banner.style.display = 'none'; }, 350);
   }
+  /* The tour waited for this (initTutorial in tutorial.js). */
+  if (window.__tutAfterConsent && typeof startTutorial === 'function') {
+    window.__tutAfterConsent = false;
+    setTimeout(startTutorial, 450);
+  }
 }
 document.addEventListener('DOMContentLoaded', function() {
   try {
