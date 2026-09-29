@@ -262,7 +262,7 @@ function openPro() {
       + '</div>';
   } else {
     body.innerHTML = '<div class="modal-title">⚡ Support the Project & Unlock Pro</div>'
-      + '<div class="modal-sub">No subscriptions. <strong>One-time contribution</strong> unlocks the full features.<br>The core tool stays free — Pro is your reward for supporting development.</div>'
+      + '<div class="modal-sub">Pro is optional. <strong>Rotator is free</strong> and runs on donations and the honor system.<br>A one-time contribution unlocks the full features — no subscriptions.</div>'
 
       /* ── FREE vs PRO comparison ── */
       + '<div style="background:var(--bg3);border:1px solid rgba(167,139,250,.2);border-radius:4px;padding:12px 14px;margin-bottom:14px;">'
