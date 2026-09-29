@@ -98,7 +98,18 @@ const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 async function fetchCoinGecko(): Promise<Row[]> {
   const ids = CRYPTO_SYMBOLS.map((c) => c.id).join(',');
   const url = `https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&ids=${ids}&price_change_percentage=24h`;
-  const data = await safeJson(url);
+  /* 2026-09-29: keyless calls from Supabase started getting a CloudFront
+     403 (see sync-coin-universe). Send the Demo key, and skip the shared
+     bot-style User-Agent the other sources use. */
+  const key = (Deno.env.get('COINGECKO_API_KEY') ?? '').trim();
+  const res = await fetch(url, {
+    headers: { 'Accept': 'application/json', ...(key ? { 'x-cg-demo-api-key': key } : {}) },
+  });
+  if (!res.ok) {
+    const body = await res.text().catch(() => '');
+    throw new Error(`${res.status} ${res.statusText} — coins/markets — ${body.slice(0, 200)}`);
+  }
+  const data = await res.json();
   const now = new Date().toISOString();
   return data.map((d: any) => ({
     asset_type: 'crypto' as const,
