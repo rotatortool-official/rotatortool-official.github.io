@@ -393,24 +393,19 @@ function renderLensRail() {
   if (!rail) {
     rail = document.createElement('div');
     rail.id = 'lens-rail';
-    rail.style.cssText = 'flex:0 0 auto;display:flex;flex-direction:column;gap:3px;'
-      + 'position:sticky;top:8px;padding-top:2px;';
+    rail.className = 'lens-rail';
     wrap.insertBefore(rail, wrap.firstChild);
   }
 
-  rail.innerHTML = LENSES.map(function(l) {
+  /* Styled in styles.css (.lens-btn), 2026-09-29: the inline 10px muted
+     labels were easy to miss next to the coin cards. */
+  rail.innerHTML = '<span class="lens-cap">SORT</span>' + LENSES.map(function(l) {
     var on = activeLens === l.id;
-    return '<button onclick="setLens(\'' + l.id + '\')" title="' + l.tip.replace(/"/g,'&quot;') + '"'
-      + ' style="writing-mode:vertical-rl;text-orientation:mixed;'
-      + 'padding:9px 3px;border-radius:4px;cursor:pointer;font-size:10px;letter-spacing:.09em;'
-      + 'font-family:var(--font-mono);border:1px solid ' + (on ? 'var(--bnb)' : 'var(--bdr)') + ';'
-      + 'background:' + (on ? 'rgba(240,185,11,.14)' : 'var(--bg2)') + ';'
-      + 'color:' + (on ? 'var(--bnb)' : 'var(--muted)') + ';">' + l.label + '</button>';
+    return '<button class="lens-btn' + (on ? ' on' : '') + '" onclick="setLens(\'' + l.id + '\')"'
+      + ' aria-pressed="' + on + '" title="' + l.tip.replace(/"/g,'&quot;') + '">' + l.label + '</button>';
   }).join('')
   + (activeLens
-      ? '<button onclick="setLens(null)" title="Clear lens — back to score order"'
-        + ' style="margin-top:4px;padding:6px 3px;border-radius:4px;cursor:pointer;font-size:11px;'
-        + 'border:1px solid var(--bdr);background:var(--bg2);color:var(--muted);">×</button>'
+      ? '<button class="lens-btn lens-clear" onclick="setLens(null)" title="Clear lens — back to score order">×</button>'
       : '');
 }
 
