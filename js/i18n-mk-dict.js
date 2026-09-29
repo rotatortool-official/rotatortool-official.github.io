@@ -11,6 +11,7 @@
 Object.assign(MK_TEXT, {
   '⬡ ROTATOR — Market Pulse for Binance': '⬡ ROTATOR — Пазарен пулс за Binance',
   'Section navigation': 'Навигација по секции',
+  'SORT': 'РЕД',
   'TODAY': 'ДЕНЕС', 'MOMENTUM': 'МОМЕНТУМ', 'RECORD': 'ЕВИДЕНЦИЈА', 'YOURS': 'ВАШЕ', 'COINS': 'МОНЕТИ', 'SWAP': 'ЗАМЕНА',
   'on-chain now': 'на синџирот сега', 'what held up': 'што издржа', 'holdings and warnings': 'позиции и предупредувања',
   'what the networks and the tape are doing right now': 'што прават мрежите и пазарот во моментов',
