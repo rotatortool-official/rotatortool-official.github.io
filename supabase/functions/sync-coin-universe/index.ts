@@ -56,6 +56,7 @@ import { FREE_COINS } from './_vendor/coin-universe.mjs';
 const SUPABASE_URL           = Deno.env.get('SUPABASE_URL')!;
 const SERVICE_ROLE_KEY       = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
 const SIGNAL_RUN_SYNC_SECRET = Deno.env.get('SIGNAL_RUN_SYNC_SECRET')!;
+const COINGECKO_API_KEY      = Deno.env.get('COINGECKO_API_KEY') ?? '';
 
 const supabase = createClient(SUPABASE_URL, SERVICE_ROLE_KEY);
 
@@ -86,24 +87,31 @@ Deno.serve(async (req: Request) => {
   }
 
   try {
-    const url = 'https://api.coingecko.com/api/v3/coins/markets'
+    /* 2026-09-29: CoinGecko's CDN began rejecting the single 250-id request
+       (a ~3.1 KB URL) with a CloudFront 403 at 03:26 UTC; the same ids in
+       two halves (~1.6 KB each) pass. Verified from a GitHub runner, see
+       scripts/sync-coin-universe.mjs. Costs 2 credits a run instead of 1
+       (~5,800/month on the Demo plan's 10,000). The Demo key is sent too. */
+    const base = 'https://api.coingecko.com/api/v3/coins/markets'
       + '?vs_currency=usd&order=market_cap_desc&per_page=250&page=1&sparkline=false'
-      + '&price_change_percentage=7d,14d,30d'
-      + '&ids=' + encodeURIComponent(FREE_COINS.join(','));
-
-    const res = await fetch(url, {
-      headers: {
-        'User-Agent': 'Mozilla/5.0 (compatible; RotatorSync/1.0; +https://rotatortool-official.github.io)',
-        'Accept': 'application/json',
-      },
-    });
-    if (!res.ok) {
-      const body = await res.text().catch(() => '');
-      throw new Error(`coins/markets -> HTTP ${res.status} ${body.slice(0, 200)}`);
+      + '&price_change_percentage=7d,14d,30d';
+    const half = Math.ceil(FREE_COINS.length / 2);
+    const rows: Record<string, unknown>[] = [];
+    for (const ids of [FREE_COINS.slice(0, half), FREE_COINS.slice(half)]) {
+      const res = await fetch(base + '&ids=' + encodeURIComponent(ids.join(',')), {
+        headers: {
+          'Accept': 'application/json',
+          ...(COINGECKO_API_KEY ? { 'x-cg-demo-api-key': COINGECKO_API_KEY } : {}),
+        },
+      });
+      if (!res.ok) {
+        const body = await res.text().catch(() => '');
+        throw new Error(`coins/markets -> HTTP ${res.status} ${body.slice(0, 200)}`);
+      }
+      const part = await res.json();
+      if (!Array.isArray(part)) throw new Error('coins/markets did not return an array');
+      rows.push(...part);
     }
-
-    const rows = await res.json();
-    if (!Array.isArray(rows)) throw new Error('coins/markets did not return an array');
 
     const resolved = rows.length / FREE_COINS.length;
     if (resolved < MIN_RESOLVED_SHARE) {
