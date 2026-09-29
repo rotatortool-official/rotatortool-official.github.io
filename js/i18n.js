@@ -53,7 +53,7 @@ en: {
 
   /* Unlock Pro tile */
   pro_tile_title: 'Support & Unlock Pro',
-  pro_tile_sub: 'One-time contribution.<br>Lifetime Pro access.',
+  pro_tile_sub: 'One-time contribution.<br>Full features unlocked.',
   pro_tile_btn: 'SUPPORT & UNLOCK \u2192',
   pro_feat_1: '10 crypto + 5 forex + 5 stocks',
   pro_feat_2: 'Full rotation signals',
@@ -70,7 +70,7 @@ en: {
   pro_revoke: 'Revoke pro access',
   pro_modal_title: '\u26A1 Support & Unlock Pro',
   pro_modal_sub_1: 'One-time contribution for ',
-  pro_modal_sub_2: 'lifetime Pro',
+  pro_modal_sub_2: 'the full features',
   pro_modal_sub_3: ' \u2014 no subscriptions, no recurring charges, ever.',
   pro_unlocks: 'What Pro Unlocks',
   pro_u1: '10 crypto holdings',
