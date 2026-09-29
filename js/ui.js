@@ -943,6 +943,17 @@ function railGo(secId) {
     });
   }
 
+  /* RECORD is last and short (2026-09-29): it can never reach the top
+     third of the screen, so at the foot of the page the last section is
+     the one you are reading. */
+  function atBottom() {
+    return window.scrollY + window.innerHeight >= document.documentElement.scrollHeight - 4;
+  }
+  var lastSec = items[items.length - 1].dataset.sec;
+  window.addEventListener('scroll', function() {
+    if (atBottom()) setActive(lastSec);
+  }, { passive: true });
+
   /* Whichever section owns the top third of the viewport is the one you
      are reading. An observer rather than a scroll handler so it costs
      nothing while idle. */
@@ -956,7 +967,8 @@ function railGo(secId) {
         var r = seen[s.id] || 0;
         if (r > bestRatio) { bestRatio = r; best = s.id; }
       });
-      if (best) setActive(best);
+      if (atBottom()) setActive(lastSec);
+      else if (best) setActive(best);
     }, { rootMargin: '-10% 0px -60% 0px', threshold: [0, 0.15, 0.4, 0.75, 1] });
     sections.forEach(function(s) { if (s) obs.observe(s); });
   }
