@@ -4697,3 +4697,21 @@ details.td-reading-trust[open] > summary::before{content:'▾ ';}
 .rec-intro p:last-child{margin-bottom:0;}
 .rec-intro strong{color:var(--text);font-weight:600;}
 @media(max-width:900px){ .rec-intro{margin:10px 12px;font-size:12px;} }
+
+/* ── 7. One quieter style for card titles (PC) ──────────────────────
+   Level 2 of the three in PRODUCT-FLOW.md. Card titles inside a section
+   were each their own colour and weight (gold, amber, purple, grey,
+   800 or 600), so they competed with the section headings above them.
+   Now one style: small caps-lock label, full-contrast text at reduced
+   strength, no decorative colour. Up/down colours on the turn-sign
+   columns stay, because they carry meaning. Phones keep their coloured
+   collapse headers, which there do the job of section headings. */
+@media (min-width:901px){
+  .ptitle, .holdings-section-label, .holdings-section-label > span:first-child,
+  .sig-title, .bar-col-title, .collapse-hdr-title, .paper-hd,
+  .new-chart-title, .new-swap-hero-label{
+    font-family:var(--font-ui);
+    font-size:12px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;
+    color:color-mix(in srgb, var(--text) 72%, transparent) !important;
+  }
+}
