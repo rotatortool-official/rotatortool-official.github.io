@@ -18,6 +18,14 @@ Object.assign(MK_TEXT, {
   'start here: where the market\'s momentum is right now': 'почнете тука: каде е моментумот на пазарот во моментов',
   'what ran ahead, what lagged behind, and which coins are turning': 'што предничеше, што заостана и кои монети се свртуваат',
   'every observation published, and what happened next': 'секое објавено набљудување, и што следеше потоа',
+  'learn more: how our readings have held up so far': 'дознајте повеќе: колку издржаа нашите читања досега',
+  'Our old engine': 'Нашиот стар мотор', '(April to September 2026) was confirmed on': '(април до септември 2026) беше потврден кај',
+  '76.2% of 863 graded calls': '76,2% од 863 оценети повици',
+  '. That grading was generous: it counted the best price reached inside a 7 to 14 day window, where calling every coin would have scored about 68%. Read it as an upper bound, roughly 8 points better than chance.':
+    '. Тоа оценување беше великодушно: ја земаше најдобрата цена достигната во период од 7 до 14 дена, каде што повик за секоја монета би постигнал околу 68%. Читајте го како горна граница, околу 8 поени подобро од случајноста.',
+  'The current engine': 'Сегашниот мотор',
+  'is held to a stricter test: a call counts only if the coin beats the median coin over the next 30 days, where chance is 50%. It started on 11 September, so its first results arrive from 11 October. Until then there is nothing to claim yet.':
+    'се мери со построг тест: повикот се брои само ако монетата ја надмине медијалната монета во следните 30 дена, каде што случајноста е 50%. Започна на 11 септември, па првите резултати стигнуваат од 11 октомври. Дотогаш сè уште нема што да тврдиме.',
   'track what you hold and watch; warnings and notifications follow your coins': 'следете што држите и набљудувате; предупредувањата и известувањата ги следат вашите монети',
   'turn part of a holding into BTC, or any coin you prefer, and see what the swap gives you': 'претворете дел од позицијата во BTC или во монета по ваш избор и видете што ви дава замената',
   'Search': 'Пребарај', 'Settings': 'Поставки', 'Dismiss': 'Затвори', 'Close': 'Затвори',
