@@ -37,7 +37,7 @@ en: {
 
   /* Keep it Free tile */
   keep_title: 'Keep it Free',
-  keep_sub: 'Rotator is free forever.<br>A coffee keeps the servers on.',
+  keep_sub: 'Rotator is free to use.<br>A coffee keeps the servers on.',
   keep_btn: 'SUPPORT THE PROJECT',
 
   /* Donate modal */
@@ -52,9 +52,9 @@ en: {
   don_note: '\u26A0 Send only USDT on TRC20 (Tron) network.<br>Wrong network = permanent loss. Always double-check.<br><br>Every contribution helps keep Rotator free for everyone. Thank you!',
 
   /* Unlock Pro tile */
-  pro_tile_title: 'Support & Unlock Pro',
-  pro_tile_sub: 'One-time contribution.<br>Full features unlocked.',
-  pro_tile_btn: 'SUPPORT & UNLOCK \u2192',
+  pro_tile_title: 'Unlock Pro',
+  pro_tile_sub: 'Free with 5 invites or a code,<br>or a one-time contribution.',
+  pro_tile_btn: 'UNLOCK PRO \u2192',
   pro_feat_1: '10 crypto + 5 forex + 5 stocks',
   pro_feat_2: 'Full rotation signals',
   pro_feat_3: 'Sparkle animations on top tiles',
@@ -68,8 +68,8 @@ en: {
   pro_coming_2: "The public track record and its live tests",
   pro_coming_3: "Keeping Rotator free and ad-free",
   pro_revoke: 'Revoke pro access',
-  pro_modal_title: '\u26A1 Support & Unlock Pro',
-  pro_modal_sub_1: 'One-time contribution for ',
+  pro_modal_title: '\u26A1 Pro \u2014 free, or with a contribution',
+  pro_modal_sub_1: 'Invite 5 friends or redeem a code (both free), or a one-time contribution, for ',
   pro_modal_sub_2: 'the full features',
   pro_modal_sub_3: ' \u2014 no subscriptions, no recurring charges, ever.',
   pro_unlocks: 'What Pro Unlocks',
@@ -148,7 +148,7 @@ mk: {
 
   /* Keep it Free tile */
   keep_title: '\u041D\u0435\u043A\u0430 \u043E\u0441\u0442\u0430\u043D\u0435 \u0431\u0435\u0441\u043F\u043B\u0430\u0442\u0435\u043D',
-  keep_sub: 'Rotator \u0435 \u0437\u0430\u0441\u0435\u043A\u043E\u0433\u0430\u0448 \u0431\u0435\u0441\u043F\u043B\u0430\u0442\u0435\u043D.<br>\u0415\u0434\u043D\u043E \u043A\u0430\u0444\u0435 \u0433\u0438 \u0434\u0440\u0436\u0438 \u0441\u0435\u0440\u0432\u0435\u0440\u0438\u0442\u0435 \u0432\u043A\u043B\u0443\u0447\u0435\u043D\u0438.',
+  keep_sub: 'Rotator е бесплатен за користење.<br>Едно кафе ги држи серверите вклучени.',
   keep_btn: '\u041F\u041E\u0414\u0414\u0420\u0416\u0415\u0422\u0415 \u0413\u041E \u041F\u0420\u041E\u0415\u041A\u0422\u041E\u0422',
 
   /* Donate modal */
@@ -163,9 +163,9 @@ mk: {
   don_note: '\u26A0 \u0418\u0441\u043F\u0440\u0430\u0442\u0435\u0442\u0435 \u0441\u0430\u043C\u043E USDT \u043D\u0430 TRC20 (Tron) \u043C\u0440\u0435\u0436\u0430.<br>\u041F\u043E\u0433\u0440\u0435\u0448\u043D\u0430 \u043C\u0440\u0435\u0436\u0430 = \u0442\u0440\u0430\u0435\u043D \u0433\u0443\u0431\u0438\u0442\u043E\u043A. \u0421\u0435\u043A\u043E\u0433\u0430\u0448 \u043F\u0440\u043E\u0432\u0435\u0440\u0435\u0442\u0435.<br><br>\u0421\u0435\u043A\u043E\u0458 \u043F\u0440\u0438\u043B\u043E\u0433 \u043F\u043E\u043C\u0430\u0433\u0430 Rotator \u0434\u0430 \u043E\u0441\u0442\u0430\u043D\u0435 \u0431\u0435\u0441\u043F\u043B\u0430\u0442\u0435\u043D \u0437\u0430 \u0441\u0438\u0442\u0435. \u0412\u0438 \u0431\u043B\u0430\u0433\u043E\u0434\u0430\u0440\u0438\u043C\u0435!',
 
   /* Unlock Pro tile */
-  pro_tile_title: '\u041E\u0442\u043A\u043B\u0443\u0447\u0438 Pro \u2014 \u0411\u0435\u0441\u043F\u043B\u0430\u0442\u043D\u043E',
-  pro_tile_sub: '\u0421\u043F\u043E\u0434\u0435\u043B\u0435\u0442\u0435 \u0441\u043E 3 \u043F\u0440\u0438\u0458\u0430\u0442\u0435\u043B\u0438.<br>\u0411\u0435\u0437 \u043F\u043B\u0430\u045C\u0430\u045A\u0435. \u0411\u0435\u0437 \u043F\u0440\u0435\u0442\u043F\u043B\u0430\u0442\u0430.',
-  pro_tile_btn: '\u0417\u0415\u041C\u0418 PRO \u0411\u0415\u0421\u041F\u041B\u0410\u0422\u041D\u041E \u2192',
+  pro_tile_title: 'Отклучи Pro',
+  pro_tile_sub: 'Бесплатно со 5 покани или код,<br>или со еднократен придонес.',
+  pro_tile_btn: 'ОТКЛУЧИ PRO →',
   pro_feat_1: '10 \u043A\u0440\u0438\u043F\u0442\u043E + 5 \u0444\u043E\u0440\u0435\u043A\u0441 + 5 \u0430\u043A\u0446\u0438\u0438',
   pro_feat_2: '\u041F\u043E\u043B\u043D\u0438 \u0441\u0438\u0433\u043D\u0430\u043B\u0438 \u0437\u0430 \u0440\u043E\u0442\u0430\u0446\u0438\u0458\u0430',
   pro_feat_3: '\u0410\u043D\u0438\u043C\u0430\u0446\u0438\u0438 \u043D\u0430 \u043D\u0430\u0458\u0434\u043E\u0431\u0440\u0438\u0442\u0435 \u043F\u043B\u043E\u0447\u043A\u0438',
@@ -179,10 +179,10 @@ mk: {
   pro_coming_2: "\u0408\u0430\u0432\u043D\u0430\u0442\u0430 \u0435\u0432\u0438\u0434\u0435\u043D\u0446\u0438\u0458\u0430 \u0438 \u043D\u0435\u0458\u0437\u0438\u043D\u0438\u0442\u0435 \u0442\u0435\u0441\u0442\u043E\u0432\u0438 \u0432\u043E \u0436\u0438\u0432\u043E",
   pro_coming_3: "Rotator \u0434\u0430 \u043E\u0441\u0442\u0430\u043D\u0435 \u0431\u0435\u0441\u043F\u043B\u0430\u0442\u0435\u043D \u0438 \u0431\u0435\u0437 \u0440\u0435\u043A\u043B\u0430\u043C\u0438",
   pro_revoke: '\u041E\u0442\u043A\u0430\u0436\u0438 Pro \u043F\u0440\u0438\u0441\u0442\u0430\u043F',
-  pro_modal_title: '\u26A1 \u041E\u0442\u043A\u043B\u0443\u0447\u0438 Pro \u2014 \u0411\u0435\u0441\u043F\u043B\u0430\u0442\u043D\u043E',
-  pro_modal_sub_1: '\u0421\u043F\u043E\u0434\u0435\u043B\u0435\u0442\u0435 \u0433\u043E Rotator \u0441\u043E ',
-  pro_modal_sub_2: '3 \u043F\u0440\u0438\u0458\u0430\u0442\u0435\u043B\u0438',
-  pro_modal_sub_3: ' \u0438 Pro \u0441\u0435 \u043E\u0442\u043A\u043B\u0443\u0447\u0443\u0432\u0430 \u0430\u0432\u0442\u043E\u043C\u0430\u0442\u0441\u043A\u0438 \u2014 \u0431\u0435\u0437 \u043F\u043B\u0430\u045C\u0430\u045A\u0435, \u0431\u0435\u0437 \u043F\u0440\u0435\u0442\u043F\u043B\u0430\u0442\u0430, \u0437\u0430\u0441\u0435\u043A\u043E\u0433\u0430\u0448.',
+  pro_modal_title: '⚡ Pro — бесплатно или со придонес',
+  pro_modal_sub_1: 'Поканете 5 пријатели или внесете код (двете бесплатни), или еднократен придонес, за ',
+  pro_modal_sub_2: 'сите функции',
+  pro_modal_sub_3: ' — без претплати.',
   pro_unlocks: '\u0428\u0442\u043E \u043E\u0442\u043A\u043B\u0443\u0447\u0443\u0432\u0430 Pro',
   pro_u1: '10 \u043A\u0440\u0438\u043F\u0442\u043E \u0441\u0440\u0435\u0434\u0441\u0442\u0432\u0430',
   pro_u2: '5 \u0444\u043E\u0440\u0435\u043A\u0441 \u043F\u0430\u0440\u043E\u0432\u0438',
