@@ -3078,7 +3078,7 @@ function openTileDetail(coinId, evt) {
       return '<span class="td-badge ' + b.cls + '">' + sign + b.t + '</span>';
     }).join('');
     var extraCount = badges.length - 2;
-    badgesHtml += '<span class="td-badge-blur-wrap" onclick="openPro()" title="Unlock all signals with Pro" style="cursor:pointer;display:inline-flex;align-items:center;gap:4px;">';
+    badgesHtml += '<span class="td-badge-blur-wrap" onclick="openPro()" title="Unlock all signals with Pro, free with 5 invites" style="cursor:pointer;display:inline-flex;align-items:center;gap:4px;">';
     badges.slice(2).forEach(function(b) {
       badgesHtml += '<span class="td-badge ' + b.cls + '" style="filter:blur(4px);pointer-events:none;user-select:none;">' + b.t + '</span>';
     });
@@ -3135,7 +3135,7 @@ function openTileDetail(coinId, evt) {
       insSec.style.display = '';
     } else if (!isPro && isTracked) {
       insEl.innerHTML = '<div style="text-align:center;padding:10px 0;">'
-        + '<div style="font-size:12px;color:var(--muted);margin-bottom:6px;">Insight Engine is a Pro feature</div>'
+        + '<div style="font-size:12px;color:var(--muted);margin-bottom:6px;">Insight Engine is a Pro feature, free with 5 invites or a code</div>'
         + '<button class="code-btn" onclick="openPro()" style="font-size:12px;padding:6px 14px;">⚡ UNLOCK PRO</button>'
         + '</div>';
       insSec.style.display = '';
