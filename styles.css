@@ -4727,3 +4727,11 @@ details.td-reading-trust[open] > summary::before{content:'▾ ';}
 @media (max-width:700px){
   .lens-rail{gap:7px;}
 }
+
+/* ── 6. RECORD as "learn more", last on the page ─────────────────── */
+.rec-intro{margin:0 16px 12px;padding:12px 14px;border-left:3px solid var(--bdr2);
+  font-size:13px;line-height:1.65;color:var(--muted);max-width:860px;}
+.rec-intro p{margin:0 0 8px;}
+.rec-intro p:last-child{margin-bottom:0;}
+.rec-intro strong{color:var(--text);font-weight:600;}
+@media(max-width:900px){ .rec-intro{margin:10px 12px;font-size:12px;} }
