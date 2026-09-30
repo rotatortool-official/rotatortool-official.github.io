@@ -286,12 +286,12 @@ async function loadCoins(categoryOverride) {
   var btcCoin = coins.find(function(c) { return c.id === 'bitcoin'; });
   if (btcCoin) {
     btcPrice = btcCoin.price;
-    if (marketCycleData.BTC && marketCycleData.BTC.ma200) {
-      btcMA200 = marketCycleData.BTC.ma200;
-    } else {
-      var p30frac = (btcCoin.p30 || 0) / 100;
-      btcMA200 = btcPrice / (1 + p30frac * 0.5); /* fallback estimate only */
-    }
+    /* The real 200-day average or nothing (2026-09-30). The old fallback
+       guessed it from the 30-day return, and a red month made that guess
+       sit above the price, so the pill said DOWNTREND and the banner said
+       BEAR MARKET while BTC was well above its real average. With no
+       reading, renderBTC() leaves the pill on its loading state. */
+    btcMA200 = (marketCycleData.BTC && marketCycleData.BTC.ma200) ? marketCycleData.BTC.ma200 : null;
   }
 
   await runSignalEngine();
