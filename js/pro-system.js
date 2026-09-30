@@ -282,7 +282,7 @@ function openPro() {
           + '<div style="display:flex;justify-content:space-between;gap:10px;"><span>Insight Engine, 24h delayed</span><span style="color:var(--pro);text-align:right;">⚡ Insight Engine, live</span></div>'
           + '<div style="display:flex;justify-content:space-between;gap:10px;"><span>1 strongest, 2 weakest tiles</span><span style="color:var(--pro);text-align:right;">All 6 of each</span></div>'
           + '<div style="display:flex;justify-content:space-between;gap:10px;"><span>First 2 coin badges</span><span style="color:var(--pro);text-align:right;">Every coin badge</span></div>'
-          + '<div style="display:flex;justify-content:space-between;gap:10px;"><span><span style="color:var(--muted);">—</span></span><span style="color:var(--pro);text-align:right;">Telegram market pulse notifications</span></div>'
+          + '<div style="display:flex;justify-content:space-between;gap:10px;"><span>Telegram market pulse channel</span><span style="color:var(--pro);text-align:right;">+ personal Telegram alerts</span></div>'
         + '</div>'
       + '</div>'
 
@@ -324,11 +324,11 @@ function openPro() {
       /* ── SECONDARY: Community channels (Telegram = market pulse notifications, Discord placeholder) ── */
       + '<div style="font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);margin-bottom:8px;">COMMUNITY &amp; NOTIFICATIONS</div>'
       + '<div style="background:var(--bg3);border:1px solid var(--bdr2);border-radius:6px;padding:14px;margin-bottom:14px;">'
-        + '<div style="font-size:12px;color:var(--muted);margin-bottom:8px;line-height:1.6;">Pro members get <strong style="color:var(--pro);">market pulse notifications on Telegram</strong>. Discord coming soon.</div>'
+        + '<div style="font-size:12px;color:var(--muted);margin-bottom:8px;line-height:1.6;">The market pulse channel on Telegram is <strong style="color:var(--pro);">free for everyone</strong>. Pro adds personal alerts about your own coins. Discord coming soon.</div>'
         + '<div class="community-tier-row">'
-          + '<a href="https://t.me/rotatortool" target="_blank" rel="noopener" class="community-btn community-btn-tg" data-pro-only="1" onclick="return joinTelegram(event)">'
+          + '<a href="https://t.me/rotatortool" target="_blank" rel="noopener" class="community-btn community-btn-tg" onclick="return joinTelegram(event)">'
             + '<div style="font-size:14px;font-weight:800;">Telegram</div>'
-            + '<div style="font-size:12px;color:inherit;opacity:.75;margin-top:2px;">⚡ Market pulse notifications</div>'
+            + '<div style="font-size:12px;color:inherit;opacity:.75;margin-top:2px;">Free market pulse</div>'
           + '</a>'
           + '<a href="#" class="community-btn community-btn-dc community-btn-soon" onclick="event.preventDefault();return false;" aria-disabled="true">'
             + '<div style="font-size:14px;font-weight:800;">Discord</div>'
@@ -674,14 +674,10 @@ function updateProGates() {
 }
 
 /* ── Telegram (Pro-gated) ────────────────────────────────────── */
+/* The channel is public (anyone can read t.me/s/rotatortool), so the
+   button no longer pretends it is Pro-only (2026-09-30). What Pro adds
+   is personal alerts about your own coins, set up in YOURS. */
 function joinTelegram(ev) {
-  if (!isPro) {
-    if (ev && ev.preventDefault) ev.preventDefault();
-    if (window.Analytics) Analytics.track('Telegram Gate Blocked');
-    closeModal('donate-modal');
-    openPro();
-    return false;
-  }
   if (window.Analytics) Analytics.track('Telegram Channel Opened');
   if (typeof supaCountFeature === 'function') supaCountFeature('telegram_click');
   return true;
