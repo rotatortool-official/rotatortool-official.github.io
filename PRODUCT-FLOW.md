@@ -40,6 +40,14 @@ It should hand the visitor on to the next step, not compete with it.
   grades from 11 October.
 - **Notifications, not signals.** Telegram delivers *market pulse
   notifications*. It does not deliver trading signals.
+- **The channel is free; Pro is personal.** The Telegram channel is public and
+  free for everyone. Pro adds personal alerts about the visitor's own coins.
+- **One definition of the market's direction.** BTC above or below its 200-day
+  average, everywhere: site pill, bear banner, Telegram posts and images. With
+  no reading, say nothing rather than guess.
+- **Colour follows what happened.** Green means the number went up, red means
+  it went down, on the site and in every bot image. Never colour a coin by
+  which list it is in, and never draw an arrow from one coin to another.
 
 ### Visual hierarchy: sections first, details after
 
