@@ -1,7 +1,7 @@
 {
   "name": "Rotator — Crypto Rotation Screener",
   "short_name": "Rotator",
-  "description": "Real-time crypto rotation signals, momentum scoring, and swap calculator. Free forever.",
+  "description": "Real-time crypto rotation signals, momentum scoring, and swap calculator. Free to use.",
   "start_url": "/",
   "display": "standalone",
   "orientation": "any",
