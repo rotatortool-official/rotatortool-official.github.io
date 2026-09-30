@@ -261,8 +261,8 @@ function openPro() {
       + '<button class="revoke-btn" onclick="revokePro()">' + _('pro_revoke') + '</button>'
       + '</div>';
   } else {
-    body.innerHTML = '<div class="modal-title">⚡ Support the Project & Unlock Pro</div>'
-      + '<div class="modal-sub">Pro is optional. <strong>Rotator is free</strong> and runs on donations and the honor system.<br>A one-time contribution unlocks the full features — no subscriptions.</div>'
+    body.innerHTML = '<div class="modal-title">⚡ Pro — free, or with a contribution</div>'
+      + '<div class="modal-sub">Pro is optional. <strong>Rotator is free</strong> and runs on donations and the honor system.<br>Three ways to unlock the full features, all equal: <strong>invite 5 friends</strong> (free), <strong>redeem a Pro code</strong> (free), or a <strong>one-time contribution</strong>. No subscriptions.</div>'
 
       /* ── FREE vs PRO comparison ── */
       + '<div style="background:var(--bg3);border:1px solid rgba(167,139,250,.2);border-radius:4px;padding:12px 14px;margin-bottom:14px;">'
