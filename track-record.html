@@ -84,6 +84,27 @@ a{color:inherit;text-decoration:none}
 .legacy-meta b{color:var(--text);font-weight:600;}
 .legacy-note{margin-top:14px;padding-top:12px;border-top:1px solid var(--bdr);
   font-size:12px;color:var(--muted);line-height:1.6;}
+/* The v2 record and the Telegram picks of the same months, side by side
+   (2026-10-01). Same card shape; the new one is gold-edged, purple stays Pro's. */
+.legacy-pair{display:flex;gap:16px;justify-content:center;align-items:stretch;flex-wrap:wrap;margin-top:34px;}
+.legacy-pair .legacy{margin:0;flex:1 1 380px;max-width:560px;}
+.legacy.bot{border-left-color:var(--bnb);}
+.legacy.bot .legacy-title,.legacy.bot .legacy-pct{color:var(--bnb);}
+.legacy-months{display:grid;grid-template-columns:repeat(5,auto);gap:4px 14px;margin-top:12px;font-family:var(--font-mono);font-size:11px;color:var(--muted);}
+.legacy-months b{color:var(--text);font-weight:600;}
+.legacy-link{display:inline-block;margin-top:12px;font-size:12px;color:var(--bnb);text-decoration:underline;text-underline-offset:2px;}
+/* Full list of those picks (#calls-section) */
+.calls-tools{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:14px;}
+.calls-tools input,.calls-tools select{background:var(--bg2);border:1px solid var(--bdr2);color:var(--text);border-radius:5px;padding:6px 10px;font-size:13px;}
+.calls-cols{display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-bottom:22px;}
+@media (max-width:760px){.calls-cols{grid-template-columns:1fr;}}
+.calls-h{font-family:var(--font-mono);font-size:11px;letter-spacing:.12em;color:var(--muted);margin-bottom:6px;}
+.call-row{display:grid;grid-template-columns:84px 76px 70px 1fr 74px 74px;gap:8px;padding:6px 0;border-top:1px solid rgba(255,255,255,.06);font-family:var(--font-mono);font-size:12px;align-items:baseline;}
+.call-row.head{color:var(--muted);font-size:10px;letter-spacing:.08em;border-top:0;}
+.call-row .up{color:var(--green);} .call-row .dn{color:var(--red);} .call-row .na{color:var(--muted);}
+.calls-cols .call-row{grid-template-columns:84px 64px 1fr 74px;}
+@media (max-width:600px){.call-row{grid-template-columns:78px 66px 54px 1fr 64px;}.call-row .c7{display:none;}}
+.calls-more{margin-top:12px;background:none;border:1px solid var(--bdr2);color:var(--text);border-radius:5px;padding:6px 14px;cursor:pointer;font-size:12px;}
 
 /* ── Section ───────────────────────────────────────────── */
 .section{padding:40px 0;}
@@ -223,6 +244,7 @@ a{color:inherit;text-decoration:none}
          query against tables that no longer hold v2 rows. Provenance and
          the raw 2120-row snapshot export live in the private workbench at
          archive/v2-engine/ (v2-final-record.json carries the methodology). -->
+    <div class="legacy-pair">
     <div class="legacy">
       <div class="legacy-hdr">
         <span class="legacy-title">🏅 Engine v2 — final record</span>
@@ -248,6 +270,31 @@ a{color:inherit;text-decoration:none}
       </div>
     </div>
 
+    <!-- The same months, the Telegram bot's own daily picks, graded the
+         strict way. Frozen: data/bot-calls-2026-04-28-to-08-31.json is
+         written once by the workbench's grade-bot-snapshots.js from the
+         picks the bot SAVED AT THE TIME (market_cache bot_snapshot_*),
+         and the numbers here are read from that file, never typed. -->
+    <div class="legacy bot" id="botrec">
+      <div class="legacy-hdr">
+        <span class="legacy-title">📬 Telegram picks — graded strictly</span>
+        <span class="legacy-retired">Saved daily at the time</span>
+      </div>
+      <div class="legacy-body">
+        <div class="legacy-pct" id="botrec-pct">—</div>
+        <div class="legacy-meta" id="botrec-meta">Loading…</div>
+      </div>
+      <div class="legacy-months" id="botrec-months"></div>
+      <div class="legacy-note">
+        Every day the bot saved its 5 rotate-in and 5 rotate-out picks with the price
+        of the day. Here each one is graded on the close 30 days later against the
+        median coin, where chance is 50%. Stricter than the 76.2% beside it, and it
+        depends on the month: June, bought near the bottom, carries most of it.
+        <br><a class="legacy-link" href="#calls-section">See every pick, the best 20 and the worst 20 ↓</a>
+      </div>
+    </div>
+    </div>
+
     <div class="search-wrap" id="search-wrap">
       <span class="search-icon">🔍</span>
       <input type="text" class="search-input" id="search-input" placeholder="Search by coin symbol or name…" autocomplete="off">
@@ -268,6 +315,26 @@ a{color:inherit;text-decoration:none}
     </div>
     <div class="mev-sub">Since 2 Oct 2026 the Telegram channel posts only when the market changed and the change held. Each post is graded after 7 and 30 days on whether the move it described held. Chance is about 50%.</div>
     <div id="mev-list"></div>
+  </section>
+
+  <!-- The Telegram picks of April to August, in full. Filled from
+       data/bot-calls-2026-04-28-to-08-31.json by the script at the end. -->
+  <section class="section" id="calls-section">
+    <div class="section-hdr">
+      <span class="section-title">📬 Telegram picks, 28 Apr – 31 Aug 2026</span>
+      <span class="section-count" id="calls-count"></span>
+    </div>
+    <div class="mev-sub">The picks the bot saved each day, graded on the close 7 and 30 days later against the median coin. The best 20 and the worst 20 rotate-in picks are shown together, one per coin, then every pick. Coins with no Binance history cannot be graded and say so.</div>
+    <div class="calls-cols">
+      <div><div class="calls-h">BEST 20 ROTATE-IN PICKS, 30 DAYS</div><div id="calls-best"></div></div>
+      <div><div class="calls-h">WORST 20 ROTATE-IN PICKS, 30 DAYS</div><div id="calls-worst"></div></div>
+    </div>
+    <div class="calls-tools">
+      <input type="search" id="calls-q" placeholder="Coin symbol…" autocomplete="off">
+      <select id="calls-side"><option value="">Rotate in and out</option><option value="in">Rotate in</option><option value="out">Rotate out</option></select>
+    </div>
+    <div id="calls-all"></div>
+    <button type="button" class="calls-more" id="calls-more" hidden>Show more</button>
   </section>
 
   <section class="section">
@@ -1586,6 +1653,67 @@ a{color:inherit;text-decoration:none}
     })
     .catch(function(e) {
       showError(e && e.message ? e.message : 'Network error');
+    });
+})();
+</script>
+
+<script>
+/* Telegram picks, 28 Apr – 31 Aug 2026: the card beside the v2 record and
+   #calls-section. One frozen file, data/bot-calls-2026-04-28-to-08-31.json;
+   rows are [day, side, symbol, score, price, ret7, ex7, ret30, ex30]. */
+(function () {
+  var PAGE = 50;
+  function esc(s) { return String(s == null ? '' : s).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); }
+  function pct(v) { return v == null ? '<span class="na">no data</span>' : '<span class="' + (v >= 0 ? 'up' : 'dn') + '">' + (v >= 0 ? '+' : '') + v.toFixed(1) + '%</span>'; }
+  function price(p) { return p == null ? '' : '$' + (p >= 1 ? p.toLocaleString('en-US', { maximumFractionDigits: 2 }) : Number(p.toPrecision(3))); }
+  /* Whole phrases, so the MK dictionary can map them. */
+  function sideWord(s) { return s === 'in' ? 'rotate in' : 'rotate out'; }
+  fetch('data/bot-calls-2026-04-28-to-08-31.json')
+    .then(function (r) { if (!r.ok) throw new Error(r.status); return r.json(); })
+    .then(function (d) {
+      var S = d.summary, i30 = S.in30, o30 = S.out30;
+      /* ── the card ── */
+      document.getElementById('botrec-pct').textContent = i30.pct.toFixed(1) + '%';
+      document.getElementById('botrec-meta').innerHTML =
+        '<b>' + i30.right + '</b> of <b>' + i30.n + '</b> rotate-in picks beat the median coin at 30 days<br>'
+        + 'Rotate-out picks: <b>' + o30.pct.toFixed(1) + '%</b> trailed it, no edge<br>'
+        + '<span style="opacity:.7">' + d.meta.days + ' days · ' + d.meta.window[0] + ' → ' + d.meta.window[1] + ' · ' + S.skippedNoHistory + ' picks had no Binance history</span>';
+      document.getElementById('botrec-months').innerHTML = d.months.filter(function (m) { return m.in.n >= 20; }).map(function (m) {
+        return '<span>' + esc(m.month) + ' <b>' + Math.round(m.in.right / m.in.n * 100) + '%</b></span>';
+      }).join('');
+      /* ── the section ── */
+      document.getElementById('calls-count').textContent = d.picks.length + ' picks · ' + (i30.n + o30.n) + ' graded';
+      function small(rows) {
+        return '<div class="call-row head"><span>DAY</span><span>COIN</span><span>PRICE THEN</span><span>VS MEDIAN, 30D</span></div>'
+          + rows.map(function (r) { return '<div class="call-row"><span>' + esc(r[0]) + '</span><span>' + esc(r[2]) + '</span><span>' + price(r[4]) + '</span>' + pct(r[8]) + '</div>'; }).join('');
+      }
+      document.getElementById('calls-best').innerHTML = small(d.best);
+      document.getElementById('calls-worst').innerHTML = small(d.worst);
+      var all = d.picks.slice().sort(function (a, b) { return a[0] < b[0] ? 1 : a[0] > b[0] ? -1 : 0; });
+      /* Listeners on the document, elements looked up on every draw, so a
+         re-render of this block can never leave dead listeners behind. */
+      var shown = PAGE;
+      function el(id) { return document.getElementById(id); }
+      function draw() {
+        var q = el('calls-q'), side = el('calls-side'), more = el('calls-more');
+        if (!q || !side || !more) return;
+        var t = q.value.trim().toUpperCase(), sd = side.value;
+        var rows = all.filter(function (r) { return (!t || String(r[2] || '').indexOf(t) === 0) && (!sd || r[1] === sd); });
+        el('calls-all').innerHTML =
+          '<div class="call-row head"><span>DAY</span><span>SIDE</span><span>COIN</span><span>PRICE THEN</span><span class="c7">VS MEDIAN, 7D</span><span>VS MEDIAN, 30D</span></div>'
+          + rows.slice(0, shown).map(function (r) {
+              return '<div class="call-row"><span>' + esc(r[0]) + '</span><span>' + sideWord(r[1]) + '</span><span>' + esc(r[2]) + '</span><span>' + price(r[4]) + '</span>'
+                + '<span class="c7">' + pct(r[6]) + '</span>' + pct(r[8]) + '</div>';
+            }).join('');
+        more.hidden = rows.length <= shown;
+      }
+      document.addEventListener('input', function (e) { if (e.target && e.target.id === 'calls-q') { shown = PAGE; draw(); } });
+      document.addEventListener('change', function (e) { if (e.target && e.target.id === 'calls-side') { shown = PAGE; draw(); } });
+      document.addEventListener('click', function (e) { if (e.target && e.target.id === 'calls-more') { shown += PAGE * 4; draw(); } });
+      draw();
+    })
+    .catch(function () {
+      document.getElementById('botrec-meta').textContent = 'The saved picks could not be loaded right now.';
     });
 })();
 </script>

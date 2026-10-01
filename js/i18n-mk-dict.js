@@ -132,6 +132,23 @@ Object.assign(MK_TEXT, {
   'Binance delisting announced': 'Binance најави отстранување од листата',
   'Not listed on Binance': 'Не е листана на Binance', 'Not trading on Binance': 'Не се тргува на Binance',
   'Binance Monitoring tag': 'Ознака Monitoring на Binance',
+  /* RECORD: the Telegram picks of April to August, graded strictly (2026-10-01) */
+  '📬 Telegram picks — graded strictly': '📬 Изборите на Telegram — строго оценети',
+  'Saved daily at the time': 'Зачувани секој ден во моментот',
+  'Every day the bot saved its 5 rotate-in and 5 rotate-out picks with the price of the day. Here each one is graded on the close 30 days later against the median coin, where chance is 50%. Stricter than the 76.2% beside it, and it depends on the month: June, bought near the bottom, carries most of it.':
+    'Секој ден ботот ги зачувуваше своите 5 избори за влез и 5 за излез, со цената од тој ден. Тука секој е оценет според затворањето 30 дена подоцна наспроти медијанската монета, каде случајноста е 50%. Построго од 76,2% до него, и зависи од месецот: јуни, купено близу дното, носи најголем дел.',
+  'See every pick, the best 20 and the worst 20 ↓': 'Видете го секој избор, најдобрите 20 и најлошите 20 ↓',
+  '📬 Telegram picks, 28 Apr – 31 Aug 2026': '📬 Изборите на Telegram, 28 апр. – 31 авг. 2026',
+  'The picks the bot saved each day, graded on the close 7 and 30 days later against the median coin. The best 20 and the worst 20 rotate-in picks are shown together, one per coin, then every pick. Coins with no Binance history cannot be graded and say so.':
+    'Изборите што ботот ги зачувуваше секој ден, оценети според затворањето 7 и 30 дена подоцна наспроти медијанската монета. Најдобрите 20 и најлошите 20 избори за влез се прикажани заедно, по еден за монета, а потоа секој избор. Монетите без историја на Binance не можат да се оценат и тоа е наведено.',
+  'BEST 20 ROTATE-IN PICKS, 30 DAYS': 'НАЈДОБРИ 20 ИЗБОРИ ЗА ВЛЕЗ, 30 ДЕНА',
+  'WORST 20 ROTATE-IN PICKS, 30 DAYS': 'НАЈЛОШИ 20 ИЗБОРИ ЗА ВЛЕЗ, 30 ДЕНА',
+  'Rotate in and out': 'Влез и излез', 'Rotate in': 'Влез', 'Rotate out': 'Излез',
+  'rotate in': 'влез', 'rotate out': 'излез',
+  'DAY': 'ДЕН', 'COIN': 'МОНЕТА', 'SIDE': 'СТРАНА', 'PRICE THEN': 'ЦЕНА ТОГАШ',
+  'VS MEDIAN, 7D': 'НАСПРОТИ МЕДИЈАНАТА, 7Д', 'VS MEDIAN, 30D': 'НАСПРОТИ МЕДИЈАНАТА, 30Д',
+  'no data': 'нема податоци', 'Show more': 'Прикажи повеќе',
+  'The saved picks could not be loaded right now.': 'Зачуваните избори моментално не можат да се вчитаат.',
   /* RECORD: Telegram channel posts (HANDOVER.md Task 2, 2026-10-01) */
   '📊 Channel posts: market changes': '📊 Објави на каналот: промени на пазарот',
   'Since 2 Oct 2026 the Telegram channel posts only when the market changed and the change held. Each post is graded after 7 and 30 days on whether the move it described held. Chance is about 50%.':
