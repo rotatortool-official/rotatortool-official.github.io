@@ -35,8 +35,13 @@ var _TW_PRO_ROWS = 8;
 var _twShowAll = { up: false, down: false };
 
 function _twEligible(c) {
-  if (!c || c.isStock || c.isStable || typeof c.score !== 'number') return false;
+  if (!c || c.isStock || c.isStable || c._retired || typeof c.score !== 'number') return false;
   if (typeof _isExchangeFlagged === 'function' && _isExchangeFlagged(c)) return false;
+  /* Thin-volume coins and meme fillers are never put forward as turning
+     coins, except to the visitor who holds or tracks them (HANDOVER.md
+     Task 1; _isPutForward in signals.js). */
+  if (typeof _isPutForward === 'function' && !_isPutForward(c)
+      && !(typeof _isMine === 'function' && _isMine(c))) return false;
   return true;
 }
 

@@ -3,7 +3,10 @@
    
    HOW TO EDIT THIS FILE:
    ──────────────────────
-   • ADD/REMOVE COINS:        Edit FREE_COINS list
+   • ADD/REMOVE COINS:        Nothing to edit — picked weekly from the
+                              market by scripts/select-coin-universe.mjs
+                              (rules in scripts/lib/coin-universe.mjs).
+                              FREE_COINS is only the fallback list.
    • ADD/REMOVE bSTOCKS:      Nothing to edit — the roster is discovered
                               server-side by sync-bstocks. To exclude a
                               listing, edit FUND_DENYLIST there.
@@ -323,6 +326,45 @@ var FREE_COINS = [
   'verge','notcoin','constitutiondao','huma-finance','succinct'
 ];
 
+/* ── The weekly list (HANDOVER.md Task 1, 2026-10-01) ──────────────
+   FREE_COINS above is now the FALLBACK. The live list is picked from
+   the real market once a week by scripts/select-coin-universe.mjs and
+   stored in market_cache 'coin_universe'; loadCoinUniverse() in
+   data-loaders.js reads it and hands it to applyCoinUniverse() below.
+   The 15-minute sync, compute-signal-run and the Telegram bot read the
+   same row, so all four show one list.
+
+   FREE_COINS is refilled IN PLACE, never reassigned: ratio.js and
+   getActiveCoins() hold the array itself. Keep it a plain
+   `var FREE_COINS = [...]` literal; the bot's fallback and
+   scripts/lib/coin-universe.mjs both parse it.
+
+   COIN_UNIVERSE stays null until a row loads. While it is null the page
+   behaves exactly as it did with the hand-written list. */
+var COIN_UNIVERSE = null;
+function applyCoinUniverse(row) {
+  if (!row || !Array.isArray(row.core) || row.core.length < 200) return false;
+  var ids = [], seen = {};
+  row.core.concat(row.fillers || [], row.stables || []).forEach(function(id) {
+    if (id && !seen[id]) { seen[id] = true; ids.push(id); }
+  });
+  FREE_COINS.length = 0;
+  Array.prototype.push.apply(FREE_COINS, ids);
+  /* A new meme coin gets the MEME tab. Every other new coin takes its
+     tab from Binance's tags in categoryOf(), and 'other' without one. */
+  var tags = row.tags || {};
+  Object.keys(tags).forEach(function(id) {
+    if (tags[id] === 'meme' && !COIN_CATEGORIES[id]) COIN_CATEGORIES[id] = 'meme';
+  });
+  COIN_UNIVERSE = {
+    asOf: row.asOf || null,
+    fillers: (row.fillers || []).slice(),
+    tags: tags,
+    retired: (row.retired || []).map(function(r) { return r.id; })
+  };
+  return true;
+}
+
 var PRO_EXTRA_COINS = []; /* All 200 in free tier — Pro reserved for future expansion */
 
 /* ── Coin category map ───────────────────────────────────────────
@@ -506,7 +548,7 @@ function getCategoryCoins(cat) {
   return FREE_COINS.filter(function(id) { return (COIN_CATEGORIES[id] || 'other') === cat; });
 }
 
-function getActiveCoins() { return FREE_COINS; } /* The whole crypto universe, 250 ids since 2026-09-11 */
+function getActiveCoins() { return FREE_COINS; } /* The whole crypto universe: the weekly list once loaded, see applyCoinUniverse() */
 
 /* ── Stablecoin APR database ────────────────────────────────────── */
 /* Approximate lending/staking APR (%) for stablecoins.              */

@@ -132,6 +132,13 @@ Object.assign(MK_TEXT, {
   'Binance delisting announced': 'Binance најави отстранување од листата',
   'Not listed on Binance': 'Не е листана на Binance', 'Not trading on Binance': 'Не се тргува на Binance',
   'Binance Monitoring tag': 'Ознака Monitoring на Binance',
+  /* The weekly coin list (HANDOVER.md Task 1, 2026-10-01) */
+  'No longer in the top 250.': 'Повеќе не е меѓу првите 250.',
+  'None of your coins is in the top 250 now, so there is no signal.': 'Ниту една од вашите монети сега не е меѓу првите 250, па нема сигнал.',
+  'Rotator no longer scores this coin. Its price is still shown.': 'Rotator повеќе не ја оценува оваа монета. Нејзината цена сè уште се прикажува.',
+  'MEME': 'МИМ',
+  'One of three high-volume memes outside the top 250. Listed, never shown as a leader.':
+    'Една од трите мим-монети со голем обем надвор од првите 250. На листата е, но никогаш не се прикажува како водечка.',
   "Check Binance's announcement for dates and what happens to balances.": 'Проверете ја објавата на Binance за датумите и што ќе се случи со салдата.',
   'Binance reviews tagged coins for possible delisting.': 'Binance ги разгледува означените монети за можно отстранување од листата.',
   'New supply reaching the market can weigh on price.': 'Новата понуда што стига на пазарот може да ја притисне цената.',

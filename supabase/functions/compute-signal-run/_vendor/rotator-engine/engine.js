@@ -199,7 +199,16 @@
      running the fixture with and without the feed. The record does not
      reset for it; see ALLOWED_DIVERGENCE in verify-tracking-labels.js.
      Measurement and caveats: promptove/42. */
-  var ENGINE_VERSION = '2.10.0';
+  /* 2.11.0 — eligibility.extra, a per-coin map of additional exclusion
+     reasons supplied by the caller (site HANDOVER.md Task 1, 2026-10-01).
+     compute-signal-run fills it from market_cache 'coin_universe':
+     'thin_volume' under $5M average daily volume, 'meme_filler' for the
+     three meme fillers. Such a coin is listed and scored but never put
+     forward as a leader or turning coin. ADDITIVE like 2.10.0: it moves
+     no score, rank or zone, only `eligible`, `exclusions` and therefore
+     the candidate class; test/verify-eligibility.js asserts it. An absent
+     map changes nothing. */
+  var ENGINE_VERSION = '2.11.0';
   var SCORING_MODELS = ['v1', 'v2'];
 
   /* ── Eligibility defaults ──────────────────────────────────────────
@@ -1173,7 +1182,7 @@
 
      Returns the reasons, not just a boolean, so a run can explain
      itself later. */
-  function _eligibility(c, cfg, delistedSet, monitoringSet) {
+  function _eligibility(c, cfg, delistedSet, monitoringSet, extraMap) {
     var reasons = [];
     if (c.isStable) reasons.push('stablecoin');
     if (c.dataComplete === false) reasons.push('incomplete_history');
@@ -1230,6 +1239,17 @@
        them — and both engines had a falsy-guard bug that let them slip
        past a market-cap check. Naming it here fixes it in one place. */
     if (!c.mcap || c.mcap <= 0) reasons.push('no_market_cap');
+    /* CALLER-SUPPLIED REASONS (2.11.0). The engine does not judge these;
+       it only folds them into the one `eligible` every consumer reads,
+       so the page, the alerts and the bot cannot disagree about them.
+       Keyed by coin id, never by symbol. Fails OPEN like the lists
+       above: no map, no extra exclusions. */
+    var extra = extraMap && extraMap[c.id];
+    if (extra && extra.length) {
+      for (var xr = 0; xr < extra.length; xr++) {
+        if (typeof extra[xr] === 'string' && reasons.indexOf(extra[xr]) < 0) reasons.push(extra[xr]);
+      }
+    }
     return { eligible: reasons.length === 0, exclusions: reasons };
   }
 
@@ -2321,6 +2341,14 @@
     var monitoringSet = {};
     var ml = (input.eligibility && input.eligibility.monitoring) || input.monitoring || [];
     for (var mo = 0; mo < ml.length; mo++) monitoringSet[ml[mo]] = true;
+    /* { coinId: [reason, ...] } — see _eligibility() and 2.11.0. */
+    var extraMap = (input.eligibility && input.eligibility.extra) || null;
+    var extraCounts = {};
+    if (extraMap) {
+      Object.keys(extraMap).forEach(function (id) {
+        (extraMap[id] || []).forEach(function (r) { extraCounts[r] = (extraCounts[r] || 0) + 1; });
+      });
+    }
 
     /* Candidate classification. `rsiApplied` (measured above) is a
        feed-alive check, not a coverage-quality one — see
@@ -2345,7 +2373,7 @@
       var item = _projectItem(coins[i]);
       if (item.positioning) posCounts[item.positioning.label] = (posCounts[item.positioning.label] || 0) + 1;
       if (item.insight) insightCounts[item.insight.label] = (insightCounts[item.insight.label] || 0) + 1;
-      var el = _eligibility(coins[i], cfg, delistedSet, monitoringSet);
+      var el = _eligibility(coins[i], cfg, delistedSet, monitoringSet, extraMap);
       item.eligible = el.eligible;
       item.exclusions = el.exclusions;
 
@@ -2395,7 +2423,10 @@
          per-item `exclusions` already names the reason. */
       eligibility: Object.assign({}, cfg, {
         delistedCount: Object.keys(delistedSet).length,
-        monitoringCount: Object.keys(monitoringSet).length
+        monitoringCount: Object.keys(monitoringSet).length,
+        /* How many coins each caller-supplied reason was given to. The
+           map itself is not echoed: the per-item `exclusions` carry it. */
+        extraCounts: extraCounts
       }),
       universeSize: coins.length,
       eligibleCount: items.filter(function(it) { return it.eligible; }).length,

@@ -228,10 +228,17 @@ function pruneStaleHoldings() {
     return (h.id && h.id.indexOf('bstock_') === 0);
   }
 
+  /* Since the weekly coin list (HANDOVER.md Task 1, 2026-10-01) a crypto
+     id missing from coins[] means "left the top 250", not "gone". The
+     coin is still the visitor's, so it is kept and the tile says why
+     (renderTiles); only the visitor removes it. */
+  var weeklyList = typeof COIN_UNIVERSE !== 'undefined' && !!COIN_UNIVERSE;
+
   var before = holdings.length;
   holdings = holdings.filter(function(h) {
     if (!h.id) return true;                 /* unresolved — not evidence of anything */
     if (isEquityKey(h) ? !haveStocks : !haveCrypto) return true;  /* segment absent — cannot judge */
+    if (!isEquityKey(h) && weeklyList) return true;               /* left the list — kept, see above */
     return coins.some(function(c) { return c.id === h.id; });
   });
   if (holdings.length !== before) {
@@ -376,6 +383,20 @@ function _holderRisk(c) {
   return out.join(' · ');
 }
 
+/* A coin that left the weekly list (HANDOVER.md Task 1). The note is its
+   own text node so the MK dictionary can map it whole. */
+function _retiredNote(c) {
+  return c && c._retired
+    ? '<div class="tile-risk" title="Rotator no longer scores this coin. Its price is still shown.">No longer in the top 250.</div>'
+    : '';
+}
+/* A crypto holding with no data at all: left the list longer ago than
+   the 12 weeks cg_markets_retired keeps. */
+function _leftTheList(h) {
+  return typeof COIN_UNIVERSE !== 'undefined' && !!COIN_UNIVERSE
+    && !(h.id && h.id.indexOf('bstock_') === 0);
+}
+
 function renderTiles() {
   Object.keys(sparkStop).forEach(function(k) { sparkStop[k](); delete sparkStop[k]; });
   var grid  = document.getElementById('tiles-grid');
@@ -383,7 +404,8 @@ function renderTiles() {
   var limit = isPro ? PRO_HOLDINGS_LIMIT : FREE_HOLDINGS_LIMIT;
   if (hcEl) hcEl.textContent = holdings.length ? holdings.length + '/' + limit : '';
 
-  var heldCoins = holdings.map(coinOfHolding).filter(Boolean);
+  /* A retired coin has no score; averaging its 0 in would misstate the portfolio. */
+  var heldCoins = holdings.map(coinOfHolding).filter(function(c) { return c && !c._retired; });
   var topG = null;
   if (isPro) heldCoins.forEach(function(c) { if (!topG || c.p24 > topG.p24) topG = c; });
 
@@ -397,13 +419,15 @@ function renderTiles() {
          entry can still name itself, rather than showing a slug. */
       html += '<div class="tile"><div class="tile-top"><span class="tile-sym">' + (h.sym || h.id) + '</span>'
             + '<button class="tile-rm" onclick="removeHolding(\'' + holdingKey(h) + '\')">×</button></div>'
-            + '<div style="font-size:12px;color:var(--muted);">Unavailable</div></div>';
+            + '<div style="font-size:12px;color:var(--muted);">'
+            + (_leftTheList(h) ? 'No longer in the top 250.' : 'Unavailable') + '</div></div>';
       return;
     }
     var _pl = holdingPL(c.price, h.qty, h.avg);
     var pl = _pl ? _pl.text : '', plC = _pl ? _pl.dir : '';
-    var glw  = c.score >= 65 ? 'glow-g' : c.score >= 40 ? 'glow-a' : 'glow-r';
-    var scrC = c.score >= 65 ? 'hi'     : c.score >= 40 ? 'md'     : 'lo';
+    /* A retired coin has no score, so no score colour either. */
+    var glw  = c._retired ? '' : c.score >= 65 ? 'glow-g' : c.score >= 40 ? 'glow-a' : 'glow-r';
+    var scrC = c._retired ? '' : c.score >= 65 ? 'hi'     : c.score >= 40 ? 'md'     : 'lo';
     var isTop = topG && c.sym === topG.sym && c.p24 > 0;
     html += '<div class="tile ' + glw + '" id="tile-' + c.sym + '" onclick="openTileDetail(\'' + c.id + '\',event)" style="cursor:pointer;" title="Click for full breakdown">'
           + (isTop ? '<canvas class="sp" id="sp-' + c.sym + '"></canvas>' : '')
@@ -416,10 +440,11 @@ function renderTiles() {
             + '<div class="tpf"><span class="tpf-l">7D</span><span class="tpf-v '  + (c.p7>=0?'up':'dn')  + '">' + (c.p7>=0?'+':'')  + c.p7.toFixed(1)  + '%</span></div>'
             + '<div class="tpf"><span class="tpf-l">30D</span><span class="tpf-v ' + (c.p30>=0?'up':'dn') + '">' + (c.p30>=0?'+':'') + c.p30.toFixed(1) + '%</span></div>'
           + '</div>'
+          + _retiredNote(c)
           + (function() { var r = _holderRisk(c); return r ? '<div class="tile-risk" title="' + r + '">⚠ ' + r + '</div>' : ''; })()
           + (c.insight ? '<div class="tile-insight"><div class="insight-pulse ' + c.insight.color + '" data-tip="' + c.insight.tooltip.replace(/"/g, '&quot;') + '" title="' + c.insight.tooltip.replace(/"/g, '&quot;') + '"><span class="insight-dot"></span><span class="insight-lbl">' + c.insight.label + '</span><span class="insight-score">' + c.insight.score + '</span></div></div>' : '')
           + '<div class="tile-foot">' + (pl ? '<span class="tile-pl ' + plC + '">' + pl + '</span>' : '<span></span>')
-          + '<span class="tile-scr ' + scrC + '">' + c.score + '</span></div>'
+          + '<span class="tile-scr ' + scrC + '">' + (c._retired ? '—' : c.score) + '</span></div>'
           + '</div>';
   });
 
@@ -454,7 +479,7 @@ function renderTiles() {
             + '<div style="font-size:12px;color:var(--muted);">Loading…</div></div>';
       return;
     }
-    var wg = c.score >= 65 ? 'glow-g' : c.score >= 40 ? 'glow-a' : 'glow-r';
+    var wg = c._retired ? '' : c.score >= 65 ? 'glow-g' : c.score >= 40 ? 'glow-a' : 'glow-r';
     html += '<div class="tile tile-watch ' + wg + '" style="cursor:pointer;" onclick="openTileDetail(\'' + c.id + '\',event)" title="Watching ' + c.name + '">'
           + '<div class="tile-top"><div class="tile-ico"><img src="' + c.image + '" alt="' + c.sym + ' logo" loading="lazy" width="16" height="16" onerror="this.style.display=\'none\'"></div>'
           + '<span class="tile-sym">' + c.sym + '</span>'
@@ -466,9 +491,10 @@ function renderTiles() {
             + '<div class="tpf"><span class="tpf-l">7D</span><span class="tpf-v '  + (c.p7>=0?'up':'dn')  + '">' + (c.p7>=0?'+':'')  + c.p7.toFixed(1)  + '%</span></div>'
             + '<div class="tpf"><span class="tpf-l">30D</span><span class="tpf-v ' + (c.p30>=0?'up':'dn') + '">' + (c.p30>=0?'+':'') + c.p30.toFixed(1) + '%</span></div>'
           + '</div>'
+          + _retiredNote(c)
           + (c.insight ? '<div class="tile-insight"><div class="insight-pulse ' + c.insight.color + '" data-tip="' + c.insight.tooltip.replace(/"/g, '&quot;') + '" title="' + c.insight.tooltip.replace(/"/g, '&quot;') + '"><span class="insight-dot"></span><span class="insight-lbl">' + c.insight.label + '</span><span class="insight-score">' + c.insight.score + '</span></div></div>' : '')
           + '<div class="tile-foot"><span class="tile-watch-lbl">watching</span>'
-          + '<span class="tile-scr ' + (c.score>=65?'hi':c.score>=40?'md':'lo') + '">' + c.score + '</span></div>'
+          + '<span class="tile-scr ' + (c._retired ? '' : c.score>=65?'hi':c.score>=40?'md':'lo') + '">' + (c._retired ? '—' : c.score) + '</span></div>'
           + '</div>';
   });
 
@@ -511,7 +537,10 @@ function renderTiles() {
 function renderSignal(hc) {
   var el = document.getElementById('sig-content');
   if (!hc || !hc.length) {
-    el.innerHTML = '<div style="font-size:12px;color:var(--muted);">Add holdings to see signal.</div>';
+    /* Holding only coins that left the weekly list is not "no holdings". */
+    el.innerHTML = '<div style="font-size:12px;color:var(--muted);">'
+      + (holdings.length ? 'None of your coins is in the top 250 now, so there is no signal.' : 'Add holdings to see signal.')
+      + '</div>';
     return;
   }
   var avg      = hc.reduce(function(s, c) { return s + c.score; }, 0) / hc.length;

@@ -224,7 +224,8 @@ async function loadCoins(categoryOverride) {
   }
   if (!rawData.length) throw new Error('CoinGecko data invalid');
 
-  var fetchedCoins = rawData.map(function(c) {
+  /* Named so _addRetiredHeld() below builds a retired coin the same way. */
+  function _toCoin(c) {
     /* Prefer Binance for real-time price + 24H — it updates every second vs CoinGecko's 60s */
     var bnb = _binancePrices[c.symbol.toUpperCase()];
     var stable = (typeof STABLECOINS !== 'undefined') && STABLECOINS[c.id];
@@ -259,7 +260,8 @@ async function loadCoins(categoryOverride) {
       apr: stable ? stable.apr : 0,
       aprPlatform: stable ? stable.platform : ''
     };
-  });
+  }
+  var fetchedCoins = rawData.map(_toCoin);
 
   /* Merge fetched coins into persistent cache */
   fetchedCoins.forEach(function(c) { _coinCache[c.id] = c; });
@@ -295,7 +297,66 @@ async function loadCoins(categoryOverride) {
   }
 
   await runSignalEngine();
+  /* AFTER scoring, so a retired coin never enters anyone's ranks. */
+  await _addRetiredHeld(_toCoin);
   window.coins = coins; /* sync so ui.js search/modal can access live data */
+}
+
+/* ── The weekly coin list (HANDOVER.md Task 1) ──────────────────────
+   Read before loadCoins() so getActiveCoins() already names the live
+   list. Any failure keeps the hand-written FREE_COINS, which is what the
+   page ran on before; nothing here can empty the list. */
+async function loadCoinUniverse() {
+  try {
+    if (typeof supaCacheGetStale !== 'function' || typeof applyCoinUniverse !== 'function') return;
+    var r = await supaCacheGetStale('coin_universe');
+    if (r && r.data) applyCoinUniverse(r.data);
+  } catch (e) {
+    console.warn('[loadCoinUniverse] failed, using the built-in list:', e.message);
+  }
+}
+
+/* ── Coins that left the list, for the visitors who have them ───────
+   "If a held coin drops off the list, keep showing it with a short
+   note" (HANDOVER.md Task 1). The 15-minute sync keeps their market
+   data in its own row, cg_markets_retired, so they never enter the
+   scored universe. Only the ones this visitor holds, watches or paper
+   trades are added, and only after scoring: they carry no score, never
+   reach a list, and the YOURS tile says why (_retired). */
+var _retiredCoins = [];
+async function _addRetiredHeld(toCoin) {
+  _retiredCoins = [];
+  if (typeof COIN_UNIVERSE === 'undefined' || !COIN_UNIVERSE || !COIN_UNIVERSE.retired.length) return;
+  var paperCount = (typeof _paperLoad === 'function') ? _paperLoad().length : 0;
+  var watchCount = (typeof watchlist !== 'undefined' && Array.isArray(watchlist)) ? watchlist.length : 0;
+  if (!holdings.length && !watchCount && !paperCount) return;   /* most visitors: no request */
+  try {
+    var r = await supaCacheGetStale('cg_markets_retired');
+    if (!r || !Array.isArray(r.data)) return;
+    r.data.forEach(function(row) {
+      if (!row || !row.id || COIN_UNIVERSE.retired.indexOf(row.id) < 0) return;
+      var c = toCoin(row);
+      var mine = isHeldCoin(c) || isWatchedCoin(c)
+        || (typeof isPaperCoin === 'function' && isPaperCoin(c));
+      if (!mine) return;
+      c._retired = true;
+      c._eligible = false;
+      c._exclusions = ['not_in_universe'];
+      c.rank = 0;
+      _retiredCoins.push(c);
+    });
+  } catch (e) {
+    console.warn('[_addRetiredHeld] skipped:', e.message);
+  }
+  _appendRetired();
+}
+/* coins[] is rebuilt from _coinCache by loadCoins() AND loadBstocks();
+   both call this after scoring, so the retired coins survive either. */
+function _appendRetired() {
+  if (!_retiredCoins.length) return;
+  var have = {};
+  coins.forEach(function(c) { have[c.id] = true; });
+  _retiredCoins.forEach(function(c) { if (!have[c.id]) coins.push(c); });
 }
 
 
@@ -1256,6 +1317,7 @@ async function loadBstocks() {
 
     bstocksLoaded = true;
     await runSignalEngine();
+    _appendRetired();   /* after scoring, see _addRetiredHeld() */
     window.coins = coins;
   } catch (e) {
     console.warn('[bStocks] load failed:', e.message);
@@ -1346,7 +1408,7 @@ async function doLoad() {
        exclude delisted AND Monitoring-tagged coins. Run together: they are
        independent reads and serialising them would add a round trip to
        first paint for no reason. */
-    await Promise.all([loadDelistedSymbols(), loadMonitoringSymbols(), loadBinanceTags(), loadCoinTechnicals(), loadCoinEvents()]);
+    await Promise.all([loadDelistedSymbols(), loadMonitoringSymbols(), loadBinanceTags(), loadCoinTechnicals(), loadCoinEvents(), loadCoinUniverse()]);
     await loadCoins('all');  prog(50, 'Scoring and ranking coins…');  renderCoinSel();
     await loadBstocks();     prog(65, 'Fetching bStock data…');
     /* Re-key stored holdings/watchlist from ticker to coin id. Must run
@@ -1397,7 +1459,7 @@ async function doRefresh() {
   try {
     await loadMarketCycle(); /* cheap — 1hr cache TTL, real MA200 barely moves anyway */
     /* Same TTL reasoning — Binance status and tags don't change minute to minute. */
-    await Promise.all([loadDelistedSymbols(), loadMonitoringSymbols(), loadBinanceTags(), loadCoinTechnicals(), loadCoinEvents()]);
+    await Promise.all([loadDelistedSymbols(), loadMonitoringSymbols(), loadBinanceTags(), loadCoinTechnicals(), loadCoinEvents(), loadCoinUniverse()]);
 
     /* Always refresh crypto — re-fetch all loaded categories */
     await loadCoins(_loadedCategories['all'] ? 'all' : activeCategory);

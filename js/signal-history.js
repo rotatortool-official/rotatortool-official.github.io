@@ -106,8 +106,15 @@ var SignalHistory = (function() {
      a market-wide context flag and moves no score (verify-market-oversold),
      so the record since 09-11 is the same record. See the note in
      verify-tracking-labels.js for why the label moved anyway. */
+  /* 2.11.0 since the weekly coin list went live (HANDOVER.md Task 1),
+     ALSO without moving STATS_FROM_DATE, and this one is an exception
+     to GUARDRAILS rule 5: the new list changes every rank and 2.11.0
+     changes eligibility. The owner chose on 2026-10-01 to keep counting
+     from 09-11 rather than restart and push the first 30-day grades from
+     10-11 to the end of October. Calls already made are graded on their
+     own stored data either way. */
   var STATS_FROM_DATE = '2026-09-11';
-  var ENGINE_LABEL    = '2.10.0';
+  var ENGINE_LABEL    = '2.11.0';
 
   function _passesCutoff(dateStr) {
     return typeof dateStr === 'string' && dateStr >= STATS_FROM_DATE;

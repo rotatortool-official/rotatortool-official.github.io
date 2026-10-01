@@ -297,6 +297,34 @@ function _isExchangeFlagged(c) {
   return false;
 }
 
+/* ── Listed, but never put forward (HANDOVER.md Task 1, engine 2.11.0) ──
+   A coin under $5M average daily volume, or one of the three meme
+   fillers, is in the coin list and is scored, but is never shown as a
+   leader or a turning coin. compute-signal-run decides it and the engine
+   stamps it on `exclusions`, so the page, the alerts and the bot read one
+   answer; this only reads it. The fillers are also checked against the
+   weekly list directly, so the rule holds before the server has caught
+   up with a new list.
+
+   A coin the visitor holds, watches or paper trades always stays visible
+   to them: pass the coin through _isMine() before applying this. */
+var _NOT_PUT_FORWARD = ['thin_volume', 'meme_filler', 'not_in_universe'];
+function _isPutForward(c) {
+  if (!c || c._retired) return false;
+  var ex = c._exclusions || [];
+  for (var i = 0; i < ex.length; i++) if (_NOT_PUT_FORWARD.indexOf(ex[i]) >= 0) return false;
+  return !_isMemeFiller(c);
+}
+function _isMemeFiller(c) {
+  return !!(c && typeof COIN_UNIVERSE !== 'undefined' && COIN_UNIVERSE
+    && COIN_UNIVERSE.fillers.indexOf(c.id) >= 0);
+}
+function _isMine(c) {
+  return (typeof isHeldCoin === 'function' && isHeldCoin(c))
+    || (typeof isWatchedCoin === 'function' && isWatchedCoin(c))
+    || (typeof isPaperCoin === 'function' && isPaperCoin(c));
+}
+
 /* ══ METRIC LENSES ═══════════════════════════════════════════════════
    The vertical counterpart to the horizontal category tabs. Categories
    answer "what is this asset"; lenses answer "how is it behaving". The
@@ -853,7 +881,9 @@ function renderTopBars() {
      same "don't point at something you can't actually buy" reasoning
      applies. Worst-30D-Performers (below) is deliberately left
      untouched — cautionary framing, not a suggestion to act on. */
-  var momAll  = coins.slice().filter(function(c) { return c.score >= 60 && !c.isStock && !_isExchangeFlagged(c); })
+  /* And not a thin-volume coin or a meme filler unless it is the
+     visitor's own (_isPutForward, HANDOVER.md Task 1). */
+  var momAll  = coins.slice().filter(function(c) { return c.score >= 60 && !c.isStock && !_isExchangeFlagged(c) && (_isPutForward(c) || _isMine(c)); })
                              .sort(function(a, b) { return b.score - a.score; });
 
   /* Persist today's momentum tier + your holdings' scores, once/day,
@@ -1381,6 +1411,10 @@ function renderTable() {
   } else {
     catCoins = coins.filter(function(c) { return categoryOf(c) === activeCategory; });
   }
+  /* A coin that left the weekly list is only in coins[] for the visitor
+     who has it, and it has no score; it lives on its YOURS tile, not in
+     the ranked table. */
+  catCoins = catCoins.filter(function(c) { return !c._retired; });
 
   /* A lens takes over the ordering while it is active — that is the
      point of picking one. Readings with no value sort LAST regardless of
@@ -1478,7 +1512,7 @@ function renderTable() {
     return '<tr class="' + (isH ? 'held' : '') + (c.isStable ? ' stable-row' : '') + (c.isStock ? ' stock-row' : '') + '"' + _lensStyle + ' ' + tipData + ' onmouseenter="showRowTip(this,event)" onmouseleave="hideTip()" onclick="openTileDetail(\'' + c.id + '\',event)">'
       + '<td class="qa-cell">' + qaBtnHtml + '</td>'
       + '<td style="color:var(--muted);font-size:11px;opacity:.5;">' + (i+1) + '</td>'
-      + '<td><div class="cc"><div class="ti"><img src="' + c.image + '" alt="' + c.sym + ' logo" loading="lazy" width="18" height="18" onerror="this.style.display=\'none\'"></div><div><div style="display:flex;align-items:center;"><span class="tsym">' + c.sym + '</span>' + (isH ? '<span class="htag">HELD</span>' : '') + stableTag + crossBadge(c) + (_lens
+      + '<td><div class="cc"><div class="ti"><img src="' + c.image + '" alt="' + c.sym + ' logo" loading="lazy" width="18" height="18" onerror="this.style.display=\'none\'"></div><div><div style="display:flex;align-items:center;"><span class="tsym">' + c.sym + '</span>' + (isH ? '<span class="htag">HELD</span>' : '') + stableTag + (_isMemeFiller(c) ? '<span class="htag meme-tag" title="One of three high-volume memes outside the top 250. Listed, never shown as a leader.">MEME</span>' : '') + crossBadge(c) + (_lens
         ? '<span class="lens-chip" title="' + _lens.label + ' — ' + _lens.tip.replace(/"/g,'&quot;') + '" style="margin-left:5px;font-size:10px;font-family:var(--font-mono);padding:1px 4px;border-radius:3px;'
           + (_lv == null
               ? 'color:var(--muted);border:1px dashed var(--bdr);opacity:.6;">no data'

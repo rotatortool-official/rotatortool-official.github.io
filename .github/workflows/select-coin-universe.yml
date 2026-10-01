@@ -1,0 +1,42 @@
+name: Select coin universe
+
+# Picks the coin list from the real market once a week and writes it to
+# market_cache 'coin_universe' (HANDOVER.md Task 1). Every consumer reads
+# that row: the 15-minute sync, the site, compute-signal-run and the bot.
+# See scripts/select-coin-universe.mjs for the rules and the rollback.
+#
+# Runs here rather than in Supabase because CoinGecko blocks Supabase's
+# egress IPs (HTTP 403 since 2026-09-29).
+#
+# Mondays 02:37 UTC: off the 15-minute sync's minutes (11/26/41/56) and
+# compute-signal-run's quarter hours. GitHub may start it hours late;
+# a weekly job does not care.
+
+on:
+  schedule:
+    - cron: '37 2 * * 1'
+  workflow_dispatch: {}
+
+concurrency:
+  group: select-coin-universe
+  cancel-in-progress: false
+
+jobs:
+  select:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          sparse-checkout: |
+            scripts
+            js/config.js
+          sparse-checkout-cone-mode: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Pick the list and write it to Supabase
+        run: node scripts/select-coin-universe.mjs
+        env:
+          COINGECKO_API_KEY: ${{ secrets.COINGECKO_API_KEY }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}

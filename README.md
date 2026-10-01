@@ -205,11 +205,14 @@ var FREE_CATEGORIES = ['all', 'l1', 'defi', 'meme', 'demo'];
 ### Change community channel links
 Search for `t.me/rotatortool` in `index.html` and `js/pro-system.js` — replace with your own Telegram channel handle. The Discord button is a placeholder (Coming soon) — wire it up the same way once you have a server.
 
-### Add a new coin
-Open `js/config.js`, add to `FREE_COINS`:
-```js
-'bitcoin', 'ethereum', 'your-coingecko-id-here',
-```
+### Add or remove a coin
+Nothing to edit. Since 2026-10-01 the list is picked from the market every
+Monday by `.github/workflows/select-coin-universe.yml` and stored in
+`market_cache.coin_universe`; the rules (Binance USDT pair, $2M/day floor,
+hysteresis, meme fillers) are in `scripts/lib/coin-universe.mjs` and tested by
+`node scripts/lib/coin-universe.test.mjs`. `FREE_COINS` in `js/config.js` is
+only the fallback when that row is missing. To change the list now, run the
+workflow by hand (Actions → Select coin universe → Run workflow).
 
 ### Change auto-refresh interval
 Open `js/data-loaders.js`, find `startAutoRefresh()`:

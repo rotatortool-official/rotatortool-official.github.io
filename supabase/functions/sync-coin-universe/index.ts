@@ -95,9 +95,20 @@ Deno.serve(async (req: Request) => {
     const base = 'https://api.coingecko.com/api/v3/coins/markets'
       + '?vs_currency=usd&order=market_cap_desc&per_page=250&page=1&sparkline=false'
       + '&price_change_percentage=7d,14d,30d';
-    const half = Math.ceil(FREE_COINS.length / 2);
+    /* WHICH COINS, since 2026-10-01: the weekly list in market_cache
+       'coin_universe' (core + fillers + stables), the same set
+       scripts/sync-coin-universe.mjs fetches. The vendored FREE_COINS
+       is only the fallback when that row is missing. Retired coins are
+       left to the GitHub job. */
+    const { data: uniRow } = await supabase
+      .from('market_cache').select('data').eq('cache_key', 'coin_universe').maybeSingle();
+    const uni = uniRow?.data as { core?: string[]; fillers?: string[]; stables?: string[] } | undefined;
+    const WANTED: string[] = uni && Array.isArray(uni.core) && uni.core.length >= 200
+      ? [...new Set([...uni.core, ...(uni.fillers ?? []), ...(uni.stables ?? [])])]
+      : FREE_COINS;
+    const half = Math.ceil(WANTED.length / 2);
     const rows: Record<string, unknown>[] = [];
-    for (const ids of [FREE_COINS.slice(0, half), FREE_COINS.slice(half)]) {
+    for (const ids of [WANTED.slice(0, half), WANTED.slice(half)]) {
       const res = await fetch(base + '&ids=' + encodeURIComponent(ids.join(',')), {
         headers: {
           'Accept': 'application/json',
@@ -113,10 +124,10 @@ Deno.serve(async (req: Request) => {
       rows.push(...part);
     }
 
-    const resolved = rows.length / FREE_COINS.length;
+    const resolved = rows.length / WANTED.length;
     if (resolved < MIN_RESOLVED_SHARE) {
       throw new Error(
-        `only ${rows.length} of ${FREE_COINS.length} ids resolved `
+        `only ${rows.length} of ${WANTED.length} ids resolved `
         + `(${(resolved * 100).toFixed(0)}%, floor ${MIN_RESOLVED_SHARE * 100}%) — not overwriting the cache`,
       );
     }
@@ -146,7 +157,7 @@ Deno.serve(async (req: Request) => {
 
     return new Response(JSON.stringify({
       ok: true,
-      requested: FREE_COINS.length,
+      requested: WANTED.length,
       returned: rows.length,
       with_market_cap: withMcap,
       with_30d: with30d,

@@ -24,9 +24,11 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
+          # js/config.js is the fallback list when no coin_universe row exists.
           sparse-checkout: |
             scripts
-            supabase/functions/sync-coin-universe/_vendor
+            js/config.js
+          sparse-checkout-cone-mode: false
       - uses: actions/setup-node@v4
         with:
           node-version: '22'

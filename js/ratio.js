@@ -167,8 +167,9 @@ var RatioTracker = (function() {
   }
 
   /* ── Dropdowns ───────────────────────────────────────────────── */
-  /* FREE_COINS is the single source of truth shared with the Telegram bot,
-     which reads it out of the deployed config.js, so it is not filtered here.
+  /* FREE_COINS is the weekly coin list once loadCoinUniverse() has run
+     (config.js applyCoinUniverse), the same list the Telegram bot reads
+     from market_cache 'coin_universe', so it is not filtered here.
      But 18 of its entries are not in the tracked universe at all (measured
      2026-09-08: 194 in the dropdown, 177 tracked). Those cannot use the
      Binance chart path — the CoinGecko id -> base asset mapping comes from

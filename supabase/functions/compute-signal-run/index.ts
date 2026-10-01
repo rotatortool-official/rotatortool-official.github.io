@@ -82,6 +82,12 @@ const SUPABASE_URL           = Deno.env.get('SUPABASE_URL')!;
 const SERVICE_ROLE_KEY       = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
 const SIGNAL_RUN_SYNC_SECRET = Deno.env.get('SIGNAL_RUN_SYNC_SECRET')!;
 const ELIGIBILITY_MIN_VOLUME = 250000;
+// HANDOVER.md Task 1 (2026-10-01): a listed coin under this average daily
+// volume (all exchanges) is scored and shown but never put forward as a
+// leader or turning coin. Same line as PROMOTE_VOLUME_USD in
+// scripts/lib/coin-universe.mjs; the list itself goes down to $2M.
+const PROMOTE_MIN_VOLUME = 5_000_000;
+const VOLUME_AVG_DAYS = 7;
 
 const supabase = createClient(SUPABASE_URL, SERVICE_ROLE_KEY);
 
@@ -320,6 +326,38 @@ Deno.serve(async (req) => {
 
     const coins = toWebsiteCoins(raw, stableIds);
 
+    // ── Coins listed but not put forward (engine 2.11.0) ─────────────
+    // From the weekly list (market_cache 'coin_universe') and the daily
+    // volumes the 15-minute sync stores ('coin_volume_days'):
+    //   thin_volume  average daily volume under PROMOTE_MIN_VOLUME; the
+    //                7-day average once 7 days exist, else the 24h figure
+    //   meme_filler  one of the meme fillers outside the top 250
+    // Read separately from the Promise.all above so its destructure order
+    // is untouched. Fails OPEN: with no row, nothing extra is excluded,
+    // which is the behaviour before the weekly list existed.
+    const extra: Record<string, string[]> = {};
+    try {
+      const [uniRow, volRow] = await Promise.all([
+        supabase.from('market_cache').select('data').eq('cache_key', 'coin_universe').maybeSingle(),
+        supabase.from('market_cache').select('data').eq('cache_key', 'coin_volume_days').maybeSingle(),
+      ]);
+      const days = Object.values((volRow.data?.data ?? {}) as Record<string, Record<string, number>>);
+      const fillers = new Set<string>((uniRow.data?.data?.fillers ?? []) as string[]);
+      for (const c of raw) {
+        if (stableIds.has(c.id)) continue;
+        const why: string[] = [];
+        const seen = days.map((d) => d?.[c.id]).filter((v) => Number.isFinite(v)) as number[];
+        const avg = seen.length >= VOLUME_AVG_DAYS
+          ? seen.reduce((a, b) => a + b, 0) / seen.length
+          : (c.total_volume ?? 0);
+        if (avg < PROMOTE_MIN_VOLUME) why.push('thin_volume');
+        if (fillers.has(c.id)) why.push('meme_filler');
+        if (why.length) extra[c.id] = why;
+      }
+    } catch (e) {
+      console.warn('[compute-signal-run] coin_universe read failed, no extra exclusions:', (e as Error).message);
+    }
+
     // ── bStocks, added 2026-09-06 ────────────────────────────────────
     // Tokenized equities, previously scored ONLY in the visitor's browser
     // — the last thing on the page the server did not own. Now they ride
@@ -480,7 +518,7 @@ Deno.serve(async (req) => {
       marketCycle,
       volumeHistory: {},
       previousZones,
-      eligibility: { minVolume24h: ELIGIBILITY_MIN_VOLUME, delisted, monitoring },
+      eligibility: { minVolume24h: ELIGIBILITY_MIN_VOLUME, delisted, monitoring, extra },
       technicals,
       fearGreed,
       futures,

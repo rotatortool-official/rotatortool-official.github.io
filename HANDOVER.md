@@ -42,6 +42,44 @@ crypto contribution). No Stripe: the owner is in North Macedonia, crypto only.
 
 ## Task 1 (do first): pick the coin list from the real market
 
+### Status, 2026-10-01: built; see "Live" below for what is deployed
+
+What was built, and where it differs from the plan below:
+
+- **Weekly job:** `scripts/select-coin-universe.mjs` +
+  `.github/workflows/select-coin-universe.yml` (Mondays 02:37 UTC). Rules in
+  `scripts/lib/coin-universe.mjs`, 15 tests in `coin-universe.test.mjs`.
+  `node scripts/select-coin-universe.mjs --dry-run` previews a run without
+  writing (public key, keyless CoinGecko).
+- **Not the top 300.** Measured today: of CoinGecko's top 300 only 123 have
+  a Binance USDT pair and are not stablecoins. The job reads 250-coin pages
+  until 300 coins pass the filters (top 1000 at most), about 8 calls a week.
+- **Not "none under $5M".** Only 205 Binance-listed coins trade over
+  $5M/day, even in the top 1000. Owner's choice: keep 250 with a **$2M**
+  list floor; the ~60 coins between $2M and $5M are listed and scored but
+  never put forward (engine rule below).
+- **Extra filters** found by the dry run: tokenised stocks (`*-bstock`,
+  `*-xstock`) and non-A-Z tickers (牛来), as in the 2026-09-25 batch.
+- **Retired coins:** coins that leave stay fetchable for 12 weeks in
+  `market_cache.cg_markets_retired` (hourly), never in `cg_markets_all`,
+  so they never enter anyone's ranks. A holder sees the tile with
+  "No longer in the top 250." `pruneStaleHoldings()` no longer deletes
+  crypto holdings once the weekly list is live.
+- **7-day volume:** the 15-minute sync stores each day's volume in
+  `market_cache.coin_volume_days` (8 days). Until 7 days exist, 24h is used.
+- **15-minute sync:** reads `coin_universe`, 2 calls a run plus 1 an hour
+  for retired coins, about 216/day.
+- **Engine 2.11.0:** `eligibility.extra`, filled by compute-signal-run with
+  `thin_volume` (under $5M average) and `meme_filler`. Moves no score, rank
+  or zone; `verify-eligibility.js` asserts it. The site's High Momentum and
+  Turn-signs lists also skip them unless the visitor holds or tracks the coin.
+- **Track record:** NOT reset, by the owner's choice (GUARDRAILS rule 5
+  says reset). Labels moved to 2.11.0; STATS_FROM_DATE stays 2026-09-11.
+- **Bot:** `fetchFreeCoins()` reads `coin_universe` (core + fillers).
+- **Copies retired:** `sync-to-edge-function.js` lives in the workbench
+  (`rotator-engine/`), not lost. The `_vendor` FREE_COINS copies are now
+  only fallbacks.
+
 ### Why
 
 Measured 2026-10-01 from `market_cache.cg_markets_all`:
