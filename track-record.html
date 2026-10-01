@@ -99,11 +99,16 @@ a{color:inherit;text-decoration:none}
 .calls-cols{display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-bottom:22px;}
 @media (max-width:760px){.calls-cols{grid-template-columns:1fr;}}
 .calls-h{font-family:var(--font-mono);font-size:11px;letter-spacing:.12em;color:var(--muted);margin-bottom:6px;}
-.call-row{display:grid;grid-template-columns:84px 76px 70px 1fr 74px 74px;gap:8px;padding:6px 0;border-top:1px solid rgba(255,255,255,.06);font-family:var(--font-mono);font-size:12px;align-items:baseline;}
+.call-row{display:grid;grid-template-columns:84px 76px 70px 1fr 74px 74px 84px;gap:8px;padding:6px 0;border-top:1px solid rgba(255,255,255,.06);font-family:var(--font-mono);font-size:12px;align-items:baseline;}
 .call-row.head{color:var(--muted);font-size:10px;letter-spacing:.08em;border-top:0;}
 .call-row .up{color:var(--green);} .call-row .dn{color:var(--red);} .call-row .na{color:var(--muted);}
 .calls-cols .call-row{grid-template-columns:84px 64px 1fr 74px;}
-@media (max-width:600px){.call-row{grid-template-columns:78px 66px 54px 1fr 64px;}.call-row .c7{display:none;}}
+@media (max-width:600px){.call-row{grid-template-columns:72px 46px 1fr 58px 62px;}.call-row .c7,.call-row>span:nth-child(4){display:none;}
+  .calls-cols .call-row{grid-template-columns:76px 52px 1fr 70px;}.calls-cols .call-row>span:nth-child(4){display:inline;}
+  .calls-cols .call-row.now{grid-template-columns:76px 1fr 66px 66px;}.calls-cols .call-row.now>span:nth-child(3){display:none;}}
+.calls-tab{background:none;border:1px solid var(--bdr2);color:var(--muted);border-radius:5px;padding:5px 12px;cursor:pointer;font-size:12px;}
+.calls-tab.on{color:var(--text);border-color:var(--bnb);background:rgba(243,186,47,.10);}
+.calls-cols .call-row.now{grid-template-columns:84px 64px 1fr 78px 78px;}
 .calls-more{margin-top:12px;background:none;border:1px solid var(--bdr2);color:var(--text);border-radius:5px;padding:6px 14px;cursor:pointer;font-size:12px;}
 
 /* ── Section ───────────────────────────────────────────── */
@@ -289,7 +294,9 @@ a{color:inherit;text-decoration:none}
         Every day the bot saved its 5 rotate-in and 5 rotate-out picks with the price
         of the day. Here each one is graded on the close 30 days later against the
         median coin, where chance is 50%. Stricter than the 76.2% beside it, and it
-        depends on the month: June, bought near the bottom, carries most of it.
+        depends on the month: June, bought near the bottom, carries most of it. The
+        bot picked from the biggest coins, which did better than small ones in these
+        months, so the comparison with the 100 largest is the fairer one.
         <br><a class="legacy-link" href="#calls-section">See every pick, the best 20 and the worst 20 ↓</a>
       </div>
     </div>
@@ -325,9 +332,13 @@ a{color:inherit;text-decoration:none}
       <span class="section-count" id="calls-count"></span>
     </div>
     <div class="mev-sub">The picks the bot saved each day, graded on the close 7 and 30 days later against the median coin. The best 20 and the worst 20 rotate-in picks are shown together, one per coin, then every pick. Coins with no Binance history cannot be graded and say so.</div>
+    <div class="calls-tools">
+      <button type="button" class="calls-tab on" data-h="30">30 days</button>
+      <button type="button" class="calls-tab" data-h="now" id="calls-tab-now">To the latest close</button>
+    </div>
     <div class="calls-cols">
-      <div><div class="calls-h">BEST 20 ROTATE-IN PICKS, 30 DAYS</div><div id="calls-best"></div></div>
-      <div><div class="calls-h">WORST 20 ROTATE-IN PICKS, 30 DAYS</div><div id="calls-worst"></div></div>
+      <div><div class="calls-h" id="calls-best-h">BEST 20 ROTATE-IN PICKS, 30 DAYS</div><div id="calls-best"></div></div>
+      <div><div class="calls-h" id="calls-worst-h">WORST 20 ROTATE-IN PICKS, 30 DAYS</div><div id="calls-worst"></div></div>
     </div>
     <div class="calls-tools">
       <input type="search" id="calls-q" placeholder="Coin symbol…" autocomplete="off">
@@ -1674,21 +1685,48 @@ a{color:inherit;text-decoration:none}
       var S = d.summary, i30 = S.in30, o30 = S.out30;
       /* ── the card ── */
       document.getElementById('botrec-pct').textContent = i30.pct.toFixed(1) + '%';
+      /* Two benchmarks, both shown (2026-10-01): the bot picked from about
+         the top 150, and in these months big coins beat small ones, so the
+         all-coin median flatters any big-coin list. The 100 largest and the
+         bot's own rotate-out list are the fair comparisons. */
+      var L30 = S.inLarge30, LN = S.inLargeNow, VO = S.inVsOutNow, asOf = S.asOf;
       document.getElementById('botrec-meta').innerHTML =
         '<b>' + i30.right + '</b> of <b>' + i30.n + '</b> rotate-in picks beat the median coin at 30 days<br>'
-        + 'Rotate-out picks: <b>' + o30.pct.toFixed(1) + '%</b> trailed it, no edge<br>'
+        + 'Against the 100 largest coins only: <b>' + L30.pct.toFixed(1) + '%</b><br>'
+        + 'To ' + esc(asOf) + ': <b>' + LN.pct.toFixed(1) + '%</b> beat the 100 largest; rotate-in beat that day\'s rotate-out on <b>' + VO.pct.toFixed(0) + '%</b> of days<br>'
+        + 'Rotate-out picks: <b>' + o30.pct.toFixed(1) + '%</b> trailed the median at 30 days, no edge<br>'
         + '<span style="opacity:.7">' + d.meta.days + ' days · ' + d.meta.window[0] + ' → ' + d.meta.window[1] + ' · ' + S.skippedNoHistory + ' picks had no Binance history</span>';
       document.getElementById('botrec-months').innerHTML = d.months.filter(function (m) { return m.in.n >= 20; }).map(function (m) {
         return '<span>' + esc(m.month) + ' <b>' + Math.round(m.in.right / m.in.n * 100) + '%</b></span>';
       }).join('');
       /* ── the section ── */
       document.getElementById('calls-count').textContent = d.picks.length + ' picks · ' + (i30.n + o30.n) + ' graded';
+      var asOfTxt = esc(S.asOf);
       function small(rows) {
         return '<div class="call-row head"><span>DAY</span><span>COIN</span><span>PRICE THEN</span><span>VS MEDIAN, 30D</span></div>'
           + rows.map(function (r) { return '<div class="call-row"><span>' + esc(r[0]) + '</span><span>' + esc(r[2]) + '</span><span>' + price(r[4]) + '</span>' + pct(r[8]) + '</div>'; }).join('');
       }
-      document.getElementById('calls-best').innerHTML = small(d.best);
-      document.getElementById('calls-worst').innerHTML = small(d.worst);
+      /* To the latest close: the price change since the pick, and the same
+         against the median coin. Only picks at least 30 days old. */
+      function smallNow(rows) {
+        return '<div class="call-row now head"><span>DAY</span><span>COIN</span><span>PRICE THEN</span><span>SINCE THE PICK</span><span>VS MEDIAN</span></div>'
+          + rows.map(function (r) { return '<div class="call-row now"><span>' + esc(r[0]) + '</span><span>' + esc(r[2]) + '</span><span>' + price(r[4]) + '</span>' + pct(r[9]) + pct(r[10]) + '</div>'; }).join('');
+      }
+      var tabNow = document.getElementById('calls-tab-now');
+      if (tabNow) tabNow.textContent = 'To ' + S.asOf;
+      function drawTop(h) {
+        var now = h === 'now';
+        document.getElementById('calls-best').innerHTML = now ? smallNow(d.bestNow) : small(d.best);
+        document.getElementById('calls-worst').innerHTML = now ? smallNow(d.worstNow) : small(d.worst);
+        document.getElementById('calls-best-h').textContent = now ? 'BEST 20 ROTATE-IN PICKS, TO ' + S.asOf : 'BEST 20 ROTATE-IN PICKS, 30 DAYS';
+        document.getElementById('calls-worst-h').textContent = now ? 'WORST 20 ROTATE-IN PICKS, TO ' + S.asOf : 'WORST 20 ROTATE-IN PICKS, 30 DAYS';
+        [].forEach.call(document.querySelectorAll('.calls-tab'), function (b) { b.classList.toggle('on', b.getAttribute('data-h') === h); });
+      }
+      document.addEventListener('click', function (e) {
+        var b = e.target && e.target.closest && e.target.closest('.calls-tab');
+        if (b) drawTop(b.getAttribute('data-h'));
+      });
+      drawTop('30');
       var all = d.picks.slice().sort(function (a, b) { return a[0] < b[0] ? 1 : a[0] > b[0] ? -1 : 0; });
       /* Listeners on the document, elements looked up on every draw, so a
          re-render of this block can never leave dead listeners behind. */
@@ -1700,10 +1738,10 @@ a{color:inherit;text-decoration:none}
         var t = q.value.trim().toUpperCase(), sd = side.value;
         var rows = all.filter(function (r) { return (!t || String(r[2] || '').indexOf(t) === 0) && (!sd || r[1] === sd); });
         el('calls-all').innerHTML =
-          '<div class="call-row head"><span>DAY</span><span>SIDE</span><span>COIN</span><span>PRICE THEN</span><span class="c7">VS MEDIAN, 7D</span><span>VS MEDIAN, 30D</span></div>'
+          '<div class="call-row head"><span>DAY</span><span>SIDE</span><span>COIN</span><span>PRICE THEN</span><span class="c7">VS MEDIAN, 7D</span><span>VS MEDIAN, 30D</span><span>SINCE THE PICK</span></div>'
           + rows.slice(0, shown).map(function (r) {
               return '<div class="call-row"><span>' + esc(r[0]) + '</span><span>' + sideWord(r[1]) + '</span><span>' + esc(r[2]) + '</span><span>' + price(r[4]) + '</span>'
-                + '<span class="c7">' + pct(r[6]) + '</span>' + pct(r[8]) + '</div>';
+                + '<span class="c7">' + pct(r[6]) + '</span>' + pct(r[8]) + pct(r[9]) + '</div>';
             }).join('');
         more.hidden = rows.length <= shown;
       }

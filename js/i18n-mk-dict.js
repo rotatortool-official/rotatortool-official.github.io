@@ -135,9 +135,7 @@ Object.assign(MK_TEXT, {
   /* RECORD: the Telegram picks of April to August, graded strictly (2026-10-01) */
   '📬 Telegram picks — graded strictly': '📬 Изборите на Telegram — строго оценети',
   'Saved daily at the time': 'Зачувани секој ден во моментот',
-  'Every day the bot saved its 5 rotate-in and 5 rotate-out picks with the price of the day. Here each one is graded on the close 30 days later against the median coin, where chance is 50%. Stricter than the 76.2% beside it, and it depends on the month: June, bought near the bottom, carries most of it.':
-    'Секој ден ботот ги зачувуваше своите 5 избори за влез и 5 за излез, со цената од тој ден. Тука секој е оценет според затворањето 30 дена подоцна наспроти медијанската монета, каде случајноста е 50%. Построго од 76,2% до него, и зависи од месецот: јуни, купено близу дното, носи најголем дел.',
-  'See every pick, the best 20 and the worst 20 ↓': 'Видете го секој избор, најдобрите 20 и најлошите 20 ↓',
+    'See every pick, the best 20 and the worst 20 ↓': 'Видете го секој избор, најдобрите 20 и најлошите 20 ↓',
   '📬 Telegram picks, 28 Apr – 31 Aug 2026': '📬 Изборите на Telegram, 28 апр. – 31 авг. 2026',
   'The picks the bot saved each day, graded on the close 7 and 30 days later against the median coin. The best 20 and the worst 20 rotate-in picks are shown together, one per coin, then every pick. Coins with no Binance history cannot be graded and say so.':
     'Изборите што ботот ги зачувуваше секој ден, оценети според затворањето 7 и 30 дена подоцна наспроти медијанската монета. Најдобрите 20 и најлошите 20 избори за влез се прикажани заедно, по еден за монета, а потоа секој избор. Монетите без историја на Binance не можат да се оценат и тоа е наведено.',
@@ -148,6 +146,9 @@ Object.assign(MK_TEXT, {
   'DAY': 'ДЕН', 'COIN': 'МОНЕТА', 'SIDE': 'СТРАНА', 'PRICE THEN': 'ЦЕНА ТОГАШ',
   'VS MEDIAN, 7D': 'НАСПРОТИ МЕДИЈАНАТА, 7Д', 'VS MEDIAN, 30D': 'НАСПРОТИ МЕДИЈАНАТА, 30Д',
   'no data': 'нема податоци', 'Show more': 'Прикажи повеќе',
+  '30 days': '30 дена', 'SINCE THE PICK': 'ОД ИЗБОРОТ', 'VS MEDIAN': 'НАСПРОТИ МЕДИЈАНАТА',
+  'Every day the bot saved its 5 rotate-in and 5 rotate-out picks with the price of the day. Here each one is graded on the close 30 days later against the median coin, where chance is 50%. Stricter than the 76.2% beside it, and it depends on the month: June, bought near the bottom, carries most of it. The bot picked from the biggest coins, which did better than small ones in these months, so the comparison with the 100 largest is the fairer one.':
+    'Секој ден ботот ги зачувуваше своите 5 избори за влез и 5 за излез, со цената од тој ден. Тука секој е оценет според затворањето 30 дена подоцна наспроти медијанската монета, каде случајноста е 50%. Построго од 76,2% до него, и зависи од месецот: јуни, купено близу дното, носи најголем дел. Ботот избираше од најголемите монети, кои во овие месеци поминаа подобро од малите, па споредбата со 100-те најголеми е пофер.',
   'The saved picks could not be loaded right now.': 'Зачуваните избори моментално не можат да се вчитаат.',
   /* RECORD: Telegram channel posts (HANDOVER.md Task 2, 2026-10-01) */
   '📊 Channel posts: market changes': '📊 Објави на каналот: промени на пазарот',
@@ -589,6 +590,10 @@ Object.assign(MK_TEXT, {
   P(/^F&G: (\d+) \((Extreme Fear|Fear|Neutral|Greed|Extreme Greed)\)$/, function (m) { return 'F&G: ' + m[1] + ' (' + { 'Extreme Fear': 'екстремен страв', 'Fear': 'страв', 'Neutral': 'неутрално', 'Greed': 'алчност', 'Extreme Greed': 'екстремна алчност' }[m[2]] + ')'; });
   /* Lists, counters, alerts */
   P(/^(\d+) more in Pro$/, function (m) { return 'уште ' + m[1] + ' во Pro'; });
+  /* RECORD: the April-August picks (dynamic lines) */
+  P(/^Against the 100 largest coins only: ([\d.]+%)$/, function (m) { return 'Само наспроти 100-те најголеми монети: ' + m[1]; });
+  P(/^To (\d{4}-\d\d-\d\d)$/, function (m) { return 'До ' + m[1]; });
+  P(/^(BEST|WORST) 20 ROTATE-IN PICKS, TO (\d{4}-\d\d-\d\d)$/, function (m) { return (m[1] === 'BEST' ? 'НАЈДОБРИ' : 'НАЈЛОШИ') + ' 20 ИЗБОРИ ЗА ВЛЕЗ, ДО ' + m[2]; });
   /* RECORD: channel posts (HANDOVER.md Task 2) */
   P(/^Leadership: (BTC|large caps|small caps) took the lead from (BTC|large caps|small caps)$/, function (m) {
     var G = { 'BTC': 'BTC', 'large caps': 'големите монети', 'small caps': 'малите монети' };
