@@ -203,7 +203,10 @@ weeks of history), a Monday 08:00 UTC pulse, max 3 event posts a week.
 (49.7% of 1,636). `sql/market_events.sql` runs daily at 00:55 UTC; the bot
 runs once at 08:00; the 19:30 channel coin post (cron job 7) is paused,
 Pro DMs unchanged; RECORD lists every post with its 7- and 30-day grade.
-Open: `pipeline_health()` does not watch the new job yet.
+`pipeline_health()` watches both new pieces since 2026-10-01
+(`sql/pipeline_health_2026-10-01.sql`): the weekly `coin_universe` row
+(late after 8 days, dead after 14) and the market-events job (late 26h,
+dead 50h). 19 feeds, all ok at the time of writing.
 
 The plan as written before the replay:
 

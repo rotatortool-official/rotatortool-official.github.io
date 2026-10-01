@@ -1,5 +1,9 @@
 -- pipeline_health() — applied 2026-09-11.
 --
+-- SUPERSEDED: the current definition is pipeline_health_2026-10-01.sql
+-- (via measurement_hardening_2026-09-23.sql). This file keeps the
+-- reasoning; do not re-apply it, it would drop seven feeds.
+--
 -- ONE reading for all twelve feeds, instead of a fallback cron per feed.
 --
 -- WHY THIS SHAPE. The self-checking fallback built for the coin universe
