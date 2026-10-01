@@ -42,7 +42,11 @@ crypto contribution). No Stripe: the owner is in North Macedonia, crypto only.
 
 ## Task 1 (do first): pick the coin list from the real market
 
-### Status, 2026-10-01: built; see "Live" below for what is deployed
+### Status, 2026-10-01: done and live
+
+Deployed 2026-10-01 ~14:15 UTC: site and bot pushed, compute-signal-run
+(engine 2.11.0) and sync-coin-universe deployed, the weekly workflow run
+once by hand (run #1: 250 core + 3 fillers, 51 retired, no dead ids).
 
 What was built, and where it differs from the plan below:
 
@@ -68,7 +72,12 @@ What was built, and where it differs from the plan below:
 - **7-day volume:** the 15-minute sync stores each day's volume in
   `market_cache.coin_volume_days` (8 days). Until 7 days exist, 24h is used.
 - **15-minute sync:** reads `coin_universe`, 2 calls a run plus 1 an hour
-  for retired coins, about 216/day.
+  for retired coins, about 216/day. **Found 2026-10-01: CoinGecko answers
+  Supabase again.** The live sync is the `sync-coin-universe` edge function
+  (pg_cron job 15, 200 OK every run); the GitHub "Sync coin universe"
+  workflow is disabled in Actions. Both copies carry the same logic
+  (volume days, retired coins). Do not enable both: that doubles the calls.
+  The weekly selection job runs on GitHub.
 - **Engine 2.11.0:** `eligibility.extra`, filled by compute-signal-run with
   `thin_volume` (under $5M average) and `meme_filler`. Moves no score, rank
   or zone; `verify-eligibility.js` asserts it. The site's High Momentum and

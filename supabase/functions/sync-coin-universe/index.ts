@@ -98,11 +98,17 @@ Deno.serve(async (req: Request) => {
     /* WHICH COINS, since 2026-10-01: the weekly list in market_cache
        'coin_universe' (core + fillers + stables), the same set
        scripts/sync-coin-universe.mjs fetches. The vendored FREE_COINS
-       is only the fallback when that row is missing. Retired coins are
-       left to the GitHub job. */
+       is only the fallback when that row is missing.
+
+       2026-10-01: CoinGecko answers Supabase again, and THIS function is
+       the live 15-minute sync; the GitHub copy is disabled in Actions.
+       So the two side rows the GitHub script writes are written here
+       too, after cg_markets_all (see the end of this handler). */
     const { data: uniRow } = await supabase
       .from('market_cache').select('data').eq('cache_key', 'coin_universe').maybeSingle();
-    const uni = uniRow?.data as { core?: string[]; fillers?: string[]; stables?: string[] } | undefined;
+    const uni = uniRow?.data as {
+      core?: string[]; fillers?: string[]; stables?: string[]; retired?: { id: string }[];
+    } | undefined;
     const WANTED: string[] = uni && Array.isArray(uni.core) && uni.core.length >= 200
       ? [...new Set([...uni.core, ...(uni.fillers ?? []), ...(uni.stables ?? [])])]
       : FREE_COINS;
@@ -155,12 +161,67 @@ Deno.serve(async (req: Request) => {
     console.log(`[sync-coin-universe] wrote ${rows.length} coins `
       + `(${withMcap} with mcap, ${with30d} with 30d)`);
 
+    /* ── Side rows, best effort: neither may fail the price sync. ──
+       Same behaviour as scripts/sync-coin-universe.mjs. */
+    const cacheWrite = (key: string, data: unknown) => supabase.from('market_cache').upsert(
+      { cache_key: key, data, updated_at: new Date().toISOString() }, { onConflict: 'cache_key' },
+    );
+
+    // Daily volume for the 7-day average (8 UTC days kept, today overwritten).
+    let volumeDays = 0;
+    try {
+      const { data: vRow } = await supabase
+        .from('market_cache').select('data').eq('cache_key', 'coin_volume_days').maybeSingle();
+      const days = (vRow?.data ?? {}) as Record<string, Record<string, number>>;
+      const vols: Record<string, number> = {};
+      for (const r of rows as { id: string; total_volume?: number }[]) {
+        if (Number.isFinite(r.total_volume)) vols[r.id] = Math.round(r.total_volume as number);
+      }
+      days[new Date().toISOString().slice(0, 10)] = vols;
+      const keep = Object.keys(days).sort().slice(-8);
+      const { error: vErr } = await cacheWrite('coin_volume_days', Object.fromEntries(keep.map((d) => [d, days[d]])));
+      if (vErr) throw vErr;
+      volumeDays = keep.length;
+    } catch (e) {
+      console.warn('[sync-coin-universe] coin_volume_days not updated:', (e as Error).message);
+    }
+
+    // Coins that left the list, hourly, for the visitors who still hold them.
+    let retiredWritten: number | null = null;
+    try {
+      const live = new Set(WANTED);
+      const retiredIds = (uni?.retired ?? []).map((r) => r.id).filter((id) => id && !live.has(id));
+      const { data: rRow } = await supabase
+        .from('market_cache').select('updated_at').eq('cache_key', 'cg_markets_retired').maybeSingle();
+      const age = rRow?.updated_at ? Date.now() - Date.parse(rRow.updated_at) : Infinity;
+      if (retiredIds.length && age > 55 * 60 * 1000) {
+        const ret: unknown[] = [];
+        for (let i = 0; i < retiredIds.length; i += 100) {
+          const res = await fetch(base + '&ids=' + encodeURIComponent(retiredIds.slice(i, i + 100).join(',')), {
+            headers: {
+              'Accept': 'application/json',
+              ...(COINGECKO_API_KEY ? { 'x-cg-demo-api-key': COINGECKO_API_KEY } : {}),
+            },
+          });
+          if (!res.ok) throw new Error(`retired coins/markets -> HTTP ${res.status}`);
+          ret.push(...await res.json());
+        }
+        const { error: rErr } = await cacheWrite('cg_markets_retired', ret);
+        if (rErr) throw rErr;
+        retiredWritten = ret.length;
+      }
+    } catch (e) {
+      console.warn('[sync-coin-universe] cg_markets_retired not updated:', (e as Error).message);
+    }
+
     return new Response(JSON.stringify({
       ok: true,
       requested: WANTED.length,
       returned: rows.length,
       with_market_cap: withMcap,
       with_30d: with30d,
+      volume_days: volumeDays,
+      retired_written: retiredWritten,
       ts: new Date().toISOString(),
     }, null, 2), { status: 200, headers: { 'Content-Type': 'application/json' } });
   } catch (e) {
