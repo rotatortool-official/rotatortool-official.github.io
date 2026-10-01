@@ -193,6 +193,20 @@ the list must not delete or skip its pending grades.
 
 ## Task 2: fewer, better Telegram posts
 
+### Status, 2026-10-01: done and live
+
+Thresholds and the reasons are in PRODUCT-FLOW.md ("The Telegram channel");
+the replay is promptove/78 (workbench). In short: three market events
+(BTC 200-day, breadth, leadership; about one post every 4 weeks over 91
+weeks of history), a Monday 08:00 UTC pulse, max 3 event posts a week.
+**No coin posts**: the quick RSI bounce showed no edge on the live list
+(49.7% of 1,636). `sql/market_events.sql` runs daily at 00:55 UTC; the bot
+runs once at 08:00; the 19:30 channel coin post (cron job 7) is paused,
+Pro DMs unchanged; RECORD lists every post with its 7- and 30-day grade.
+Open: `pipeline_health()` does not watch the new job yet.
+
+The plan as written before the replay:
+
 Agreed with the owner 2026-09-30: post less and only when it means something.
 Do not post the daily leaders/laggards list (that is the site's job).
 
