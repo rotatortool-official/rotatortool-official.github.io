@@ -132,6 +132,17 @@ Object.assign(MK_TEXT, {
   'Binance delisting announced': 'Binance најави отстранување од листата',
   'Not listed on Binance': 'Не е листана на Binance', 'Not trading on Binance': 'Не се тргува на Binance',
   'Binance Monitoring tag': 'Ознака Monitoring на Binance',
+  /* RECORD: Telegram channel posts (HANDOVER.md Task 2, 2026-10-01) */
+  '📊 Channel posts: market changes': '📊 Објави на каналот: промени на пазарот',
+  'Since 2 Oct 2026 the Telegram channel posts only when the market changed and the change held. Each post is graded after 7 and 30 days on whether the move it described held. Chance is about 50%.':
+    'Од 2 окт. 2026 каналот на Telegram објавува само кога пазарот се променил и промената се задржала. Секоја објава се оценува по 7 и по 30 дена според тоа дали опишаното движење се задржало. Случајноста е околу 50%.',
+  'DATE': 'ДАТУМ', 'WHAT HAPPENED': 'ШТО СЕ СЛУЧИ', '7 DAYS': '7 ДЕНА', '30 DAYS': '30 ДЕНА',
+  'the move held': 'движењето се задржа', 'the move did not hold': 'движењето не се задржа', 'not graded yet': 'сè уште не е оценето',
+  'No market change has crossed a threshold since 2 Oct 2026.': 'Од 2 окт. 2026 ниту една промена на пазарот не го премина прагот.',
+  'The channel posts could not be loaded right now.': 'Објавите на каналот моментално не можат да се вчитаат.',
+  'BTC moved above its 200-day average': 'BTC мина над својот 200-дневен просек',
+  'BTC fell below its 200-day average': 'BTC падна под својот 200-дневен просек',
+  'Breadth turned up': 'Ширината се сврти нагоре', 'Breadth turned down': 'Ширината се сврти надолу',
   /* The weekly coin list (HANDOVER.md Task 1, 2026-10-01) */
   'No longer in the top 250.': 'Повеќе не е меѓу првите 250.',
   'None of your coins is in the top 250 now, so there is no signal.': 'Ниту една од вашите монети сега не е меѓу првите 250, па нема сигнал.',
@@ -561,6 +572,14 @@ Object.assign(MK_TEXT, {
   P(/^F&G: (\d+) \((Extreme Fear|Fear|Neutral|Greed|Extreme Greed)\)$/, function (m) { return 'F&G: ' + m[1] + ' (' + { 'Extreme Fear': 'екстремен страв', 'Fear': 'страв', 'Neutral': 'неутрално', 'Greed': 'алчност', 'Extreme Greed': 'екстремна алчност' }[m[2]] + ')'; });
   /* Lists, counters, alerts */
   P(/^(\d+) more in Pro$/, function (m) { return 'уште ' + m[1] + ' во Pro'; });
+  /* RECORD: channel posts (HANDOVER.md Task 2) */
+  P(/^Leadership: (BTC|large caps|small caps) took the lead from (BTC|large caps|small caps)$/, function (m) {
+    var G = { 'BTC': 'BTC', 'large caps': 'големите монети', 'small caps': 'малите монети' };
+    return 'Водство: ' + G[m[1]] + ' го презедоа водството од ' + G[m[2]];
+  });
+  P(/^(\d+) posts( · (\d+) of (\d+) held at 30 days)?$/, function (m) {
+    return m[1] + ' ' + plur(m[1], 'објава', 'објави') + (m[2] ? ' · ' + m[3] + ' од ' + m[4] + ' се задржаа по 30 дена' : '');
+  });
   P(/^unlock (\d+) more$/, function (m) { return 'отклучете уште ' + m[1]; });
   P(/^Show all (\d+)$/, function (m) { return 'Прикажи ги сите ' + m[1]; });
   P(/^\+(\d+) the other way$/, function (m) { return '+' + m[1] + ' во спротивна насока'; });

@@ -49,6 +49,39 @@ It should hand the visitor on to the next step, not compete with it.
   it went down, on the site and in every bot image. Never colour a coin by
   which list it is in, and never draw an arrow from one coin to another.
 
+### The Telegram channel: fewer, better posts
+
+Agreed 2026-09-30, thresholds set 2026-10-01 (HANDOVER.md Task 2,
+promptove/78). Change a threshold only when the grades give a reason, and
+write the reason here.
+
+- **Weekly pulse, every Monday 08:00 UTC**, even when quiet ("Quiet week:
+  nothing crossed a threshold"). BTC against its 200-day average, breadth,
+  the groups' 30-day returns, what happened this week, coin-list changes.
+- **Market event posts**, only when one of these happened and held:
+
+  | Event | Rule | Fired in 91 weeks of history |
+  |---|---|---|
+  | BTC and its 200-day average | closes more than 2% on the other side, 3 days in a row | 4 |
+  | Breadth | share of listed coins above their own 50-day average goes from under 25% to over 50%, or from over 75% to under 50%, and holds 5 days | 10 |
+  | Leadership | the group with the best median 30-day return (BTC, ranks 2-20, ranks 101-250) changes, leads by 3 points or more, and holds 7 days | 7 |
+
+- **At most 3 event posts a week** (Monday to Sunday, UTC). More wait for
+  the pulse.
+- **No coin posts for now.** The quick RSI bounce, the only coin sign with
+  any record, beat the median coin 49.7% of the time over 7 days on the live
+  list (1,636 cases). Unusual, held and volume-confirmed versions did no
+  better. Coin signs stay on the site and in Pro direct messages. Revisit
+  when a coin sign beats the median in a backtest with the bar written down
+  first.
+- **No daily leaders and laggards list.** That is the site's job.
+- **Every event post is graded** after 7 and 30 days on whether the move it
+  described held (BTC stayed on that side; the median coin moved the way
+  breadth turned; the new leading group beat the old one) and shown on the
+  RECORD page. Market events are rare, so about 30 grades of a kind will
+  take years. Until then they are described as what happened, never as a
+  forecast.
+
 ### Visual hierarchy: sections first, details after
 
 - There are three text levels, and nothing on the page should skip a level:
