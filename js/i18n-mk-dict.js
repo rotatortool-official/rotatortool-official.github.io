@@ -122,7 +122,7 @@ Object.assign(MK_TEXT, {
     'Известувањата во прелистувачот се појавуваат додека Rotator е отворен во јазиче. „Ново“ се памети во овој прелистувач.',
   'Exchange and unlock warnings are free. Pro adds turn signs, ETF alerts, Telegram messages and browser notifications.':
     'Предупредувањата од берзата и за отклучувања се бесплатни. Pro додава знаци за свртување, известувања за ETF, пораки на Telegram и известувања во прелистувачот.',
-  'Telegram connected. New alerts are messaged to you every hour.': 'Telegram е поврзан. Новите известувања ви стигнуваат секој час.',
+  'Telegram connected. New alerts are messaged to you daily.': 'Telegram е поврзан. Новите известувања ви стигнуваат секој ден.',
   'Disconnect': 'Исклучи',
   'Telegram disconnected.': 'Telegram е исклучен.',
   'In Telegram, tap Start. This panel updates once the bot confirms.': 'Во Telegram, допрете Start. Овој панел се ажурира откако ботот ќе потврди.',

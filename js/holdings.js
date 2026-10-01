@@ -484,7 +484,7 @@ function renderTiles() {
           + '<div class="tile-top"><div class="tile-ico"><img src="' + c.image + '" alt="' + c.sym + ' logo" loading="lazy" width="16" height="16" onerror="this.style.display=\'none\'"></div>'
           + '<span class="tile-sym">' + c.sym + '</span>'
           + '<span class="tile-watch-badge" title="On your watchlist">👁</span>'
-          + '<button class="tile-rm" onclick="event.stopPropagation();removeFromWatchlist(\'' + c.sym + '\')">×</button></div>'
+          + '<button class="tile-rm" onclick="event.stopPropagation();removeFromWatchlist(\'' + c.id + '\')">×</button></div>'
           + '<div class="tile-price">' + fmtP(c.price) + '</div>'
           + '<div class="tile-perfs">'
             + '<div class="tpf"><span class="tpf-l">24H</span><span class="tpf-v ' + (c.p24>=0?'up':'dn') + '">' + (c.p24>=0?'+':'') + c.p24.toFixed(1) + '%</span></div>'

@@ -280,7 +280,8 @@ function renderCoinAlerts() {
    telegram-webhook function ties the chat to this browser. From then
    on this browser keeps the server's copy of its coin list current
    (alert_set_coins, only when the list changes), and send-dm-alerts
-   messages what is new every hour. The bot's username is read from
+   messages what is new (it checks hourly; in practice about once a day,
+   see _twTgFoot). The bot's username is read from
    market_cache, where the webhook's setup stored it. */
 var _twTg = { linked: null, sig: '', busy: false, note: '' };
 
@@ -311,7 +312,10 @@ function _twTgSync(force) {
 
 function _twTgFoot() {
   if (_twTg.linked) {
-    return '<span class="ca-tg on">📨 Telegram connected. New alerts are messaged to you every hour.'
+    /* "daily", not "every hour" (owner, 2026-10-01): send-dm-alerts checks
+       hourly, but the turn signs come from the once-a-day detector and a
+       quiet hour sends nothing, so in practice it is a daily message. */
+    return '<span class="ca-tg on">📨 Telegram connected. New alerts are messaged to you daily.'
       + ' <button type="button" class="ca-act" onclick="_twTgUnlink()">Disconnect</button></span>';
   }
   return '<button type="button" class="ca-act ca-tg-btn" onclick="_twTgConnect()"' + (_twTg.busy ? ' disabled' : '') + '>📨 Get these on Telegram</button>'

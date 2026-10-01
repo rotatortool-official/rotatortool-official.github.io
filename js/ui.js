@@ -297,9 +297,18 @@ function renderWatchlist() {
   if (typeof renderTiles === 'function') renderTiles();
   if (typeof renderCoinAlerts === 'function') renderCoinAlerts();
 }
-function removeFromWatchlist(sym) {
-  watchlist = watchlist.filter(function(s) { return s !== sym; });
+/* Takes a coin id or a ticker and removes EVERY entry for that coin.
+   Entries are coin ids since upgradeHoldingKeys() (some are still a
+   ticker), and the tile's × button passed the ticker, so comparing the
+   two strings matched nothing and the coin stayed watched (reported
+   2026-10-01). */
+function removeFromWatchlist(key) {
+  var c = (typeof coins !== 'undefined' && Array.isArray(coins))
+    ? coins.find(function(x) { return x.id === key || x.sym === key; }) : null;
+  var drop = c ? [key, c.id, c.sym] : [key];
+  watchlist = watchlist.filter(function(s) { return drop.indexOf(s) < 0; });
   saveWatchlist(); renderWatchlist();
+  if (typeof renderTable === 'function') renderTable();   /* the table's eye icon too */
 }
 function openAddWatchlistModal() { openAddHoldingsModal('watchlist'); }
 
