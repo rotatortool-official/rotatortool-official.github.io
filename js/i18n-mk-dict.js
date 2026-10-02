@@ -144,9 +144,9 @@ Object.assign(MK_TEXT, {
   'Rotate in and out': 'Влез и излез', 'Rotate in': 'Влез', 'Rotate out': 'Излез',
   'rotate in': 'влез', 'rotate out': 'излез',
   'DAY': 'ДЕН', 'COIN': 'МОНЕТА', 'SIDE': 'СТРАНА', 'PRICE THEN': 'ЦЕНА ТОГАШ',
-  'VS MEDIAN, 7D': 'НАСПРОТИ МЕДИЈАНАТА, 7Д', 'VS MEDIAN, 30D': 'НАСПРОТИ МЕДИЈАНАТА, 30Д',
+  'VS MEDIAN, 7D': 'НАСПРОТИ ПРОСЕЧНАТА, 7Д', 'VS MEDIAN, 30D': 'НАСПРОТИ ПРОСЕЧНАТА, 30Д',
   'no data': 'нема податоци', 'Show more': 'Прикажи повеќе',
-  '30 days': '30 дена', 'SINCE THE PICK': 'ОД ИЗБОРОТ', 'VS MEDIAN': 'НАСПРОТИ МЕДИЈАНАТА',
+  '30 days': '30 дена', 'SINCE THE PICK': 'ОД ИЗБОРОТ', 'VS MEDIAN': 'НАСПРОТИ ПРОСЕЧНАТА',
   'Every day the bot saved its 5 rotate-in and 5 rotate-out picks with the price of the day. Here each one is graded on the close 30 days later against the median coin, where chance is 50%. Stricter than the 76.2% beside it, and it depends on the month: June, bought near the bottom, carries most of it. The bot picked from the biggest coins, which did better than small ones in these months, so the comparison with the 100 largest is the fairer one.':
     'Секој ден ботот ги зачувуваше своите 5 избори за влез и 5 за излез, со цената од тој ден. Тука секој е оценет според затворањето 30 дена подоцна наспроти просечната монета, каде случајноста е 50%. Построго од 76,2% до него, и зависи од месецот: јуни, купено близу дното, носи најголем дел. Ботот избираше од најголемите монети, кои во овие месеци поминаа подобро од малите, па споредбата со 100-те најголеми е пофер.',
   'The saved picks could not be loaded right now.': 'Зачуваните избори моментално не можат да се вчитаат.',
@@ -329,7 +329,7 @@ Object.assign(MK_TEXT, {
     'Применлива ликвидност, но голем налог може да ја помести цената. Хеуристички прагови (8%+ / 2-8% / под 2%), не прецизна научна граница. Вистинската длабочина се гледа во книгата на налози.',
   "The listed company's market capitalisation (share price × shares outstanding), as published by Binance. Not the size of the tokenized market on Binance, and not used in scoring.":
     'Пазарната капитализација на листаната компанија (цена на акцијата × акции во оптек), како што ја објавува Binance. Не е големината на токенизираниот пазар на Binance и не се користи во оценувањето.',
-  'n/a (stock)': 'н/п (акција)', 'NEUTRAL': 'НЕУТРАЛНО', 'HIGH BETA': 'ВИСОКА БЕТА', 'RAN AHEAD': 'ИСТРЧАНА НАПРЕД',
+  'n/a (stock)': 'н/п (акција)', 'NEUTRAL': 'НЕУТРАЛНО', 'HIGH BETA': 'ЗАСИЛЕНИ ДВИЖЕЊА', 'RAN AHEAD': 'ИСТРЧАНА НАПРЕД',
   'MOMENTUM ': 'МОМЕНТУМ', '24H SURGE': 'СКОК 24H', '24H DIP': 'ПАД 24H', '7D BREAKOUT': 'ПРОБИВ 7D', '7D BREAKDOWN': 'ПРОБИВ НАДОЛУ 7D',
   '30D UPTREND': 'ТРЕНД НАГОРЕ 30D', '30D DOWNTREND': 'ТРЕНД НАДОЛУ 30D', 'TOP OF RANGE': 'ВРВ НА ОПСЕГОТ',
   'BINANCE DELISTING ANNOUNCED': 'BINANCE НАЈАВИ ОТСТРАНУВАЊЕ ОД ЛИСТАТА',
@@ -492,11 +492,38 @@ Object.assign(MK_TEXT, {
   'Almost ready — building your dashboard…': 'Речиси готово — се гради вашата табла…',
 });
 
+/* ── Coin window: labels the first pass missed (2026-10-02) ─────────
+   Translated by meaning, for a viewer who does not trade derivatives.
+   HIGH BETA is a low score that exaggerates the market's moves, so it is
+   "засилени движења", not "висока бета". Binance's tag names (Seed,
+   Launchpool, Layer1 / Layer2, Monitoring) and Mayer Multiple stay as
+   Binance and the indicator call them. */
+Object.assign(MK_TEXT, {
+  'CRYPTO': 'КРИПТО', 'STOCK': 'АКЦИЈА',
+  'BULLISH': 'СИЛНО', 'BEARISH': 'СЛАБО',
+  '7D RANK': 'РАНГ 7D', '14D RANK': 'РАНГ 14D', '30D RANK': 'РАНГ 30D', 'COMPOSITE': 'ВКУПНО',
+  'ALREADY HELD': 'ВЕЌЕ ГО ДРЖИТЕ',
+  'ASSESSMENT': 'ПРОЦЕНКА', 'MKT CAP': 'ПАЗАРНА ВРЕДНОСТ', '24H VOL': 'ОБЕМ 24H',
+  '200D AVG': 'ПРОСЕК 200 ДЕНА', 'CYCLE STATE': 'ФАЗА НА ЦИКЛУСОТ',
+  'MC RANK': 'РАНГ ПО ВРЕДНОСТ', 'BINANCE TAGS': 'ОЗНАКИ НА BINANCE',
+  'BINANCE MONITORING': 'ОЗНАКА MONITORING НА BINANCE',
+  'POSITIONING': 'ПОЗИЦИОНИРАЊЕ', 'NEW MONEY': 'НОВИ ПАРИ', 'SHORT COVERING': 'ЗАТВОРАЊЕ ШОРТОВИ',
+  'NEW SHORTS': 'НОВИ ШОРТОВИ', 'UNWINDING': 'ЗАТВОРАЊЕ ПОЗИЦИИ',
+  'TAKER FLOW': 'КУПУВАЊЕ / ПРОДАЖБА', 'BASIS': 'РАЗЛИКА ОД СПОТ',
+  'NEXT FUNDING': 'СЛЕДЕН ФАНДИНГ', 'PERP AGE': 'СТАРОСТ НА ПЕРПЕТУАЛОТ',
+  'Loading history…': 'Се вчитува историјата…',
+  'Detected from completed daily candles at 00:45 UTC. These describe what price and positioning have already done.':
+    'Пронајдено од затворените дневни свеќи во 00:45 UTC. Ова опишува што цената и позициите веќе направиле.',
+  'Detected from completed daily candles at 00:45 UTC. Moving averages are 60-day and 125-day, not the classic 50/200. These describe what price and positioning have already done.':
+    'Пронајдено од затворените дневни свеќи во 00:45 UTC. Подвижните просеци се 60-дневен и 125-дневен, не класичните 50/200. Ова опишува што цената и позициите веќе направиле.',
+});
+
 /* ══ TEMPLATES WITH NUMBERS ══════════════════════════════════════════ */
 (function () {
   var P = function (re, fn) { MK_PATTERNS.push([re, fn]); };
   var n = '([−\\-+]?[\\d.,]+)';
   var plur = function (k, one, many) { return Number(k) === 1 ? one : many; };
+  P(/^(\d+) days? of history recorded so far — the trend line appears at (\d+)\. One reading is added per day\.$/, function (m) { return m[1] + ' ' + plur(m[1], 'ден', 'дена') + ' историја досега — линијата на трендот се појавува на ' + m[2] + '. Секој ден се додава по едно читање.'; });
   var RSI_ZONE = { 'Oversold': 'Препродадено', 'Low Momentum': 'Слаб моментум', 'Cooling': 'Се лади', 'Overbought': 'Прекупено', 'Hot Zone': 'Жешка зона', 'Warming': 'Се загрева' };
 
   /* Coin window: the reading */
