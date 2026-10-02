@@ -1923,7 +1923,7 @@ function fngColor(v) {
   return 'hsl(' + Math.round(Math.max(0, Math.min(140, hue))) + ',82%,58%)';
 }
 
-function renderFearGreed() {
+function renderFearGreed(force) {
   var el = document.getElementById('fng-banner');
   var tx = document.getElementById('fng-text');
   if (!el || !tx) return;
@@ -1933,7 +1933,8 @@ function renderFearGreed() {
   var scaleDismissed = false;
   try { scaleDismissed = localStorage.getItem('rot_scale_dismissed') === '1'; } catch(e) {}
   var fg = window.fearGreed;
-  if (!scaleDismissed || !fg || fg.value == null) { el.classList.remove('show'); return; }
+  /* force: the tutorial's TODAY step shows it in the tip's place. */
+  if ((!scaleDismissed && !force) || !fg || fg.value == null) { el.classList.remove('show'); return; }
 
   tx.innerHTML = '<strong style="color:' + fngColor(fg.value) + ';">FEAR &amp; GREED INDEX '
     + fg.value + '</strong>';

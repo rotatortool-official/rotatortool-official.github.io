@@ -43,17 +43,41 @@ var TUT_STEPS = [
     "note": "This tour follows the menu on the left: Today, Momentum, Yours, Coins, Swap and Record. About a minute."
   },
 
-  /* 2. TODAY */
+  /* 2. TODAY, in two steps (2026-10-02). The section is ~650px tall,
+     too tall to show whole with its card below on a laptop, and the ETF
+     strip ended up under the card. Fear & Greed lives in the top bar and
+     only shows once the scaling tip is dismissed, so on a first visit it
+     was never on screen: this step reveals it, rings it with the
+     readings, and drops its paragraph where the banner never shows. */
   {
-    "target": "#sec-today",
+    "target": "#briefing",
     "goto": "sec-today",
     "pos": "section",
+    "wide": true,
+    "also": "#fng-banner",
+    "reveal": "fng",
+    "deskOnly": 1,
     "title": "Today — the market pulse",
     "p": [
-      "What the networks and the market are doing right now: network activity, macro readings, Fear & Greed, and where BTC sits against its 200-day average.",
-      "The ticker runs through the biggest movers of the day."
+      "What the networks and the market are doing right now: gold, silver, oil, the dollar, Bitcoin's hash rate, active addresses, the money locked in DeFi and the stablecoin supply, each with its 7-day change.",
+      "**Fear & Greed**, in the top bar, is how fearful or greedy the whole market feels today, from 0 to 100."
     ],
     "note": "It describes the market. It does not forecast it."
+  },
+
+  /* 2b. TODAY — ETF flows and the ticker */
+  {
+    "target": "#etf-strip",
+    "goto": "etf-strip",
+    "pos": "section",
+    "wide": true,
+    "also": "#market-ticker",
+    "title": "Today — ETF flows",
+    "p": [
+      "**ETF flows** show whether money went into or out of the US Bitcoin and Ether ETFs: the last trading day, then 5 and 20 days. Green bars are money in, red bars money out. Click a tile for the details.",
+      "The ticker starts with BTC against its 200-day average, then runs through the biggest movers of the day."
+    ],
+    "note": "Flows show what big money did, not what it will do next."
   },
 
   /* 3. MOMENTUM */
@@ -191,7 +215,9 @@ function _tutMd(x)  { return _tutEsc(x).replace(/\*\*(.+?)\*\*/g, '<strong>$1</s
 function _tutDesc(step) {
   if (step.desc && !step.p) return step.desc;
   var h = '<div style="font-size:14px;line-height:1.8;">';
-  h += (step.p || []).map(_tutMd).join('<br><br>');
+  /* deskOnly: a paragraph about something phones never show. */
+  var narrow = window.matchMedia && window.matchMedia('(max-width:768px)').matches;
+  h += (step.p || []).filter(function(x, i) { return !(narrow && i === step.deskOnly); }).map(_tutMd).join('<br><br>');
   if (step.opts && step.opts.length) {
     h += '<div style="display:grid;gap:8px;font-size:12.5px;line-height:1.6;margin-top:12px;">'
       + step.opts.map(function(o) { return '<div><strong style="color:var(--pro);">' + _tutEsc(o.h) + '</strong> — ' + _tutMd(o.t) + '</div>'; }).join('')
@@ -270,7 +296,15 @@ function tutPosition() {
        shown whole. (The first version clipped the cut-out to a fixed 55%
        of the screen, and on a 1133px screen the taller cards landed on
        top of it for four of the six sections.) */
-    var bw = Math.min(460, vw - 40);
+    /* also: a second element (outside the section) inside the same
+       cut-out, when it is on screen. */
+    var a2 = step.also ? tutGetEl(step.also) : null;
+    var r2 = a2 ? a2.getBoundingClientRect() : null;
+    if (r2 && r2.width > 0 && r2.height > 0) {
+      var L = Math.min(r.left, r2.left), R = Math.max(r.right, r2.right);
+      r = { left: L, right: R, width: R - L, top: Math.min(r.top, r2.top), bottom: Math.max(r.bottom, r2.bottom) };
+    }
+    var bw = Math.min(step.wide ? 880 : 460, vw - 40);
     var bx = Math.max(10, Math.min(r.left + (r.width - bw) / 2, vw - bw - 10));
     box.style.width = bw + 'px';
     box.className   = 'tut-box arrow-top';
@@ -390,11 +424,31 @@ function tutRender() {
   else if (showAgree)                          nextBtn.textContent = _agr;
   else                                         nextBtn.textContent = _nxt;
 
+  _tutReveal(step);
+
   /* Place once straight away (so the card never sits on the previous
      step's spot), then again once the section is open and in view. */
   tutPosition();
   var stepAtRender = tutStep_;
   _tutPrepare(step, function() { if (tutActive && tutStep_ === stepAtRender) tutPosition(); });
+}
+
+/* reveal: 'fng' shows the Fear & Greed banner for this step, in place of
+   the scaling tip if that is up, and puts the tip back afterwards. */
+var _tutFngForced = false, _tutScaleWasShown = false;
+function _tutReveal(step) {
+  var want = !!(step && step.reveal === 'fng');
+  if (want === _tutFngForced || typeof renderFearGreed !== 'function') return;
+  _tutFngForced = want;
+  var sb = document.getElementById('scale-banner');
+  if (want) {
+    _tutScaleWasShown = !!(sb && sb.classList.contains('show'));
+    if (sb) sb.classList.remove('show');
+    renderFearGreed(true);
+  } else {
+    renderFearGreed();
+    if (sb && _tutScaleWasShown) sb.classList.add('show');
+  }
 }
 
 function tutGoNext() {
@@ -420,6 +474,7 @@ function startTutorial() {
 
 function endTutorial() {
   tutActive = false;
+  _tutReveal(null);
   document.getElementById('tut-hole').style.display = 'none';
   document.getElementById('tut-box').style.display  = 'none';
   document.getElementById('tut-backdrop').classList.remove('active');
