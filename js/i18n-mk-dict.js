@@ -25,7 +25,7 @@ Object.assign(MK_TEXT, {
     '. Тоа оценување беше великодушно: ја земаше најдобрата цена достигната во период од 7 до 14 дена, каде што повик за секоја монета би постигнал околу 68%. Читајте го како горна граница, околу 8 поени подобро од случајноста.',
   'The current engine': 'Сегашниот мотор',
   'is held to a stricter test: a call counts only if the coin beats the median coin over the next 30 days, where chance is 50%. It started on 11 September, so its first results arrive from 11 October. Until then there is nothing to claim yet.':
-    'се мери со построг тест: повикот се брои само ако монетата ја надмине медијалната монета во следните 30 дена, каде што случајноста е 50%. Започна на 11 септември, па првите резултати стигнуваат од 11 октомври. Дотогаш сè уште нема што да тврдиме.',
+    'се мери со построг тест: повикот се брои само ако монетата ја надмине просечната монета во следните 30 дена, каде што случајноста е 50%. Започна на 11 септември, па првите резултати стигнуваат од 11 октомври. Дотогаш сè уште нема што да тврдиме.',
   'track what you hold and watch; warnings and notifications follow your coins': 'следете што држите и набљудувате; предупредувањата и известувањата ги следат вашите монети',
   'turn part of a holding into BTC, or any coin you prefer, and see what the swap gives you': 'претворете дел од позицијата во BTC или во монета по ваш избор и видете што ви дава замената',
   'Search': 'Пребарај', 'Settings': 'Поставки', 'Dismiss': 'Затвори', 'Close': 'Затвори',
@@ -138,7 +138,7 @@ Object.assign(MK_TEXT, {
     'See every pick, the best 20 and the worst 20 ↓': 'Видете го секој избор, најдобрите 20 и најлошите 20 ↓',
   '📬 Telegram picks, 28 Apr – 31 Aug 2026': '📬 Изборите на Telegram, 28 апр. – 31 авг. 2026',
   'The picks the bot saved each day, graded on the close 7 and 30 days later against the median coin. The best 20 and the worst 20 rotate-in picks are shown together, one per coin, then every pick. Coins with no Binance history cannot be graded and say so.':
-    'Изборите што ботот ги зачувуваше секој ден, оценети според затворањето 7 и 30 дена подоцна наспроти медијанската монета. Најдобрите 20 и најлошите 20 избори за влез се прикажани заедно, по еден за монета, а потоа секој избор. Монетите без историја на Binance не можат да се оценат и тоа е наведено.',
+    'Изборите што ботот ги зачувуваше секој ден, оценети според затворањето 7 и 30 дена подоцна наспроти просечната монета. Најдобрите 20 и најлошите 20 избори за влез се прикажани заедно, по еден за монета, а потоа секој избор. Монетите без историја на Binance не можат да се оценат и тоа е наведено.',
   'BEST 20 ROTATE-IN PICKS, 30 DAYS': 'НАЈДОБРИ 20 ИЗБОРИ ЗА ВЛЕЗ, 30 ДЕНА',
   'WORST 20 ROTATE-IN PICKS, 30 DAYS': 'НАЈЛОШИ 20 ИЗБОРИ ЗА ВЛЕЗ, 30 ДЕНА',
   'Rotate in and out': 'Влез и излез', 'Rotate in': 'Влез', 'Rotate out': 'Излез',
@@ -148,7 +148,7 @@ Object.assign(MK_TEXT, {
   'no data': 'нема податоци', 'Show more': 'Прикажи повеќе',
   '30 days': '30 дена', 'SINCE THE PICK': 'ОД ИЗБОРОТ', 'VS MEDIAN': 'НАСПРОТИ МЕДИЈАНАТА',
   'Every day the bot saved its 5 rotate-in and 5 rotate-out picks with the price of the day. Here each one is graded on the close 30 days later against the median coin, where chance is 50%. Stricter than the 76.2% beside it, and it depends on the month: June, bought near the bottom, carries most of it. The bot picked from the biggest coins, which did better than small ones in these months, so the comparison with the 100 largest is the fairer one.':
-    'Секој ден ботот ги зачувуваше своите 5 избори за влез и 5 за излез, со цената од тој ден. Тука секој е оценет според затворањето 30 дена подоцна наспроти медијанската монета, каде случајноста е 50%. Построго од 76,2% до него, и зависи од месецот: јуни, купено близу дното, носи најголем дел. Ботот избираше од најголемите монети, кои во овие месеци поминаа подобро од малите, па споредбата со 100-те најголеми е пофер.',
+    'Секој ден ботот ги зачувуваше своите 5 избори за влез и 5 за излез, со цената од тој ден. Тука секој е оценет според затворањето 30 дена подоцна наспроти просечната монета, каде случајноста е 50%. Построго од 76,2% до него, и зависи од месецот: јуни, купено близу дното, носи најголем дел. Ботот избираше од најголемите монети, кои во овие месеци поминаа подобро од малите, па споредбата со 100-те најголеми е пофер.',
   'The saved picks could not be loaded right now.': 'Зачуваните избори моментално не можат да се вчитаат.',
   /* RECORD: Telegram channel posts (HANDOVER.md Task 2, 2026-10-01) */
   '📊 Channel posts: market changes': '📊 Објави на каналот: промени на пазарот',
@@ -669,7 +669,7 @@ Object.assign(MK_TEXT, {
   'Every call, tracked.': 'Секој повик, следен.',
   'Rotator snapshots its top bullish, rotate-out and underperforming signals every day. After 30 days, we compare the call against':
     'Rotator секој ден ги зачувува своите најсилни биковски сигнали, сигнали за излез и сигнали за слаб учинок. По 30 дена, повикот го споредуваме со',
-  'the median coin over the same 30 days': 'медијанската монета во истите 30 дена',
+  'the median coin over the same 30 days': 'просечната монета во истите 30 дена',
   '— beating the market is the whole test, and half of all coins beat it by definition. The result is published here: the calls that beat it, the ones that moved our way but trailed it, and the ones that went the wrong way outright. The counter below restarted on':
     '— да се победи пазарот е целиот тест, а половина од сите монети го победуваат по дефиниција. Резултатот се објавува тука: повиците што го победија, оние што тргнаа во наша насока, но заостанаа, и оние што отидоа целосно во погрешна насока. Бројачот подолу почна одново на',
   'with scoring engine': 'со моторот за оценување',
@@ -693,9 +693,9 @@ Object.assign(MK_TEXT, {
   'scoring engine, tracking from': 'моторот за оценување на Rotator, со следење од',
   '. Engine v2 (2026-04-26 → 2026-09-07) finished on 76.2% across 863 graded calls; its record is shown separately and is not blended into the live number — 2.1.0 changed how market cap enters the score, and 2.2.0 narrowed which coins are published at all. A call is "confirmed" when the coin':
     '. Моторот v2 (2026-04-26 → 2026-09-07) заврши на 76,2% од 863 оценети повици; неговата евиденција е прикажана посебно и не е измешана со бројот во живо — 2.1.0 го промени начинот на кој пазарната капитализација влегува во резултатот, а 2.2.0 го стесни изборот на монети што воопшто се објавуваат. Повикот е „потврден“ кога монетата',
-  'beats the median coin': 'ја победува медијанската монета',
+  'beats the median coin': 'ја победува просечната монета',
   'over the 30 days following the snapshot, measured close-to-close on the same Binance daily candles for both. Half of all coins beat the median by definition, so':
-    'во 30-те дена по снимката, мерено од затворање до затворање на истите дневни свеќи од Binance за двете. Половина од сите монети ја победуваат медијаната по дефиниција, па',
+    'во 30-те дена по снимката, мерено од затворање до затворање на истите дневни свеќи од Binance за двете. Половина од сите монети се над просечната монета, која е таа во средината, па',
   '50% is the bar': '50% е прагот',
   ', and a figure below it means the calls were worse than picking at random. Calls that fail are split in two, because they say different things:':
     ', а бројка под него значи дека повиците биле полоши од случаен избор. Неуспешните повици се делат на два дела, бидејќи кажуваат различни работи:',
@@ -709,13 +709,13 @@ Object.assign(MK_TEXT, {
     'на секој повик за ротација. Обратниот повик е истите две монети по истите цени, па неговиот резултат е секогаш точно спротивен на вистинскиот повик: не можеше да ни каже ништо што бројката погоре не кажува. Правилото за ротација сега се оценува наспроти опсези запишани пред кој било повик да биде доволно стар за оценување.',
   'Engine v2 finished on': 'Моторот v2 заврши на',
   'across 863 graded calls. Graded on the best price in the window, so read it as an upper bound.': 'од 863 оценети повици. Оценето по најдобрата цена во периодот, па читајте го како горна граница.',
-  'Every call is scored against the median coin over the same 30 days, so the bar is': 'Секој повик се оценува наспроти медијанската монета во истите 30 дена, па прагот е',
+  'Every call is scored against the median coin over the same 30 days, so the bar is': 'Секој повик се оценува наспроти просечната монета во истите 30 дена, па прагот е',
   '— half of all coins beat the median by definition. Above it is skill; below it is not. The rotation record below compares two coins directly, and its bar is the same':
-    '— половина од сите монети ја победуваат медијаната по дефиниција. Над него е вештина; под него не е. Евиденцијата за ротација подолу споредува две монети директно, а нејзиниот праг е истиот',
+    '— просечната монета е таа во средината, па половина од монетите секогаш се над неа. Над него е вештина; под него не е. Евиденцијата за ротација подолу споредува две монети директно, а нејзиниот праг е истиот',
   '— measured, not assumed: random pairs over 30 days clear a positive spread 50.3% of the time.': '— измерен, не претпоставен: случајни парови за 30 дена имаат позитивна разлика во 50,3% од случаите.',
   'Nothing to show yet': 'Сè уште нема ништо за прикажување',
   'A call reaches the wins list by beating the median coin, in the direction we flagged, over the 30 days after it was made.':
-    'Повикот влегува во листата на добитни ако ја победи медијанската монета, во насоката што ја означивме, во 30-те дена откако е даден.',
+    'Повикот влегува во листата на добитни ако ја победи просечната монета, во насоката што ја означивме, во 30-те дена откако е даден.',
   'Nothing in between': 'Ништо помеѓу',
   'Every graded call either beat the market or moved against the call outright.': 'Секој оценет повик или го победи пазарот или се движеше целосно против повикот.',
   'Nothing went against us': 'Ништо не отиде против нас',
@@ -770,7 +770,7 @@ Object.assign(MK_TEXT, {
   P(/^(\d{1,2}) (Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)$/, function (m) { return m[1] + ' ' + MON[m[2]]; });
   P(/^([+−\-][\d.]+) vs mkt$/, function (m) { return m[1] + ' наспроти пазарот'; });
   P(/^Since the (\d{1,2}) (\w{3}) close: ([^,]+), market median ([^ ]+) \(([^ ]+) points\), (\d+) days?\.$/,
-    function (m) { return 'Од затворањето на ' + m[1] + ' ' + (MON[m[2]] || m[2]) + ': ' + m[3] + ', медијана на пазарот ' + m[4] + ' (' + m[5] + ' поени), ' + m[6] + ' ' + plur(m[6], 'ден', 'дена') + '.'; });
+    function (m) { return 'Од затворањето на ' + m[1] + ' ' + (MON[m[2]] || m[2]) + ': ' + m[3] + ', просек на пазарот ' + m[4] + ' (' + m[5] + ' поени), ' + m[6] + ' ' + plur(m[6], 'ден', 'дена') + '.'; });
   P(/^Since (\d{1,2}) (\w{3}): too early, the result starts after the next daily close\.$/,
     function (m) { return 'Од ' + m[1] + ' ' + (MON[m[2]] || m[2]) + ': прерано е, резултатот почнува по следното дневно затворање.'; });
   /* An alert's detail with the result sentence appended: translate the two halves. */
