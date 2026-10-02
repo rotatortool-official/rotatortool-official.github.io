@@ -171,6 +171,7 @@ a{color:inherit;text-decoration:none}
 .rot-spread{font-family:var(--font-mono);font-size:22px;font-weight:800;}
 .rot-spread.up{color:var(--green)} .rot-spread.down{color:var(--red)} .rot-spread.pending{color:var(--muted);font-size:14px;}
 .rot-verdict{font-family:var(--font-mono);font-size:11px;color:var(--muted);margin-top:6px;}
+.rot-note{font-size:11px;line-height:1.5;color:var(--amber);margin-top:8px;padding-top:8px;border-top:1px dashed var(--bdr2);}
 
 /* ── Detail modal ─────────────────────────────────────── */
 .modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:500;
@@ -674,6 +675,41 @@ a{color:inherit;text-decoration:none}
      gold shadow, hot coin -> PAXG) would have gone straight onto the
      record under its own source name. Each view now takes exactly one
      source; a new experiment is invisible here until someone adds it. */
+  /* ── Coins Binance converted into another coin (promptove/80) ──────
+     STG delists on 2026-10-06 and converts at a fixed 1 STG = 0.08634
+     ZRO. With no Binance close after that day, returnOver() returned
+     null for every call naming STG, and a null leg leaves a call
+     "pending" forever: the misses would have left the record on their
+     own, which is the same as removing them. From lastDay on, STG's
+     close is the value a holder actually has, ratio x ZRO's close.
+
+     guardFrom is the day the delisting guard went live (site e69c724).
+     Calls on the coin before it stay on the record, carry a note, and
+     the page shows the accuracy without them as a second line, never
+     instead of the headline. js/signal-history.js carries the same
+     table: keep the two in step. Add an entry only from Binance's own
+     announcement. */
+  var SETTLEMENTS = {
+    STG: { into: 'ZRO', ratio: 0.08634, lastDay: '2026-10-06', guardFrom: '2026-09-25' }
+  };
+  function applySettlements(map) {
+    Object.keys(SETTLEMENTS).forEach(function(sym) {
+      var st = SETTLEMENTS[sym], into = map[st.into];
+      if (!into || !into.length) return;
+      var cut = snapTs(st.lastDay);
+      var kept = (map[sym] || []).filter(function(c) { return c.openTime < cut; });
+      into.forEach(function(c) {
+        if (c.openTime >= cut) kept.push({ openTime: c.openTime, close: c.close * st.ratio, settled: true });
+      });
+      map[sym] = kept;
+    });
+    return map;
+  }
+  function isPreGuard(s) {
+    var st = SETTLEMENTS[s.to_sym];
+    return !!(st && s.snap_date < st.guardFrom);
+  }
+
   var LIVE_SOURCE   = 'sync-rotation-snapshot';
   var SHADOW_SOURCE = 'sync-rotation-snapshot-inverted';
   function isShadowRow(s) { return s && s.source === SHADOW_SOURCE; }
@@ -699,7 +735,8 @@ a{color:inherit;text-decoration:none}
         snap_date: s.snap_date, daysAgo: daysAgo,
         fromId: s.from_id, fromSym: s.from_sym, fromPriceThen: s.from_price, fromScore: s.from_score,
         toId: s.to_id, toSym: s.to_sym, toPriceThen: s.to_price, toScore: s.to_score,
-        fromPriceNow: priceMap[s.from_id], toPriceNow: priceMap[s.to_id]
+        fromPriceNow: priceMap[s.from_id], toPriceNow: priceMap[s.to_id],
+        preGuard: isPreGuard(s)
       };
       if (daysAgo < CONFIRM_DAYS_MIN || fromRet == null || toRet == null) { pending.push(row); return; }
       row.fromChange = Math.round(fromRet * 10) / 10;
@@ -716,10 +753,17 @@ a{color:inherit;text-decoration:none}
       evaluated.push(row);
     });
     var correct = evaluated.filter(function(r) { return r.correct; }).length;
+    /* The second line: the same grades without the pre-guard calls. */
+    var clean = evaluated.filter(function(r) { return !r.preGuard; });
+    var cleanCorrect = clean.filter(function(r) { return r.correct; }).length;
     return {
       evaluated: evaluated, pending: pending,
       stats: { total: evaluated.length, correct: correct,
-        accuracy: evaluated.length ? Math.round(correct / evaluated.length * 100) : null }
+        accuracy: evaluated.length ? Math.round(correct / evaluated.length * 100) : null,
+        preGuard: evaluated.concat(pending).filter(function(r) { return r.preGuard; }).length,
+        preGuardGraded: evaluated.length - clean.length,
+        cleanTotal: clean.length, cleanCorrect: cleanCorrect,
+        cleanAccuracy: clean.length ? Math.round(cleanCorrect / clean.length * 100) : null }
     };
   }
 
@@ -739,7 +783,9 @@ a{color:inherit;text-decoration:none}
     + '</div>'
     + '<div class="rot-scores">Called: <b>' + escape(r.fromSym) + ' ' + r.fromScore + '</b> vs <b>' + escape(r.toSym) + ' ' + r.toScore + '</b></div>'
     + spreadHtml
-    + '<div class="rot-verdict">' + (isPending ? 'Not old enough to grade yet' : (r.correct ? 'Confirmed ✓ — the target out-returned the source' : 'The source out-returned the target')) + '</div>';
+    + '<div class="rot-verdict">' + (isPending ? 'Not old enough to grade yet' : (r.correct ? 'Confirmed ✓ — the target out-returned the source' : 'The source out-returned the target')) + '</div>'
+    + (r.preGuard ? '<div class="rot-note">⚠ Made before the delisting guard (live since 25 Sep). Binance is delisting '
+        + escape(r.toSym) + ' and converting it into ' + SETTLEMENTS[r.toSym].into + ', so this call is graded at that conversion value.</div>' : '');
     card.addEventListener('click', function() { openRotationModal(r); });
     return card;
   }
@@ -993,6 +1039,7 @@ a{color:inherit;text-decoration:none}
           });
         });
       });
+      applySettlements(out);    /* STG after its delisting = its ZRO value */
       _klineMap = out;          /* for evaluate()'s synchronous lookup */
       warnIfKlinesStale(wantAll ? Object.keys(out) : unique, out);
       return out;
@@ -1064,7 +1111,12 @@ a{color:inherit;text-decoration:none}
 
   /* Pre-fetch klines in batches before evaluating, so the per-snap
      lookup is synchronous against the cache. */
-  function warmKlines(snaps) {
+  /* Rotation rows count too (2026-10-02): they were graded only once,
+     before any candles had loaded, so every rotation call would have
+     stayed "pending" past 30 days. The caller now re-grades them after
+     this resolves, and gradeable rotation rows alone are enough to
+     trigger the read. */
+  function warmKlines(snaps, rotSnaps) {
     var symbols = {};
     var oldest = null;
     snaps.forEach(function(r) {
@@ -1072,6 +1124,12 @@ a{color:inherit;text-decoration:none}
       if (daysAgo < CONFIRM_DAYS_MIN) return;
       if (r.coin_sym) symbols[r.coin_sym] = true;
       if (r.snap_date && (!oldest || r.snap_date < oldest)) oldest = r.snap_date;
+    });
+    (rotSnaps || []).forEach(function(r) {
+      if (!r || r.source !== LIVE_SOURCE || !r.snap_date || r.snap_date < TRACKING_START) return;
+      if (daysSince(r.snap_date) < CONFIRM_DAYS_MIN) return;
+      symbols[r.from_sym] = symbols[r.to_sym] = true;
+      if (!oldest || r.snap_date < oldest) oldest = r.snap_date;
     });
     var list = Object.keys(symbols);
     if (!list.length) return Promise.resolve();
@@ -1617,6 +1675,18 @@ a{color:inherit;text-decoration:none}
         + '<br><span style="color:var(--muted);font-size:12px;">Two coins picked at random clear a positive spread <b>'
         + CHANCE_ROTATION + '%</b> of the time, so that is the bar. '
         + 'The call is relative: a confirmed rotation often means both coins fell and the target fell less.</span>';
+      if (stats.preGuardGraded && stats.cleanAccuracy != null) {
+        accLine.innerHTML += '<br><span style="color:var(--muted);font-size:12px;">Without the ' + stats.preGuardGraded
+          + ' graded call' + (stats.preGuardGraded === 1 ? '' : 's') + ' on coins Binance announced for delisting, made before the delisting guard: <b style="color:var(--text);">'
+          + stats.cleanAccuracy + '%</b> (' + stats.cleanCorrect + ' of ' + stats.cleanTotal + '). The headline above keeps every call.</span>';
+      }
+    }
+    /* Said up front, before any of them is graded, so the second line
+       never appears as a surprise after the misses come in. */
+    if (stats.preGuard) {
+      var conv = Object.keys(SETTLEMENTS).map(function(k) { return k + ' into ' + SETTLEMENTS[k].into; }).join(', ');
+      accLine.innerHTML += '<br><span style="color:var(--amber);font-size:12px;">⚠ ' + stats.preGuard + ' of these calls name a coin Binance is delisting and were made before the delisting guard went live on 25 Sep. '
+        + 'They stay on the record, graded at the conversion value (' + conv + ').</span>';
     }
 
     var grid  = document.getElementById('rot-grid');
@@ -1646,20 +1716,22 @@ a{color:inherit;text-decoration:none}
       var mcapMap  = pricePack.mcapMap  || {};
       var rotSnaps = vals[2] || [];
 
-      renderRotation(evaluateRotation(rotSnaps, priceMap, false));
+      function gradeRotation() { renderRotation(evaluateRotation(rotSnaps, priceMap, false)); }
+      gradeRotation();
       renderShadow();
 
       if (!snaps.length) {
         var pct = document.getElementById('acc-pct');
         pct.textContent = '—';
         document.getElementById('acc-detail').textContent = trackingLine();
-        return;
+        return warmKlines([], rotSnaps).then(gradeRotation);
       }
       /* Render current-price-only result first for fast paint, then
          warm Binance klines and re-render with the locked verdicts. */
       render(evaluate(snaps, priceMap, mcapMap));
-      return warmKlines(snaps).then(function() {
+      return warmKlines(snaps, rotSnaps).then(function() {
         render(evaluate(snaps, priceMap, mcapMap));
+        gradeRotation();
       });
     })
     .catch(function(e) {

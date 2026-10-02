@@ -487,6 +487,27 @@ var SignalHistory = (function() {
      that point at each other; on 2026-09-17 that arrangement produced
      five bugs in one day, so if one of these moves, move both. */
   var _relKlines = {};
+  /* Coins Binance converted into another coin: after lastDay the coin's
+     close is ratio x the new coin's close, what a holder actually has.
+     Without it a pair on STG has no close after 2026-10-06 and is
+     skipped below, so its miss would quietly leave the count.
+     KEEP IN SYNC with SETTLEMENTS in track-record.html (promptove/80). */
+  var _SETTLEMENTS = {
+    STG: { into: 'ZRO', ratio: 0.08634, lastDay: '2026-10-06' }
+  };
+  function _applySettlements(map) {
+    Object.keys(_SETTLEMENTS).forEach(function(sym) {
+      var st = _SETTLEMENTS[sym], into = map[st.into];
+      if (!into || !into.length) return;
+      var cut = _snapTs(st.lastDay);
+      var kept = (map[sym] || []).filter(function(c) { return c.openTime < cut; });
+      into.forEach(function(c) {
+        if (c.openTime >= cut) kept.push({ openTime: c.openTime, close: c.close * st.ratio, settled: true });
+      });
+      map[sym] = kept;
+    });
+    return map;
+  }
   var _relLoaded = false;
   var _relWarmStarted = false;
   var _marketRetCache = {};
@@ -564,7 +585,7 @@ var SignalHistory = (function() {
     });
     if (!oldest) return Promise.resolve();
     return supaLoadDailyKlines(null, oldest + 'T00:00:00Z').then(function(map) {
-      _relKlines = map || {};
+      _relKlines = _applySettlements(map || {});
       _marketRetCache = {};
       _relLoaded = true;
       try { render(); } catch (e) {}

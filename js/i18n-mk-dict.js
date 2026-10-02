@@ -752,6 +752,11 @@ Object.assign(MK_TEXT, {
 (function () {
   var P = function (re, fn) { MK_PATTERNS.push([re, fn]); };
   var plur = function (k, one, many) { return Number(k) === 1 ? one : many; };
+  /* Pre-guard STG calls on the record (promptove/80). */
+  P(/^(\d+) of these calls name a coin Binance is delisting and were made before the delisting guard went live on 25 Sep\. They stay on the record, graded at the conversion value \((.+)\)\.$/, function (m) { return m[1] + ' од овие повици се за монета што Binance ја отстранува од листата и се дадени пред заштитата за отстранување да проработи на 25 сеп. Остануваат во евиденцијата и се оценуваат по вредноста на конверзијата (' + m[2].replace(/ into /g, ' во ') + ').'; });
+  P(/^Made before the delisting guard \(live since 25 Sep\)\. Binance is delisting ([A-Z0-9]+) and converting it into ([A-Z0-9]+), so this call is graded at that conversion value\.$/, function (m) { return 'Даден пред заштитата за отстранување од листата (активна од 25 сеп). Binance го отстранува ' + m[1] + ' од листата и го претвора во ' + m[2] + ', па овој повик се оценува по вредноста на таа конверзија.'; });
+  P(/^Without the (\d+) graded calls? on coins Binance announced for delisting, made before the delisting guard:$/, function (m) { return 'Без ' + m[1] + ' ' + plur(m[1], 'оценет повик', 'оценети повици') + ' за монети што Binance ги најави за отстранување од листата, дадени пред заштитата:'; });
+  P(/^\((\d+) of (\d+)\)\. The headline above keeps every call\.$/, function (m) { return '(' + m[1] + ' од ' + m[2] + '). Бројката погоре ги задржува сите повици.'; });
   P(/^(\d+) calls recorded, none old enough to grade yet \(needs 30\+ days\)\.$/, function (m) { return m[1] + ' повици се запишани, ниту еден сè уште не е доволно стар за оценување (потребни се 30+ дена).'; });
   P(/^(\d+) calls?$/, function (m) { return m[1] + ' ' + plur(m[1], 'повик', 'повици'); });
   P(/^(\d+)d ago$/, function (m) { return 'пред ' + m[1] + 'д'; });
