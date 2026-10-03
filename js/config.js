@@ -142,6 +142,27 @@ var ROTATOR_EVIDENCE = {
                      rsiSlowReclaim:  { verdict: 'few',      n: 59 },
                      rsiOversold:     { verdict: 'noedge' } },
 
+  /* ── Binance Seed coins ──────────────────────────────────────────
+     rotator-backtest/dilution-test.js, pre-registered 2026-10-03 and
+     committed (ee84210) before it ran: 277 coins, 2021-01 to 2026-09,
+     14-day cooldown, 30-day return against the median coin. Seed = the
+     tag Binance carries today (applied to the whole history; no free
+     source keeps its past).
+
+       Seed coin in the top 20% by 30d return    beat the median 39.8%
+         (n 1,166; both halves 38.7 / 39.9; t -5.2)   PASSED
+       Seed coin in the bottom 20% by 60d return  beat the median 41.4%
+         (n 1,453) -- but the pre-registered test was AGAINST other
+         laggards, and in 2021-23 the gap was too small: FAILED. The
+         41.4% is a fact about Seed laggards, not a passed test.
+
+     The tile label (seedNote in signals.js) states these as history and
+     makes no call. A live shadow grades the pump rule from 2026-10-03
+     (SHADOWS.md, '-dilution-out'). promptove/82. */
+  seedCoins:       { measuredOn: '2026-10-03', since: 2021, n: 1166,
+                     pumpShare: 20, pumpBeatPct: 39.8,
+                     laggardBeatPct: 41.4, laggardN: 1453 },
+
   /* ── US spot ETF flows (Farside Investors) ─────────────────────────
      rotator-backtest/etf-flow-test.js, pre-registered 2026-09-26, 695
      trading days of BTC ETF flows. Nothing passed. The 5-day flow moved

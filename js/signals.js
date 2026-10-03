@@ -211,6 +211,7 @@ function sigTile(c, kind) {
       + '<div class="sig-stat"><span class="sig-stat-l">SENT</span><span class="sig-stat-v ' + sentCls + '">' + sentLabel + '</span></div>'
       + '<div class="sig-stat"><span class="sig-stat-l">SCR</span><span class="sig-stat-v '  + scC  + '">' + c.score + '</span></div>'
     + '</div>'
+    + seedNote(c)
     + '</div>';
 }
 
@@ -295,6 +296,40 @@ function _isExchangeFlagged(c) {
   if (typeof delistedSymbols   !== 'undefined' && delistedSymbols.has(c.sym))   return true;
   if (typeof monitoringSymbols !== 'undefined' && monitoringSymbols.has(c.sym)) return true;
   return false;
+}
+
+/* ── Seed label (promptove/82) ───────────────────────────────────
+   Binance's Seed tag marks an early-stage, higher-risk project. In the
+   2021-2026 test, a Seed coin that had just run into the top 20% by
+   30-day return went on to trail the median coin over the next month
+   about 6 times in 10 — the one sell-side rule there that passed.
+
+   A LABEL, not a call: no list is filtered or reordered by it. Which of
+   the two sentences shows depends on where the coin stands now, and the
+   numbers come from ROTATOR_EVIDENCE.seedCoins, never from this file.
+   Renders nothing when the tags or the evidence are missing. */
+function _isSeed(c) {
+  return !!(c && c.sym && typeof binanceTags !== 'undefined'
+    && Array.isArray(binanceTags[c.sym]) && binanceTags[c.sym].indexOf('Seed') >= 0);
+}
+function _inTopP30(c, share) {
+  if (!c || c.p30 == null || typeof coins === 'undefined') return false;
+  var xs = coins.filter(function(x) { return !x.isStock && x.p30 != null; })
+                .map(function(x) { return x.p30; }).sort(function(a, b) { return b - a; });
+  if (!xs.length) return false;
+  return c.p30 >= xs[Math.max(0, Math.ceil(xs.length * share / 100) - 1)];
+}
+function seedNote(c) {
+  var ev = (typeof ROTATOR_EVIDENCE !== 'undefined') && ROTATOR_EVIDENCE.seedCoins;
+  if (!ev || !_isSeed(c)) return '';
+  var pumped = _inTopP30(c, ev.pumpShare);
+  var inTen = Math.round((100 - (pumped ? ev.pumpBeatPct : ev.laggardBeatPct)) / 10);
+  var text = pumped
+    ? c.sym + ' is a Seed coin (Binance: early-stage, higher risk). Since ' + ev.since
+      + ', Seed coins after a run like this trailed the average coin over the next month ' + inTen + ' times in 10.'
+    : c.sym + ' is a Seed coin (Binance: early-stage, higher risk). Since ' + ev.since
+      + ', Seed coins that had fallen behind kept trailing the average coin ' + inTen + ' times in 10.';
+  return '<div class="sig-tile-note" style="color:var(--amber);">⚠ ' + _esc(text) + '</div>';
 }
 
 /* ── Listed, but never put forward (HANDOVER.md Task 1, engine 2.11.0) ──
@@ -522,6 +557,7 @@ function buySuggestTile(c) {
       + c.sym + ' has lagged the market — this is the amplifying end of the book.'
     + '</div>'
     + (isHeld ? '<div class="sig-tile-note">Already in your holdings.</div>' : '')
+    + seedNote(c)
     + '</div>';
 }
 
@@ -604,6 +640,7 @@ function takeProfitTile(c) {
     + '<div class="sig-tile-note">'
       + 'You hold ' + c.sym + ' and it scores near the top of the range. Information, not a call to sell.'
     + '</div>'
+    + seedNote(c)
     + '</div>';
 }
 
@@ -658,6 +695,7 @@ function sigRotTile(sell, buy) {
       + '<span class="hi">' + sell.sym + '</span> has run ahead and '
       + '<span class="hi">' + buy.sym + '</span> has lagged it. Information, not a call.'
     + '</div>'
+    + seedNote(sell) + seedNote(buy)
     + '</div>';
 }
 

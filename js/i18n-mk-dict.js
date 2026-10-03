@@ -533,6 +533,10 @@ Object.assign(MK_TEXT, {
   P(/^Has lagged · no turn-up signs yet$/, function () { return 'Заостанала · сè уште без знаци за свртување нагоре'; });
   P(/^Middle of the pack · (\d+) up, (\d+) down$/, function (m) { return 'Во средината · ' + m[1] + ' нагоре, ' + m[2] + ' надолу'; });
   P(/^Middle of the pack · no turn signs$/, function () { return 'Во средината · без знаци за свртување'; });
+
+  /* Seed label on the signal tiles (promptove/82) */
+  P(/^([A-Z0-9]+) is a Seed coin \(Binance: early-stage, higher risk\)\. Since (\d{4}), Seed coins after a run like this trailed the average coin over the next month (\d+) times in 10\.$/, function (m) { return m[1] + ' е Seed монета (според Binance: проект во рана фаза, поризичен). Од ' + m[2] + ', Seed монетите по ваков раст заостанаа зад просечната монета во следниот месец ' + m[3] + ' пати од 10.'; });
+  P(/^([A-Z0-9]+) is a Seed coin \(Binance: early-stage, higher risk\)\. Since (\d{4}), Seed coins that had fallen behind kept trailing the average coin (\d+) times in 10\.$/, function (m) { return m[1] + ' е Seed монета (според Binance: проект во рана фаза, поризичен). Од ' + m[2] + ', Seed монетите што веќе заостанале продолжија да заостануваат зад просечната монета ' + m[3] + ' пати од 10.'; });
   P(/^None of these signs has passed its test yet\. The closest, the quick RSI bounce, beat the market ([\d.]+)% of the time against ([\d.]+)% for a random pick\.( Highlighted chips are the tested ones\.)? A reading, not a forecast\.$/,
     function (m) { return 'Ниту еден од овие знаци сè уште не го помина својот тест. Најблискиот, брзиот RSI отскок, го победи пазарот во ' + m[1] + '% од случаите наспроти ' + m[2] + '% за случаен избор.' + (m[3] ? ' Истакнатите ознаки се тестираните.' : '') + ' Читање, не прогноза.'; });
   /* Evidence chips */
