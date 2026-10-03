@@ -4407,8 +4407,8 @@ function _buildRowTip(row, cx, cy) {
 
 /* ── Feeling the pulse (Daniel, 2026-10-03) ─────────────────────────
    A mouse that rests 3 seconds on a TODAY or momentum tile gets a green
-   heart-monitor trace across the tile at the cursor's height, beating at
-   the page's 70 a minute (styles.css, "Market pulse"). Any real movement
+   heart-monitor trace in the tile's empty space, beating at the page's
+   42 a minute (styles.css, "Market pulse"). Any real movement
    (4px+) or leaving the tile lifts it. Mouse devices only, and never with
    reduced motion asked for. */
 /* One beat in a 60-wide cell, baseline at 20 of 40: flat, P bump, Q dip,
@@ -4454,9 +4454,7 @@ function _hbEcgSvg() {
       glow = document.createElement('span');
       glow.className = 'hb-ecg';
       glow.innerHTML = _hbEcgSvg();
-      /* At the cursor's height, kept inside the tile. */
-      glow.style.top = Math.max(17, Math.min(r.height - 17, ly - r.top)) + 'px';
-      h.appendChild(glow);
+      h.appendChild(glow);   /* placed by CSS in the tile's empty space */
     }, 3000);
   }, { passive: true });
   document.addEventListener('mouseleave', function () { lift(); tile = null; });

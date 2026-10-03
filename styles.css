@@ -4801,22 +4801,23 @@ details.td-reading-trust[open] > summary::before{content:'▾ ';}
 
 /* ── Market pulse (Daniel, 2026-10-03) ───────────────────────────────
    "We track the market pulse with this tool": a heartbeat, lub-dub then a
-   rest. Tiles, the loader heart and the monitor line beat at 70 a minute
-   (0.857s): a resting heart plus a little excitement, Daniel's call
-   ("resting +5 beats ... not 120"). The lens rail stays at its own slower
-   2.6s, set separately. Three places, all subtle:
+   rest. The tiles and the monitor line beat at 42 a minute (1.43s), a
+   calm resting heart (Daniel: 70 felt fast; "if it was 46 let it be now
+   42"). The lens rail stays at its own slower 2.6s, set separately.
+   Three places, all subtle:
      1. the SORT lens buttons beat in turn down the rail until a visitor
         has used one (class .lens-pulse, set in renderLensRail);
      2. a TODAY or momentum tile beats while the mouse is on it;
      3. a mouse resting 3 seconds on a tile "feels the pulse": a green
-        heart-monitor trace scrolls across the tile at the cursor's height
-        (js/data-loaders.js, _hbListen).
+        heart-monitor trace scrolls in the tile's empty space (beside the
+        big number on TODAY tiles, between name and badge on momentum
+        tiles), never over the text (js/data-loaders.js, _hbListen).
    None of it runs with reduced motion asked for. `scale` (not transform)
    so the beat stacks on the tiles' own lift and tilt. */
-/* Lub at 12%, dub at 38%, rest from 55%: at 0.857s that is ~100ms and
-   ~330ms into the beat, close to a real S1-S2. */
+/* Lub at 8%, dub at 24%, rest from 36%: at 1.43s that is ~115ms and
+   ~340ms into the beat, close to a real S1-S2. */
 @keyframes hbBeat{
-  0%{scale:1;} 12%{scale:1.014;} 25%{scale:1;} 38%{scale:1.008;} 55%,100%{scale:1;}
+  0%{scale:1;} 8%{scale:1.014;} 16%{scale:1;} 24%{scale:1.008;} 36%,100%{scale:1;}
 }
 @keyframes hbRail{
   0%,45%,100%{border-color:var(--bdr);box-shadow:none;}
@@ -4836,22 +4837,24 @@ details.td-reading-trust[open] > summary::before{content:'▾ ';}
 .lens-rail .lens-btn:nth-of-type(5){--hb-d:.96s;}
 .lens-rail .lens-btn:nth-of-type(6){--hb-d:1.20s;}
 .lens-rail.lens-pulse .lens-btn:hover{animation:none;}
-.sig-tile:not(.sig-tile-empty):hover{animation:hbBeat .857s ease-in-out infinite;}
-.bf-cell.hovering .bf-tilt{animation:hbBeat .857s ease-in-out infinite;}
+.sig-tile:not(.sig-tile-empty):hover{animation:hbBeat 1.43s ease-in-out infinite;}
+.bf-cell.hovering .bf-tilt{animation:hbBeat 1.43s ease-in-out infinite;}
 .bf-face{overflow:hidden;}
 .hb-ecg{
-  /* The left half of the tile only (Daniel, 2026-10-03). Two beats still
-     span the strip, so at the same 70 a minute the trace moves at half
-     the speed it did across the full width. */
-  position:absolute;left:0;width:50%;height:34px;margin-top:-17px;overflow:hidden;
+  /* 10% smaller than the first version (31px tall, 45% wide) and placed in
+     the tile's empty space, not at the cursor (Daniel, 2026-10-03). */
+  position:absolute;width:45%;height:31px;overflow:hidden;
   pointer-events:none;z-index:3;
   -webkit-mask-image:linear-gradient(to right, transparent, #000 18%, #000 82%, transparent);
           mask-image:linear-gradient(to right, transparent, #000 18%, #000 82%, transparent);
   animation:hbEcgIn .4s ease-out both;
 }
-/* Two copies of two beats; one beat spans half the tile, so the strip
-   moves two beats (1.714s) per loop. */
-.hb-ecg svg{display:block;width:200%;height:100%;animation:hbEcgScroll 1.714s linear infinite;}
+/* TODAY tile: right of the big number, under the 30D button. */
+.bf-face .hb-ecg{right:8px;top:26px;}
+/* Momentum tile: the gap in the top row between coin name and badge. */
+.sig-tile .hb-ecg{left:34%;width:36%;top:2px;height:28px;}
+/* Two copies of two beats; the strip moves two beats (2.86s) per loop. */
+.hb-ecg svg{display:block;width:200%;height:100%;animation:hbEcgScroll 2.86s linear infinite;}
 .hb-ecg path{fill:none;stroke:#2ee88a;stroke-width:1.6;stroke-linejoin:round;stroke-linecap:round;
   vector-effect:non-scaling-stroke;filter:drop-shadow(0 0 3px rgba(46,232,138,.7));}
 :root.light .hb-ecg path{stroke:#0a9f55;filter:drop-shadow(0 0 2px rgba(10,159,85,.45));}
@@ -4869,10 +4872,13 @@ details.td-reading-trust[open] > summary::before{content:'▾ ';}
   color:#f3ba2f;letter-spacing:.02em;
 }
 #load-pulse-txt{transition:opacity .3s ease;}
-.lp-heart{display:inline-block;font-size:17px;line-height:1;color:#f3ba2f;animation:lpHeart .857s ease-in-out infinite;}
-@keyframes lpHeart{
-  0%{transform:scale(1);opacity:.75;} 12%{transform:scale(1.28);opacity:1;}
-  25%{transform:scale(1);opacity:.8;} 38%{transform:scale(1.16);opacity:.95;}
-  55%,100%{transform:scale(1);opacity:.75;}
-}
-@media (prefers-reduced-motion: reduce){ .lp-heart{animation:none;} #load-pulse-txt{transition:none;} }
+/* The green monitor trace, drawn ONCE: three beats at 42 a minute
+   (4.3s), then it stays as a still line (Daniel: "only once ... not
+   more than 3 times"). pathLength=1 makes the dash maths unitless. */
+.lp-ecg{display:inline-block;width:84px;height:22px;flex:0 0 auto;}
+.lp-ecg svg{display:block;width:100%;height:100%;overflow:visible;}
+.lp-ecg path{fill:none;stroke:#2ee88a;stroke-width:1.6;stroke-linejoin:round;stroke-linecap:round;
+  vector-effect:non-scaling-stroke;filter:drop-shadow(0 0 3px rgba(46,232,138,.7));
+  stroke-dasharray:1;stroke-dashoffset:1;animation:lpDraw 4.3s linear forwards;}
+@keyframes lpDraw{ to{stroke-dashoffset:0;} }
+@media (prefers-reduced-motion: reduce){ .lp-ecg path{animation:none;stroke-dashoffset:0;} #load-pulse-txt{transition:none;} }
