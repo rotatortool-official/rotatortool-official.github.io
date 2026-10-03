@@ -433,9 +433,88 @@ Deno.serve(async (req) => {
       dilNote = msg;
     }
 
+    // ── SHADOW 5: funding, hidden (added 2026-10-03, promptove/83) ─────
+    // Every perpetual's 7-day mean funding, normalised to 8 hours as the
+    // backtest did (take-profit-followups.js, test (a)), into
+    // funding_shadow_daily. Hot = >= 0.03% per 8h; everything else is the
+    // same-day control, so all perpetuals are written. The backtest FAILED
+    // its bar (the 2021-23 half was too weak) and Daniel asked for a
+    // hidden live record. Graded by rotator-backtest/funding-verdict.js.
+    // Nothing on the site reads the table. Fails soft.
+    let fundSynced = 0;
+    let fundNote: string | null = null;
+    try {
+      const { data: means, error: mErr } = await supabase.rpc('funding_7d_means');
+      if (mErr) throw new Error('funding_7d_means: ' + mErr.message);
+      const { data: metr, error: fmErr } = await supabase
+        .from('binance_futures_metrics').select('symbol,base_asset,long_short_ratio');
+      if (fmErr) throw new Error('futures metrics: ' + fmErr.message);
+      const meta = new Map((metr ?? []).map((r: { symbol: string; base_asset: string; long_short_ratio: number | null }) => [r.symbol, r]));
+
+      /* Binance lists only the symbols whose interval is NOT the default 8h. */
+      const interval = new Map<string, number>();
+      try {
+        const r = await fetch('https://fapi.binance.com/fapi/v1/fundingInfo');
+        const fi = r.ok ? await r.json() : null;
+        if (Array.isArray(fi)) {
+          for (const x of fi) {
+            if (x.symbol && x.fundingIntervalHours) interval.set(x.symbol, Number(x.fundingIntervalHours));
+          }
+        } else {
+          fundNote = 'fundingInfo unavailable; every symbol treated as 8h';
+        }
+      } catch { fundNote = 'fundingInfo unavailable; every symbol treated as 8h'; }
+
+      /* 60-day return from the daily candles, keyed by SPOT symbol
+         (1000PEPE on futures is PEPE on spot; the return is the same). */
+      const spotOf = (b: string) => b.replace(/^(1000000|1000|1M)(?=[A-Z])/, '');
+      const { data: lastK } = await supabase.from('binance_daily_klines')
+        .select('open_time').order('open_time', { ascending: false }).limit(1);
+      const ret60 = new Map<string, number>();
+      if (lastK?.length) {
+        const d1 = lastK[0].open_time as string;
+        const d0 = new Date(Date.parse(d1) - 60 * 86400000).toISOString();
+        const { data: ks } = await supabase.from('binance_daily_klines')
+          .select('base_asset,open_time,close').in('open_time', [d0, d1]);
+        const c0 = new Map<string, number>(), c1 = new Map<string, number>();
+        for (const k of ks ?? []) (Date.parse(k.open_time) === Date.parse(d1) ? c1 : c0).set(k.base_asset, Number(k.close));
+        for (const [b, v] of c1) { const p = c0.get(b); if (p && p > 0) ret60.set(b, v / p - 1); }
+      }
+
+      const fundRows = [];
+      for (const m of (means ?? []) as { symbol: string; mean_rate: number; hours_seen: number }[]) {
+        const fm = meta.get(m.symbol);
+        if (!fm) continue;
+        const ih = interval.get(m.symbol) ?? 8;
+        fundRows.push({
+          snap_date:        today,
+          base_asset:       fm.base_asset,
+          symbol:           m.symbol,
+          funding_7d_8h:    Number(m.mean_rate) * 8 / ih,
+          funding_7d_raw:   Number(m.mean_rate),
+          interval_hours:   ih,
+          hours_seen:       m.hours_seen,
+          ret_60d:          ret60.get(spotOf(fm.base_asset)) ?? null,
+          long_short_ratio: fm.long_short_ratio,
+        });
+      }
+      if (fundRows.length) {
+        const { error: fErr } = await supabase.from('funding_shadow_daily')
+          .upsert(fundRows, { onConflict: 'snap_date,base_asset' });
+        if (fErr) throw new Error('upsert failed: ' + fErr.message);
+        fundSynced = fundRows.length;
+      }
+    } catch (e) {
+      const msg = e instanceof Error ? e.message : String(e);
+      console.warn('[sync-rotation-snapshot] funding shadow failed, live pairs unaffected:', msg);
+      fundNote = msg;
+    }
+
     return new Response(
       JSON.stringify({
         synced: pairs.length,
+        funding_synced: fundSynced,
+        funding_note: fundNote,
         dilution_out_synced: dilOut,
         dilution_in_synced: dilIn,
         dilution_flags: dilFlags,
