@@ -2622,9 +2622,11 @@ td.qa-cell{text-align:center;width:28px;padding:0 4px !important;}
 :root.light tbody tr.held{background:rgba(0,153,110,.10);}
 :root.light tbody tr.held:hover{background:rgba(0,153,110,.18) !important;outline:1px solid rgba(0,153,110,.15);}
 /* Dark-mode explicit row colors — prevents ghost on theme switch */
-:root:not(.light) tbody tr:nth-child(odd){background:rgba(255,255,255,.025);}
+/* Made stronger 2026-10-03 (Daniel: dark rows "barely noticed"; light was
+   fine). Stripe .025 -> .05, hover .06 -> .14 with a thin amber edge. */
+:root:not(.light) tbody tr:nth-child(odd){background:rgba(255,255,255,.05);}
 :root:not(.light) tbody tr:nth-child(even){background:transparent;}
-:root:not(.light) tbody tr:hover{background:rgba(130,170,220,.06) !important;outline:1px solid rgba(130,170,220,.06);}
+:root:not(.light) tbody tr:hover{background:rgba(130,170,220,.14) !important;outline:1px solid rgba(130,170,220,.12);box-shadow:inset 3px 0 0 rgba(243,186,47,.6);}
 :root.light .tbl-head{background:rgb(195,235,220);}
 :root.light .cat-bar{background:rgb(210,240,228);}
 :root.light .cat-tab{border-color:rgba(0,0,0,.1);color:rgba(0,0,0,.45);background:rgba(255,255,255,.6);box-shadow:0 1px 3px rgba(0,0,0,.1),inset 0 1px 0 rgba(255,255,255,.8);}
@@ -3916,6 +3918,15 @@ header{position:sticky;top:0;z-index:100;}
   transition:transform .6s cubic-bezier(.3,.7,.3,1);
 }
 .bf-cell.flipped .bf-inner{transform:rotateY(180deg);}
+/* A short glow when a tile lands on its new side (2026-10-03). Fired from
+   the flip's transitionend, so with reduced motion (no transition) it
+   never runs. */
+@keyframes bfFlash{
+  0%  {box-shadow:inset 0 0 0 1px rgba(243,186,47,0);}
+  25% {box-shadow:inset 0 0 0 1px rgba(243,186,47,.6), inset 0 0 18px rgba(243,186,47,.12);}
+  100%{box-shadow:inset 0 0 0 1px rgba(243,186,47,0);}
+}
+.bf-cell.bf-flash .bf-face{animation:bfFlash .7s ease-out;}
 .bf-face{
   background:var(--bg2);padding:10px 16px 11px;
   backface-visibility:hidden;-webkit-backface-visibility:hidden;
@@ -4431,7 +4442,14 @@ header{background:var(--bg2);}
 .tw-col-hd.down{color:var(--amber);}
 .tw-n{color:var(--muted);font-weight:600;margin-left:4px;}
 .tw-row{all:unset;box-sizing:border-box;cursor:pointer;display:grid;grid-template-columns:auto auto 1fr;align-items:center;gap:4px 10px;width:100%;padding:7px 6px;border-bottom:1px solid var(--bdr);border-radius:4px;}
-.tw-row:hover{background:var(--bg3);}
+/* Stripe, and a hover that reads as "there is more here": a lighter
+   background, a 2px nudge and an amber edge (2026-10-03). */
+.tw-row{transition:background-color .15s ease-out, transform .15s ease-out, box-shadow .15s ease-out;}
+.tw-col .tw-row:nth-of-type(even){background:rgba(255,255,255,.03);}
+.tw-row:hover{background:rgba(255,255,255,.08) !important;transform:translateX(2px);box-shadow:inset 3px 0 0 rgba(243,186,47,.6);}
+:root.light .tw-col .tw-row:nth-of-type(even){background:rgba(0,0,0,.025);}
+:root.light .tw-row:hover{background:rgba(0,0,0,.055) !important;}
+@media (prefers-reduced-motion: reduce){ .tw-row:hover{transform:none;} }
 .tw-row:focus-visible{outline:2px solid var(--amber);}
 .tw-sym{font-family:var(--font-mono);font-size:13px;font-weight:700;color:var(--text);white-space:nowrap;}
 .tw-held{font-family:var(--font-ui);font-size:9px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--bnb);margin-left:5px;}

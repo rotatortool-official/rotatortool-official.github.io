@@ -1754,6 +1754,24 @@ function renderBriefing() {
   for (var ci = 0; ci < cs.length; ci++) _bfApply(cs[ci], cs[ci].classList.contains('flipped'));
   _bfSyncSeg(host);
   _bfWireTilt(host);
+  _bfWireFlash(host);
+}
+/* A short glow as each tile lands on its new side. Only the flip's own
+   transform transition fires it (the tilt's is on another element). */
+function _bfWireFlash(host) {
+  var inners = host.querySelectorAll('.bf-inner');
+  for (var i = 0; i < inners.length; i++) {
+    (function (inner) {
+      var cell = inner.closest('.bf-cell');
+      inner.addEventListener('transitionend', function (e) {
+        if (e.target !== inner || e.propertyName !== 'transform') return;
+        cell.classList.remove('bf-flash');
+        void cell.offsetWidth;            /* restart the animation */
+        cell.classList.add('bf-flash');
+      });
+      cell.addEventListener('animationend', function () { cell.classList.remove('bf-flash'); });
+    })(inners[i]);
+  }
 }
 
 /* ── TODAY tiles: 7D/30D flip and hover tilt (Daniel, 2026-10-03) ──
