@@ -874,4 +874,5 @@ Object.assign(MK_TEXT, {
   'Install the app to play lo-fi, jazz and synthwave while you watch the market': 'Инсталирајте ја апликацијата за да слушате лофи, џез и синтвејв додека го следите пазарот',
   'Sleep': 'За спиење', 'Stop and close': 'Стопирај и затвори',
   'Music by': 'Музика од', 'on YouTube': 'на YouTube',
+  'Drag to move': 'Повлечете за да го преместите', 'Smaller': 'Помало', 'Bigger': 'Поголемо',
 });

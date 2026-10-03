@@ -64,15 +64,84 @@ function _radioPanel() {
   p.id = 'radio-player';
   p.className = 'radio-player';
   p.innerHTML =
-      '<div class="radio-hdr">'
+      '<div class="radio-hdr" title="Drag to move">'
+    +   '<span class="radio-grip" aria-hidden="true">⠿</span>'
     +   '<span class="radio-title">🎧 Lofi Girl radio</span>'
-    +   '<button class="radio-x" onclick="radioStop()" title="Stop and close" aria-label="Stop and close">×</button>'
+    +   '<button class="radio-btn radio-min" onclick="radioCompact()" title="Smaller" aria-label="Smaller">–</button>'
+    +   '<button class="radio-btn radio-x" onclick="radioStop()" title="Stop and close" aria-label="Stop and close">×</button>'
     + '</div>'
     + '<div class="radio-chips" id="radio-chips"></div>'
     + '<div class="radio-frame" id="radio-frame"></div>'
     + '<div class="radio-credit">Music by <a href="https://www.youtube.com/@LofiGirl" target="_blank" rel="noopener">Lofi Girl</a> on YouTube</div>';
   document.body.appendChild(p);
+  _radioApplyLayout(p);
+  _radioDraggable(p);
   return p;
+}
+
+/* ── Smaller, and in any corner (Daniel, 2026-10-03) ──────────────
+   Compact keeps only a thin bar and the video. The video never goes
+   below 200px tall (YouTube's minimum), so "smaller" is as small as
+   the rules allow; hiding it while it plays is not allowed. Drag the
+   bar and the player snaps to the nearest corner; both choices are
+   remembered per browser. */
+function _radioPref(k, dflt) {
+  try { return localStorage.getItem(k) || dflt; } catch (e) { return dflt; }
+}
+function _radioApplyLayout(p) {
+  var compact = _radioPref('rot_radio_compact', '0') === '1';
+  var corner = _radioPref('rot_radio_corner', 'br');
+  p.classList.toggle('compact', compact);
+  p.classList.remove('c-tl', 'c-tr', 'c-bl', 'c-br');
+  p.classList.add('c-' + corner);
+  p.style.left = p.style.top = p.style.right = p.style.bottom = '';
+  var b = p.querySelector('.radio-min');
+  if (b) {
+    b.textContent = compact ? '+' : '–';
+    b.title = compact ? 'Bigger' : 'Smaller';
+    b.setAttribute('aria-label', b.title);
+  }
+}
+function radioCompact() {
+  var on = _radioPref('rot_radio_compact', '0') !== '1';
+  try { localStorage.setItem('rot_radio_compact', on ? '1' : '0'); } catch (e) {}
+  var p = document.getElementById('radio-player');
+  if (p) _radioApplyLayout(p);
+}
+function _radioDraggable(p) {
+  var hdr = p.querySelector('.radio-hdr');
+  var sx, sy, ox, oy, moved = false, dragging = false;
+  hdr.addEventListener('pointerdown', function (e) {
+    if (e.target.closest('button')) return;
+    var r = p.getBoundingClientRect();
+    sx = e.clientX; sy = e.clientY; ox = r.left; oy = r.top;
+    dragging = true; moved = false;
+    p.classList.add('dragging');   /* the video ignores the pointer while dragging */
+    try { hdr.setPointerCapture(e.pointerId); } catch (x) {}
+  });
+  hdr.addEventListener('pointermove', function (e) {
+    if (!dragging) return;
+    var dx = e.clientX - sx, dy = e.clientY - sy;
+    if (!moved && Math.abs(dx) + Math.abs(dy) < 4) return;
+    moved = true;
+    var w = p.offsetWidth, h = p.offsetHeight;
+    p.style.right = p.style.bottom = 'auto';
+    p.style.left = Math.max(0, Math.min(window.innerWidth - w, ox + dx)) + 'px';
+    p.style.top = Math.max(0, Math.min(window.innerHeight - h, oy + dy)) + 'px';
+  });
+  var end = function () {
+    if (!dragging) return;
+    dragging = false;
+    p.classList.remove('dragging');
+    if (!moved) return;
+    var r = p.getBoundingClientRect();
+    var corner = (r.top + r.height / 2 < window.innerHeight / 2 ? 't' : 'b')
+               + (r.left + r.width / 2 < window.innerWidth / 2 ? 'l' : 'r');
+    try { localStorage.setItem('rot_radio_corner', corner); } catch (x) {}
+    _radioApplyLayout(p);
+  };
+  hdr.addEventListener('pointerup', end);
+  hdr.addEventListener('pointercancel', end);
 }
 
 function radioPlay(key) {

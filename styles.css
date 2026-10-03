@@ -4896,11 +4896,24 @@ details.td-reading-trust[open] > summary::before{content:'▾ ';}
 /* ── Lofi Girl radio (js/radio.js, 2026-10-03) ─────────────────────
    The player stays visible while it plays (YouTube's embed terms):
    at least 200px tall, no hidden or audio-only mode. */
-.radio-player{position:fixed;right:16px;bottom:16px;z-index:450;width:372px;max-width:calc(100vw - 32px);background:var(--bg2);border:1px solid var(--bdr2);border-radius:10px;box-shadow:0 10px 30px rgba(0,0,0,.45);padding:10px 8px 8px;font-family:var(--font-ui);}
-.radio-hdr{display:flex;align-items:center;justify-content:space-between;padding:0 4px 8px;}
-.radio-title{font-size:12px;font-weight:700;letter-spacing:.08em;color:var(--text);}
-.radio-x{background:transparent;border:none;color:var(--muted);font-size:20px;line-height:1;cursor:pointer;padding:0 4px;}
-.radio-x:hover{color:var(--text);}
+.radio-player{position:fixed;z-index:450;width:372px;max-width:calc(100vw - 32px);background:var(--bg2);border:1px solid var(--bdr2);border-radius:10px;box-shadow:0 10px 30px rgba(0,0,0,.45);padding:6px 8px 8px;font-family:var(--font-ui);}
+.radio-player.c-br{right:16px;bottom:16px;}
+.radio-player.c-bl{left:16px;bottom:16px;}
+.radio-player.c-tr{right:16px;top:64px;}
+.radio-player.c-tl{left:16px;top:64px;}
+.radio-hdr{display:flex;align-items:center;gap:6px;padding:0 0 6px;cursor:grab;touch-action:none;user-select:none;}
+.radio-player.dragging .radio-hdr{cursor:grabbing;}
+.radio-player.dragging .radio-frame iframe{pointer-events:none;}
+.radio-grip{color:var(--muted);font-size:13px;line-height:1;}
+.radio-title{flex:1;font-size:12px;font-weight:700;letter-spacing:.08em;color:var(--text);}
+.radio-btn{background:transparent;border:none;color:var(--muted);font-size:18px;line-height:1;cursor:pointer;padding:0 5px;font-family:inherit;}
+.radio-btn:hover{color:var(--text);}
+.radio-x{font-size:20px;}
+/* Compact: a thin bar and the video, nothing else */
+.radio-player.compact{width:372px;padding:2px 8px 8px;}
+.radio-player.compact .radio-title,.radio-player.compact .radio-chips,.radio-player.compact .radio-credit{display:none;}
+.radio-player.compact .radio-hdr{justify-content:flex-end;padding:2px 0 4px;}
+.radio-player.compact .radio-grip{margin-right:auto;}
 .radio-chips,.radio-setting-chips{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:8px;}
 .radio-setting-chips{margin:8px 0 0;}
 .radio-chip{background:var(--bg3);border:1px solid var(--bdr2);color:var(--muted);border-radius:999px;padding:4px 10px;font-size:12px;cursor:pointer;font-family:inherit;}
