@@ -952,3 +952,12 @@ Object.assign(MK_TEXT, {
     'Долари со кои се тргуваше на берзите на Solana за еден ден, мерка колку е зафатена мрежата.',
 });
 MK_PATTERNS.push([/^gas now ([\d.]+) gwei$/, function (m) { return 'гас сега ' + m[1].replace('.', ',') + ' gwei'; }]);
+
+/* ── Coin window: About (2026-10-03) ─────────────────────────────── */
+Object.assign(MK_TEXT, {
+  'About': 'За монетата', 'Whitepaper': 'Бела книга', 'Explorer': 'Прелистувач на блокови', 'Code': 'Код',
+  'View on CoinGecko': 'Види на CoinGecko', 'Official website': 'Официјална страница',
+  'Links from CoinGecko. Check the address before you connect a wallet anywhere.':
+    'Линковите се од CoinGecko. Проверете ја адресата пред да поврзете паричник каде било.',
+});
+MK_PATTERNS.push([/^About (.+)$/, function (m) { return 'За ' + m[1]; }]);

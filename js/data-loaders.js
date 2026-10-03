@@ -2676,12 +2676,96 @@ function renderRotationContext(c) {
   box.hidden = false;
 }
 
+/* ── About the coin (Daniel, 2026-10-03) ───────────────────────────
+   The coin's official website, whitepaper, X account, explorer and code,
+   plus a two-sentence description, so a visitor can learn what the
+   project is. From CoinGecko's per-coin record (free, keyless, the browser
+   may read it), fetched only when a coin window opens and kept in this
+   browser for 7 days. Crypto only; stocks have no CoinGecko record.
+
+   Safety, because fake project sites are common: only http(s) links, the
+   website button shows its real domain, links open with noopener and
+   noreferrer, and a line says to check the address before connecting a
+   wallet. "View on CoinGecko" always shows, so the block is never empty
+   when CoinGecko is busy (its public API allows a few calls a minute). */
+var _TD_ABOUT_TTL = 7 * 24 * 3600 * 1000;
+function _tdUrl(u) {
+  try { var x = new URL(u); return (x.protocol === 'https:' || x.protocol === 'http:') ? x : null; } catch (e) { return null; }
+}
+function _tdEsc(t) {
+  return String(t).replace(/[&<>"']/g, function (ch) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[ch]; });
+}
+function _tdAboutCache(id, val) {
+  var k = 'rot_about_' + id;
+  try {
+    if (val) { localStorage.setItem(k, JSON.stringify({ t: Date.now(), d: val })); return val; }
+    var c = JSON.parse(localStorage.getItem(k) || 'null');
+    return c && Date.now() - c.t < _TD_ABOUT_TTL ? c.d : null;
+  } catch (e) { return val || null; }
+}
+/* Keep only what the block shows. */
+function _tdAboutPick(d) {
+  var l = d.links || {};
+  var first = function (a) { return (a || []).filter(function (x) { return x && _tdUrl(x); })[0] || null; };
+  var text = String((d.description && d.description.en) || '').replace(/<[^>]*>/g, '').replace(/\s+/g, ' ').trim();
+  var sentences = text.match(/[^.!?]+[.!?]+(\s|$)/g) || (text ? [text] : []);
+  var desc = sentences.slice(0, 2).join('').trim();
+  if (desc.length > 320) desc = desc.slice(0, 317).replace(/\s+\S*$/, '') + '…';
+  return {
+    site: first(l.homepage), paper: _tdUrl(l.whitepaper || '') ? l.whitepaper : null,
+    x: /^[A-Za-z0-9_]{1,15}$/.test(l.twitter_screen_name || '') ? l.twitter_screen_name : null,
+    explorer: first(l.blockchain_site), code: first(l.repos_url && l.repos_url.github),
+    desc: desc
+  };
+}
+function _tdAboutRender(c, a) {
+  var sec = document.getElementById('td-about-sec'), box = document.getElementById('td-about');
+  if (!sec || !box) return;
+  var chip = function (href, icon, label, title) {
+    return '<a class="td-link" href="' + _tdEsc(href) + '" target="_blank" rel="noopener noreferrer nofollow"'
+      + (title ? ' title="' + _tdEsc(title) + '"' : '') + '><span>' + icon + '</span> ' + _tdEsc(label) + '</a>';
+  };
+  var html = '';
+  if (a && a.desc) html += '<div class="td-about-desc">' + _tdEsc(a.desc) + '</div>';
+  var links = '';
+  if (a && a.site) { var u = _tdUrl(a.site); links += chip(a.site, '🌐', u.hostname.replace(/^www\./, ''), 'Official website'); }
+  if (a && a.paper) links += chip(a.paper, '📄', 'Whitepaper');
+  if (a && a.x) links += chip('https://x.com/' + a.x, '𝕏', '@' + a.x);
+  if (a && a.explorer) links += chip(a.explorer, '🔎', 'Explorer');
+  if (a && a.code) links += chip(a.code, '⌨', 'Code');
+  links += chip('https://www.coingecko.com/en/coins/' + encodeURIComponent(c.id), '🦎', 'View on CoinGecko');
+  html += '<div class="td-links">' + links + '</div>'
+    + '<div class="td-about-note">Links from CoinGecko. Check the address before you connect a wallet anywhere.</div>';
+  box.innerHTML = html;
+  var title = document.getElementById('td-about-title');
+  if (title) title.textContent = 'About ' + c.name;
+  sec.style.display = '';
+}
+function _tdAbout(c) {
+  var sec = document.getElementById('td-about-sec');
+  if (!sec) return;
+  if (!c || c.isStock || !c.id) { sec.style.display = 'none'; return; }
+  var cached = _tdAboutCache(c.id);
+  _tdAboutRender(c, cached);          /* CoinGecko link at once; the rest fills in */
+  if (cached) return;
+  fetch('https://api.coingecko.com/api/v3/coins/' + encodeURIComponent(c.id)
+      + '?localization=false&tickers=false&market_data=false&community_data=false&developer_data=false&sparkline=false')
+    .then(function (r) { return r.ok ? r.json() : null; })
+    .then(function (d) {
+      if (!d) return;
+      var a = _tdAboutCache(c.id, _tdAboutPick(d));
+      if (_tdCoin === c) _tdAboutRender(c, a);   /* still the window that asked */
+    })
+    .catch(function () { /* busy or offline: the CoinGecko link stays */ });
+}
+
 function openTileDetail(coinId, evt) {
   if (evt) evt.stopPropagation();
   var c = coins.find(function(x) { return x.id === coinId || x.sym === coinId; });
   if (!c) return;
   if (typeof supaCountFeature === 'function') supaCountFeature('coin_window');
   _tdCoin = c;
+  _tdAbout(c);
   var panel = document.getElementById('td-panel');
   var icoEl = document.getElementById('td-ico');
   /* Logo, with initials behind it when the image does not load. The

@@ -184,7 +184,7 @@
       <p>Rotator sets no cookies. It uses your browser's localStorage, described in section 1.</p>
 
       <h4>5. Other services your browser contacts</h4>
-      <p>Loading Rotator makes your browser contact GitHub Pages (which hosts the site), Supabase (our database), CoinGecko (prices and coin logos), Google Fonts (typefaces), jsDelivr (the chart library) and Umami (analytics). If the main price source fails, the public proxies corsproxy.io and allorigins.win may be used instead. Like any website, these services can see your IP address and browser details when your browser contacts them, and their own privacy policies apply. Binance, Farside Investors, alternative.me, DefiLlama, blockchain.info and GeckoTerminal are contacted by our server, not by your browser. If you connect Telegram alerts, Telegram's privacy policy applies to the messages. If you play the radio, your browser loads YouTube's player (youtube-nocookie.com) to play the station or video you chose, and Google's privacy policy applies to it; nothing loads from YouTube until you press a station.</p>
+      <p>Loading Rotator makes your browser contact GitHub Pages (which hosts the site), Supabase (our database), CoinGecko (prices, coin logos, and a coin's links and description when you open its window), Google Fonts (typefaces), jsDelivr (the chart library) and Umami (analytics). If the main price source fails, the public proxies corsproxy.io and allorigins.win may be used instead. Like any website, these services can see your IP address and browser details when your browser contacts them, and their own privacy policies apply. Binance, Farside Investors, alternative.me, DefiLlama, blockchain.info and GeckoTerminal are contacted by our server, not by your browser. If you connect Telegram alerts, Telegram's privacy policy applies to the messages. If you play the radio, your browser loads YouTube's player (youtube-nocookie.com) to play the station or video you chose, and Google's privacy policy applies to it; nothing loads from YouTube until you press a station.</p>
 
       <h4>6. Crypto payments</h4>
       <p>A crypto payment is recorded on its public blockchain. We check your transaction hash against that public record and store what is listed in section 2. We never ask for, and cannot access, your wallet's private keys.</p>
@@ -347,6 +347,12 @@
 
   <!-- The three layers behind the composite SCORE. An honest score should
        be inspectable, not a black-box number. -->
+  <!-- About the coin: official links from CoinGecko (_tdAbout, 2026-10-03) -->
+  <div class="td-section" id="td-about-sec" style="display:none;">
+    <div class="td-section-title" id="td-about-title">About</div>
+    <div id="td-about"></div>
+  </div>
+
   <div class="td-section td-fold-sec" id="td-breakdown-sec" style="display:none;">
     <details class="td-fold"><summary class="td-section-title">What the score is made of</summary>
     <div class="td-mkt-grid" id="td-breakdown"></div>

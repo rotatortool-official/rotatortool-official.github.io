@@ -4952,3 +4952,11 @@ details.td-reading-trust[open] > summary::before{content:'▾ ';}
 .radio-credit{font-size:11px;color:var(--muted);padding:6px 4px 0;}
 .radio-credit a{color:var(--muted);text-decoration:underline;}
 .radio-topbar-btn.on{color:var(--green);}
+
+/* ── Coin window: About (official links from CoinGecko, 2026-10-03) ── */
+.td-about-desc{font-size:12.5px;line-height:1.55;color:var(--text);opacity:.85;margin-bottom:10px;}
+.td-links{display:flex;flex-wrap:wrap;gap:6px;}
+.td-link{display:inline-flex;align-items:center;gap:5px;padding:5px 10px;border-radius:999px;border:1px solid var(--bdr2);
+  background:var(--bg3);color:var(--text);font-size:12px;text-decoration:none;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.td-link:hover{border-color:var(--green);}
+.td-about-note{font-size:10.5px;color:var(--muted);margin-top:8px;opacity:.8;}
