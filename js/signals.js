@@ -444,7 +444,23 @@ var LENSES = [
   { id: 'rsiw',  label: 'RSI·W', tip: 'Wilder RSI(14) on weekly closes. Computed server-side.',
     get: function(c) { var t = coinTechnicals[c.sym]; return t && t.rsiW != null ? t.rsiW : null; },
     fmt: function(v) { return v.toFixed(0); },
-    dir: 'rsi' }
+    dir: 'rsi' },
+  /* Golden / death cross, most recent first (Daniel, 2026-10-04). The value
+     is DAYS SINCE the cross. Only crosses from about the last two weeks can
+     be dated (140 stored days, a 125-day average), and Daniel chose that:
+     "golden cross is attractive only if it happened recently". Older
+     crosses and the opposite state are blank and sort last. The tested
+     record (config.js) is in the tip, so the lens is not read as a call. */
+  { id: 'gc',    label: '✨GC', none: 'none recent', hue: 140,
+    tip: 'Golden cross, most recent first: the 60-day average crossed above the 125-day. Only crosses from about the last 2 weeks are dated. Tested: no edge at 7 days (50% beat the market), 53% at 30 days.',
+    get: function(c) { var t = coinTechnicals[c.sym]; return t && t.cross === 'golden' && t.crossDays != null ? t.crossDays : null; },
+    fmt: function(v) { return v === 0 ? 'today' : v + 'd ago'; },
+    dir: 'recent' },
+  { id: 'dc',    label: '☠DC', none: 'none recent', hue: 4,
+    tip: 'Death cross, most recent first: the 60-day average crossed below the 125-day. Only crosses from about the last 2 weeks are dated. Tested: not a warning; coins after a death cross beat the market 53% of the time over 30 days.',
+    get: function(c) { var t = coinTechnicals[c.sym]; return t && t.cross === 'death' && t.crossDays != null ? t.crossDays : null; },
+    fmt: function(v) { return v === 0 ? 'today' : v + 'd ago'; },
+    dir: 'recent' }
 ];
 
 /* Colour for one reading.
@@ -455,6 +471,11 @@ var LENSES = [
 function _lensColor(lens, v, lo, hi) {
   if (v == null) return null;
   var t;
+  if (lens.dir === 'recent') {
+    /* Days since a cross: today is full strength, two weeks is faded. */
+    var f = Math.max(0, Math.min(1, 1 - v / 15));
+    return 'hsl(' + lens.hue + ',' + (35 + f * 40).toFixed(0) + '%,' + (38 + f * 14).toFixed(0) + '%)';
+  }
   if (lens.dir === 'rsi') {
     t = Math.max(0, Math.min(1, v / 100));
   } else if (lens.dir === 'signed') {
@@ -1532,7 +1553,7 @@ function renderTable() {
       if (av == null && bv == null) return b.score - a.score;
       if (av == null) return 1;
       if (bv == null) return -1;
-      return bv - av;
+      return _lens.dir === 'recent' ? av - bv : bv - av;
     }
     if (sortTF === 0)  return b.score - a.score;
     if (sortTF === 24) return b.p24 - a.p24;
@@ -1612,7 +1633,7 @@ function renderTable() {
       + '<td><div class="cc"><div class="ti"><img src="' + c.image + '" alt="' + c.sym + ' logo" loading="lazy" width="18" height="18" onerror="this.style.display=\'none\'"></div><div><div style="display:flex;align-items:center;"><span class="tsym">' + c.sym + '</span>' + (isH ? '<span class="htag">HELD</span>' : '') + stableTag + (_isMemeFiller(c) ? '<span class="htag meme-tag" title="One of three high-volume memes outside the top 250. Listed, never shown as a leader.">MEME</span>' : '') + crossBadge(c) + (_lens
         ? '<span class="lens-chip" title="' + _lens.label + ' — ' + _lens.tip.replace(/"/g,'&quot;') + '" style="margin-left:5px;font-size:10px;font-family:var(--font-mono);padding:1px 4px;border-radius:3px;'
           + (_lv == null
-              ? 'color:var(--muted);border:1px dashed var(--bdr);opacity:.6;">no data'
+              ? 'color:var(--muted);border:1px dashed var(--bdr);opacity:.6;">' + (_lens.none || 'no data')
               : 'color:' + _lc + ';border:1px solid ' + _lc + '33;">' + _lens.fmt(_lv))
           + '</span>'
         : '') + '</div><div class="tname">' + (c.name.length > 17 ? c.name.slice(0,15) + '…' : c.name) + '</div></div></div></td>'

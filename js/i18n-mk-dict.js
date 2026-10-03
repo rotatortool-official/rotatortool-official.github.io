@@ -966,3 +966,13 @@ MK_PATTERNS.push([/^About (.+)$/, function (m) { return 'За ' + m[1]; }]);
    A positive trend is "во пораст", a negative one "во опаѓање"; the
    tile chips are short, so there the same words stand alone. */
 Object.assign(MK_TEXT, { 'BULL': 'ПОРАСТ', 'BEAR': 'ОПАЃАЊЕ' });
+
+/* ── SORT rail: golden / death cross lenses (2026-10-04) ────────────── */
+Object.assign(MK_TEXT, {
+  'none recent': 'нема скоро', 'today': 'денес',
+  'Golden cross, most recent first: the 60-day average crossed above the 125-day. Only crosses from about the last 2 weeks are dated. Tested: no edge at 7 days (50% beat the market), 53% at 30 days.':
+    'Златен крст, најновите први: 60-дневниот просек ја помина нагоре линијата на 125-дневниот. Датум имаат само крстовите од последните околу 2 недели. Тестирано: без предност за 7 дена (50% го победија пазарот), 53% за 30 дена.',
+  'Death cross, most recent first: the 60-day average crossed below the 125-day. Only crosses from about the last 2 weeks are dated. Tested: not a warning; coins after a death cross beat the market 53% of the time over 30 days.':
+    'Крст на смртта, најновите први: 60-дневниот просек падна под 125-дневниот. Датум имаат само крстовите од последните околу 2 недели. Тестирано: не е предупредување; по крст на смртта монетите го победија пазарот 53% од времето за 30 дена.',
+});
+MK_PATTERNS.push([/^(\d+)d ago$/, function (m) { return 'пред ' + m[1] + (m[1] === '1' ? ' ден' : ' дена'); }]);
