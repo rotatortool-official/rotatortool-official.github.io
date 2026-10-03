@@ -408,6 +408,7 @@ async function fetchMacro(
 //              U.S. BLS average price, electricity/kWh  -> power (monthly)
 //              DefiLlama daily fees / DEX volume         -> ethFees solFees solDex
 //              Ethereum public node (publicnode.com)     -> ethFees.gwei (live)
+//              Blockchain.com / DefiLlama, 1 year        -> hash addr tvl stable (1Y side only)
 //            FRED was tried and returns nothing to us; do not switch to it.
 // OUTPUT     market_cache.world_data — { items: { key: Item }, updatedAt }.
 //            Item: v (latest), date (of v, YYYY-MM-DD), s (values, oldest
@@ -648,6 +649,29 @@ async function worldGasNow(): Promise<number | null> {
   return isFinite(wei) ? Number((wei / 1e9).toPrecision(3)) : null;
 }
 
+/* One year of the four on-chain readings TODAY already shows (hash
+   rate, addresses, TVL, stablecoins), for the tiles' 1Y side. The 7/30-day
+   numbers on those tiles still come from network_data (fetchNetwork);
+   these only add the year. Blockchain.com's series come as 7-day
+   averages, the same smoothing the tiles use. */
+async function worldChain(chart: string, scale: number): Promise<WorldItem | null> {
+  const d = await safeJson(`https://api.blockchain.info/charts/${chart}?timespan=1year&rollingAverage=7days&format=json&cors=true`);
+  const pts: Pt[] = ((d?.values ?? []) as { x: number; y: number }[]).map((p) => [p.x, p.y / scale]);
+  return worldBuild(pts, 'pct');
+}
+async function worldTvl(): Promise<WorldItem | null> {
+  const d = (await safeJson('https://api.llama.fi/v2/historicalChainTvl')) as { date: number; tvl: number }[];
+  return worldBuild((d ?? []).slice(-400).map((p) => [p.date, p.tvl] as Pt), 'pct');
+}
+async function worldStable(): Promise<WorldItem | null> {
+  const d = (await safeJson('https://stablecoins.llama.fi/stablecoincharts/all')) as { date: string | number; totalCirculatingUSD: Record<string, number> }[];
+  const pts: Pt[] = (d ?? []).slice(-400).map((p) => [
+    Number(p.date),
+    Object.values(p.totalCirculatingUSD ?? {}).reduce((a, b) => a + (isFinite(b) ? b : 0), 0),
+  ] as Pt).filter(([, v]) => v > 0);
+  return worldBuild(pts, 'pct');
+}
+
 async function fetchWorld(supabase: ReturnType<typeof createClient>): Promise<Record<string, boolean>> {
   const { data: prevRow } = await supabase
     .from('market_cache').select('data').eq('cache_key', 'world_data').maybeSingle();
@@ -675,6 +699,10 @@ async function fetchWorld(supabase: ReturnType<typeof createClient>): Promise<Re
       put('ethFees', it);
     }],
     ['solFees',  async () => put('solFees', await worldLlama('https://api.llama.fi/summary/fees/solana?dataType=dailyFees'))],
+    ['hash',     async () => put('hash', await worldChain('hash-rate', 1e6))],          // TH/s -> EH/s
+    ['addr',     async () => put('addr', await worldChain('n-unique-addresses', 1))],
+    ['tvl',      async () => put('tvl', await worldTvl())],
+    ['stable',   async () => put('stable', await worldStable())],
     ['solDex',   async () => put('solDex', await worldLlama('https://api.llama.fi/overview/dexs/solana?excludeTotalDataChart=false&excludeTotalDataChartBreakdown=true'))],
   ];
   for (const [label, job] of jobs) {

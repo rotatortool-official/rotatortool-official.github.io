@@ -1799,15 +1799,18 @@ function _bfWorldCell(it, o) {
     src: _bfSrc(o.src, o.sym, it.date, o.monthly)
   };
 }
-/* The on-chain tiles keep their 7/30-day shape; they have no 1-year
-   history, so their back shows 30 days whichever long window is picked. */
+/* The on-chain tiles keep their 7/30-day numbers from network_data. Their
+   1Y side comes from world_data (o.year: a year of the same reading);
+   until that exists, 1Y falls back to the 30 days. */
 function _bfNetCell(o) {
   if (o.v == null) return null;
   var s = o.s;
   return {
     k: o.k, v: o.v, u: o.u || '', pts: false,
     w: { 7: { c: o.p, s: (Array.isArray(s) && o.n7 >= 3) ? s.slice(-o.n7) : s, l: '7d' },
-         30: { c: o.p30, s: s, l: '30d' }, 365: { c: o.p30, s: s, l: '30d' } },
+         30: { c: o.p30, s: s, l: '30d' },
+         365: o.year && Array.isArray(o.year.s) && o.year.s.length > 30
+           ? { c: o.year.c365, s: o.year.s, l: '1y' } : { c: o.p30, s: s, l: '30d' } },
     d: o.d, extra: '', src: _bfSrc(o.src, null, null)
   };
 }
@@ -1868,21 +1871,21 @@ function renderBriefing() {
     ] },
     { t: 'On-chain', cells: [
       _bfNetCell({ k: 'Hash rate', v: _bfNum(n.hashrateEh, 0), u: ' EH/s', p: n.hashrateP7, s: ns.hashrateEh,
-        p30: np.hashrateEh, n7: nn.hashrateEh, src: BF_SRC.bc,
+        p30: np.hashrateEh, n7: nn.hashrateEh, year: W.hash, src: BF_SRC.bc,
         d: 'Computing power securing Bitcoin, averaged over 7 days. '
            + 'The daily figure is inferred from blocks found, so one day '
            + 'alone carries about 7% of noise — the line below is the raw '
            + 'daily estimate and shows that spread.' }),
       _bfNetCell({ k: 'Active addresses', v: _bfNum(n.addrCount, 0), p: n.addrP7, s: ns.addrCount,
-        p30: np.addrCount, n7: nn.addrCount, src: BF_SRC.bc,
+        p30: np.addrCount, n7: nn.addrCount, year: W.addr, src: BF_SRC.bc,
         d: 'Bitcoin addresses used per day, averaged over 7 days. '
            + 'Weekends run well below midweek, so a single day reports '
            + 'partly which day of the week it is.' }),
       _bfNetCell({ k: 'DeFi TVL', v: _bfUsd(n.tvlUsd), p: n.tvlP7, s: ns.tvlUsd,
-        p30: np.tvlUsd, n7: nn.tvlUsd, src: BF_SRC.llama,
+        p30: np.tvlUsd, n7: nn.tvlUsd, year: W.tvl, src: BF_SRC.llama,
         d: 'Value locked across every tracked chain' }),
       _bfNetCell({ k: 'Stablecoin supply', v: _bfUsd(n.stableUsd), p: n.stableP7, s: null,
-        p30: np.stableUsd, src: BF_SRC.llama,
+        p30: np.stableUsd, year: W.stable, src: BF_SRC.llama,
         d: 'Dollars sitting on-chain, unallocated' }),
       /* Activity, in dollars per day (DefiLlama; yesterday, the last
          complete day). Daniel, 2026-10-03: gas fees and Solana volume. */
