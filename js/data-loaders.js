@@ -648,6 +648,11 @@ async function loadMacroData() {
            like every other field so an absent `series` degrades to a
            cell with no chart, never to a broken cell. */
         _macroData.series    = cached.series || null;
+        /* 30-day changes and the 7-day point counts, for the TODAY
+           tiles' 7D/30D flip (2026-10-03). Absent on an older row, and
+           the tile then says the 30-day reading is not there yet. */
+        _macroData.p30       = cached.p30 || null;
+        _macroData.n7        = cached.n7 || null;
         var btcCoin = coins.find(function(c) { return c.id === 'bitcoin'; });
         if (btcCoin) _macroData.btcP7 = btcCoin.p7;
         return;
@@ -1563,11 +1568,11 @@ function _bfUsd(v) {
   if (v >= 1e6)  return '$' + (v / 1e6).toFixed(1)  + 'M';
   return '$' + Math.round(v).toLocaleString('en-US');
 }
-function _bfDelta(p) {
+function _bfDelta(p, days) {
   if (p == null || !isFinite(p)) return '';
   var cls = p >= 0 ? 'up' : 'dn';
   return '<span class="bf-d ' + cls + '">' + (p >= 0 ? '+' : '')
-       + p.toFixed(1) + '% 7d</span>';
+       + p.toFixed(1) + '% ' + (days || 7) + 'd</span>';
 }
 /* The LEVEL for a macro cell, taken as the last point of its own daily
    series — the same array the sparkline draws.
@@ -1660,34 +1665,48 @@ function renderBriefing() {
   var ms = (m && m.series) || {};
   var ns = (n && n.series) || {};
 
+  /* 30-day side of each tile (the 7D/30D flip, 2026-10-03). Keyed like
+     `series`; `n7` is how many of a series' points fall inside the 7-day
+     window, so the front draws only the days its number describes. */
+  var mp = (m && m.p30) || {}, mn = (m && m.n7) || {};
+  var np = (n && n.p30) || {}, nn = (n && n.n7) || {};
+
   var cells = [
     { v: _bfLevel(ms.goldP7, '$') || _bfPct(m.goldP7),   u: '', p: m.goldP7,   s: ms.goldP7,
+      p30: mp.goldP7, n7: mn.goldP7, trading: true,
       k: 'Gold',
       d: 'The oldest store of value, as a benchmark' },
     { v: _bfLevel(ms.silverP7, '$') || _bfPct(m.silverP7), u: '', p: m.silverP7, s: ms.silverP7,
+      p30: mp.silverP7, n7: mn.silverP7, trading: true,
       k: 'Silver',
       d: 'Industrial demand as well as a metal' },
     { v: _bfLevel(ms.oilP7, '$') || _bfPct(m.oilP7),    u: '', p: m.oilP7,    s: ms.oilP7,
+      p30: mp.oilP7, n7: mn.oilP7, trading: true,
       k: 'Oil · WTI',
       d: 'WTI crude — input cost for the real economy' },
     { v: _bfLevel(ms.dxyP7, '') || _bfPct(m.dxyP7),    u: '', p: m.dxyP7,    s: ms.dxyP7,
+      p30: mp.dxyP7, n7: mn.dxyP7, trading: true,
       k: 'Dollar index',
       d: 'A rising dollar is a headwind for risk assets' },
     { v: _bfNum(n.hashrateEh, 0), u: ' EH/s', p: n.hashrateP7, s: ns.hashrateEh,
+      p30: np.hashrateEh, n7: nn.hashrateEh, smoothed: true,
       k: 'Hash rate',
       d: 'Computing power securing Bitcoin, averaged over 7 days. '
          + 'The daily figure is inferred from blocks found, so one day '
          + 'alone carries about 7% of noise — the line below is the raw '
          + 'daily estimate and shows that spread.' },
     { v: _bfNum(n.addrCount, 0), u: '', p: n.addrP7, s: ns.addrCount,
+      p30: np.addrCount, n7: nn.addrCount, smoothed: true,
       k: 'Active addresses',
       d: 'Bitcoin addresses used per day, averaged over 7 days. '
          + 'Weekends run well below midweek, so a single day reports '
          + 'partly which day of the week it is.' },
     { v: _bfUsd(n.tvlUsd), u: '', p: n.tvlP7, s: ns.tvlUsd,
+      p30: np.tvlUsd, n7: nn.tvlUsd,
       k: 'DeFi TVL',
       d: 'Value locked across every tracked chain' },
     { v: _bfUsd(n.stableUsd), u: '', p: n.stableP7, s: null,
+      p30: np.stableUsd,
       k: 'Stablecoin supply',
       d: 'Dollars sitting on-chain, unallocated' }
   ].filter(function (c) { return c.v != null; });
@@ -1695,15 +1714,123 @@ function renderBriefing() {
   if (!cells.length) { host.style.display = 'none'; return; }
 
   host.style.display = '';
-  host.innerHTML = cells.map(function (c) {
-    return '<div class="bf-cell">'
+  host.innerHTML = '<div class="bf-bar"><span class="bf-bar-l">Change over</span>'
+    + '<div class="bf-seg" role="group" aria-label="Change over">'
+    + '<button type="button" class="bf-seg-b" data-days="7" onclick="bfSetAll(7)">7D</button>'
+    + '<button type="button" class="bf-seg-b" data-days="30" onclick="bfSetAll(30)">30D</button>'
+    + '</div></div>'
+    + cells.map(function (c) {
+    /* FRONT: 7 days. The line is cut to the same 7 days as the number
+       (n7); an older server row without n7 draws the whole series, as
+       before. */
+    var s7 = (Array.isArray(c.s) && c.n7 >= 3) ? c.s.slice(-c.n7) : c.s;
+    var front = '<div class="bf-face bf-front">'
+      + '<button type="button" class="bf-flip" onclick="bfFlip(this)" aria-label="Show 30 days">30D</button>'
       + '<div class="bf-k">' + c.k + '</div>'
       + '<div class="bf-v">' + c.v + '<span class="bf-u">' + c.u + '</span></div>'
-      + _bfDelta(c.p)
-      + _bfSpark(c.s, (c.p == null) || c.p >= 0)
+      + _bfDelta(c.p, 7)
+      + _bfSpark(s7, (c.p == null) || c.p >= 0)
       + '<div class="bf-d-note">' + c.d + '</div>'
       + '</div>';
+    /* BACK: 30 days. Same level, the 30-day change, the whole line. */
+    var how = c.smoothed ? 'This week\'s average against the week 30 days earlier.'
+      : c.trading ? 'Last 30 days, weekdays only.'
+      : 'Last 30 days.';
+    var back = '<div class="bf-face bf-back" aria-hidden="true">'
+      + '<button type="button" class="bf-flip" onclick="bfFlip(this)" aria-label="Show 7 days" tabindex="-1">7D</button>'
+      + '<div class="bf-k">' + c.k + '</div>'
+      + '<div class="bf-v">' + c.v + '<span class="bf-u">' + c.u + '</span></div>'
+      + (c.p30 != null && isFinite(c.p30) ? _bfDelta(c.p30, 30)
+          : '<span class="bf-d bf-na">No 30-day reading yet</span>')
+      + _bfSpark(c.s, (c.p30 == null) || c.p30 >= 0)
+      + '<div class="bf-d-note">' + how + '</div>'
+      + '</div>';
+    var flipped = _bfFlipped[c.k] ? ' flipped' : '';
+    return '<div class="bf-cell' + flipped + '" data-k="' + c.k + '">'
+      + '<div class="bf-tilt"><div class="bf-inner">' + front + back + '</div></div>'
+      + '</div>';
   }).join('') + '<div class="bf-age">' + _bfAge(_networkAgeMs) + '</div>';
+  var cs = host.querySelectorAll('.bf-cell');
+  for (var ci = 0; ci < cs.length; ci++) _bfApply(cs[ci], cs[ci].classList.contains('flipped'));
+  _bfSyncSeg(host);
+  _bfWireTilt(host);
+}
+
+/* ── TODAY tiles: 7D/30D flip and hover tilt (Daniel, 2026-10-03) ──
+   Subtle on purpose: a data page, not a toy. Each tile flips on its own
+   (the small 30D / 7D button), and the bar above flips all of them with
+   a short left-to-right ripple. The tilt follows the mouse on devices
+   with a real pointer only; phones get the flip on tap and no tilt.
+   With reduced motion asked for, the flip is an instant swap (CSS) and
+   there is no tilt. State survives a re-render, keyed by tile name. */
+var _bfFlipped = {};
+function _bfReduced() {
+  try { return window.matchMedia('(prefers-reduced-motion: reduce)').matches; } catch (e) { return false; }
+}
+function _bfApply(cell, on) {
+  cell.classList.toggle('flipped', on);
+  _bfFlipped[cell.getAttribute('data-k')] = on;
+  var f = cell.querySelector('.bf-front'), b = cell.querySelector('.bf-back');
+  if (f) { f.setAttribute('aria-hidden', on ? 'true' : 'false'); f.querySelector('.bf-flip').tabIndex = on ? -1 : 0; }
+  if (b) { b.setAttribute('aria-hidden', on ? 'false' : 'true'); b.querySelector('.bf-flip').tabIndex = on ? 0 : -1; }
+}
+function bfFlip(btn) {
+  var cell = btn.closest('.bf-cell');
+  if (!cell) return;
+  var inner = cell.querySelector('.bf-inner');
+  if (inner) inner.style.transitionDelay = '0ms';
+  _bfApply(cell, !cell.classList.contains('flipped'));
+  _bfSyncSeg(document.getElementById('briefing'));
+}
+function bfSetAll(days) {
+  var host = document.getElementById('briefing');
+  if (!host) return;
+  var on = days === 30;
+  var cells = host.querySelectorAll('.bf-cell');
+  for (var i = 0; i < cells.length; i++) {
+    var inner = cells[i].querySelector('.bf-inner');
+    if (inner) inner.style.transitionDelay = _bfReduced() ? '0ms' : (i * 45) + 'ms';
+    _bfApply(cells[i], on);
+  }
+  _bfSyncSeg(host);
+}
+/* The bar shows which side is up when all tiles agree, and neither
+   button pressed when they are mixed. */
+function _bfSyncSeg(host) {
+  if (!host) return;
+  var cells = host.querySelectorAll('.bf-cell'), n30 = 0;
+  for (var i = 0; i < cells.length; i++) if (cells[i].classList.contains('flipped')) n30++;
+  var mode = n30 === 0 ? '7' : n30 === cells.length ? '30' : '';
+  var bs = host.querySelectorAll('.bf-seg-b');
+  for (var j = 0; j < bs.length; j++) {
+    var on = bs[j].getAttribute('data-days') === mode;
+    bs[j].classList.toggle('on', on);
+    bs[j].setAttribute('aria-pressed', on ? 'true' : 'false');
+  }
+}
+function _bfWireTilt(host) {
+  var fine = false;
+  try { fine = window.matchMedia('(hover: hover) and (pointer: fine)').matches; } catch (e) {}
+  if (!fine || _bfReduced()) return;
+  var cells = host.querySelectorAll('.bf-cell');
+  for (var i = 0; i < cells.length; i++) {
+    (function (cell) {
+      cell.addEventListener('mousemove', function (e) {
+        var r = cell.getBoundingClientRect();
+        var x = (e.clientX - r.left) / r.width - 0.5, y = (e.clientY - r.top) / r.height - 0.5;
+        cell.classList.add('hovering');
+        cell.style.setProperty('--rx', (-y * 4).toFixed(2) + 'deg');
+        cell.style.setProperty('--ry', (x * 5).toFixed(2) + 'deg');
+        cell.style.setProperty('--mx', ((x + 0.5) * 100).toFixed(1) + '%');
+        cell.style.setProperty('--my', ((y + 0.5) * 100).toFixed(1) + '%');
+      });
+      cell.addEventListener('mouseleave', function () {
+        cell.classList.remove('hovering');
+        cell.style.setProperty('--rx', '0deg');
+        cell.style.setProperty('--ry', '0deg');
+      });
+    })(cells[i]);
+  }
 }
 
 /* ── ETF flows: US spot Bitcoin and Ether ETFs ──────────────────────

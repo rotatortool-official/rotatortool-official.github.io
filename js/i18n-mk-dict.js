@@ -59,6 +59,12 @@ Object.assign(MK_TEXT, {
   'Hash rate': 'Хаш-моќ', 'Active addresses': 'Активни адреси',
   'DeFi TVL': 'DeFi TVL', 'Value locked across every tracked chain': 'Заклучена вредност на сите следени синџири',
   'Stablecoin supply': 'Понуда на стејблкоини', 'Dollars sitting on-chain, unallocated': 'Долари што стојат на синџирот, нераспоредени',
+  /* The 7D/30D flip (2026-10-03) */
+  'Change over': 'Промена за', 'Show 30 days': 'Прикажи 30 дена', 'Show 7 days': 'Прикажи 7 дена',
+  'No 30-day reading yet': 'Сè уште нема читање за 30 дена',
+  'Last 30 days.': 'Последните 30 дена.',
+  'Last 30 days, weekdays only.': 'Последните 30 дена, само работни денови.',
+  "This week's average against the week 30 days earlier.": 'Просекот од оваа недела наспроти неделата пред 30 дена.',
   'Computing power securing Bitcoin, averaged over 7 days. The daily figure is inferred from blocks found, so one day alone carries about 7% of noise — the line below is the raw daily estimate and shows that spread.':
     'Пресметковната моќ што го обезбедува Bitcoin, просек за 7 дена. Дневната бројка се изведува од пронајдените блокови, па еден ден сам по себе носи околу 7% шум — линијата подолу е суровата дневна проценка и го покажува тоа отстапување.',
   'Bitcoin addresses used per day, averaged over 7 days. Weekends run well below midweek, so a single day reports partly which day of the week it is.':

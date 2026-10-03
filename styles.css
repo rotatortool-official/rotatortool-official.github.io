@@ -3897,10 +3897,67 @@ header{position:sticky;top:0;z-index:100;}
   border-top:1px solid var(--bdr);border-bottom:1px solid var(--bdr);
   margin:0 0 2px;
 }
-.bf-cell{background:var(--bg2);padding:10px 16px 11px;min-width:0;}
+/* Each cell is a two-sided card since 2026-10-03: the front is 7 days,
+   the back 30 (renderBriefing, bfFlip, bfSetAll). The padding lives on
+   the faces so both sides line up. Motion is deliberately small. */
+.bf-cell{background:var(--bg2);min-width:0;position:relative;perspective:900px;}
+.bf-tilt{
+  height:100%;
+  transform:translateY(var(--lift,0)) rotateX(var(--rx,0deg)) rotateY(var(--ry,0deg));
+  transition:transform .25s ease-out, box-shadow .25s ease-out;
+  transform-style:preserve-3d;
+}
+.bf-cell.hovering{z-index:2;}
+.bf-cell.hovering .bf-tilt{--lift:-3px;box-shadow:0 10px 24px rgba(0,0,0,.28);}
+.bf-inner{
+  position:relative;height:100%;
+  display:grid;   /* both faces share one cell: the card is as tall as its taller side */
+  transform-style:preserve-3d;
+  transition:transform .6s cubic-bezier(.3,.7,.3,1);
+}
+.bf-cell.flipped .bf-inner{transform:rotateY(180deg);}
+.bf-face{
+  background:var(--bg2);padding:10px 16px 11px;
+  backface-visibility:hidden;-webkit-backface-visibility:hidden;
+}
+.bf-face{grid-area:1 / 1;position:relative;}
+.bf-back{transform:rotateY(180deg);}
+/* A faint light that follows the mouse, so the lift reads as a surface. */
+.bf-cell.hovering .bf-face{
+  background:radial-gradient(circle at var(--mx,50%) var(--my,50%), rgba(255,255,255,.045), transparent 60%), var(--bg2);
+}
+.bf-flip{
+  position:absolute;top:8px;right:10px;z-index:1;
+  font-family:var(--font-mono);font-size:9px;font-weight:700;letter-spacing:.06em;
+  color:var(--muted);background:transparent;
+  border:1px solid var(--bdr);border-radius:4px;padding:1px 5px;cursor:pointer;
+  opacity:.75;transition:opacity .15s, color .15s, border-color .15s;
+}
+.bf-flip:hover,.bf-flip:focus-visible{opacity:1;color:var(--text);border-color:var(--muted);}
+.bf-na{color:var(--muted);font-weight:600;}
+/* The 7D | 30D bar: flips every tile at once. */
+.bf-bar{
+  grid-column:1 / -1;background:var(--bg2);
+  display:flex;align-items:center;justify-content:flex-end;gap:8px;
+  padding:6px 16px 4px;
+}
+.bf-bar-l{font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);opacity:.8;}
+.bf-seg{display:inline-flex;border:1px solid var(--bdr);border-radius:5px;overflow:hidden;}
+.bf-seg-b{
+  font-family:var(--font-mono);font-size:10px;font-weight:700;letter-spacing:.05em;
+  background:transparent;color:var(--muted);border:0;padding:2px 9px;cursor:pointer;
+  transition:background .15s, color .15s;
+}
+.bf-seg-b + .bf-seg-b{border-left:1px solid var(--bdr);}
+.bf-seg-b:hover{color:var(--text);}
+.bf-seg-b.on{background:var(--bdr);color:var(--text);}
+@media (prefers-reduced-motion: reduce){
+  .bf-inner,.bf-tilt{transition:none;}
+}
 .bf-k{
   font-size:10px;letter-spacing:.1em;text-transform:uppercase;
   color:var(--muted);font-weight:700;margin-bottom:3px;
+  padding-right:34px;   /* room for the 30D / 7D button */
 }
 .bf-v{
   font-family:var(--font-mono);font-size:20px;font-weight:700;
@@ -3927,9 +3984,11 @@ header{position:sticky;top:0;z-index:100;}
 }
 @media(max-width:900px){
   .briefing{grid-template-columns:repeat(2,minmax(0,1fr));}
-  .bf-cell{padding:9px 12px 10px;}
+  .bf-face{padding:9px 12px 10px;}
   .bf-v{font-size:17px;}
   .bf-age{padding:5px 12px 7px;}
+  .bf-bar{padding:6px 12px 4px;}
+  .bf-flip{top:7px;right:8px;}
 }
 
 /* ── ETF flows strip + window (promptove/68) ─────────────────────────
