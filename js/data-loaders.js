@@ -4472,6 +4472,7 @@ function _hbThump(ctx, t, freq, peak, len) {
 function hbSoundStart(beatSeconds) {
   hbSoundStop();
   if (!hbSoundOn()) return;
+  if (typeof radioPlaying === 'function' && radioPlaying()) return;   /* quiet under the radio (js/radio.js) */
   var ctx = _hbCtx();
   if (!ctx || ctx.state !== 'running') return;   /* no click on the page yet */
   var n = 0;

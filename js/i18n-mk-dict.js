@@ -866,3 +866,12 @@ Object.assign(MK_TEXT, {
     return m[1] + ' ' + (m[1] === '1' ? 'пријател чека' : 'пријатели чекаат') + ' на проверката од 1 час.';
   });
 })();
+
+/* ── Lofi Girl radio, installed app (js/radio.js, 2026-10-03) ───── */
+Object.assign(MK_TEXT, {
+  '🎧 Lofi Girl radio': '🎧 Радио Lofi Girl', 'Lofi Girl radio': 'Радио Lofi Girl',
+  'Music while you watch the market, free in the app': 'Музика додека го следите пазарот, бесплатно во апликацијата',
+  'Install the app to play lo-fi, jazz and synthwave while you watch the market': 'Инсталирајте ја апликацијата за да слушате лофи, џез и синтвејв додека го следите пазарот',
+  'Sleep': 'За спиење', 'Stop and close': 'Стопирај и затвори',
+  'Music by': 'Музика од', 'on YouTube': 'на YouTube',
+});

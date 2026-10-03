@@ -4892,3 +4892,22 @@ details.td-reading-trust[open] > summary::before{content:'▾ ';}
   stroke-dasharray:1;stroke-dashoffset:1;animation:lpDraw 4.3s linear forwards;}
 @keyframes lpDraw{ to{stroke-dashoffset:0;} }
 @media (prefers-reduced-motion: reduce){ .lp-ecg path{animation:none;stroke-dashoffset:0;} #load-pulse-txt{transition:none;} }
+
+/* ── Lofi Girl radio (js/radio.js, 2026-10-03) ─────────────────────
+   The player stays visible while it plays (YouTube's embed terms):
+   at least 200px tall, no hidden or audio-only mode. */
+.radio-player{position:fixed;right:16px;bottom:16px;z-index:450;width:372px;max-width:calc(100vw - 32px);background:var(--bg2);border:1px solid var(--bdr2);border-radius:10px;box-shadow:0 10px 30px rgba(0,0,0,.45);padding:10px 8px 8px;font-family:var(--font-ui);}
+.radio-hdr{display:flex;align-items:center;justify-content:space-between;padding:0 4px 8px;}
+.radio-title{font-size:12px;font-weight:700;letter-spacing:.08em;color:var(--text);}
+.radio-x{background:transparent;border:none;color:var(--muted);font-size:20px;line-height:1;cursor:pointer;padding:0 4px;}
+.radio-x:hover{color:var(--text);}
+.radio-chips,.radio-setting-chips{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:8px;}
+.radio-setting-chips{margin:8px 0 0;}
+.radio-chip{background:var(--bg3);border:1px solid var(--bdr2);color:var(--muted);border-radius:999px;padding:4px 10px;font-size:12px;cursor:pointer;font-family:inherit;}
+.radio-chip:hover{color:var(--text);}
+.radio-chip.active{color:var(--text);border-color:var(--green);box-shadow:0 0 0 1px var(--green) inset;}
+.radio-frame{position:relative;width:100%;aspect-ratio:16/9;min-height:200px;border-radius:6px;overflow:hidden;background:#000;}
+.radio-frame iframe{position:absolute;inset:0;width:100%;height:100%;border:0;}
+.radio-credit{font-size:11px;color:var(--muted);padding:6px 4px 0;}
+.radio-credit a{color:var(--muted);text-decoration:underline;}
+.radio-topbar-btn.on{color:var(--green);}
