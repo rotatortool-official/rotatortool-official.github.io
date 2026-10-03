@@ -730,6 +730,20 @@ async function loadMacroData() {
 var _networkData = null;
 var _networkAgeMs = null;
 
+/* TODAY's money, metals and energy (promptove/86). READ ONLY:
+   sync-market-data's fetchWorld() is the only writer. */
+var _worldData = null;
+var _worldAgeMs = null;
+async function loadWorldData() {
+  if (typeof supaCacheGetStale !== 'function') return;
+  try {
+    var row = await supaCacheGetStale('world_data');
+    if (row && row.data) { _worldData = row.data; _worldAgeMs = row.ageMs; }
+  } catch (e) {
+    console.warn('[briefing] world read skipped:', e.message);
+  }
+}
+
 async function loadNetworkData() {
   if (typeof supaCacheGetStale !== 'function') return;
   try {
@@ -1460,7 +1474,7 @@ async function doLoad() {
     if (typeof pruneStaleHoldings === 'function') pruneStaleHoldings();
     await loadFuturesMetrics(); /* modal Derivatives section — never blocks, never scores */
     await loadMacroData(); prog(80, 'Loading macro data — Gold, Oil…');
-    await loadNetworkData(); renderBriefing();
+    await Promise.all([loadNetworkData(), loadWorldData()]); renderBriefing();
     await loadEtfFlows(); renderEtfFlows();
     if (typeof loadSignSince === 'function') await loadSignSince();   /* each turn sign's result since it appeared (promptove/76) */
     await loadFearGreed(); prog(88, 'Fetching sentiment data…');
@@ -1686,111 +1700,231 @@ function _bfSpark(series, up) {
     + '</svg>';
 }
 
+/* ── TODAY, regrouped (Daniel, 2026-10-03, promptove/86) ────────────
+   Four groups: CENTRAL BANKS & MONEY, METALS, ENERGY COST, ON-CHAIN.
+   Every tile names its source (linked) and the date of its reading,
+   because these come from many places on many clocks: the Treasury
+   publishes after the US close, the BLS electricity price is monthly and
+   about six weeks behind. Money/metals/energy come from
+   market_cache.world_data (sync-market-data fetchWorld); on-chain from
+   network_data as before. If world_data is missing, gold, silver, oil
+   and the dollar fall back to macro_data so the section never goes
+   blank.
+
+   Front of a tile: 7 days. Back: 30 days or 1 year, whichever the bar
+   above says (_bfLong). Rates move in POINTS, not percent: a yield going
+   from 4.00% to 4.40% is "+0.40 pts", where "+10%" would mislead. The
+   wording explains what a reading is; it does not predict (the yield
+   test is pre-registered separately, promptove/86). */
+var _bfLong = 30;
+
+var BF_SRC = {
+  treasury: { n: 'U.S. Treasury', u: 'https://home.treasury.gov/resource-center/data-chart-center/interest-rates' },
+  nyfed:    { n: 'New York Fed', u: 'https://www.newyorkfed.org/markets/reference-rates/effr' },
+  ecb:      { n: 'European Central Bank', u: 'https://data.ecb.europa.eu/data/datasets/FM/FM.D.U2.EUR.4F.KR.DFR.LEV' },
+  boj:      { n: 'Bank of Japan', u: 'https://www.stat-search.boj.or.jp/' },
+  mof:      { n: 'Japan Ministry of Finance', u: 'https://www.mof.go.jp/english/policy/jgbs/reference/interest_rate/' },
+  bls:      { n: 'U.S. Bureau of Labor Statistics', u: 'https://data.bls.gov/timeseries/APU000072610' },
+  comex:    { n: 'COMEX via Yahoo Finance', u: 'https://finance.yahoo.com/quote/' },
+  nymex:    { n: 'NYMEX via Yahoo Finance', u: 'https://finance.yahoo.com/quote/' },
+  ice:      { n: 'ICE via Yahoo Finance', u: 'https://finance.yahoo.com/quote/DX-Y.NYB' },
+  bc:       { n: 'Blockchain.com', u: 'https://www.blockchain.com/explorer/charts' },
+  llama:    { n: 'DefiLlama', u: 'https://defillama.com/' }
+};
+var _BF_MON = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+/* "2 Oct" for a daily reading, "Aug 2026" for a monthly one. */
+function _bfDay(iso, monthly) {
+  if (!iso || !/^\d{4}-\d{2}-\d{2}$/.test(iso)) return '';
+  var p = iso.split('-');
+  return monthly ? _BF_MON[+p[1] - 1] + ' ' + p[0] : (+p[2]) + ' ' + _BF_MON[+p[1] - 1];
+}
+function _bfSrc(src, sym, date, monthly) {
+  if (!src) return '';
+  var url = src.u + (sym ? encodeURIComponent(sym) : '');
+  var when = _bfDay(date, monthly);
+  return '<div class="bf-src"><span>Source</span> <a href="' + url + '" target="_blank" rel="noopener">'
+    + src.n + '</a>' + (when ? ' · <span>' + when + '</span>' : '') + '</div>';
+}
+/* A change, as percent or as points. A policy rate that did not move
+   says so in words instead of "+0.00". */
+function _bfChange(c, label, pts) {
+  if (c == null || !isFinite(c)) return '<span class="bf-d bf-na">No ' + label + ' reading yet</span>';
+  if (pts) {
+    if (Math.abs(c) < 0.005) return '<span class="bf-d bf-flat">unchanged ' + label + '</span>';
+    return '<span class="bf-d ' + (c >= 0 ? 'up' : 'dn') + '">' + (c >= 0 ? '+' : '') + c.toFixed(2) + ' pts ' + label + '</span>';
+  }
+  return '<span class="bf-d ' + (c >= 0 ? 'up' : 'dn') + '">' + (c >= 0 ? '+' : '') + c.toFixed(1) + '% ' + label + '</span>';
+}
+function _bfFmt(v, kind) {
+  if (v == null || !isFinite(v)) return null;
+  if (kind === 'rate') return v.toFixed(2) + '%';
+  if (kind === 'cents') return (v * 100).toFixed(1) + '¢';
+  var dp = v >= 1000 ? 0 : v >= 100 ? 1 : 2;
+  return (kind === 'usd' ? '$' : '') + v.toLocaleString('en-US', { minimumFractionDigits: dp, maximumFractionDigits: dp });
+}
+/* "raised 24 Sep" / "cut 24 Sep" under a central bank rate. */
+function _bfStep(last) {
+  if (!last || last.to == null || last.from == null) return '';
+  return '<div class="bf-step">' + (last.to > last.from ? 'raised' : 'cut') + ' ' + _bfDay(last.date) + '</div>';
+}
+
+/* One tile spec per reading. `w` holds the windows: c (change) and s
+   (the line) for 7, 30 and 365 days. */
+function _bfWorldCell(it, o) {
+  if (!it || it.v == null) return null;
+  var s = Array.isArray(it.s) ? it.s : [];
+  var w = {
+    7:   { c: it.c7,   s: it.n7 >= 2 ? s.slice(-it.n7) : null, l: '7d' },
+    30:  { c: it.c30,  s: it.n30 >= 2 ? s.slice(-it.n30) : null, l: '30d' },
+    365: { c: it.c365, s: s, l: '1y' }
+  };
+  if (o.monthly) {
+    /* Monthly: a week means nothing. The front compares with the month
+       before; 30D does the same; both draw the 12 months. */
+    w[7] = { c: it.c1m, s: s, l: '1m' };
+    w[30] = { c: it.c1m, s: s, l: '1m' };
+  }
+  return {
+    k: o.k, v: _bfFmt(it.v, o.kind), u: o.u || '', pts: o.kind === 'rate', w: w,
+    d: o.d, extra: (o.range && it.lo != null ? '<div class="bf-step">target ' + it.lo.toFixed(2) + '–' + it.hi.toFixed(2) + '%</div>' : '')
+      + (o.policy ? _bfStep(it.last) : ''),
+    src: _bfSrc(o.src, o.sym, it.date, o.monthly)
+  };
+}
+/* The on-chain tiles keep their 7/30-day shape; they have no 1-year
+   history, so their back shows 30 days whichever long window is picked. */
+function _bfNetCell(o) {
+  if (o.v == null) return null;
+  var s = o.s;
+  return {
+    k: o.k, v: o.v, u: o.u || '', pts: false,
+    w: { 7: { c: o.p, s: (Array.isArray(s) && o.n7 >= 3) ? s.slice(-o.n7) : s, l: '7d' },
+         30: { c: o.p30, s: s, l: '30d' }, 365: { c: o.p30, s: s, l: '30d' } },
+    d: o.d, extra: '', src: _bfSrc(o.src, null, null)
+  };
+}
+
 function renderBriefing() {
   var host = document.getElementById('briefing');
   if (!host) return;
-  var n = _networkData;
-  if (!n) { host.style.display = 'none'; return; }
+  var W = (_worldData && _worldData.items) || {};
+  var n = _networkData || {};
+  var m = (typeof _macroData !== 'undefined' && _macroData) || {};
+  var ms = m.series || {}, mp = m.p30 || {}, mn = m.n7 || {};
+  var ns = n.series || {}, np = n.p30 || {}, nn = n.n7 || {};
 
-  /* The macro row was fetched every sync since 2026-09-06 and displayed
-     NOWHERE — _macroData held gold, silver, oil and the dollar index and
-     no part of the page rendered them. They are the market backdrop the
-     score is measured against, so they belong in front of a visitor. */
-  var m  = (typeof _macroData !== 'undefined') ? _macroData : {};
-  var ms = (m && m.series) || {};
-  var ns = (n && n.series) || {};
+  /* Fallback for the four readings TODAY had before world_data. */
+  var old = function (key, sym, kind) {
+    var ser = ms[key];
+    if (!Array.isArray(ser) || !ser.length) return null;
+    return { v: ser[ser.length - 1], s: ser, n7: mn[key] || 0, n30: ser.length, c7: m[key], c30: mp[key], c365: null };
+  };
+  var it = function (k, fbKey) { return W[k] || (fbKey ? old(fbKey) : null); };
 
-  /* 30-day side of each tile (the 7D/30D flip, 2026-10-03). Keyed like
-     `series`; `n7` is how many of a series' points fall inside the 7-day
-     window, so the front draws only the days its number describes. */
-  var mp = (m && m.p30) || {}, mn = (m && m.n7) || {};
-  var np = (n && n.p30) || {}, nn = (n && n.n7) || {};
+  var groups = [
+    { t: 'Central banks & money', cells: [
+      _bfWorldCell(W.fed, { k: 'Fed rate', kind: 'rate', policy: true, range: true, src: BF_SRC.nyfed,
+        d: 'The US central bank rate. It sets the price of dollars for the whole world.' }),
+      _bfWorldCell(W.ecb, { k: 'ECB rate', kind: 'rate', policy: true, src: BF_SRC.ecb,
+        d: 'The euro area central bank rate, paid on money banks park with it.' }),
+      _bfWorldCell(W.boj, { k: 'BoJ rate', kind: 'rate', policy: true, src: BF_SRC.boj,
+        d: 'For years near zero, so investors borrowed cheap yen to buy risky assets abroad. When Japan raises it, some of that money goes home.' }),
+      _bfWorldCell(W.us3m, { k: 'US 3-month', kind: 'rate', src: BF_SRC.treasury,
+        d: 'What cash earns in safe US government bonds. When it pays more, money has less reason to sit in risky assets like crypto.' }),
+      _bfWorldCell(W.us2y, { k: 'US 2-year', kind: 'rate', src: BF_SRC.treasury,
+        d: 'Where markets expect US rates over the next two years. Rising means money is getting tighter.' }),
+      _bfWorldCell(W.us10y, { k: 'US 10-year', kind: 'rate', src: BF_SRC.treasury,
+        d: 'The benchmark for loans and mortgages worldwide. A fast rise makes money tighter everywhere.' }),
+      _bfWorldCell(W.jgb10y, { k: 'Japan 10-year', kind: 'rate', src: BF_SRC.mof,
+        d: 'Japan\'s long-term rate. Higher means Japanese savers have more reason to keep money at home.' }),
+      _bfWorldCell(it('dxy', 'dxyP7'), { k: 'Dollar index', kind: 'num', src: BF_SRC.ice,
+        d: 'A rising dollar is a headwind for risk assets' })
+    ] },
+    { t: 'Metals', cells: [
+      _bfWorldCell(it('gold', 'goldP7'), { k: 'Gold', kind: 'usd', src: BF_SRC.comex, sym: 'GC=F',
+        d: 'The oldest store of value, as a benchmark' }),
+      _bfWorldCell(it('silver', 'silverP7'), { k: 'Silver', kind: 'usd', src: BF_SRC.comex, sym: 'SI=F',
+        d: 'Industrial demand as well as a metal' }),
+      _bfWorldCell(W.copper, { k: 'Copper', kind: 'usd', u: ' /lb', src: BF_SRC.comex, sym: 'HG=F',
+        d: 'Copper is in almost everything electric: appliances, data centers and the tiny parts that make AI possible.' }),
+      _bfWorldCell(W.aluminum, { k: 'Aluminum', kind: 'usd', u: ' /t', src: BF_SRC.comex, sym: 'ALI=F',
+        d: 'Light metal for data centers, power lines, solar frames and electric cars; often the cheaper stand-in for copper.' })
+    ] },
+    { t: 'Energy cost', cells: [
+      _bfWorldCell(it('oil', 'oilP7'), { k: 'Oil · WTI', kind: 'usd', src: BF_SRC.nymex, sym: 'CL=F',
+        d: 'WTI crude — input cost for the real economy' }),
+      _bfWorldCell(W.gas, { k: 'Natural gas', kind: 'usd', u: ' /MMBtu', src: BF_SRC.nymex, sym: 'NG=F',
+        d: 'The fuel behind much of US electricity, so its price feeds into what power costs.' }),
+      _bfWorldCell(W.power, { k: 'Electricity', kind: 'cents', u: ' /kWh', monthly: true, src: BF_SRC.bls,
+        d: 'What US homes pay, monthly average. It is also the running cost of data centers, AI and Bitcoin mining.' })
+    ] },
+    { t: 'On-chain', cells: [
+      _bfNetCell({ k: 'Hash rate', v: _bfNum(n.hashrateEh, 0), u: ' EH/s', p: n.hashrateP7, s: ns.hashrateEh,
+        p30: np.hashrateEh, n7: nn.hashrateEh, src: BF_SRC.bc,
+        d: 'Computing power securing Bitcoin, averaged over 7 days. '
+           + 'The daily figure is inferred from blocks found, so one day '
+           + 'alone carries about 7% of noise — the line below is the raw '
+           + 'daily estimate and shows that spread.' }),
+      _bfNetCell({ k: 'Active addresses', v: _bfNum(n.addrCount, 0), p: n.addrP7, s: ns.addrCount,
+        p30: np.addrCount, n7: nn.addrCount, src: BF_SRC.bc,
+        d: 'Bitcoin addresses used per day, averaged over 7 days. '
+           + 'Weekends run well below midweek, so a single day reports '
+           + 'partly which day of the week it is.' }),
+      _bfNetCell({ k: 'DeFi TVL', v: _bfUsd(n.tvlUsd), p: n.tvlP7, s: ns.tvlUsd,
+        p30: np.tvlUsd, n7: nn.tvlUsd, src: BF_SRC.llama,
+        d: 'Value locked across every tracked chain' }),
+      _bfNetCell({ k: 'Stablecoin supply', v: _bfUsd(n.stableUsd), p: n.stableP7, s: null,
+        p30: np.stableUsd, src: BF_SRC.llama,
+        d: 'Dollars sitting on-chain, unallocated' })
+    ] }
+  ];
+  groups.forEach(function (g) { g.cells = g.cells.filter(function (c) { return c && c.v != null; }); });
+  groups = groups.filter(function (g) { return g.cells.length; });
+  if (!groups.length) { host.style.display = 'none'; return; }
 
-  var cells = [
-    { v: _bfLevel(ms.goldP7, '$') || _bfPct(m.goldP7),   u: '', p: m.goldP7,   s: ms.goldP7,
-      p30: mp.goldP7, n7: mn.goldP7, trading: true,
-      k: 'Gold',
-      d: 'The oldest store of value, as a benchmark' },
-    { v: _bfLevel(ms.silverP7, '$') || _bfPct(m.silverP7), u: '', p: m.silverP7, s: ms.silverP7,
-      p30: mp.silverP7, n7: mn.silverP7, trading: true,
-      k: 'Silver',
-      d: 'Industrial demand as well as a metal' },
-    { v: _bfLevel(ms.oilP7, '$') || _bfPct(m.oilP7),    u: '', p: m.oilP7,    s: ms.oilP7,
-      p30: mp.oilP7, n7: mn.oilP7, trading: true,
-      k: 'Oil · WTI',
-      d: 'WTI crude — input cost for the real economy' },
-    { v: _bfLevel(ms.dxyP7, '') || _bfPct(m.dxyP7),    u: '', p: m.dxyP7,    s: ms.dxyP7,
-      p30: mp.dxyP7, n7: mn.dxyP7, trading: true,
-      k: 'Dollar index',
-      d: 'A rising dollar is a headwind for risk assets' },
-    { v: _bfNum(n.hashrateEh, 0), u: ' EH/s', p: n.hashrateP7, s: ns.hashrateEh,
-      p30: np.hashrateEh, n7: nn.hashrateEh, smoothed: true,
-      k: 'Hash rate',
-      d: 'Computing power securing Bitcoin, averaged over 7 days. '
-         + 'The daily figure is inferred from blocks found, so one day '
-         + 'alone carries about 7% of noise — the line below is the raw '
-         + 'daily estimate and shows that spread.' },
-    { v: _bfNum(n.addrCount, 0), u: '', p: n.addrP7, s: ns.addrCount,
-      p30: np.addrCount, n7: nn.addrCount, smoothed: true,
-      k: 'Active addresses',
-      d: 'Bitcoin addresses used per day, averaged over 7 days. '
-         + 'Weekends run well below midweek, so a single day reports '
-         + 'partly which day of the week it is.' },
-    { v: _bfUsd(n.tvlUsd), u: '', p: n.tvlP7, s: ns.tvlUsd,
-      p30: np.tvlUsd, n7: nn.tvlUsd,
-      k: 'DeFi TVL',
-      d: 'Value locked across every tracked chain' },
-    { v: _bfUsd(n.stableUsd), u: '', p: n.stableP7, s: null,
-      p30: np.stableUsd,
-      k: 'Stablecoin supply',
-      d: 'Dollars sitting on-chain, unallocated' }
-  ].filter(function (c) { return c.v != null; });
-
-  if (!cells.length) { host.style.display = 'none'; return; }
+  var face = function (c, days, back) {
+    var win = c.w[days];
+    var other = back ? '7D' : (_bfLong === 365 ? '1Y' : '30D');
+    var label = back ? 'Show 7 days' : (_bfLong === 365 ? 'Show 1 year' : 'Show 30 days');
+    return '<div class="bf-face ' + (back ? 'bf-back' : 'bf-front') + '"' + (back ? ' aria-hidden="true"' : '') + '>'
+      + '<button type="button" class="bf-flip" onclick="bfFlip(this)" aria-label="' + label + '"'
+      + (back ? ' tabindex="-1"' : '') + '>' + other + '</button>'
+      + '<div class="bf-k">' + c.k + '</div>'
+      + '<div class="bf-v">' + c.v + '<span class="bf-u">' + c.u + '</span></div>'
+      + _bfChange(win.c, win.l, c.pts) + c.extra
+      + _bfSpark(win.s, (win.c == null) || win.c >= 0)
+      + '<div class="bf-d-note">' + c.d + '</div>'
+      + c.src
+      + '</div>';
+  };
 
   host.style.display = '';
-  host.innerHTML = '<div class="bf-bar"><span class="bf-bar-l">Change over</span>'
+  var html = '<div class="bf-bar"><span class="bf-bar-l">Change over</span>'
     + '<div class="bf-seg" role="group" aria-label="Change over">'
     + '<button type="button" class="bf-seg-b" data-days="7" onclick="bfSetAll(7)">7D</button>'
     + '<button type="button" class="bf-seg-b" data-days="30" onclick="bfSetAll(30)">30D</button>'
-    + '</div></div>'
-    + cells.map(function (c) {
-    /* FRONT: 7 days. The line is cut to the same 7 days as the number
-       (n7); an older server row without n7 draws the whole series, as
-       before. */
-    var s7 = (Array.isArray(c.s) && c.n7 >= 3) ? c.s.slice(-c.n7) : c.s;
-    var front = '<div class="bf-face bf-front">'
-      + '<button type="button" class="bf-flip" onclick="bfFlip(this)" aria-label="Show 30 days">30D</button>'
-      + '<div class="bf-k">' + c.k + '</div>'
-      + '<div class="bf-v">' + c.v + '<span class="bf-u">' + c.u + '</span></div>'
-      + _bfDelta(c.p, 7)
-      + _bfSpark(s7, (c.p == null) || c.p >= 0)
-      + '<div class="bf-d-note">' + c.d + '</div>'
-      + '</div>';
-    /* BACK: 30 days. Same level, the 30-day change, the whole line. */
-    var how = c.smoothed ? 'This week\'s average against the week 30 days earlier.'
-      : c.trading ? 'Last 30 days, weekdays only.'
-      : 'Last 30 days.';
-    var back = '<div class="bf-face bf-back" aria-hidden="true">'
-      + '<button type="button" class="bf-flip" onclick="bfFlip(this)" aria-label="Show 7 days" tabindex="-1">7D</button>'
-      + '<div class="bf-k">' + c.k + '</div>'
-      + '<div class="bf-v">' + c.v + '<span class="bf-u">' + c.u + '</span></div>'
-      + (c.p30 != null && isFinite(c.p30) ? _bfDelta(c.p30, 30)
-          : '<span class="bf-d bf-na">No 30-day reading yet</span>')
-      + _bfSpark(c.s, (c.p30 == null) || c.p30 >= 0)
-      + '<div class="bf-d-note">' + how + '</div>'
-      + '</div>';
-    var flipped = _bfFlipped[c.k] ? ' flipped' : '';
-    /* Heart rate per side (hbBeatSeconds, quarter-width steps: these move
-       far less than coins); _bfApply sets the one for the side showing. */
-    var hb7 = hbBeatSeconds(c.p, 0.25), hb30 = hbBeatSeconds(c.p30, 0.25);
-    return '<div class="bf-cell' + flipped + '" data-k="' + c.k + '"'
-      + (hb7 != null ? ' data-hb7="' + hb7.toFixed(3) + '"' : '')
-      + (hb30 != null ? ' data-hb30="' + hb30.toFixed(3) + '"' : '') + '>'
-      + '<div class="bf-tilt"><div class="bf-inner">' + front + back + '</div></div>'
-      + '</div>';
-  }).join('') + '<div class="bf-age">' + _bfAge(_networkAgeMs) + '</div>';
-  var cs = host.querySelectorAll('.bf-cell');
+    + '<button type="button" class="bf-seg-b" data-days="365" onclick="bfSetAll(365)">1Y</button>'
+    + '</div></div>';
+  groups.forEach(function (g) {
+    html += '<div class="bf-group">' + g.t + '</div>';
+    g.cells.forEach(function (c) {
+      var p7 = c.pts ? null : c.w[7].c, pl = c.pts ? null : c.w[_bfLong].c;
+      var hb7 = hbBeatSeconds(p7, 0.25), hbl = hbBeatSeconds(pl, 0.25);
+      html += '<div class="bf-cell' + (_bfFlipped[c.k] ? ' flipped' : '') + '" data-k="' + c.k + '"'
+        + (hb7 != null ? ' data-hb7="' + hb7.toFixed(3) + '"' : '')
+        + (hbl != null ? ' data-hb30="' + hbl.toFixed(3) + '"' : '') + '>'
+        + '<div class="bf-tilt"><div class="bf-inner">' + face(c, 7, false) + face(c, _bfLong, true) + '</div></div>'
+        + '</div>';
+    });
+    /* Fill the row so a short group (energy has three) does not leave a
+       hole showing the grid's border colour. */
+    for (var f = g.cells.length % 4; f && f < 4; f++) html += '<div class="bf-cell bf-cell-empty" aria-hidden="true"></div>';
+  });
+  var ages = [_worldAgeMs, _networkAgeMs].filter(function (a) { return a != null; });
+  html += '<div class="bf-age">' + _bfAge(ages.length ? Math.min.apply(null, ages) : null) + '</div>';
+  host.innerHTML = html;
+
+  var cs = host.querySelectorAll('.bf-cell:not(.bf-cell-empty)');
   for (var ci = 0; ci < cs.length; ci++) _bfApply(cs[ci], cs[ci].classList.contains('flipped'));
   _bfSyncSeg(host);
   _bfWireTilt(host);
@@ -1842,33 +1976,32 @@ function bfFlip(btn) {
   _bfApply(cell, !cell.classList.contains('flipped'));
   _bfSyncSeg(document.getElementById('briefing'));
 }
-/* The order the section switch turns the tiles, chosen by Daniel
-   (2026-10-03): the right-hand pair of each row first, then the left. A
-   tile not named here goes last. */
-var _BF_FLIP_ORDER = ['Dollar index', 'Oil · WTI', 'DeFi TVL', 'Stablecoin supply',
-                      'Gold', 'Silver', 'Hash rate', 'Active addresses'];
-var _BF_FLIP_STEP_MS = 90;
+/* The section switch: 7D turns every tile to its front; 30D or 1Y sets
+   the long window for every back (re-rendering them when it changes)
+   and turns every tile over, in a short ripple in page order. Daniel's
+   2026-10-03 order for the first eight tiles went with the regrouping
+   the same day: the tiles now sit in four groups. */
+var _BF_FLIP_STEP_MS = 60;
 function bfSetAll(days) {
   var host = document.getElementById('briefing');
   if (!host) return;
-  var on = days === 30;
-  var cells = host.querySelectorAll('.bf-cell');
+  var on = days !== 7;
+  if (on && _bfLong !== days) { _bfLong = days; renderBriefing(); }
+  var cells = host.querySelectorAll('.bf-cell:not(.bf-cell-empty)');
   for (var i = 0; i < cells.length; i++) {
-    var pos = _BF_FLIP_ORDER.indexOf(cells[i].getAttribute('data-k'));
-    if (pos < 0) pos = _BF_FLIP_ORDER.length + i;
     var inner = cells[i].querySelector('.bf-inner');
-    if (inner) inner.style.transitionDelay = _bfReduced() ? '0ms' : (pos * _BF_FLIP_STEP_MS) + 'ms';
+    if (inner) inner.style.transitionDelay = _bfReduced() ? '0ms' : (i * _BF_FLIP_STEP_MS) + 'ms';
     _bfApply(cells[i], on);
   }
   _bfSyncSeg(host);
 }
-/* The bar shows which side is up when all tiles agree, and neither
-   button pressed when they are mixed. */
+/* The bar shows which side is up when all tiles agree, and no button
+   pressed when they are mixed. */
 function _bfSyncSeg(host) {
   if (!host) return;
-  var cells = host.querySelectorAll('.bf-cell'), n30 = 0;
-  for (var i = 0; i < cells.length; i++) if (cells[i].classList.contains('flipped')) n30++;
-  var mode = n30 === 0 ? '7' : n30 === cells.length ? '30' : '';
+  var cells = host.querySelectorAll('.bf-cell:not(.bf-cell-empty)'), nb = 0;
+  for (var i = 0; i < cells.length; i++) if (cells[i].classList.contains('flipped')) nb++;
+  var mode = nb === 0 ? '7' : nb === cells.length ? String(_bfLong) : '';
   var bs = host.querySelectorAll('.bf-seg-b');
   for (var j = 0; j < bs.length; j++) {
     var on = bs[j].getAttribute('data-days') === mode;
@@ -1880,7 +2013,7 @@ function _bfWireTilt(host) {
   var fine = false;
   try { fine = window.matchMedia('(hover: hover) and (pointer: fine)').matches; } catch (e) {}
   if (!fine || _bfReduced()) return;
-  var cells = host.querySelectorAll('.bf-cell');
+  var cells = host.querySelectorAll('.bf-cell:not(.bf-cell-empty)');
   for (var i = 0; i < cells.length; i++) {
     (function (cell) {
       cell.addEventListener('mousemove', function (e) {
@@ -4552,7 +4685,7 @@ function _hbBlip(ctx, t) {
     reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
   } catch (e) {}
   if (!fine || reduced) return;
-  var SEL = '.sig-tile:not(.sig-tile-empty), .bf-cell, #tiles-grid .tile';
+  var SEL = '.sig-tile:not(.sig-tile-empty), .bf-cell:not(.bf-cell-empty), #tiles-grid .tile';
   var timer = null, glow = null, tile = null, lx = 0, ly = 0;
   function lift() {
     hbSoundStop();

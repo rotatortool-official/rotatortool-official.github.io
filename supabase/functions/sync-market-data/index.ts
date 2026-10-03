@@ -392,6 +392,273 @@ async function fetchMacro(
   return out;
 }
 
+// ─────────────── SOURCE: WORLD (TODAY's money, metals, energy) ───────────────
+//
+// OWNER      this function. Nothing else writes market_cache.world_data.
+// INPUT      official or exchange sources, all free and keyless, probed
+//            2026-10-03 (promptove/86):
+//              U.S. Treasury daily par yield curve CSV  -> us3m, us2y, us10y
+//              New York Fed EFFR API                    -> fed (+ target range)
+//              ECB data portal, deposit facility rate   -> ecb
+//              Bank of Japan time-series API, overnight
+//                call rate (the rate BoJ policy steers) -> boj
+//              Japan Ministry of Finance JGB yields CSV -> jgb10y
+//              Yahoo Finance futures, 1 year            -> gold silver copper
+//                                                          aluminum oil gas dxy
+//              U.S. BLS average price, electricity/kWh  -> power (monthly)
+//            FRED was tried and returns nothing to us; do not switch to it.
+// OUTPUT     market_cache.world_data — { items: { key: Item }, updatedAt }.
+//            Item: v (latest), date (of v, YYYY-MM-DD), s (values, oldest
+//            first, up to ~1 year), n7/n30 (points inside those windows),
+//            c7/c30/c365 (change: PERCENT for prices, POINTS for rates),
+//            c1m for the monthly electricity price, last (policy rates:
+//            the last step, {date, from, to}), lo/hi (Fed target range).
+// CONSUMERS  the site's TODAY section (renderBriefing in data-loaders.js).
+//            Not the scoring engine: macro_data stays its input, unchanged.
+// FAILURE    every source is fetched on its own; one that fails keeps its
+//            previous item from the last good row, so a dead feed shows
+//            yesterday's reading with yesterday's date, never a blank.
+
+type WorldItem = {
+  v: number; date: string; s: number[]; n7: number; n30: number;
+  c7: number | null; c30: number | null; c365: number | null;
+  c1m?: number | null; last?: { date: string; from: number; to: number } | null;
+  lo?: number; hi?: number;
+};
+type Pt = [number, number];   // [unix seconds, value]
+
+const DAY = 86400;
+const isoDay = (t: number) => new Date(t * 1000).toISOString().slice(0, 10);
+const tsOf = (y: number, m: number, d: number) => Date.UTC(y, m - 1, d) / 1000;
+
+/* Shared shape for every daily series: the latest value, the change over
+   7 / 30 / 365 calendar days (matched by date, not by counting rows, for
+   the reason given at pct7dSeries), and the last year of values. A window
+   whose anchor is more than `tol` days off the mark reports null. */
+function worldBuild(pts: Pt[], mode: 'pct' | 'pts'): WorldItem | null {
+  const p = pts.filter(([t, v]) => isFinite(t) && isFinite(v)).sort((a, b) => a[0] - b[0]);
+  if (p.length < 2) return null;
+  const [tl, vl] = p[p.length - 1];
+  const yearAgo = tl - 366 * DAY;
+  const kept = p.filter(([t]) => t >= yearAgo);
+  const anchor = (days: number, tol: number) => {
+    const target = tl - days * DAY;
+    let best = -1, dist = Infinity;
+    for (let i = 0; i < p.length - 1; i++) {
+      const d = Math.abs(p[i][0] - target);
+      if (d < dist) { dist = d; best = i; }
+    }
+    return best >= 0 && dist <= tol * DAY ? p[best][1] : null;
+  };
+  const ch = (then: number | null) => {
+    if (then == null) return null;
+    if (mode === 'pts') return Number((vl - then).toFixed(3));
+    return then ? Number((((vl - then) / then) * 100).toFixed(2)) : null;
+  };
+  return {
+    v: Number(vl.toPrecision(6)), date: isoDay(tl),
+    s: kept.map(([, v]) => Number(v.toPrecision(6))),
+    n7: kept.filter(([t]) => t >= tl - 7 * DAY).length,
+    n30: kept.filter(([t]) => t >= tl - 30 * DAY).length,
+    c7: ch(anchor(7, 4)), c30: ch(anchor(30, 5)), c365: ch(anchor(365, 10)),
+  };
+}
+
+/* The last step of a policy rate: the newest day it moved by at least
+   `min` from the day before. Daily noise in a market rate (the Fed's and
+   the BoJ's overnight averages wobble by 0.01) stays below `min`. */
+function lastStep(pts: Pt[], min: number) {
+  const p = [...pts].sort((a, b) => a[0] - b[0]);
+  for (let i = p.length - 1; i > 0; i--) {
+    if (Math.abs(p[i][1] - p[i - 1][1]) >= min) {
+      return { date: isoDay(p[i][0]), from: Number(p[i - 1][1].toFixed(3)), to: Number(p[i][1].toFixed(3)) };
+    }
+  }
+  return null;
+}
+
+function csvRows(text: string): string[][] {
+  return text.split(/\r?\n/).filter((l) => l.trim()).map((l) => l.split(','));
+}
+
+async function worldText(url: string): Promise<string> {
+  const res = await fetch(url, { headers: { ...UA, 'Accept': 'text/csv,application/json,*/*' } });
+  if (!res.ok) throw new Error(`${res.status} — ${url}`);
+  return await res.text();
+}
+
+/* U.S. Treasury: one CSV per year, newest first. This year and last
+   year together always cover 12 months. */
+async function worldTreasury(): Promise<Record<string, WorldItem | null>> {
+  const y = new Date().getUTCFullYear();
+  const cols: Record<string, string> = { us3m: '3 Mo', us2y: '2 Yr', us10y: '10 Yr' };
+  const pts: Record<string, Pt[]> = { us3m: [], us2y: [], us10y: [] };
+  for (const year of [y - 1, y]) {
+    const text = await worldText('https://home.treasury.gov/resource-center/data-chart-center/interest-rates/'
+      + `daily-treasury-rates.csv/${year}/all?type=daily_treasury_yield_curve&field_tdr_date_value=${year}&page&_format=csv`);
+    const rows = csvRows(text);
+    const head = rows[0].map((h) => h.replace(/"/g, '').trim());
+    for (const r of rows.slice(1)) {
+      const m = r[0].match(/^(\d{2})\/(\d{2})\/(\d{4})$/);
+      if (!m) continue;
+      const t = tsOf(+m[3], +m[1], +m[2]);
+      for (const k of Object.keys(cols)) {
+        const v = parseFloat(r[head.indexOf(cols[k])]);
+        if (isFinite(v)) pts[k].push([t, v]);
+      }
+    }
+    await sleep(200);
+  }
+  return { us3m: worldBuild(pts.us3m, 'pts'), us2y: worldBuild(pts.us2y, 'pts'), us10y: worldBuild(pts.us10y, 'pts') };
+}
+
+async function worldFed(): Promise<WorldItem | null> {
+  const end = new Date(), start = new Date(Date.now() - 400 * DAY * 1000);
+  const d = await safeJson('https://markets.newyorkfed.org/api/rates/unsecured/effr/search.json'
+    + `?startDate=${start.toISOString().slice(0, 10)}&endDate=${end.toISOString().slice(0, 10)}`);
+  const rows = (d?.refRates ?? []) as { effectiveDate: string; percentRate: number; targetRateFrom?: number; targetRateTo?: number }[];
+  const pts: Pt[] = [], top: Pt[] = [];
+  for (const r of rows) {
+    const [Y, M, D] = r.effectiveDate.split('-').map(Number);
+    const t = tsOf(Y, M, D);
+    if (isFinite(r.percentRate)) pts.push([t, r.percentRate]);
+    if (r.targetRateTo != null) top.push([t, r.targetRateTo]);
+  }
+  const it = worldBuild(pts, 'pts');
+  if (!it) return null;
+  const newest = rows.reduce((a, b) => (a.effectiveDate > b.effectiveDate ? a : b));
+  if (newest.targetRateFrom != null) it.lo = newest.targetRateFrom;
+  if (newest.targetRateTo != null) it.hi = newest.targetRateTo;
+  it.last = lastStep(top, 0.1);   // the TARGET moved, not the daily average
+  return it;
+}
+
+async function worldEcb(): Promise<WorldItem | null> {
+  const start = new Date(Date.now() - 400 * DAY * 1000).toISOString().slice(0, 10);
+  const rows = csvRows(await worldText(
+    `https://data-api.ecb.europa.eu/service/data/FM/D.U2.EUR.4F.KR.DFR.LEV?startPeriod=${start}&format=csvdata`));
+  const h = rows[0], iT = h.indexOf('TIME_PERIOD'), iV = h.indexOf('OBS_VALUE');
+  const pts: Pt[] = [];
+  for (const r of rows.slice(1)) {
+    const [Y, M, D] = (r[iT] || '').split('-').map(Number);
+    const v = parseFloat(r[iV]);
+    if (Y && isFinite(v)) pts.push([tsOf(Y, M, D), v]);
+  }
+  const it = worldBuild(pts, 'pts');
+  if (it) it.last = lastStep(pts, 0.05);
+  return it;
+}
+
+async function worldBoj(): Promise<WorldItem | null> {
+  const s = new Date(Date.now() - 400 * DAY * 1000);
+  const ym = `${s.getUTCFullYear()}${String(s.getUTCMonth() + 1).padStart(2, '0')}`;
+  const d = await safeJson('https://www.stat-search.boj.or.jp/api/v1/getDataCode?format=json&lang=en'
+    + `&db=FM01&code=STRDCLUCON&startDate=${ym}`);
+  const vals = d?.RESULTSET?.[0]?.VALUES;
+  const ds: number[] = vals?.SURVEY_DATES ?? [], vs: (number | null)[] = vals?.VALUES ?? [];
+  const pts: Pt[] = [];
+  ds.forEach((n, i) => {
+    const v = vs[i];
+    if (v == null || !isFinite(v)) return;
+    const x = String(n);
+    pts.push([tsOf(+x.slice(0, 4), +x.slice(4, 6), +x.slice(6, 8)), v]);
+  });
+  const it = worldBuild(pts, 'pts');
+  if (it) it.last = lastStep(pts, 0.1);
+  return it;
+}
+
+/* Japan MoF: the historical file runs to last month (1974 onward, so
+   only its tail is read) and a small file holds this month. */
+async function worldJgb(): Promise<WorldItem | null> {
+  const base = 'https://www.mof.go.jp/english/policy/jgbs/reference/interest_rate/';
+  const pts: Pt[] = [];
+  for (const url of [base + 'historical/jgbcme_all.csv', base + 'jgbcme.csv']) {
+    const rows = csvRows(await worldText(url));
+    const head = rows.find((r) => r[0] === 'Date');
+    if (!head) continue;
+    const i10 = head.indexOf('10Y');
+    for (const r of rows.slice(-400)) {
+      const m = (r[0] || '').match(/^(\d{4})\/(\d{1,2})\/(\d{1,2})$/);
+      const v = parseFloat(r[i10]);
+      if (m && isFinite(v)) pts.push([tsOf(+m[1], +m[2], +m[3]), v]);
+    }
+    await sleep(200);
+  }
+  const seen = new Set<number>();   // the two files can share a day at a month turn
+  return worldBuild(pts.filter(([t]) => (seen.has(t) ? false : (seen.add(t), true))), 'pts');
+}
+
+async function worldYahoo(symbol: string): Promise<WorldItem | null> {
+  const d = await safeJson(`https://query1.finance.yahoo.com/v8/finance/chart/${encodeURIComponent(symbol)}?interval=1d&range=1y`);
+  const r = d?.chart?.result?.[0];
+  const ts: number[] = r?.timestamp ?? [], cl: (number | null)[] = r?.indicators?.quote?.[0]?.close ?? [];
+  const pts: Pt[] = [];
+  ts.forEach((t, i) => { const v = cl[i]; if (v != null && isFinite(v)) pts.push([t, v]); });
+  return worldBuild(pts, 'pct');
+}
+
+/* BLS average price of electricity per kWh, U.S. city average. Monthly,
+   about six weeks behind; a month the BLS did not publish comes as "-"
+   (October 2025 is one) and is skipped, so the line bridges it. The
+   public v1 API needs no key and allows 25 calls a day; this job makes
+   three. */
+async function worldPower(): Promise<WorldItem | null> {
+  const d = await safeJson('https://api.bls.gov/publicAPI/v1/timeseries/data/APU000072610');
+  const rows = (d?.Results?.series?.[0]?.data ?? []) as { year: string; period: string; value: string }[];
+  const pts: Pt[] = [];
+  for (const r of rows) {
+    const m = r.period.match(/^M(\d{2})$/);
+    const v = parseFloat(r.value);
+    if (m && +m[1] <= 12 && isFinite(v)) pts.push([tsOf(+r.year, +m[1], 1), v]);
+  }
+  pts.sort((a, b) => a[0] - b[0]);
+  const it = worldBuild(pts.slice(-14), 'pct');
+  if (!it) return null;
+  /* Month on month: the previous PUBLISHED month. */
+  const prev = pts.length > 1 ? pts[pts.length - 2][1] : null;
+  it.c1m = prev ? Number((((it.v - prev) / prev) * 100).toFixed(2)) : null;
+  it.s = pts.slice(-13).map(([, v]) => v);   // 12 months back plus this one
+  return it;
+}
+
+async function fetchWorld(supabase: ReturnType<typeof createClient>): Promise<Record<string, boolean>> {
+  const { data: prevRow } = await supabase
+    .from('market_cache').select('data').eq('cache_key', 'world_data').maybeSingle();
+  const items: Record<string, WorldItem> = { ...((prevRow?.data as any)?.items ?? {}) };
+  const got: Record<string, boolean> = {};
+  const put = (k: string, it: WorldItem | null | undefined) => { if (it) { items[k] = it; got[k] = true; } else got[k] = false; };
+
+  const jobs: [string, () => Promise<void>][] = [
+    ['treasury', async () => { const r = await worldTreasury(); for (const k of Object.keys(r)) put(k, r[k]); }],
+    ['fed',      async () => put('fed', await worldFed())],
+    ['ecb',      async () => put('ecb', await worldEcb())],
+    ['boj',      async () => put('boj', await worldBoj())],
+    ['jgb10y',   async () => put('jgb10y', await worldJgb())],
+    ['gold',     async () => put('gold', await worldYahoo('GC=F'))],
+    ['silver',   async () => put('silver', await worldYahoo('SI=F'))],
+    ['copper',   async () => put('copper', await worldYahoo('HG=F'))],
+    ['aluminum', async () => put('aluminum', await worldYahoo('ALI=F'))],
+    ['oil',      async () => put('oil', await worldYahoo('CL=F'))],
+    ['gas',      async () => put('gas', await worldYahoo('NG=F'))],
+    ['dxy',      async () => put('dxy', await worldYahoo('DX-Y.NYB'))],
+    ['power',    async () => put('power', await worldPower())],
+  ];
+  for (const [label, job] of jobs) {
+    try { await job(); }
+    catch (e) { got[label] = false; console.warn(`[world] ${label} failed:`, (e as Error).message); }
+    await sleep(150);
+  }
+
+  if (!Object.values(got).some(Boolean)) throw new Error('every world source failed — previous row kept');
+  const { error } = await supabase.from('market_cache').upsert(
+    { cache_key: 'world_data', data: { items, updatedAt: new Date().toISOString() }, updated_at: new Date().toISOString() },
+    { onConflict: 'cache_key' },
+  );
+  if (error) throw error;
+  return got;
+}
+
 // ─────────────── SOURCE: FEAR & GREED ───────────────
 //
 // OWNER      this function. Nothing else writes market_cache.fear_greed.
@@ -767,9 +1034,23 @@ Deno.serve(async (req) => {
     console.error('[fear_greed] failed:', msg);
   }
 
+  // TODAY's money, metals and energy readings (promptove/86). Isolated
+  // like macro and network: a dead source keeps its last good reading
+  // and can never fail a price sync that already succeeded.
+  let world: Record<string, boolean> | null = null;
+  try {
+    world = await fetchWorld(supabase);
+    report.world = { ok: true, count: Object.values(world).filter(Boolean).length };
+    console.log('[world] wrote market_cache.world_data:', JSON.stringify(world));
+  } catch (e) {
+    const msg = (e as Error).message ?? String(e);
+    report.world = { ok: false, error: msg };
+    console.error('[world] failed:', msg);
+  }
+
   const anyOk = Object.values(report).some((r) => r.ok);
   return new Response(
-    JSON.stringify({ ok: anyOk, report, macro, network, fearGreed, ts: new Date().toISOString() }, null, 2),
+    JSON.stringify({ ok: anyOk, report, macro, network, fearGreed, world, ts: new Date().toISOString() }, null, 2),
     {
       status: anyOk ? 200 : 502,
       headers: { 'content-type': 'application/json' },

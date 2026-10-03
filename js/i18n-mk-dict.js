@@ -898,3 +898,47 @@ Object.assign(MK_TEXT, {
   'YouTube did not answer. Try again in a moment.': 'YouTube не одговори. Обидете се повторно за момент.',
   'from YouTube': 'од YouTube', 'Playing': 'Се пушта',
 });
+
+/* ── TODAY regrouped: money, metals, energy (promptove/86, 2026-10-03) ── */
+Object.assign(MK_TEXT, {
+  'Central banks & money': 'Централни банки и пари', 'Metals': 'Метали', 'Energy cost': 'Цена на енергијата', 'On-chain': 'На синџирот',
+  'Fed rate': 'Камата на ФЕД', 'ECB rate': 'Камата на ЕЦБ', 'BoJ rate': 'Камата во Јапонија',
+  'US 3-month': 'САД 3 месеци', 'US 2-year': 'САД 2 години', 'US 10-year': 'САД 10 години', 'Japan 10-year': 'Јапонија 10 години',
+  'Copper': 'Бакар', 'Aluminum': 'Алуминиум', 'Natural gas': 'Природен гас', 'Electricity': 'Струја',
+  'Source': 'Извор', 'Show 1 year': 'Прикажи 1 година',
+  'The US central bank rate. It sets the price of dollars for the whole world.':
+    'Каматата на централната банка на САД. Таа ја одредува цената на доларот за целиот свет.',
+  'The euro area central bank rate, paid on money banks park with it.':
+    'Каматата на централната банка на еврозоната, што ја плаќа на парите што банките ги чуваат кај неа.',
+  'For years near zero, so investors borrowed cheap yen to buy risky assets abroad. When Japan raises it, some of that money goes home.':
+    'Со години беше речиси нула, па инвеститорите позајмуваа евтини јени за да купуваат ризични средства надвор. Кога Јапонија ја крева, дел од тие пари се враќаат дома.',
+  'What cash earns in safe US government bonds. When it pays more, money has less reason to sit in risky assets like crypto.':
+    'Колку заработуваат парите во сигурни американски државни обврзници. Кога плаќаат повеќе, парите имаат помалку причина да стојат во ризични средства како крипто.',
+  'Where markets expect US rates over the next two years. Rising means money is getting tighter.':
+    'Каде пазарот очекува да бидат каматите во САД во следните две години. Ако расте, парите стануваат поскапи.',
+  'The benchmark for loans and mortgages worldwide. A fast rise makes money tighter everywhere.':
+    'Репер за кредити и хипотеки во целиот свет. Ако брзо расте, парите стануваат поскапи насекаде.',
+  'Japan\'s long-term rate. Higher means Japanese savers have more reason to keep money at home.':
+    'Долгорочната камата во Јапонија. Кога е повисока, јапонските штедачи имаат повеќе причина да ги чуваат парите дома.',
+  'Copper is in almost everything electric: appliances, data centers and the tiny parts that make AI possible.':
+    'Бакарот е во речиси сè што работи на струја: апарати, центри за податоци и ситните делови што го овозможуваат AI.',
+  'Light metal for data centers, power lines, solar frames and electric cars; often the cheaper stand-in for copper.':
+    'Лесен метал за центри за податоци, далноводи, соларни рамки и електрични автомобили; често поевтина замена за бакарот.',
+  'The fuel behind much of US electricity, so its price feeds into what power costs.':
+    'Горивото од кое се прави голем дел од струјата во САД, па неговата цена влијае на цената на струјата.',
+  'What US homes pay, monthly average. It is also the running cost of data centers, AI and Bitcoin mining.':
+    'Колку плаќаат домовите во САД, месечен просек. Тоа е и трошокот за работа на центрите за податоци, AI и рударењето биткоин.',
+});
+(function () {
+  var P = function (re, fn) { MK_PATTERNS.push([re, fn]); };
+  var MON = { Jan: 'јан', Feb: 'фев', Mar: 'мар', Apr: 'апр', May: 'мај', Jun: 'јун', Jul: 'јул', Aug: 'авг', Sep: 'сеп', Oct: 'окт', Nov: 'ное', Dec: 'дек' };
+  var WIN = { '7d': 'за 7 дена', '30d': 'за 30 дена', '1y': 'за 1 година', '1m': 'за 1 месец' };
+  var comma = function (x) { return x.replace('.', ','); };
+  P(/^([+\-][\d.]+) pts (7d|30d|1y|1m)$/, function (m) { return comma(m[1]) + ' поени ' + WIN[m[2]]; });
+  P(/^([+\-][\d.]+)% (7d|30d|1y|1m)$/, function (m) { return comma(m[1]) + '% ' + WIN[m[2]]; });
+  P(/^unchanged (7d|30d|1y|1m)$/, function (m) { return 'без промена ' + WIN[m[1]]; });
+  P(/^No (7d|30d|1y|1m) reading yet$/, function (m) { return 'Сè уште нема читање ' + WIN[m[1]]; });
+  P(/^(raised|cut) (\d{1,2}) (\w{3})$/, function (m) { return (m[1] === 'raised' ? 'зголемена на ' : 'намалена на ') + m[2] + ' ' + (MON[m[3]] || m[3]); });
+  P(/^target ([\d.]+)–([\d.]+)%$/, function (m) { return 'цел ' + comma(m[1]) + '–' + comma(m[2]) + '%'; });
+  P(/^(Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec) (\d{4})$/, function (m) { return MON[m[1]] + ' ' + m[2]; });
+})();
