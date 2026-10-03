@@ -325,10 +325,13 @@ Deno.serve(async (req) => {
 
     // ── SHADOW 4: dilution risk (added 2026-10-03, promptove/82) ────
     // "Risky" = carries Binance's Seed tag, OR its first Binance daily
-    // candle is under DIL_YOUNG_DAYS old. Young and Seed coins still have
-    // most of their supply to unlock. (Low float was asked for too, but
-    // every coin with <= 30% unlocked carries the Seed tag, so it adds
-    // nothing here.) Two rules, recorded separately:
+    // candle is under DIL_YOUNG_DAYS old. Young coins usually still have
+    // supply to unlock. Seed is NOT an unlock flag: it is Binance's
+    // "early-stage, higher risk" tag, and 22 of the 93 Seed coins in the
+    // list are over 90% unlocked (mostly memecoins, e.g. MUBARAK). The
+    // pump rule held for both kinds (promptove/82). Low float was asked
+    // for too, but every coin with <= 30% unlocked carries the Seed tag,
+    // so it adds nothing here. Two rules, recorded separately:
     //
     // '-dilution-out' PASSED the backtest (dilution-test.js, 2021-2026):
     //   a risky coin in the top 20% by 30-day return beat the median coin
