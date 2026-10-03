@@ -1782,14 +1782,22 @@ function bfFlip(btn) {
   _bfApply(cell, !cell.classList.contains('flipped'));
   _bfSyncSeg(document.getElementById('briefing'));
 }
+/* The order the section switch turns the tiles, chosen by Daniel
+   (2026-10-03): the right-hand pair of each row first, then the left. A
+   tile not named here goes last. */
+var _BF_FLIP_ORDER = ['Dollar index', 'Oil · WTI', 'DeFi TVL', 'Stablecoin supply',
+                      'Gold', 'Silver', 'Hash rate', 'Active addresses'];
+var _BF_FLIP_STEP_MS = 90;
 function bfSetAll(days) {
   var host = document.getElementById('briefing');
   if (!host) return;
   var on = days === 30;
   var cells = host.querySelectorAll('.bf-cell');
   for (var i = 0; i < cells.length; i++) {
+    var pos = _BF_FLIP_ORDER.indexOf(cells[i].getAttribute('data-k'));
+    if (pos < 0) pos = _BF_FLIP_ORDER.length + i;
     var inner = cells[i].querySelector('.bf-inner');
-    if (inner) inner.style.transitionDelay = _bfReduced() ? '0ms' : (i * 45) + 'ms';
+    if (inner) inner.style.transitionDelay = _bfReduced() ? '0ms' : (pos * _BF_FLIP_STEP_MS) + 'ms';
     _bfApply(cells[i], on);
   }
   _bfSyncSeg(host);
