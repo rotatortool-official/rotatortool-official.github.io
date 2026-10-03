@@ -4428,6 +4428,122 @@ function _hbEcgSvg() {
   }
   return '<svg viewBox="0 0 240 40" preserveAspectRatio="none" aria-hidden="true"><path d="' + d + '"/></svg>';
 }
+/* ── The heartbeat you can hear (Daniel, 2026-10-03) ───────────────
+   When the monitor trace appears, a soft, deep lub-dub plays at the
+   tile's own rate: faster for a coin that is up, slower for one that is
+   down. Made by the browser (Web Audio), no sound files. ON by default,
+   off from Settings ("Heartbeat sound", remembered per browser).
+   Browsers allow sound only after the visitor has clicked or typed
+   something on the page, so it starts after the first click. At most
+   10 beats, then silence; moving the mouse stops it at once. Mouse
+   devices only and never with reduced motion asked for (the trace that
+   triggers it is not drawn then). */
+var _hbAudio = null, _hbBeatTimer = null;
+function hbSoundOn() {
+  try { return localStorage.getItem('rot_hb_sound') !== 'off'; } catch (e) { return true; }
+}
+function setHbSound(on) {
+  try { localStorage.setItem('rot_hb_sound', on ? 'on' : 'off'); } catch (e) {}
+  if (!on) hbSoundStop();
+}
+function _hbCtx() {
+  if (!_hbAudio) {
+    var AC = window.AudioContext || window.webkitAudioContext;
+    if (!AC) return null;
+    try { _hbAudio = new AC(); } catch (e) { return null; }
+  }
+  if (_hbAudio.state === 'suspended') { try { _hbAudio.resume(); } catch (e) {} }
+  return _hbAudio;
+}
+/* One thump: a low sine that drops in pitch, through a low-pass, with a
+   fast attack and a short decay. Quiet on purpose. */
+function _hbThump(ctx, t, freq, peak, len) {
+  var o = ctx.createOscillator(), g = ctx.createGain(), f = ctx.createBiquadFilter();
+  o.type = 'sine';
+  o.frequency.setValueAtTime(freq, t);
+  o.frequency.exponentialRampToValueAtTime(freq * 0.6, t + len);
+  f.type = 'lowpass'; f.frequency.value = 220;
+  g.gain.setValueAtTime(0.0001, t);
+  g.gain.exponentialRampToValueAtTime(peak, t + 0.012);
+  g.gain.exponentialRampToValueAtTime(0.0001, t + len);
+  o.connect(f); f.connect(g); g.connect(ctx.destination);
+  o.start(t); o.stop(t + len + 0.02);
+}
+function hbSoundStart(beatSeconds) {
+  hbSoundStop();
+  if (!hbSoundOn()) return;
+  var ctx = _hbCtx();
+  if (!ctx || ctx.state !== 'running') return;   /* no click on the page yet */
+  var n = 0;
+  (function beat() {
+    var t = ctx.currentTime + 0.02;
+    _hbThump(ctx, t, 62, 0.20, 0.16);                        /* lub */
+    _hbThump(ctx, t + beatSeconds * 0.16, 78, 0.12, 0.12);   /* dub, where the visual dub falls */
+    if (++n < 10) _hbBeatTimer = setTimeout(beat, beatSeconds * 1000);
+  })();
+}
+function hbSoundStop() {
+  if (_hbBeatTimer) { clearTimeout(_hbBeatTimer); _hbBeatTimer = null; }
+}
+/* The loading screen's monitor beep (Daniel, 2026-10-03): three soft
+   hospital-monitor blips, each on a spike of the green line the loader
+   draws (index.html .lp-ecg: 3 beats over 4.3s, the spike 28/60 of the
+   way into each). Browsers keep a page silent until the visitor has
+   clicked, so on a first visit this usually stays quiet; Chrome lets
+   often-visited sites play at once. Same Settings switch as the tiles;
+   never with reduced motion asked for. */
+function _hbBlip(ctx, t) {
+  var o = ctx.createOscillator(), g = ctx.createGain();
+  o.type = 'sine'; o.frequency.value = 960;
+  g.gain.setValueAtTime(0.0001, t);
+  g.gain.exponentialRampToValueAtTime(0.06, t + 0.01);
+  g.gain.exponentialRampToValueAtTime(0.0001, t + 0.12);
+  o.connect(g); g.connect(ctx.destination);
+  o.start(t); o.stop(t + 0.14);
+}
+(function _loaderBeep() {
+  if (!hbSoundOn()) return;
+  try { if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return; } catch (e) {}
+  var loader = document.getElementById('loader');
+  if (!loader || loader.classList.contains('gone')) return;
+  var ctx = _hbCtx();
+  if (!ctx) return;
+  var beat = 4.3 / 3, spike = beat * 28 / 60;
+  var play = function () {
+    if (ctx.state !== 'running') return;
+    /* Where the line's own drawing animation is now, so each blip lands
+       on its spike; spikes already drawn are skipped. */
+    var done = 0;
+    try {
+      var path = document.querySelector('.lp-ecg path');
+      var an = path && path.getAnimations && path.getAnimations()[0];
+      if (an && an.currentTime != null) done = an.currentTime / 1000;
+    } catch (e) {}
+    var t0 = ctx.currentTime;
+    for (var k = 0; k < 3; k++) {
+      var at = spike + k * beat - done;
+      if (at >= 0) _hbBlip(ctx, t0 + at);
+    }
+  };
+  /* Wait briefly for the browser to allow sound; give up quietly if not. */
+  if (ctx.state === 'running') play();
+  else setTimeout(play, 150);
+})();
+
+/* Unlock audio on the first click or key press, and show the saved
+   choice in Settings. */
+(function _hbSoundInit() {
+  var t = document.getElementById('hb-sound-toggle');
+  if (t) t.checked = hbSoundOn();
+  var unlock = function () {
+    if (hbSoundOn()) _hbCtx();
+    document.removeEventListener('pointerdown', unlock, true);
+    document.removeEventListener('keydown', unlock, true);
+  };
+  document.addEventListener('pointerdown', unlock, true);
+  document.addEventListener('keydown', unlock, true);
+})();
+
 (function _hbListen() {
   var fine = false, reduced = false;
   try {
@@ -4438,6 +4554,7 @@ function _hbEcgSvg() {
   var SEL = '.sig-tile:not(.sig-tile-empty), .bf-cell, #tiles-grid .tile';
   var timer = null, glow = null, tile = null, lx = 0, ly = 0;
   function lift() {
+    hbSoundStop();
     if (timer) { clearTimeout(timer); timer = null; }
     if (glow && glow.parentNode) glow.parentNode.removeChild(glow);
     glow = null;
@@ -4462,6 +4579,9 @@ function _hbEcgSvg() {
       glow.className = 'hb-ecg';
       glow.innerHTML = _hbEcgSvg();
       h.appendChild(glow);   /* placed by CSS in the tile's empty space */
+      /* And the sound, at the tile's own rate (--hb-dur). */
+      var dur = parseFloat(getComputedStyle(h).getPropertyValue('--hb-dur')) || 1.43;
+      hbSoundStart(dur);
     }, 3000);
   }, { passive: true });
   document.addEventListener('mouseleave', function () { lift(); tile = null; });

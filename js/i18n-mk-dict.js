@@ -59,6 +59,9 @@ Object.assign(MK_TEXT, {
   'Hash rate': 'Хаш-моќ', 'Active addresses': 'Активни адреси',
   'DeFi TVL': 'DeFi TVL', 'Value locked across every tracked chain': 'Заклучена вредност на сите следени синџири',
   'Stablecoin supply': 'Понуда на стејблкоини', 'Dollars sitting on-chain, unallocated': 'Долари што стојат на синџирот, нераспоредени',
+  /* Heartbeat sound setting (2026-10-03) */
+  'Heartbeat sound': 'Звук на срцето',
+  'A soft heartbeat when you rest the mouse on a tile': 'Тивко чукање на срцето кога глувчето ќе застане на плочка',
   /* The 7D/30D flip (2026-10-03) */
   'Change over': 'Промена за', 'Show 30 days': 'Прикажи 30 дена', 'Show 7 days': 'Прикажи 7 дена',
   'No 30-day reading yet': 'Сè уште нема читање за 30 дена',
