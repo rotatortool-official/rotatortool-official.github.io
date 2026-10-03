@@ -448,10 +448,6 @@ function _lensColor(lens, v, lo, hi) {
 }
 
 function setLens(id) {
-  /* The rail stops beating once a visitor has used a lens: it has done
-     its job. Remembered per browser; a blocked storage just means it
-     keeps beating. */
-  try { localStorage.setItem('rot_lens_used', '1'); } catch (e) {}
   activeLens = (activeLens === id) ? null : id;
   renderTable();
   renderLensRail();
@@ -484,11 +480,10 @@ function renderLensRail() {
     rail.className = 'lens-rail';
     wrap.insertBefore(rail, wrap.firstChild);
   }
-  /* Heartbeat on the rail until the first lens is used (styles.css,
-     "Market pulse"). */
-  var lensUsed = false;
-  try { lensUsed = localStorage.getItem('rot_lens_used') === '1'; } catch (e) {}
-  rail.classList.toggle('lens-pulse', !lensUsed);
+  /* Heartbeat on the rail, always (styles.css, "Market pulse"). It used
+     to stop after a visitor's first lens; Daniel wants it to keep beating
+     (2026-10-03). The selected lens stays solid and does not beat. */
+  rail.classList.add('lens-pulse');
 
   /* Styled in styles.css (.lens-btn), 2026-09-29: the inline 10px muted
      labels were easy to miss next to the coin cards. */

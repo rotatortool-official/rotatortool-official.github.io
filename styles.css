@@ -4805,8 +4805,8 @@ details.td-reading-trust[open] > summary::before{content:'▾ ';}
    calm resting heart (Daniel: 70 felt fast; "if it was 46 let it be now
    42"). The lens rail stays at its own slower 2.6s, set separately.
    Three places, all subtle:
-     1. the SORT lens buttons beat in turn down the rail until a visitor
-        has used one (class .lens-pulse, set in renderLensRail);
+     1. the SORT lens buttons beat in turn down the rail, always; the
+        selected lens stays solid (class .lens-pulse, renderLensRail);
      2. a TODAY or momentum tile beats while the mouse is on it;
      3. a mouse resting 3 seconds on a tile "feels the pulse": a green
         heart-monitor trace scrolls in the tile's empty space (beside the
