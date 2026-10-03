@@ -1,0 +1,46 @@
+name: Sync coin About links
+
+# Collects every listed coin's official website, whitepaper, X, explorer,
+# GitHub and description from CoinGecko into market_cache 'coin_about'
+# (promptove/87). The coin window reads that row, so the full About block
+# shows at once instead of depending on each visitor's CoinGecko allowance.
+# See scripts/sync-coin-about.mjs.
+#
+# Runs here rather than in Supabase because CoinGecko blocks Supabase's
+# egress IPs. Mondays 03:17 UTC: after select-coin-universe (02:37) has
+# picked the week's list, off the 15-minute sync's minutes. Also runs when
+# the script or this file changes, so a fix takes effect at once.
+
+on:
+  schedule:
+    - cron: '17 3 * * 1'
+  workflow_dispatch: {}
+  push:
+    branches: [main]
+    paths:
+      - scripts/sync-coin-about.mjs
+      - .github/workflows/sync-coin-about.yml
+
+concurrency:
+  group: sync-coin-about
+  cancel-in-progress: false
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          sparse-checkout: |
+            scripts
+            js/supabase.js
+          sparse-checkout-cone-mode: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Collect About links and write them to Supabase
+        run: node scripts/sync-coin-about.mjs
+        env:
+          COINGECKO_API_KEY: ${{ secrets.COINGECKO_API_KEY }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}

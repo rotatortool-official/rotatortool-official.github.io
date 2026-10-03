@@ -2686,8 +2686,9 @@ function renderRotationContext(c) {
    Safety, because fake project sites are common: only http(s) links, the
    website button shows its real domain, links open with noopener and
    noreferrer, and a line says to check the address before connecting a
-   wallet. "View on CoinGecko" always shows, so the block is never empty
-   when CoinGecko is busy (its public API allows a few calls a minute). */
+   wallet. "View on CoinGecko" always shows, so the block is never empty.
+   Since the same evening the links come from a stored weekly row, not
+   from each visitor asking CoinGecko (see _tdAboutRow). */
 var _TD_ABOUT_TTL = 7 * 24 * 3600 * 1000;
 function _tdUrl(u) {
   try { var x = new URL(u); return (x.protocol === 'https:' || x.protocol === 'http:') ? x : null; } catch (e) { return null; }
@@ -2741,22 +2742,44 @@ function _tdAboutRender(c, a) {
   if (title) title.textContent = 'About ' + c.name;
   sec.style.display = '';
 }
+/* The stored row first (market_cache 'coin_about', written weekly by
+   scripts/sync-coin-about.mjs on GitHub): loaded once, on the first coin
+   window, and every coin after that is instant and complete. A coin the
+   row does not have yet (new to the list this week) falls back to asking
+   CoinGecko live, with one retry when CoinGecko says it is busy. */
+var _coinAbout = null, _coinAboutLoading = null;
+function _tdAboutRow() {
+  if (_coinAbout) return Promise.resolve(_coinAbout);
+  if (!_coinAboutLoading) {
+    _coinAboutLoading = (typeof supaCacheGetStale === 'function' ? supaCacheGetStale('coin_about') : Promise.resolve(null))
+      .then(function (row) { _coinAbout = (row && row.data && row.data.coins) || {}; return _coinAbout; })
+      .catch(function () { _coinAbout = {}; return _coinAbout; });
+  }
+  return _coinAboutLoading;
+}
+function _tdAboutLive(c, tries) {
+  return fetch('https://api.coingecko.com/api/v3/coins/' + encodeURIComponent(c.id)
+      + '?localization=false&tickers=false&market_data=false&community_data=false&developer_data=false&sparkline=false')
+    .then(function (r) {
+      if (r.status === 429 && tries > 0) {
+        return new Promise(function (ok) { setTimeout(ok, 4000); }).then(function () { return _tdAboutLive(c, tries - 1); });
+      }
+      return r.ok ? r.json().then(_tdAboutPick) : null;
+    });
+}
 function _tdAbout(c) {
   var sec = document.getElementById('td-about-sec');
   if (!sec) return;
   if (!c || c.isStock || !c.id) { sec.style.display = 'none'; return; }
-  var cached = _tdAboutCache(c.id);
-  _tdAboutRender(c, cached);          /* CoinGecko link at once; the rest fills in */
+  var cached = (_coinAbout && _coinAbout[c.id]) || _tdAboutCache(c.id);
+  _tdAboutRender(c, cached);          /* at once: full if known, else the CoinGecko button */
   if (cached) return;
-  fetch('https://api.coingecko.com/api/v3/coins/' + encodeURIComponent(c.id)
-      + '?localization=false&tickers=false&market_data=false&community_data=false&developer_data=false&sparkline=false')
-    .then(function (r) { return r.ok ? r.json() : null; })
-    .then(function (d) {
-      if (!d) return;
-      var a = _tdAboutCache(c.id, _tdAboutPick(d));
-      if (_tdCoin === c) _tdAboutRender(c, a);   /* still the window that asked */
-    })
-    .catch(function () { /* busy or offline: the CoinGecko link stays */ });
+  _tdAboutRow().then(function (rows) {
+    if (rows[c.id]) return rows[c.id];
+    return _tdAboutLive(c, 1).then(function (a) { return a ? _tdAboutCache(c.id, a) : null; });
+  }).then(function (a) {
+    if (a && _tdCoin === c) _tdAboutRender(c, a);   /* still the window that asked */
+  }).catch(function () { /* busy or offline: the CoinGecko button stays */ });
 }
 
 function openTileDetail(coinId, evt) {
