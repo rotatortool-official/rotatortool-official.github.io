@@ -397,6 +397,20 @@ function _leftTheList(h) {
     && !(h.id && h.id.indexOf('bstock_') === 0);
 }
 
+/* ── Heart rate of a holding or watched coin (Daniel, 2026-10-03) ──
+   The page's heartbeat is 42 a minute at rest. A coin that has done well
+   for you beats faster (up to 66, excited but calm); one that has fallen
+   beats slower (down to 26). Held coins use your profit since your
+   average buy price when you entered one, otherwise the 7-day change;
+   watched coins use the 7-day change. Returns the beat length for the
+   --hb-dur variable that styles.css ("Market pulse") reads. */
+function _hbDurFor(pct) {
+  if (pct == null || !isFinite(pct)) return '';
+  var bpm = pct >= 20 ? 66 : pct >= 10 ? 58 : pct >= 5 ? 50
+          : pct > -5 ? 42 : pct > -10 ? 38 : pct > -15 ? 34 : pct > -20 ? 30 : 26;
+  return ' --hb-dur:' + (60 / bpm).toFixed(3) + 's;';
+}
+
 function renderTiles() {
   Object.keys(sparkStop).forEach(function(k) { sparkStop[k](); delete sparkStop[k]; });
   var grid  = document.getElementById('tiles-grid');
@@ -429,7 +443,7 @@ function renderTiles() {
     var glw  = c._retired ? '' : c.score >= 65 ? 'glow-g' : c.score >= 40 ? 'glow-a' : 'glow-r';
     var scrC = c._retired ? '' : c.score >= 65 ? 'hi'     : c.score >= 40 ? 'md'     : 'lo';
     var isTop = topG && c.sym === topG.sym && c.p24 > 0;
-    html += '<div class="tile ' + glw + '" id="tile-' + c.sym + '" onclick="openTileDetail(\'' + c.id + '\',event)" style="cursor:pointer;" title="Click for full breakdown">'
+    html += '<div class="tile ' + glw + '" id="tile-' + c.sym + '" onclick="openTileDetail(\'' + c.id + '\',event)" style="cursor:pointer;' + _hbDurFor(_pl ? _pl.pct : c.p7) + '" title="Click for full breakdown">'
           + (isTop ? '<canvas class="sp" id="sp-' + c.sym + '"></canvas>' : '')
           + '<div class="tile-top"><div class="tile-ico"><img src="' + c.image + '" alt="' + c.sym + ' logo" loading="lazy" width="16" height="16" onerror="this.style.display=\'none\'"></div>'
           + '<span class="tile-sym">' + c.sym + '</span>'
@@ -480,7 +494,7 @@ function renderTiles() {
       return;
     }
     var wg = c._retired ? '' : c.score >= 65 ? 'glow-g' : c.score >= 40 ? 'glow-a' : 'glow-r';
-    html += '<div class="tile tile-watch ' + wg + '" style="cursor:pointer;" onclick="openTileDetail(\'' + c.id + '\',event)" title="Watching ' + c.name + '">'
+    html += '<div class="tile tile-watch ' + wg + '" style="cursor:pointer;' + _hbDurFor(c.p7) + '" onclick="openTileDetail(\'' + c.id + '\',event)" title="Watching ' + c.name + '">'
           + '<div class="tile-top"><div class="tile-ico"><img src="' + c.image + '" alt="' + c.sym + ' logo" loading="lazy" width="16" height="16" onerror="this.style.display=\'none\'"></div>'
           + '<span class="tile-sym">' + c.sym + '</span>'
           + '<span class="tile-watch-badge" title="On your watchlist">👁</span>'

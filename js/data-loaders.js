@@ -4428,7 +4428,7 @@ function _hbEcgSvg() {
     reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
   } catch (e) {}
   if (!fine || reduced) return;
-  var SEL = '.sig-tile:not(.sig-tile-empty), .bf-cell';
+  var SEL = '.sig-tile:not(.sig-tile-empty), .bf-cell, #tiles-grid .tile';
   var timer = null, glow = null, tile = null, lx = 0, ly = 0;
   function lift() {
     if (timer) { clearTimeout(timer); timer = null; }

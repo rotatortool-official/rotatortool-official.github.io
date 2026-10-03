@@ -4839,6 +4839,10 @@ details.td-reading-trust[open] > summary::before{content:'▾ ';}
 .lens-rail.lens-pulse .lens-btn:hover{animation:none;}
 .sig-tile:not(.sig-tile-empty):hover{animation:hbBeat 1.43s ease-in-out infinite;}
 .bf-cell.hovering .bf-tilt{animation:hbBeat 1.43s ease-in-out infinite;}
+/* Holdings and watchlist tiles beat at their own rate: --hb-dur is set
+   per tile from how the coin has done (_hbDurFor in js/holdings.js),
+   from 0.91s (66 a minute, up 20%+) to 2.31s (26 a minute, down 20%+). */
+#tiles-grid .tile:hover{animation:hbBeat var(--hb-dur,1.43s) ease-in-out infinite;}
 .bf-face{overflow:hidden;}
 .hb-ecg{
   /* 10% smaller than the first version (31px tall, 45% wide) and placed in
@@ -4853,13 +4857,17 @@ details.td-reading-trust[open] > summary::before{content:'▾ ';}
 .bf-face .hb-ecg{right:8px;top:26px;}
 /* Momentum tile: the gap in the top row between coin name and badge. */
 .sig-tile .hb-ecg{left:34%;width:36%;top:2px;height:28px;}
-/* Two copies of two beats; the strip moves two beats (2.86s) per loop. */
-.hb-ecg svg{display:block;width:200%;height:100%;animation:hbEcgScroll 2.86s linear infinite;}
+/* Holdings / watchlist tile: the gap in the top row between the coin
+   name and the remove button. */
+#tiles-grid .tile .hb-ecg{left:44%;width:32%;top:2px;height:26px;}
+/* Two copies of two beats; the strip moves two beats per loop, at the
+   tile's own heart rate where it has one (2 x --hb-dur, 2.86s at rest). */
+.hb-ecg svg{display:block;width:200%;height:100%;animation:hbEcgScroll calc(var(--hb-dur,1.43s) * 2) linear infinite;}
 .hb-ecg path{fill:none;stroke:#2ee88a;stroke-width:1.6;stroke-linejoin:round;stroke-linecap:round;
   vector-effect:non-scaling-stroke;filter:drop-shadow(0 0 3px rgba(46,232,138,.7));}
 :root.light .hb-ecg path{stroke:#0a9f55;filter:drop-shadow(0 0 2px rgba(10,159,85,.45));}
 @media (prefers-reduced-motion: reduce){
-  .lens-rail.lens-pulse .lens-btn,.sig-tile:hover,.bf-cell.hovering .bf-tilt{animation:none !important;}
+  .lens-rail.lens-pulse .lens-btn,.sig-tile:hover,.bf-cell.hovering .bf-tilt,#tiles-grid .tile:hover{animation:none !important;}
   .hb-ecg{display:none;}
 }
 
