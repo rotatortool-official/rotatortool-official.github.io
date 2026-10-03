@@ -4897,10 +4897,6 @@ details.td-reading-trust[open] > summary::before{content:'▾ ';}
    The player stays visible while it plays (YouTube's embed terms):
    at least 200px tall, no hidden or audio-only mode. */
 .radio-player{position:fixed;z-index:450;width:372px;max-width:calc(100vw - 32px);background:var(--bg2);border:1px solid var(--bdr2);border-radius:10px;box-shadow:0 10px 30px rgba(0,0,0,.45);padding:6px 8px 8px;font-family:var(--font-ui);}
-.radio-player.c-br{right:16px;bottom:16px;}
-.radio-player.c-bl{left:16px;bottom:16px;}
-.radio-player.c-tr{right:16px;top:64px;}
-.radio-player.c-tl{left:16px;top:64px;}
 .radio-hdr{display:flex;align-items:center;gap:6px;padding:0 0 6px;cursor:grab;touch-action:none;user-select:none;}
 .radio-player.dragging .radio-hdr{cursor:grabbing;}
 .radio-player.dragging .radio-frame iframe{pointer-events:none;}
@@ -4909,6 +4905,13 @@ details.td-reading-trust[open] > summary::before{content:'▾ ';}
 .radio-btn{background:transparent;border:none;color:var(--muted);font-size:18px;line-height:1;cursor:pointer;padding:0 5px;font-family:inherit;}
 .radio-btn:hover{color:var(--text);}
 .radio-x{font-size:20px;}
+.radio-mute{font-size:15px;padding:0 2px;}
+/* Volume: a thick track and a big thumb, easy to grab; the wheel works too */
+.radio-vol{-webkit-appearance:none;appearance:none;width:96px;height:6px;border-radius:999px;cursor:pointer;margin:0 4px 0 0;
+  background:linear-gradient(to right,var(--green) var(--fill,60%),var(--bdr2) var(--fill,60%));}
+.radio-vol::-webkit-slider-thumb{-webkit-appearance:none;width:16px;height:16px;border-radius:50%;background:#fff;border:2px solid var(--green);box-shadow:0 1px 4px rgba(0,0,0,.4);}
+.radio-vol::-moz-range-thumb{width:14px;height:14px;border-radius:50%;background:#fff;border:2px solid var(--green);}
+.radio-vol:focus-visible{outline:2px solid var(--green);outline-offset:3px;}
 /* Compact: a thin bar and the video, nothing else */
 .radio-player.compact{width:372px;padding:2px 8px 8px;}
 .radio-player.compact .radio-title,.radio-player.compact .radio-chips,.radio-player.compact .radio-credit{display:none;}

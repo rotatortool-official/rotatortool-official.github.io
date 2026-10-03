@@ -875,4 +875,5 @@ Object.assign(MK_TEXT, {
   'Sleep': 'За спиење', 'Stop and close': 'Стопирај и затвори',
   'Music by': 'Музика од', 'on YouTube': 'на YouTube',
   'Drag to move': 'Повлечете за да го преместите', 'Smaller': 'Помало', 'Bigger': 'Поголемо',
+  'Volume': 'Јачина на звукот', 'Mute': 'Без звук', 'Unmute': 'Вклучи звук',
 });

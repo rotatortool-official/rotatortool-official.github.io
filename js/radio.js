@@ -63,10 +63,14 @@ function _radioPanel() {
   p = document.createElement('div');
   p.id = 'radio-player';
   p.className = 'radio-player';
+  var vol = _radioVol();
   p.innerHTML =
       '<div class="radio-hdr" title="Drag to move">'
     +   '<span class="radio-grip" aria-hidden="true">⠿</span>'
     +   '<span class="radio-title">🎧 Lofi Girl radio</span>'
+    +   '<button class="radio-btn radio-mute" onclick="radioMute()" title="Mute" aria-label="Mute">' + _radioVolIcon(vol) + '</button>'
+    +   '<input type="range" class="radio-vol" min="0" max="100" step="1" value="' + vol + '"'
+    +     ' oninput="radioVolume(this.value)" title="Volume" aria-label="Volume">'
     +   '<button class="radio-btn radio-min" onclick="radioCompact()" title="Smaller" aria-label="Smaller">–</button>'
     +   '<button class="radio-btn radio-x" onclick="radioStop()" title="Stop and close" aria-label="Stop and close">×</button>'
     + '</div>'
@@ -74,33 +78,110 @@ function _radioPanel() {
     + '<div class="radio-frame" id="radio-frame"></div>'
     + '<div class="radio-credit">Music by <a href="https://www.youtube.com/@LofiGirl" target="_blank" rel="noopener">Lofi Girl</a> on YouTube</div>';
   document.body.appendChild(p);
+  /* The mouse wheel over the slider turns the volume, 5 a notch. */
+  p.querySelector('.radio-vol').addEventListener('wheel', function (e) {
+    e.preventDefault();
+    var v = Math.max(0, Math.min(100, Number(this.value) + (e.deltaY < 0 ? 5 : -5)));
+    this.value = v; radioVolume(v);
+  }, { passive: false });
   _radioApplyLayout(p);
   _radioDraggable(p);
   return p;
 }
 
-/* ── Smaller, and in any corner (Daniel, 2026-10-03) ──────────────
+/* ── Volume (Daniel, 2026-10-03: YouTube's own slider is too fiddly) ─
+   Our slider in the bar sends YouTube's own setVolume / mute commands
+   to the player (the iframe API, enablejsapi=1). Remembered per
+   browser; default 60. The player only listens once it is ready, so the
+   saved volume is sent a few times in the first seconds. */
+function _radioVol() {
+  var v = parseInt(_radioPref('rot_radio_vol', '60'), 10);
+  return isNaN(v) ? 60 : Math.max(0, Math.min(100, v));
+}
+function _radioVolIcon(v) { return v === 0 ? '🔇' : v < 50 ? '🔉' : '🔊'; }
+function _radioCmd(func, args) {
+  var f = document.querySelector('#radio-frame iframe');
+  if (!f || !f.contentWindow) return;
+  try {
+    f.contentWindow.postMessage(JSON.stringify({ event: 'command', func: func, args: args || [] }),
+      'https://www.youtube-nocookie.com');
+  } catch (e) {}
+}
+function _radioSendVol() {
+  var v = _radioVol();
+  _radioCmd('setVolume', [v]);
+  _radioCmd(v === 0 ? 'mute' : 'unMute');
+}
+var _radioReady = false, _radioKnock = null;
+window.addEventListener('message', function (e) {
+  if (e.origin !== 'https://www.youtube-nocookie.com') return;
+  var d; try { d = JSON.parse(e.data); } catch (x) { return; }
+  if (!d || _radioReady) return;
+  if (d.event === 'onReady' || d.event === 'initialDelivery' || d.event === 'infoDelivery') {
+    _radioReady = true;
+    clearInterval(_radioKnock);
+    _radioSendVol();
+    setTimeout(_radioSendVol, 800);   /* once more, in case playback reset it */
+  }
+});
+function radioVolume(v) {
+  v = Math.max(0, Math.min(100, parseInt(v, 10) || 0));
+  try { localStorage.setItem('rot_radio_vol', String(v)); } catch (e) {}
+  if (v > 0) { try { localStorage.setItem('rot_radio_vol_last', String(v)); } catch (e) {} }
+  var p = document.getElementById('radio-player');
+  if (p) {
+    var r = p.querySelector('.radio-vol');
+    r.value = v;
+    r.style.setProperty('--fill', v + '%');
+    var m = p.querySelector('.radio-mute');
+    m.textContent = _radioVolIcon(v);
+    m.title = v === 0 ? 'Unmute' : 'Mute';
+    m.setAttribute('aria-label', m.title);
+  }
+  _radioSendVol();
+}
+function radioMute() {
+  if (_radioVol() === 0) radioVolume(parseInt(_radioPref('rot_radio_vol_last', '60'), 10) || 60);
+  else radioVolume(0);
+}
+
+/* ── Smaller, and anywhere on the screen (Daniel, 2026-10-03) ──────
    Compact keeps only a thin bar and the video. The video never goes
    below 200px tall (YouTube's minimum), so "smaller" is as small as
    the rules allow; hiding it while it plays is not allowed. Drag the
-   bar and the player snaps to the nearest corner; both choices are
-   remembered per browser. */
+   bar to put it wherever you like (the first version snapped to the
+   corners; Daniel wanted it free). The spot is kept as a share of the
+   free space (0 = left/top, 1 = right/bottom), so it keeps its place in
+   proportion when the window is resized and never falls off screen. */
 function _radioPref(k, dflt) {
   try { return localStorage.getItem(k) || dflt; } catch (e) { return dflt; }
 }
+var RADIO_EDGE = 8;
+function _radioPos() {
+  try {
+    var o = JSON.parse(localStorage.getItem('rot_radio_pos') || 'null');
+    if (o && typeof o.x === 'number' && typeof o.y === 'number') return o;
+  } catch (e) {}
+  return { x: 1, y: 1 };   /* bottom right */
+}
+function _radioPlace(p) {
+  var o = _radioPos();
+  var fw = Math.max(0, window.innerWidth - p.offsetWidth - 2 * RADIO_EDGE);
+  var fh = Math.max(0, window.innerHeight - p.offsetHeight - 2 * RADIO_EDGE);
+  p.style.left = (RADIO_EDGE + o.x * fw) + 'px';
+  p.style.top = (RADIO_EDGE + o.y * fh) + 'px';
+}
 function _radioApplyLayout(p) {
   var compact = _radioPref('rot_radio_compact', '0') === '1';
-  var corner = _radioPref('rot_radio_corner', 'br');
   p.classList.toggle('compact', compact);
-  p.classList.remove('c-tl', 'c-tr', 'c-bl', 'c-br');
-  p.classList.add('c-' + corner);
-  p.style.left = p.style.top = p.style.right = p.style.bottom = '';
   var b = p.querySelector('.radio-min');
   if (b) {
     b.textContent = compact ? '+' : '–';
     b.title = compact ? 'Bigger' : 'Smaller';
     b.setAttribute('aria-label', b.title);
   }
+  p.querySelector('.radio-vol').style.setProperty('--fill', _radioVol() + '%');
+  _radioPlace(p);
 }
 function radioCompact() {
   var on = _radioPref('rot_radio_compact', '0') !== '1';
@@ -108,11 +189,15 @@ function radioCompact() {
   var p = document.getElementById('radio-player');
   if (p) _radioApplyLayout(p);
 }
+window.addEventListener('resize', function () {
+  var p = document.getElementById('radio-player');
+  if (p) _radioPlace(p);
+});
 function _radioDraggable(p) {
   var hdr = p.querySelector('.radio-hdr');
   var sx, sy, ox, oy, moved = false, dragging = false;
   hdr.addEventListener('pointerdown', function (e) {
-    if (e.target.closest('button')) return;
+    if (e.target.closest('button, input')) return;
     var r = p.getBoundingClientRect();
     sx = e.clientX; sy = e.clientY; ox = r.left; oy = r.top;
     dragging = true; moved = false;
@@ -124,21 +209,23 @@ function _radioDraggable(p) {
     var dx = e.clientX - sx, dy = e.clientY - sy;
     if (!moved && Math.abs(dx) + Math.abs(dy) < 4) return;
     moved = true;
-    var w = p.offsetWidth, h = p.offsetHeight;
-    p.style.right = p.style.bottom = 'auto';
-    p.style.left = Math.max(0, Math.min(window.innerWidth - w, ox + dx)) + 'px';
-    p.style.top = Math.max(0, Math.min(window.innerHeight - h, oy + dy)) + 'px';
+    var maxL = window.innerWidth - p.offsetWidth - RADIO_EDGE;
+    var maxT = window.innerHeight - p.offsetHeight - RADIO_EDGE;
+    p.style.left = Math.max(RADIO_EDGE, Math.min(maxL, ox + dx)) + 'px';
+    p.style.top = Math.max(RADIO_EDGE, Math.min(maxT, oy + dy)) + 'px';
   });
   var end = function () {
     if (!dragging) return;
     dragging = false;
     p.classList.remove('dragging');
     if (!moved) return;
-    var r = p.getBoundingClientRect();
-    var corner = (r.top + r.height / 2 < window.innerHeight / 2 ? 't' : 'b')
-               + (r.left + r.width / 2 < window.innerWidth / 2 ? 'l' : 'r');
-    try { localStorage.setItem('rot_radio_corner', corner); } catch (x) {}
-    _radioApplyLayout(p);
+    var fw = window.innerWidth - p.offsetWidth - 2 * RADIO_EDGE;
+    var fh = window.innerHeight - p.offsetHeight - 2 * RADIO_EDGE;
+    var x = fw > 0 ? (parseFloat(p.style.left) - RADIO_EDGE) / fw : 1;
+    var y = fh > 0 ? (parseFloat(p.style.top) - RADIO_EDGE) / fh : 1;
+    try {
+      localStorage.setItem('rot_radio_pos', JSON.stringify({ x: Math.max(0, Math.min(1, x)), y: Math.max(0, Math.min(1, y)) }));
+    } catch (x2) {}
   };
   hdr.addEventListener('pointerup', end);
   hdr.addEventListener('pointercancel', end);
@@ -152,9 +239,23 @@ function radioPlay(key) {
   if (typeof hbSoundStop === 'function') hbSoundStop();
   var p = _radioPanel();
   document.getElementById('radio-frame').innerHTML =
-    '<iframe src="https://www.youtube-nocookie.com/embed/' + s.id + '?autoplay=1&playsinline=1&rel=0"'
+    '<iframe src="https://www.youtube-nocookie.com/embed/' + s.id
+    + '?autoplay=1&playsinline=1&rel=0&enablejsapi=1&origin=' + encodeURIComponent(location.origin) + '"'
     + ' title="Lofi Girl ' + s.label + ' radio" allow="autoplay; encrypted-media; picture-in-picture"'
     + ' referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>';
+  /* Set the saved volume once the player is ready. Commands sent before
+     that are dropped (tested: the player came up at its own volume), so
+     knock with 'listening' until it answers, then send. */
+  _radioReady = false;
+  var f = document.querySelector('#radio-frame iframe');
+  f.addEventListener('load', function () {
+    var tries = 0;
+    clearInterval(_radioKnock);
+    _radioKnock = setInterval(function () {
+      if (_radioReady || ++tries > 40 || !f.contentWindow) { clearInterval(_radioKnock); return; }
+      try { f.contentWindow.postMessage(JSON.stringify({ event: 'listening', id: 'rotator-radio' }), 'https://www.youtube-nocookie.com'); } catch (e) {}
+    }, 250);
+  });
   p.style.display = '';
   _radioRefresh();
 }
