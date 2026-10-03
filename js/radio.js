@@ -45,16 +45,99 @@ function _radioSaved() {
   try { return localStorage.getItem('rot_radio_station') || 'lofi'; } catch (e) { return 'lofi'; }
 }
 function _radioFind(key) {
-  for (var i = 0; i < RADIO_STATIONS.length; i++) if (RADIO_STATIONS[i].key === key) return RADIO_STATIONS[i];
+  var all = RADIO_STATIONS.concat(_radioCustom());
+  for (var i = 0; i < all.length; i++) if (all[i].key === key) return all[i];
   return RADIO_STATIONS[0];
 }
+function _radioEsc(t) {
+  return String(t).replace(/[&<>"']/g, function (c) {
+    return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
+  });
+}
 
-function _radioChips(cls) {
+/* ── Your own channels and links (Daniel, 2026-10-03) ─────────────
+   Up to 5 YouTube channels, videos or playlists per browser, e.g. a
+   podcast about a coin. The link goes once to our yt-resolve function
+   (supabase/functions/yt-resolve), which returns the id to embed and a
+   name; nothing is stored on the server. A channel plays its uploads,
+   newest first. Same player and same YouTube rules as the stations
+   (visible, never hidden). Saved in this browser only. The Terms say
+   people are responsible for the links they add. */
+var RADIO_MAX_CUSTOM = 5;
+function _radioCustom() {
+  try {
+    var a = JSON.parse(localStorage.getItem('rot_radio_custom') || '[]');
+    return Array.isArray(a) ? a.filter(function (c) {
+      return c && /^c_[\w-]+$/.test(c.key) && /^[\w-]{10,64}$/.test(c.id) && (c.type === 'video' || c.type === 'list');
+    }).slice(0, RADIO_MAX_CUSTOM) : [];
+  } catch (e) { return []; }
+}
+function _radioSaveCustom(a) {
+  try { localStorage.setItem('rot_radio_custom', JSON.stringify(a.slice(0, RADIO_MAX_CUSTOM))); } catch (e) {}
+}
+function radioRemoveCustom(key, ev) {
+  if (ev) ev.stopPropagation();
+  _radioSaveCustom(_radioCustom().filter(function (c) { return c.key !== key; }));
+  if (_radioStation && _radioStation.key === key) radioStop();
+  else _radioRefresh();
+}
+function radioAddOpen() {
+  var f = document.getElementById('radio-add');
+  if (!f) return;
+  var open = f.style.display === 'none';
+  f.style.display = open ? '' : 'none';
+  if (open) { var i = f.querySelector('input'); i.value = ''; _radioAddMsg(''); i.focus(); }
+  var p = document.getElementById('radio-player');
+  if (p) _radioPlace(p);
+}
+function _radioAddMsg(t, bad) {
+  var m = document.getElementById('radio-add-msg');
+  if (m) { m.textContent = t; m.className = 'radio-add-msg' + (bad ? ' bad' : ''); }
+}
+function radioAddSubmit(ev) {
+  if (ev) ev.preventDefault();
+  var input = document.querySelector('#radio-add input');
+  var url = (input && input.value || '').trim();
+  if (!url) { _radioAddMsg('Paste a YouTube link first.', true); return false; }
+  if (_radioCustom().length >= RADIO_MAX_CUSTOM) { _radioAddMsg('You can keep 5. Remove one first.', true); return false; }
+  if (typeof SUPA_URL === 'undefined') { _radioAddMsg('Could not reach the server. Try again.', true); return false; }
+  _radioAddMsg('Looking it up…');
+  fetch(SUPA_URL + '/functions/v1/yt-resolve', {
+    method: 'POST',
+    headers: { 'apikey': SUPA_KEY, 'Authorization': 'Bearer ' + SUPA_KEY, 'Content-Type': 'application/json' },
+    body: JSON.stringify({ url: url })
+  }).then(function (r) { return r.json(); }).then(function (d) {
+    if (!d || !d.ok || !d.embed) { _radioAddMsg((d && d.reason) || 'That link could not be added.', true); return; }
+    var a = _radioCustom();
+    var key = 'c_' + d.embed.id;
+    if (a.some(function (c) { return c.key === key; })) { _radioAddMsg('Already in your list.', true); return; }
+    a.push({ key: key, type: d.embed.type, id: d.embed.id, kind: d.kind,
+             label: Array.from(String(d.title || 'YouTube')).slice(0, 80).join(''),
+             icon: d.kind === 'channel' ? '📺' : d.kind === 'playlist' ? '🎙' : '▶' });
+    _radioSaveCustom(a);
+    _radioAddMsg('');
+    document.getElementById('radio-add').style.display = 'none';
+    radioPlay(key);
+  }).catch(function () { _radioAddMsg('Could not reach the server. Try again.', true); });
+  return false;
+}
+
+function _radioChips(cls, manage) {
   var on = _radioStation ? _radioStation.key : '';
-  return RADIO_STATIONS.map(function (s) {
-    return '<button class="' + cls + (s.key === on ? ' active' : '') + '" onclick="radioPlay(\'' + s.key + '\')">'
-      + '<span>' + s.icon + '</span> ' + s.label + '</button>';
+  var html = RADIO_STATIONS.concat(_radioCustom()).map(function (s) {
+    var own = s.key.indexOf('c_') === 0;
+    var chars = Array.from(s.label);   /* by character, so an emoji is never cut in half */
+    var name = own && chars.length > 18 ? chars.slice(0, 17).join('').trim() + '…' : s.label;
+    return '<button class="' + cls + (s.key === on ? ' active' : '') + (own ? ' own' : '') + '"'
+      + ' onclick="radioPlay(\'' + s.key + '\')"' + (own ? ' title="' + _radioEsc(s.label) + '"' : '') + '>'
+      + '<span>' + s.icon + '</span> ' + _radioEsc(name)
+      + (own && manage ? '<span class="radio-chip-x" role="button" title="Remove" aria-label="Remove" onclick="radioRemoveCustom(\'' + s.key + '\', event)">×</span>' : '')
+      + '</button>';
   }).join('');
+  if (manage && _radioCustom().length < RADIO_MAX_CUSTOM) {
+    html += '<button class="' + cls + ' radio-chip-add" onclick="radioAddOpen()" title="Add a YouTube channel, video or playlist">＋ Add your own</button>';
+  }
+  return html;
 }
 
 function _radioPanel() {
@@ -67,7 +150,7 @@ function _radioPanel() {
   p.innerHTML =
       '<div class="radio-hdr" title="Drag to move">'
     +   '<span class="radio-grip" aria-hidden="true">⠿</span>'
-    +   '<span class="radio-title">🎧 Lofi Girl radio</span>'
+    +   '<span class="radio-title">🎧 Radio</span>'
     +   '<button class="radio-btn radio-mute" onclick="radioMute()" title="Mute" aria-label="Mute">' + _radioVolIcon(vol) + '</button>'
     +   '<input type="range" class="radio-vol" min="0" max="100" step="1" value="' + vol + '"'
     +     ' oninput="radioVolume(this.value)" title="Volume" aria-label="Volume">'
@@ -75,8 +158,14 @@ function _radioPanel() {
     +   '<button class="radio-btn radio-x" onclick="radioStop()" title="Stop and close" aria-label="Stop and close">×</button>'
     + '</div>'
     + '<div class="radio-chips" id="radio-chips"></div>'
+    + '<form class="radio-add" id="radio-add" style="display:none;" onsubmit="return radioAddSubmit(event)">'
+    +   '<input type="text" inputmode="url" autocomplete="off" spellcheck="false" placeholder="Paste a YouTube channel, video or playlist link" aria-label="YouTube link">'
+    +   '<button type="submit" class="radio-chip">Add</button>'
+    +   '<div class="radio-add-msg" id="radio-add-msg"></div>'
+    +   '<div class="radio-add-note">Up to 5, saved on this device only. You are responsible for the links you add.</div>'
+    + '</form>'
     + '<div class="radio-frame" id="radio-frame"></div>'
-    + '<div class="radio-credit">Music by <a href="https://www.youtube.com/@LofiGirl" target="_blank" rel="noopener">Lofi Girl</a> on YouTube</div>';
+    + '<div class="radio-credit" id="radio-credit"></div>';
   document.body.appendChild(p);
   /* The mouse wheel over the slider turns the volume, 5 a notch. */
   p.querySelector('.radio-vol').addEventListener('wheel', function (e) {
@@ -239,9 +328,10 @@ function radioPlay(key) {
   if (typeof hbSoundStop === 'function') hbSoundStop();
   var p = _radioPanel();
   document.getElementById('radio-frame').innerHTML =
-    '<iframe src="https://www.youtube-nocookie.com/embed/' + s.id
-    + '?autoplay=1&playsinline=1&rel=0&enablejsapi=1&origin=' + encodeURIComponent(location.origin) + '"'
-    + ' title="Lofi Girl ' + s.label + ' radio" allow="autoplay; encrypted-media; picture-in-picture"'
+    '<iframe src="https://www.youtube-nocookie.com/embed/'
+    + (s.type === 'list' ? 'videoseries?list=' + s.id + '&' : s.id + '?')
+    + 'autoplay=1&playsinline=1&rel=0&enablejsapi=1&origin=' + encodeURIComponent(location.origin) + '"'
+    + ' title="' + _radioEsc(s.label) + '" allow="autoplay; encrypted-media; picture-in-picture"'
     + ' referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>';
   /* Set the saved volume once the player is ready. Commands sent before
      that are dropped (tested: the player came up at its own volume), so
@@ -256,6 +346,10 @@ function radioPlay(key) {
       try { f.contentWindow.postMessage(JSON.stringify({ event: 'listening', id: 'rotator-radio' }), 'https://www.youtube-nocookie.com'); } catch (e) {}
     }, 250);
   });
+  var own = s.key.indexOf('c_') === 0;
+  document.getElementById('radio-credit').innerHTML = own
+    ? 'Playing <b>' + _radioEsc(s.label) + '</b> from YouTube'
+    : 'Music by <a href="https://www.youtube.com/@LofiGirl" target="_blank" rel="noopener">Lofi Girl</a> on YouTube';
   p.style.display = '';
   _radioRefresh();
 }
@@ -274,7 +368,7 @@ function radioToggle() {
 
 function _radioRefresh() {
   var chips = document.getElementById('radio-chips');
-  if (chips) chips.innerHTML = _radioChips('radio-chip');
+  if (chips) chips.innerHTML = _radioChips('radio-chip', true);
   var set = document.getElementById('radio-setting-chips');
   if (set) set.innerHTML = _radioChips('radio-chip radio-chip-sm');
   var btn = document.getElementById('radio-topbar-btn');

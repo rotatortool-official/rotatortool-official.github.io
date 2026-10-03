@@ -114,7 +114,7 @@
   <div class="modal" style="max-width:560px;max-height:85vh;overflow-y:auto;">
     <button class="modal-x" onclick="closeModal('tos-modal')">×</button>
     <div class="modal-title" style="color:var(--bnb);">Terms of Service</div>
-    <div class="modal-sub">Last updated: September 2026</div>
+    <div class="modal-sub">Last updated: October 2026</div>
     <div class="legal-content">
       <p>By accessing or using Rotator ("the Application"), you agree to be bound by these Terms of Service. If you do not agree, please do not use the Application.</p>
 
@@ -126,6 +126,7 @@
 
       <h4>3. User Responsibility</h4>
       <p>You are solely responsible for your own investment decisions and any financial outcomes that result from using the information provided by Rotator. Always conduct your own research (DYOR) and consider consulting a qualified financial advisor before making investment decisions.</p>
+      <p>If you add your own YouTube channels, videos or playlists to the radio, you are responsible for the links you add and for following YouTube's terms. Rotator only plays them through YouTube's own player and does not check, host or endorse them.</p>
 
       <h4>4. Data & Privacy</h4>
       <p>Rotator has no accounts. Your holdings, quantities, buy prices, watchlist and settings are stored in your browser. Some data does reach our server: anonymous usage counts, the names of held coins once a day without quantities, and the records needed for Pro, referrals, Telegram alerts and the Signal Assistant. See our <a onclick="closeModal('tos-modal');setTimeout(function(){openModal('privacy-modal')},200)" style="color:var(--bnb);cursor:pointer;text-decoration:underline;">Privacy Policy</a> for full details.</p>
@@ -173,6 +174,7 @@
         <li><strong>Referrals.</strong> The random browser IDs of the person who shared the link and the person who opened it.</li>
         <li><strong>Telegram alerts (Pro, only if you connect them).</strong> Your Telegram chat ID, your browser ID, the names of the coins you hold and watch (marked held or watching, without quantities), your site language, and which alerts have already been sent to you.</li>
         <li><strong>Signal Assistant (Pro, only when you use it).</strong> Your questions and browser ID go to our server, which sends the questions, together with the current signal data, to Anthropic's Claude API to write the answer.</li>
+        <li><strong>Radio links (only when you add one).</strong> A YouTube link you add to the radio is sent once to our server, which asks YouTube for the name and the id to play. The link is not stored or logged; your list of links stays in your browser.</li>
       </ul>
 
       <h4>3. Analytics</h4>
@@ -247,11 +249,11 @@
   </div>
   <!-- Lofi Girl radio (js/radio.js): stations in the installed app, the install offer in a browser tab -->
   <div class="setting-row radio-setting" id="radio-setting-app" style="display:none;">
-    <div style="width:100%;"><div class="setting-label">🎧 Lofi Girl radio</div><div class="setting-sub">Music while you watch the market, free in the app</div>
+    <div style="width:100%;"><div class="setting-label">🎧 Radio</div><div class="setting-sub">Lofi Girl stations and up to 5 of your own YouTube channels, free in the app</div>
       <div class="radio-setting-chips" id="radio-setting-chips"></div></div>
   </div>
   <div class="setting-row" id="radio-setting-tab">
-    <div><div class="setting-label">🎧 Lofi Girl radio</div><div class="setting-sub">Install the app to play lo-fi, jazz and synthwave while you watch the market</div></div>
+    <div><div class="setting-label">🎧 Radio</div><div class="setting-sub">Install the app to play lo-fi, jazz or your own YouTube channels while you watch the market</div></div>
     <button class="tut-btn primary" onclick="triggerPWAInstall()">INSTALL</button>
   </div>
   <hr style="border:none;border-top:1px solid var(--bdr);margin:14px 0 10px;">
