@@ -304,10 +304,17 @@ function _isExchangeFlagged(c) {
    30-day return went on to trail the median coin over the next month
    about 6 times in 10 — the one sell-side rule there that passed.
 
-   A LABEL, not a call: no list is filtered or reordered by it. Which of
-   the two sentences shows depends on where the coin stands now, and the
+   A LABEL, not a call: no list is filtered or reordered by it. The tile
+   carries only a short tag; what history says is stated ONCE under the
+   column (seedEvidenceFooter), the same rule as rotationEvidenceFooter:
+   the same sentence on every Seed tile is one piece of evidence and
+   five times the noise (Daniel, 2026-10-03). Which sentence the footer
+   shows depends on where the column's Seed coins stand now, and the
    numbers come from ROTATOR_EVIDENCE.seedCoins, never from this file.
-   Renders nothing when the tags or the evidence are missing. */
+   Renders nothing when the tags or the evidence are missing.
+
+   NOT an unlock flag: some Seed coins are fully unlocked memecoins
+   (MUBARAK). The tile's UNLOCK figure covers supply. */
 function _isSeed(c) {
   return !!(c && c.sym && typeof binanceTags !== 'undefined'
     && Array.isArray(binanceTags[c.sym]) && binanceTags[c.sym].indexOf('Seed') >= 0);
@@ -319,17 +326,31 @@ function _inTopP30(c, share) {
   if (!xs.length) return false;
   return c.p30 >= xs[Math.max(0, Math.ceil(xs.length * share / 100) - 1)];
 }
+function _seedEv() {
+  return (typeof ROTATOR_EVIDENCE !== 'undefined') && ROTATOR_EVIDENCE.seedCoins;
+}
 function seedNote(c) {
-  var ev = (typeof ROTATOR_EVIDENCE !== 'undefined') && ROTATOR_EVIDENCE.seedCoins;
-  if (!ev || !_isSeed(c)) return '';
-  var pumped = _inTopP30(c, ev.pumpShare);
-  var inTen = Math.round((100 - (pumped ? ev.pumpBeatPct : ev.laggardBeatPct)) / 10);
-  var text = pumped
-    ? c.sym + ' is a Seed coin (Binance: early-stage, higher risk). Since ' + ev.since
-      + ', Seed coins after a run like this trailed the average coin over the next month ' + inTen + ' times in 10.'
-    : c.sym + ' is a Seed coin (Binance: early-stage, higher risk). Since ' + ev.since
-      + ', Seed coins that had fallen behind kept trailing the average coin ' + inTen + ' times in 10.';
-  return '<div class="sig-tile-note" style="color:var(--amber);">⚠ ' + _esc(text) + '</div>';
+  if (!_seedEv() || !_isSeed(c)) return '';
+  return '<div class="sig-tile-note" style="color:var(--amber);">⚠ Seed coin: early-stage, higher risk</div>';
+}
+/* Once per column. `shown` = the coins whose tiles a visitor can read
+   (locked and blurred tiles do not count). */
+function seedEvidenceFooter(shown) {
+  var ev = _seedEv();
+  if (!ev || !shown) return '';
+  var seeds = shown.filter(_isSeed);
+  if (!seeds.length) return '';
+  var anyPumped = seeds.some(function(c) { return _inTopP30(c, ev.pumpShare); });
+  var anyOther  = seeds.some(function(c) { return !_inTopP30(c, ev.pumpShare); });
+  var inTen = function(beat) { return Math.round((100 - beat) / 10); };
+  /* One text node, so i18n-mk can match the whole sentence. */
+  var text = 'Seed is Binance\'s tag for early-stage, higher-risk projects.';
+  if (anyPumped) text += ' Since ' + ev.since + ', Seed coins after a big 30-day run trailed the average coin over the next month '
+    + inTen(ev.pumpBeatPct) + ' times in 10.';
+  if (anyOther) text += ' Since ' + ev.since + ', Seed coins that had fallen behind kept trailing the average coin '
+    + inTen(ev.laggardBeatPct) + ' times in 10.';
+  text += ' History, not a call.';
+  return '<div class="sig-evidence"><p style="color:var(--amber);">⚠ ' + text + '</p></div>';
 }
 
 /* ── Listed, but never put forward (HANDOVER.md Task 1, engine 2.11.0) ──
@@ -906,11 +927,11 @@ function renderTopBars() {
        documented .slice(0, 6) as the knob; this is it being turned. */
     var worstTiles = worstAll.slice(0, 6).map(function(c) { return sigTile(c, 'wrst'); }).join('');
     for (var wp = worstAll.slice(0, 6).length; wp < 6; wp++) worstTiles += emptyPlaceholderTile();
-    worstEl.innerHTML = '<div class="sig-tiles-grid">' + worstTiles + '</div>';
+    worstEl.innerHTML = '<div class="sig-tiles-grid">' + worstTiles + '</div>' + seedEvidenceFooter(worstAll.slice(0, 6));
   } else {
     var w3 = worstAll.slice(0, 2).map(function(c) { return sigTile(c, 'wrst'); }).join('');
     var wLocked = proUnlockTile('4 more in Pro') + emptyPlaceholderTile();
-    worstEl.innerHTML = '<div class="sig-tiles-grid">' + w3 + wLocked + '</div>';
+    worstEl.innerHTML = '<div class="sig-tiles-grid">' + w3 + wLocked + '</div>' + seedEvidenceFooter(worstAll.slice(0, 2));
   }
 
   /* ── Column 2: High Momentum — 1 free / 6 Pro ── */
@@ -967,7 +988,7 @@ function renderTopBars() {
        documented .slice(0, 6) as the knob; this is it being turned. */
       var momTiles = momAll.slice(0, 6).map(function(c) { return sigTile(c, 'mom'); }).join('');
       for (var mp = momAll.slice(0, 6).length; mp < 6; mp++) momTiles += emptyPlaceholderTile();
-      momEl.innerHTML = '<div class="sig-tiles-grid">' + momTiles + '</div>';
+      momEl.innerHTML = '<div class="sig-tiles-grid">' + momTiles + '</div>' + seedEvidenceFooter(momAll.slice(0, 6));
     } else {
       momEl.innerHTML = '<div class="no-sug">Scanning \u2014 no coins above momentum threshold right now.</div>';
     }
@@ -975,7 +996,7 @@ function renderTopBars() {
     if (momAll.length) {
       var m1 = sigTile(momAll[0], 'mom');
       var mLocked = proUnlockTile('unlock 5 more') + emptyPlaceholderTile() + emptyPlaceholderTile();
-      momEl.innerHTML = '<div class="sig-tiles-grid">' + m1 + mLocked + '</div>';
+      momEl.innerHTML = '<div class="sig-tiles-grid">' + m1 + mLocked + '</div>' + seedEvidenceFooter(momAll.slice(0, 1));
     } else {
       momEl.innerHTML = '<div class="no-sug">Scanning \u2014 no coins above momentum threshold right now.</div>';
     }
@@ -1063,6 +1084,7 @@ function renderTopBars() {
 
     sugEl.innerHTML = '<div class="sig-tiles-grid">' + gridHtml + '</div>'
       + rotationEvidenceFooter(previewTiles.map(function(t) { return t.type; }))
+      + seedEvidenceFooter(_tileCoins(previewTiles.slice(0, 1)))
       + marketOversoldLine() + provenProofLine();
     return;
   }
@@ -1087,7 +1109,17 @@ function renderTopBars() {
   for (var rp = proTiles.length; rp < ROT_TILE_SLOTS; rp++) rotHtml += emptyPlaceholderTile();
   sugEl.innerHTML = '<div class="sig-tiles-grid">' + rotHtml + '</div>'
     + rotationEvidenceFooter(proTiles.map(function(t) { return t.type; }))
+    + seedEvidenceFooter(_tileCoins(proTiles))
     + marketOversoldLine() + provenProofLine();
+}
+
+/* The coins a list of rotation tiles shows: both sides of a pair. */
+function _tileCoins(tiles) {
+  var out = [];
+  (tiles || []).forEach(function(t) {
+    if (t.type === 'pair') out.push(t.sell, t.buy); else if (t.c) out.push(t.c);
+  });
+  return out;
 }
 
 /* ══════════════════════════════════════════════════════════════

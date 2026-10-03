@@ -534,9 +534,14 @@ Object.assign(MK_TEXT, {
   P(/^Middle of the pack · (\d+) up, (\d+) down$/, function (m) { return 'Во средината · ' + m[1] + ' нагоре, ' + m[2] + ' надолу'; });
   P(/^Middle of the pack · no turn signs$/, function () { return 'Во средината · без знаци за свртување'; });
 
-  /* Seed label on the signal tiles (promptove/82) */
-  P(/^([A-Z0-9]+) is a Seed coin \(Binance: early-stage, higher risk\)\. Since (\d{4}), Seed coins after a run like this trailed the average coin over the next month (\d+) times in 10\.$/, function (m) { return m[1] + ' е Seed монета (според Binance: проект во рана фаза, поризичен). Од ' + m[2] + ', Seed монетите по ваков раст заостанаа зад просечната монета во следниот месец ' + m[3] + ' пати од 10.'; });
-  P(/^([A-Z0-9]+) is a Seed coin \(Binance: early-stage, higher risk\)\. Since (\d{4}), Seed coins that had fallen behind kept trailing the average coin (\d+) times in 10\.$/, function (m) { return m[1] + ' е Seed монета (според Binance: проект во рана фаза, поризичен). Од ' + m[2] + ', Seed монетите што веќе заостанале продолжија да заостануваат зад просечната монета ' + m[3] + ' пати од 10.'; });
+  /* Seed label (promptove/82): a short tag on the tile, the history once under the column */
+  MK_TEXT['Seed coin: early-stage, higher risk'] = 'Seed монета: проект во рана фаза, поризичен';
+  P(/^Seed is Binance's tag for early-stage, higher-risk projects\.(?: Since (\d{4}), Seed coins after a big 30-day run trailed the average coin over the next month (\d+) times in 10\.)?(?: Since (\d{4}), Seed coins that had fallen behind kept trailing the average coin (\d+) times in 10\.)? History, not a call\.$/, function (m) {
+    return 'Seed е ознаката на Binance за проекти во рана фаза, со поголем ризик.'
+      + (m[1] ? ' Од ' + m[1] + ', Seed монетите по голем раст во 30 дена заостанаа зад просечната монета во следниот месец ' + m[2] + ' пати од 10.' : '')
+      + (m[3] ? ' Од ' + m[3] + ', Seed монетите што веќе заостанале продолжија да заостануваат зад просечната монета ' + m[4] + ' пати од 10.' : '')
+      + ' Ова е историја, не повик.';
+  });
   P(/^None of these signs has passed its test yet\. The closest, the quick RSI bounce, beat the market ([\d.]+)% of the time against ([\d.]+)% for a random pick\.( Highlighted chips are the tested ones\.)? A reading, not a forecast\.$/,
     function (m) { return 'Ниту еден од овие знаци сè уште не го помина својот тест. Најблискиот, брзиот RSI отскок, го победи пазарот во ' + m[1] + '% од случаите наспроти ' + m[2] + '% за случаен избор.' + (m[3] ? ' Истакнатите ознаки се тестираните.' : '') + ' Читање, не прогноза.'; });
   /* Evidence chips */
