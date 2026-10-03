@@ -265,40 +265,53 @@ const MACRO_SYMBOLS: { key: string; symbol: string; label: string }[] = [
    The series costs NOTHING extra: this call already downloads a month of
    daily bars and, until 2026-09-11, kept two of them and threw the rest
    away. The site renders it as a sparkline under each indicator. */
-async function pct7dSeries(symbol: string): Promise<{ pct: number | null; series: number[] }> {
-  const url = `https://query1.finance.yahoo.com/v8/finance/chart/${encodeURIComponent(symbol)}?interval=1d&range=1mo`;
+/* 2026-10-03: also the 30-day change, for the TODAY tiles' 7D/30D flip.
+   The range moved from 1mo to 2mo so a close near the 30-day mark always
+   exists (a 1mo range can start a day or two short of it). The series is
+   now cut by TIMESTAMP to the last 30 calendar days, and `n7` says how
+   many of its points fall inside the 7-day window, so the front of the
+   tile draws the same 7 days its number describes. Before this the 7-day
+   number sat over a ~30-day line. */
+async function pct7dSeries(symbol: string): Promise<{ pct: number | null; pct30: number | null; series: number[]; n7: number }> {
+  const url = `https://query1.finance.yahoo.com/v8/finance/chart/${encodeURIComponent(symbol)}?interval=1d&range=2mo`;
   const data = await safeJson(url);
   const r = data?.chart?.result?.[0];
   const ts: number[] = r?.timestamp ?? [];
   const closes: (number | null)[] = r?.indicators?.quote?.[0]?.close ?? [];
-  if (!ts.length || ts.length !== closes.length) return { pct: null, series: [] };
-
-  /* Rounded to 6 significant figures: a sparkline needs shape, not
-     precision, and this keeps the stored row small. */
-  const series = closes
-    .filter((c): c is number => c != null && isFinite(c))
-    .slice(-30)
-    .map((c) => Number(c.toPrecision(6)));
+  if (!ts.length || ts.length !== closes.length) return { pct: null, pct30: null, series: [], n7: 0 };
 
   let last = -1;
   for (let i = closes.length - 1; i >= 0; i--) { if (closes[i] != null) { last = i; break; } }
-  if (last < 0) return { pct: null, series };
+  if (last < 0) return { pct: null, pct30: null, series: [], n7: 0 };
 
-  const target = ts[last] - 7 * 86400;
-  let bestIdx = -1, bestDist = Infinity;
-  for (let i = 0; i <= last; i++) {
-    if (closes[i] == null) continue;
-    const d = Math.abs(ts[i] - target);
-    if (d < bestDist) { bestDist = d; bestIdx = i; }
-  }
-  // Reject a match more than 3 days off the 7-day mark — a stale or gappy
+  // Reject a match more than 3 days off the mark — a stale or gappy
   // series should report nothing rather than a number for a window nobody
   // asked for.
-  if (bestIdx < 0 || bestIdx === last || bestDist > 3 * 86400) return { pct: null, series };
+  const anchor = (days: number): number => {
+    const target = ts[last] - days * 86400;
+    let bestIdx = -1, bestDist = Infinity;
+    for (let i = 0; i <= last; i++) {
+      if (closes[i] == null) continue;
+      const d = Math.abs(ts[i] - target);
+      if (d < bestDist) { bestDist = d; bestIdx = i; }
+    }
+    return (bestIdx < 0 || bestIdx === last || bestDist > 3 * 86400) ? -1 : bestIdx;
+  };
+  const pctFrom = (i: number) => {
+    if (i < 0) return null;
+    const then = closes[i]!, now = closes[last]!;
+    return then ? ((now - then) / then) * 100 : null;
+  };
+  const i7 = anchor(7), i30 = anchor(30);
 
-  const then = closes[bestIdx]!, now = closes[last]!;
-  if (!then) return { pct: null, series };
-  return { pct: ((now - then) / then) * 100, series };
+  /* Rounded to 6 significant figures: a sparkline needs shape, not
+     precision, and this keeps the stored row small. */
+  const from = i30 >= 0 ? i30 : 0;
+  const idx: number[] = [];
+  for (let i = from; i <= last; i++) if (closes[i] != null && isFinite(closes[i]!)) idx.push(i);
+  const series = idx.map((i) => Number(closes[i]!.toPrecision(6)));
+  const n7 = i7 >= 0 ? idx.filter((i) => i >= i7).length : 0;
+  return { pct: pctFrom(i7), pct30: pctFrom(i30), series, n7 };
 }
 
 async function fetchMacro(
@@ -313,11 +326,16 @@ async function fetchMacro(
      numeric fields is unchanged — every existing reader keeps working
      and simply ignores `series`. */
   const series: Record<string, number[]> = {};
+  /* The 30-day figures and the 7-day point counts also live under their
+     own keys (p30, n7), keyed like `series`, for the same reason. */
+  const p30: Record<string, number | null> = {};
+  const n7: Record<string, number> = {};
   for (const m of MACRO_SYMBOLS) {
     try {
       const r = await pct7dSeries(m.symbol);
       out[m.key] = r.pct;
-      if (r.series.length > 1) series[m.key] = r.series;
+      p30[m.key] = r.pct30;
+      if (r.series.length > 1) { series[m.key] = r.series; n7[m.key] = r.n7; }
     } catch (e) {
       console.warn(`[macro] ${m.label} (${m.symbol}) failed:`, (e as Error).message);
     }
@@ -366,7 +384,7 @@ async function fetchMacro(
 
   const { error } = await supabase.from('market_cache').upsert(
     { cache_key: 'macro_data',
-      data: Object.assign({}, out, { series }),
+      data: Object.assign({}, out, { series, p30, n7 }),
       updated_at: new Date().toISOString() },
     { onConflict: 'cache_key' },
   );
@@ -509,9 +527,10 @@ function meanOf(pts: { x: number; y: number }[]): number | null {
 
 async function chainSeries(
   chart: string,
-): Promise<{ level: number | null; p7: number | null; series: number[] }> {
+): Promise<{ level: number | null; p7: number | null; p30: number | null; series: number[]; n7: number }> {
+  /* 40 days, so the week 30 days back (days 37..30) is complete for p30. */
   const url = `https://api.blockchain.info/charts/${chart}`
-    + '?timespan=30days&format=json&cors=true';
+    + '?timespan=40days&format=json&cors=true';
   const data = await safeJson(url);
   const vals = (data?.values ?? []) as { x: number; y: number }[];
   const clean = vals.filter((v) => v && isFinite(v.y) && v.y > 0)
@@ -519,20 +538,25 @@ async function chainSeries(
   /* The sparkline stays RAW daily. The headline is smoothed because a
      single day is a poor estimate; the chart underneath it should still
      show what the data actually looks like rather than hide the spread. */
-  const series = clean.slice(-30).map((v) => Number(v.y.toPrecision(6)));
-  if (!clean.length) return { level: null, p7: null, series };
-
+  if (!clean.length) return { level: null, p7: null, p30: null, series: [], n7: 0 };
   const last = clean[clean.length - 1].x;
+  const in30 = clean.filter((v) => v.x >= last - 30 * 86400);
+  const series = in30.map((v) => Number(v.y.toPrecision(6)));
+  const n7 = in30.filter((v) => v.x >= last - 7 * 86400).length;
+
   const wk = (from: number, to: number) =>
     clean.filter((v) => v.x > last - from * 86400 && v.x <= last - to * 86400);
 
   const recent = meanOf(wk(7, 0));
   const prior  = meanOf(wk(14, 7));
+  /* 30d: this week's mean against the mean of the week 30 days earlier,
+     the same smoothing as p7. */
+  const month  = meanOf(wk(37, 30));
 
   /* Falls back to the latest single point rather than reporting
      nothing, so a short or gappy series still shows a level. */
   const level = recent != null ? recent : clean[clean.length - 1].y;
-  return { level, p7: pctChange(recent, prior), series };
+  return { level, p7: pctChange(recent, prior), p30: pctChange(recent, month), series, n7 };
 }
 
 async function fetchNetwork(
@@ -547,14 +571,20 @@ async function fetchNetwork(
   /* Kept under their own key so every existing reader of the numeric
      fields is untouched. */
   const series: Record<string, number[]> = {};
+  /* 30-day figures and 7-day point counts, under their own keys like
+     `series` (2026-10-03, the TODAY tiles' 7D/30D flip). */
+  const p30: Record<string, number | null> = {};
+  const n7: Record<string, number> = {};
 
   // ── Bitcoin hash rate. Reported in TH/s; shown in EH/s. ──
   try {
     const r = await chainSeries('hash-rate');
     if (r.level != null) out.hashrateEh = r.level / 1e6;
     out.hashrateP7 = r.p7;
+    p30.hashrateEh = r.p30;
     if (r.series.length > 1) {
       series.hashrateEh = r.series.map((v) => Number((v / 1e6).toPrecision(6)));
+      n7.hashrateEh = r.n7;
     }
   } catch (e) {
     console.warn('[network] hash rate failed:', (e as Error).message);
@@ -566,7 +596,8 @@ async function fetchNetwork(
     const r = await chainSeries('n-unique-addresses');
     out.addrCount = r.level;
     out.addrP7 = r.p7;
-    if (r.series.length > 1) series.addrCount = r.series;
+    p30.addrCount = r.p30;
+    if (r.series.length > 1) { series.addrCount = r.series; n7.addrCount = r.n7; }
   } catch (e) {
     console.warn('[network] addresses failed:', (e as Error).message);
   }
@@ -591,7 +622,16 @@ async function fetchNetwork(
       }
       /* DefiLlama returns the FULL history on this endpoint and only the
          last two points were ever used. */
-      series.tvlUsd = clean.slice(-30).map((r) => Number(r.tvl.toPrecision(6)));
+      const in30 = clean.filter((r) => r.date >= last.date - 30 * 86400);
+      series.tvlUsd = in30.map((r) => Number(r.tvl.toPrecision(6)));
+      n7.tvlUsd = in30.filter((r) => r.date >= last.date - 7 * 86400).length;
+      const t30 = last.date - 30 * 86400;
+      let m30: { date: number; tvl: number } | null = null, m30Dist = Infinity;
+      for (const r of clean) {
+        const d = Math.abs(r.date - t30);
+        if (d < m30Dist) { m30Dist = d; m30 = r; }
+      }
+      p30.tvlUsd = (m30 && m30Dist <= 36 * 3600) ? pctChange(last.tvl, m30.tvl) : null;
     }
   } catch (e) {
     console.warn('[network] defi tvl failed:', (e as Error).message);
@@ -605,14 +645,18 @@ async function fetchNetwork(
     const assets = (data?.peggedAssets ?? []) as {
       circulating?: Record<string, number>;
       circulatingPrevWeek?: Record<string, number>;
+      circulatingPrevMonth?: Record<string, number>;
     }[];
-    let now = 0, then = 0;
+    let now = 0, then = 0, month = 0;
     for (const a of assets) {
       const c = Object.values(a?.circulating ?? {}).find((v) => isFinite(v));
       const p = Object.values(a?.circulatingPrevWeek ?? {}).find((v) => isFinite(v));
       if (c) now += c;
       if (p) then += p;
+      const pm = Object.values(a?.circulatingPrevMonth ?? {}).find((v) => isFinite(v));
+      if (pm) month += pm;
     }
+    p30.stableUsd = (now > 0 && month > 0) ? pctChange(now, month) : null;
     if (now > 0) out.stableUsd = now;
     if (now > 0 && then > 0) out.stableP7 = pctChange(now, then);
   } catch (e) {
@@ -627,7 +671,7 @@ async function fetchNetwork(
 
   const { error } = await supabase.from('market_cache').upsert(
     { cache_key: 'network_data',
-      data: Object.assign({}, out, { series }),
+      data: Object.assign({}, out, { series, p30, n7 }),
       updated_at: new Date().toISOString() },
     { onConflict: 'cache_key' },
   );
