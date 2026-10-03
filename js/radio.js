@@ -1,7 +1,10 @@
 /* ══════════════════════════════════════════════════════════════
-   radio.js — Lofi Girl radio in the installed app (Daniel, 2026-10-03)
+   radio.js — the 🎧 Radio (Daniel, 2026-10-03)
    ──────────────────────────────────────────────────────────────
-   A small player with Lofi Girl's four 24/7 YouTube streams. FREE, not
+   A small player for everyone on the site. Default station: the
+   CRYPTO GEMIDZIJA channel (@cryptogemidzija), played as its uploads
+   playlist, so its newest video always comes first with nothing to
+   update. Then Lofi Girl's four 24/7 streams. FREE, not
    Pro: YouTube's terms forbid charging for access to embedded videos,
    and that is what shut down the big Discord music bots (Groovy and
    Rythm, 2021). Lofi Girl allows embedding its streams.
@@ -14,16 +17,19 @@
      Uses youtube-nocookie.com. Named in the Privacy Policy, section 5.
    - The heartbeat sound stays quiet while the radio plays
      (radioPlaying() is checked in hbSoundStart, data-loaders.js).
-   - Installed app only (the reward for installing). In a browser tab
-     the Settings row offers the install instead.
-   Stream IDs taken from the LIVE entries on
-   https://www.youtube.com/@LofiGirl/streams on 2026-10-03. Lofi Girl
-   restarts a stream under a NEW id now and then; the old one then shows
-   "Video unavailable". YouTube oEmbed still answers for ended streams,
-   so it cannot tell a dead id from a live one: check the streams page.
+   - For everyone (first version was installed-app only; Daniel opened
+     it to the whole site the same day). It only opens on a click.
+   Lofi Girl restarts a stream under a NEW id now and then; the old one
+   then shows "Video unavailable". The ids below are a fallback: once a
+   day, when someone opens the radio, yt-resolve ({ lofi: true }) reads
+   Lofi Girl's live streams and any changed id is swapped in (kept in
+   this browser). YouTube oEmbed cannot tell a dead id from a live one,
+   which is why it reads the streams page.
 ══════════════════════════════════════════════════════════════ */
 
 var RADIO_STATIONS = [
+  { key: 'gemidzija', label: 'Crypto Gemidzija', icon: '📺', type: 'list', id: 'UU1oHdwlctsUyGe0Fidy7ATg',
+    by: 'CRYPTO GEMIDZIJA', url: 'https://www.youtube.com/@cryptogemidzija' },
   { key: 'lofi',      label: 'Lo-fi',     icon: '📚', id: 'rFZHOHl-L8A' },
   { key: 'jazz',      label: 'Jazz',      icon: '🎷', id: 'E2vONfzoyRI' },
   { key: 'synthwave', label: 'Synthwave', icon: '🌌', id: '4xDzrJKXOOY' },
@@ -31,18 +37,10 @@ var RADIO_STATIONS = [
 ];
 var _radioStation = null;
 
-function radioInstalled() {
-  /* Testing on your own computer: http://localhost:8098/?app=1 acts as
-     the installed app. Ignored on the live site. */
-  if (location.hostname === 'localhost' && /[?&]app=1\b/.test(location.search)) return true;
-  try {
-    return window.matchMedia('(display-mode: standalone)').matches || !!window.navigator.standalone;
-  } catch (e) { return false; }
-}
 function radioPlaying() { return !!_radioStation; }
 
 function _radioSaved() {
-  try { return localStorage.getItem('rot_radio_station') || 'lofi'; } catch (e) { return 'lofi'; }
+  try { return localStorage.getItem('rot_radio_station') || 'gemidzija'; } catch (e) { return 'gemidzija'; }
 }
 function _radioFind(key) {
   var all = RADIO_STATIONS.concat(_radioCustom());
@@ -320,8 +318,50 @@ function _radioDraggable(p) {
   hdr.addEventListener('pointercancel', end);
 }
 
+/* ── Lofi Girl ids, checked once a day (see the header) ─────────── */
+var RADIO_LOFI_KEYS = ['lofi', 'jazz', 'synthwave', 'sleep'];
+function _radioLofiCache() {
+  try { return JSON.parse(localStorage.getItem('rot_radio_lofi') || 'null'); } catch (e) { return null; }
+}
+function _radioLofiApply(ids) {
+  RADIO_STATIONS.forEach(function (st) {
+    var id = ids && ids[st.key];
+    if (RADIO_LOFI_KEYS.indexOf(st.key) >= 0 && typeof id === 'string' && /^[\w-]{11}$/.test(id)) st.id = id;
+  });
+}
+function _radioLofiStale() {
+  var c = _radioLofiCache();
+  return !c || !c.t || Date.now() - c.t > 24 * 3600 * 1000;
+}
+/* Ask yt-resolve; never wait more than 2.5s, the fallback ids still play. */
+function _radioLofiRefresh(done) {
+  var finished = false;
+  var finish = function () { if (!finished) { finished = true; done(); } };
+  setTimeout(finish, 2500);
+  if (typeof SUPA_URL === 'undefined') { finish(); return; }
+  fetch(SUPA_URL + '/functions/v1/yt-resolve', {
+    method: 'POST',
+    headers: { 'apikey': SUPA_KEY, 'Authorization': 'Bearer ' + SUPA_KEY, 'Content-Type': 'application/json' },
+    body: JSON.stringify({ lofi: true })
+  }).then(function (r) { return r.json(); }).then(function (d) {
+    if (d && d.ok && d.stations) {
+      _radioLofiApply(d.stations);
+      try { localStorage.setItem('rot_radio_lofi', JSON.stringify({ t: Date.now(), stations: d.stations })); } catch (e) {}
+    }
+    finish();
+  }).catch(finish);
+}
+
 function radioPlay(key) {
-  var s = _radioFind(key || _radioSaved());
+  var want = _radioFind(key || _radioSaved());
+  if (RADIO_LOFI_KEYS.indexOf(want.key) >= 0 && _radioLofiStale()) {
+    _radioLofiRefresh(function () { _radioPlayNow(want.key); });
+    return;
+  }
+  _radioPlayNow(want.key);
+}
+function _radioPlayNow(key) {
+  var s = _radioFind(key);
   if (_radioStation && _radioStation.key === s.key && document.getElementById('radio-player')) return;
   _radioStation = s;
   try { localStorage.setItem('rot_radio_station', s.key); } catch (e) {}
@@ -349,6 +389,8 @@ function radioPlay(key) {
   var own = s.key.indexOf('c_') === 0;
   document.getElementById('radio-credit').innerHTML = own
     ? 'Playing <b>' + _radioEsc(s.label) + '</b> from YouTube'
+    : s.by
+    ? 'Latest videos from <a href="' + s.url + '" target="_blank" rel="noopener">' + _radioEsc(s.by) + '</a> on YouTube'
     : 'Music by <a href="https://www.youtube.com/@LofiGirl" target="_blank" rel="noopener">Lofi Girl</a> on YouTube';
   p.style.display = '';
   _radioRefresh();
@@ -381,13 +423,8 @@ function _radioRefresh() {
 
 (function _radioInit() {
   var init = function () {
-    var installed = radioInstalled();
-    var btn = document.getElementById('radio-topbar-btn');
-    if (btn) btn.style.display = installed ? '' : 'none';
-    var inApp = document.getElementById('radio-setting-app');
-    var inTab = document.getElementById('radio-setting-tab');
-    if (inApp) inApp.style.display = installed ? '' : 'none';
-    if (inTab) inTab.style.display = installed ? 'none' : '';
+    var c = _radioLofiCache();   /* yesterday's check, if any, beats the built-in ids */
+    if (c && c.stations) _radioLofiApply(c.stations);
     _radioRefresh();
   };
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init);

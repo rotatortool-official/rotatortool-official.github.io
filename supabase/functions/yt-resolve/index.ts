@@ -2,6 +2,7 @@
 // player can embed (site js/radio.js, "Add your own", 2026-10-03).
 //
 // Request:  POST { url }   (anon key as bearer, like verify-tx)
+//           POST { lofi: true }  -> { ok, stations: { lofi, jazz, ... } }, see lofiStreams()
 // Response: { ok: true, kind: 'video' | 'playlist' | 'channel',
 //             embed: { type: 'video' | 'list', id }, title }
 //        or { ok: false, reason }
@@ -59,12 +60,61 @@ async function resolveChannel(pageUrl: string): Promise<{ id: string; title: str
   return { id: m[1], title: t ? decodeEntities(t[1]) : 'YouTube channel' };
 }
 
+// { lofi: true } — Lofi Girl's CURRENT live streams for the four radio
+// stations (2026-10-03). Lofi Girl restarts a stream under a new id now
+// and then, and the old id shows "Video unavailable"; the site asks this
+// once a day per visitor and swaps in any changed id. Found by title on
+// the channel's streams page, live entries only. A station not found
+// is left out, and the site keeps the id it has.
+const LOFI_TITLES: Record<string, string> = {
+  lofi: 'lofi hip hop radio 📚',
+  jazz: 'jazz lofi radio 🎷',
+  synthwave: 'synthwave radio 🌌',
+  sleep: 'lofi hip hop radio 💤',
+};
+async function lofiStreams(): Promise<Record<string, string>> {
+  const r = await fetch('https://www.youtube.com/@LofiGirl/streams', {
+    headers: { 'User-Agent': UA, 'Accept-Language': 'en', 'Cookie': 'SOCS=CAI; CONSENT=YES+1' },
+  });
+  if (!r.ok) return {};
+  const html = await r.text();
+  const m = html.match(/var ytInitialData = (\{.*?\});<\/script>/s);
+  if (!m) return {};
+  const items: { id: string; text: string }[] = [];
+  const walk = (o: unknown) => {
+    if (Array.isArray(o)) { o.forEach(walk); return; }
+    if (!o || typeof o !== 'object') return;
+    const rec = o as Record<string, unknown>;
+    for (const k of ['videoRenderer', 'lockupViewModel']) {
+      if (rec[k]) {
+        const text = JSON.stringify(rec[k]);
+        const id = text.match(/"(?:videoId|contentId)":"([\w-]{11})"/);
+        if (id && (text.includes('"LIVE"') || text.includes('watching'))) items.push({ id: id[1], text });
+      }
+    }
+    Object.values(rec).forEach(walk);
+  };
+  walk(JSON.parse(m[1]));
+  const out: Record<string, string> = {};
+  for (const [key, title] of Object.entries(LOFI_TITLES)) {
+    const hit = items.find((i) => i.text.includes(title));
+    if (hit) out[key] = hit.id;
+  }
+  return out;
+}
+
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') return new Response('ok', { headers: CORS });
   if (req.method !== 'POST') return fail('POST only.');
 
   let raw = '';
-  try { raw = String((await req.json()).url || '').trim(); } catch { return fail('Send { url }.'); }
+  let body: Record<string, unknown> = {};
+  try { body = await req.json(); } catch { return fail('Send { url }.'); }
+  if (body.lofi === true) {
+    try { return json({ ok: true, stations: await lofiStreams() }); }
+    catch { return fail('YouTube did not answer. Try again in a moment.'); }
+  }
+  raw = String(body.url || '').trim();
   if (!raw || raw.length > 300) return fail('Paste a YouTube link.');
   if (!/^https?:\/\//i.test(raw)) raw = 'https://' + raw;
 

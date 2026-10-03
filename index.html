@@ -184,7 +184,7 @@
       <p>Rotator sets no cookies. It uses your browser's localStorage, described in section 1.</p>
 
       <h4>5. Other services your browser contacts</h4>
-      <p>Loading Rotator makes your browser contact GitHub Pages (which hosts the site), Supabase (our database), CoinGecko (prices and coin logos), Google Fonts (typefaces), jsDelivr (the chart library) and Umami (analytics). If the main price source fails, the public proxies corsproxy.io and allorigins.win may be used instead. Like any website, these services can see your IP address and browser details when your browser contacts them, and their own privacy policies apply. Binance, Farside Investors, alternative.me, DefiLlama, blockchain.info and GeckoTerminal are contacted by our server, not by your browser. If you connect Telegram alerts, Telegram's privacy policy applies to the messages. If you play the radio in the installed app, your browser loads YouTube's player (youtube-nocookie.com) to play Lofi Girl's stream, and Google's privacy policy applies to it; nothing loads from YouTube until you press a station.</p>
+      <p>Loading Rotator makes your browser contact GitHub Pages (which hosts the site), Supabase (our database), CoinGecko (prices and coin logos), Google Fonts (typefaces), jsDelivr (the chart library) and Umami (analytics). If the main price source fails, the public proxies corsproxy.io and allorigins.win may be used instead. Like any website, these services can see your IP address and browser details when your browser contacts them, and their own privacy policies apply. Binance, Farside Investors, alternative.me, DefiLlama, blockchain.info and GeckoTerminal are contacted by our server, not by your browser. If you connect Telegram alerts, Telegram's privacy policy applies to the messages. If you play the radio, your browser loads YouTube's player (youtube-nocookie.com) to play the station or video you chose, and Google's privacy policy applies to it; nothing loads from YouTube until you press a station.</p>
 
       <h4>6. Crypto payments</h4>
       <p>A crypto payment is recorded on its public blockchain. We check your transaction hash against that public record and store what is listed in section 2. We never ask for, and cannot access, your wallet's private keys.</p>
@@ -247,14 +247,10 @@
     <div><div class="setting-label">Heartbeat sound</div><div class="setting-sub">A soft heartbeat when you rest the mouse on a tile</div></div>
     <label class="toggle"><input type="checkbox" id="hb-sound-toggle" checked onchange="setHbSound(this.checked)"><span class="toggle-slider"></span></label>
   </div>
-  <!-- Lofi Girl radio (js/radio.js): stations in the installed app, the install offer in a browser tab -->
-  <div class="setting-row radio-setting" id="radio-setting-app" style="display:none;">
-    <div style="width:100%;"><div class="setting-label">🎧 Radio</div><div class="setting-sub">Lofi Girl stations and up to 5 of your own YouTube channels, free in the app</div>
+  <!-- 🎧 Radio (js/radio.js): the stations and your own links, for everyone -->
+  <div class="setting-row radio-setting" id="radio-setting-app">
+    <div style="width:100%;"><div class="setting-label">🎧 Radio</div><div class="setting-sub">Crypto Gemidzija, Lofi Girl, and up to 5 of your own YouTube channels</div>
       <div class="radio-setting-chips" id="radio-setting-chips"></div></div>
-  </div>
-  <div class="setting-row" id="radio-setting-tab">
-    <div><div class="setting-label">🎧 Radio</div><div class="setting-sub">Install the app to play lo-fi, jazz or your own YouTube channels while you watch the market</div></div>
-    <button class="tut-btn primary" onclick="triggerPWAInstall()">INSTALL</button>
   </div>
   <hr style="border:none;border-top:1px solid var(--bdr);margin:14px 0 10px;">
   <div class="setting-row">
@@ -837,9 +833,9 @@
       </div>
     </div>
 
-    <!-- Lofi Girl radio, installed app only (js/radio.js) -->
+    <!-- 🎧 Radio (js/radio.js) -->
     <div class="tb-dropdown-wrap">
-      <button class="tb-icon-btn radio-topbar-btn" id="radio-topbar-btn" onclick="radioToggle()" title="Lofi Girl radio" aria-label="Lofi Girl radio" style="display:none;">
+      <button class="tb-icon-btn radio-topbar-btn" id="radio-topbar-btn" onclick="radioToggle()" title="Radio" aria-label="Radio">
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 18v-6a9 9 0 0 1 18 0v6"/><path d="M21 19a2 2 0 0 1-2 2h-1a2 2 0 0 1-2-2v-3a2 2 0 0 1 2-2h3zM3 19a2 2 0 0 0 2 2h1a2 2 0 0 0 2-2v-3a2 2 0 0 0-2-2H3z"/></svg>
       </button>
     </div>
