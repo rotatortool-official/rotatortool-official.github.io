@@ -4406,10 +4406,21 @@ function _buildRowTip(row, cx, cy) {
 })();
 
 /* ── Feeling the pulse (Daniel, 2026-10-03) ─────────────────────────
-   A mouse that rests 3 seconds on a TODAY or momentum tile gets a soft
-   glow under it that beats with the market-pulse heartbeat (styles.css,
-   "Market pulse"). Any real movement (4px+) or leaving the tile lifts
-   it. Mouse devices only, and never with reduced motion asked for. */
+   A mouse that rests 3 seconds on a TODAY or momentum tile gets a green
+   heart-monitor trace across the tile at the cursor's height, beating at
+   the page's 70 a minute (styles.css, "Market pulse"). Any real movement
+   (4px+) or leaving the tile lifts it. Mouse devices only, and never with
+   reduced motion asked for. */
+/* One beat in a 60-wide cell, baseline at 20 of 40: flat, P bump, Q dip,
+   tall R spike, S dip, T bump, flat. Four beats = two seamless halves. */
+var _HB_BEAT = 'L14 20 L17 17 L20 20 L24 20 L26 23 L28 3 L30 30 L32 20 L37 20 L41 14 L45 20 L60 20';
+function _hbEcgSvg() {
+  var d = 'M0 20';
+  for (var b = 0; b < 4; b++) {
+    d += ' ' + _HB_BEAT.replace(/L(\d+) /g, function (m, x) { return 'L' + (Number(x) + b * 60) + ' '; });
+  }
+  return '<svg viewBox="0 0 240 40" preserveAspectRatio="none" aria-hidden="true"><path d="' + d + '"/></svg>';
+}
 (function _hbListen() {
   var fine = false, reduced = false;
   try {
@@ -4441,9 +4452,10 @@ function _buildRowTip(row, cx, cy) {
       if (!tile || !document.body.contains(tile)) return;
       var h = host(tile), r = h.getBoundingClientRect();
       glow = document.createElement('span');
-      glow.className = 'hb-listen';
-      glow.style.left = (lx - r.left) + 'px';
-      glow.style.top = (ly - r.top) + 'px';
+      glow.className = 'hb-ecg';
+      glow.innerHTML = _hbEcgSvg();
+      /* At the cursor's height, kept inside the tile. */
+      glow.style.top = Math.max(17, Math.min(r.height - 17, ly - r.top)) + 'px';
       h.appendChild(glow);
     }, 3000);
   }, { passive: true });

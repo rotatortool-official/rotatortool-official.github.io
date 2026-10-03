@@ -4801,16 +4801,22 @@ details.td-reading-trust[open] > summary::before{content:'▾ ';}
 
 /* ── Market pulse (Daniel, 2026-10-03) ───────────────────────────────
    "We track the market pulse with this tool": a heartbeat, lub-dub then a
-   rest, ~46 beats a minute. Three places, all subtle:
+   rest. Tiles, the loader heart and the monitor line beat at 70 a minute
+   (0.857s): a resting heart plus a little excitement, Daniel's call
+   ("resting +5 beats ... not 120"). The lens rail stays at its own slower
+   2.6s, set separately. Three places, all subtle:
      1. the SORT lens buttons beat in turn down the rail until a visitor
         has used one (class .lens-pulse, set in renderLensRail);
      2. a TODAY or momentum tile beats while the mouse is on it;
-     3. a mouse resting 3 seconds on a tile "feels the pulse": a soft glow
-        under the cursor beats along (js/data-loaders.js, _hbListen).
+     3. a mouse resting 3 seconds on a tile "feels the pulse": a green
+        heart-monitor trace scrolls across the tile at the cursor's height
+        (js/data-loaders.js, _hbListen).
    None of it runs with reduced motion asked for. `scale` (not transform)
    so the beat stacks on the tiles' own lift and tilt. */
+/* Lub at 12%, dub at 38%, rest from 55%: at 0.857s that is ~100ms and
+   ~330ms into the beat, close to a real S1-S2. */
 @keyframes hbBeat{
-  0%{scale:1;} 10%{scale:1.014;} 20%{scale:1;} 30%{scale:1.008;} 45%,100%{scale:1;}
+  0%{scale:1;} 12%{scale:1.014;} 25%{scale:1;} 38%{scale:1.008;} 55%,100%{scale:1;}
 }
 @keyframes hbRail{
   0%,45%,100%{border-color:var(--bdr);box-shadow:none;}
@@ -4818,13 +4824,10 @@ details.td-reading-trust[open] > summary::before{content:'▾ ';}
   20%{border-color:rgba(243,186,47,.25);box-shadow:0 0 3px rgba(243,186,47,.12);}
   30%{border-color:rgba(243,186,47,.55);box-shadow:0 0 7px rgba(243,186,47,.25);}
 }
-@keyframes hbListen{
-  0%{opacity:0;transform:scale(.85);}
-  10%{opacity:.95;transform:scale(1.06);}
-  20%{opacity:.5;transform:scale(.97);}
-  30%{opacity:.8;transform:scale(1.02);}
-  45%,100%{opacity:.4;transform:scale(.92);}
-}
+/* The monitor strip slides left by exactly one of its two halves, so
+   the trace loops seamlessly; each half holds two beats. */
+@keyframes hbEcgScroll{ from{transform:translateX(0);} to{transform:translateX(-50%);} }
+@keyframes hbEcgIn{ from{opacity:0;} to{opacity:1;} }
 /* Half the tiles' speed on the rail (Daniel, 2026-10-03): 2.6s a beat, 0.24s between buttons. */
 .lens-rail.lens-pulse .lens-btn:not(.on):not(.lens-clear){animation:hbRail 2.6s ease-in-out var(--hb-d,0s) infinite;}
 .lens-rail .lens-btn:nth-of-type(2){--hb-d:.24s;}
@@ -4833,19 +4836,25 @@ details.td-reading-trust[open] > summary::before{content:'▾ ';}
 .lens-rail .lens-btn:nth-of-type(5){--hb-d:.96s;}
 .lens-rail .lens-btn:nth-of-type(6){--hb-d:1.20s;}
 .lens-rail.lens-pulse .lens-btn:hover{animation:none;}
-.sig-tile:not(.sig-tile-empty):hover{animation:hbBeat 1.3s ease-in-out infinite;}
-.bf-cell.hovering .bf-tilt{animation:hbBeat 1.3s ease-in-out infinite;}
+.sig-tile:not(.sig-tile-empty):hover{animation:hbBeat .857s ease-in-out infinite;}
+.bf-cell.hovering .bf-tilt{animation:hbBeat .857s ease-in-out infinite;}
 .bf-face{overflow:hidden;}
-.hb-listen{
-  position:absolute;width:150px;height:150px;margin:-75px 0 0 -75px;border-radius:50%;
+.hb-ecg{
+  position:absolute;left:0;right:0;height:34px;margin-top:-17px;overflow:hidden;
   pointer-events:none;z-index:3;
-  background:radial-gradient(circle, rgba(243,186,47,.22), rgba(243,186,47,.06) 45%, transparent 68%);
-  animation:hbListen 1.3s ease-in-out infinite;
+  -webkit-mask-image:linear-gradient(to right, transparent, #000 18%, #000 82%, transparent);
+          mask-image:linear-gradient(to right, transparent, #000 18%, #000 82%, transparent);
+  animation:hbEcgIn .4s ease-out both;
 }
-:root.light .hb-listen{background:radial-gradient(circle, rgba(220,150,0,.20), rgba(220,150,0,.05) 45%, transparent 68%);}
+/* Two copies of two beats; one beat spans half the tile, so the strip
+   moves two beats (1.714s) per loop. */
+.hb-ecg svg{display:block;width:200%;height:100%;animation:hbEcgScroll 1.714s linear infinite;}
+.hb-ecg path{fill:none;stroke:#2ee88a;stroke-width:1.6;stroke-linejoin:round;stroke-linecap:round;
+  vector-effect:non-scaling-stroke;filter:drop-shadow(0 0 3px rgba(46,232,138,.7));}
+:root.light .hb-ecg path{stroke:#0a9f55;filter:drop-shadow(0 0 2px rgba(10,159,85,.45));}
 @media (prefers-reduced-motion: reduce){
   .lens-rail.lens-pulse .lens-btn,.sig-tile:hover,.bf-cell.hovering .bf-tilt{animation:none !important;}
-  .hb-listen{display:none;}
+  .hb-ecg{display:none;}
 }
 
 /* Loading screen pulse line: a beating heart and a rotating phrase
@@ -4857,10 +4866,10 @@ details.td-reading-trust[open] > summary::before{content:'▾ ';}
   color:#f3ba2f;letter-spacing:.02em;
 }
 #load-pulse-txt{transition:opacity .3s ease;}
-.lp-heart{display:inline-block;font-size:17px;line-height:1;color:#f3ba2f;animation:lpHeart 1.3s ease-in-out infinite;}
+.lp-heart{display:inline-block;font-size:17px;line-height:1;color:#f3ba2f;animation:lpHeart .857s ease-in-out infinite;}
 @keyframes lpHeart{
-  0%{transform:scale(1);opacity:.75;} 10%{transform:scale(1.28);opacity:1;}
-  20%{transform:scale(1);opacity:.8;} 30%{transform:scale(1.16);opacity:.95;}
-  45%,100%{transform:scale(1);opacity:.75;}
+  0%{transform:scale(1);opacity:.75;} 12%{transform:scale(1.28);opacity:1;}
+  25%{transform:scale(1);opacity:.8;} 38%{transform:scale(1.16);opacity:.95;}
+  55%,100%{transform:scale(1);opacity:.75;}
 }
 @media (prefers-reduced-motion: reduce){ .lp-heart{animation:none;} #load-pulse-txt{transition:none;} }
