@@ -413,7 +413,8 @@ async function fetchMacro(
 // OUTPUT     market_cache.world_data — { items: { key: Item }, updatedAt }.
 //            Item: v (latest), date (of v, YYYY-MM-DD), s (values, oldest
 //            first, up to ~1 year), n7/n30 (points inside those windows),
-//            c7/c30/c365 (change: PERCENT for prices, POINTS for rates),
+//            c7/c30/c365/c1095 (change: PERCENT for prices, POINTS for
+//            rates), s3 (3 years thinned to ~160 points for the 3Y chart),
 //            c1m for the monthly electricity price, last (policy rates:
 //            the last step, {date, from, to}), lo/hi (Fed target range).
 // CONSUMERS  the site's TODAY section (renderBriefing in data-loaders.js).
@@ -424,7 +425,7 @@ async function fetchMacro(
 
 type WorldItem = {
   v: number; date: string; s: number[]; n7: number; n30: number;
-  c7: number | null; c30: number | null; c365: number | null;
+  c7: number | null; c30: number | null; c365: number | null; c1095?: number | null; s3?: number[];
   c1m?: number | null; last?: { date: string; from: number; to: number } | null;
   lo?: number; hi?: number;
 };
@@ -464,7 +465,20 @@ function worldBuild(pts: Pt[], mode: 'pct' | 'pts'): WorldItem | null {
     n7: kept.filter(([t]) => t >= tl - 7 * DAY).length,
     n30: kept.filter(([t]) => t >= tl - 30 * DAY).length,
     c7: ch(anchor(7, 4)), c30: ch(anchor(30, 5)), c365: ch(anchor(365, 10)),
+    /* 3 years (Daniel, 2026-10-03): the change from the exact daily
+       data, the line thinned to ~160 points so the row stays small; a
+       100px chart cannot show more. */
+    c1095: ch(anchor(1095, 20)),
+    s3: thin(p.filter(([t]) => t >= tl - 1096 * DAY).map(([, v]) => Number(v.toPrecision(6))), 160),
   };
+}
+
+function thin(v: number[], max: number): number[] {
+  if (v.length <= max) return v;
+  const step = Math.ceil(v.length / max), out: number[] = [];
+  for (let i = 0; i < v.length; i += step) out.push(v[i]);
+  if ((v.length - 1) % step) out.push(v[v.length - 1]);   // always end on the latest
+  return out;
 }
 
 /* The last step of a policy rate: the newest day it moved by at least
@@ -490,13 +504,13 @@ async function worldText(url: string): Promise<string> {
   return await res.text();
 }
 
-/* U.S. Treasury: one CSV per year, newest first. This year and last
-   year together always cover 12 months. */
+/* U.S. Treasury: one CSV per year, newest first. Four years always
+   cover the 3-year window. */
 async function worldTreasury(): Promise<Record<string, WorldItem | null>> {
   const y = new Date().getUTCFullYear();
   const cols: Record<string, string> = { us3m: '3 Mo', us2y: '2 Yr', us10y: '10 Yr' };
   const pts: Record<string, Pt[]> = { us3m: [], us2y: [], us10y: [] };
-  for (const year of [y - 1, y]) {
+  for (const year of [y - 3, y - 2, y - 1, y]) {
     const text = await worldText('https://home.treasury.gov/resource-center/data-chart-center/interest-rates/'
       + `daily-treasury-rates.csv/${year}/all?type=daily_treasury_yield_curve&field_tdr_date_value=${year}&page&_format=csv`);
     const rows = csvRows(text);
@@ -516,7 +530,7 @@ async function worldTreasury(): Promise<Record<string, WorldItem | null>> {
 }
 
 async function worldFed(): Promise<WorldItem | null> {
-  const end = new Date(), start = new Date(Date.now() - 400 * DAY * 1000);
+  const end = new Date(), start = new Date(Date.now() - 1130 * DAY * 1000);
   const d = await safeJson('https://markets.newyorkfed.org/api/rates/unsecured/effr/search.json'
     + `?startDate=${start.toISOString().slice(0, 10)}&endDate=${end.toISOString().slice(0, 10)}`);
   const rows = (d?.refRates ?? []) as { effectiveDate: string; percentRate: number; targetRateFrom?: number; targetRateTo?: number }[];
@@ -537,7 +551,7 @@ async function worldFed(): Promise<WorldItem | null> {
 }
 
 async function worldEcb(): Promise<WorldItem | null> {
-  const start = new Date(Date.now() - 400 * DAY * 1000).toISOString().slice(0, 10);
+  const start = new Date(Date.now() - 1130 * DAY * 1000).toISOString().slice(0, 10);
   const rows = csvRows(await worldText(
     `https://data-api.ecb.europa.eu/service/data/FM/D.U2.EUR.4F.KR.DFR.LEV?startPeriod=${start}&format=csvdata`));
   const h = rows[0], iT = h.indexOf('TIME_PERIOD'), iV = h.indexOf('OBS_VALUE');
@@ -553,7 +567,7 @@ async function worldEcb(): Promise<WorldItem | null> {
 }
 
 async function worldBoj(): Promise<WorldItem | null> {
-  const s = new Date(Date.now() - 400 * DAY * 1000);
+  const s = new Date(Date.now() - 1130 * DAY * 1000);
   const ym = `${s.getUTCFullYear()}${String(s.getUTCMonth() + 1).padStart(2, '0')}`;
   const d = await safeJson('https://www.stat-search.boj.or.jp/api/v1/getDataCode?format=json&lang=en'
     + `&db=FM01&code=STRDCLUCON&startDate=${ym}`);
@@ -581,7 +595,7 @@ async function worldJgb(): Promise<WorldItem | null> {
     const head = rows.find((r) => r[0] === 'Date');
     if (!head) continue;
     const i10 = head.indexOf('10Y');
-    for (const r of rows.slice(-400)) {
+    for (const r of rows.slice(-800)) {
       const m = (r[0] || '').match(/^(\d{4})\/(\d{1,2})\/(\d{1,2})$/);
       const v = parseFloat(r[i10]);
       if (m && isFinite(v)) pts.push([tsOf(+m[1], +m[2], +m[3]), v]);
@@ -593,7 +607,7 @@ async function worldJgb(): Promise<WorldItem | null> {
 }
 
 async function worldYahoo(symbol: string): Promise<WorldItem | null> {
-  const d = await safeJson(`https://query1.finance.yahoo.com/v8/finance/chart/${encodeURIComponent(symbol)}?interval=1d&range=1y`);
+  const d = await safeJson(`https://query1.finance.yahoo.com/v8/finance/chart/${encodeURIComponent(symbol)}?interval=1d&range=5y`);
   const r = d?.chart?.result?.[0];
   const ts: number[] = r?.timestamp ?? [], cl: (number | null)[] = r?.indicators?.quote?.[0]?.close ?? [];
   const pts: Pt[] = [];
@@ -607,7 +621,11 @@ async function worldYahoo(symbol: string): Promise<WorldItem | null> {
    public v1 API needs no key and allows 25 calls a day; this job makes
    three. */
 async function worldPower(): Promise<WorldItem | null> {
-  const d = await safeJson('https://api.bls.gov/publicAPI/v1/timeseries/data/APU000072610');
+  const y = new Date().getUTCFullYear();
+  const d = await safeJson('https://api.bls.gov/publicAPI/v1/timeseries/data/', {
+    method: 'POST', headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ seriesid: ['APU000072610'], startyear: String(y - 3), endyear: String(y) }),
+  });
   const rows = (d?.Results?.series?.[0]?.data ?? []) as { year: string; period: string; value: string }[];
   const pts: Pt[] = [];
   for (const r of rows) {
@@ -616,12 +634,13 @@ async function worldPower(): Promise<WorldItem | null> {
     if (m && +m[1] <= 12 && isFinite(v)) pts.push([tsOf(+r.year, +m[1], 1), v]);
   }
   pts.sort((a, b) => a[0] - b[0]);
-  const it = worldBuild(pts.slice(-14), 'pct');
+  const it = worldBuild(pts.slice(-40), 'pct');
   if (!it) return null;
   /* Month on month: the previous PUBLISHED month. */
   const prev = pts.length > 1 ? pts[pts.length - 2][1] : null;
   it.c1m = prev ? Number((((it.v - prev) / prev) * 100).toFixed(2)) : null;
   it.s = pts.slice(-13).map(([, v]) => v);   // 12 months back plus this one
+  it.s3 = pts.slice(-37).map(([, v]) => v);  // 36 months back plus this one
   return it;
 }
 
@@ -633,7 +652,7 @@ async function worldLlama(url: string): Promise<WorldItem | null> {
   const d = await safeJson(url);
   const t = (d?.totalDataChart ?? []) as [number, number][];
   const today = Math.floor(Date.now() / 1000 / DAY) * DAY;
-  const pts: Pt[] = t.filter(([ts, v]) => ts < today && isFinite(v)).slice(-400).map(([ts, v]) => [ts, v]);
+  const pts: Pt[] = t.filter(([ts, v]) => ts < today && isFinite(v)).slice(-1200).map(([ts, v]) => [ts, v]);
   return worldBuild(pts, 'pct');
 }
 /* Ethereum's gas price right now, in gwei, from a public node. Live
@@ -655,17 +674,17 @@ async function worldGasNow(): Promise<number | null> {
    these only add the year. Blockchain.com's series come as 7-day
    averages, the same smoothing the tiles use. */
 async function worldChain(chart: string, scale: number): Promise<WorldItem | null> {
-  const d = await safeJson(`https://api.blockchain.info/charts/${chart}?timespan=1year&rollingAverage=7days&format=json&cors=true`);
+  const d = await safeJson(`https://api.blockchain.info/charts/${chart}?timespan=3years&rollingAverage=7days&format=json&cors=true`);
   const pts: Pt[] = ((d?.values ?? []) as { x: number; y: number }[]).map((p) => [p.x, p.y / scale]);
   return worldBuild(pts, 'pct');
 }
 async function worldTvl(): Promise<WorldItem | null> {
   const d = (await safeJson('https://api.llama.fi/v2/historicalChainTvl')) as { date: number; tvl: number }[];
-  return worldBuild((d ?? []).slice(-400).map((p) => [p.date, p.tvl] as Pt), 'pct');
+  return worldBuild((d ?? []).slice(-1200).map((p) => [p.date, p.tvl] as Pt), 'pct');
 }
 async function worldStable(): Promise<WorldItem | null> {
   const d = (await safeJson('https://stablecoins.llama.fi/stablecoincharts/all')) as { date: string | number; totalCirculatingUSD: Record<string, number> }[];
-  const pts: Pt[] = (d ?? []).slice(-400).map((p) => [
+  const pts: Pt[] = (d ?? []).slice(-1200).map((p) => [
     Number(p.date),
     Object.values(p.totalCirculatingUSD ?? {}).reduce((a, b) => a + (isFinite(b) ? b : 0), 0),
   ] as Pt).filter(([, v]) => v > 0);

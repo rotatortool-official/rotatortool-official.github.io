@@ -1717,8 +1717,8 @@ function _bfSpark(series, up, minSpan, neutral) {
    and the dollar fall back to macro_data so the section never goes
    blank.
 
-   Front of a tile: 7 days. Back: 30 days or 1 year, whichever the bar
-   above says (_bfLong). Rates move in POINTS, not percent: a yield going
+   Front of a tile: 7 days. Back: 30 days, 1 year or 3 years, whichever
+   the bar above says (_bfLong). Rates move in POINTS, not percent: a yield going
    from 4.00% to 4.40% is "+0.40 pts", where "+10%" would mislead. The
    wording explains what a reading is; it does not predict (the yield
    test is pre-registered separately, promptove/86). */
@@ -1783,13 +1783,17 @@ function _bfWorldCell(it, o) {
   var w = {
     7:   { c: it.c7,   s: it.n7 >= 2 ? s.slice(-it.n7) : null, l: '7d' },
     30:  { c: it.c30,  s: it.n30 >= 2 ? s.slice(-it.n30) : null, l: '30d' },
-    365: { c: it.c365, s: s, l: '1y' }
+    365: { c: it.c365, s: s, l: '1y' },
+    /* 3 years (2026-10-03): ~160 thinned points; a row written before
+       the server kept 3 years falls back to the 1-year side. */
+    1095: Array.isArray(it.s3) && it.s3.length > 2 ? { c: it.c1095, s: it.s3, l: '3y' } : { c: it.c365, s: s, l: '1y' }
   };
   if (o.monthly) {
     /* Monthly: a week means nothing. The front compares with the month
        before; 30D does the same; both draw the 12 months. */
     w[7] = { c: it.c1m, s: s, l: '1m' };
     w[30] = { c: it.c1m, s: s, l: '1m' };
+    if (Array.isArray(it.s3) && it.s3.length > 2) w[1095] = { c: it.c1095, s: it.s3, l: '3y' };
   }
   return {
     k: o.k, v: _bfFmt(it.v, o.kind), u: o.u || '', pts: o.kind === 'rate', w: w,
@@ -1810,6 +1814,10 @@ function _bfNetCell(o) {
     w: { 7: { c: o.p, s: (Array.isArray(s) && o.n7 >= 3) ? s.slice(-o.n7) : s, l: '7d' },
          30: { c: o.p30, s: s, l: '30d' },
          365: o.year && Array.isArray(o.year.s) && o.year.s.length > 30
+           ? { c: o.year.c365, s: o.year.s, l: '1y' } : { c: o.p30, s: s, l: '30d' },
+         1095: o.year && Array.isArray(o.year.s3) && o.year.s3.length > 2
+           ? { c: o.year.c1095, s: o.year.s3, l: '3y' }
+           : o.year && Array.isArray(o.year.s) && o.year.s.length > 30
            ? { c: o.year.c365, s: o.year.s, l: '1y' } : { c: o.p30, s: s, l: '30d' } },
     d: o.d, extra: '', src: _bfSrc(o.src, null, null)
   };
@@ -1903,8 +1911,8 @@ function renderBriefing() {
 
   var face = function (c, days, back) {
     var win = c.w[days];
-    var other = back ? '7D' : (_bfLong === 365 ? '1Y' : '30D');
-    var label = back ? 'Show 7 days' : (_bfLong === 365 ? 'Show 1 year' : 'Show 30 days');
+    var other = back ? '7D' : ({ 30: '30D', 365: '1Y', 1095: '3Y' })[_bfLong];
+    var label = back ? 'Show 7 days' : ({ 30: 'Show 30 days', 365: 'Show 1 year', 1095: 'Show 3 years' })[_bfLong];
     return '<div class="bf-face ' + (back ? 'bf-back' : 'bf-front') + '"' + (back ? ' aria-hidden="true"' : '') + '>'
       + '<button type="button" class="bf-flip" onclick="bfFlip(this)" aria-label="' + label + '"'
       + (back ? ' tabindex="-1"' : '') + '>' + other + '</button>'
@@ -1924,6 +1932,7 @@ function renderBriefing() {
     + '<button type="button" class="bf-seg-b" data-days="7" onclick="bfSetAll(7)">7D</button>'
     + '<button type="button" class="bf-seg-b" data-days="30" onclick="bfSetAll(30)">30D</button>'
     + '<button type="button" class="bf-seg-b" data-days="365" onclick="bfSetAll(365)">1Y</button>'
+    + '<button type="button" class="bf-seg-b" data-days="1095" onclick="bfSetAll(1095)">3Y</button>'
     + '</div></div>';
   groups.forEach(function (g) {
     html += '<div class="bf-group">' + g.t + '</div>';
