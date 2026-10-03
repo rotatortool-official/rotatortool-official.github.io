@@ -1974,12 +1974,17 @@ function renderEtfFlows() {
     var s = f[a];
     return '<button type="button" class="etf-tile etf-' + _etfTone(s) + '" onclick="openEtfModal(\'' + a + '\')"'
       + ' aria-label="' + L.name[a] + ': ' + _esc(_etfHead(s)) + '. ' + L.open + '.">'
-      + '<div class="etf-tile-top"><span class="bf-k">' + L.name[a] + ' · ' + L.netFlow + '</span><span class="etf-more">' + L.details + '</span></div>'
-      + '<div class="etf-head">' + _esc(_etfHead(s)) + '</div>'
-      + '<div class="etf-nums"><span class="etf-num ' + (s.last.total >= 0 ? 'up' : 'dn') + '">' + _etfM(s.last.total) + '</span>'
-      + '<span class="etf-sub">' + L.on + _etfDay(s.last.day) + '</span>'
+      /* Two rows above the chart, not four (Daniel, 2026-10-03): the
+         headline sits beside the name, the figures to the right of the
+         big number, and the freed row goes to the bars. "Net flow" left
+         the title; it is the big number's tooltip and the window says it. */
+      + '<div class="etf-tile-top"><span class="etf-title"><span class="bf-k">' + L.name[a] + '</span>'
+      + '<span class="etf-head">' + _esc(_etfHead(s)) + '</span></span>'
+      + '<span class="etf-more">' + L.details + '</span></div>'
+      + '<div class="etf-nums"><span class="etf-num ' + (s.last.total >= 0 ? 'up' : 'dn') + '" title="' + L.netFlow + ', ' + L.on + _etfDay(s.last.day) + '">' + _etfM(s.last.total) + '</span>'
+      + '<span class="etf-subs"><span class="etf-sub">' + L.on + _etfDay(s.last.day) + '</span>'
       + '<span class="etf-sub">' + L.d5 + _etfM(s.sum5) + '</span>'
-      + '<span class="etf-sub">' + L.d20 + _etfM(s.sum20) + '</span></div>'
+      + '<span class="etf-sub">' + L.d20 + _etfM(s.sum20) + '</span></span></div>'
       + _etfBars(s.bars, s.provisional, false)
       + '</button>';
   }).join('')
