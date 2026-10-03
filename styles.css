@@ -4825,12 +4825,13 @@ details.td-reading-trust[open] > summary::before{content:'▾ ';}
   30%{opacity:.8;transform:scale(1.02);}
   45%,100%{opacity:.4;transform:scale(.92);}
 }
-.lens-rail.lens-pulse .lens-btn:not(.on):not(.lens-clear){animation:hbRail 1.3s ease-in-out var(--hb-d,0s) infinite;}
-.lens-rail .lens-btn:nth-of-type(2){--hb-d:.12s;}
-.lens-rail .lens-btn:nth-of-type(3){--hb-d:.24s;}
-.lens-rail .lens-btn:nth-of-type(4){--hb-d:.36s;}
-.lens-rail .lens-btn:nth-of-type(5){--hb-d:.48s;}
-.lens-rail .lens-btn:nth-of-type(6){--hb-d:.60s;}
+/* Half the tiles' speed on the rail (Daniel, 2026-10-03): 2.6s a beat, 0.24s between buttons. */
+.lens-rail.lens-pulse .lens-btn:not(.on):not(.lens-clear){animation:hbRail 2.6s ease-in-out var(--hb-d,0s) infinite;}
+.lens-rail .lens-btn:nth-of-type(2){--hb-d:.24s;}
+.lens-rail .lens-btn:nth-of-type(3){--hb-d:.48s;}
+.lens-rail .lens-btn:nth-of-type(4){--hb-d:.72s;}
+.lens-rail .lens-btn:nth-of-type(5){--hb-d:.96s;}
+.lens-rail .lens-btn:nth-of-type(6){--hb-d:1.20s;}
 .lens-rail.lens-pulse .lens-btn:hover{animation:none;}
 .sig-tile:not(.sig-tile-empty):hover{animation:hbBeat 1.3s ease-in-out infinite;}
 .bf-cell.hovering .bf-tilt{animation:hbBeat 1.3s ease-in-out infinite;}
