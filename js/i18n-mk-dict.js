@@ -354,7 +354,7 @@ Object.assign(MK_TEXT, {
   'High Volume + Stable Price (Accumulation)': 'Висок обем + стабилна цена (акумулација)',
   'High Liquidity Interest': 'Висок интерес за ликвидност', 'Moderate Volume Activity': 'Умерена активност на обемот',
   'Low Liquidity (Large Cap)': 'Ниска ликвидност (голема капитализација)', 'Below-Average Volume': 'Обем под просекот',
-  'MACD Bullish Cross': 'MACD биковско пресекување', 'MACD Bearish Cross': 'MACD мечкино пресекување',
+  'MACD Bullish Cross': 'MACD пресек во пораст', 'MACD Bearish Cross': 'MACD пресек во опаѓање',
   'BB Wide — High Volatility': 'BB широки — висока волатилност', 'Volume Drying Up': 'Обемот пресушува',
   'Binance 4H data': 'Binance 4H податоци',
   'FEAR & GREED INDEX ': 'ИНДЕКС НА СТРАВ И АЛЧНОСТ',
@@ -509,7 +509,7 @@ Object.assign(MK_TEXT, {
    Binance and the indicator call them. */
 Object.assign(MK_TEXT, {
   'CRYPTO': 'КРИПТО', 'STOCK': 'АКЦИЈА',
-  'BULLISH': 'СИЛНО', 'BEARISH': 'СЛАБО',
+  'BULLISH': 'ВО ПОРАСТ', 'BEARISH': 'ВО ОПАЃАЊЕ',
   '7D RANK': 'РАНГ 7D', '14D RANK': 'РАНГ 14D', '30D RANK': 'РАНГ 30D', 'COMPOSITE': 'ВКУПНО',
   'ALREADY HELD': 'ВЕЌЕ ГО ДРЖИТЕ',
   'ASSESSMENT': 'ПРОЦЕНКА', 'MKT CAP': 'ПАЗАРНА ВРЕДНОСТ', '24H VOL': 'ОБЕМ 24H',
@@ -720,7 +720,7 @@ Object.assign(MK_TEXT, {
   '← Back to app': '← Назад кон апликацијата', 'SIGNAL TRACK RECORD': 'ЕВИДЕНЦИЈА НА СИГНАЛИТЕ',
   'Every call, tracked.': 'Секој повик, следен.',
   'Rotator snapshots its top bullish, rotate-out and underperforming signals every day. After 30 days, we compare the call against':
-    'Rotator секој ден ги зачувува своите најсилни биковски сигнали, сигнали за излез и сигнали за слаб учинок. По 30 дена, повикот го споредуваме со',
+    'Rotator секој ден ги зачувува своите најсилни сигнали за пораст, сигнали за излез и сигнали за слаб учинок. По 30 дена, повикот го споредуваме со',
   'the median coin over the same 30 days': 'просечната монета во истите 30 дена',
   '— beating the market is the whole test, and half of all coins beat it by definition. The result is published here: the calls that beat it, the ones that moved our way but trailed it, and the ones that went the wrong way outright. The counter below restarted on':
     '— да се победи пазарот е целиот тест, а половина од сите монети го победуваат по дефиниција. Резултатот се објавува тука: повиците што го победија, оние што тргнаа во наша насока, но заостанаа, и оние што отидоа целосно во погрешна насока. Бројачот подолу почна одново на',
@@ -731,7 +731,7 @@ Object.assign(MK_TEXT, {
   'Engine v2 — final record': 'Мотор v2 — конечна евиденција',
   'graded calls confirmed': 'оценети повици потврдени', 'Bar for this method:': 'Праг за овој метод:',
   '. A blanket call on every coin scored that, so the edge is the gap, not the distance to 50%': '. Општ повик за секоја монета го постигна тоа, па предноста е разликата, а не растојанието до 50%',
-  'Bullish': 'Биковски', 'Underperforming': 'Слаб учинок', 'Rotate-out': 'За излез', 'All': 'Сите',
+  'Bullish': 'Во пораст', 'Bearish': 'Во опаѓање', 'Underperforming': 'Слаб учинок', 'Rotate-out': 'За излез', 'All': 'Сите',
   'v2 did not separate rotate-out calls; they sit inside that 80.8%': 'v2 не ги одвојуваше повиците за излез; тие се дел од тие 80,8%',
   'Rotation Calls — Strong asset → Weak asset': 'Повици за ротација — силно средство → слабо средство',
   'Wins — Beat the market': 'Добитни — го победија пазарот',
@@ -961,3 +961,8 @@ Object.assign(MK_TEXT, {
     'Линковите се од CoinGecko. Проверете ја адресата пред да поврзете паричник каде било.',
 });
 MK_PATTERNS.push([/^About (.+)$/, function (m) { return 'За ' + m[1]; }]);
+
+/* Bullish / bearish (Daniel, 2026-10-03): never биковски / мечкини.
+   A positive trend is "во пораст", a negative one "во опаѓање"; the
+   tile chips are short, so there the same words stand alone. */
+Object.assign(MK_TEXT, { 'BULL': 'ПОРАСТ', 'BEAR': 'ОПАЃАЊЕ' });
