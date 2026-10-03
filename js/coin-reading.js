@@ -118,15 +118,27 @@ function _tdSignsRaw(c) {
      default, so on its own it is the normal state, not news. A coin is
      called crowded only when its long/short ratio is in the most extreme
      10% of all perpetuals, funding is heavy, or the daily detector raised
-     a crowding event. Same idea as TAKER FLOW's percentile labels. */
+     a crowding event. Same idea as TAKER FLOW's percentile labels.
+
+     2026-10-03, Daniel: a sign only when one side outnumbers the other
+     1.5 to 1. Shorts: 1.5+ short accounts per long (L/S <= 1/1.5; 15 of
+     300 perpetuals that day). Longs: the top-10% bar stays (L/S ~2.3
+     that day), because 1.5 longs per short WAS the median perpetual;
+     LS_CROWD_MIN keeps it at 1.5 at the very least. And the account
+     ratio must agree with the sign: negative funding alone had labelled
+     MANA "Crowded shorts" at 2.28 long accounts per short. Funding and
+     events still raise a sign when the ratio is unknown. */
+  var LS_CROWD_MIN = 1.5;
   var fund = f && f.funding_rate != null ? Number(f.funding_rate) * 100 : null;   /* % per 8h */
   var lsv = f && f.long_short_ratio != null ? Number(f.long_short_ratio) : (pos && pos.longShort != null ? Number(pos.longShort) : null);
   var lsp = (lsv != null && typeof _futuresPercentile === 'function')
     ? _futuresPercentile(function(r) { return r.long_short_ratio != null ? Number(r.long_short_ratio) : null; }, lsv) : null;
-  if ((lsp && lsp.pct >= 0.90) || (fund != null && fund >= 0.05) || ev('futures_long_crowded')) {
+  var longsAgree  = lsv == null || lsv >= LS_CROWD_MIN;
+  var shortsAgree = lsv == null || lsv <= 1 / LS_CROWD_MIN;
+  if (longsAgree && ((lsp && lsp.pct >= 0.90) || (fund != null && fund >= 0.05) || ev('futures_long_crowded'))) {
     down.push({ title: 'Crowded longs', when: 'now', detail: (lsv != null ? lsv.toFixed(2) + ' long accounts per short' + (lsp ? ', among the most long-heavy 10% of ' + lsp.n + ' perpetuals' : '') : 'Longs paying heavily to stay in') + '. Crowded trades can unwind fast', ev: null });
-  } else if ((lsp && lsp.pct <= 0.10) || (fund != null && fund <= -0.015) || ev('futures_short_crowded')) {
-    up.push({ title: 'Crowded shorts', when: 'now', detail: (lsv != null ? lsv.toFixed(2) + ' long accounts per short' + (lsp ? ', among the most short-heavy 10% of ' + lsp.n + ' perpetuals' : '') : 'Shorts paying longs') + '. This is the setup a short squeeze needs', ev: null });
+  } else if (shortsAgree && (lsv != null || (fund != null && fund <= -0.015) || ev('futures_short_crowded'))) {
+    up.push({ title: 'Crowded shorts', when: 'now', detail: (lsv != null ? (1 / lsv).toFixed(2) + ' short accounts per long' : 'Shorts paying longs') + '. This is the setup a short squeeze needs', ev: null });
   }
   if (f && f.oi_change_24h_pct != null && f.price_change_pct_24h != null) {
     var oi24 = Number(f.oi_change_24h_pct), pc24 = Number(f.price_change_pct_24h);

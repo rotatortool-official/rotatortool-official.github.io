@@ -568,7 +568,8 @@ Object.assign(MK_TEXT, {
   P(/^Last 7 days ([^,]+), better than its 30-day pace of ([^ ]+) a week$/, function (m) { return 'Последните 7 дена ' + m[1] + ', подобро од нејзиното 30-дневно темпо од ' + m[2] + ' неделно'; });
   P(/^([^ ]+) in 24 hours$/, function (m) { return m[1] + ' за 24 часа'; });
   P(/^([\d.]+) long accounts per short, among the most long-heavy 10% of (\d+) perpetuals\. Crowded trades can unwind fast$/, function (m) { return m[1] + ' лонг сметки на една шорт, меѓу 10% најнаклонетите кон лонг од ' + m[2] + ' перпетуали. Преполните позиции може брзо да се одмотаат'; });
-  P(/^([\d.]+) long accounts per short, among the most short-heavy 10% of (\d+) perpetuals\. This is the setup a short squeeze needs$/, function (m) { return m[1] + ' лонг сметки на една шорт, меѓу 10% најнаклонетите кон шорт од ' + m[2] + ' перпетуали. Тоа е условот што му треба на шорт-стискање'; });
+  P(/^([\d.]+) short accounts per long\. This is the setup a short squeeze needs$/, function (m) { return m[1] + ' шорт сметки на една лонг. Тоа е условот што му треба на шорт-стискање'; });
+  P(/^([\d.]+) long accounts per short\. Crowded trades can unwind fast$/, function (m) { return m[1] + ' лонг сметки на една шорт. Преполните позиции може брзо да се одмотаат'; });
   P(/^Longs paying heavily to stay in\. Crowded trades can unwind fast$/, function () { return 'Лонг позициите плаќаат многу за да останат. Преполните позиции може брзо да се одмотаат'; });
   P(/^Shorts paying longs\. This is the setup a short squeeze needs$/, function () { return 'Шорт позициите им плаќаат на лонг. Тоа е условот што му треба на шорт-стискање'; });
   P(/^Price ([^ ]+) while open interest ([^:]+): shorts closing, not new buyers$/, function (m) { return 'Цена ' + m[1] + ' додека отворениот интерес ' + m[2] + ': се затвораат шорт позиции, не доаѓаат нови купувачи'; });
