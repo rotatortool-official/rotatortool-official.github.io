@@ -323,9 +323,120 @@ Deno.serve(async (req) => {
       }
     }
 
+    // ── SHADOW 4: dilution risk (added 2026-10-03, promptove/82) ────
+    // "Risky" = carries Binance's Seed tag, OR its first Binance daily
+    // candle is under DIL_YOUNG_DAYS old. Young and Seed coins still have
+    // most of their supply to unlock. (Low float was asked for too, but
+    // every coin with <= 30% unlocked carries the Seed tag, so it adds
+    // nothing here.) Two rules, recorded separately:
+    //
+    // '-dilution-out' PASSED the backtest (dilution-test.js, 2021-2026):
+    //   a risky coin in the top 20% by 30-day return beat the median coin
+    //   over the next 30 days only 41.4% of the time (unflagged: 47.5%),
+    //   in both halves. Sells = up to 5 such coins, by 30d return; buys =
+    //   the live buys, so the grade isolates the sell side.
+    // '-dilution-in' FAILED the backtest (first half too weak: -1.6 pts,
+    //   bar -3; second half -10.6). Recorded at Daniel's request so live
+    //   data can settle it. Sells = the live sells; buys = the 5 lowest
+    //   scores that are neither monitored nor risky.
+    //
+    // Graded at 30 days by rotator-backtest/dilution-verdict.js. Never
+    // published. Fails soft, like the shadows above. An age lookup that
+    // fails leaves the coin "not young" (fails open) and is counted.
+    const DIL_YOUNG_DAYS = 365;
+    const DIL_PUMP_SHARE = 0.20;
+    const DIL_N = 5;
+    let dilOut = 0, dilIn = 0;
+    let dilNote: string | null = null;
+    const dilFlags: Record<string, string> = {};
+    try {
+      const { data: tagRows, error: tagErr } = await supabase
+        .from('binance_symbol_tags').select('base_asset,tags');
+      if (tagErr) throw new Error('tags: ' + tagErr.message);
+      const seed = new Set((tagRows ?? [])
+        .filter((r: { tags: string[] | null }) => (r.tags ?? []).includes('Seed'))
+        .map((r: { base_asset: string }) => r.base_asset));
+      if (!seed.size) throw new Error('no Seed tags read; binance_symbol_tags may be empty');
+
+      const symOf = (it: RunItem) => (it.coin_sym || it.coin_id).toUpperCase();
+      const pumpPool = scorable.filter((it) => it.asset_type === 'crypto' && it.p30 != null)
+        .sort((a, b) => (b.p30 as number) - (a.p30 as number));
+      const pumpers = pumpPool.slice(0, Math.ceil(pumpPool.length * DIL_PUMP_SHARE));
+      const buyPool = scorable.filter((it) => !isMonitored(it))
+        .sort((a, b) => (a.score as number) - (b.score as number)).slice(0, 40);
+
+      /* Listing age only for the coins that can matter, and not for Seed
+         coins (already risky). ~70 small requests, 10 at a time. */
+      const firstCandle = new Map<string, number | null>();
+      const toCheck = [...new Set([...pumpers, ...buyPool].map(symOf))].filter((s) => !seed.has(s));
+      for (let i = 0; i < toCheck.length; i += 10) {
+        await Promise.all(toCheck.slice(i, i + 10).map(async (s) => {
+          try {
+            const r = await fetch(`https://api.binance.com/api/v3/klines?symbol=${s}USDT&interval=1d&startTime=0&limit=1`);
+            const k = r.ok ? await r.json() : null;
+            firstCandle.set(s, Array.isArray(k) && k.length ? Number(k[0][0]) : null);
+          } catch { firstCandle.set(s, null); }
+        }));
+      }
+      const nowMs = Date.now();
+      const risky = (it: RunItem) => {
+        const s = symOf(it);
+        if (seed.has(s)) { dilFlags[s] = 'seed'; return true; }
+        const t = firstCandle.get(s);
+        if (t != null && nowMs - t < DIL_YOUNG_DAYS * 86400000) {
+          dilFlags[s] = 'young ' + Math.round((nowMs - t) / 86400000) + 'd';
+          return true;
+        }
+        return false;
+      };
+      const unknownAge = toCheck.filter((s) => firstCandle.get(s) == null);
+
+      const mk = (from: RunItem, to: RunItem, source: string) => ({
+        snap_date:   today,
+        from_id:     from.coin_id,
+        from_sym:    symOf(from),
+        from_price:  from.price,
+        from_score:  from.score,
+        to_id:       to.coin_id,
+        to_sym:      symOf(to),
+        to_price:    to.price,
+        to_score:    to.score,
+        source
+      });
+      const outSells = pumpers.filter(risky).slice(0, DIL_N);
+      const inBuys = buyPool.filter((it) => !risky(it)).slice(0, DIL_N);
+      const dilPairs = [];
+      for (let i = 0; i < Math.min(outSells.length, buys.length); i++) {
+        if (outSells[i].coin_id !== buys[i].coin_id) dilPairs.push(mk(outSells[i], buys[i], 'sync-rotation-snapshot-dilution-out'));
+      }
+      for (let i = 0; i < Math.min(sells.length, inBuys.length); i++) {
+        if (sells[i].coin_id !== inBuys[i].coin_id) dilPairs.push(mk(sells[i], inBuys[i], 'sync-rotation-snapshot-dilution-in'));
+      }
+      const notes = [];
+      if (!outSells.length) notes.push('no risky coin in the top 20% by 30d today');
+      if (unknownAge.length) notes.push(`age unknown (treated as not young): ${unknownAge.join(',')}`);
+      dilNote = notes.length ? notes.join('; ') : null;
+      if (dilPairs.length) {
+        const { error: dilErr } = await supabase
+          .from('rotation_snapshots')
+          .upsert(dilPairs, { onConflict: 'snap_date,from_id,to_id,source' });
+        if (dilErr) throw new Error('upsert failed: ' + dilErr.message);
+        dilOut = dilPairs.filter((p) => p.source.endsWith('-out')).length;
+        dilIn = dilPairs.length - dilOut;
+      }
+    } catch (e) {
+      const msg = e instanceof Error ? e.message : String(e);
+      console.warn('[sync-rotation-snapshot] dilution shadow failed, live pairs unaffected:', msg);
+      dilNote = msg;
+    }
+
     return new Response(
       JSON.stringify({
         synced: pairs.length,
+        dilution_out_synced: dilOut,
+        dilution_in_synced: dilIn,
+        dilution_flags: dilFlags,
+        dilution_note: dilNote,
         top20_synced: top20Synced,
         top20_note: top20Note,
         gold_synced: goldSynced,
