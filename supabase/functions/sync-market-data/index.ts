@@ -406,6 +406,8 @@ async function fetchMacro(
 //              Yahoo Finance futures, 1 year            -> gold silver copper
 //                                                          aluminum oil gas dxy
 //              U.S. BLS average price, electricity/kWh  -> power (monthly)
+//              DefiLlama daily fees / DEX volume         -> ethFees solFees solDex
+//              Ethereum public node (publicnode.com)     -> ethFees.gwei (live)
 //            FRED was tried and returns nothing to us; do not switch to it.
 // OUTPUT     market_cache.world_data — { items: { key: Item }, updatedAt }.
 //            Item: v (latest), date (of v, YYYY-MM-DD), s (values, oldest
@@ -622,6 +624,30 @@ async function worldPower(): Promise<WorldItem | null> {
   return it;
 }
 
+/* DefiLlama daily totals (fees paid on a chain, DEX volume on a chain),
+   in USD. The NEWEST point is today, still filling up, so it would always
+   look like a collapse: every point from today's UTC date on is dropped
+   and the tile reads the last complete day. */
+async function worldLlama(url: string): Promise<WorldItem | null> {
+  const d = await safeJson(url);
+  const t = (d?.totalDataChart ?? []) as [number, number][];
+  const today = Math.floor(Date.now() / 1000 / DAY) * DAY;
+  const pts: Pt[] = t.filter(([ts, v]) => ts < today && isFinite(v)).slice(-400).map(([ts, v]) => [ts, v]);
+  return worldBuild(pts, 'pct');
+}
+/* Ethereum's gas price right now, in gwei, from a public node. Live
+   only (no history), so it rides on the fees tile as an extra. */
+async function worldGasNow(): Promise<number | null> {
+  const r = await fetch('https://ethereum-rpc.publicnode.com', {
+    method: 'POST', headers: { 'content-type': 'application/json' },
+    body: JSON.stringify({ jsonrpc: '2.0', id: 1, method: 'eth_gasPrice', params: [] }),
+  });
+  if (!r.ok) return null;
+  const j = await r.json();
+  const wei = parseInt(j?.result, 16);
+  return isFinite(wei) ? Number((wei / 1e9).toPrecision(3)) : null;
+}
+
 async function fetchWorld(supabase: ReturnType<typeof createClient>): Promise<Record<string, boolean>> {
   const { data: prevRow } = await supabase
     .from('market_cache').select('data').eq('cache_key', 'world_data').maybeSingle();
@@ -643,6 +669,13 @@ async function fetchWorld(supabase: ReturnType<typeof createClient>): Promise<Re
     ['gas',      async () => put('gas', await worldYahoo('NG=F'))],
     ['dxy',      async () => put('dxy', await worldYahoo('DX-Y.NYB'))],
     ['power',    async () => put('power', await worldPower())],
+    ['ethFees',  async () => {
+      const it = await worldLlama('https://api.llama.fi/summary/fees/ethereum?dataType=dailyFees');
+      if (it) { try { const g = await worldGasNow(); if (g != null) (it as any).gwei = g; } catch { /* live extra only */ } }
+      put('ethFees', it);
+    }],
+    ['solFees',  async () => put('solFees', await worldLlama('https://api.llama.fi/summary/fees/solana?dataType=dailyFees'))],
+    ['solDex',   async () => put('solDex', await worldLlama('https://api.llama.fi/overview/dexs/solana?excludeTotalDataChart=false&excludeTotalDataChartBreakdown=true'))],
   ];
   for (const [label, job] of jobs) {
     try { await job(); }

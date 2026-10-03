@@ -1759,6 +1759,7 @@ function _bfFmt(v, kind) {
   if (v == null || !isFinite(v)) return null;
   if (kind === 'rate') return v.toFixed(2) + '%';
   if (kind === 'cents') return (v * 100).toFixed(1) + '¢';
+  if (kind === 'usdBig') return _bfUsd(v);
   var dp = v >= 1000 ? 0 : v >= 100 ? 1 : 2;
   return (kind === 'usd' ? '$' : '') + v.toLocaleString('en-US', { minimumFractionDigits: dp, maximumFractionDigits: dp });
 }
@@ -1787,7 +1788,8 @@ function _bfWorldCell(it, o) {
   return {
     k: o.k, v: _bfFmt(it.v, o.kind), u: o.u || '', pts: o.kind === 'rate', w: w,
     d: o.d, extra: (o.range && it.lo != null ? '<div class="bf-step">target ' + it.lo.toFixed(2) + '–' + it.hi.toFixed(2) + '%</div>' : '')
-      + (o.policy ? _bfStep(it.last) : ''),
+      + (o.policy ? _bfStep(it.last) : '')
+      + (o.gas && it.gwei != null ? '<div class="bf-step">gas now ' + it.gwei + ' gwei</div>' : ''),
     src: _bfSrc(o.src, o.sym, it.date, o.monthly)
   };
 }
@@ -1875,7 +1877,15 @@ function renderBriefing() {
         d: 'Value locked across every tracked chain' }),
       _bfNetCell({ k: 'Stablecoin supply', v: _bfUsd(n.stableUsd), p: n.stableP7, s: null,
         p30: np.stableUsd, src: BF_SRC.llama,
-        d: 'Dollars sitting on-chain, unallocated' })
+        d: 'Dollars sitting on-chain, unallocated' }),
+      /* Activity, in dollars per day (DefiLlama; yesterday, the last
+         complete day). Daniel, 2026-10-03: gas fees and Solana volume. */
+      _bfWorldCell(W.ethFees, { k: 'Ethereum fees', kind: 'usdBig', u: ' /day', gas: true, src: BF_SRC.llama,
+        d: 'What users paid in gas to use Ethereum in a day. More demand for the network means more fees.' }),
+      _bfWorldCell(W.solFees, { k: 'Solana fees', kind: 'usdBig', u: ' /day', src: BF_SRC.llama,
+        d: 'What users paid to use Solana in a day.' }),
+      _bfWorldCell(W.solDex, { k: 'Solana DEX volume', kind: 'usdBig', u: ' /day', src: BF_SRC.llama,
+        d: 'Dollars traded on Solana\'s exchanges in a day, a gauge of how busy the chain is.' })
     ] }
   ];
   groups.forEach(function (g) { g.cells = g.cells.filter(function (c) { return c && c.v != null; }); });

@@ -942,3 +942,13 @@ Object.assign(MK_TEXT, {
   P(/^target ([\d.]+)–([\d.]+)%$/, function (m) { return 'цел ' + comma(m[1]) + '–' + comma(m[2]) + '%'; });
   P(/^(Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec) (\d{4})$/, function (m) { return MON[m[1]] + ' ' + m[2]; });
 })();
+Object.assign(MK_TEXT, {
+  'Ethereum fees': 'Провизии на Ethereum', 'Solana fees': 'Провизии на Solana', 'Solana DEX volume': 'DEX промет на Solana',
+  ' /day': ' /ден', '/day': '/ден',
+  'What users paid in gas to use Ethereum in a day. More demand for the network means more fees.':
+    'Колку платија корисниците за гас за да користат Ethereum за еден ден. Поголема побарувачка за мрежата значи повеќе провизии.',
+  'What users paid to use Solana in a day.': 'Колку платија корисниците за да користат Solana за еден ден.',
+  "Dollars traded on Solana's exchanges in a day, a gauge of how busy the chain is.":
+    'Долари со кои се тргуваше на берзите на Solana за еден ден, мерка колку е зафатена мрежата.',
+});
+MK_PATTERNS.push([/^gas now ([\d.]+) gwei$/, function (m) { return 'гас сега ' + m[1].replace('.', ',') + ' gwei'; }]);
