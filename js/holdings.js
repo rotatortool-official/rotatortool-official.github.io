@@ -404,12 +404,7 @@ function _leftTheList(h) {
    average buy price when you entered one, otherwise the 7-day change;
    watched coins use the 7-day change. Returns the beat length for the
    --hb-dur variable that styles.css ("Market pulse") reads. */
-function _hbDurFor(pct) {
-  if (pct == null || !isFinite(pct)) return '';
-  var bpm = pct >= 20 ? 66 : pct >= 10 ? 58 : pct >= 5 ? 50
-          : pct > -5 ? 42 : pct > -10 ? 38 : pct > -15 ? 34 : pct > -20 ? 30 : 26;
-  return ' --hb-dur:' + (60 / bpm).toFixed(3) + 's;';
-}
+function _hbDurFor(pct) { return hbDurStyle(pct); }   /* steps: hbBeatSeconds() in js/signals.js */
 
 function renderTiles() {
   Object.keys(sparkStop).forEach(function(k) { sparkStop[k](); delete sparkStop[k]; });

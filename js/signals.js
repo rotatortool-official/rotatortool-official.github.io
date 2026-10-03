@@ -199,7 +199,9 @@ function sigTile(c, kind) {
   /* Market cap formatted */
   var mcapStr = c.mcap ? (c.mcap >= 1e9 ? '$' + (c.mcap/1e9).toFixed(1) + 'B' : '$' + (c.mcap/1e6).toFixed(0) + 'M') : '—';
 
-  return '<div class="sig-tile ' + kind + '" onclick="openTileDetail(\'' + c.id + '\',event)" title="Click for details">'
+  /* Heart rate: the momentum column by 7 days, the worst column by 30. */
+  var hb = hbDurStyle(kind === 'wrst' ? c.p30 : c.p7);
+  return '<div class="sig-tile ' + kind + '" style="' + hb + '" onclick="openTileDetail(\'' + c.id + '\',event)" title="Click for details">'
     + '<div class="sig-tile-top">'
       + '<div class="sig-tile-ico"><img src="' + c.image + '" alt="' + c.sym + ' logo" loading="lazy" width="20" height="20" onerror="this.style.display=\'none\'"></div>'
       + '<span class="sig-tile-sym">' + c.sym + '</span>'
@@ -296,6 +298,27 @@ function _isExchangeFlagged(c) {
   if (typeof delistedSymbols   !== 'undefined' && delistedSymbols.has(c.sym))   return true;
   if (typeof monitoringSymbols !== 'undefined' && monitoringSymbols.has(c.sym)) return true;
   return false;
+}
+
+/* ── Heart rate of a tile (Daniel, 2026-10-03) ────────────────────
+   The page's heartbeat is 42 a minute at rest. A tile whose coin is up
+   beats faster (50 at +5%, 58 at +10%, 66 at +20%: excited but calm); a
+   tile whose coin is down beats slower (38 at -5%, 34 at -10%, 30 at
+   -15%, 26 at -20%). `scale` narrows the steps for things that move less
+   than coins: the TODAY tiles use 0.25 (gold, oil and the dollar at
+   +-1.25 / 2.5 / 5%). Returns the beat length in seconds, or null.
+   styles.css ("Market pulse") reads it as --hb-dur. */
+function hbBeatSeconds(pct, scale) {
+  if (pct == null || !isFinite(pct)) return null;
+  var p = pct / (scale || 1);
+  var bpm = p >= 20 ? 66 : p >= 10 ? 58 : p >= 5 ? 50
+          : p > -5 ? 42 : p > -10 ? 38 : p > -15 ? 34 : p > -20 ? 30 : 26;
+  return 60 / bpm;
+}
+/* The same, as an inline style fragment for a tile's style="" attribute. */
+function hbDurStyle(pct, scale) {
+  var s = hbBeatSeconds(pct, scale);
+  return s == null ? '' : ' --hb-dur:' + s.toFixed(3) + 's;';
 }
 
 /* ── Seed label (promptove/82) ───────────────────────────────────
@@ -564,7 +587,7 @@ function buySuggestTile(c) {
      Harmony is removed from the sample. What IS supported is
      amplification — this coin exaggerates whatever the market does
      next — and amber is the colour for "charged, either way". */
-  return '<div class="sig-tile rot" onclick="openTileDetail(\'' + c.id + '\',event)" title="Click for details">'
+  return '<div class="sig-tile rot" style="' + hbDurStyle(c.p7) + '" onclick="openTileDetail(\'' + c.id + '\',event)" title="Click for details">'
     + '<div class="sig-tile-top">'
       + '<div class="sig-tile-ico"><img src="' + c.image + '" alt="' + c.sym + ' logo" loading="lazy" width="20" height="20" onerror="this.style.display=\'none\'"></div>'
       + '<span class="sig-tile-sym" style="color:var(--amber);">' + c.sym + '</span>'
@@ -650,7 +673,7 @@ function provenProofLine() {
    pretending there's a specific place to put the proceeds. */
 function takeProfitTile(c) {
   var ev = (typeof ROTATOR_EVIDENCE !== 'undefined') && ROTATOR_EVIDENCE.giveBack;
-  return '<div class="sig-tile rot" onclick="openTileDetail(\'' + c.id + '\',event)" title="Click for details">'
+  return '<div class="sig-tile rot" style="' + hbDurStyle(c.p30) + '" onclick="openTileDetail(\'' + c.id + '\',event)" title="Click for details">'
     + '<div class="sig-tile-top">'
       + '<div class="sig-tile-ico"><img src="' + c.image + '" alt="' + c.sym + ' logo" loading="lazy" width="20" height="20" onerror="this.style.display=\'none\'"></div>'
       /* Information only (promptove/64): the high score is the fact; "give-back

@@ -4837,8 +4837,10 @@ details.td-reading-trust[open] > summary::before{content:'▾ ';}
 .lens-rail .lens-btn:nth-of-type(5){--hb-d:.96s;}
 .lens-rail .lens-btn:nth-of-type(6){--hb-d:1.20s;}
 .lens-rail.lens-pulse .lens-btn:hover{animation:none;}
-.sig-tile:not(.sig-tile-empty):hover{animation:hbBeat 1.43s ease-in-out infinite;}
-.bf-cell.hovering .bf-tilt{animation:hbBeat 1.43s ease-in-out infinite;}
+/* Every tile reads its own --hb-dur (hbBeatSeconds in js/signals.js);
+   1.43s, the resting 42 a minute, where it has none. */
+.sig-tile:not(.sig-tile-empty):hover{animation:hbBeat var(--hb-dur,1.43s) ease-in-out infinite;}
+.bf-cell.hovering .bf-tilt{animation:hbBeat var(--hb-dur,1.43s) ease-in-out infinite;}
 /* Holdings and watchlist tiles beat at their own rate: --hb-dur is set
    per tile from how the coin has done (_hbDurFor in js/holdings.js),
    from 0.91s (66 a minute, up 20%+) to 2.31s (26 a minute, down 20%+). */

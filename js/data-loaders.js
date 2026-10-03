@@ -1781,7 +1781,12 @@ function renderBriefing() {
       + '<div class="bf-d-note">' + how + '</div>'
       + '</div>';
     var flipped = _bfFlipped[c.k] ? ' flipped' : '';
-    return '<div class="bf-cell' + flipped + '" data-k="' + c.k + '">'
+    /* Heart rate per side (hbBeatSeconds, quarter-width steps: these move
+       far less than coins); _bfApply sets the one for the side showing. */
+    var hb7 = hbBeatSeconds(c.p, 0.25), hb30 = hbBeatSeconds(c.p30, 0.25);
+    return '<div class="bf-cell' + flipped + '" data-k="' + c.k + '"'
+      + (hb7 != null ? ' data-hb7="' + hb7.toFixed(3) + '"' : '')
+      + (hb30 != null ? ' data-hb30="' + hb30.toFixed(3) + '"' : '') + '>'
       + '<div class="bf-tilt"><div class="bf-inner">' + front + back + '</div></div>'
       + '</div>';
   }).join('') + '<div class="bf-age">' + _bfAge(_networkAgeMs) + '</div>';
@@ -1823,6 +1828,8 @@ function _bfReduced() {
 function _bfApply(cell, on) {
   cell.classList.toggle('flipped', on);
   _bfFlipped[cell.getAttribute('data-k')] = on;
+  var hb = cell.getAttribute(on ? 'data-hb30' : 'data-hb7');
+  if (hb) cell.style.setProperty('--hb-dur', hb + 's'); else cell.style.removeProperty('--hb-dur');
   var f = cell.querySelector('.bf-front'), b = cell.querySelector('.bf-back');
   if (f) { f.setAttribute('aria-hidden', on ? 'true' : 'false'); f.querySelector('.bf-flip').tabIndex = on ? -1 : 0; }
   if (b) { b.setAttribute('aria-hidden', on ? 'false' : 'true'); b.querySelector('.bf-flip').tabIndex = on ? 0 : -1; }
