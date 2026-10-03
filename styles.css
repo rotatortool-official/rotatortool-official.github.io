@@ -4960,3 +4960,7 @@ details.td-reading-trust[open] > summary::before{content:'▾ ';}
   background:var(--bg3);color:var(--text);font-size:12px;text-decoration:none;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
 .td-link:hover{border-color:var(--green);}
 .td-about-note{font-size:10.5px;color:var(--muted);margin-top:8px;opacity:.8;}
+
+/* SORT rail: Pro-only lenses (golden / death cross, 2026-10-04) */
+.lens-btn.lens-locked{color:var(--pro);opacity:.85;}
+.lens-pro-tag{display:block;font-size:7px;font-weight:800;letter-spacing:.08em;line-height:1;margin-top:2px;color:var(--pro);}

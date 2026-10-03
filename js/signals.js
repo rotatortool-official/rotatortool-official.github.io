@@ -451,12 +451,12 @@ var LENSES = [
      "golden cross is attractive only if it happened recently". Older
      crosses and the opposite state are blank and sort last. The tested
      record (config.js) is in the tip, so the lens is not read as a call. */
-  { id: 'gc',    label: '✨GC', none: 'none recent', hue: 140,
+  { id: 'gc',    label: '✨GC', none: 'none recent', hue: 140, pro: true,
     tip: 'Golden cross, most recent first: the 60-day average crossed above the 125-day. Only crosses from about the last 2 weeks are dated. Tested: no edge at 7 days (50% beat the market), 53% at 30 days.',
     get: function(c) { var t = coinTechnicals[c.sym]; return t && t.cross === 'golden' && t.crossDays != null ? t.crossDays : null; },
     fmt: function(v) { return v === 0 ? 'today' : v + 'd ago'; },
     dir: 'recent' },
-  { id: 'dc',    label: '☠DC', none: 'none recent', hue: 4,
+  { id: 'dc',    label: '☠DC', none: 'none recent', hue: 4, pro: true,
     tip: 'Death cross, most recent first: the 60-day average crossed below the 125-day. Only crosses from about the last 2 weeks are dated. Tested: not a warning; coins after a death cross beat the market 53% of the time over 30 days.',
     get: function(c) { var t = coinTechnicals[c.sym]; return t && t.cross === 'death' && t.crossDays != null ? t.crossDays : null; },
     fmt: function(v) { return v === 0 ? 'today' : v + 'd ago'; },
@@ -491,7 +491,13 @@ function _lensColor(lens, v, lo, hi) {
   return 'hsl(' + hue.toFixed(0) + ',72%,' + (46 + t * 6).toFixed(0) + '%)';
 }
 
+/* Pro-only lenses (golden / death cross, Daniel 2026-10-04): non-Pro
+   visitors see them with a PRO mark, and a click opens the Pro window,
+   as the Signal Assistant does. */
+function _lensLocked(l) { return !!(l && l.pro && (typeof isPro === 'undefined' || !isPro)); }
 function setLens(id) {
+  var l = LENSES.filter(function (x) { return x.id === id; })[0];
+  if (_lensLocked(l)) { if (typeof openPro === 'function') openPro(); return; }
   activeLens = (activeLens === id) ? null : id;
   renderTable();
   renderLensRail();
@@ -532,9 +538,10 @@ function renderLensRail() {
   /* Styled in styles.css (.lens-btn), 2026-09-29: the inline 10px muted
      labels were easy to miss next to the coin cards. */
   rail.innerHTML = '<span class="lens-cap">SORT</span>' + LENSES.map(function(l) {
-    var on = activeLens === l.id;
-    return '<button class="lens-btn' + (on ? ' on' : '') + '" onclick="setLens(\'' + l.id + '\')"'
-      + ' aria-pressed="' + on + '" title="' + l.tip.replace(/"/g,'&quot;') + '">' + l.label + '</button>';
+    var on = activeLens === l.id, locked = _lensLocked(l);
+    return '<button class="lens-btn' + (on ? ' on' : '') + (locked ? ' lens-locked' : '') + '" onclick="setLens(\'' + l.id + '\')"'
+      + ' aria-pressed="' + on + '" title="' + ((locked ? 'Pro: ' : '') + l.tip).replace(/"/g,'&quot;') + '">' + l.label
+      + (locked ? '<span class="lens-pro-tag">PRO</span>' : '') + '</button>';
   }).join('')
   + (activeLens
       ? '<button class="lens-btn lens-clear" onclick="setLens(null)" title="Clear lens — back to score order">×</button>'
@@ -1540,6 +1547,7 @@ function renderTable() {
      of one, and burying it at the bottom keeps it out of the ranking
      rather than pretending it lost. */
   var _lens = activeLens ? LENSES.filter(function(l) { return l.id === activeLens; })[0] : null;
+  if (_lensLocked(_lens)) { _lens = null; activeLens = null; }   /* Pro lapsed: back to score order */
   var _lensLo = 0, _lensHi = 0;
   if (_lens) {
     var vals = catCoins.map(function(c) { return _lens.get(c); })

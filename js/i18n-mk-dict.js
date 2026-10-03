@@ -975,4 +975,5 @@ Object.assign(MK_TEXT, {
   'Death cross, most recent first: the 60-day average crossed below the 125-day. Only crosses from about the last 2 weeks are dated. Tested: not a warning; coins after a death cross beat the market 53% of the time over 30 days.':
     'Крст на смртта, најновите први: 60-дневниот просек падна под 125-дневниот. Датум имаат само крстовите од последните околу 2 недели. Тестирано: не е предупредување; по крст на смртта монетите го победија пазарот 53% од времето за 30 дена.',
 });
+MK_PATTERNS.push([/^Pro: (.+)$/, function (m) { return 'Pro: ' + (window.mkTranslate(m[1]) || m[1]); }]);
 MK_PATTERNS.push([/^(\d+)d ago$/, function (m) { return 'пред ' + m[1] + (m[1] === '1' ? ' ден' : ' дена'); }]);
