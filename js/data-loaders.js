@@ -71,6 +71,41 @@ var LOAD_TIPS = [
   el.textContent = LOAD_TIPS[Math.floor(Math.random() * LOAD_TIPS.length)];
 })();
 
+/* ── Loading screen pulse line (Daniel, 2026-10-03) ──────────────
+   "We track the market pulse with this tool": while the page loads, a
+   beating heart and a phrase that changes every 2.2s, fading between
+   them. Stops as soon as the loader is gone. Translated whole, like
+   prog() above, so Macedonian never shows half a sentence. */
+var LOAD_PULSE = [
+  'Checking today\'s market pulse…',
+  'Finding the market\'s beat…',
+  'Listening to hundreds of coins at once…',
+  'Counting the beats since yesterday…',
+  'Is the market resting or racing?'
+];
+(function showLoadPulse() {
+  var el = document.getElementById('load-pulse-txt');
+  var loader = document.getElementById('loader');
+  if (!el || !loader) return;
+  el.setAttribute('data-no-i18n', '');
+  var tr = function (m) {
+    var lang = (typeof currentLang !== 'undefined' && currentLang !== 'en') ? currentLang
+      : (function () { try { return localStorage.getItem('rot_lang'); } catch (e) { return null; } })();
+    return (lang === 'mk' && typeof mkTranslate === 'function') ? mkTranslate(m) : m;
+  };
+  var i = 0;
+  el.textContent = tr(LOAD_PULSE[0]);
+  var iv = setInterval(function () {
+    if (loader.classList.contains('gone')) { clearInterval(iv); return; }
+    el.style.opacity = '0';
+    setTimeout(function () {
+      i = (i + 1) % LOAD_PULSE.length;
+      el.textContent = tr(LOAD_PULSE[i]);
+      el.style.opacity = '';
+    }, 300);
+  }, 2200);
+})();
+
 /* ── Category-aware lazy loading state ────────────────────────── */
 var activeCategory   = 'all';            /* default category on first load */
 var _loadedCategories = {};              /* cat → true once fetched */

@@ -690,6 +690,12 @@ Object.assign(MK_TEXT, {
   '"Look for the evidence against it, not just the evidence for it."': '„Барајте ги доказите против, не само доказите за.“',
   '"Never invest more than you can afford to lose."': '„Никогаш не вложувајте повеќе отколку што можете да си дозволите да изгубите.“',
   '"Relative strength is measurable. A narrative is not."': '„Релативната сила може да се измери. Наративот не може.“',
+  /* Loading screen pulse line (2026-10-03) */
+  "Checking today's market pulse…": 'Го проверуваме денешниот пулс на пазарот…',
+  "Finding the market's beat…": 'Го бараме ритамот на пазарот…',
+  'Listening to hundreds of coins at once…': 'Слушаме стотици монети одеднаш…',
+  'Counting the beats since yesterday…': 'Ги броиме ударите од вчера…',
+  'Is the market resting or racing?': 'Дали пазарот одмора или трча?',
   "\"The best trade is often the one you don't make.\"": '„Најдобрата трговија често е онаа што не ја правите.“',
   '"What changed is a better question than what to buy."': '„Што се сменило е подобро прашање од тоа што да се купи.“',
   '"Zoom out. The 30D trend tells a clearer story than the 1H chart."': '„Оддалечете се. Трендот за 30 дена кажува појасна приказна од графиконот за 1 час.“',

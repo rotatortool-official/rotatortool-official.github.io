@@ -4847,3 +4847,20 @@ details.td-reading-trust[open] > summary::before{content:'▾ ';}
   .lens-rail.lens-pulse .lens-btn,.sig-tile:hover,.bf-cell.hovering .bf-tilt{animation:none !important;}
   .hb-listen{display:none;}
 }
+
+/* Loading screen pulse line: a beating heart and a rotating phrase
+   (showLoadPulse in js/data-loaders.js). Same lub-dub as the rest of the
+   page's heartbeat, a little stronger because it is the only thing moving. */
+.load-pulse{
+  display:flex;align-items:center;gap:9px;min-height:22px;
+  font-family:'DM Sans',var(--font-ui),sans-serif;font-size:15px;font-weight:600;
+  color:#f3ba2f;letter-spacing:.02em;
+}
+#load-pulse-txt{transition:opacity .3s ease;}
+.lp-heart{display:inline-block;font-size:17px;line-height:1;color:#f3ba2f;animation:lpHeart 1.3s ease-in-out infinite;}
+@keyframes lpHeart{
+  0%{transform:scale(1);opacity:.75;} 10%{transform:scale(1.28);opacity:1;}
+  20%{transform:scale(1);opacity:.8;} 30%{transform:scale(1.16);opacity:.95;}
+  45%,100%{transform:scale(1);opacity:.75;}
+}
+@media (prefers-reduced-motion: reduce){ .lp-heart{animation:none;} #load-pulse-txt{transition:none;} }
