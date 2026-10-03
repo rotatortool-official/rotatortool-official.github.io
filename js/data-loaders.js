@@ -4369,3 +4369,49 @@ function _buildRowTip(row, cx, cy) {
   }
   setTimeout(initAdAnim, 200);
 })();
+
+/* ── Feeling the pulse (Daniel, 2026-10-03) ─────────────────────────
+   A mouse that rests 3 seconds on a TODAY or momentum tile gets a soft
+   glow under it that beats with the market-pulse heartbeat (styles.css,
+   "Market pulse"). Any real movement (4px+) or leaving the tile lifts
+   it. Mouse devices only, and never with reduced motion asked for. */
+(function _hbListen() {
+  var fine = false, reduced = false;
+  try {
+    fine = window.matchMedia('(hover: hover) and (pointer: fine)').matches;
+    reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  } catch (e) {}
+  if (!fine || reduced) return;
+  var SEL = '.sig-tile:not(.sig-tile-empty), .bf-cell';
+  var timer = null, glow = null, tile = null, lx = 0, ly = 0;
+  function lift() {
+    if (timer) { clearTimeout(timer); timer = null; }
+    if (glow && glow.parentNode) glow.parentNode.removeChild(glow);
+    glow = null;
+  }
+  function host(t) {
+    /* A TODAY tile: the glow goes on the face that is showing, so it
+       turns with the card and never leaks past its edge. */
+    if (!t.classList.contains('bf-cell')) return t;
+    return t.querySelector(t.classList.contains('flipped') ? '.bf-back' : '.bf-front') || t;
+  }
+  document.addEventListener('mousemove', function (e) {
+    var t = e.target && e.target.closest ? e.target.closest(SEL) : null;
+    if (t !== tile) { lift(); tile = t; lx = e.clientX; ly = e.clientY; }
+    if (!tile) return;
+    if (Math.abs(e.clientX - lx) < 4 && Math.abs(e.clientY - ly) < 4 && (timer || glow)) return;
+    lift(); lx = e.clientX; ly = e.clientY;
+    timer = setTimeout(function () {
+      timer = null;
+      if (!tile || !document.body.contains(tile)) return;
+      var h = host(tile), r = h.getBoundingClientRect();
+      glow = document.createElement('span');
+      glow.className = 'hb-listen';
+      glow.style.left = (lx - r.left) + 'px';
+      glow.style.top = (ly - r.top) + 'px';
+      h.appendChild(glow);
+    }, 3000);
+  }, { passive: true });
+  document.addEventListener('mouseleave', function () { lift(); tile = null; });
+  window.addEventListener('scroll', function () { lift(); }, { passive: true });
+})();

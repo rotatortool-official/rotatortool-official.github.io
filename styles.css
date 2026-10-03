@@ -4798,3 +4798,51 @@ details.td-reading-trust[open] > summary::before{content:'▾ ';}
     color:color-mix(in srgb, var(--text) 72%, transparent) !important;
   }
 }
+
+/* ── Market pulse (Daniel, 2026-10-03) ───────────────────────────────
+   "We track the market pulse with this tool": a heartbeat, lub-dub then a
+   rest, ~46 beats a minute. Three places, all subtle:
+     1. the SORT lens buttons beat in turn down the rail until a visitor
+        has used one (class .lens-pulse, set in renderLensRail);
+     2. a TODAY or momentum tile beats while the mouse is on it;
+     3. a mouse resting 3 seconds on a tile "feels the pulse": a soft glow
+        under the cursor beats along (js/data-loaders.js, _hbListen).
+   None of it runs with reduced motion asked for. `scale` (not transform)
+   so the beat stacks on the tiles' own lift and tilt. */
+@keyframes hbBeat{
+  0%{scale:1;} 10%{scale:1.014;} 20%{scale:1;} 30%{scale:1.008;} 45%,100%{scale:1;}
+}
+@keyframes hbRail{
+  0%,45%,100%{border-color:var(--bdr);box-shadow:none;}
+  10%{border-color:rgba(243,186,47,.75);box-shadow:0 0 9px rgba(243,186,47,.35);}
+  20%{border-color:rgba(243,186,47,.25);box-shadow:0 0 3px rgba(243,186,47,.12);}
+  30%{border-color:rgba(243,186,47,.55);box-shadow:0 0 7px rgba(243,186,47,.25);}
+}
+@keyframes hbListen{
+  0%{opacity:0;transform:scale(.85);}
+  10%{opacity:.95;transform:scale(1.06);}
+  20%{opacity:.5;transform:scale(.97);}
+  30%{opacity:.8;transform:scale(1.02);}
+  45%,100%{opacity:.4;transform:scale(.92);}
+}
+.lens-rail.lens-pulse .lens-btn:not(.on):not(.lens-clear){animation:hbRail 1.3s ease-in-out var(--hb-d,0s) infinite;}
+.lens-rail .lens-btn:nth-of-type(2){--hb-d:.12s;}
+.lens-rail .lens-btn:nth-of-type(3){--hb-d:.24s;}
+.lens-rail .lens-btn:nth-of-type(4){--hb-d:.36s;}
+.lens-rail .lens-btn:nth-of-type(5){--hb-d:.48s;}
+.lens-rail .lens-btn:nth-of-type(6){--hb-d:.60s;}
+.lens-rail.lens-pulse .lens-btn:hover{animation:none;}
+.sig-tile:not(.sig-tile-empty):hover{animation:hbBeat 1.3s ease-in-out infinite;}
+.bf-cell.hovering .bf-tilt{animation:hbBeat 1.3s ease-in-out infinite;}
+.bf-face{overflow:hidden;}
+.hb-listen{
+  position:absolute;width:150px;height:150px;margin:-75px 0 0 -75px;border-radius:50%;
+  pointer-events:none;z-index:3;
+  background:radial-gradient(circle, rgba(243,186,47,.22), rgba(243,186,47,.06) 45%, transparent 68%);
+  animation:hbListen 1.3s ease-in-out infinite;
+}
+:root.light .hb-listen{background:radial-gradient(circle, rgba(220,150,0,.20), rgba(220,150,0,.05) 45%, transparent 68%);}
+@media (prefers-reduced-motion: reduce){
+  .lens-rail.lens-pulse .lens-btn,.sig-tile:hover,.bf-cell.hovering .bf-tilt{animation:none !important;}
+  .hb-listen{display:none;}
+}
