@@ -32,6 +32,9 @@ var RADIO_STATIONS = [
 var _radioStation = null;
 
 function radioInstalled() {
+  /* Testing on your own computer: http://localhost:8098/?app=1 acts as
+     the installed app. Ignored on the live site. */
+  if (location.hostname === 'localhost' && /[?&]app=1\b/.test(location.search)) return true;
   try {
     return window.matchMedia('(display-mode: standalone)').matches || !!window.navigator.standalone;
   } catch (e) { return false; }
