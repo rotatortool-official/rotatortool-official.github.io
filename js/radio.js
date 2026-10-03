@@ -369,6 +369,10 @@ function radioToggle() {
 function _radioRefresh() {
   var chips = document.getElementById('radio-chips');
   if (chips) chips.innerHTML = _radioChips('radio-chip', true);
+  /* Place it again whenever its contents change: placed while still
+     empty, the player sat too low and the video ran off the bottom. */
+  var player = document.getElementById('radio-player');
+  if (player) _radioPlace(player);
   var set = document.getElementById('radio-setting-chips');
   if (set) set.innerHTML = _radioChips('radio-chip radio-chip-sm');
   var btn = document.getElementById('radio-topbar-btn');
