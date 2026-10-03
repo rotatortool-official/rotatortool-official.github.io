@@ -1615,6 +1615,7 @@ function _bfUsd(v) {
   if (v >= 1e12) return '$' + (v / 1e12).toFixed(2) + 'T';
   if (v >= 1e9)  return '$' + (v / 1e9).toFixed(1)  + 'B';
   if (v >= 1e6)  return '$' + (v / 1e6).toFixed(1)  + 'M';
+  if (v >= 1e4)  return '$' + Math.round(v / 1e3) + 'K';
   return '$' + Math.round(v).toLocaleString('en-US');
 }
 function _bfDelta(p, days) {
@@ -1675,13 +1676,18 @@ function _bfAge(ms) {
 
    Returns '' for anything unplottable, and the caller renders the cell
    without a chart rather than with an empty box. */
-function _bfSpark(series, up) {
+/* minSpan (2026-10-03): the smallest move the chart's height stands for.
+   A policy rate that wobbled 0.001 points was drawn as a full-height dive;
+   rates now pass 0.25 points, so a wobble stays flat. neutral draws the
+   line grey, for a rate that did not change. */
+function _bfSpark(series, up, minSpan, neutral) {
   if (!Array.isArray(series) || series.length < 3) return '';
   var pts = series.filter(function (v) { return typeof v === 'number' && isFinite(v); });
   if (pts.length < 3) return '';
 
   var W = 100, H = 26, PAD = 2;
   var lo = Math.min.apply(null, pts), hi = Math.max.apply(null, pts);
+  if (minSpan && hi - lo < minSpan) { var mid = (hi + lo) / 2; lo = mid - minSpan / 2; hi = mid + minSpan / 2; }
   /* A flat series would divide by zero; draw it down the middle. */
   var span = (hi - lo) || 1;
   var stepX = W / (pts.length - 1);
@@ -1692,7 +1698,7 @@ function _bfSpark(series, up) {
     return (i ? 'L' : 'M') + x + ' ' + y;
   }).join(' ');
 
-  var col = up ? 'var(--green)' : 'var(--red)';
+  var col = neutral ? 'var(--muted)' : up ? 'var(--green)' : 'var(--red)';
   return '<svg class="bf-spark" viewBox="0 0 ' + W + ' ' + H + '" preserveAspectRatio="none"'
     + ' aria-hidden="true" focusable="false">'
     + '<path d="' + d + '" fill="none" stroke="' + col
@@ -1902,7 +1908,8 @@ function renderBriefing() {
       + '<div class="bf-k">' + c.k + '</div>'
       + '<div class="bf-v">' + c.v + '<span class="bf-u">' + c.u + '</span></div>'
       + _bfChange(win.c, win.l, c.pts) + c.extra
-      + _bfSpark(win.s, (win.c == null) || win.c >= 0)
+      + _bfSpark(win.s, (win.c == null) || win.c >= 0, c.pts ? 0.25 : 0,
+                 c.pts && win.c != null && Math.abs(win.c) < 0.005)
       + '<div class="bf-d-note">' + c.d + '</div>'
       + c.src
       + '</div>';
