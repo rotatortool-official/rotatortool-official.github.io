@@ -4460,5 +4460,12 @@ function _hbEcgSvg() {
     }, 3000);
   }, { passive: true });
   document.addEventListener('mouseleave', function () { lift(); tile = null; });
-  window.addEventListener('scroll', function () { lift(); }, { passive: true });
+  /* A scroll lifts it only if the tile has moved out from under the
+     mouse. The page fires scroll events on its own while it settles,
+     and lifting on every one meant the trace never got to appear. */
+  window.addEventListener('scroll', function () {
+    if (!tile) return;
+    var under = document.elementFromPoint(lx, ly);
+    if (!under || !tile.contains(under)) { lift(); tile = null; }
+  }, { passive: true });
 })();

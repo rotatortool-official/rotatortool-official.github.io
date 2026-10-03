@@ -4840,7 +4840,10 @@ details.td-reading-trust[open] > summary::before{content:'▾ ';}
 .bf-cell.hovering .bf-tilt{animation:hbBeat .857s ease-in-out infinite;}
 .bf-face{overflow:hidden;}
 .hb-ecg{
-  position:absolute;left:0;right:0;height:34px;margin-top:-17px;overflow:hidden;
+  /* The left half of the tile only (Daniel, 2026-10-03). Two beats still
+     span the strip, so at the same 70 a minute the trace moves at half
+     the speed it did across the full width. */
+  position:absolute;left:0;width:50%;height:34px;margin-top:-17px;overflow:hidden;
   pointer-events:none;z-index:3;
   -webkit-mask-image:linear-gradient(to right, transparent, #000 18%, #000 82%, transparent);
           mask-image:linear-gradient(to right, transparent, #000 18%, #000 82%, transparent);
