@@ -996,7 +996,7 @@ Object.assign(MK_TEXT, {
   "Dollars traded on Solana's exchanges in a day, a gauge of how busy the chain is.":
     'Долари со кои се тргуваше на берзите на Solana за еден ден, мерка колку е зафатена мрежата.',
 });
-MK_PATTERNS.push([/^gas now ([\d.]+) gwei$/, function (m) { return 'гас сега ' + m[1].replace('.', ',') + ' gwei'; }]);
+MK_PATTERNS.push([/^gas now ([\d.]+) gwei$/, function (m) { return 'гас сега ' + m[1] + ' gwei';   /* a price: keeps the dot */ }]);
 
 /* ── Coin window: About (2026-10-03) ─────────────────────────────── */
 Object.assign(MK_TEXT, {
@@ -1258,7 +1258,8 @@ Object.assign(MK_TEXT, {
 (function () {
   var P = function (re, fn) { MK_PATTERNS.push([re, fn]); };
   var WIN = { '7d': 'за 7 дена', '30d': 'за 30 дена', '1y': 'за 1 година', '3y': 'за 3 години', '1m': 'за 1 месец', '3m': 'за 3 месеци', '6m': 'за 6 месеци' };
-  var comma = function (x) { return String(x).replace('.', ','); };
+  /* Dollar amounts are prices: they keep the dot (Daniel, 2026-10-04). */
+  var comma = function (x) { return String(x); };
   P(/^([+\-])\$([\d.]+) (7d|30d|3m|6m|1y|3y|1m)$/, function (m) { return m[1] + '$' + comma(m[2]) + ' ' + WIN[m[3]]; });
   var vs = function (amt, dir, name) { return ' · $' + comma(amt) + (dir === 'over' ? ' повеќе од ' : ' помалку од ') + name; };
   P(/^China \(Shanghai\) \$([\d.]+)(?: · \$([\d.]+) (over|under) Brent)?(?: · \$([\d.]+) (over|under) WTI)?$/, function (m) {
@@ -1269,7 +1270,8 @@ Object.assign(MK_TEXT, {
    note also needs its parts (promptove/109). */
 (function () {
   var P = function (re, fn) { MK_PATTERNS.push([re, fn]); };
-  var comma = function (x) { return String(x).replace('.', ','); };
+  /* Dollar amounts are prices: they keep the dot (Daniel, 2026-10-04). */
+  var comma = function (x) { return String(x); };
   P(/^China \(Shanghai\) \$([\d.]+)$/, function (m) { return 'Кина (Шангај) $' + comma(m[1]); });
   P(/^\$([\d.]+) (over|under) (Brent|WTI)$/, function (m) { return '$' + comma(m[1]) + (m[2] === 'over' ? ' повеќе од ' : ' помалку од ') + m[3]; });
 })();

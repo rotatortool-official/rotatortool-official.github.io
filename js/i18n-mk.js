@@ -91,14 +91,29 @@ var MK_BLOCKS = {};      /* CSS selector → Macedonian innerHTML, for legal pro
     return !el || el.closest('script,style,svg,textarea,[data-no-i18n],#tos-modal,#privacy-modal,#faq-modal,.tut-card');
   }
 
+  /* Numbers (Daniel, 2026-10-04): a percentage takes a decimal comma
+     ("+2,4%", "3,88%"), a price keeps its dot ("$86.80"). Only digits
+     directly before a % change, so prices, thousands separators and
+     everything else in the same text stay as they are. */
+  var PCT = /(\d)\.(\d+)(\s?%)/g;
+  function pctComma(s) { return s.replace(PCT, '$1,$2$3'); }
+
   function doText(n) {
     var raw = n.nodeValue;
-    if (!raw || !wordy(raw)) return;
+    if (!raw) return;
+    var pct = /\d\.\d+\s?%/.test(raw);
+    if (!pct && !wordy(raw)) return;
     if (n.__mk !== undefined && raw === n.__mk) return;          /* ours already */
     var lead = raw.match(/^\s*/)[0], trail = raw.match(/\s*$/)[0];
     var core = fold(raw);
-    var t = translate(core);
-    if (t == null) { if (/[A-Za-z]{3,}/.test(core) && core.length < 400) window.__mkMissing.add(core); return; }
+    var t = wordy(raw) ? translate(core) : null;
+    if (t == null) {
+      if (/[A-Za-z]{3,}/.test(core) && core.length < 400) window.__mkMissing.add(core);
+      if (!pct) return;
+      t = core;                                                    /* "3.88%", "+0.6% 24h": numbers only */
+    }
+    t = pctComma(t);
+    if (lead + t + trail === raw) return;
     n.__en = raw; n.__mk = lead + t + trail;
     busy = true; n.nodeValue = n.__mk; busy = false;
     tracked.push(n);
