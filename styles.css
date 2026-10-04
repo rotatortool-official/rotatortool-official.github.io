@@ -642,7 +642,11 @@ body::before{content:'';position:fixed;inset:0;background:repeating-linear-gradi
     border-radius:16px 16px 0 0;
     border-left:none;border-right:none;border-bottom:none;
     padding:20px 16px calc(16px + env(safe-area-inset-bottom));
-    max-height:85vh;
+    /* Up to just under the top of the screen, not 85% (Daniel, 2026-10-04):
+       a coin window has more to read than fits. dvh follows the phone's
+       browser bar; vh is the fallback. */
+    max-height:calc(100vh - 12px);
+    max-height:calc(100dvh - 12px);
     overflow-y:auto;
     -webkit-overflow-scrolling:touch;
     transform:translateY(100%);
@@ -663,15 +667,20 @@ body::before{content:'';position:fixed;inset:0;background:repeating-linear-gradi
   .tile-detail[style*="display:block"]{
     transform:translateY(0);
   }
-  /* Close button — fixed-position 44×44 hit target inside the sheet */
+  /* Close button — 44×44 hit target. Sticky, not absolute: absolute
+     scrolled away with the content, so a reader deep in a coin window
+     had no × to close it (Daniel, 2026-10-04). It floats right of the
+     header and stays pinned to the top of the sheet while it scrolls. */
   .tile-detail .td-close{
-    position:absolute !important;
-    top:16px;right:16px;
+    position:sticky !important;
+    top:0;float:right;
     width:44px;height:44px;
     display:flex;align-items:center;justify-content:center;
     font-size:20px;
-    float:none;margin:0;
+    margin:-4px 0 0 0;
+    background:rgba(20,26,34,.85);
   }
+  :root.light .tile-detail .td-close{background:rgba(255,255,255,.9);}
   /* Overlay — darker + slight blur on mobile */
   .tile-detail-overlay{
     background:rgba(0,0,0,.5);
