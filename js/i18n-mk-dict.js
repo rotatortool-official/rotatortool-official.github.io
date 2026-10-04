@@ -1221,3 +1221,17 @@ Object.assign(MK_TEXT, {
   'Press the station again to start.': 'Притиснете ја станицата повторно за да почне.',
   'Live from': 'Во живо од', 'Mellow': 'Mellow', 'Paradise': 'Paradise'
 });
+
+/* Golden / death cross record, now built from ROTATOR_EVIDENCE (promptove/108
+   follow-up): patterns, so a re-measured figure needs no new entry. */
+(function () {
+  var P = function (re, fn) { MK_PATTERNS.push([re, fn]); };
+  var GOLD_HEAD = 'Златен крст, најновите први: 60-дневниот просек ја помина нагоре линијата на 125-дневниот. Датум имаат само крстовите од последните околу 2 недели. ';
+  var DEATH_HEAD = 'Крст на смртта, најновите први: 60-дневниот просек падна под 125-дневниот. Датум имаат само крстовите од последните околу 2 недели. ';
+  var gold = function (w, r) { return 'Тестирано: ' + w + '% го победија пазарот за 30 дена (случаен избор: ' + r + '%).'; };
+  var death = function (w, r) { return 'Тестирано: не е предупредување; по крст на смртта монетите го победија пазарот ' + w + '% од времето за 30 дена (случаен избор: ' + r + '%).'; };
+  P(/^Tested: (\d+)% beat the market over 30 days \(a random pick: (\d+)%\)\.$/, function (m) { return gold(m[1], m[2]); });
+  P(/^Tested: not a warning; coins after a death cross beat the market (\d+)% of the time over 30 days \(a random pick: (\d+)%\)\.$/, function (m) { return death(m[1], m[2]); });
+  P(/^Golden cross, most recent first: the 60-day average crossed above the 125-day\. Only crosses from about the last 2 weeks are dated\. Tested: (\d+)% beat the market over 30 days \(a random pick: (\d+)%\)\.$/, function (m) { return GOLD_HEAD + gold(m[1], m[2]); });
+  P(/^Death cross, most recent first: the 60-day average crossed below the 125-day\. Only crosses from about the last 2 weeks are dated\. Tested: not a warning; coins after a death cross beat the market (\d+)% of the time over 30 days \(a random pick: (\d+)%\)\.$/, function (m) { return DEATH_HEAD + death(m[1], m[2]); });
+})();

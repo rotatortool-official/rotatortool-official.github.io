@@ -2907,9 +2907,7 @@ function _tdCrossTile(c) {
   var when = t.crossDays == null ? 'crossed more than 2 weeks ago'
     : t.crossDays === 0 ? 'crossed at the latest close'
     : 'crossed ' + t.crossDays + (t.crossDays === 1 ? ' day' : ' days') + ' ago';
-  var tested = golden
-    ? 'Tested: no edge at 7 days (50% beat the market), 53% at 30 days.'
-    : 'Tested: not a warning; coins after a death cross beat the market 53% of the time over 30 days.';
+  var tested = (typeof _crossTested === 'function') ? _crossTested(golden ? 'golden' : 'death') : '';
   return '<div class="signal-tile' + (t.crossDays != null ? ' highlight-' + cls : '') + '" style="margin-top:2px;">'
     + '<span class="tile-icon ' + cls + '">' + (golden ? '✨' : '☠') + '</span>'
     + '<div class="tile-body"><span class="tile-label">TREND CROSS (60D / 125D)</span>'

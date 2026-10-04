@@ -21,6 +21,21 @@
 ══════════════════════════════════════════════════════════════════ */
 
 /* ── Shared state ─────────────────────────────────────────────── */
+/* The golden / death cross record, read from ROTATOR_EVIDENCE.turnSignals
+   (measured 2026-09-26) instead of typed into the tips, and quoting only
+   the 30-day horizon the record is graded on (verify-grading-invariants;
+   promptove/108 follow-up). */
+function _crossTested(kind) {
+  var E = (typeof ROTATOR_EVIDENCE !== 'undefined' && ROTATOR_EVIDENCE.turnSignals) || {};
+  var r = E.random != null ? E.random : 50;
+  var x = kind === 'golden' ? (E.goldenCross || {}) : (E.deathCross || {});
+  if (x.win30 == null) return '';
+  var w = Math.round(x.win30);
+  return kind === 'golden'
+    ? 'Tested: ' + w + '% beat the market over 30 days (a random pick: ' + r + '%).'
+    : 'Tested: not a warning; coins after a death cross beat the market ' + w + '% of the time over 30 days (a random pick: ' + r + '%).';
+}
+
 var coins   = [];
 var btcMA200 = null;
 var btcPrice = null;
@@ -541,12 +556,12 @@ var LENSES = [
      crosses and the opposite state are blank and sort last. The tested
      record (config.js) is in the tip, so the lens is not read as a call. */
   { id: 'gc',    label: '✨GC', none: 'none recent', hue: 140, pro: true,
-    tip: 'Golden cross, most recent first: the 60-day average crossed above the 125-day. Only crosses from about the last 2 weeks are dated. Tested: no edge at 7 days (50% beat the market), 53% at 30 days.',
+    tip: 'Golden cross, most recent first: the 60-day average crossed above the 125-day. Only crosses from about the last 2 weeks are dated. ' + _crossTested('golden'),
     get: function(c) { var t = coinTechnicals[c.sym]; return t && t.cross === 'golden' && t.crossDays != null ? t.crossDays : null; },
     fmt: function(v) { return v === 0 ? 'today' : v + 'd ago'; },
     dir: 'recent' },
   { id: 'dc',    label: '☠DC', none: 'none recent', hue: 4, pro: true,
-    tip: 'Death cross, most recent first: the 60-day average crossed below the 125-day. Only crosses from about the last 2 weeks are dated. Tested: not a warning; coins after a death cross beat the market 53% of the time over 30 days.',
+    tip: 'Death cross, most recent first: the 60-day average crossed below the 125-day. Only crosses from about the last 2 weeks are dated. ' + _crossTested('death'),
     get: function(c) { var t = coinTechnicals[c.sym]; return t && t.cross === 'death' && t.crossDays != null ? t.crossDays : null; },
     fmt: function(v) { return v === 0 ? 'today' : v + 'd ago'; },
     dir: 'recent' }
