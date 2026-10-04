@@ -241,7 +241,7 @@ Object.assign(MK_TEXT, {
   /* The swap cards' FROM / TO badges, as ОД / ВО like the override labels. */
   'FROM': 'ОД', 'TO': 'ВО', 'ADVANCED — Override prices': 'НАПРЕДНО — Рачни цени',
   /* The ratio chart's two level labels (canvas, ratio.js passes them through mkTranslate). */
-  'BEST SWAP ▲': 'НАЈДОБРА ЗАМЕНА ▲', 'SUPPORT ▼': 'ПОДДРШКА ▼',
+  'BEST SWAP ▲': 'НАЈДОБАР МОМЕНТ ЗА ЗАМЕНА ▲', 'SUPPORT ▼': 'ПОДДРШКА ▼',
   'Override prices': 'Рачни цени', 'Override FROM ($)': 'Рачна цена ОД ($)', 'Override from price': 'Рачна цена ОД',
   'Override TO ($)': 'Рачна цена ВО ($)', 'Override to price': 'Рачна цена ВО',
   'Current exchange ratio': 'Тековен однос на размена', 'Period low': 'Најниско во периодот', 'Period peak': 'Највисоко во периодот',
