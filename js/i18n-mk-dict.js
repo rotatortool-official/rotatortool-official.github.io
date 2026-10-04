@@ -1243,9 +1243,15 @@ Object.assign(MK_TEXT, {
 
 /* ── Oil: crack spread and China's price (promptove/109) ── */
 Object.assign(MK_TEXT, {
-  'Diesel crack spread': 'Маржа на дизелот',
+  /* „Маржа на дизелот“ read like the margin at the pump; the number is
+     what a refinery earns (Daniel asked, 2026-10-04). */
+  'Diesel crack spread': 'Рафинериска маржа на дизел',
+  '/bbl': '/барел',
+  /* Source names: only the joining word translates. */
+  'NYMEX via Yahoo Finance': 'NYMEX преку Yahoo Finance', 'COMEX via Yahoo Finance': 'COMEX преку Yahoo Finance',
+  'ICE via Yahoo Finance': 'ICE преку Yahoo Finance',
   'What refiners earn turning a barrel of crude into diesel. When it is high, diesel is scarce and transport costs feed into prices.':
-    'Колку заработуваат рафинериите кога од барел сурова нафта прават дизел. Кога е висока, дизелот е редок, а трошоците за превоз се прелеваат во цените.',
+    'Колку заработуваат рафинериите кога од барел сурова нафта прават дизел. Кога е висока, дизел нема доволно, а трошоците за превоз се прелеваат во цените.',
   'Shanghai crude futures (INE SC) via Sina Finance, in dollars at the day\'s yuan rate (CNY=X, Yahoo Finance)':
     'Шангајски фјучерси за сурова нафта (INE SC) преку Sina Finance, во долари по курсот на јуанот за тој ден (CNY=X, Yahoo Finance)'
 });
