@@ -429,7 +429,7 @@ Object.assign(MK_TEXT, {
   'Show Tutorial': 'Прикажи тура', 'Step-by-step guide for first-time users': 'Водич чекор по чекор за нови корисници',
   'Replay Tutorial Now': 'Повтори ја турата сега', 'Walk through the guide again': 'Поминете го водичот уште еднаш',
   'START →': 'ПОЧНИ →', 'Pro Features Tutorial': 'Тура за Pro функциите',
-  'Learn about Insight Engine, swap levels & more': 'Дознајте за Insight Engine, нивоата за замена и повеќе',
+  'Live Insight Engine, Telegram alerts & more': 'Insight Engine во живо, известувања на Telegram и повеќе',
   'Swap Tool Tutorial': 'Тура за алатката за замена', 'Learn how to use the ratio swap calculator': 'Научете како да го користите калкулаторот за замена',
   'Add Rotator to your home screen for instant access': 'Додајте го Rotator на почетниот екран за брз пристап',
 });

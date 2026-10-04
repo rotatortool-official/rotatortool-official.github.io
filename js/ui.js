@@ -452,7 +452,9 @@ function swapTutNext() {
 }
 function swapTutRender() {
   var step = SWAP_TUT_STEPS[_swapTutStep];
-  document.getElementById('swap-tut-step-lbl').textContent = 'STEP ' + (_swapTutStep+1) + ' OF ' + SWAP_TUT_STEPS.length;
+  var _s = (typeof t === 'function') ? t('tut_step') : 'STEP';
+  var _o = (typeof t === 'function') ? t('tut_of') : 'OF';
+  document.getElementById('swap-tut-step-lbl').textContent = _s + ' ' + (_swapTutStep+1) + ' ' + _o + ' ' + SWAP_TUT_STEPS.length;
   document.getElementById('swap-tut-title').textContent = step.title;
   document.getElementById('swap-tut-desc').innerHTML = (typeof _tutMd === 'function') ? _tutMd(step.desc) : step.desc;
   var nextBtn = document.getElementById('swap-tut-next');
@@ -504,6 +506,9 @@ document.addEventListener('DOMContentLoaded', function() {
       var ratioSec = document.getElementById('ratio-section');
       if (ratioSec) {
         var obs = new IntersectionObserver(function(entries) {
+          /* Not on top of the main or Pro tour, which scrolls through
+             here: wait for the next time the swap tool comes into view. */
+          if (typeof tutActive !== 'undefined' && tutActive) return;
           if (entries[0].isIntersecting) { startSwapTut(); obs.disconnect(); }
         }, {threshold:0.3});
         obs.observe(ratioSec);

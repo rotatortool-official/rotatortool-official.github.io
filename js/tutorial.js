@@ -24,9 +24,6 @@ var TUT_KEY = 'rot_tutorial_on';
 var tutStep_ = 0;
 var tutActive = false;
 
-var _TUT_P = '<div style="font-size:14px;line-height:1.8;">';
-var _TUT_SMALL = 'font-size:12px;color:var(--muted);';
-
 /* ── Tutorial steps ──────────────────────────────────────────── */
 var TUT_STEPS = [
 
@@ -551,86 +548,126 @@ window.addEventListener('scroll', _tutReflow, { passive: true });
 
 /* ══════════════════════════════════════════════════════════════════
    PRO TUTORIAL — shown once after Pro is unlocked
-   Reuses the same engine with Pro-specific steps. Rewritten 2026-09-25
-   to match what Pro unlocks today (holdings.js limits, signals.js tile
-   counts, the live Insight read, ratio.js own pairs, the Telegram
-   channel and the assistant). "All categories unlocked" and "Top 200
-   coins" were removed: neither is gated any more.
+   Reuses the same engine with Pro-specific steps.
+
+   REWRITTEN 2026-10-04 against the Pro window's own FREE/PRO table
+   (pro-system.js). The 2026-09-25 version sold the Telegram channel
+   (free for everyone) and the AI assistant (dormant), and said nothing
+   about personal Telegram alerts, which are the main thing Pro gives.
+   The steps are plain text now (title, p[], note, img), like the main
+   tour, so applyLang() can put the Macedonian `pro_tut` over them.
 ══════════════════════════════════════════════════════════════════ */
 
 var PRO_TUT_KEY = 'rot_pro_tutorial_done';
 
 var PRO_TUT_STEPS = [
 
+  /* 1. Welcome */
   {
-    target: '.topbar',
-    title: '⚡ Welcome to Pro',
-    desc: _TUT_P
-        + 'Thank you for supporting Rotator. Here is what just unlocked, section by section.'
-        + '</div>',
-    pos: 'center'
+    "target": ".topbar",
+    "pos": "center",
+    "title": "⚡ Welcome to Pro",
+    "p": [
+      "Thank you for supporting Rotator. Pro is a **one-time unlock**, with no subscription.",
+      "This short tour shows what just unlocked, section by section."
+    ]
   },
 
+  /* 2. The Insight Engine, live — the picture the Pro window shows too */
   {
-    target: '#sec-yours', goto: 'sec-yours', open: 'holdings',
-    title: '10 holdings and every score gap',
-    desc: _TUT_P
-        + 'You can now track <strong>10 holdings</strong>, and all four score-gap tiles are visible.<br><br>'
-        + 'Holder warnings (announced delistings, Monitoring tags, large unlocks) apply to every coin you add.'
-        + '</div>',
-    pos: 'section'
+    "target": ".topbar",
+    "pos": "center",
+    "wide": true,
+    "title": "⚡ The Insight Engine, live",
+    "p": [
+      "Open any coin you hold or watch. Its **Insight Engine** now updates with every 15-minute run, instead of showing yesterday's.",
+      "You see the insight score and the readings behind it, volume against the coin's usual, **golden and death cross** timing with its tested record, and the **amount, date and countdown** of a big unlock."
+    ],
+    "img": { "src": "img/pro-insight-{lang}.png", "alt": "The Insight Engine in a coin window, as a Pro member sees it", "cap": "Example: SOL on 4 Oct 2026, with its golden cross at the bottom. Click to enlarge." },
+    "note": "It describes how a coin is behaving. It is not a forecast."
   },
 
+  /* 3. MOMENTUM: every turn sign, every tile */
   {
-    target: '#sec-rotation', goto: 'sec-rotation', open: 'hot',
-    title: 'Every momentum tile',
-    desc: _TUT_P
-        + 'All six High Momentum tiles are unlocked, not just the first.'
-        + '</div>',
-    pos: 'section'
+    "target": "#sec-rotation",
+    "goto": "sec-rotation",
+    "open": "hot",
+    "pos": "section",
+    "title": "Every turn sign, every tile",
+    "p": [
+      "**Turn signs across the market** now list every coin with a turn sign, not only the top 2 of each list.",
+      "**High Momentum** and **Worst 30d** show all 6 tiles each."
+    ],
+    "note": "A turn sign is a reading, not a forecast. Its tested record is in the coin window."
   },
 
+  /* 4. YOURS: limits and the alerts panel */
   {
-    target: '.topbar',
-    title: '⚡ The Insight read, live',
-    desc: _TUT_P
-        + 'Open any coin to see its Insight read. It now updates with every 15-minute run instead of showing yesterday\'s.<br><br>'
-        + '<span style="' + _TUT_SMALL + '">The Insight read describes how a coin is behaving. It is not a forecast.</span>'
-        + '</div>',
-    pos: 'center'
+    "target": "#sec-yours",
+    "goto": "sec-yours",
+    "open": "holdings",
+    "pos": "section",
+    "title": "10 holdings and fuller alerts",
+    "p": [
+      "You can now track **10 holdings** instead of 2, and keep up to 20 paper trades.",
+      "**Alerts for your coins** now add new turn signs and sharp moves in Bitcoin and Ether ETF flows to the free exchange and unlock warnings. You can also turn on browser notifications, which fire while Rotator is open in a tab."
+    ]
   },
 
+  /* 5. Telegram DMs — the main thing Pro gives (site-is-a-telegram-pro-funnel) */
   {
-    target: '#sec-swap', goto: 'sec-swap', open: 'swap',
-    title: 'Your own swap pairs',
-    desc: _TUT_P
-        + 'Choose any two assets and see how their ratio has moved, where today sits in the recent range, and what a swap would give you at current prices.'
-        + '</div>',
-    pos: 'section'
+    "target": "#coin-alerts",
+    "goto": "coin-alerts",
+    "open": "holdings",
+    "pos": "section",
+    "title": "📨 Your alerts on Telegram",
+    "p": [
+      "At the bottom of **Alerts for your coins**, click **Get these on Telegram**. Telegram opens; tap **Start** and you are linked.",
+      "From then on, new alerts about the coins you hold and watch are messaged to you once a day, in the language this site is set to. A quiet day sends nothing."
+    ],
+    "note": "Disconnect any time from the same panel. The market pulse channel stays free for everyone."
   },
 
+  /* 6. COINS: the cross lenses and badges (Pro only since 2026-10-04) */
   {
-    target: '.topbar',
-    title: 'Telegram channel and AI assistant',
-    desc: _TUT_P
-        + 'The <strong>Telegram channel</strong> link is now open to you, and the <strong>AI assistant</strong> answers questions about the current scores, using only the latest run.'
-        + '</div>',
-    pos: 'center'
+    "target": "#sec-coins",
+    "goto": "sec-coins",
+    "pos": "section",
+    "title": "Golden and death crosses in the table",
+    "p": [
+      "The **✨GC** and **☠DC** lenses beside the table sort coins by their most recent golden or death cross, and a coin with a recent cross carries a badge.",
+      "Pro also has **fresh-data priority**: when the shared market data is more than 15 minutes old, your browser fetches a fresh copy instead of waiting."
+    ]
   },
 
+  /* 7. SWAP: any pair */
   {
-    target: '.settings-btn',
-    title: 'Save your recovery key',
-    desc: _TUT_P
-        + 'Your Pro status is <strong>synced to the cloud</strong>. To use it on another device or browser:<br><br>'
-        + '<strong>1.</strong> Open Pro settings (⚡ in the top bar)<br>'
-        + '<strong>2.</strong> Copy your <strong>recovery key</strong><br>'
-        + '<strong>3.</strong> Paste it on the new device<br><br>'
-        + '<span style="' + _TUT_SMALL + '">Replay this tour any time from the ⚙ gear menu.</span>'
-        + '</div>',
-    pos: 'gear'
+    "target": "#sec-swap",
+    "goto": "sec-swap",
+    "open": "swap",
+    "pos": "section",
+    "title": "Your own swap pairs",
+    "p": [
+      "Choose any two assets and see how their ratio has moved, where today sits in its recent range, and what a swap would give you at current prices."
+    ],
+    "note": "It shows where the ratio is, not where it goes next."
+  },
+
+  /* 8. Recovery key — it is a bearer token (promptove/108), so say so */
+  {
+    "target": "#pro-topbar-btn",
+    "pos": "below",
+    "title": "🔑 Keep your recovery key safe",
+    "p": [
+      "To use Pro on another device or browser: **1.** Click **⚡** at the top and copy your **recovery key**. **2.** On the new device, click **⚡** and paste it under **Already have Pro on another device?**",
+      "**Treat it like a password.** Anyone who has it can use your Pro and change your Telegram alerts. Never post it or send it in a chat."
+    ],
+    "note": "Replay this tour any time from the ⚙ gear."
   }
 ];
+
+/* English snapshot, for switching back from another language (applyLang). */
+var PRO_TUT_EN = JSON.parse(JSON.stringify(PRO_TUT_STEPS));
 
 /* ── Pro tutorial engine (reuses base tutorial UI) ──────────── */
 var proTutOrigSteps = null;
