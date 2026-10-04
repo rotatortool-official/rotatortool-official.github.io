@@ -48,9 +48,14 @@ var MK_BLOCKS = {};      /* CSS selector → Macedonian innerHTML, for legal pro
   window.__mkMissing = new Set();
 
   function fold(s) { return s.replace(/\s+/g, ' ').trim(); }
+  /* A change line on a TODAY tile ("-5.7% 30d", "+$5.64 7d") has a single
+     letter, so the two-letter test below skipped it and every percentage
+     stayed English in MK (fixed promptove/109). */
+  var WINLINE = /^[+\-−]?\$?[\d.,]+%? (7d|30d|1y|3y|1m)$/;
+  function wordy(s) { return /[A-Za-z]{2,}/.test(s) || WINLINE.test(fold(s)); }
 
   function translate(core, depth) {
-    if (!core || !/[A-Za-z]{2,}/.test(core)) return null;
+    if (!core || !wordy(core)) return null;
     if (Object.prototype.hasOwnProperty.call(MK_TEXT, core)) return MK_TEXT[core];
     for (var i = 0; i < MK_PATTERNS.length; i++) {
       var m = MK_PATTERNS[i][0].exec(core);
@@ -88,7 +93,7 @@ var MK_BLOCKS = {};      /* CSS selector → Macedonian innerHTML, for legal pro
 
   function doText(n) {
     var raw = n.nodeValue;
-    if (!raw || !/[A-Za-z]{2,}/.test(raw)) return;
+    if (!raw || !wordy(raw)) return;
     if (n.__mk !== undefined && raw === n.__mk) return;          /* ours already */
     var lead = raw.match(/^\s*/)[0], trail = raw.match(/\s*$/)[0];
     var core = fold(raw);

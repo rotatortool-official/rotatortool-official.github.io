@@ -1235,3 +1235,30 @@ Object.assign(MK_TEXT, {
   P(/^Golden cross, most recent first: the 60-day average crossed above the 125-day\. Only crosses from about the last 2 weeks are dated\. Tested: (\d+)% beat the market over 30 days \(a random pick: (\d+)%\)\.$/, function (m) { return GOLD_HEAD + gold(m[1], m[2]); });
   P(/^Death cross, most recent first: the 60-day average crossed below the 125-day\. Only crosses from about the last 2 weeks are dated\. Tested: not a warning; coins after a death cross beat the market (\d+)% of the time over 30 days \(a random pick: (\d+)%\)\.$/, function (m) { return DEATH_HEAD + death(m[1], m[2]); });
 })();
+
+/* ── Oil: crack spread and China's price (promptove/109) ── */
+Object.assign(MK_TEXT, {
+  'Diesel crack spread': 'Маржа на дизелот',
+  'What refiners earn turning a barrel of crude into diesel. When it is high, diesel is scarce and transport costs feed into prices.':
+    'Колку заработуваат рафинериите кога од барел сурова нафта прават дизел. Кога е висока, дизелот е редок, а трошоците за превоз се прелеваат во цените.',
+  'Shanghai crude futures (INE SC) via Sina Finance, in dollars at the day\'s yuan rate (CNY=X, Yahoo Finance)':
+    'Шангајски фјучерси за сурова нафта (INE SC) преку Sina Finance, во долари по курсот на јуанот за тој ден (CNY=X, Yahoo Finance)'
+});
+(function () {
+  var P = function (re, fn) { MK_PATTERNS.push([re, fn]); };
+  var WIN = { '7d': 'за 7 дена', '30d': 'за 30 дена', '1y': 'за 1 година', '3y': 'за 3 години', '1m': 'за 1 месец' };
+  var comma = function (x) { return String(x).replace('.', ','); };
+  P(/^([+\-])\$([\d.]+) (7d|30d|1y|3y|1m)$/, function (m) { return m[1] + '$' + comma(m[2]) + ' ' + WIN[m[3]]; });
+  var vs = function (amt, dir, name) { return ' · $' + comma(amt) + (dir === 'over' ? ' повеќе од ' : ' помалку од ') + name; };
+  P(/^China \(Shanghai\) \$([\d.]+)(?: · \$([\d.]+) (over|under) Brent)?(?: · \$([\d.]+) (over|under) WTI)?$/, function (m) {
+    return 'Кина (Шангај) $' + comma(m[1]) + (m[2] ? vs(m[2], m[3], 'Brent') : '') + (m[4] ? vs(m[4], m[5], 'WTI') : '');
+  });
+})();
+/* The layer splits " · " compounds and translates each part, so the China
+   note also needs its parts (promptove/109). */
+(function () {
+  var P = function (re, fn) { MK_PATTERNS.push([re, fn]); };
+  var comma = function (x) { return String(x).replace('.', ','); };
+  P(/^China \(Shanghai\) \$([\d.]+)$/, function (m) { return 'Кина (Шангај) $' + comma(m[1]); });
+  P(/^\$([\d.]+) (over|under) (Brent|WTI)$/, function (m) { return '$' + comma(m[1]) + (m[2] === 'over' ? ' повеќе од ' : ' помалку од ') + m[3]; });
+})();

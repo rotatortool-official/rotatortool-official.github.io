@@ -5373,3 +5373,9 @@ html.no-anim .mt-viewport::-webkit-scrollbar{display:none;}
 .radio-live-state.bad{color:var(--amber);}
 .radio-player.is-audio.compact .radio-live{padding:6px 10px;}
 .radio-frame audio{display:none;}
+
+/* ── Oil: China's price as a second line (promptove/109) ──────────── */
+.bf-spark-ov{stroke:var(--text);opacity:.55;}
+.bf-cn{display:flex;align-items:center;gap:5px;flex-wrap:wrap;}
+.bf-cn-key{display:inline-block;width:14px;height:0;border-top:1.5px dashed var(--text);opacity:.6;flex:0 0 auto;}
+.bf-cn-d{color:var(--muted);}

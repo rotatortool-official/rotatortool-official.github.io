@@ -1815,13 +1815,22 @@ function _bfAge(ms) {
    A policy rate that wobbled 0.001 points was drawn as a full-height dive;
    rates now pass 0.25 points, so a wobble stays flat. neutral draws the
    line grey, for a rate that did not change. */
-function _bfSpark(series, up, minSpan, neutral) {
+/* overlay (promptove/109): a second series lined up day by day with
+   `series` (China's oil price on the WTI tile). Same scale as the main
+   line, so the gap is drawn as it is; a null breaks the line (a China
+   holiday). Dashed and neutral, so it never reads as up or down. */
+function _bfSpark(series, up, minSpan, neutral, overlay) {
   if (!Array.isArray(series) || series.length < 3) return '';
   var pts = series.filter(function (v) { return typeof v === 'number' && isFinite(v); });
   if (pts.length < 3) return '';
+  var ov = (Array.isArray(overlay) && overlay.length === series.length && pts.length === series.length)
+    ? overlay : null;
+  var ovVals = ov ? ov.filter(function (v) { return typeof v === 'number' && isFinite(v); }) : [];
+  if (ovVals.length < 2) ov = null;
 
   var W = 100, H = 26, PAD = 2;
-  var lo = Math.min.apply(null, pts), hi = Math.max.apply(null, pts);
+  var all = ov ? pts.concat(ovVals) : pts;
+  var lo = Math.min.apply(null, all), hi = Math.max.apply(null, all);
   if (minSpan && hi - lo < minSpan) { var mid = (hi + lo) / 2; lo = mid - minSpan / 2; hi = mid + minSpan / 2; }
   /* A flat series would divide by zero; draw it down the middle. */
   var span = (hi - lo) || 1;
@@ -1834,8 +1843,21 @@ function _bfSpark(series, up, minSpan, neutral) {
   }).join(' ');
 
   var col = neutral ? 'var(--muted)' : up ? 'var(--green)' : 'var(--red)';
+  var d2 = '';
+  if (ov) {
+    var pen = false;
+    ov.forEach(function (v, i) {
+      if (typeof v !== 'number' || !isFinite(v)) { pen = false; return; }
+      var x = (i * stepX).toFixed(1);
+      var y = (PAD + (H - PAD * 2) * (1 - (v - lo) / span)).toFixed(1);
+      d2 += (pen ? 'L' : 'M') + x + ' ' + y + ' ';
+      pen = true;
+    });
+  }
   return '<svg class="bf-spark" viewBox="0 0 ' + W + ' ' + H + '" preserveAspectRatio="none"'
     + ' aria-hidden="true" focusable="false">'
+    + (d2 ? '<path class="bf-spark-ov" d="' + d2.trim() + '" fill="none" stroke-width="1.2" stroke-dasharray="2.5 2"'
+      + ' stroke-linejoin="round" stroke-linecap="round" vector-effect="non-scaling-stroke"/>' : '')
     + '<path d="' + d + '" fill="none" stroke="' + col
     + '" stroke-width="1.5" stroke-linejoin="round" stroke-linecap="round"/>'
     + '</svg>';
@@ -1888,8 +1910,10 @@ function _bfSrc(src, sym, date, monthly) {
 }
 /* A change, as percent or as points. A policy rate that did not move
    says so in words instead of "+0.00". */
-function _bfChange(c, label, pts) {
+function _bfChange(c, label, pts, usd) {
   if (c == null || !isFinite(c)) return '<span class="bf-d bf-na">No ' + label + ' reading yet</span>';
+  /* A spread changes in dollars, not percent (promptove/109). */
+  if (usd) return '<span class="bf-d ' + (c >= 0 ? 'up' : 'dn') + '">' + (c >= 0 ? '+$' : '-$') + Math.abs(c).toFixed(2) + ' ' + label + '</span>';
   if (pts) {
     if (Math.abs(c) < 0.005) return '<span class="bf-d bf-flat">unchanged ' + label + '</span>';
     return '<span class="bf-d ' + (c >= 0 ? 'up' : 'dn') + '">' + (c >= 0 ? '+' : '') + c.toFixed(2) + ' pts ' + label + '</span>';
@@ -1910,6 +1934,21 @@ function _bfStep(last) {
   return '<div class="bf-step">' + (last.to > last.from ? 'raised' : 'cut') + ' ' + _bfDay(last.date) + '</div>';
 }
 
+/* The China line's key and gap, under the WTI price (promptove/109).
+   The gap is on China's latest trading day, against the US and the
+   global benchmark. Shanghai crude is Middle-East oil delivered to
+   China, so Brent is the like-for-like comparison. */
+function _bfChinaNote(cn) {
+  var g = function (v, name) {
+    if (v == null || !isFinite(v)) return '';
+    return ' · $' + Math.abs(v).toFixed(2) + (v >= 0 ? ' over ' : ' under ') + name;
+  };
+  return '<div class="bf-step bf-cn" title="Shanghai crude futures (INE SC) via Sina Finance, in dollars at the day\'s yuan rate (CNY=X, Yahoo Finance)">'
+    + '<span class="bf-cn-key" aria-hidden="true"></span>'
+    + 'China (Shanghai) $' + cn.v.toFixed(2) + g(cn.vsBrent, 'Brent') + g(cn.vsWti, 'WTI')
+    + ' <span class="bf-cn-d">' + _bfDay(cn.date) + '</span></div>';
+}
+
 /* One tile spec per reading. `w` holds the windows: c (change) and s
    (the line) for 7, 30 and 365 days. */
 function _bfWorldCell(it, o) {
@@ -1923,6 +1962,15 @@ function _bfWorldCell(it, o) {
        the server kept 3 years falls back to the 1-year side. */
     1095: Array.isArray(it.s3) && it.s3.length > 2 ? { c: it.c1095, s: it.s3, l: '3y' } : { c: it.c365, s: s, l: '1y' }
   };
+  /* China's oil price on the WTI tile (promptove/109): the server lines it
+     up with WTI's own days, so each window takes the same slice. */
+  var cn = o.china && it.cn && Array.isArray(it.cn.s) && it.cn.s.length === s.length ? it.cn : null;
+  if (cn) {
+    w[7].o = it.n7 >= 2 ? cn.s.slice(-it.n7) : null;
+    w[30].o = it.n30 >= 2 ? cn.s.slice(-it.n30) : null;
+    w[365].o = cn.s;
+    w[1095].o = w[1095].s === it.s3 && Array.isArray(cn.s3) && cn.s3.length === it.s3.length ? cn.s3 : (w[1095].s === s ? cn.s : null);
+  }
   if (o.monthly) {
     /* Monthly: a week means nothing. The front compares with the month
        before; 30D does the same; both draw the 12 months. */
@@ -1931,8 +1979,9 @@ function _bfWorldCell(it, o) {
     if (Array.isArray(it.s3) && it.s3.length > 2) w[1095] = { c: it.c1095, s: it.s3, l: '3y' };
   }
   return {
-    k: o.k, v: _bfFmt(it.v, o.kind), u: o.u || '', pts: o.kind === 'rate', w: w,
+    k: o.k, v: _bfFmt(it.v, o.kind), u: o.u || '', pts: o.kind === 'rate', usd: !!o.usdpts, w: w,
     d: o.d, extra: (o.range && it.lo != null ? '<div class="bf-step">target ' + it.lo.toFixed(2) + '–' + it.hi.toFixed(2) + '%</div>' : '')
+      + (cn && cn.v != null ? _bfChinaNote(cn) : '')
       + (o.policy ? _bfStep(it.last) : '')
       + (o.gas && it.gwei != null ? '<div class="bf-step">gas now ' + it.gwei + ' gwei</div>' : ''),
     src: _bfSrc(o.src, o.sym, it.date, o.monthly)
@@ -2005,8 +2054,12 @@ function renderBriefing() {
         d: 'Light metal for data centers, power lines, solar frames and electric cars; often the cheaper stand-in for copper.' })
     ] },
     { t: 'Energy cost', cells: [
-      _bfWorldCell(it('oil', 'oilP7'), { k: 'Oil · WTI', kind: 'usd', src: BF_SRC.nymex, sym: 'CL=F',
+      _bfWorldCell(it('oil', 'oilP7'), { k: 'Oil · WTI', kind: 'usd', src: BF_SRC.nymex, sym: 'CL=F', china: true,
         d: 'WTI crude — input cost for the real economy' }),
+      /* Diesel crack spread (Daniel, 2026-10-04, promptove/109): heating
+         oil futures x 42 minus Brent, computed by sync-market-data. */
+      _bfWorldCell(W.crack, { k: 'Diesel crack spread', kind: 'usd', u: ' /bbl', usdpts: true, src: BF_SRC.nymex, sym: 'HO=F',
+        d: 'What refiners earn turning a barrel of crude into diesel. When it is high, diesel is scarce and transport costs feed into prices.' }),
       _bfWorldCell(W.gas, { k: 'Natural gas', kind: 'usd', u: ' /MMBtu', src: BF_SRC.nymex, sym: 'NG=F',
         d: 'The fuel behind much of US electricity, so its price feeds into what power costs.' }),
       _bfWorldCell(W.power, { k: 'Electricity', kind: 'cents', u: ' /kWh', monthly: true, src: BF_SRC.bls,
@@ -2053,9 +2106,9 @@ function renderBriefing() {
       + (back ? ' tabindex="-1"' : '') + '>' + other + '</button>'
       + '<div class="bf-k">' + c.k + '</div>'
       + '<div class="bf-v">' + c.v + '<span class="bf-u">' + c.u + '</span></div>'
-      + _bfChange(win.c, win.l, c.pts) + c.extra
+      + _bfChange(win.c, win.l, c.pts, c.usd) + c.extra
       + _bfSpark(win.s, (win.c == null) || win.c >= 0, c.pts ? 0.25 : 0,
-                 c.pts && win.c != null && Math.abs(win.c) < 0.005)
+                 c.pts && win.c != null && Math.abs(win.c) < 0.005, win.o)
       + '<div class="bf-d-note">' + c.d + '</div>'
       + c.src
       + '</div>';
@@ -2072,7 +2125,7 @@ function renderBriefing() {
   groups.forEach(function (g) {
     html += '<div class="bf-group">' + g.t + '</div>';
     g.cells.forEach(function (c) {
-      var p7 = c.pts ? null : c.w[7].c, pl = c.pts ? null : c.w[_bfLong].c;
+      var p7 = (c.pts || c.usd) ? null : c.w[7].c, pl = (c.pts || c.usd) ? null : c.w[_bfLong].c;
       var hb7 = hbBeatSeconds(p7, 0.25), hbl = hbBeatSeconds(pl, 0.25);
       html += '<div class="bf-cell' + (_bfIsFlipped(c.k) ? ' flipped' : '') + '" data-k="' + c.k + '"'
         + (hb7 != null ? ' data-hb7="' + hb7.toFixed(3) + '"' : '')
