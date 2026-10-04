@@ -607,8 +607,10 @@ var RatioTracker = (function() {
             ctx2.fillText(label,area.left+4,y-5);
             ctx2.restore();
           }
-          drawLevel(resistLvl,'#00bd8e','BEST SWAP ▲');
-          drawLevel(supportLvl,'#f0a030','SUPPORT ▼',1,1.5);
+          /* Painted on the canvas, so the MK page translator never sees them. */
+          var _tr=function(s){ return (typeof currentLang!=='undefined' && currentLang==='mk' && window.mkTranslate) ? window.mkTranslate(s) : s; };
+          drawLevel(resistLvl,'#00bd8e',_tr('BEST SWAP ▲'));
+          drawLevel(supportLvl,'#f0a030',_tr('SUPPORT ▼'),1,1.5);
         }
       }],
       options:{
