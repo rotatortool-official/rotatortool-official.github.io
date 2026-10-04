@@ -1874,8 +1874,8 @@ function _bfSpark(series, up, minSpan, neutral, overlay) {
    and the dollar fall back to macro_data so the section never goes
    blank.
 
-   Every tile shows the window the bar above picks (_bfLong: 7, 30, 365
-   or 1095 days; opens on 30). The per-tile 7D/30D flip was retired on
+   Every tile shows the window the bar above picks (_bfLong: 7, 30, 90,
+   182, 365 or 1095 days; opens on 30; 3M and 6M added 2026-10-04). The per-tile 7D/30D flip was retired on
    2026-10-04 (Daniel: the corner "7D" was an artifact from before
    30D/1Y/3Y existed and read as a second, conflicting filter). Rates move in POINTS, not percent: a yield going
    from 4.00% to 4.40% is "+0.40 pts", where "+10%" would mislead. The
@@ -1968,6 +1968,10 @@ function _bfWorldCell(it, o) {
   var w = {
     7:   { c: it.c7,   s: it.n7 >= 2 ? s.slice(-it.n7) : null, l: '7d' },
     30:  { c: it.c30,  s: it.n30 >= 2 ? s.slice(-it.n30) : null, l: '30d' },
+    /* 3 and 6 months (Daniel, 2026-10-04): sliced from the year line by the
+       server's own day counts, like 7D and 30D. */
+    90:  { c: it.c90,  s: it.n90 >= 2 ? s.slice(-it.n90) : null, l: '3m' },
+    182: { c: it.c182, s: it.n182 >= 2 ? s.slice(-it.n182) : null, l: '6m' },
     365: { c: it.c365, s: s, l: '1y' },
     /* 3 years (2026-10-03): ~160 thinned points; a row written before
        the server kept 3 years falls back to the 1-year side. */
@@ -1979,6 +1983,8 @@ function _bfWorldCell(it, o) {
   if (cn) {
     w[7].o = it.n7 >= 2 ? cn.s.slice(-it.n7) : null;
     w[30].o = it.n30 >= 2 ? cn.s.slice(-it.n30) : null;
+    w[90].o = it.n90 >= 2 ? cn.s.slice(-it.n90) : null;
+    w[182].o = it.n182 >= 2 ? cn.s.slice(-it.n182) : null;
     w[365].o = cn.s;
     w[1095].o = w[1095].s === it.s3 && Array.isArray(cn.s3) && cn.s3.length === it.s3.length ? cn.s3 : (w[1095].s === s ? cn.s : null);
   }
@@ -2009,6 +2015,10 @@ function _bfNetCell(o) {
     k: o.k, v: o.v, u: o.u || '', pts: false,
     w: { 7: { c: o.p, s: (Array.isArray(s) && o.n7 >= 3) ? s.slice(-o.n7) : s, l: '7d' },
          30: { c: o.p30, s: s, l: '30d' },
+         90: o.year && Array.isArray(o.year.s) && o.year.n90 >= 2
+           ? { c: o.year.c90, s: o.year.s.slice(-o.year.n90), l: '3m' } : { c: null, s: null, l: '3m' },
+         182: o.year && Array.isArray(o.year.s) && o.year.n182 >= 2
+           ? { c: o.year.c182, s: o.year.s.slice(-o.year.n182), l: '6m' } : { c: null, s: null, l: '6m' },
          365: o.year && Array.isArray(o.year.s) && o.year.s.length > 30
            ? { c: o.year.c365, s: o.year.s, l: '1y' } : { c: o.p30, s: s, l: '30d' },
          1095: o.year && Array.isArray(o.year.s3) && o.year.s3.length > 2
@@ -2129,6 +2139,8 @@ function renderBriefing() {
     + '<div class="bf-seg" role="group" aria-label="Change over">'
     + '<button type="button" class="bf-seg-b" data-days="7" onclick="bfSetAll(7)">7D</button>'
     + '<button type="button" class="bf-seg-b" data-days="30" onclick="bfSetAll(30)">30D</button>'
+    + '<button type="button" class="bf-seg-b" data-days="90" onclick="bfSetAll(90)">3M</button>'
+    + '<button type="button" class="bf-seg-b" data-days="182" onclick="bfSetAll(182)">6M</button>'
     + '<button type="button" class="bf-seg-b" data-days="365" onclick="bfSetAll(365)">1Y</button>'
     + '<button type="button" class="bf-seg-b" data-days="1095" onclick="bfSetAll(1095)">3Y</button>'
     + '</div></div>';
@@ -2183,7 +2195,7 @@ function _bfReduced() {
 var _BF_FLIP_STEP_MS = 40;
 function bfSetAll(days) {
   var host = document.getElementById('briefing');
-  if (!host || ({ 7: 1, 30: 1, 365: 1, 1095: 1 })[days] !== 1) return;
+  if (!host || ({ 7: 1, 30: 1, 90: 1, 182: 1, 365: 1, 1095: 1 })[days] !== 1) return;
   if (_bfLong !== days) { _bfLong = days; renderBriefing(); }
   _bfRipple(document.getElementById('briefing'));
 }

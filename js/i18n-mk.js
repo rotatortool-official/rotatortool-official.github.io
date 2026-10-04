@@ -51,7 +51,7 @@ var MK_BLOCKS = {};      /* CSS selector → Macedonian innerHTML, for legal pro
   /* A change line on a TODAY tile ("-5.7% 30d", "+$5.64 7d") has a single
      letter, so the two-letter test below skipped it and every percentage
      stayed English in MK (fixed promptove/109). */
-  var WINLINE = /^[+\-−]?\$?[\d.,]+%? (7d|30d|1y|3y|1m)$/;
+  var WINLINE = /^[+\-−]?\$?[\d.,]+%? (7d|30d|3m|6m|1y|3y|1m)$/;
   function wordy(s) { return /[A-Za-z]{2,}/.test(s) || WINLINE.test(fold(s)); }
 
   function translate(core, depth) {

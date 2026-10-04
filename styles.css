@@ -4070,6 +4070,8 @@ header{position:sticky;top:0;z-index:100;}
    on or hovered. */
 .bf-seg-b[data-days="7"]   {--seg:hsl(205,65%,62%);}
 .bf-seg-b[data-days="30"]  {--seg:var(--amber);}
+.bf-seg-b[data-days="90"]  {--seg:hsl(22,70%,62%);}   /* 3M coral   (2026-10-04) */
+.bf-seg-b[data-days="182"] {--seg:hsl(290,40%,70%);}  /* 6M orchid  (kept off Pro's violet) */
 .bf-seg-b[data-days="365"] {--seg:hsl(172,50%,50%);}
 .bf-seg-b[data-days="1095"]{--seg:hsl(340,55%,66%);}
 .bf-seg-b[data-days]{color:color-mix(in srgb,var(--seg) 60%,var(--muted));}

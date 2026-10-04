@@ -972,12 +972,12 @@ Object.assign(MK_TEXT, {
 (function () {
   var P = function (re, fn) { MK_PATTERNS.push([re, fn]); };
   var MON = { Jan: 'јан', Feb: 'фев', Mar: 'мар', Apr: 'апр', May: 'мај', Jun: 'јун', Jul: 'јул', Aug: 'авг', Sep: 'сеп', Oct: 'окт', Nov: 'ное', Dec: 'дек' };
-  var WIN = { '7d': 'за 7 дена', '30d': 'за 30 дена', '1y': 'за 1 година', '3y': 'за 3 години', '1m': 'за 1 месец' };
+  var WIN = { '7d': 'за 7 дена', '30d': 'за 30 дена', '1y': 'за 1 година', '3y': 'за 3 години', '1m': 'за 1 месец', '3m': 'за 3 месеци', '6m': 'за 6 месеци' };
   var comma = function (x) { return x.replace('.', ','); };
-  P(/^([+\-][\d.]+) pts (7d|30d|1y|3y|1m)$/, function (m) { return comma(m[1]) + ' поени ' + WIN[m[2]]; });
-  P(/^([+\-][\d.]+)% (7d|30d|1y|3y|1m)$/, function (m) { return comma(m[1]) + '% ' + WIN[m[2]]; });
-  P(/^unchanged (7d|30d|1y|3y|1m)$/, function (m) { return 'без промена ' + WIN[m[1]]; });
-  P(/^No (7d|30d|1y|3y|1m) reading yet$/, function (m) { return 'Сè уште нема читање ' + WIN[m[1]]; });
+  P(/^([+\-][\d.]+) pts (7d|30d|3m|6m|1y|3y|1m)$/, function (m) { return comma(m[1]) + ' поени ' + WIN[m[2]]; });
+  P(/^([+\-][\d.]+)% (7d|30d|3m|6m|1y|3y|1m)$/, function (m) { return comma(m[1]) + '% ' + WIN[m[2]]; });
+  P(/^unchanged (7d|30d|3m|6m|1y|3y|1m)$/, function (m) { return 'без промена ' + WIN[m[1]]; });
+  P(/^No (7d|30d|3m|6m|1y|3y|1m) reading yet$/, function (m) { return 'Сè уште нема читање ' + WIN[m[1]]; });
   P(/^(raised|cut) (\d{1,2}) (\w{3})$/, function (m) { return (m[1] === 'raised' ? 'зголемена на ' : 'намалена на ') + m[2] + ' ' + (MON[m[3]] || m[3]); });
   P(/^target ([\d.]+)–([\d.]+)%$/, function (m) { return 'цел ' + comma(m[1]) + '–' + comma(m[2]) + '%'; });
   P(/^(Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec) (\d{4})$/, function (m) { return MON[m[1]] + ' ' + m[2]; });
@@ -1246,9 +1246,9 @@ Object.assign(MK_TEXT, {
 });
 (function () {
   var P = function (re, fn) { MK_PATTERNS.push([re, fn]); };
-  var WIN = { '7d': 'за 7 дена', '30d': 'за 30 дена', '1y': 'за 1 година', '3y': 'за 3 години', '1m': 'за 1 месец' };
+  var WIN = { '7d': 'за 7 дена', '30d': 'за 30 дена', '1y': 'за 1 година', '3y': 'за 3 години', '1m': 'за 1 месец', '3m': 'за 3 месеци', '6m': 'за 6 месеци' };
   var comma = function (x) { return String(x).replace('.', ','); };
-  P(/^([+\-])\$([\d.]+) (7d|30d|1y|3y|1m)$/, function (m) { return m[1] + '$' + comma(m[2]) + ' ' + WIN[m[3]]; });
+  P(/^([+\-])\$([\d.]+) (7d|30d|3m|6m|1y|3y|1m)$/, function (m) { return m[1] + '$' + comma(m[2]) + ' ' + WIN[m[3]]; });
   var vs = function (amt, dir, name) { return ' · $' + comma(amt) + (dir === 'over' ? ' повеќе од ' : ' помалку од ') + name; };
   P(/^China \(Shanghai\) \$([\d.]+)(?: · \$([\d.]+) (over|under) Brent)?(?: · \$([\d.]+) (over|under) WTI)?$/, function (m) {
     return 'Кина (Шангај) $' + comma(m[1]) + (m[2] ? vs(m[2], m[3], 'Brent') : '') + (m[4] ? vs(m[4], m[5], 'WTI') : '');
