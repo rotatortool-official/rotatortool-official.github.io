@@ -1,0 +1,1681 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta http-equiv="X-Content-Type-Options" content="nosniff">
+<meta name="referrer" content="no-referrer-when-downgrade">
+<meta name="description" content="Rotator is an honest market pulse for Binance traders. It scores 250 coins and tokenized stocks every 15 minutes, tracks your portfolio, and warns you about delistings and unlocks before they hit.">
+<meta name="robots" content="index, follow">
+<link rel="canonical" href="https://rotatortool-official.github.io/">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Rotator — an honest market pulse for Binance traders">
+<meta property="og:description" content="Rotator is an honest market pulse for Binance traders. It scores 250 coins and tokenized stocks every 15 minutes, tracks your portfolio, and warns you about delistings and unlocks before they hit.">
+<meta property="og:url" content="https://rotatortool-official.github.io/">
+<meta property="og:image" content="https://rotatortool-official.github.io/og-card.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:site_name" content="Rotator">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Rotator — an honest market pulse for Binance traders">
+<meta name="twitter:description" content="Rotator is an honest market pulse for Binance traders. It scores 250 coins and tokenized stocks every 15 minutes, tracks your portfolio, and warns you about delistings and unlocks before they hit.">
+<meta name="twitter:image" content="https://rotatortool-official.github.io/og-card.png">
+<title>⬡ ROTATOR — Market Pulse for Binance</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="icon" href="icon-192.png" type="image/png">
+<link rel="apple-touch-icon" href="icon-192.png">
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#0b0e13">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Rotator">
+
+  <link rel="stylesheet" href="styles.css">
+
+  <!-- Umami Cloud analytics (privacy-friendly, no cookies). Replace data-website-id after signup at cloud.umami.is. -->
+  <script defer src="https://cloud.umami.is/script.js" data-website-id="77a817bc-ca03-4680-83b2-c914f8efaa6e"></script>
+</head>
+<body>
+<!-- Side banners, Macedonian only (promptove/72). Shown by CSS when
+     html.lang-mk is set by setLang() and the window is wide enough. -->
+<div class="mk-banner mk-banner-l" aria-hidden="true"></div>
+<div class="mk-banner mk-banner-r" aria-hidden="true"></div>
+<noscript><div style="padding:40px;text-align:center;font-family:sans-serif;font-size:16px;color:#333;background:#f4f5f8;">Rotator requires JavaScript to run. Please enable JavaScript in your browser settings and reload the page.</div></noscript>
+
+<!-- ABOUT MODAL -->
+<div class="overlay" id="about-modal" onclick="if(event.target===this)closeModal('about-modal')">
+  <div class="modal" style="max-width:520px;">
+    <button class="modal-x" onclick="closeModal('about-modal')">×</button>
+    <div class="modal-title" style="color:var(--bnb);">⬡ About Rotator</div>
+    <div class="modal-sub">A free, real-time relative-strength research tool for the crypto market.</div>
+    <div style="font-size:13px;color:var(--text);line-height:2;">
+      <strong style="color:var(--bnb);">Rotator</strong> was built with one goal: show, from data, <em style="color:var(--green);">what is performing relatively strongly and what is performing relatively weakly</em> across the crypto market — and what changed.<br><br>
+      Rotator scores every coin across 7, 14, and 30-day timeframes, then shows which coins in your portfolio have <strong style="color:var(--amber);">outperformed</strong> the rest of the tracked market and which have <strong style="color:var(--red);">underperformed</strong> it. It reports the evidence and the evidence against — what you do with it is your decision.<br><br>
+      The tool is <strong style="color:var(--green);">100% free, no account required</strong>, and runs in your browser. Your holdings stay there: quantities and buy prices never reach our server. The Privacy Policy lists the little that does.<br><br>
+      <strong style="color:var(--pro);">Coming soon:</strong> Forex pairs, stock portfolio tracking, and a unified multi-asset dashboard so you can track all your investments in one place.
+    </div>
+    <div style="margin-top:16px;padding:12px 14px;background:var(--bg3);border:1px solid var(--bdr2);border-radius:4px;font-size:12px;color:var(--muted);line-height:1.8;text-align:center;">
+      ⚠ Rotator is an informational tool only. Nothing here constitutes financial advice. Always do your own research.
+    </div>
+    <div style="margin-top:10px;font-size:12px;color:var(--muted);text-align:center;line-height:1.8;">
+      Business inquiries, Pro support, or feedback:<br>
+      <a href="mailto:rotatortool@gmail.com" style="color:var(--bnb);text-decoration:none;font-weight:600;letter-spacing:.04em;">rotatortool@gmail.com</a>
+    </div>
+  </div>
+</div>
+
+<!-- FAQ MODAL -->
+<div class="overlay" id="faq-modal" onclick="if(event.target===this)closeModal('faq-modal')">
+  <div class="modal" style="max-width:540px;max-height:85vh;overflow-y:auto;">
+    <button class="modal-x" onclick="closeModal('faq-modal')">×</button>
+    <div class="modal-title" style="color:var(--bnb);">❓ Frequently Asked Questions</div>
+    <div class="modal-sub">Everything you need to know about Rotator.</div>
+    <div class="faq-list">
+      <div class="faq-item">
+        <div class="faq-q">What is Rotator?</div>
+        <div class="faq-a">Rotator is an honest market pulse for Binance traders. It scores 250 coins and tokenized stocks every 15 minutes, tracks your portfolio, and warns you about delistings and unlocks before they hit. Every claim comes with its evidence and the bar it has to beat.</div>
+      </div>
+      <div class="faq-item">
+        <div class="faq-q">What does the Score mean?</div>
+        <div class="faq-a">The Score runs from −50 to 100 and combines three layers: momentum across 7, 14 and 30 days, strength against BTC, gold and oil, and tokenomics. A high score means a coin has been stronger than the rest, and a low score means it has been weaker. It measures what has already happened. It is not a forecast.</div>
+      </div>
+      <div class="faq-item">
+        <div class="faq-q">What is a &quot;rotation&quot;?</div>
+        <div class="faq-a">The name comes from money moving from one coin to another. Rotator shows how each coin scores against the rest, so you can see what has run ahead and what has lagged. It does not tell you to rotate: across 771 days of history, moving from a high score into a low one did not beat picking two coins at random, and the site says so.</div>
+      </div>
+      <div class="faq-item">
+        <div class="faq-q">Is this financial advice?</div>
+        <div class="faq-a">No. Rotator is an informational tool. Every score and signal is based on past data, and past performance never guarantees future results. Do your own research and consult a qualified financial advisor before any investment decision.</div>
+      </div>
+      <div class="faq-item">
+        <div class="faq-q">How do I unlock Pro?</div>
+        <div class="faq-a">Pro is a one-time contribution, with no subscription. Send $20 or more in USDT, BNB or ETH and submit the transaction hash: it is checked automatically and Pro activates in seconds. You can also invite 5 friends with your personal link from the Pro window: a friend counts once Rotator has fully loaded for them, and is confirmed 1 hour after their visit. Or redeem a Pro code.</div>
+      </div>
+      <div class="faq-item">
+        <div class="faq-q">Is my data safe? Do you store it?</div>
+        <div class="faq-a">Your quantities, prices paid and preferences stay in your own browser. There are no accounts and no logins. Once a day the page records which coins are held, as coin names only, with no quantity and nothing that identifies you, and we count how often each feature is used, as totals only.</div>
+      </div>
+      <div class="faq-item">
+        <div class="faq-q">Where does the data come from?</div>
+        <div class="faq-a">Scores are computed on our server every 15 minutes, from CoinGecko market data and Binance's own prices, volumes, futures and listing data. The page loads the latest completed run.</div>
+      </div>
+      <div class="faq-item">
+        <div class="faq-q">What's coming next?</div>
+        <div class="faq-a">Features stay when they measurably help and go when they don't, and the track record shows which is which. Recently added: warnings when a coin you hold faces a delisting, a Monitoring tag or a large unlock.</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- HOW IT WORKS MODAL (promptove/103) — what the page measures and what
+     it does not. Numbers from the FAQ, PRODUCT-FLOW.md and promptove/53,
+     /64; change them there first. -->
+<div class="overlay" id="how-modal" onclick="if(event.target===this)closeModal('how-modal')">
+  <div class="modal how-modal" style="max-width:540px;max-height:85vh;overflow-y:auto;">
+    <button class="modal-x" onclick="closeModal('how-modal')" aria-label="Close">×</button>
+    <div class="modal-title" style="color:var(--bnb);">◈ How Rotator works</div>
+    <div class="modal-sub">What the page measures, and what it does not.</div>
+    <div class="faq-list">
+      <div class="faq-item">
+        <div class="faq-q">1. The score</div>
+        <div class="faq-a">Every 15 minutes Rotator scores about 250 coins and tokenized stocks, from −50 to 100. The score mixes how a coin moved over 7, 14 and 30 days, how it did against Bitcoin, gold and oil, and its supply: big unlocks and high inflation pull it down. A high score means the coin has been stronger than the rest. It describes what already happened. It is not a forecast.</div>
+      </div>
+      <div class="faq-item">
+        <div class="faq-q">2. The market's direction</div>
+        <div class="faq-a">One rule, used everywhere on the site and on Telegram: when Bitcoin is above its 200-day average, the market is rising; below it, the market is falling. With no reading, Rotator says nothing rather than guess.</div>
+      </div>
+      <div class="faq-item">
+        <div class="faq-q">3. Turn signs</div>
+        <div class="faq-a">Rotator looks for coins that may be changing direction: a coin that lagged and now shows turn-up signs, or one that ran ahead and is cooling. Each sign shows how often it held up in past data. The best one so far is a quick RSI bounce: RSI back above 30 within one or two days. About 53 in 100 of those coins beat the market over the next 7 days. A small edge, not a promise.</div>
+      </div>
+      <div class="faq-item">
+        <div class="faq-q">4. Your coins</div>
+        <div class="faq-a">Add the coins you hold or watch. Quantities and prices stay in your browser. Rotator warns you about delistings, Binance Monitoring tags and big unlocks for free. Pro adds personal alerts about your coins on Telegram.</div>
+      </div>
+      <div class="faq-item">
+        <div class="faq-q">5. What is tested, and what is not</div>
+        <div class="faq-a">Across 771 days of history, moving from a high-scoring coin into a low one did not beat picking two coins at random. So Rotator shows where coins score against each other as information, not as calls. The current engine is graded against the median coin, the one in the middle, where chance is 50%. Its first 30-day results arrive from 11 October, and the record shows every result, good or bad.</div>
+      </div>
+    </div>
+    <div style="margin-top:16px;padding:12px 14px;background:var(--bg3);border:1px solid var(--bdr2);border-radius:4px;font-size:12px;color:var(--muted);line-height:1.8;text-align:center;">
+      ⚠ Information, not advice. Always do your own research.
+    </div>
+  </div>
+</div>
+
+<!-- INSTALL MODAL (promptove/104) — filled by installRotator() in js/ui.js
+     with the steps for the browser in use. -->
+<div class="overlay" id="install-modal" onclick="if(event.target===this)closeModal('install-modal')">
+  <div class="modal install-modal" style="max-width:480px;">
+    <button class="modal-x" onclick="closeModal('install-modal')" aria-label="Close">×</button>
+    <div class="modal-title" style="color:var(--bnb);">📲 Use Rotator as an app</div>
+    <div class="modal-sub">Install it once and Rotator opens in its own window, from your desktop, taskbar or home screen, with no browser tab or address bar. Free, and nothing to download from an app store.</div>
+    <button class="code-btn install-now-btn" id="install-now-btn" onclick="installRotatorPrompt()" style="display:none;">INSTALL NOW</button>
+    <div class="install-here" id="install-here"></div>
+    <details class="install-others">
+      <summary>Other browsers</summary>
+      <div class="install-row" data-b="chrome"><strong>Chrome</strong> <span>Click the install icon at the right end of the address bar, then Install. Or open the menu ⋮ → Cast, save and share → Install page as app.</span></div>
+      <div class="install-row" data-b="edge"><strong>Edge</strong> <span>Click the app icon at the right end of the address bar, then Install. Or open the menu ⋯ → Apps → Install this site as an app.</span></div>
+      <div class="install-row" data-b="safari"><strong>Safari on a Mac</strong> <span>Choose File → Add to Dock.</span></div>
+      <div class="install-row" data-b="ios"><strong>iPhone or iPad</strong> <span>In Safari, tap Share (the square with an arrow), then Add to Home Screen.</span></div>
+      <div class="install-row" data-b="android"><strong>Android</strong> <span>In Chrome, open the menu ⋮ and tap Add to Home screen → Install.</span></div>
+      <div class="install-row" data-b="firefox"><strong>Firefox</strong> <span>Firefox cannot install sites as apps. Open Rotator in Chrome, Edge or Safari to install it.</span></div>
+    </details>
+    <div class="install-foot">The app keeps itself up to date: it always shows the same live data as the site.</div>
+  </div>
+</div>
+
+<!-- PICTURE ZOOM (promptove/104) — the Pro pictures, full size. -->
+<div class="img-zoom" id="img-zoom" onclick="closeImgZoom()" role="dialog" aria-modal="true" aria-label="Picture, full size">
+  <img id="img-zoom-img" src="" alt="">
+  <button class="modal-x" onclick="closeImgZoom()" aria-label="Close">×</button>
+</div>
+
+<!-- TERMS OF SERVICE MODAL -->
+<div class="overlay" id="tos-modal" onclick="if(event.target===this)closeModal('tos-modal')">
+  <div class="modal" style="max-width:560px;max-height:85vh;overflow-y:auto;">
+    <button class="modal-x" onclick="closeModal('tos-modal')">×</button>
+    <div class="modal-title" style="color:var(--bnb);">Terms of Service</div>
+    <div class="modal-sub">Last updated: October 2026</div>
+    <div class="legal-content">
+      <p>By accessing or using Rotator ("the Application"), you agree to be bound by these Terms of Service. If you do not agree, please do not use the Application.</p>
+
+      <h4>1. Informational Tool Only</h4>
+      <p>Rotator is a market data visualization and screening tool provided <strong>strictly for informational and educational purposes</strong>. Nothing displayed in this Application constitutes financial advice, investment advice, trading advice, or any other kind of professional advice. You acknowledge that all investment decisions are made solely at your own risk.</p>
+
+      <h4>2. No Guarantees</h4>
+      <p>All scores, signals, rankings, and data presented are based on publicly available market data and algorithmic calculations. Past performance does not guarantee future results. We make no warranties or representations regarding the accuracy, completeness, or timeliness of any information provided.</p>
+
+      <h4>3. User Responsibility</h4>
+      <p>You are solely responsible for your own investment decisions and any financial outcomes that result from using the information provided by Rotator. Always conduct your own research (DYOR) and consider consulting a qualified financial advisor before making investment decisions.</p>
+      <p>If you add your own YouTube channels, videos or playlists to the radio, you are responsible for the links you add and for following YouTube's terms. Rotator only plays them through YouTube's own player and does not check, host or endorse them.</p>
+
+      <h4>4. Data & Privacy</h4>
+      <p>Rotator has no accounts. Your holdings, quantities, buy prices, watchlist and settings are stored in your browser. Some data does reach our server: anonymous usage counts, the names of held coins once a day without quantities, and the records needed for Pro, referrals, Telegram alerts and the Signal Assistant. See our <a onclick="closeModal('tos-modal');setTimeout(function(){openModal('privacy-modal')},200)" style="color:var(--bnb);cursor:pointer;text-decoration:underline;">Privacy Policy</a> for full details.</p>
+
+      <h4>5. Intellectual Property</h4>
+      <p>All source code, design, algorithms, scoring logic, and associated files are the exclusive property of the Author. All rights reserved. You may not copy, modify, distribute, or create derivative works without prior written permission.</p>
+
+      <h4>6. Third-Party Data</h4>
+      <p>Market data is sourced from third-party providers including Binance, CoinGecko, GeckoTerminal, Farside Investors, alternative.me, DefiLlama, blockchain.info and Yahoo Finance. Rotator is not affiliated with any of these providers and does not guarantee the availability or accuracy of their data.</p>
+
+      <h4>7. Pro Features & Donations</h4>
+      <p>Pro features, including Telegram alerts, are unlocked via one-time contributions, referrals or Pro codes. Contributions are voluntary and non-refundable. Pro features are provided "as is" and may change at any time without notice. Alerts describe what has already happened in the market; a delayed or missed alert is not a basis for any claim.</p>
+
+      <h4>8. Limitation of Liability</h4>
+      <p>To the maximum extent permitted by law, Rotator and its creator shall not be liable for any direct, indirect, incidental, consequential, or special damages arising from your use of this Application, including but not limited to financial losses from investment decisions.</p>
+
+      <h4>9. Changes to Terms</h4>
+      <p>We reserve the right to update these Terms at any time. Continued use of the Application after changes constitutes acceptance of the updated Terms.</p>
+
+      <div style="margin-top:16px;padding:12px 14px;background:var(--bg3);border:1px solid var(--bdr2);border-radius:4px;font-size:12px;color:var(--muted);line-height:1.8;text-align:center;">
+        ROTATOR &copy; 2026 &mdash; All Rights Reserved.
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- PRIVACY POLICY MODAL -->
+<div class="overlay" id="privacy-modal" onclick="if(event.target===this)closeModal('privacy-modal')">
+  <div class="modal" style="max-width:560px;max-height:85vh;overflow-y:auto;">
+    <button class="modal-x" onclick="closeModal('privacy-modal')">×</button>
+    <div class="modal-title" style="color:var(--green);">Privacy Policy</div>
+    <div class="modal-sub">Last updated: October 2026</div>
+    <div class="legal-content">
+      <p>This policy explains what Rotator keeps on your device, what reaches our server, and who else sees your browser's requests. Rotator has no accounts, no logins and no passwords, and it never asks for your name or email.</p>
+
+      <h4>1. On your device</h4>
+      <p>Your holdings (which coins, quantities and buy prices), watchlist, settings (language, theme), Pro status, which alerts you have read, and a randomly generated browser ID are stored in your browser's localStorage. <strong>Quantities and buy prices never leave your browser.</strong> Clearing this site's data in your browser deletes all of it. The browser ID is also your Pro recovery key.</p>
+
+      <h4>2. What reaches our server</h4>
+      <p>Our database runs on Supabase. None of the following contains your name, email, quantities or buy prices:</p>
+      <ul>
+        <li><strong>Anonymous usage counts.</strong> When you open the page or use a feature (a coin window, the swap tool, the ETF window, and similar), a daily counter for that feature goes up by one. The counter stores no ID and no IP address.</li>
+        <li><strong>Held coins, anonymously, once a day.</strong> The names of the coins held in your browser, with their score and price at that moment, so the track record can be graded. No quantities, no buy prices, no browser ID.</li>
+        <li><strong>Pro.</strong> Your browser ID and how Pro was granted: the Pro code used, the referrals counted, or for a crypto payment the transaction hash, network, amount and any contact you chose to type in the optional field.</li>
+        <li><strong>Referrals.</strong> The random browser IDs of the person who shared the link and the person who opened it.</li>
+        <li><strong>Telegram alerts (Pro, only if you connect them).</strong> Your Telegram chat ID, your browser ID, the names of the coins you hold and watch (marked held or watching, without quantities), your site language, and which alerts have already been sent to you.</li>
+        <li><strong>Signal Assistant (Pro, only when you use it).</strong> Your questions and browser ID go to our server, which sends the questions, together with the current signal data, to Anthropic's Claude API to write the answer.</li>
+        <li><strong>Radio links (only when you add one).</strong> A YouTube link you add to the radio is sent once to our server, which asks YouTube for the name and the id to play. The link is not stored or logged; your list of links stays in your browser.</li>
+      </ul>
+
+      <h4>3. Analytics</h4>
+      <p>Rotator uses Umami Cloud, a privacy-focused analytics service, to count page views and a few button clicks (for example sharing, or opening the Telegram link). Umami uses no cookies, does not store your IP address and does not build a profile of you. An ad-blocker can block it; the site works the same without it.</p>
+
+      <h4>4. Cookies</h4>
+      <p>Rotator sets no cookies. It uses your browser's localStorage, described in section 1.</p>
+
+      <h4>5. Other services your browser contacts</h4>
+      <p>Loading Rotator makes your browser contact GitHub Pages (which hosts the site), Supabase (our database), CoinGecko (prices, coin logos, and a coin's links and description when you open its window), Google Fonts (typefaces), jsDelivr (the chart library) and Umami (analytics). If the main price source fails, the public proxies corsproxy.io and allorigins.win may be used instead. Like any website, these services can see your IP address and browser details when your browser contacts them, and their own privacy policies apply. Binance, Farside Investors, alternative.me, DefiLlama, blockchain.info and GeckoTerminal are contacted by our server, not by your browser. If you connect Telegram alerts, Telegram's privacy policy applies to the messages. If you play the radio, your browser loads YouTube's player (youtube-nocookie.com) for a YouTube station or link, and Google's privacy policy applies to it; for a live radio station it connects to that station's own stream server (Jazz FM at radio.jazzfm.mk, Antenna 5 at fms.off.net.mk, Radio Paradise at stream.radioparadise.com), which sees your IP address like any website. Nothing loads from YouTube or a station until you press one.</p>
+
+      <h4>6. Crypto payments</h4>
+      <p>A crypto payment is recorded on its public blockchain. We check your transaction hash against that public record and store what is listed in section 2. We never ask for, and cannot access, your wallet's private keys.</p>
+
+      <h4>7. How long we keep it</h4>
+      <p>Anonymous usage counts and daily coin snapshots are kept to build statistics and the public track record. Pro records are kept so Pro can be restored on another device. Telegram alert data is kept while alerts are on; sending /stop to the bot, or Disconnect on the site, turns them off, and we delete the record on request.</p>
+
+      <h4>8. Your choices</h4>
+      <p>You can clear this site's data in your browser at any time, disconnect Telegram alerts, and block analytics. To have the Pro, referral or Telegram records tied to your browser ID deleted, email us with that ID (shown as your recovery key in the Pro window).</p>
+
+      <h4>9. Children</h4>
+      <p>Rotator is not intended for anyone under 18, and we do not knowingly collect information about minors.</p>
+
+      <h4>10. Changes to this policy</h4>
+      <p>When this policy changes, the date at the top changes with it.</p>
+
+      <div style="margin-top:16px;padding:12px 14px;background:var(--bg3);border:1px solid var(--bdr2);border-radius:4px;font-size:12px;color:var(--muted);line-height:1.8;text-align:center;">
+        Questions? Reach out at <a href="mailto:rotatortool@gmail.com" style="color:var(--bnb);text-decoration:underline;">rotatortool@gmail.com</a>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- CONSENT BANNER (first visit) -->
+<div id="consent-banner" class="consent-banner" style="display:none;">
+  <div class="consent-inner">
+    <div class="consent-text">
+      <strong>Welcome to Rotator!</strong> By continuing to use this application, you acknowledge that this is an <strong style="color:var(--amber);">informational tool only</strong> and not financial advice. You accept our
+      <a onclick="openModal('tos-modal')" style="color:var(--bnb);cursor:pointer;text-decoration:underline;">Terms of Service</a> and
+      <a onclick="openModal('privacy-modal')" style="color:var(--green);cursor:pointer;text-decoration:underline;">Privacy Policy</a>.
+    </div>
+    <button class="consent-accept-btn" onclick="acceptConsent()">I Understand & Accept</button>
+  </div>
+</div>
+
+<!-- SETTINGS MODAL -->
+<!-- SETTINGS PANEL (positioned near gear button, like tutorial end step) -->
+<div id="settings-backdrop" style="display:none;position:fixed;inset:0;z-index:498;" onclick="closeSettingsPanel()"></div>
+<div id="settings-panel" class="tut-box arrow-right" style="display:none;width:330px;z-index:499;max-height:calc(100vh - 40px);overflow-y:auto;">
+  <button class="modal-x" onclick="closeSettingsPanel()" style="position:absolute;top:10px;right:12px;">×</button>
+  <div style="font-size:15px;font-weight:700;letter-spacing:.08em;margin-bottom:4px;padding-right:20px;">⚙ Settings</div>
+  <div style="font-size:12px;color:var(--muted);margin-bottom:14px;font-family:var(--font-ui);">Customize your Rotator experience.</div>
+  <div class="setting-row">
+    <div><div class="setting-label">Language</div><div class="setting-sub">Choose your preferred language</div></div>
+    <div class="lang-sel-modal">
+      <button class="lang-btn-modal active" id="lbtn-en" onclick="setLang('en')" title="English">🇬🇧 EN</button>
+      <button class="lang-btn-modal" id="lbtn-zh" onclick="setLang('zh')" title="中文">🇨🇳 ZH</button>
+      <button class="lang-btn-modal" id="lbtn-ar" onclick="setLang('ar')" title="عربي">🇸🇦 AR</button>
+      <button class="lang-btn-modal" id="lbtn-es" onclick="setLang('es')" title="Español">🇪🇸 ES</button>
+      <button class="lang-btn-modal" id="lbtn-fr" onclick="setLang('fr')" title="Français">🇫🇷 FR</button>
+      <button class="lang-btn-modal" id="lbtn-de" onclick="setLang('de')" title="Deutsch">🇩🇪 DE</button>
+      <button class="lang-btn-modal" id="lbtn-mk" onclick="setLang('mk')" title="Македонски">🇲🇰 MK</button>
+    </div>
+  </div>
+  <div class="setting-row">
+    <div><div class="setting-label">Light Theme</div><div class="setting-sub">Switch between dark and light mode</div></div>
+    <label class="toggle"><input type="checkbox" id="theme-toggle" onchange="toggleTheme(this.checked)"><span class="toggle-slider"></span></label>
+  </div>
+  <div class="setting-row">
+    <div><div class="setting-label">Heartbeat sound</div><div class="setting-sub">A soft heartbeat when you rest the mouse on a tile</div></div>
+    <label class="toggle"><input type="checkbox" id="hb-sound-toggle" checked onchange="setHbSound(this.checked)"><span class="toggle-slider"></span></label>
+  </div>
+  <!-- Animations (promptove/107, Daniel: "give animation options to be
+       turned off in settings, only available to pro users"). Free users
+       see it locked; a click opens the Pro window. js/ui.js -->
+  <div class="setting-row" id="anim-setting" onclick="animRowClick(event)">
+    <div><div class="setting-label">Animations <span class="set-pro-tag" id="anim-pro-tag">⚡ PRO</span></div><div class="setting-sub">Turn off moving and glowing effects</div></div>
+    <label class="toggle"><input type="checkbox" id="anim-toggle" checked onchange="setAnimOn(this.checked)" aria-label="Animations"><span class="toggle-slider"></span></label>
+  </div>
+  <!-- 🎧 Radio (js/radio.js): the stations and your own links, for everyone -->
+  <div class="setting-row radio-setting" id="radio-setting-app">
+    <div style="width:100%;"><div class="setting-label">🎧 Radio</div><div class="setting-sub">Crypto Gemidzija, live radio from Skopje and Radio Paradise, and up to 5 of your own YouTube links</div>
+      <div class="radio-setting-chips" id="radio-setting-chips"></div></div>
+  </div>
+  <hr style="border:none;border-top:1px solid var(--bdr);margin:14px 0 10px;">
+  <div class="setting-row">
+    <div><div class="setting-label">Show Tutorial</div><div class="setting-sub">Step-by-step guide for first-time users</div></div>
+    <label class="toggle"><input type="checkbox" id="tut-toggle" onchange="toggleTutSetting(this.checked)"><span class="toggle-slider"></span></label>
+  </div>
+  <div class="setting-row">
+    <div><div class="setting-label">Replay Tutorial Now</div><div class="setting-sub">Walk through the guide again</div></div>
+    <button class="tut-btn primary" onclick="closeSettingsPanel();startTutorial()">START →</button>
+  </div>
+  <div class="setting-row" id="pro-tut-setting" style="display:none;">
+    <div><div class="setting-label">⚡ Pro Features Tutorial</div><div class="setting-sub">Learn about Insight Engine, swap levels & more</div></div>
+    <button class="tut-btn primary" onclick="closeSettingsPanel();replayProTutorial()">START →</button>
+  </div>
+  <div class="setting-row">
+    <div><div class="setting-label">Swap Tool Tutorial</div><div class="setting-sub">Learn how to use the ratio swap calculator</div></div>
+    <button class="tut-btn primary" onclick="closeSettingsPanel();setTimeout(function(){var el=document.getElementById('ratio-section');if(el)el.scrollIntoView({behavior:'smooth'});setTimeout(function(){if(typeof startSwapTut==='function')startSwapTut();},600);},300)">START →</button>
+  </div>
+  <div class="setting-row pwa-install-setting" id="pwa-install-setting">
+    <div><div class="setting-label">📲 Install App</div><div class="setting-sub">Open Rotator in its own window, from your desktop or home screen</div></div>
+    <button class="tut-btn primary" onclick="closeSettingsPanel();installRotator()">INSTALL</button>
+  </div>
+  <hr style="border:none;border-top:1px solid var(--bdr);margin:14px 0 10px;">
+</div>
+
+<!-- TILE DETAIL PANEL -->
+<div class="tile-detail-overlay" id="td-overlay" onclick="closeTileDetail()"></div>
+<div class="tile-detail" id="td-panel" style="display:none;">
+  <button class="td-close" onclick="closeTileDetail()">×</button>
+
+  <!-- Header: icon + name + price -->
+  <div class="tdh">
+    <div class="tdh-ico-wrap">
+      <img id="td-ico" src="" alt="" style="width:100%;height:100%;border-radius:50%;display:block;">
+      <!-- Shown only when the logo fails to load; openTileDetail() fills it with
+           the symbol initials. Had TWO id attributes and TWO display declarations
+           until 2026-09-08: the browser dropped the second id, so #td-ico-letters
+           never existed in the DOM at all, and the later display:flex beat the
+           display:none so this sat permanently rendered as an empty circle behind
+           the logo. -->
+      <div id="td-ico-fallback" style="display:none;width:100%;height:100%;border-radius:50%;background:var(--bg4);align-items:center;justify-content:center;font-size:13px;font-weight:700;color:var(--bnb);font-family:var(--font-mono);"></div>
+    </div>
+    <div class="tdh-info">
+      <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;min-width:0;">
+        <div class="tdh-sym" id="td-sym"></div>
+        <div id="td-type-badge" class="td-type-badge"></div>
+      </div>
+      <div class="tdh-name" id="td-name"></div>
+    </div>
+    <div style="text-align:right;flex-shrink:0;">
+      <div class="tdh-price" id="td-price"></div>
+      <div id="td-price-chg" style="font-size:12px;font-weight:600;margin-top:2px;"></div>
+    </div>
+  </div>
+
+  <!-- Accent bar that changes color by score -->
+  <div id="td-accent-bar" style="height:2px;margin:-2px -2px 12px -2px;border-radius:0;transition:background .3s;"></div>
+
+  <!-- ═══ Redesigned 2026-09-26 (promptove/67) ═══════════════════════════
+       The window reads top-down to a conclusion instead of making the
+       reader assemble one from thirteen sections:
+
+         1. Warnings      exchange and unlock facts, and why a coin is
+                          kept off the buy list (td-warn)
+         2. Reading       where the coin stands, and whether it shows
+                          cooling signs (if it has run) or turn-up signs
+                          (if it has lagged), with every sign's tested
+                          record (td-reading, td-turns)
+         3. Score         the number and its 7/14/30D ranks
+         4. Details       everything that was here before, folded
+         5. About         the coin's official links (2026-10-03), then
+                          "What the score is made of" - both moved to
+                          the very bottom on 2026-10-04
+
+       Every id the code fills is unchanged, so no feature was lost; the
+       fill code in js/data-loaders.js is the same, plus _tdReading(). -->
+
+  <div class="td-section" id="td-reading-sec">
+    <div id="td-warn"></div>
+    <div id="td-reading"></div>
+  </div>
+
+  <div class="td-section" id="td-turns-sec">
+    <div class="td-section-title td-turns-title">Turn signals</div>
+    <div id="td-turns"></div>
+  </div>
+
+  <!-- Score: the number and the 7/14/30D ranks. -->
+  <div class="td-section">
+    <div class="td-section-title">Score</div>
+    <div class="td-score-wrap">
+      <div class="td-score-big" id="td-score-num"></div>
+      <div class="td-score-bars-col" id="td-score-bars"></div>
+    </div>
+    <div id="td-score-extra"></div>
+  </div>
+
+  <!-- Edit Holdings (shown only for held coins). Not folded: a holder
+       opening their own coin is usually here to update it. -->
+  <div class="td-section" id="td-edit-hold-sec" style="display:none;">
+    <div class="td-section-title">Edit Holdings</div>
+    <div style="display:flex;gap:8px;align-items:flex-end;">
+      <div style="flex:1;">
+        <label style="font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;">Buy Price ($)</label>
+        <input type="number" id="td-hold-avg" aria-label="Buy price" placeholder="0.00" step="any" min="0" style="width:100%;margin-top:3px;padding:6px 8px;background:var(--bg1);border:1px solid var(--bdr);border-radius:4px;color:var(--fg);font-size:12px;font-family:var(--font-mono);">
+      </div>
+      <div style="flex:1;">
+        <label style="font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;">Quantity</label>
+        <input type="number" id="td-hold-qty" aria-label="Quantity" placeholder="0" step="any" min="0" style="width:100%;margin-top:3px;padding:6px 8px;background:var(--bg1);border:1px solid var(--bdr);border-radius:4px;color:var(--fg);font-size:12px;font-family:var(--font-mono);">
+      </div>
+      <button id="td-hold-save" onclick="saveTileHolding()" style="padding:6px 14px;background:var(--green);color:#000;border:none;border-radius:4px;font-size:12px;font-weight:700;cursor:pointer;white-space:nowrap;">SAVE</button>
+    </div>
+  </div>
+
+  <div class="td-details-lbl">Expand for more details</div>
+
+  <!-- RSI(14): current reading from coin_technicals, history from
+       coin_indicator_daily. Two sources on purpose — see the comment in
+       js/data-loaders.js. Hidden when the coin has no Binance pair. -->
+  <div class="td-section td-fold-sec" id="td-rsi-sec" style="display:none;">
+    <details class="td-fold"><summary class="td-section-title">Momentum · RSI(14)</summary>
+      <div id="td-rsi"></div>
+    </details>
+  </div>
+
+  <!-- Technical events from coin_events, detected daily at 00:45 UTC by
+       detect_coin_events(). The recent ones also appear under Turn
+       signals; this is the full list with its caveats. -->
+  <div class="td-section td-fold-sec" id="td-events-sec" style="display:none;">
+    <details class="td-fold"><summary class="td-section-title">Technical events</summary>
+      <div id="td-events"></div>
+    </details>
+  </div>
+
+  <!-- Derivatives — Binance USDⓈ-M perpetual data, read from Supabase
+       (binance_futures_metrics), never from the browser. Hidden for coins
+       with no perpetual. Display only: none of this feeds the score, and
+       "capable of ranking" is not "predicts returns". See promptove/14. -->
+  <div class="td-section td-fold-sec" id="td-deriv-sec" style="display:none;">
+    <details class="td-fold"><summary class="td-section-title">Derivatives</summary>
+      <div class="td-mkt-grid" id="td-deriv"></div>
+      <!-- Hourly history from binance_futures_history, filled lazily when the
+           modal opens. Stays empty for pairs with too few readings to draw
+           honestly — see _renderDerivHistory() in js/data-loaders.js. -->
+      <div class="td-hist-grid" id="td-deriv-hist"></div>
+    </details>
+  </div>
+
+  <!-- Market data -->
+  <div class="td-section td-fold-sec" id="td-market-sec">
+    <details class="td-fold"><summary class="td-section-title">Market data</summary>
+      <div class="td-mkt-grid" id="td-market"></div>
+    </details>
+  </div>
+
+  <!-- Supply / extra data (crypto only) -->
+  <div class="td-section td-fold-sec" id="td-supply-sec" style="display:none;">
+    <details class="td-fold"><summary class="td-section-title">Supply and unlocks</summary>
+      <div class="td-mkt-grid" id="td-supply"></div>
+    </details>
+  </div>
+
+  <!-- Market Cycle — only shown for BTC/ETH/BNB/SOL/XRP/PAXG, the 6
+       assets sync-market-cycle actually tracks. Real 200-day-average Mayer
+       Multiple; only BTC gets a qualitative label. -->
+  <div class="td-section td-fold-sec" id="td-cycle-sec" style="display:none;">
+    <details class="td-fold"><summary class="td-section-title">Market cycle</summary>
+      <div class="td-mkt-grid" id="td-cycle"></div>
+    </details>
+  </div>
+
+  <!-- Liquidity — 24h volume vs market cap: "can I exit without moving
+       the price myself". A risk flag, not a momentum input. -->
+  <div class="td-section td-fold-sec" id="td-liquidity-sec" style="display:none;">
+    <details class="td-fold"><summary class="td-section-title">Liquidity</summary>
+      <div class="td-mkt-grid" id="td-liquidity"></div>
+    </details>
+  </div>
+
+  <!-- The score-gap context, only when this coin is in a pair on the
+       Score gaps panel (renderRotationContext). The Badges fold that held
+       it is gone (Daniel, 2026-10-04): every badge repeated something
+       shown above it — exchange flags (Warnings), the score band (the
+       reading), the 24H / 7D / 30D moves (the key facts). -->
+  <div class="td-section td-fold-sec" id="td-signals-sec" style="display:none;">
+    <details class="td-fold"><summary class="td-section-title">Score gap</summary>
+      <div id="td-rot-ctx" hidden></div>
+    </details>
+  </div>
+
+  <!-- Insight Engine (shown for holdings + watchlist coins) -->
+  <div class="td-section td-fold-sec td-insight-sec" id="td-insight-sec" style="display:none;">
+    <details class="td-fold"><summary class="td-section-title"><span style="display:inline-flex;align-items:center;gap:5px;">⚡ Insight Engine <span class="td-pro-tag">PRO</span></span></summary>
+      <div id="td-insight-content"></div>
+    </details>
+  </div>
+
+  <!-- Reference material at the bottom, after every Details fold
+       (Daniel, 2026-10-04): About the coin, then how the score is built. -->
+  <!-- About the coin: official links from CoinGecko (_tdAbout, 2026-10-03) -->
+  <div class="td-section" id="td-about-sec" style="display:none;">
+    <div class="td-section-title" id="td-about-title">About</div>
+    <div id="td-about"></div>
+  </div>
+
+  <!-- The three layers behind the composite SCORE. An honest score should
+       be inspectable, not a black-box number. -->
+  <div class="td-section td-fold-sec" id="td-breakdown-sec" style="display:none;">
+    <details class="td-fold"><summary class="td-section-title">What the score is made of</summary>
+    <div class="td-mkt-grid" id="td-breakdown"></div>
+    </details>
+  </div>
+
+  <!-- Share buttons -->
+  <div class="td-share-wrap">
+    <div class="td-share-label">SHARE INSIGHT</div>
+    <!-- Share-as-image hero button -->
+    <button class="td-share-card-btn" onclick="shareAsImage()" title="Generate shareable card image">
+      <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><path d="M8.59 13.51l6.83 3.98M15.41 6.51l-6.82 3.98"/></svg>
+      <span>Snapshot &amp; Share</span>
+    </button>
+  </div>
+</div>
+
+<!--
+  ══════════════════════════════════════════════════════════════
+  VIRAL SHARE MODAL — shared by TWO different share card generators:
+  ──────────────────────────────────────────────────────────────
+  CARD #1 — Coin / Holdings share card
+    Function:  shareAsImage()          (js/data-loaders.js)
+    Trigger:   "SNAPSHOT & SHARE" in coin detail modal
+    Canvas:    1200×630   Shows: score circle, badges, market data
+
+  CARD #2 — Swap Calculator share card
+    Function:  shareSwapCard()         (js/ratio.js)
+    Trigger:   "Share" button in swap panel top actions
+    Canvas:    1080×1080  Shows: ratio, chart, swap result, viral hook
+
+  Both generate a canvas PNG → blob → preview in this modal.
+  shareSwapCard() temporarily overrides _viralCopyTemplates
+  and restores them when the modal closes.
+  ══════════════════════════════════════════════════════════════
+-->
+<!-- VIRAL SHARE PREVIEW MODAL -->
+<div class="overlay viral-share-overlay" id="viral-share-modal" onclick="if(event.target===this)closeViralShare()">
+  <div class="viral-share-modal">
+    <button class="modal-x" onclick="closeViralShare()" aria-label="Close">×</button>
+    <div class="viral-share-title">Share This Signal</div>
+    <div class="viral-share-sub">Spread the word — your referral link is embedded automatically.</div>
+    <!-- Image preview -->
+    <div class="viral-share-preview" id="viral-share-preview"></div>
+    <!-- Dynamic copy selector -->
+    <div class="viral-copy-wrap">
+      <div class="viral-copy-label">SHARE MESSAGE</div>
+      <div class="viral-copy-text" id="viral-copy-text"></div>
+      <button class="viral-copy-cycle" onclick="cycleViralCopy()" title="Try another message">↻ Different message</button>
+    </div>
+    <!-- Platform buttons -->
+    <div class="viral-share-platforms">
+      <button class="viral-sh" onclick="viralShareTo('x')"         title="Share on X"><svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg><span>X</span></button>
+      <button class="viral-sh" onclick="viralShareTo('telegram')"   title="Share on Telegram"><svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor"><path d="M11.944 0A12 12 0 000 12a12 12 0 0012 12 12 12 0 0012-12A12 12 0 0012 0h-.056zm4.962 7.224c.1-.002.321.023.465.14a.506.506 0 01.171.325c.016.093.036.306.02.472-.18 1.898-.962 6.502-1.36 8.627-.168.9-.499 1.201-.82 1.23-.696.065-1.225-.46-1.9-.902-1.056-.693-1.653-1.124-2.678-1.8-1.185-.78-.417-1.21.258-1.91.177-.184 3.247-2.977 3.307-3.23.007-.032.014-.15-.056-.212s-.174-.041-.249-.024c-.106.024-1.793 1.14-5.061 3.345-.479.33-.913.492-1.302.486-.428-.008-1.252-.241-1.865-.44-.752-.245-1.349-.374-1.297-.789.027-.216.325-.437.893-.663 3.498-1.524 5.83-2.529 6.998-3.014 3.332-1.386 4.025-1.627 4.476-1.635z"/></svg><span>Telegram</span></button>
+      <button class="viral-sh" onclick="viralShareTo('whatsapp')"   title="Share on WhatsApp"><svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg><span>WhatsApp</span></button>
+      <button class="viral-sh" onclick="viralShareTo('discord')"    title="Share on Discord"><svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor"><path d="M20.317 4.37a19.791 19.791 0 00-4.885-1.515.074.074 0 00-.079.037c-.21.375-.444.864-.608 1.25a18.27 18.27 0 00-5.487 0 12.64 12.64 0 00-.617-1.25.077.077 0 00-.079-.037A19.736 19.736 0 003.677 4.37a.07.07 0 00-.032.027C.533 9.046-.32 13.58.099 18.057a.082.082 0 00.031.057 19.9 19.9 0 005.993 3.03.078.078 0 00.084-.028c.462-.63.874-1.295 1.226-1.994a.076.076 0 00-.041-.106 13.107 13.107 0 01-1.872-.892.077.077 0 01-.008-.128 10.2 10.2 0 00.372-.292.074.074 0 01.077-.01c3.928 1.793 8.18 1.793 12.062 0a.074.074 0 01.078.01c.12.098.246.198.373.292a.077.077 0 01-.006.127 12.299 12.299 0 01-1.873.892.077.077 0 00-.041.107c.36.698.772 1.362 1.225 1.993a.076.076 0 00.084.028 19.839 19.839 0 006.002-3.03.077.077 0 00.032-.054c.5-5.177-.838-9.674-3.549-13.66a.061.061 0 00-.031-.03zM8.02 15.33c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.956-2.419 2.157-2.419 1.21 0 2.176 1.095 2.157 2.42 0 1.333-.956 2.418-2.157 2.418zm7.975 0c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.956-2.419 2.157-2.419 1.21 0 2.176 1.095 2.157 2.42 0 1.333-.947 2.418-2.157 2.418z"/></svg><span>Discord</span></button>
+      <button class="viral-sh" onclick="viralShareTo('messenger')"  title="Share on Messenger"><svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor"><path d="M12 0C5.373 0 0 4.974 0 11.111c0 3.498 1.744 6.614 4.469 8.654V24l4.088-2.242c1.092.301 2.246.464 3.443.464 6.627 0 12-4.975 12-11.111S18.627 0 12 0zm1.191 14.963l-3.055-3.26-5.963 3.26L10.732 8.2l3.131 3.259L19.752 8.2l-6.561 6.763z"/></svg><span>Messenger</span></button>
+      <button class="viral-sh" onclick="viralShareTo('reddit')"     title="Share on Reddit"><svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor"><path d="M12 0A12 12 0 000 12a12 12 0 0012 12 12 12 0 0012-12A12 12 0 0012 0zm5.01 4.744c.688 0 1.25.561 1.25 1.249a1.25 1.25 0 01-2.498.056l-2.597-.547-.8 3.747c1.824.07 3.48.632 4.674 1.488.308-.309.73-.491 1.207-.491.968 0 1.754.786 1.754 1.754 0 .716-.435 1.333-1.053 1.597.047.28.07.567.07.862 0 2.883-3.323 5.217-7.418 5.217s-7.418-2.334-7.418-5.217c0-.282.021-.558.063-.83A1.748 1.748 0 013.2 12c0-.968.786-1.754 1.754-1.754.466 0 .886.178 1.195.484 1.167-.828 2.775-1.386 4.546-1.486l.928-4.392a.393.393 0 01.466-.314l2.883.608a1.254 1.254 0 011.038-.602zm-7.035 8.756a1.25 1.25 0 100 2.498 1.25 1.25 0 000-2.498zm5.05 0a1.25 1.25 0 100 2.498 1.25 1.25 0 000-2.498zm-5.23 3.578c.167.167 1.15.897 2.71.897 1.56 0 2.543-.73 2.71-.897a.268.268 0 00-.01-.383.268.268 0 00-.376-.006c-.01.01-.797.602-2.324.602-1.527 0-2.315-.592-2.324-.602a.268.268 0 00-.376.006.27.27 0 00-.01.383z"/></svg><span>Reddit</span></button>
+      <button class="viral-sh" onclick="viralShareTo('threads')"    title="Share on Threads"><svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor"><path d="M12.186 24h-.007c-3.581-.024-6.334-1.205-8.184-3.509C2.35 18.44 1.5 15.586 1.472 12.01v-.017c.03-3.579.879-6.43 2.525-8.482C5.845 1.205 8.6.024 12.18 0h.014c2.746.02 5.043.725 6.826 2.098 1.677 1.29 2.858 3.13 3.509 5.467l-2.04.569c-1.104-3.96-3.898-5.984-8.304-6.015-2.91.022-5.11.936-6.54 2.717C4.307 6.504 3.616 8.914 3.59 12c.025 3.086.718 5.496 2.057 7.164 1.432 1.781 3.632 2.695 6.54 2.717 2.227-.033 3.96-.545 5.324-1.59 1.494-1.15 2.1-2.636 1.846-4.528-.162-1.206-.756-2.158-1.73-2.79-.015.753-.077 1.478-.2 2.151-.327 1.825-1.025 3.23-2.073 4.178-1.077.974-2.538 1.468-4.339 1.468h-.09c-1.5-.015-2.764-.5-3.757-1.441-.996-.945-1.524-2.213-1.572-3.767l2.118-.05c.035 1.083.376 1.927 1.013 2.513.622.572 1.471.868 2.524.88h.07c1.322 0 2.348-.334 3.05-.991.633-.594 1.075-1.538 1.316-2.806.113-.596.166-1.243.166-1.904 0-.257-.01-.51-.03-.755-1.017-.487-2.23-.738-3.59-.738h-.102c-1.668.014-3.07.538-4.173 1.559l-1.436-1.544c1.453-1.346 3.267-2.052 5.394-2.098h.22c1.093.008 2.117.167 3.058.468-.152-1.197-.682-2.124-1.575-2.76-1.003-.716-2.39-1.082-4.123-1.088h-.077c-1.648.013-2.95.436-3.878 1.261-.958.85-1.465 2.085-1.508 3.674l-2.118-.05c.06-2.161.776-3.882 2.13-5.082C8.08 4.337 9.74 3.76 11.791 3.745h.094c2.135.012 3.863.533 5.137 1.546 1.202.958 1.945 2.268 2.207 3.892a8.27 8.27 0 011.742 1.258c1.326 1.308 2.059 3.107 2.059 5.06 0 .32-.018.643-.055.964-.34 2.62-1.286 4.584-2.81 5.836C18.448 23.277 16.064 24 12.983 24h-.003z"/></svg><span>Threads</span></button>
+      <button class="viral-sh" onclick="viralShareTo('copy')"       title="Copy message"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg><span>Copy</span></button>
+    </div>
+    <!-- Action row: native share + download -->
+    <div class="viral-actions">
+      <button class="viral-native-share" id="viral-native-btn" onclick="viralNativeShare()" style="display:none;">
+        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><path d="M8.59 13.51l6.83 3.98M15.41 6.51l-6.82 3.98"/></svg>
+        Share with Image
+      </button>
+      <button class="viral-download-btn" onclick="viralDownload()">
+        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg>
+        Download Only
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- TOOLTIP -->
+<div class="rt-tip" id="rt-tip"><div class="rt-tip-title" id="rt-tip-title"></div><div id="rt-tip-body"></div></div>
+
+<!-- TUTORIAL OVERLAY -->
+<div class="tut-backdrop" id="tut-backdrop"></div>
+<div class="tut-hole" id="tut-hole" style="display:none;"></div>
+<div class="tut-box" id="tut-box" style="display:none;">
+  <!-- Close the tour from any step, same as "Turn off" (Daniel, 2026-10-04). -->
+  <button class="tut-x" onclick="endTutorial()" aria-label="Close the tour" title="Close the tour">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12"/></svg>
+  </button>
+  <div class="tut-step-label" id="tut-step-label">STEP 1 OF 5</div>
+  <div class="tut-title" id="tut-title"></div>
+  <div class="tut-desc" id="tut-desc"></div>
+  <div class="tut-disclaimer" id="tut-disclaimer" style="display:none;">
+    <strong>⚠ NOT FINANCIAL ADVICE</strong><br>
+    Rotator is an informational tool only. Scores and signals are based on historical price data and do not predict future performance. Nothing on this platform constitutes financial, investment, or trading advice. Always do your own research and consult a qualified financial advisor before making any investment decisions.
+  </div>
+  <label class="tut-agree" id="tut-agree" style="display:none;">
+    <span class="tut-agree-label" id="tut-agree-lbl">I understand that Rotator is <strong>not financial advice</strong> and I am solely responsible for my own investment decisions.</span>
+    <input type="checkbox" id="tut-agree-chk" onchange="tutCheckAgree()" style="flex-shrink:0;">
+  </label>
+  <div class="tut-footer">
+    <div class="tut-dots" id="tut-dots"></div>
+    <div class="tut-btns">
+      <button class="tut-skip" onclick="endTutorial()">Turn off</button>
+      <button class="tut-btn" id="tut-prev" onclick="tutStep(-1)">← Back</button>
+      <button class="tut-btn primary" id="tut-next" onclick="tutStep(1)">Next →</button>
+    </div>
+  </div>
+</div>
+
+<!-- ADD HOLDINGS MODAL -->
+<div class="overlay" id="add-holding-modal" onclick="if(event.target===this)closeModal('add-holding-modal')">
+  <div class="modal">
+    <button class="modal-x" onclick="closeModal('add-holding-modal')">×</button>
+    <div class="modal-title">+ Add to Holdings</div>
+    <div class="modal-sub" style="margin-bottom:12px;">Search for a coin, enter your quantity and average buy price.</div>
+    <div class="ah-search-wrap">
+      <input class="ah-search-input" id="ah-search" type="text" placeholder="Search coin name or symbol…" oninput="ahSearch(this.value)" autocomplete="off">
+    </div>
+    <div class="ah-selected-coin" id="ah-selected-coin">
+      <div class="ah-coin-ico" id="ah-sel-ico"><img id="ah-sel-img" src="" alt=""></div>
+      <span id="ah-sel-sym" style="font-size:13px;font-weight:700;font-family:var(--font-mono);"></span>
+      <span id="ah-sel-name" style="font-size:12px;color:var(--muted);flex:1;"></span>
+      <button class="ah-sel-clear" onclick="ahClearCoin()">×</button>
+    </div>
+    <div class="ah-coin-list" id="ah-coin-list"></div>
+    <div class="ah-fields">
+      <div class="ah-field"><label>Quantity</label><input type="number" id="ah-qty" placeholder="e.g. 0.5" min="0" step="any"></div>
+      <div class="ah-field"><label>Avg Buy Price ($)</label><input type="number" id="ah-avg" placeholder="e.g. 45000" min="0" step="any"></div>
+    </div>
+    <button class="ah-add-btn" id="ah-confirm-btn" onclick="ahConfirmAdd()" disabled>+ Add to Holdings</button>
+  </div>
+</div>
+
+<!-- DONATE MODAL -->
+<div class="overlay" id="donate-modal" onclick="if(event.target===this)closeModal('donate-modal')">
+  <div class="modal" style="padding-top:20px;overflow:hidden;">
+    <button class="modal-x" onclick="closeModal('donate-modal')" aria-label="Close">×</button>
+    <div class="modal-title">☕ Support Rotator</div>
+    <div class="modal-sub">A donation is a thank-you for the work behind Rotator. It keeps the site <strong style="color:var(--bnb)">free and ad-free</strong> for everyone. It does not unlock Pro.</div>
+    <div style="overflow-y:auto;-webkit-overflow-scrolling:touch;flex:1;padding-right:4px;">
+    <!-- Support and Pro side by side (promptove/107, Daniel: "support is
+         more like donation of the cause … pro is one time unlock").
+         A donation unlocks nothing; the $20 Pro payment and its TX check
+         live in the Pro window. -->
+    <div class="sp-split">
+      <div class="sp-col sp-support">
+        <div class="sp-h">☕ Support</div>
+        <div class="sp-t">A donation of any amount, to say thank you. It pays for the servers and new work.</div>
+        <div class="sp-k">Unlocks nothing</div>
+      </div>
+      <div class="sp-col sp-pro">
+        <div class="sp-h">⚡ Pro</div>
+        <div class="sp-t">A one-time unlock of extra features: invite 5 friends, a Pro code, or a $20 payment.</div>
+        <button type="button" class="sp-link" onclick="closeModal('donate-modal');openPro();">See Pro →</button>
+      </div>
+    </div>
+    <div id="donate-modal-goal" style="background:var(--bg3);border:1px solid var(--bdr2);border-radius:3px;padding:10px 14px;margin-bottom:12px;"></div>
+
+    <div style="background:var(--bg3);border:1px solid var(--bdr2);border-radius:4px;padding:12px 14px;margin-bottom:16px;">
+      <div class="don-builds" style="font-size:12px;letter-spacing:.14em;color:var(--muted);margin-bottom:10px;text-transform:uppercase;">Your donation helps build:</div>
+      <div style="display:flex;flex-direction:column;gap:7px;">
+        <div class="don-line" style="display:flex;align-items:center;gap:8px;font-size:12px;color:var(--text);">
+          <span style="color:var(--green);font-size:13px;">✓</span><span><strong style="color:var(--green)">Live now:</strong> 250 coins · tokenized stocks · holder warnings · public track record · free API</span>
+        </div>
+        <div class="don-line" style="display:flex;align-items:center;gap:8px;font-size:12px;color:var(--text);">
+          <span style="color:var(--bnb);font-size:13px;">◈</span><span><strong style="color:var(--bnb)">Next:</strong> features that pass their own tests</span>
+        </div>
+        <div class="don-line" style="display:flex;align-items:center;gap:8px;font-size:12px;color:var(--text);">
+          <span style="color:var(--pro);font-size:13px;">◈</span><span><strong style="color:var(--pro)">Always:</strong> free, ad-free, and honest about what works</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Payment methods -->
+    <div style="font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);margin-bottom:10px;">Payment Methods</div>
+
+    <!-- Crypto (primary) -->
+    <div style="font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:var(--green);margin-bottom:8px;display:flex;align-items:center;gap:6px;">
+      <span style="font-size:12px;">●</span> Crypto Donation
+    </div>
+
+    <!-- USDT TRC20 -->
+    <div class="network-tag">⬡ USDT · TRC20 (Tron)</div>
+    <div class="addr-box">TGt3FQmv8AFPqbj6PnQGUAmemV9gDNm4bt</div>
+    <button class="copy-btn" id="copy-trc20-btn" onclick="copyAddr('TGt3FQmv8AFPqbj6PnQGUAmemV9gDNm4bt','copy-trc20-btn');showTipScreen()">COPY ADDRESS</button>
+
+    <!-- BEP20 (BSC) -->
+    <div class="network-tag" style="margin-top:10px;">⬡ USDT / BNB · BEP20 (BSC)</div>
+    <div class="addr-box">0x507772f8714bca8e73a7984446edb59fea9bfba3</div>
+    <button class="copy-btn" id="copy-bep20-btn" onclick="copyAddr('0x507772f8714bca8e73a7984446edb59fea9bfba3','copy-bep20-btn');showTipScreen()">COPY ADDRESS</button>
+
+    <!-- ERC20 (Ethereum) -->
+    <div class="network-tag" style="margin-top:10px;">⬡ USDT / ETH · ERC20 (Ethereum)</div>
+    <div class="addr-box">0x507772f8714bca8e73a7984446edb59fea9bfba3</div>
+    <button class="copy-btn" id="copy-erc20-btn" onclick="copyAddr('0x507772f8714bca8e73a7984446edb59fea9bfba3','copy-erc20-btn');showTipScreen()">COPY ADDRESS</button>
+
+    <!-- Binance Pay -->
+    <div class="network-tag" style="margin-top:10px;">⬡ Binance Pay</div>
+    <div class="addr-box">364154350</div>
+    <button class="copy-btn" id="copy-binance-btn" onclick="copyAddr('364154350','copy-binance-btn');showTipScreen()">COPY BINANCE ID</button>
+
+    <div class="modal-note" style="margin-top:10px;">⚠ Always double-check the network before sending.<br>Wrong network = permanent loss.</div>
+    <div style="font-size:12px;color:var(--muted);text-align:center;margin-top:6px;">Need help? <a href="mailto:rotatortool@gmail.com" style="color:var(--bnb);text-decoration:none;">rotatortool@gmail.com</a></div>
+
+    <!-- Community channels (Telegram is Pro-only) -->
+    <div style="font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);margin:14px 0 8px;display:flex;align-items:center;gap:6px;">
+      <span style="font-size:12px;">○</span> Community &amp; Notifications
+    </div>
+    <div style="font-size:12px;color:var(--muted);line-height:1.6;margin-bottom:8px;text-align:center;">The Telegram channel posts the daily market pulse, free for everyone.<br><span style="color:var(--pro);font-weight:600;">Pro adds personal Telegram alerts about your own coins.</span></div>
+    <div class="community-tier-row">
+      <a href="https://t.me/rotatortool" target="_blank" rel="noopener" class="community-btn community-btn-tg" onclick="return joinTelegram(event)">
+        <div style="font-size:16px;font-weight:800;">Telegram</div>
+        <div style="font-size:12px;color:inherit;opacity:.75;margin-top:2px;">Free market pulse</div>
+      </a>
+      <a href="#" class="community-btn community-btn-dc community-btn-soon" onclick="event.preventDefault();return false;" aria-disabled="true">
+        <div style="font-size:16px;font-weight:800;">Discord</div>
+        <div style="font-size:12px;color:inherit;opacity:.75;margin-top:2px;">Coming soon</div>
+      </a>
+    </div>
+    </div><!-- /scrollable body -->
+  </div>
+</div>
+
+<!-- TIP / THANK YOU SCREEN -->
+<div class="overlay" id="tip-modal" onclick="if(event.target===this)closeModal('tip-modal')">
+  <div class="modal" style="padding-top:20px;text-align:center;">
+    <button class="modal-x" onclick="closeModal('tip-modal')" aria-label="Close">×</button>
+    <div style="font-size:36px;margin-bottom:8px;">♥</div>
+    <div class="modal-title">Thank You!</div>
+    <div class="modal-sub" style="line-height:1.8;">Your donation ensures the future development of this tool and better quality of its products — faster API calls, more accurate live data, and new features.<br><br><span style="font-size:12px;color:var(--muted);">These improvements require a paid CoinGecko API. For now we go steady — your support gets us there.</span></div>
+    <button class="code-btn" onclick="closeModal('tip-modal')" style="width:100%;margin-top:14px;padding:10px;font-size:12px;letter-spacing:.08em;">CLOSE</button>
+  </div>
+</div>
+
+<!-- ETF FLOWS MODAL — filled by openEtfModal() in js/data-loaders.js -->
+<div class="overlay" id="etf-modal" onclick="if(event.target===this)closeModal('etf-modal')">
+  <div class="modal etf-modal">
+    <button class="modal-x" onclick="closeModal('etf-modal')" aria-label="Close">×</button>
+    <div id="etf-modal-body"></div>
+  </div>
+</div>
+
+<!-- PRO UNLOCK MODAL -->
+<div class="overlay" id="pro-modal" onclick="if(event.target===this)closeModal('pro-modal')">
+  <div class="modal" style="padding-top:20px;">
+    <button class="modal-x" onclick="closeModal('pro-modal')" aria-label="Close">×</button>
+    <div id="pro-modal-body">
+      <!-- filled by JS -->
+    </div>
+  </div>
+</div>
+
+<!-- SIGNAL ASSISTANT MODAL (Pro) — answers only from the live signal run, see js/signal-assistant.js -->
+<div class="overlay" id="signal-assistant-modal" onclick="if(event.target===this)closeModal('signal-assistant-modal')">
+  <div class="modal" style="max-width:520px;max-height:85vh;display:flex;flex-direction:column;padding-bottom:16px;">
+    <button class="modal-x" onclick="closeModal('signal-assistant-modal')" aria-label="Close">×</button>
+    <div class="modal-title" style="color:var(--bnb);">🤖 Signal Assistant</div>
+    <div class="modal-sub">Ask about the current scores. Answers come only from the latest run, never invented.</div>
+    <div id="sa-messages" style="flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;min-height:180px;max-height:44vh;margin:10px 0;padding-right:2px;"></div>
+    <div id="sa-error" style="display:none;color:var(--red);font-size:12px;margin-bottom:8px;"></div>
+    <form id="sa-form" onsubmit="sendSignalAssistantMessage(event)" style="display:flex;gap:8px;">
+      <input id="sa-input" type="text" placeholder="e.g. what looks weak right now?" autocomplete="off"
+             onkeydown="saInputKeydown(event)"
+             style="flex:1;background:var(--bg3);border:1px solid var(--bdr2);border-radius:6px;padding:10px 12px;font-size:13px;color:var(--text);">
+      <button type="submit" class="code-btn" style="padding:10px 16px;font-size:12px;letter-spacing:.06em;">ASK</button>
+    </form>
+    <div style="font-size:10px;color:var(--muted);text-align:center;margin-top:10px;">Algorithmic rotation signal only · Not financial advice · DYOR</div>
+  </div>
+</div>
+
+<!-- LOADER -->
+<div class="loader" id="loader">
+  <!-- promptove/105: the middle is what you read while the data loads;
+       the credits sit at the foot of the screen, where they no longer
+       compete with it. The bar follows prog() in js/data-loaders.js. -->
+  <div class="loader-main">
+    <canvas id="splash-c" width="420" height="140" style="display:block;margin-bottom:-10px;"></canvas>
+    <div class="loader-tag">Your Daily Asset Performance Tracker</div>
+    <div class="loader-bar" role="progressbar" aria-label="Loading" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" id="load-bar"><div class="loader-bar-fill" id="load-bar-fill"></div></div>
+    <!-- Pulse line (2026-10-03): a beating heart and a rotating phrase,
+         filled by showLoadPulse() in js/data-loaders.js. -->
+    <div class="load-pulse" id="load-pulse" aria-live="polite"><span class="lp-ecg" aria-hidden="true"><svg viewBox="0 0 180 40" preserveAspectRatio="none"><path pathLength="1" d="M0 20 L14 20 L17 17 L20 20 L24 20 L26 23 L28 3 L30 30 L32 20 L37 20 L41 14 L45 20 L60 20 L74 20 L77 17 L80 20 L84 20 L86 23 L88 3 L90 30 L92 20 L97 20 L101 14 L105 20 L120 20 L134 20 L137 17 L140 20 L144 20 L146 23 L148 3 L150 30 L152 20 L157 20 L161 14 L165 20 L180 20"/></svg></span><span id="load-pulse-txt">Checking today's market pulse…</span></div>
+    <div class="loader-step" id="lmsg">Starting up…</div>
+    <div class="loader-tip" id="load-tip"></div>
+  </div>
+  <div class="loader-credits">
+    <a href="https://www.coingecko.com/en/api" target="_blank" rel="noopener" class="cg-attribution loader-cg">
+      <span>Price data provided by</span>
+      <img src="coingecko-api-logo.svg" alt="CoinGecko API">
+    </a>
+    <div class="loader-sources">Also from Binance · GeckoTerminal · DefiLlama · Farside&nbsp;Investors · alternative.me · Yahoo&nbsp;Finance</div>
+  </div>
+</div>
+
+<!-- TOPBAR -->
+<header>
+<div class="topbar">
+  <!-- ── MOBILE: 5 equal cells (promptove/103) ──
+       Buttons, not divs, so a keyboard and a screen reader reach them.
+       The labels are real text, not CSS ::after content, so they
+       translate. Support left the bar: it is in MORE and the footer;
+       search took its slot (the cell existed but was never shown). -->
+  <!-- Cell 1: BTC trend -->
+  <button type="button" class="mob-topbar-btc" id="mob-btc-cell" onclick="location.reload()" title="BTC trend — tap to refresh" aria-label="BTC trend — tap to refresh">
+    <span class="mob-btc-cell unk" id="mob-btc-inner">
+      <span class="pulse"></span>
+      <span id="mob-btc-txt">BTC</span>
+    </span>
+  </button>
+  <!-- Cell 2: Unlock Pro -->
+  <button type="button" class="mob-topbar-pro" onclick="openPro()" title="Unlock Pro, free with 5 invites" aria-label="Unlock Pro, free with 5 invites">
+    <span class="mob-pro-icon" aria-hidden="true">⚡</span><span class="mob-cell-lbl">PRO</span>
+  </button>
+  <!-- Cell 3: Animated logo -->
+  <button type="button" class="mob-topbar-center" onclick="location.reload()" title="ROTATOR" aria-label="ROTATOR — reload">
+    <canvas id="logo-c-mob" width="240" height="28" style="display:block;max-width:100%;" aria-hidden="true"></canvas>
+  </button>
+  <!-- Cell 4: Search -->
+  <button type="button" class="mob-topbar-search" onclick="toggleMobSearch()" title="Search coins" aria-label="Search coins">
+    <svg width="18" height="18" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+      <circle cx="6.5" cy="6.5" r="5" stroke="currentColor" stroke-width="1.7"/>
+      <line x1="10.5" y1="10.5" x2="14.5" y2="14.5" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/>
+    </svg><span class="mob-cell-lbl">SEARCH</span>
+  </button>
+  <!-- Cell 5: Settings -->
+  <button type="button" class="mob-topbar-gear" onclick="openSettingsPanel(this)" title="Settings" aria-label="Settings">
+    <span class="mob-gear-icon" aria-hidden="true">⚙</span><span class="mob-cell-lbl">SETTINGS</span>
+  </button>
+
+  <!-- LANDSCAPE mode bar removed — single crypto+bStocks view, nothing to switch between.
+       See rotator-bstocks-migration-plan.md. -->
+
+  <!-- ── DESKTOP: original layout ── -->
+  <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;" class="topbar-desktop-left">
+    <canvas id="logo-c" width="110" height="32" style="display:block;cursor:pointer;" onclick="location.reload()" title="ROTATOR"></canvas>
+    <span class="tier-badge free" id="tier-badge" style="display:none;">FREE</span>
+    <div class="btc-meta"><span id="btc-p">—</span><span style="margin-left:8px;" id="btc-ma"></span></div>
+  </div>
+  <!-- Bear market inline banner -->
+  <div class="bear-banner" id="bear-banner">
+    <span>⚠</span>
+    <span><strong>BEAR MARKET CAUTION:</strong> BTC is below its 200-day moving average.</span>
+    <button class="bear-close" onclick="dismissBearBanner()" title="Dismiss">×</button>
+  </div>
+  <div class="scale-banner" id="scale-banner">
+    <span>🖥</span>
+    <span>This website uses dynamic scaling. Use <strong>Ctrl +</strong> / <strong>Ctrl −</strong> to adjust the layout to your liking.</span>
+    <button class="scale-close" onclick="dismissScaleBanner()" title="Dismiss">×</button>
+  </div>
+  <!-- Takes the banner slot once the scaling tip is dismissed. Not a
+       banner to close: it is a standing market reading, so it has no ×.
+       Filled by renderFearGreed() in js/data-loaders.js. -->
+  <div class="scale-banner" id="fng-banner">
+    <span id="fng-text">—</span>
+  </div>
+  <div class="topbar-r">
+    <span class="ts" id="ts">—</span>
+
+    <!-- Search -->
+    <div class="topbar-search-wrap" id="topbar-search-wrap">
+      <button class="topbar-search-btn" id="topbar-search-btn" onclick="toggleTopbarSearch()" title="Search coins" aria-label="Search coins">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+          <circle cx="6.5" cy="6.5" r="5" stroke="currentColor" stroke-width="1.6"/>
+          <line x1="10.5" y1="10.5" x2="14.5" y2="14.5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>
+        </svg>
+      </button>
+      <div class="topbar-search-dropdown" id="topbar-search-dropdown" style="display:none;">
+        <input type="text" id="topbar-search-input" class="topbar-search-input"
+          placeholder="Search coins, forex, stocks…"
+          autocomplete="off"
+          oninput="handleTopbarSearch(this.value)"
+          onkeydown="if(event.key==='Escape')toggleTopbarSearch(false)">
+        <div class="topbar-search-results" id="topbar-search-results"></div>
+      </div>
+    </div>
+
+    <!-- Install as an app (promptove/104). Was a dropdown of two "SOON"
+         items; the app already exists: Rotator is an installable web app
+         (manifest.json + sw.js). installRotator() in js/ui.js shows the
+         browser's own install prompt, or how to install in this browser.
+         Hidden when Rotator is already running as an installed app. -->
+    <div class="tb-dropdown-wrap">
+      <button class="tb-icon-btn" id="install-topbar-btn" onclick="installRotator()" title="Install Rotator as an app" aria-label="Install Rotator as an app">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+      </button>
+    </div>
+
+    <!-- 🎧 Radio (js/radio.js) -->
+    <div class="tb-dropdown-wrap">
+      <button class="tb-icon-btn radio-topbar-btn" id="radio-topbar-btn" onclick="radioToggle()" title="Radio" aria-label="Radio">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 18v-6a9 9 0 0 1 18 0v6"/><path d="M21 19a2 2 0 0 1-2 2h-1a2 2 0 0 1-2-2v-3a2 2 0 0 1 2-2h3zM3 19a2 2 0 0 0 2 2h1a2 2 0 0 0 2-2v-3a2 2 0 0 0-2-2H3z"/></svg>
+      </button>
+    </div>
+
+    <!-- Alerts for your coins — the badge counts what is new since you last looked -->
+    <div class="tb-dropdown-wrap">
+      <button class="tb-icon-btn tw-bell" onclick="openCoinAlerts()" title="Alerts for your coins" aria-label="Alerts for your coins">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+        <span class="tw-badge" id="tw-badge" style="display:none;"></span>
+      </button>
+    </div>
+
+    <!-- Pro -->
+    <div class="tb-dropdown-wrap">
+      <button class="tb-icon-btn" id="pro-topbar-btn" onclick="openPro()" title="Unlock Pro, free with 5 invites" aria-label="Unlock Pro, free with 5 invites" style="color:var(--pro);">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+      </button>
+    </div>
+
+    <!-- Signal Assistant (Pro) — always visible, gates on click for non-Pro (same pattern as joinTelegram()) -->
+    <div class="tb-dropdown-wrap">
+      <button class="tb-icon-btn" onclick="openSignalAssistant()" title="Signal Assistant" aria-label="Signal Assistant" data-pro-only="1">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+      </button>
+    </div>
+
+    <!-- Support / About / FAQ dropdown removed (promptove/103): Support is
+         at the foot of the rail and in the footer; About, FAQ and How it
+         works are under it on the rail. -->
+
+    <!-- Theme toggle -->
+    <button class="theme-btn" id="theme-topbar-btn" onclick="toggleTheme(!document.documentElement.classList.contains('light'))" title="Toggle light/dark theme"><span id="theme-icon">☀</span><span id="theme-label">LIGHT</span></button>
+
+    <!-- Settings -->
+    <button class="settings-btn" onclick="openSettingsPanel(this)" title="Settings" aria-label="Settings">⚙</button>
+  </div>
+</div>
+</header>
+
+<!-- Mobile search panel — slides down from topbar -->
+<div id="mob-search-panel" class="mob-search-panel" style="display:none;">
+  <div class="mob-search-inner">
+    <svg width="14" height="14" viewBox="0 0 16 16" fill="none" style="flex-shrink:0;color:var(--muted);" aria-hidden="true">
+      <circle cx="6.5" cy="6.5" r="5" stroke="currentColor" stroke-width="1.6"/>
+      <line x1="10.5" y1="10.5" x2="14.5" y2="14.5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>
+    </svg>
+    <input type="text" id="mob-search-input" class="mob-search-input"
+      placeholder="Search coins, forex, stocks…"
+      autocomplete="off"
+      oninput="handleTopbarSearch(this.value)"
+      onkeydown="if(event.key==='Escape')toggleMobSearch(false)">
+    <button onclick="toggleMobSearch(false)" style="background:none;border:none;color:var(--muted);font-size:18px;line-height:1;cursor:pointer;padding:0 4px;flex-shrink:0;">×</button>
+  </div>
+  <div class="mob-search-results" id="mob-search-results"></div>
+</div>
+
+<main>
+<h1 class="sr-only">Rotator — an honest market pulse for Binance traders: crypto and tokenized stock scores, portfolio tracking and holder warnings</h1>
+<div class="root">
+  <nav class="rail" id="rail" aria-label="Section navigation">
+    <button class="rail-item" id="rail-today" data-sec="sec-today" onclick="railGo('sec-today')" title="TODAY">
+      <span class="rail-mark"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19V9"/><path d="M10 19V5"/><path d="M16 19v-7"/><path d="M22 19H2"/></svg></span>
+      <span class="rail-text"><span class="rail-label">TODAY</span><span class="rail-sub" id="rail-sub-today">on-chain now</span></span>
+    </button>
+    <button class="rail-item" id="rail-momentum" data-sec="sec-rotation" onclick="railGo('sec-rotation')" title="MOMENTUM">
+      <span class="rail-mark"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M17 2.1 21 6l-4 3.9"/><path d="M3 12a9 9 0 0 1 9-9h9"/><path d="M7 21.9 3 18l4-3.9"/><path d="M21 12a9 9 0 0 1-9 9H3"/></svg></span>
+      <span class="rail-text"><span class="rail-label">MOMENTUM</span><span class="rail-sub" id="rail-sub-momentum">best and worst</span></span>
+    </button>
+    <button class="rail-item" id="rail-yours" data-sec="sec-yours" onclick="railGo('sec-yours')" title="YOURS">
+      <span class="rail-mark"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M20 7h-9"/><path d="M14 17H5"/><circle cx="17" cy="17" r="3"/><circle cx="7" cy="7" r="3"/></svg></span>
+      <span class="rail-text"><span class="rail-label">YOURS</span><span class="rail-sub" id="rail-sub-yours">holdings and warnings</span></span>
+    </button>
+    <button class="rail-item" id="rail-coins" data-sec="sec-coins" onclick="railGo('sec-coins')" title="COINS">
+      <span class="rail-mark"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M3 12h18"/><path d="M3 18h18"/></svg></span>
+      <span class="rail-text"><span class="rail-label">COINS</span><span class="rail-sub" id="rail-sub-coins">every tracked coin</span></span>
+    </button>
+
+    <button class="rail-item" id="rail-swap" data-sec="sec-swap" onclick="railGo('sec-swap')" title="SWAP">
+      <span class="rail-mark"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M7 16V4m0 0L4 7m3-3 3 3"/><path d="M17 8v12m0 0 3-3m-3 3-3-3"/></svg></span>
+      <span class="rail-text"><span class="rail-label">SWAP</span><span class="rail-sub" id="rail-sub-swap">pair ratio</span></span>
+    </button>
+    <button class="rail-item rail-last" id="rail-record" data-sec="sec-record" onclick="railGo('sec-record')" title="RECORD">
+      <span class="rail-mark"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M12 8v4l3 2"/><circle cx="12" cy="12" r="9"/></svg></span>
+      <span class="rail-text"><span class="rail-label">RECORD</span><span class="rail-sub" id="rail-sub-record">what held up</span></span>
+    </button>
+    <!-- The pitch, asked once. It used to be two purple tiles taking a
+         quarter of the holdings grid on every load; here it sits at the
+         foot of the rail, out of the way and always reachable. Not a
+         .rail-item: initRail() reads those for the scroll observer and
+         this one names no section. -->
+    <button class="rail-support" onclick="openModal('donate-modal')" title="Keep Rotator free">
+      <span class="rail-support-icon">☕</span>
+      <span class="rail-text"><span class="rail-label">SUPPORT</span><span class="rail-sub">keep it free</span></span>
+    </button>
+    <!-- How it works, About and FAQ were also listed here (promptove/103);
+         removed 2026-10-04 (promptove/105, Daniel): they showed twice on
+         desktop, here and in the footer. The footer and MORE keep them. -->
+  </nav>
+  <div class="page" id="page">
+  <section class="rsec" id="sec-today">
+    <div class="rsec-hdr"><span class="rsec-label">TODAY</span><span class="rsec-meta" id="rsec-meta-today">start here: where the market's momentum is right now</span></div>
+    <!-- BRIEFING — on-chain readings, filled by renderBriefing() in
+         js/data-loaders.js from market_cache.network_data. Empty until
+         sync-market-data has run once; the block hides itself rather
+         than showing a row of dashes. -->
+    <!-- THE MARKET NOW: BTC, its 200-day trend, Fear & Greed and how
+         many coins beat BTC this week. renderMarketNow() in js/signals.js
+         (promptove/106); only data the page already loads. -->
+    <div class="mkt-now" id="mkt-now" style="display:none;"></div>
+    <div class="briefing" id="briefing" style="display:none;"></div>
+    <!-- ETF FLOWS — US spot Bitcoin and Ether ETF net flows, interpreted
+         server-side by sync-etf-flows into market_cache.etf_flows_summary
+         and drawn by renderEtfFlows() in js/data-loaders.js. Each tile
+         opens #etf-modal. Source: Farside Investors, always credited. -->
+    <div class="etf-strip" id="etf-strip" style="display:none;"></div>
+    <!-- MARKET TICKER — BTC anchor + infinite-loop global movers -->
+    <div class="market-ticker" id="market-ticker">
+      <div class="mt-anchor">
+        <div class="btc-pill unk" id="btc-pill" title="BTC trend vs. 200-day MA">
+          <span class="pulse"></span>
+          <span id="btc-pill-txt">BTC: LOADING</span>
+        </div>
+      </div>
+      <div class="mt-viewport" id="mt-viewport" title="Hover to pause">
+        <div class="mt-track" id="mt-track">
+          <span class="mt-empty">Loading market movers…</span>
+        </div>
+      </div>
+    </div>
+  </section>
+  <section class="rsec" id="sec-rotation">
+    <div class="rsec-hdr"><span class="rsec-label">MOMENTUM</span><span class="rsec-meta" id="rsec-meta-momentum">what ran ahead, what lagged behind, and which coins are turning</span></div>
+    <!-- TURN SIGNS — every coin run through the coin window's own reader.
+         Filled by renderTurnScan() in js/turn-watch.js (promptove/70). -->
+    <div class="turn-scan" id="turn-scan"></div>
+    <!-- WHAT'S HOT — collapsible on mobile -->
+    <div class="collapse-hdr hot" id="ch-hot" onclick="toggleCollapse('hot')">
+      <div class="collapse-hdr-left">
+        <span class="collapse-hdr-icon">🔥</span>
+        <span class="collapse-hdr-title">What's Hot — strongest and weakest</span>
+      </div>
+      <span class="collapse-chevron" id="chev-hot">▼</span>
+    </div>
+    <div class="collapse-body collapsed" id="cb-hot">
+    <div class="neon-section">
+      <div class="neon-inner">
+        <div class="bars-cols">
+          <div class="bars-col-inner">
+            <div class="bar-col-title" style="color:var(--amber);">⚡ High Momentum</div>
+            <div id="mom-cards"></div>
+          </div>
+          <div class="bars-col-inner">
+            <div class="bar-col-title" style="color:var(--red);">↓ Worst 30d Performers</div>
+            <div id="worst-cards"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+    </div>
+  </section>
+  <section class="rsec" id="sec-yours">
+    <div class="rsec-hdr"><span class="rsec-label">YOURS</span><span class="rsec-meta" id="rsec-meta-yours">track what you hold and watch; warnings and notifications follow your coins</span></div>
+  <div class="sidebar">
+    <!-- ALERTS FOR YOUR COINS — renderCoinAlerts() in js/turn-watch.js -->
+    <div class="coin-alerts" id="coin-alerts"></div>
+    <!-- PORTFOLIO SIGNAL: direct sidebar child — zero gap guaranteed -->
+    <div class="sig-box" id="sig-box-crypto">
+      <h2 class="sig-title">◈ Portfolio Signal</h2>
+      <div id="sig-content"><div style="font-size:12px;color:var(--muted);font-family:var(--font-ui);">Add holdings to see your signal.</div></div>
+    </div>
+
+    <!-- HOLDINGS — collapsible on mobile -->
+    <div class="collapse-hdr holdings" id="ch-holdings" onclick="toggleCollapse('holdings')">
+      <div class="collapse-hdr-left">
+        <span class="collapse-hdr-icon">💼</span>
+        <span class="collapse-hdr-title">Holdings & Watchlist</span>
+        <span class="collapse-hdr-count" id="ch-holdings-count"></span>
+      </div>
+      <span class="collapse-chevron" id="chev-holdings">▼</span>
+    </div>
+    <div class="collapse-body collapsed" id="cb-holdings">
+    <!-- HOLDINGS — crypto + bStocks share one panel; both live in coins[] now -->
+    <div id="holdings-crypto">
+
+      <!-- MY HOLDINGS VIEW -->
+      <!-- ONE panel. Held coins and watched coins were two grids that had
+           to be toggled between; they are the same question asked twice —
+           what am I paying attention to — and they read better together.
+           renderTiles() in js/holdings.js draws both. A watched coin is
+           still stored in watchlist[] and still contributes NOTHING to the
+           portfolio signal: it is attention, not capital. -->
+      <div id="my-holdings-panel" class="hv-on">
+        <div class="holdings-section-label">
+          <span>MY COINS</span>
+          <span id="hcount" style="color:var(--bnb);font-size:12px;letter-spacing:.04em;"></span>
+        </div>
+        <div class="tiles-scroll"><div class="tiles-grid" id="tiles-grid"></div></div>
+        <!-- PAPER TRADES — "what if I had bought when the sign appeared", renderPaperTrades() in js/paper-trades.js -->
+        <div class="paper-trades" id="paper-trades"></div>
+      </div>
+    </div>
+    </div><!-- /cb-holdings -->
+
+    <!-- Filled by renderSignal() in js/holdings.js, and only when
+         something in the portfolio is underperforming. Spans the section
+         so two sentences stay two lines. -->
+    <div class="signal-dyor" id="signal-dyor" style="display:none;"></div>
+
+    <!-- ROTATION OPPORTUNITIES — moved out of the ROTATION section so it
+         sits beside what you already hold, which is the only thing that
+         makes a rotation mean anything. Still filled by renderTopBars()
+         in js/signals.js; the id is what that function looks up, and it
+         did not change. -->
+    <div class="rot-beside" id="rot-beside">
+      <div class="bar-col-title">Score gaps</div>
+      <!-- 2026-09-25 (promptove/64): information only. The 771-day backtest
+           put the rotation rule below two coins picked at random at every
+           horizon (7-30 days), so the panel no longer makes calls: it shows
+           where coins score against each other. The live test keeps being
+           graded on the track record. -->
+      <div class="rot-test-note">Where coins score against each other. Information, not calls: across 771 days of history, moving from a high score into a low one did not beat picking two coins at random. The live test is graded on the <a href="track-record.html">track record</a>.</div>
+      <div id="sug-cards"></div>
+    </div>
+
+
+  </div>
+  </section>
+  <section class="rsec" id="sec-coins">
+    <div class="rsec-hdr"><span class="rsec-label">COINS</span><span class="rsec-meta">every coin we score, ranked; open one to see its score and relative strength</span></div>
+    <div class="tbl-head tbl-head-merged">
+      <h2 class="ptitle" id="tbl-title">PERFORMANCE LEADERBOARD</h2>
+      <div class="cat-bar cat-bar-inline" id="cat-bar">
+        <button class="cat-tab active" data-cat="all" onclick="switchCategory('all')"><span class="cat-ico">🌐</span><span class="cat-lbl">ALL</span></button>
+        <button class="cat-tab" data-cat="l1" onclick="switchCategory('l1')"><span class="cat-ico">⛓</span><span class="cat-lbl">L1</span></button>
+        <button class="cat-tab" data-cat="defi" onclick="switchCategory('defi')"><span class="cat-ico">🏦</span><span class="cat-lbl">DEFI</span></button>
+        <button class="cat-tab" data-cat="l2" onclick="switchCategory('l2')"><span class="cat-ico">🔗</span><span class="cat-lbl">L2</span></button>
+        <button class="cat-tab" data-cat="meme" onclick="switchCategory('meme')"><span class="cat-ico">🐸</span><span class="cat-lbl">MEME</span></button>
+        <button class="cat-tab" data-cat="ai" onclick="switchCategory('ai')"><span class="cat-ico">🤖</span><span class="cat-lbl">AI</span></button>
+        <button class="cat-tab" data-cat="gaming" onclick="switchCategory('gaming')"><span class="cat-ico">🎮</span><span class="cat-lbl">GAMING</span></button>
+        <button class="cat-tab" data-cat="rwa" onclick="switchCategory('rwa')"><span class="cat-ico">🏠</span><span class="cat-lbl">RWA</span></button>
+        <button class="cat-tab" data-cat="infra" onclick="switchCategory('infra')"><span class="cat-ico">🛠</span><span class="cat-lbl">INFRA</span></button>
+        <button class="cat-tab" data-cat="stable" onclick="switchCategory('stable')"><span class="cat-ico">💵</span><span class="cat-lbl">STABLE</span></button>
+        <button class="cat-tab" data-cat="stocks" onclick="switchCategory('stocks')"><span class="cat-ico">🏛</span><span class="cat-lbl">STOCKS</span></button>
+        <button class="cat-tab demo-tab" data-cat="demo" onclick="switchCategory('demo')"><span class="cat-ico">🎯</span><span class="cat-lbl">DEMO</span></button>
+      </div>
+      <div class="tbl-head-meta">
+        <div class="sort-hint">CLICK COLUMN HEADERS TO SORT</div>
+        <span id="last-updated-crypto"  class="last-upd-ts" style="display:none;"></span>
+      </div>
+    </div>
+    <!-- What the score means, short first and the detail on a click
+         (promptove/106). Layers and weights are the engine's own
+         (rotator-engine/engine.js: 0.25 / 0.30 / 0.45); colour bands are
+         scoreBand() in js/config.js. Keep the three in step. -->
+    <details class="score-explain">
+      <summary><span class="se-k">Score</span><span class="se-line">How a coin has done against the rest, from −50 to 100. Higher means it has been stronger. It describes the past, not the future.</span><span class="se-more">How is it calculated?</span></summary>
+      <div class="se-body">
+        <p>Three parts are added up:</p>
+        <ul>
+          <li><b>Momentum, up to 40.</b> Where the coin ranks against every other coin over 7, 14 and 30 days, counted 25%, 30% and 45%.</li>
+          <li><b>Macro strength, up to 30.</b> How it did over 7 days against BTC, gold, silver, oil, the dollar and the rest of the altcoin market.</li>
+          <li><b>Tokenomics, up to 30.</b> New supply, burns and unlocks. Heavy unlocks or high inflation take points away, which is why a score can fall below 0.</li>
+        </ul>
+        <p>Everywhere on the page: 65 and up is green, 40 to 64 amber, below 40 red. Open any coin to see its three parts.</p>
+      </div>
+    </details>
+    <div class="leaderboard" id="crypto-panel">
+      <table>
+        <thead>
+          <tr>
+            <th style="width:28px;"></th>
+            <th style="width:22px;">#</th>
+            <th style="position:relative;">
+              <div class="table-search-wrap" id="table-search-wrap">
+                <input type="text" id="table-search-input" class="table-search-input"
+                  placeholder="🔍 Search coin…" autocomplete="off"
+                  oninput="handleTableSearch(this.value)"
+                  onkeydown="if(event.key==='Escape'){this.value='';handleTableSearch('');this.blur();}">
+                <div class="table-search-dropdown topbar-search-dropdown" id="table-search-dropdown" style="display:none;">
+                  <div class="topbar-search-results" id="table-search-results"></div>
+                </div>
+              </div>
+            </th>
+            <th class="r price-col" data-tip="Current market price in USD">PRICE</th>
+            <th class="r" id="th-24" onclick="setSort(24)" data-tip="Price change in the last 24 hours">24H%</th>
+            <th class="r sorted" id="th-7" onclick="setSort(7)" data-tip="Price change over 7 days. Click to sort.">7D%</th>
+            <th class="r" id="th-14" onclick="setSort(14)" data-tip="Price change over 14 days. Click to sort.">14D%</th>
+            <th class="r" id="th-30" onclick="setSort(30)" data-tip="Price change over 30 days. Click to sort.">30D%</th>
+            <th class="r" id="th-score" onclick="setSort(0)" data-tip="Score from −50 to 100: momentum against every other coin, strength against BTC, gold and oil, and tokenomics. Higher = stronger so far. bStock rows show a partial momentum-only score (max 70) — see STOCKS tab tooltip.">SCORE <button type="button" class="info-i" aria-label="Momentum (up to 40) ranks 7D, 14D and 30D at 25%, 30% and 45%. Macro strength up to 30. Tokenomics up to 30, and below zero for heavy unlocks or high inflation. bStocks: momentum-only partial score, no tokenomics applies.">ⓘ</button></th>
+          </tr>
+        </thead>
+        <tbody id="tbody"></tbody>
+      </table>
+    </div>
+
+    <!-- RATIO TRACKER moved to right panel -->
+
+    <!-- MOBILE INLINE HOLDINGS — shown below ratio tracker on portrait mobile only -->
+    <div class="mob-inline-holdings" id="mob-inline-holdings"></div>
+  </section>
+  <section class="rsec" id="sec-swap">
+    <div class="rsec-hdr"><span class="rsec-label">SWAP</span><span class="rsec-meta" id="rsec-meta-swap">turn part of a holding into BTC, or any coin you prefer, and see what the swap gives you</span></div>
+  <div class="ad-panel">
+    <!-- SWAP TOOL — collapsible on mobile -->
+    <div class="collapse-hdr swap" id="ch-swap" onclick="toggleCollapse('swap')">
+      <div class="collapse-hdr-left">
+        <span class="collapse-hdr-icon">⇄</span>
+        <span class="collapse-hdr-title">Swap Calculator</span><button type="button" class="info-i" aria-label="The swap ratio: how many TO coins one FROM coin is worth. When it rises, FROM has gained on TO.">ⓘ</button>
+      </div>
+      <span class="collapse-chevron" id="chev-swap">▼</span>
+    </div>
+    <div class="collapse-body collapsed" id="cb-swap">
+    <!-- PRO GATE for Swap Tool -->
+    <div class="swap-pro-gate" id="swap-pro-gate" style="display:none;">
+      <div style="text-align:center;padding:20px 14px;">
+        <div style="font-size:28px;margin-bottom:8px;">🔒</div>
+        <div style="font-size:12px;color:var(--text);font-weight:600;margin-bottom:4px;">Reserved for Project Supporters</div>
+        <div style="font-size:12px;color:var(--muted);line-height:1.6;margin-bottom:12px;">Support/resistance levels, ratio charts, and the swap calculator are unlocked with a one-time contribution. Help keep Rotator independent.</div>
+        <button class="code-btn" onclick="openPro()" style="font-size:12px;padding:8px 20px;">⚡ SUPPORT & UNLOCK</button>
+      </div>
+    </div>
+    <!-- RATIO TRACKER -->
+    <div class="ratio-section" id="ratio-section">
+
+      <!-- ══ PAIR SELECTION HERO ══ -->
+      <div class="swap-card new-swap-hero">
+        <!-- Save, refresh and share are things you do TO the pair, so they
+             sit on the pair's own header. Three identical squares, one icon
+             set, tooltip on hover and on keyboard focus. The ids are the
+             ones js/ratio.js already wires — only the shape changed. -->
+        <div class="swap-hero-head">
+          <div class="new-swap-hero-label">Select pair to swap</div>
+          <div class="rt-top-actions">
+            <button class="rt-icon-btn" id="rt-star-btn" data-tip="Save pair" aria-label="Save pair"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="m12 3 2.7 5.6 6.1.9-4.4 4.3 1 6.1L12 17l-5.4 2.9 1-6.1L3.2 9.5l6.1-.9Z"/></svg></button>
+            <button class="rt-icon-btn" id="rt-refresh-btn" onclick="RatioTracker.loadAll()" data-tip="Refresh prices" aria-label="Refresh prices"><span id="rt-spin-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-2.6-6.4"/><path d="M21 3v6h-6"/></svg></span></button>
+            <button class="rt-icon-btn" id="rt-swap-share-btn" onclick="shareSwapCard()" data-tip="Share as image" aria-label="Share swap as image"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 13v6a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-6"/><path d="M12 15V3"/><path d="m8 7 4-4 4 4"/></svg></button>
+          </div>
+        </div>
+        <div class="new-pair-grid">
+
+          <!-- FROM CARD -->
+          <div class="new-coin-card new-from-card" onclick="RatioTracker._openPicker('from')" role="button" tabindex="0" aria-label="Select FROM coin">
+            <div class="new-coin-badge">FROM <span class="new-tap-hint">tap ▾</span></div>
+            <div class="new-coin-main">
+              <div class="new-coin-icon-wrap">
+                <img id="rt-from-icon" src="" alt="" onerror="this.style.opacity='0'">
+              </div>
+              <div class="new-coin-info">
+                <div class="new-coin-sym" id="rt-from-card-lbl"><span id="rt-ct-from-sym">—</span></div>
+                <div class="new-coin-price" id="rt-from-price">—</div>
+                <div class="new-coin-chg" id="rt-from-chg"></div>
+              </div>
+            </div>
+            <!-- The amount. There is exactly one of these in the tool now;
+                 calcSwap() reads it directly. -->
+            <div class="new-coin-qty" onclick="event.stopPropagation();">
+              <label class="new-coin-qty-lbl" id="rt-calc-from-lbl" for="rt-hero-amt">Amount</label>
+              <input type="number" id="rt-hero-amt" class="new-coin-qty-inp" value="100" step="any"
+                     inputmode="decimal" aria-label="Amount to swap"
+                     onclick="event.stopPropagation();"
+                     oninput="RatioTracker.calcSwap(); if (window.supaCountFeature) supaCountFeature('swap_tool', true)">
+            </div>
+          </div>
+
+          <!-- SWAP DIRECTION -->
+          <button class="new-swap-dir-btn" type="button" onclick="event.stopPropagation();RatioTracker.swapPair();" role="button" tabindex="0" aria-label="Swap FROM and TO">
+            <span class="rt-swap-arrows">⇄</span>
+          </button>
+
+          <!-- TO CARD -->
+          <div class="new-coin-card new-to-card" onclick="RatioTracker._openPicker('to')" role="button" tabindex="0" aria-label="Select TO coin">
+            <div class="new-coin-badge">TO <span class="new-tap-hint">tap ▾</span></div>
+            <div class="new-coin-main">
+              <div class="new-coin-icon-wrap">
+                <img id="rt-to-icon" src="" alt="" onerror="this.style.opacity='0'">
+              </div>
+              <div class="new-coin-info">
+                <div class="new-coin-sym" id="rt-to-card-lbl"><span id="rt-ct-to-sym">—</span></div>
+                <div class="new-coin-price" id="rt-to-price">—</div>
+                <div class="new-coin-chg" id="rt-to-chg"></div>
+              </div>
+            </div>
+            <!-- Read-only mirror of the calculator's output. -->
+            <div class="new-coin-qty new-coin-qty-out">
+              <span class="new-coin-qty-lbl">You receive</span>
+              <span class="new-coin-qty-val" id="rt-hero-out">—</span>
+            </div>
+          </div>
+
+        </div><!-- /new-pair-grid -->
+
+        <!-- Pro hint for coin selection -->
+        <div id="swap-pro-hint" class="swap-pro-hint" style="text-align:center;padding:6px 0 2px;font-size:11px;color:var(--muted);display:none;">
+          🔒 <span style="color:var(--pro);cursor:pointer;font-weight:600;" onclick="openPro()">Unlock Pro</span> to choose your own coins (free with 5 invites)
+        </div>
+
+        <!-- Hidden selects — JS populates & reads these -->
+        <select class="rt-ct-sel" id="rt-from" onchange="RatioTracker.onFromChange()" aria-hidden="true" tabindex="-1"></select>
+        <select class="rt-ct-sel" id="rt-to"   onchange="RatioTracker.onToChange()"   aria-hidden="true" tabindex="-1"></select>
+
+        <!-- ══ WHAT THE SWAP IS WORTH ══
+             This was a separate SWAP CALCULATOR card in the right column.
+             Once the amount and the received figure moved onto the pair
+             cards, everything left in it described THIS pair and nothing
+             else, so it reads here instead of being repeated there. -->
+        <div class="swap-detail">
+          <div class="swap-detail-usd" id="rt-calc-usd-out"></div>
+          <div class="rt-calc-ratios">
+            <div class="rt-calc-ratio-line" id="rt-calc-ratio-fwd">—</div>
+            <div class="rt-calc-ratio-line" id="rt-calc-ratio-inv">—</div>
+          </div>
+
+          <div class="new-adv-toggle" onclick="newToggleAdvanced()" role="button" tabindex="0">
+            <span class="new-adv-icon" id="new-adv-icon">▶</span>
+            ADVANCED — Override prices
+          </div>
+          <div class="new-adv-panel" id="new-adv-panel">
+            <div class="rt-ci" style="margin-bottom:8px;">
+              <label id="rt-calc-from-ov-lbl">Override FROM ($)</label>
+              <input type="number" id="rt-calc-from-ov" aria-label="Override from price" placeholder="auto" step="any" oninput="RatioTracker.calcSwap(); if (window.supaCountFeature) supaCountFeature('swap_tool', true)">
+            </div>
+            <div class="rt-ci">
+              <label id="rt-calc-to-ov-lbl">Override TO ($)</label>
+              <input type="number" id="rt-calc-to-ov" aria-label="Override to price" placeholder="auto" step="any" oninput="RatioTracker.calcSwap(); if (window.supaCountFeature) supaCountFeature('swap_tool', true)">
+            </div>
+          </div>
+
+        </div><!-- /swap-detail -->
+      </div><!-- /new-swap-hero -->
+
+      <!-- ══ RATIO HOOK ══ -->
+      <div class="swap-card new-ratio-hook">
+        <div class="new-ratio-unit-lbl">Current exchange ratio</div>
+        <div class="rt-ratio-bold" id="rt-ratio-num" style="font-size:clamp(36px,12vw,52px);font-weight:700;font-family:var(--font-mono);line-height:1;display:block;color:var(--text);">——</div>
+        <div class="rt-ratio-unit"><span id="rt-unit-txt">— received per 1 —</span></div>
+        <span class="rt-badge" id="rt-badge">&nbsp;</span>
+        <!-- The two stat cards that used to sit below this, without their
+             boxes. "Current" is gone: it printed the same number as the
+             hero directly above it. Position in range is the figure the
+             badge was already describing in words. -->
+        <div class="rt-reads">
+          <div class="rt-read"><span class="rt-read-k">Period low</span><span class="rt-read-v" id="rt-read-low">—</span></div>
+          <div class="rt-read"><span class="rt-read-k">Period peak</span><span class="rt-read-v hi" id="rt-peak-val">—</span></div>
+          <div class="rt-read"><span class="rt-read-k">Position in range</span><span class="rt-read-v" id="rt-range-pos">—</span></div>
+        </div>
+      </div>
+
+
+      <!-- Status + saved pairs -->
+      <div class="rt-status" id="rt-status">Connecting…</div>
+      <div class="rt-saved-wrap" id="rt-saved-wrap">
+        <span class="rt-saved-empty">No saved pairs yet — pick a pair and click ☆ Save pair</span>
+      </div>
+
+      <!-- ══ CHART ══ -->
+      <div class="swap-card new-chart-section">
+        <div class="new-chart-header">
+          <span class="new-chart-title">Ratio history</span>
+          <div class="rt-tf-row" style="margin-bottom:0;">
+            <button class="rt-tf-btn" id="rt-tf-1"  onclick="RatioTracker.setTF(1)">24h</button>
+            <button class="rt-tf-btn active" id="rt-tf-7"  onclick="RatioTracker.setTF(7)">7d</button>
+            <button class="rt-tf-btn" id="rt-tf-30" onclick="RatioTracker.setTF(30)">30d</button>
+          </div>
+        </div>
+        <div class="rt-chart-wrap"><canvas id="rt-spark"></canvas></div>
+
+        <!-- Range bar -->
+        <div class="rt-range-meta">
+          <span>Low: <strong id="rt-r-low">—</strong></span>
+          <span style="color:var(--red);">▲ Peak: <strong id="rt-r-peak">—</strong></span>
+          <span>Now: <strong id="rt-r-now">—</strong></span>
+        </div>
+        <div class="rt-bar-track" id="rt-bar-track"><!-- id: the swap tour's step 3 anchor (it was a class only, so the step highlighted nothing) -->
+          <div class="rt-bar-fill" id="rt-bar-fill" style="width:0%"></div>
+          <div class="rt-bar-marker" id="rt-bar-marker" style="left:50%"></div>
+        </div>
+        <div class="rt-bar-labels">
+          <span id="rt-bl-start">—</span>
+          <span id="rt-bl-peak" style="color:var(--red);">peak</span>
+          <span>now</span>
+        </div>
+      </div><!-- /new-chart-section -->
+
+      <!-- KEEP IT FREE card removed (promptove/103, Daniel: "it was a
+           filler"). Support is at the foot of the rail, in MORE on
+           mobile, and in the footer. The chart takes its column back. -->
+
+      </div>
+
+
+      <div class="rt-footer">Live data via CoinGecko · Not financial advice · Always verify before swapping</div>
+
+      <!-- Coin picker — full-screen bottom sheet overlay -->
+      <div id="rt-picker-panel" class="rt-picker-overlay" role="dialog" aria-modal="true" aria-labelledby="rt-picker-title"
+        onclick="if(event.target===this)RatioTracker._closePicker()">
+        <div class="picker-sheet">
+          <div class="picker-handle" aria-hidden="true"></div>
+          <div class="picker-sheet-header">
+            <div class="rt-picker-title" id="rt-picker-title">Select coin</div>
+            <button class="picker-sheet-close" onclick="RatioTracker._closePicker()" aria-label="Close">✕</button>
+          </div>
+          <div class="picker-search-wrap">
+            <input type="search" class="rt-picker-search" id="rt-picker-search"
+              placeholder="Search coins…" autocomplete="off"
+              oninput="RatioTracker._pickerFilter()">
+          </div>
+          <div class="rt-picker-list" id="rt-picker-list" role="listbox"></div>
+        </div>
+      </div>
+
+    </div>
+    </div><!-- /cb-swap -->
+
+    <!-- PRO PROMO removed — right panel dedicated to Swap Tool + Ratio Chart -->
+  </section>
+  <section class="rsec" id="sec-record">
+    <div class="rsec-hdr"><span class="rsec-label">RECORD</span><span class="rsec-meta">what Rotator said before, and what happened next</span></div>
+    <!-- The honest version of the record, in plain words (2026-09-29).
+         Numbers from engine-changelog.html and track-record.html. -->
+    <div class="rec-intro">
+      <p><strong>Our old engine</strong> (April to September 2026) was confirmed on <strong>76.2% of 863 graded calls</strong>. That grading was generous: it counted the best price reached inside a 7 to 14 day window, where calling every coin would have scored about 68%. Read it as an upper bound, roughly 8 points better than chance.</p>
+      <p><strong>The current engine</strong> is held to a stricter test: a call counts only if the coin beats the median coin over the next 30 days, where chance is 50%. It started on 11 September, so its first results arrive from 11 October. Until then there is nothing to claim yet.</p>
+    </div>
+    <!-- SIGNAL TRACK RECORD — "Told You So" section -->
+    <div class="str-section">
+      <div class="collapse-hdr" id="ch-trackrecord" onclick="toggleCollapse('trackrecord')">
+        <div class="collapse-hdr-left">
+          <span class="collapse-hdr-icon">📊</span>
+          <span class="collapse-hdr-title">Signal Track Record</span><button type="button" class="info-i" aria-label="What Rotator flagged before, and how those coins did afterwards. The current engine is graded against the middle coin over 30 days.">ⓘ</button>
+          <span class="str-section-badge" id="str-accuracy-badge" style="display:none;"></span>
+        </div>
+        <span class="collapse-chevron" id="chev-trackrecord">▼</span>
+      </div>
+      <div class="collapse-body collapsed" id="cb-trackrecord">
+      <div class="str-body">
+        <div id="signal-track-record"></div>
+      </div>
+      </div>
+    </div>
+  </section>
+  </div>
+</div>
+
+<!-- ADD HOLDINGS MODAL
+     Rebuilt to the control system the swap panel uses: one 7px radius,
+     32px controls, one filled primary, and the close as an icon button
+     rather than a 44px circle.
+
+     The rows carry what the engine already knows about each coin — its
+     score and its Insight label — because this is the one screen where
+     you choose a coin and it was the one screen that withheld them. -->
+<div class="overlay" id="add-holdings-modal">
+  <div class="modal ahm-modal">
+    <button class="ahm-x" onclick="closeModal('add-holdings-modal')" aria-label="Close">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12"/></svg>
+    </button>
+    <div class="modal-title ahm-title">Add to holdings</div>
+    <div class="modal-sub ahm-sub">Search and select a coin, then enter quantity and average buy price.</div>
+    <input class="ahm-coin-search" id="ahm-search" type="text" placeholder="Search coin name or symbol…" oninput="ahmFilter()" autocomplete="off">
+    <div class="ahm-coin-list" id="ahm-coin-list"></div>
+    <div class="ahm-inputs">
+      <div class="ahm-field">
+        <label for="ahm-qty">Quantity</label>
+        <input type="number" id="ahm-qty" placeholder="e.g. 0.5" min="0" step="any" oninput="ahmPreview()">
+      </div>
+      <div class="ahm-field">
+        <label for="ahm-avg">Avg buy price ($)</label>
+        <input type="number" id="ahm-avg" placeholder="e.g. 42000" min="0" step="any" oninput="ahmPreview()">
+      </div>
+    </div>
+
+    <!-- The tile you are about to create. Filled by ahmPreview(); the
+         money figures come from holdingPL() in js/holdings.js, the same
+         function the tile itself calls. -->
+    <div class="ahm-preview" id="ahm-preview" style="display:none;"></div>
+
+    <button class="ahm-confirm-btn" id="ahm-confirm-btn" onclick="ahmConfirm()" disabled>Select a coin</button>
+    <!-- Hidden legacy inputs needed by addHolding() -->
+    <select id="coin-sel" aria-label="Select coin" style="display:none;"><option value="">Select…</option></select>
+    <input type="number" id="inp-qty" aria-label="Amount" style="display:none;" placeholder="amount" min="0" step="any">
+    <input type="number" id="inp-avg" aria-label="Average buy price" style="display:none;" placeholder="avg buy price" min="0" step="any">
+  </div>
+</div>
+
+<!-- SWAP TOOL TUTORIAL OVERLAY -->
+<div class="swap-tut-overlay" id="swap-tut-overlay">
+  <div class="swap-tut-box" id="swap-tut-box" style="position:relative;">
+    <button onclick="endSwapTut()" aria-label="Close tutorial"
+      style="position:absolute;top:8px;right:8px;width:24px;height:24px;display:flex;align-items:center;justify-content:center;background:var(--bg4);border:1px solid var(--bdr2);border-radius:50%;color:var(--muted);font-size:14px;line-height:1;cursor:pointer;transition:all .15s;z-index:2;font-family:inherit;"
+      onmouseenter="this.style.borderColor='var(--red)';this.style.color='var(--red)'"
+      onmouseleave="this.style.borderColor='var(--bdr2)';this.style.color='var(--muted)'">×</button>
+    <div class="swap-tut-step" id="swap-tut-step-lbl">STEP 1 OF 4</div>
+    <div class="swap-tut-title" id="swap-tut-title">Swap Tool</div>
+    <div class="swap-tut-desc" id="swap-tut-desc"></div>
+    <div class="swap-tut-footer">
+      <div class="swap-tut-dots" id="swap-tut-dots"></div>
+      <div style="display:flex;gap:6px;align-items:center;">
+        <button class="swap-tut-btn" id="swap-tut-next" onclick="swapTutNext()">Next →</button>
+      </div>
+    </div>
+  </div>
+</div>
+</main>
+
+<footer class="site-footer">
+  <div class="footer-links">
+    <a class="footer-link" href="#" role="button" onclick="event.preventDefault();openModal('about-modal');return false;">ABOUT US</a>
+    <a class="footer-link" href="#" role="button" onclick="event.preventDefault();openModal('faq-modal');return false;">FAQ</a>
+    <a class="footer-link" href="#" role="button" onclick="event.preventDefault();openModal('how-modal');return false;">HOW IT WORKS</a>
+    <a class="footer-link" href="#" role="button" onclick="event.preventDefault();openModal('tos-modal');return false;">TERMS</a>
+    <a class="footer-link" href="#" role="button" onclick="event.preventDefault();openModal('privacy-modal');return false;">PRIVACY</a>
+    <a class="footer-link" href="api.html">API</a>
+    <a class="footer-link" href="mailto:rotatortool@gmail.com" onclick="(function(e){var em='rotatortool@gmail.com';var ok=false;try{if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(em);ok=true;}}catch(_){} setTimeout(function(){if(!document.hidden){alert('Contact us at:\n\n'+em+(ok?'\n\n(email address copied to clipboard)':''));}},350);})(event);">CONTACT</a>
+    <a class="footer-link" href="#" role="button" onclick="event.preventDefault();openModal('donate-modal');return false;">SUPPORT US</a>
+  </div>
+  <div class="footer-copy">© 2026 ROTATOR · NOT FINANCIAL ADVICE · <span style="color:var(--red);">DYOR</span></div>
+  <div class="footer-disclaimer" style="display:flex;flex-direction:column;align-items:center;gap:8px;">
+    <a href="https://www.coingecko.com/en/api" target="_blank" rel="noopener" style="display:inline-flex;align-items:center;gap:8px;text-decoration:none;opacity:.6;transition:opacity .2s;" onmouseenter="this.style.opacity='1'" onmouseleave="this.style.opacity='.6'">
+      <span style="font-size:12px;color:#8899aa;font-family:'DM Sans',sans-serif;">Data powered by</span>
+      <img src="coingecko-api-logo.svg" alt="CoinGecko API" style="height:18px;">
+    </a>
+    <span>Market data also sourced from GeckoTerminal, Farside Investors, alternative.me, DefiLlama and Yahoo Finance. All data is for informational purposes only. Past performance does not guarantee future results. Always conduct your own research before making any investment decision.</span>
+  </div>
+</footer>
+
+
+<!-- MOBILE BOTTOM NAV — the rail's sections, same names (promptove/103).
+     TODAY · MOMENTUM · [SWAP] · YOURS · MORE; COINS and RECORD open
+     from MORE. The active button follows the scroll, like the rail
+     (initRail() in js/ui.js reads data-sec). -->
+<nav class="mob-nav" id="mob-nav" aria-label="Section navigation">
+  <button type="button" class="mob-nav-btn" id="mn-today" data-sec="sec-today" onclick="mobGo('sec-today')">
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 19V9"/><path d="M10 19V5"/><path d="M16 19v-7"/><path d="M22 19H2"/></svg>
+    <span>TODAY</span>
+  </button>
+  <button type="button" class="mob-nav-btn" id="mn-momentum" data-sec="sec-rotation" onclick="mobGo('sec-rotation')">
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M17 2.1 21 6l-4 3.9"/><path d="M3 12a9 9 0 0 1 9-9h9"/><path d="M7 21.9 3 18l4-3.9"/><path d="M21 12a9 9 0 0 1-9 9H3"/></svg>
+    <span>MOMENTUM</span>
+  </button>
+
+  <!-- CENTER FAB -->
+  <div class="mob-nav-fab-spacer"></div>
+  <button type="button" class="mob-nav-fab" id="mn-swap" data-sec="sec-swap" onclick="mobGo('sec-swap')" title="Swap Calculator">
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="17 1 21 5 17 9"/><path d="M3 11V9a4 4 0 0 1 4-4h14"/><polyline points="7 23 3 19 7 15"/><path d="M21 13v2a4 4 0 0 1-4 4H3"/></svg>
+    <span>SWAP</span>
+  </button>
+
+  <button type="button" class="mob-nav-btn" id="mn-yours" data-sec="sec-yours" onclick="mobGo('sec-yours')">
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 7h-9"/><path d="M14 17H5"/><circle cx="17" cy="17" r="3"/><circle cx="7" cy="7" r="3"/></svg>
+    <span>YOURS</span>
+  </button>
+  <button type="button" class="mob-nav-btn" id="mn-more" onclick="mobNavMore()" aria-haspopup="true" aria-expanded="false" aria-controls="mob-more-menu">
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><circle cx="12" cy="5" r="2"/><circle cx="12" cy="12" r="2"/><circle cx="12" cy="19" r="2"/></svg>
+    <span>MORE</span>
+  </button>
+</nav>
+
+<!-- MORE MENU: the two remaining sections first, then the project. -->
+<div class="mob-more-backdrop" id="mob-more-backdrop" onclick="closeMobMore()"></div>
+<div class="mob-more-menu" id="mob-more-menu" role="menu" aria-label="Menu">
+  <button type="button" class="mob-more-item mob-more-sec" data-sec="sec-coins" onclick="mobGo('sec-coins')">
+    <span class="mmi-ico" aria-hidden="true">≡</span><span class="mmi-text"><span class="mmi-lbl">COINS</span><span class="mmi-sub">every tracked coin</span></span>
+  </button>
+  <button type="button" class="mob-more-item mob-more-sec" data-sec="sec-record" onclick="mobGo('sec-record')">
+    <span class="mmi-ico" aria-hidden="true">◷</span><span class="mmi-text"><span class="mmi-lbl">RECORD</span><span class="mmi-sub">what held up</span></span>
+  </button>
+  <div class="mob-more-divider"></div>
+  <button type="button" class="mob-more-item" onclick="openPro();closeMobMore();">
+    <span class="mmi-ico" aria-hidden="true">⚡</span><span>Unlock Pro</span>
+  </button>
+  <button type="button" class="mob-more-item" onclick="openSignalAssistant();closeMobMore();">
+    <span class="mmi-ico" aria-hidden="true">🤖</span><span>Signal Assistant</span>
+  </button>
+  <button type="button" class="mob-more-item" onclick="openModal('donate-modal');closeMobMore();">
+    <span class="mmi-ico" aria-hidden="true">☕</span><span>Support the Project</span>
+  </button>
+  <button type="button" class="mob-more-item" onclick="toggleTheme(!document.documentElement.classList.contains('light'));closeMobMore();">
+    <span class="mmi-ico" id="mm-theme-ico" aria-hidden="true">☀</span><span id="mm-theme-txt">Light Mode</span>
+  </button>
+  <button type="button" class="mob-more-item pwa-install-item" id="pwa-install-btn" onclick="closeMobMore();installRotator();">
+    <span class="mmi-ico" aria-hidden="true">📲</span><span>Install App</span>
+  </button>
+  <div class="mob-more-divider"></div>
+  <button type="button" class="mob-more-item" onclick="openModal('how-modal');closeMobMore();">
+    <span class="mmi-ico" aria-hidden="true">◈</span><span>How it works</span>
+  </button>
+  <button type="button" class="mob-more-item" onclick="openModal('about-modal');closeMobMore();">
+    <span class="mmi-ico" aria-hidden="true">ⓘ</span><span>About Rotator</span>
+  </button>
+  <button type="button" class="mob-more-item" onclick="openModal('faq-modal');closeMobMore();">
+    <span class="mmi-ico" aria-hidden="true">?</span><span>FAQ</span>
+  </button>
+</div>
+
+<!-- mob-holdings-panel removed — holdings now scroll-to-top via sidebar -->
+
+<!-- ══════════════════════════════════════════════════════════════
+     JAVASCRIPT MODULES  —  load order matters
+     ══════════════════════════════════════════════════════════════
+     1. config.js       — coin lists, pairs, codes, donation goal
+     2. api-pool.js     — fetch, cache, proxy rotation, AV keys
+     3. pro-system.js   — referral, Pro codes, tier badge, donation
+     4. signals.js      — score engine, rotation tiles, leaderboard
+     5. holdings.js     — holdings panels + portfolio signals
+     6. tutorial.js     — onboarding tutorial
+     7. data-loaders.js — actual data fetching + app boot
+     ══════════════════════════════════════════════════════════════ -->
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
+  <!-- Canonical signal engine. Must load before signals.js and
+       data-loaders.js: it is a classic script (no defer, no module) and
+       loadCoins() calls into it synchronously. -->
+  <script src="rotator-engine/engine.js"></script>
+  <script src="js/config.js"></script>
+  <script src="js/analytics.js"></script>
+  <script src="js/api-pool.js"></script>
+  <script src="js/pro-system.js"></script>
+  <script src="js/supabase.js"></script>
+  <script src="js/signal-assistant.js"></script>
+  <script src="js/tx-verify.js"></script>
+  <script src="js/i18n.js"></script>
+  <script src="js/i18n-mk.js"></script>
+  <script src="js/i18n-mk-dict.js"></script>
+  <script src="js/i18n-mk-legal.js"></script>
+  <script src="js/signals.js"></script>
+  <script src="js/holdings.js"></script>
+  <script src="js/ratio.js"></script>
+  <script src="js/tutorial.js"></script>
+  <script src="js/visuals.js"></script>
+  <script src="js/ui.js"></script>
+  <script src="js/signal-history.js"></script>
+  <script src="js/global-movers.js"></script>
+  <script src="js/data-loaders.js"></script>
+  <script src="js/radio.js"></script>
+  <script src="js/coin-reading.js"></script>
+  <script src="js/turn-watch.js"></script>
+  <script src="js/paper-trades.js"></script>
+  <!-- Register Service Worker — required for PWA install prompt -->
+  <script>
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('/sw.js').catch(function() {});
+  }
+  </script>
+</body>
+</html>

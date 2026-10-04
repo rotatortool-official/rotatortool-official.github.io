@@ -1,0 +1,1882 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>ROTATOR — Signal Track Record</title>
+<meta name="description" content="Every signal Rotator has called, tracked and published. No cherry-picking.">
+
+<!-- Open Graph / Twitter card -->
+<meta property="og:title" content="Rotator Signal Track Record">
+<meta property="og:description" content="Every rotation signal, tracked and published. No cherry-picking.">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://rotatortool-official.github.io/track-record.html">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Rotator Signal Track Record">
+<meta name="twitter:description" content="Every rotation signal, tracked and published. No cherry-picking.">
+
+<link rel="icon" href="icon-192.png" type="image/png">
+<style>
+:root{
+  --bg:#05080c; --bg2:#0a0f17; --bg3:#0f1620; --bg4:#18212e;
+  --bdr:rgba(255,255,255,.06); --bdr2:rgba(255,255,255,.09);
+  --text:#e6eaf0; --muted:#7a8699;
+  --green:#00c896; --red:#ff4560; --bnb:#f3ba2f; --amber:#ffb347;
+  --pro:#a78bfa;
+  --font-mono:'IBM Plex Mono',ui-monospace,Menlo,monospace;
+  --font-ui:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{background:var(--bg);color:var(--text);font-family:var(--font-ui);-webkit-font-smoothing:antialiased;}
+body{min-height:100vh;display:flex;flex-direction:column;}
+a{color:inherit;text-decoration:none}
+.wrap{max-width:1100px;margin:0 auto;width:100%;padding:0 20px;}
+
+/* ── Header ─────────────────────────────────────────────── */
+.topbar{border-bottom:1px solid var(--bdr);background:var(--bg2);padding:14px 0;}
+.topbar-inner{display:flex;align-items:center;justify-content:space-between;gap:16px;}
+.logo{font-family:var(--font-mono);font-size:20px;font-weight:800;letter-spacing:.06em;color:var(--bnb);}
+.logo .dot-g{color:var(--green)} .logo .dot-r{color:var(--red)}
+.back-btn{font-size:12px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);
+  padding:8px 14px;border:1px solid var(--bdr2);border-radius:4px;transition:all .15s;}
+.back-btn:hover{background:var(--bg3);color:var(--text);border-color:rgba(243,186,47,.4);}
+
+/* ── Hero ──────────────────────────────────────────────── */
+.hero{text-align:center;padding:50px 0 40px;border-bottom:1px solid var(--bdr);}
+.hero-kicker{font-family:var(--font-mono);font-size:12px;letter-spacing:.24em;color:var(--bnb);margin-bottom:12px;}
+.hero h1{font-family:var(--font-mono);font-size:clamp(28px,5vw,48px);font-weight:800;letter-spacing:.04em;margin-bottom:10px;}
+.hero-sub{color:var(--muted);font-size:15px;max-width:580px;margin:0 auto 30px;line-height:1.5;}
+.acc-box{display:inline-flex;flex-direction:column;align-items:center;padding:28px 48px;
+  background:var(--bg2);border:1px solid var(--bdr2);border-radius:8px;min-width:280px;}
+.acc-big{font-family:var(--font-mono);font-size:72px;font-weight:800;line-height:1;letter-spacing:-.02em;}
+.acc-lbl{font-size:12px;letter-spacing:.16em;text-transform:uppercase;color:var(--muted);margin-top:8px;}
+.acc-detail{margin-top:18px;font-family:var(--font-mono);font-size:13px;color:var(--muted);}
+.acc-detail .sep{opacity:.4;margin:0 8px;}
+.acc-detail .ok{color:var(--green)} .acc-detail .bad{color:var(--red)}
+/* Channel posts (market_events). Grades are words, not colours: green
+   and red mean up and down on this site, never "held". */
+.mev-sub{font-size:13px;color:var(--muted);line-height:1.55;margin-bottom:14px;max-width:720px;}
+.mev-row{display:grid;grid-template-columns:88px 1fr 92px 92px;gap:12px;padding:10px 0;border-top:1px solid rgba(255,255,255,.06);font-size:13px;align-items:baseline;}
+.mev-row.mev-head{font-family:var(--font-mono);font-size:11px;letter-spacing:.08em;color:var(--muted);border-top:0;}
+.mev-date,.mev-g{font-family:var(--font-mono);font-size:12px;}
+.mev-g.pending{color:var(--muted);}
+.mev-empty{font-size:13px;color:var(--muted);padding:8px 0;}
+@media (max-width:600px){.mev-row{grid-template-columns:70px 1fr;}.mev-row .mev-g{grid-column:2;}.mev-row.mev-head{display:none;}}
+.acc-grp{display:inline-flex;align-items:baseline;gap:6px;padding:4px 11px;border-radius:6px;border:1px solid var(--bdr2);cursor:pointer;transition:border-color .15s,background .15s;margin:0 4px 6px 0;}
+.acc-grp:hover{border-color:var(--bnb);}
+.acc-grp.on{background:rgba(243,186,47,.10);border-color:var(--bnb);}
+.acc-grp .n{font-weight:700;}
+.acc-base{margin-top:10px;font-size:12px;color:var(--muted);opacity:.85;}
+.window-pill{display:inline-block;margin-top:18px;padding:4px 12px;
+  background:rgba(243,186,47,.08);border:1px solid rgba(243,186,47,.2);border-radius:3px;
+  font-family:var(--font-mono);font-size:11px;letter-spacing:.1em;color:var(--bnb);}
+
+/* ── Legacy engine badge (retired v2 record) ─────────────── */
+.legacy{margin:34px auto 0;max-width:640px;padding:20px 24px;background:var(--bg2);
+  border:1px solid var(--bdr2);border-left:3px solid var(--pro);border-radius:6px;text-align:left;}
+.legacy-hdr{display:flex;align-items:baseline;justify-content:space-between;gap:12px;flex-wrap:wrap;}
+.legacy-title{font-family:var(--font-mono);font-size:12px;letter-spacing:.16em;
+  text-transform:uppercase;color:var(--pro);}
+.legacy-retired{font-family:var(--font-mono);font-size:11px;color:var(--muted);}
+.legacy-body{display:flex;align-items:center;gap:22px;margin-top:14px;flex-wrap:wrap;}
+.legacy-pct{font-family:var(--font-mono);font-size:40px;font-weight:800;line-height:1;color:var(--pro);}
+.legacy-meta{font-family:var(--font-mono);font-size:12px;color:var(--muted);line-height:1.7;}
+.legacy-meta b{color:var(--text);font-weight:600;}
+.legacy-note{margin-top:14px;padding-top:12px;border-top:1px solid var(--bdr);
+  font-size:12px;color:var(--muted);line-height:1.6;}
+/* The v2 record and the Telegram picks of the same months, side by side
+   (2026-10-01). Same card shape; the new one is gold-edged, purple stays Pro's. */
+.legacy-pair{display:flex;gap:16px;justify-content:center;align-items:stretch;flex-wrap:wrap;margin-top:34px;}
+.legacy-pair .legacy{margin:0;flex:1 1 380px;max-width:560px;}
+.legacy.bot{border-left-color:var(--bnb);}
+.legacy.bot .legacy-title,.legacy.bot .legacy-pct{color:var(--bnb);}
+.legacy-months{display:grid;grid-template-columns:repeat(5,auto);gap:4px 14px;margin-top:12px;font-family:var(--font-mono);font-size:11px;color:var(--muted);}
+.legacy-months b{color:var(--text);font-weight:600;}
+.legacy-link{display:inline-block;margin-top:12px;font-size:12px;color:var(--bnb);text-decoration:underline;text-underline-offset:2px;}
+/* Full list of those picks (#calls-section) */
+.calls-tools{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:14px;}
+.calls-tools input,.calls-tools select{background:var(--bg2);border:1px solid var(--bdr2);color:var(--text);border-radius:5px;padding:6px 10px;font-size:13px;}
+.calls-cols{display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-bottom:22px;}
+@media (max-width:760px){.calls-cols{grid-template-columns:1fr;}}
+.calls-h{font-family:var(--font-mono);font-size:11px;letter-spacing:.12em;color:var(--muted);margin-bottom:6px;}
+.call-row{display:grid;grid-template-columns:84px 76px 70px 1fr 74px 74px 84px;gap:8px;padding:6px 0;border-top:1px solid rgba(255,255,255,.06);font-family:var(--font-mono);font-size:12px;align-items:baseline;}
+.call-row.head{color:var(--muted);font-size:10px;letter-spacing:.08em;border-top:0;}
+.call-row .up{color:var(--green);} .call-row .dn{color:var(--red);} .call-row .na{color:var(--muted);}
+.calls-cols .call-row{grid-template-columns:84px 64px 1fr 74px;}
+@media (max-width:600px){.call-row{grid-template-columns:72px 46px 1fr 58px 62px;}.call-row .c7,.call-row>span:nth-child(4){display:none;}
+  .calls-cols .call-row{grid-template-columns:76px 52px 1fr 70px;}.calls-cols .call-row>span:nth-child(4){display:inline;}
+  .calls-cols .call-row.now{grid-template-columns:76px 1fr 66px 66px;}.calls-cols .call-row.now>span:nth-child(3){display:none;}}
+.calls-tab{background:none;border:1px solid var(--bdr2);color:var(--muted);border-radius:5px;padding:5px 12px;cursor:pointer;font-size:12px;}
+.calls-tab.on{color:var(--text);border-color:var(--bnb);background:rgba(243,186,47,.10);}
+.calls-cols .call-row.now{grid-template-columns:84px 64px 1fr 78px 78px;}
+.calls-more{margin-top:12px;background:none;border:1px solid var(--bdr2);color:var(--text);border-radius:5px;padding:6px 14px;cursor:pointer;font-size:12px;}
+
+/* ── Section ───────────────────────────────────────────── */
+.section{padding:40px 0;}
+.section-hdr{display:flex;justify-content:space-between;align-items:baseline;
+  margin-bottom:20px;padding-bottom:10px;border-bottom:1px solid var(--bdr);}
+.section-title{font-family:var(--font-mono);font-size:14px;letter-spacing:.2em;text-transform:uppercase;color:var(--bnb);}
+.section-count{font-family:var(--font-mono);font-size:12px;color:var(--muted);}
+
+/* ── Call cards ───────────────────────────────────────── */
+.grid{display:grid;gap:12px;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));}
+.card{background:var(--bg2);border:1px solid var(--bdr);border-radius:6px;
+  padding:14px 16px;transition:border-color .15s,transform .15s;}
+.card:hover{border-color:var(--bdr2);transform:translateY(-1px);}
+.card.win{border-left:3px solid var(--green)}
+.card.near{border-left:3px solid var(--amber)}
+.card.miss{border-left:3px solid var(--red)}
+.card-top{display:flex;align-items:center;gap:8px;margin-bottom:10px;}
+.card-sym{font-family:var(--font-mono);font-size:18px;font-weight:800;letter-spacing:.04em;color:var(--bnb);}
+.card-signal{font-family:var(--font-mono);font-size:10px;letter-spacing:.08em;padding:2px 6px;border-radius:3px;}
+.card-signal.bull{background:rgba(0,200,150,.12);color:var(--green);border:1px solid rgba(0,200,150,.3);}
+.card-signal.bear{background:rgba(255,69,96,.12);color:var(--red);border:1px solid rgba(255,69,96,.3);}
+.card-age{margin-left:auto;font-family:var(--font-mono);font-size:11px;color:var(--muted);}
+.card-prices{display:flex;align-items:center;gap:8px;font-family:var(--font-mono);font-size:14px;margin-bottom:8px;}
+.card-prices .arrow{color:var(--muted);opacity:.6;}
+.card-change{font-family:var(--font-mono);font-size:22px;font-weight:800;}
+.card-change.up{color:var(--green)} .card-change.down{color:var(--red)}
+.card-proof{font-family:var(--font-mono);font-size:11px;color:var(--muted);margin-top:8px;letter-spacing:.02em;}
+
+/* ── Search bar ───────────────────────────────────────── */
+.search-wrap{max-width:420px;margin:20px auto 0;position:relative;}
+.search-input{width:100%;background:var(--bg2);border:1px solid var(--bdr2);border-radius:6px;
+  color:var(--text);font-family:var(--font-mono);font-size:14px;padding:11px 14px 11px 38px;outline:none;}
+.search-input::placeholder{color:var(--muted);}
+.search-input:focus{border-color:var(--bnb);}
+.search-icon{position:absolute;left:13px;top:50%;transform:translateY(-50%);color:var(--muted);pointer-events:none;font-size:14px;}
+.search-clear{position:absolute;right:10px;top:50%;transform:translateY(-50%);color:var(--muted);
+  cursor:pointer;font-size:16px;display:none;padding:4px;}
+.search-active .search-clear{display:block;}
+
+/* ── Rotation cards ───────────────────────────────────── */
+.shadow-in{margin-top:16px;padding:12px 14px;background:var(--bg3);border:1px dashed var(--bdr2);border-radius:6px;}
+.shadow-hd{font-family:var(--font-mono);font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);margin-bottom:7px;}
+.shadow-in p{margin:0 0 6px;font-size:12.5px;line-height:1.55;color:var(--muted);}
+.shadow-in p:last-child{margin-bottom:0;}
+.shadow-in b{color:var(--text);}
+.rot-card{background:var(--bg2);border:1px solid var(--bdr);border-radius:6px;
+  padding:14px 16px;transition:border-color .15s,transform .15s;cursor:pointer;}
+.rot-card:hover{border-color:var(--bdr2);transform:translateY(-1px);}
+.rot-card.win{border-left:3px solid var(--green)}
+.rot-card.miss{border-left:3px solid var(--red)}
+.rot-card.pending{border-left:3px solid var(--muted);opacity:.7;}
+.rot-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;}
+.rot-pair{font-family:var(--font-mono);font-size:15px;font-weight:800;display:flex;align-items:center;gap:6px;}
+.rot-from{color:var(--red);} .rot-to{color:var(--green);}
+.rot-arrow{color:var(--muted);opacity:.6;font-size:13px;}
+.rot-age{font-family:var(--font-mono);font-size:11px;color:var(--muted);}
+.rot-scores{display:flex;gap:14px;font-family:var(--font-mono);font-size:11px;color:var(--muted);margin-bottom:8px;}
+.rot-scores b{color:var(--text);}
+.rot-spread{font-family:var(--font-mono);font-size:22px;font-weight:800;}
+.rot-spread.up{color:var(--green)} .rot-spread.down{color:var(--red)} .rot-spread.pending{color:var(--muted);font-size:14px;}
+.rot-verdict{font-family:var(--font-mono);font-size:11px;color:var(--muted);margin-top:6px;}
+.rot-note{font-size:11px;line-height:1.5;color:var(--amber);margin-top:8px;padding-top:8px;border-top:1px dashed var(--bdr2);}
+
+/* ── Detail modal ─────────────────────────────────────── */
+.modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:500;
+  align-items:center;justify-content:center;padding:20px;}
+.modal-overlay.show{display:flex;}
+.modal-box{background:var(--bg2);border:1px solid var(--bdr2);border-radius:10px;
+  max-width:480px;width:100%;padding:26px;position:relative;}
+.modal-close{position:absolute;top:14px;right:14px;color:var(--muted);cursor:pointer;font-size:20px;}
+.modal-close:hover{color:var(--text);}
+.modal-share-preview{margin:16px 0;border-radius:6px;overflow:hidden;border:1px solid var(--bdr);}
+.modal-share-preview img{width:100%;display:block;}
+.modal-btn{display:block;width:100%;text-align:center;padding:12px;background:var(--bnb);color:#000;
+  font-family:var(--font-mono);font-weight:800;font-size:13px;letter-spacing:.1em;text-transform:uppercase;
+  border:none;border-radius:5px;cursor:pointer;margin-top:8px;}
+.modal-btn:hover{opacity:.9;}
+.modal-btn.secondary{background:var(--bg3);color:var(--text);border:1px solid var(--bdr2);}
+
+/* ── Empty / Loading ──────────────────────────────────── */
+.status{text-align:center;padding:50px 20px;color:var(--muted);}
+.status-icon{font-size:42px;margin-bottom:16px;}
+.status h3{font-family:var(--font-mono);font-size:16px;letter-spacing:.12em;color:var(--text);margin-bottom:10px;}
+.status p{font-size:14px;line-height:1.6;max-width:480px;margin:0 auto;}
+
+/* ── Footer CTA ───────────────────────────────────────── */
+.cta{text-align:center;padding:50px 0;border-top:1px solid var(--bdr);background:var(--bg2);}
+.cta h2{font-family:var(--font-mono);font-size:clamp(18px,3vw,24px);letter-spacing:.06em;margin-bottom:12px;}
+.cta p{color:var(--muted);margin-bottom:24px;font-size:14px;}
+.cta-btn{display:inline-block;padding:14px 28px;background:var(--bnb);color:#000;font-family:var(--font-mono);
+  font-size:13px;font-weight:800;letter-spacing:.14em;text-transform:uppercase;border-radius:4px;transition:all .15s;}
+.cta-btn:hover{transform:translateY(-1px);box-shadow:0 6px 20px rgba(243,186,47,.3);}
+
+/* ── Footer ───────────────────────────────────────────── */
+.footer{padding:20px 0;font-family:var(--font-mono);font-size:11px;color:var(--muted);text-align:center;letter-spacing:.06em;}
+.footer a{color:var(--bnb);}
+.disclaimer{max-width:720px;margin:0 auto 10px;line-height:1.5;opacity:.8;}
+
+@media (max-width:700px){
+  .hero{padding:30px 0 24px;}
+  .acc-box{padding:22px 28px;min-width:0;width:100%;}
+  .acc-big{font-size:56px;}
+  .section{padding:28px 0;}
+  .card{padding:12px 14px;}
+}
+</style>
+
+<!-- Umami Cloud analytics. Replace data-website-id after signup at cloud.umami.is. -->
+<script defer src="https://cloud.umami.is/script.js" data-website-id="77a817bc-ca03-4680-83b2-c914f8efaa6e"></script>
+</head>
+<body>
+
+<header class="topbar">
+  <div class="wrap topbar-inner">
+    <a href="/" class="logo">R<span class="dot-g">O</span>TAT<span class="dot-r">O</span>R</a>
+    <a href="/" class="back-btn">← Back to app</a>
+  </div>
+</header>
+
+<section class="hero">
+  <div class="wrap">
+    <div class="hero-kicker">◆ SIGNAL TRACK RECORD</div>
+    <h1>Every call, tracked.</h1>
+    <p class="hero-sub">
+      Rotator snapshots its top bullish, rotate-out and underperforming signals every day. After 30 days, we compare the call against <b>the median coin over the same 30 days</b> — beating the market is the whole test, and half of all coins beat it by definition. The result is published here: the calls that beat it, the ones that moved our way but trailed it, and the ones that went the wrong way outright. The counter below restarted on <span id="copy-reset-date"></span> with scoring engine <span id="copy-engine-hero"></span>; the retired v2 engine's final record is kept underneath it. <a href="engine-changelog.html" style="color:#f3ba2f;text-decoration:underline;text-underline-offset:2px;">Every model change is logged here.</a>
+    </p>
+    <div id="accuracy-box" class="acc-box">
+      <div class="acc-big" id="acc-pct">—</div>
+      <div class="acc-lbl">Signal Accuracy</div>
+      <div class="acc-detail" id="acc-detail">Loading…</div>
+    </div>
+    <div>
+      <span class="window-pill" id="window-pill"></span>
+    </div>
+
+    <!-- Retired v2 record. Frozen, not recomputed: these numbers are final
+         and are inlined deliberately so the badge never depends on a live
+         query against tables that no longer hold v2 rows. Provenance and
+         the raw 2120-row snapshot export live in the private workbench at
+         archive/v2-engine/ (v2-final-record.json carries the methodology). -->
+    <div class="legacy-pair">
+    <div class="legacy">
+      <div class="legacy-hdr">
+        <span class="legacy-title">🏅 Engine v2 — final record</span>
+        <span class="legacy-retired">Retired 2026-09-07</span>
+      </div>
+      <div class="legacy-body">
+        <div class="legacy-pct">76.2%</div>
+        <div class="legacy-meta">
+          <b>658</b> of <b>863</b> graded calls confirmed<br>
+          <span id="legacy-bar-row" hidden><b>Bar for this method: <span id="legacy-bar"></span></b>. A blanket call on every coin scored that, so the edge is the gap, not the distance to 50%<br></span>
+          Bullish <b>71.9%</b> · Underperforming <b>80.8%</b><br>
+          <span style="opacity:.7">v2 did not separate rotate-out calls; they sit inside that 80.8%</span><br>
+          90 trading days · 2026-04-26 → 2026-08-31
+        </div>
+      </div>
+      <div class="legacy-note">
+        Engine 2.1.0 changed the market-cap adjustment from a multiplier to a
+        signed additive term, so v2 and later scores don't mean the same thing.
+        Rather than splice them into one running number, v2's book is closed
+        here and the live counter above restarts from scratch. Graded on the
+        best price reached inside the 7–14 day window, so read it as an upper
+        bound — not as the bar the current engine has already cleared.
+      </div>
+    </div>
+
+    <!-- The same months, the Telegram bot's own daily picks, graded the
+         strict way. Frozen: data/bot-calls-2026-04-28-to-08-31.json is
+         written once by the workbench's grade-bot-snapshots.js from the
+         picks the bot SAVED AT THE TIME (market_cache bot_snapshot_*),
+         and the numbers here are read from that file, never typed. -->
+    <div class="legacy bot" id="botrec">
+      <div class="legacy-hdr">
+        <span class="legacy-title">📬 Telegram picks — graded strictly</span>
+        <span class="legacy-retired">Saved daily at the time</span>
+      </div>
+      <div class="legacy-body">
+        <div class="legacy-pct" id="botrec-pct">—</div>
+        <div class="legacy-meta" id="botrec-meta">Loading…</div>
+      </div>
+      <div class="legacy-months" id="botrec-months"></div>
+      <div class="legacy-note">
+        Every day the bot saved its 5 rotate-in and 5 rotate-out picks with the price
+        of the day. Here each one is graded on the close 30 days later against the
+        median coin, where chance is 50%. Stricter than the 76.2% beside it, and it
+        depends on the month: June, bought near the bottom, carries most of it. The
+        bot picked from the biggest coins, which did better than small ones in these
+        months, so the comparison with the 100 largest is the fairer one.
+        <br><a class="legacy-link" href="#calls-section">See every pick, the best 20 and the worst 20 ↓</a>
+      </div>
+    </div>
+    </div>
+
+    <div class="search-wrap" id="search-wrap">
+      <span class="search-icon">🔍</span>
+      <input type="text" class="search-input" id="search-input" placeholder="Search by coin symbol or name…" autocomplete="off">
+      <span class="search-clear" id="search-clear">✕</span>
+    </div>
+  </div>
+</section>
+
+<main class="wrap">
+
+  <!-- Telegram channel posts since 2 Oct 2026 (HANDOVER.md Task 2):
+       every market event post, graded after 7 and 30 days on whether the
+       move it described held. Filled by the script at the end of the body. -->
+  <section class="section" id="mev-section">
+    <div class="section-hdr">
+      <span class="section-title">📊 Channel posts: market changes</span>
+      <span class="section-count" id="mev-count"></span>
+    </div>
+    <div class="mev-sub">Since 2 Oct 2026 the Telegram channel posts only when the market changed and the change held. Each post is graded after 7 and 30 days on whether the move it described held. Chance is about 50%.</div>
+    <div id="mev-list"></div>
+  </section>
+
+  <!-- The Telegram picks of April to August, in full. Filled from
+       data/bot-calls-2026-04-28-to-08-31.json by the script at the end. -->
+  <section class="section" id="calls-section">
+    <div class="section-hdr">
+      <span class="section-title">📬 Telegram picks, 28 Apr – 31 Aug 2026</span>
+      <span class="section-count" id="calls-count"></span>
+    </div>
+    <div class="mev-sub">The picks the bot saved each day, graded on the close 7 and 30 days later against the median coin. The best 20 and the worst 20 rotate-in picks are shown together, one per coin, then every pick. Coins with no Binance history cannot be graded and say so.</div>
+    <div class="calls-tools">
+      <button type="button" class="calls-tab on" data-h="30">30 days</button>
+      <button type="button" class="calls-tab" data-h="now" id="calls-tab-now">To the latest close</button>
+    </div>
+    <div class="calls-cols">
+      <div><div class="calls-h" id="calls-best-h">BEST 20 ROTATE-IN PICKS, 30 DAYS</div><div id="calls-best"></div></div>
+      <div><div class="calls-h" id="calls-worst-h">WORST 20 ROTATE-IN PICKS, 30 DAYS</div><div id="calls-worst"></div></div>
+    </div>
+    <div class="calls-tools">
+      <input type="search" id="calls-q" placeholder="Coin symbol…" autocomplete="off">
+      <select id="calls-side"><option value="">Rotate in and out</option><option value="in">Rotate in</option><option value="out">Rotate out</option></select>
+    </div>
+    <div id="calls-all"></div>
+    <button type="button" class="calls-more" id="calls-more" hidden>Show more</button>
+  </section>
+
+  <section class="section">
+    <div class="section-hdr">
+      <span class="section-title">🔁 Rotation Calls — Strong asset → Weak asset</span>
+      <span class="section-count" id="rot-count"></span>
+    </div>
+    <div id="rot-acc-line" style="font-family:var(--font-mono);font-size:12px;color:var(--muted);margin-bottom:16px;"></div>
+    <div id="rot-grid" class="grid"></div>
+    <div id="rot-empty"></div>
+    <div id="shadow-block"></div>
+  </section>
+
+  <section class="section">
+    <div class="section-hdr">
+      <span class="section-title">🟢 Wins — Beat the market</span>
+      <span class="section-count" id="wins-count"></span>
+    </div>
+    <div id="wins-grid" class="grid"></div>
+    <div id="wins-empty"></div>
+  </section>
+
+  <section class="section">
+    <div class="section-hdr">
+      <span class="section-title">🟡 Right direction — but the market did better</span>
+      <span class="section-count" id="near-count"></span>
+    </div>
+    <div id="near-grid" class="grid"></div>
+    <div id="near-empty"></div>
+  </section>
+
+  <section class="section">
+    <div class="section-hdr">
+      <span class="section-title">🔴 Misses — Moved against the call</span>
+      <span class="section-count" id="miss-count"></span>
+    </div>
+    <div id="miss-grid" class="grid"></div>
+    <div id="miss-empty"></div>
+  </section>
+
+</main>
+
+<!-- Rotation call detail / share modal -->
+<div class="modal-overlay" id="rot-modal">
+  <div class="modal-box">
+    <span class="modal-close" id="rot-modal-close">✕</span>
+    <div id="rot-modal-body"></div>
+    <div class="modal-share-preview" id="rot-modal-preview"></div>
+    <button class="modal-btn" id="rot-modal-download">⬇ Download image</button>
+    <button class="modal-btn secondary" id="rot-modal-copy">📋 Copy call as text</button>
+  </div>
+</div>
+
+<section class="cta">
+  <div class="wrap">
+    <h2>See what's rotating right now</h2>
+    <p>Live readings across 250 coins, updated every 15 minutes. Free to use.</p>
+    <a href="/" class="cta-btn">Open Rotator →</a>
+  </div>
+</section>
+
+<footer class="footer">
+  <div class="wrap">
+    <div class="disclaimer">
+      The live counter reflects Rotator's <span id="copy-engine-disc"></span> scoring engine, tracking from <span id="copy-disc-date"></span>. Engine v2 (2026-04-26 → 2026-09-07) finished on 76.2% across 863 graded calls; its record is shown separately and is not blended into the live number — 2.1.0 changed how market cap enters the score, and 2.2.0 narrowed which coins are published at all. A call is "confirmed" when the coin <b>beats the median coin</b> over the 30 days following the snapshot, measured close-to-close on the same Binance daily candles for both. Half of all coins beat the median by definition, so <b>50% is the bar</b>, and a figure below it means the calls were worse than picking at random. Calls that fail are split in two, because they say different things: <b>right direction</b> means the coin moved the way we flagged but trailed the market, and <b>misses</b> means it moved the wrong way outright. Until 2026-09-17 this page graded against an absolute 1.5&ndash;5% bar checked at the best moment inside a fortnight; a blanket call on every coin cleared that ~68% of the time, so it measured volatility rather than skill and was replaced. The 30-day window is where the engine’s signal is actually measurable (rank IC 0.053, t = 2.51, against 0.017 at 7 days). Not financial advice — DYOR before any trade.
+    </div>
+    <div style="margin-top:10px;display:flex;justify-content:center;gap:14px;flex-wrap:wrap;">
+      <span><span style="color:#22c55e;">•</span> Powered by <a href="https://www.coingecko.com" target="_blank" rel="noopener">CoinGecko</a></span>
+      <span><span style="color:#5eead4;">•</span> On-chain by <a href="https://www.geckoterminal.com" target="_blank" rel="noopener">GeckoTerminal</a></span>
+    </div>
+    <div style="margin-top:10px;">ROTATOR © 2026 · <a href="/">rotatortool-official.github.io</a></div>
+  </div>
+</footer>
+
+<script>
+/* ──────────────────────────────────────────────────────────────
+   Standalone track-record renderer.
+   Reads signal_snapshots from Supabase + current prices from
+   CoinGecko, computes accuracy, renders wins & misses.
+   No dependencies on the main app — this page is deep-linkable.
+─────────────────────────────────────────────────────────────── */
+(function() {
+  var SUPA_URL = 'https://wyvwycatgexpbugzkdfw.supabase.co';
+  /* Usage count, once per session: the feature name only, nothing that
+     identifies the visitor (sql/feature_usage.sql, promptove/64). Runs
+     after SUPA_KEY below is defined, via setTimeout 0. */
+  setTimeout(function () {
+    try {
+      if (sessionStorage.getItem('rot_counted_track_record_view')) return;
+      sessionStorage.setItem('rot_counted_track_record_view', '1');
+    } catch (e) {}
+    try {
+      fetch(SUPA_URL + '/rest/v1/rpc/count_feature', {
+        method: 'POST', keepalive: true,
+        headers: { 'apikey': SUPA_KEY, 'Authorization': 'Bearer ' + SUPA_KEY, 'Content-Type': 'application/json' },
+        body: JSON.stringify({ p_feature: 'track_record_view' })
+      }).catch(function () {});
+    } catch (e) {}
+  }, 0);
+  var SUPA_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Ind5dnd5Y2F0Z2V4cGJ1Z3prZGZ3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU0ODcwNTAsImV4cCI6MjA5MTA2MzA1MH0.msUPOUjd1iZwuG6SxFlhr-0xYPt6fqTUy5iOYnf8Z20';
+
+  var WINDOW_DAYS        = 30;
+  /* ── The metric, rebuilt 2026-09-17 ───────────────────────
+     A call is now graded on whether the coin BEAT THE MARKET over 30
+     days, not on whether it cleared an absolute percentage bar.
+
+     The old test asked "did price move 1.5-5% in the called direction
+     at any point inside a fortnight". Measured against 175 symbols over
+     151 days, a blanket call on every coin passed that test 66-72% of
+     the time, and this page was publishing 63%. The metric sat below
+     its own null: it measured crypto's daily range, not the engine.
+
+     Two things forced the shape of the replacement:
+
+       HORIZON. The engine's rank IC against forward returns is 0.053
+       at 30 days (t = 2.51, significant) and 0.017 at 7 days (t = 1.27,
+       not). 771 days, every naive baseline beaten at every horizon.
+       The signal is real and it is a 30-day signal; the old window
+       graded it where it cannot be seen. See promptove/48.
+
+       BENCHMARK. "Beat the median coin" has a 50% null by construction,
+       needs no calibration, cannot be cleared by volatility, and is the
+       cross-sectional question the engine is actually good at — IC
+       measures exactly this. It is also the same shape as the rotation
+       metric, which was the one number here that already worked.
+
+     What this deletes: peak capture, lock-in, the mcap-tiered bars, the
+     adverse bar and the ordered window. All of that machinery existed
+     to make an absolute bar survivable. A relative endpoint comparison
+     needs none of it, and every one of those pieces was a place the two
+     implementations on this site could drift. See promptove/49. */
+  var HORIZON_DAYS       = 30;   /* the window a call is measured over */
+  var CONFIRM_DAYS_MIN   = HORIZON_DAYS;  /* and therefore when it can be graded */
+  var ROTATION_THRESHOLD = 0;    /* rotation: target must simply out-return the source over HORIZON_DAYS. Null 50.3%. */
+
+
+  /* ── One clock for the whole page ────────────────────────
+     A snapshot date is a UTC calendar day — that is what the sync
+     functions write and what binance_daily_klines is keyed on — so it
+     is read back at UTC midnight, and age is the number of WHOLE days
+     since, which is what "7+ days old" means.
+
+     Both halves of this page used to do this for themselves, and they
+     did it differently:
+
+       rotation:  T00:00:00Z + Math.floor   -> 6
+       signals:   T00:00:00  + Math.round   -> 7
+
+     for the same 2026-09-11 snapshot at 6.74 days elapsed, on a browser
+     at UTC+2. Nothing chose that; the two were written months apart.
+     The effect was that on 2026-09-17 the page published the LAGGING
+     call on Harmony as a +70.7% miss while hiding the MINA -> ONE
+     rotation of the SAME DATE at +176.4% spread behind "pending". It
+     showed the bad half of a day and withheld the good half.
+
+     Math.round was also just wrong: 6.74 days is not 7 days, so the
+     signals half had been grading roughly six hours early against a
+     rule the footer states as 7-14 days. Every other timing decision
+     here rounds toward the model looking good, which is the reason to
+     be strict about this one. */
+  function snapTs(dateStr)  { return new Date(dateStr + 'T00:00:00Z').getTime(); }
+  function daysSince(dateStr) {
+    return Math.floor((Date.now() - snapTs(dateStr)) / 864e5);
+  }
+
+  /* ── Engine 2.3.0 tracking reset ─────────────────────────────
+     Third reset, 2026-09-08. Different reason from the 2.1.0 one, and
+     the difference matters:
+
+       2.1.0 reset because the SCORE changed meaning. 2.2.0 and 2.3.0
+       moved no score and no zone — verified on the golden fixture and
+       on production runs 298 vs 299 — so a graded score still means
+       what it meant on 2026-09-07.
+
+     What changed is WHICH coins get published: 2.2.0's candidate
+     classification (extreme-move / falling-knife / RSI confirmation)
+     filters the bullish picks, so calls from 2026-09-08 come through a
+     stricter selection. Same score, different population, so the two
+     cannot share one running number.
+
+     v2's record stays CLOSED and is shown as the legacy badge below.
+     The 2.1.0 window (2026-09-07 → 09-08) produced no graded calls —
+     grading needs 7 days — so there is nothing to display for it.
+     Snapshots before the cutoff are not graded here.
+     Keep these in sync with js/signal-history.js. */
+  var STATS_FROM_DATE    = '2026-09-11';
+  var TRACKING_START     = '2026-09-11';
+  var ENGINE_LABEL       = '2.11.0';   /* 2026-10-01: weekly coin list + 2.11.0, record not reset by owner's choice — see js/signal-history.js */
+
+  /* The mcap-tiered confirm bars (1.5% mega / 2% large / 3% mid / 5%
+     small) lived here until 2026-09-17. They are gone with the absolute
+     test they served: a blanket call cleared them 66-72% of the time,
+     so they were not a bar. Market-relative grading needs no tier —
+     every coin is judged against the same median on the same day.
+     promptove/49 has the measurement. */
+  var MAX_CARDS_PER_LIST = 12;
+
+  /* Every place the page NAMES the engine or the reset date, stamped
+     from the two constants above.
+
+     Added 2026-09-10, after 2.5.0's reset moved STATS_FROM_DATE and
+     ENGINE_LABEL and the page went on saying "restarted on 2026-09-08
+     with scoring engine 2.3.0" in three places, two paragraphs above a
+     counter correctly reading day 1. verify-tracking-labels.js checked
+     the constants and passed, because the constants were right — the
+     PROSE was the copy that drifted, and nothing was watching it.
+
+     These elements must stay EMPTY in the HTML. A default written into
+     the markup is a second source of truth that only shows itself when
+     the JS has not run yet, which is exactly how this happened. The
+     test asserts they are empty. */
+  function stampEngineCopy() {
+    var pairs = [
+      ['copy-reset-date', STATS_FROM_DATE],
+      ['copy-disc-date',  STATS_FROM_DATE],
+      ['copy-engine-hero', ENGINE_LABEL],
+      ['copy-engine-disc', ENGINE_LABEL],
+      ['window-pill', 'Engine ' + ENGINE_LABEL + ' · since ' + STATS_FROM_DATE]
+    ];
+    for (var i = 0; i < pairs.length; i++) {
+      var el = document.getElementById(pairs[i][0]);
+      if (el) el.textContent = pairs[i][1];
+    }
+  }
+
+  /* Day counter for the tracking reset, so the pre-grading state can say
+     how far in we are instead of showing a bare em-dash. */
+  function daysTracking() {
+    return Math.max(0, daysSince(TRACKING_START));
+  }
+  function trackingLine() {
+    var d = daysTracking();
+    var left = Math.max(0, CONFIRM_DAYS_MIN - d);
+    return 'Engine ' + ENGINE_LABEL + ' · day ' + (d + 1) + ' of tracking. '
+      + (left ? 'First graded calls in ' + left + ' day' + (left === 1 ? '' : 's') + '.'
+              : 'Grading as calls clear ' + CONFIRM_DAYS_MIN + ' days.');
+  }
+
+  /* ── Price formatter ───────────────────────────────────── */
+  function fmtP(p) {
+    if (p == null || isNaN(p)) return '—';
+    if (p >= 1000) return '$' + p.toLocaleString('en-US', {maximumFractionDigits: 0});
+    if (p >= 1)    return '$' + p.toFixed(2);
+    if (p >= 0.01) return '$' + p.toFixed(4);
+    return '$' + Number(p).toPrecision(4);
+  }
+
+  /* ── Fetch snapshots from Supabase ─────────────────────── */
+  function fetchSnapshots() {
+    var cutoff = new Date(Date.now() - WINDOW_DAYS * 864e5);
+    var cutoffStr = cutoff.getFullYear() + '-'
+                  + String(cutoff.getMonth() + 1).padStart(2, '0') + '-'
+                  + String(cutoff.getDate()).padStart(2, '0');
+    var url = SUPA_URL + '/rest/v1/signal_snapshots'
+      + '?snap_date=gte.' + cutoffStr
+      + '&select=snap_date,coin_id,coin_sym,coin_name,signal_type,signal_label,score,price,mcap'
+      + '&order=snap_date.asc';
+    return fetch(url, {
+      headers: { 'apikey': SUPA_KEY, 'Authorization': 'Bearer ' + SUPA_KEY }
+    }).then(function(r) { if (!r.ok) throw new Error('snap ' + r.status); return r.json(); });
+  }
+
+  /* ── Fetch rotation snapshots from Supabase ────────────────
+     Table + Edge Function (sync-rotation-snapshot) added after
+     discovering the original client-side recording path never actually
+     worked — the table/RPC it relied on didn't exist. This reads real
+     data going forward from whenever that fix shipped. */
+  function fetchRotationSnapshots() {
+    var cutoff = new Date(Date.now() - WINDOW_DAYS * 864e5);
+    var cutoffStr = cutoff.getFullYear() + '-'
+                  + String(cutoff.getMonth() + 1).padStart(2, '0') + '-'
+                  + String(cutoff.getDate()).padStart(2, '0');
+    var url = SUPA_URL + '/rest/v1/rotation_snapshots'
+      + '?snap_date=gte.' + cutoffStr
+      + '&select=snap_date,from_id,from_sym,from_price,from_score,to_id,to_sym,to_price,to_score,source'
+      + '&order=snap_date.desc,from_score.desc';
+    return fetch(url, {
+      headers: { 'apikey': SUPA_KEY, 'Authorization': 'Bearer ' + SUPA_KEY }
+    }).then(function(r) { if (!r.ok) throw new Error('rotation ' + r.status); return r.json(); })
+      .catch(function() { return []; }); /* non-fatal — page still shows single-coin sections */
+  }
+
+  /* ── The rotation verdict, in one place ──────────────────────────
+     A rotation call says the target will out-return the source. This
+     is that sentence and nothing else.
+
+     It exists as a named function in BOTH files so the acceptance
+     test can run the two against each other. Inline, the rule had
+     already drifted: track-record.html compared the ROUNDED spread
+     with > and signal-history.js compared the RAW spread with >=, so
+     a raw spread of +0.04 rounded to 0.0 was a miss on the page and a
+     win on the dashboard. Neither file was wrong about anything it
+     could see on its own.
+
+     Raw, not rounded: rounding is for display, and a verdict that
+     depends on it is a verdict that depends on a display decision.
+     Strict >, not >=: a dead heat is not the target out-returning the
+     source. Exact ties are effectively impossible on real prices, so
+     this costs nothing and removes a case the two files would
+     otherwise keep disagreeing about. */
+  function rotationCorrect(fromRet, toRet) {
+    return (toRet - fromRet) > ROTATION_THRESHOLD;
+  }
+
+  /* ── Evaluate rotation pairs ─────────────────────────────────
+     Simple then-vs-now comparison, NOT the peak/trough-average proxy
+     the live dashboard widget uses internally — that approach has a
+     known honesty concern (flagged separately, fix pending). This is
+     simpler and, in the meantime, more straightforward: the price
+     someone would actually see checking today, not an average of a
+     best-case peak and a worst-case trough that may never have
+     coincided with any real moment. Same CONFIRM_DAYS_MIN/ROTATION_
+     THRESHOLD rules as the rest of the site for consistency. */
+  /* Rows written by the shadow experiment, which records the INVERTED
+     rotation rule alongside the published one so both can be graded on
+     live data. They are the same pairs with from/to swapped, and they
+     must never reach the published record — see promptove/52.
+
+     This filter exists BEFORE the first shadow row was ever written.
+     Without it, the inverted pairs would have been graded as published
+     calls the moment the sync ran, and the rotation percentage on this
+     page would have become a mix of a strategy and its own opposite.
+
+     2026-09-23: an ALLOWLIST, not a blocklist. It used to publish every
+     row that was not the inverted source, so the second experiment (the
+     gold shadow, hot coin -> PAXG) would have gone straight onto the
+     record under its own source name. Each view now takes exactly one
+     source; a new experiment is invisible here until someone adds it. */
+  /* ── Coins Binance converted into another coin (promptove/80) ──────
+     STG delists on 2026-10-06 and converts at a fixed 1 STG = 0.08634
+     ZRO. With no Binance close after that day, returnOver() returned
+     null for every call naming STG, and a null leg leaves a call
+     "pending" forever: the misses would have left the record on their
+     own, which is the same as removing them. From lastDay on, STG's
+     close is the value a holder actually has, ratio x ZRO's close.
+
+     guardFrom is the day the delisting guard went live (site e69c724).
+     Calls on the coin before it stay on the record, carry a note, and
+     the page shows the accuracy without them as a second line, never
+     instead of the headline. js/signal-history.js carries the same
+     table: keep the two in step. Add an entry only from Binance's own
+     announcement. */
+  var SETTLEMENTS = {
+    STG: { into: 'ZRO', ratio: 0.08634, lastDay: '2026-10-06', guardFrom: '2026-09-25' }
+  };
+  function applySettlements(map) {
+    Object.keys(SETTLEMENTS).forEach(function(sym) {
+      var st = SETTLEMENTS[sym], into = map[st.into];
+      if (!into || !into.length) return;
+      var cut = snapTs(st.lastDay);
+      var kept = (map[sym] || []).filter(function(c) { return c.openTime < cut; });
+      into.forEach(function(c) {
+        if (c.openTime >= cut) kept.push({ openTime: c.openTime, close: c.close * st.ratio, settled: true });
+      });
+      map[sym] = kept;
+    });
+    return map;
+  }
+  function isPreGuard(s) {
+    var st = SETTLEMENTS[s.to_sym];
+    return !!(st && s.snap_date < st.guardFrom);
+  }
+
+  var LIVE_SOURCE   = 'sync-rotation-snapshot';
+  var SHADOW_SOURCE = 'sync-rotation-snapshot-inverted';
+  function isShadowRow(s) { return s && s.source === SHADOW_SOURCE; }
+
+  function evaluateRotation(snaps, priceMap, wantShadow) {
+    var evaluated = [], pending = [];
+    var want = wantShadow ? SHADOW_SOURCE : LIVE_SOURCE;
+    snaps.forEach(function(s) {
+      if (!s || s.source !== want) return;
+      /* Same 2.3.0 reset as evaluate(): rotation calls scored by the
+         retired engine are archived, not carried into the live count. */
+      if (!s.snap_date || s.snap_date < TRACKING_START) return;
+      var daysAgo = daysSince(s.snap_date);
+      /* Both legs over exactly HORIZON_DAYS of closes, like every other
+         grade on this page. It used to compare the snapshot price to
+         TODAY's CoinGecko price, which meant a 40-day-old call was
+         graded over 40 days and a 31-day-old one over 31 — the window
+         grew every time the page was opened, so the same call could
+         change verdict between two refreshes. */
+      var fromRet = returnOver(_klineMap[s.from_sym], s.snap_date, HORIZON_DAYS);
+      var toRet   = returnOver(_klineMap[s.to_sym],   s.snap_date, HORIZON_DAYS);
+      var row = {
+        snap_date: s.snap_date, daysAgo: daysAgo,
+        fromId: s.from_id, fromSym: s.from_sym, fromPriceThen: s.from_price, fromScore: s.from_score,
+        toId: s.to_id, toSym: s.to_sym, toPriceThen: s.to_price, toScore: s.to_score,
+        fromPriceNow: priceMap[s.from_id], toPriceNow: priceMap[s.to_id],
+        preGuard: isPreGuard(s)
+      };
+      if (daysAgo < CONFIRM_DAYS_MIN || fromRet == null || toRet == null) { pending.push(row); return; }
+      row.fromChange = Math.round(fromRet * 10) / 10;
+      row.toChange   = Math.round(toRet   * 10) / 10;
+      row.spread     = Math.round((toRet - fromRet) * 10) / 10;   /* display only */
+      /* Threshold 0: the call is "the target outperforms the source",
+         so the test is whether it did. Measured over 30 days, random
+         pairs clear a 0% spread 50.3% of the time — a clean coin-flip
+         bar that needs no calibration. The old 2% margin existed to
+         discount noise, but at 30 days it just moves the null to 45.3%
+         and makes the published figure harder to read against it. */
+      /* Reads the RAW returns, not row.spread — see rotationCorrect(). */
+      row.correct    = rotationCorrect(fromRet, toRet);
+      evaluated.push(row);
+    });
+    var correct = evaluated.filter(function(r) { return r.correct; }).length;
+    /* The second line: the same grades without the pre-guard calls. */
+    var clean = evaluated.filter(function(r) { return !r.preGuard; });
+    var cleanCorrect = clean.filter(function(r) { return r.correct; }).length;
+    return {
+      evaluated: evaluated, pending: pending,
+      stats: { total: evaluated.length, correct: correct,
+        accuracy: evaluated.length ? Math.round(correct / evaluated.length * 100) : null,
+        preGuard: evaluated.concat(pending).filter(function(r) { return r.preGuard; }).length,
+        preGuardGraded: evaluated.length - clean.length,
+        cleanTotal: clean.length, cleanCorrect: cleanCorrect,
+        cleanAccuracy: clean.length ? Math.round(cleanCorrect / clean.length * 100) : null }
+    };
+  }
+
+  function renderRotationCard(r) {
+    var isPending = r.correct === undefined;
+    var cls = isPending ? 'pending' : (r.correct ? 'win' : 'miss');
+    var card = el('div', { className: 'rot-card ' + cls });
+    card.dataset.searchText = (r.fromSym + ' ' + r.toSym).toLowerCase();
+    var spreadHtml = isPending
+      ? '<div class="rot-spread pending">Pending — evaluates ' + (CONFIRM_DAYS_MIN - r.daysAgo > 0 ? 'in ' + (CONFIRM_DAYS_MIN - r.daysAgo) + 'd' : 'soon') + '</div>'
+      : '<div class="rot-spread ' + (r.spread >= 0 ? 'up' : 'down') + '">' + (r.spread >= 0 ? '+' : '') + r.spread + '% spread</div>';
+    card.innerHTML =
+      '<div class="rot-top">'
+    +   '<span class="rot-pair"><span class="rot-from">' + escape(r.fromSym) + '</span>'
+    +     '<span class="rot-arrow">→</span><span class="rot-to">' + escape(r.toSym) + '</span></span>'
+    +   '<span class="rot-age">' + r.daysAgo + 'd ago</span>'
+    + '</div>'
+    + '<div class="rot-scores">Called: <b>' + escape(r.fromSym) + ' ' + r.fromScore + '</b> vs <b>' + escape(r.toSym) + ' ' + r.toScore + '</b></div>'
+    + spreadHtml
+    + '<div class="rot-verdict">' + (isPending ? 'Not old enough to grade yet' : (r.correct ? 'Confirmed ✓ — the target out-returned the source' : 'The source out-returned the target')) + '</div>'
+    + (r.preGuard ? '<div class="rot-note">⚠ Made before the delisting guard (live since 25 Sep). Binance is delisting '
+        + escape(r.toSym) + ' and converting it into ' + SETTLEMENTS[r.toSym].into + ', so this call is graded at that conversion value.</div>' : '');
+    card.addEventListener('click', function() { openRotationModal(r); });
+    return card;
+  }
+
+
+  /* Returns { priceMap: {id: price}, mcapMap: {id: mcap} } so evaluate()
+     can pick a market-cap-aware confirmation threshold per coin. */
+  function fetchCurrentPrices() {
+    var cgUrl = 'https://api.coingecko.com/api/v3/coins/markets'
+      + '?vs_currency=usd&order=market_cap_desc&per_page=250&page=1&sparkline=false';
+    return fetch(cgUrl)
+      .then(function(r) { if (!r.ok) throw new Error('cg ' + r.status); return r.json(); })
+      .then(function(rows) {
+        var priceMap = {}, mcapMap = {};
+        rows.forEach(function(c) {
+          priceMap[c.id] = Number(c.current_price);
+          mcapMap[c.id]  = Number(c.market_cap) || 0;
+        });
+        return { priceMap: priceMap, mcapMap: mcapMap };
+      })
+      .catch(function() {
+        var url = SUPA_URL + '/rest/v1/market_cache'
+          + '?select=data,updated_at&order=updated_at.desc&limit=5';
+        return fetch(url, {
+          headers: { 'apikey': SUPA_KEY, 'Authorization': 'Bearer ' + SUPA_KEY }
+        }).then(function(r) { return r.ok ? r.json() : []; })
+          .then(function(rows) {
+            var priceMap = {}, mcapMap = {};
+            (rows || []).forEach(function(row) {
+              if (Array.isArray(row.data)) {
+                row.data.forEach(function(c) {
+                  if (c && c.id && c.current_price && !priceMap[c.id]) {
+                    priceMap[c.id] = Number(c.current_price);
+                    mcapMap[c.id]  = Number(c.market_cap) || 0;
+                  }
+                });
+              }
+            });
+            return { priceMap: priceMap, mcapMap: mcapMap };
+          }).catch(function() { return { priceMap: {}, mcapMap: {} }; });
+      });
+  }
+
+  /* ── Peak-capture helpers ────────────────────────────────
+     For each snapshot we fetch 30 days of Binance daily klines and
+     pick the best high (bullish) or worst low (lagging) inside the
+     [snap+1d, snap+14d] window. A call is locked in as confirmed
+     once the window crosses CONFIRM_THRESHOLD — current price
+     drifting back later does NOT retro-demote the call.
+     Coins that don't trade on Binance silently fall back to the
+     current-price comparison so we never lose coverage. */
+  /* Candles come from Supabase (binance_daily_klines), not from
+     api.binance.com. This page and js/signal-history.js each carried
+     their own copy of the same fetch-per-symbol loop; both now read the
+     table that sync-binance-daily-klines fills every 3 hours.
+
+     Coins with no Binance listing simply have no rows, and the caller
+     falls back to the current-price comparison exactly as before — but
+     without a guaranteed-to-fail cross-origin request per coin.
+
+     ── THE FETCH IS CAP-AWARE, NOT SYMBOL-COUNT-AWARE ──────────────
+     PostgREST caps any response at 1000 rows. This used to chunk 30
+     symbols per request and trust that ~30 candles each kept it under
+     that cap. Two things were wrong with trusting it:
+
+       · a truncated response is indistinguishable from a complete one,
+         so crossing the cap failed silently rather than loudly;
+       · the estimate stopped being true on 2026-09-06, when
+         sync-binance-daily-klines raised KLINE_LIMIT from 30 to 140
+         bars for the weekly-RSI lenses. 30 symbols × 141 candles is
+         4,230 rows against a 1000-row cap, and because the order was
+         open_time.asc the 1000 rows that came back were the OLDEST
+         ones. Measured against live Supabase on 2026-09-07: every
+         symbol in a 30-symbol chunk came back with candles from
+         2026-04-20 to 2026-05-23 and nothing after, so every recent
+         call fell through to the current-price path.
+
+     That is the gap between the 66–69% this page rendered and the
+     72–77% the same snapshots grade at (archive/v2-engine/README.md,
+     promptove/27). Three changes make it structural rather than
+     estimated:
+
+       1. WINDOW BOUND. Grading only ever reads [snap+1d, snap+14d], so
+          only candles at or after the oldest graded snapshot matter.
+          open_time=gte drops the payload from 141 candles per symbol to
+          the days actually gradeable.
+       2. ROW BUDGET. Chunk size is derived from that window
+          (KLINE_ROW_BUDGET ÷ days) instead of a fixed symbol count, so
+          it tracks the sync function's retention and KLINE_LIMIT
+          instead of restating a number copied from it.
+       3. PAGING, WITH A LOUD FLOOR. Each chunk pages on offset until a
+          short page comes back, so even a wrong budget estimate returns
+          complete data. Exhausting the page floor, or a majority of
+          symbols coming back stale, warns on the console instead of
+          quietly depressing the published accuracy again.
+
+     Paging needs a total order: open_time alone ties across symbols and
+     rows can shift between pages. Ordered on the primary key
+     (base_asset, open_time) instead. Nothing downstream depends on the
+     old ordering — peakInWindow() scans every candle it is given.
+
+     js/supabase.js carries the same fix for the dashboard widget. The
+     two are separate implementations on purpose (this page loads no
+     shared JS); each points at the other so a change to one is a
+     visible prompt to check the other. */
+  var KLINE_PAGE_LIMIT = 1000;  /* PostgREST's hard cap on one response */
+  var KLINE_ROW_BUDGET = 800;   /* rows we aim for per request — headroom under the cap */
+  var KLINE_MAX_PAGES  = 12;    /* paging floor; hitting it warns rather than truncating quietly */
+  var KLINE_MAX_DAYS   = 200;   /* table retention (180d) + slack, when no window bound is known */
+  var KLINE_MAX_SYMS   = 60;    /* keeps the in.() list to a sane URL length */
+  var KLINE_STALE_DAYS = 3;     /* the sync runs every 3h; older than this is suspicious */
+  var KLINE_CONCURRENCY = 6;    /* chunks in flight at once — see klinePool() */
+
+  var _klinesAll = null;         /* promise of { SYM: candles[] } */
+  var _klineSymsNeeded = [];     /* set by warmKlines() before grading */
+  var _klineSince = null;        /* ISO instant — oldest candle grading can use */
+  /* Resolved candles, kept as a plain object because evaluate() looks
+     them up SYNCHRONOUSLY. evaluate() runs twice — once before candles
+     are loaded (empty map -> current-price fallback) and again after
+     warmKlines() resolves — so an empty map here is a normal state, not
+     an error. */
+  var _klineMap = {};
+
+  /* Symbols per request, from the row budget rather than a fixed count.
+     A narrow window (the common case after a tracking reset) means more
+     symbols per request; a wide one means fewer. Either way the request
+     aims at KLINE_ROW_BUDGET rows, not at a symbol count that happened
+     to be under the cap on the day it was written. */
+  function klineChunkSize(sinceIso) {
+    var days = KLINE_MAX_DAYS;
+    if (sinceIso) {
+      var t = Date.parse(sinceIso);
+      if (!isNaN(t)) days = Math.ceil((Date.now() - t) / 864e5) + 2;   /* +2: today, and a day of slack */
+    }
+    days = Math.max(1, Math.min(days, KLINE_MAX_DAYS));
+    return Math.max(1, Math.min(KLINE_MAX_SYMS, Math.floor(KLINE_ROW_BUDGET / days)));
+  }
+
+  /* Every row for `group` at or after `sinceIso`, paged until a short
+     page comes back. A page that arrives exactly at the limit is never
+     treated as complete — that assumption is the bug this replaces. */
+  function fetchKlinePages(group, sinceIso) {
+    var rows = [];
+    function page(offset, pageNo) {
+      /* group === null means the WHOLE universe. Grading is now
+         relative to the median symbol, so the benchmark needs every
+         coin with candles — not just the ones we made calls on, which
+         are by construction the extremes and would make a median of
+         our own opinions. */
+      var url = SUPA_URL + '/rest/v1/binance_daily_klines'
+        + '?' + (group ? 'base_asset=in.(' + group.join(',') + ')&' : '')
+        + (sinceIso ? 'open_time=gte.' + sinceIso : '')
+        + '&select=base_asset,open_time,close'
+        + '&order=base_asset.asc,open_time.asc'
+        + '&limit=' + KLINE_PAGE_LIMIT + '&offset=' + offset;
+      return fetch(url, {
+        headers: { 'apikey': SUPA_KEY, 'Authorization': 'Bearer ' + SUPA_KEY }
+      }).then(function(r) {
+        if (!r.ok) throw new Error('HTTP ' + r.status);
+        return r.json();
+      }).then(function(batch) {
+        batch = batch || [];
+        rows = rows.concat(batch);
+        if (batch.length < KLINE_PAGE_LIMIT) return rows;      /* short page — complete */
+        if (pageNo >= KLINE_MAX_PAGES) {
+          console.warn('[track-record] kline paging hit the ' + KLINE_MAX_PAGES
+            + '-page floor for ' + group.length + ' symbols (' + rows.length
+            + ' rows). Candles are incomplete and the accuracy number will read low.');
+          return rows;
+        }
+        return page(offset + KLINE_PAGE_LIMIT, pageNo + 1);
+      }).catch(function(e) {
+        console.warn('[track-record] kline page failed (' + group.length
+          + ' symbols, offset ' + offset + '):', (e && e.message) || e);
+        return rows;   /* partial beats nothing; uncovered coins fall back per coin */
+      });
+    }
+    return page(0, 1);
+  }
+
+  /* The assertion that would have caught the silent truncation. One
+     symbol with no recent candle is normal — a delisted pair keeps old
+     rows until the 180-day prune. MOST symbols being stale at once is
+     not: that means the fetch, not the listing, is the problem. */
+  function warnIfKlinesStale(requested, map) {
+    var withRows = 0, stale = 0;
+    var cutoff = Date.now() - KLINE_STALE_DAYS * 864e5;
+    requested.forEach(function(s) {
+      var c = map[s];
+      if (!c || !c.length) return;
+      withRows++;
+      var newest = 0;
+      for (var i = 0; i < c.length; i++) if (c[i].openTime > newest) newest = c[i].openTime;
+      if (newest < cutoff) stale++;
+    });
+    if (withRows && stale > withRows / 2) {
+      console.warn('[track-record] ' + stale + ' of ' + withRows + ' symbols returned no candle '
+        + 'newer than ' + KLINE_STALE_DAYS + ' days. Grading is falling back to current price, '
+        + 'which reads several points below the true accuracy.');
+    }
+  }
+
+  /* Chunks run pooled rather than all at once. A narrow window is one or
+     two requests and the pool is irrelevant; a wide one sizes chunks small
+     and would otherwise fire ~29 at once, all of which queue behind the
+     browser's per-host connection limit anyway. Six lanes is roughly what
+     the browser would allow, without the queue. */
+  function klinePool(chunks, run) {
+    var results = new Array(chunks.length);
+    var next = 0;
+    function worker() {
+      if (next >= chunks.length) return Promise.resolve();
+      var i = next++;
+      return run(chunks[i]).then(function(r) { results[i] = r; return worker(); });
+    }
+    var lanes = [];
+    for (var i = 0; i < Math.min(KLINE_CONCURRENCY, chunks.length); i++) lanes.push(worker());
+    return Promise.all(lanes).then(function() { return results; });
+  }
+
+  function loadAllDailyKlines(syms, sinceIso) {
+    if (_klinesAll) return _klinesAll;
+
+    var unique = [];
+    (syms || []).forEach(function(s) {
+      s = String(s || '').toUpperCase();
+      if (s && unique.indexOf(s) < 0) unique.push(s);
+    });
+    /* null (not empty) asks for the whole table — the benchmark path. */
+    var wantAll = syms == null;
+    if (!wantAll && !unique.length) { _klinesAll = Promise.resolve({}); return _klinesAll; }
+
+    var chunks;
+    if (wantAll) {
+      chunks = [null];
+    } else {
+      var size = klineChunkSize(sinceIso);
+      chunks = [];
+      for (var i = 0; i < unique.length; i += size) chunks.push(unique.slice(i, i + size));
+    }
+
+    _klinesAll = klinePool(chunks, function(group) {
+      return fetchKlinePages(group, sinceIso);
+    }).then(function(groups) {
+      var out = {};
+      groups.forEach(function(rows) {
+        (rows || []).forEach(function(r) {
+          (out[r.base_asset] = out[r.base_asset] || []).push({
+            openTime: Date.parse(r.open_time),
+            close: parseFloat(r.close)
+          });
+        });
+      });
+      applySettlements(out);    /* STG after its delisting = its ZRO value */
+      _klineMap = out;          /* for evaluate()'s synchronous lookup */
+      warnIfKlinesStale(wantAll ? Object.keys(out) : unique, out);
+      return out;
+    }).catch(function() { _klineMap = {}; return {}; });
+
+    return _klinesAll;
+  }
+
+  function fetchDailyKlines(sym) {
+    return loadAllDailyKlines(_klineSymsNeeded, _klineSince)
+      .then(function(map) { return map[String(sym || '').toUpperCase()] || null; });
+  }
+
+  /* ── Close on a date, and the market it is measured against ──
+     Both sides of every grade read the SAME series: the coin's close on
+     the snapshot date and on snapshot+HORIZON, and the median of every
+     symbol that has both. Mixing a CoinGecko snapshot price with a
+     Binance close would compare two different measurements of two
+     different moments and call the difference alpha. */
+  function closeOn(candles, dateStr) {
+    if (!candles || !candles.length) return null;
+    var want = snapTs(dateStr);
+    for (var i = 0; i < candles.length; i++) {
+      if (candles[i].openTime === want) return candles[i].close;
+    }
+    return null;
+  }
+
+  function returnOver(candles, fromDate, days) {
+    var a = closeOn(candles, fromDate);
+    if (!a) return null;
+    var b = closeOn(candles, shiftDate(fromDate, days));
+    if (!b) return null;
+    return ((b - a) / a) * 100;
+  }
+
+  function shiftDate(dateStr, days) {
+    var t = new Date(snapTs(dateStr));
+    t.setUTCDate(t.getUTCDate() + days);
+    return t.toISOString().slice(0, 10);
+  }
+
+  /* The benchmark: the MEDIAN symbol's return over the same window.
+     Median rather than mean because one Harmony doing +160% should not
+     move the bar every other call is judged against, and equal-weight
+     rather than cap-weight because the calls are equal-weight.
+
+     Cached per date — every snapshot on a given day is graded against
+     one number, computed once. */
+  var _marketRet = {};
+  function marketReturn(dateStr) {
+    if (Object.prototype.hasOwnProperty.call(_marketRet, dateStr)) return _marketRet[dateStr];
+    var rets = [];
+    for (var sym in _klineMap) {
+      if (!Object.prototype.hasOwnProperty.call(_klineMap, sym)) continue;
+      var r = returnOver(_klineMap[sym], dateStr, HORIZON_DAYS);
+      if (r != null && isFinite(r)) rets.push(r);
+    }
+    /* Too thin a cross-section is not a market. Refusing to grade beats
+       grading against a benchmark made of four coins. */
+    if (rets.length < MARKET_MIN_SYMBOLS) { _marketRet[dateStr] = null; return null; }
+    rets.sort(function(a, b) { return a - b; });
+    var mid = Math.floor(rets.length / 2);
+    var med = rets.length % 2 ? rets[mid] : (rets[mid - 1] + rets[mid]) / 2;
+    _marketRet[dateStr] = { median: med, n: rets.length };
+    return _marketRet[dateStr];
+  }
+  var MARKET_MIN_SYMBOLS = 20;
+
+  /* Pre-fetch klines in batches before evaluating, so the per-snap
+     lookup is synchronous against the cache. */
+  /* Rotation rows count too (2026-10-02): they were graded only once,
+     before any candles had loaded, so every rotation call would have
+     stayed "pending" past 30 days. The caller now re-grades them after
+     this resolves, and gradeable rotation rows alone are enough to
+     trigger the read. */
+  function warmKlines(snaps, rotSnaps) {
+    var symbols = {};
+    var oldest = null;
+    snaps.forEach(function(r) {
+      var daysAgo = daysSince(r.snap_date);
+      if (daysAgo < CONFIRM_DAYS_MIN) return;
+      if (r.coin_sym) symbols[r.coin_sym] = true;
+      if (r.snap_date && (!oldest || r.snap_date < oldest)) oldest = r.snap_date;
+    });
+    (rotSnaps || []).forEach(function(r) {
+      if (!r || r.source !== LIVE_SOURCE || !r.snap_date || r.snap_date < TRACKING_START) return;
+      if (daysSince(r.snap_date) < CONFIRM_DAYS_MIN) return;
+      symbols[r.from_sym] = symbols[r.to_sym] = true;
+      if (!oldest || r.snap_date < oldest) oldest = r.snap_date;
+    });
+    var list = Object.keys(symbols);
+    if (!list.length) return Promise.resolve();
+    /* We fetch the whole universe regardless of which symbols were
+       called, because marketReturn() needs a median across all of them.
+       `list` still decides whether there is anything to grade at all. */
+    /* The window bound the chunk budget is sized from. evaluate() drops
+       anything before STATS_FROM_DATE, so a snapshot older than that
+       cannot need candles no matter what warmKlines() collected — take
+       the later of the two and fetch nothing older. After a tracking
+       reset this is days, not months, which is why the whole read
+       collapses to a single request. */
+    var since = (oldest && oldest > STATS_FROM_DATE) ? oldest : STATS_FROM_DATE;
+    _klineSince = since + 'T00:00:00Z';
+    /* One bulk read replaces the old batched, rate-limit-paced loop of
+       one Binance request per symbol. */
+    _klineSymsNeeded = null;   /* null = whole universe, see loadAllDailyKlines */
+    return loadAllDailyKlines(null, _klineSince).then(function() {});
+  }
+
+  /* ── Evaluate snapshots → wins/misses lists + stats ────── */
+  function evaluate(snaps, priceMap, mcapMap) {
+    mcapMap = mcapMap || {};
+    var wins = [], nears = [], misses = [];
+    var tBull = 0, cBull = 0, tRot = 0, cRot = 0, tUnd = 0, cUnd = 0;
+    var peakCovered = 0, fallbackCovered = 0;
+
+    snaps.forEach(function(r) {
+      if (!r.snap_date || r.snap_date < STATS_FROM_DATE) return;   /* v2 cutoff */
+      var daysAgo = daysSince(r.snap_date);
+      if (daysAgo < CONFIRM_DAYS_MIN) return;
+
+      if (r.signal_type !== 'bullish' && r.signal_type !== 'lagging') return;
+      var isBull = r.signal_type === 'bullish';
+
+      /* Both legs from the same series — see closeOn(). A row whose coin
+         has no candles is not graded against the current CoinGecko
+         price as a fallback: that would measure the coin at one moment
+         and the market at another and report the gap as skill. It is
+         counted as uncovered instead, and the count is published. */
+      var candles = _klineMap[r.coin_sym];
+      var priceThen = closeOn(candles, r.snap_date);
+      var priceNow  = closeOn(candles, shiftDate(r.snap_date, HORIZON_DAYS));
+      if (priceThen == null || priceNow == null) { fallbackCovered++; return; }
+
+      var mkt = marketReturn(r.snap_date);
+      if (!mkt) { fallbackCovered++; return; }
+      peakCovered++;
+
+      var change = ((priceNow - priceThen) / priceThen) * 100;
+      var excess = change - mkt.median;
+      var rounded = Math.round(change * 10) / 10;
+
+      var record = {
+        id: r.coin_id, sym: r.coin_sym, name: r.coin_name || '',
+        signal: r.signal_label || '', score: r.score != null ? Number(r.score) : null,
+        date: r.snap_date, daysAgo: daysAgo,
+        priceThen: priceThen, priceNow: priceNow,
+        change: rounded, type: r.signal_type,
+        market: Math.round(mkt.median * 10) / 10,
+        marketN: mkt.n,
+        excess: Math.round(excess * 10) / 10,
+        source: 'close'
+      };
+
+      /* THE WHOLE TEST. A bullish call is right if the coin beat the
+         median coin; a lagging call is right if it lagged it. No bar,
+         no window extreme, no lock-in — and a 50% null by construction,
+         so the number means something the moment it is read. */
+      var correct, rightWay;
+      if (isBull) {
+        record.bucket = 'bullish';
+        tBull++;
+        correct = excess > 0;
+        rightWay = change > 0;
+        if (correct) cBull++;
+      } else {
+        /* signal_type carries only bullish/lagging, but TWO different
+           calls live under 'lagging': ROTATE OUT is a strong asset that
+           has run ahead, everything else is one that is behind. Both
+           predict the coin trails the market from here, so one rule
+           fits both — they are counted apart to show which KIND of call
+           works, not graded apart. */
+        var isRot = String(r.signal_label || '').toUpperCase() === 'ROTATE OUT';
+        record.bucket = isRot ? 'rotate' : 'under';
+        correct = excess < 0;
+        rightWay = change < 0;
+        if (isRot) { tRot++; if (correct) cRot++; }
+        else       { tUnd++; if (correct) cUnd++; }
+      }
+
+      record.correct = correct;
+
+      /* THREE outcomes, not two. Grading is unchanged — `correct` still
+         means the move cleared the mcap-aware bar, and the headline
+         accuracy is still correct/total. What changed is that a call
+         which moved the way we said but stopped short of the bar is no
+         longer filed under "where we were wrong".
+
+         It was wrong on the page and wrong on the facts. On 2026-09-17
+         every one of the five not-confirmed calls in the window had
+         moved in the flagged direction — SUN +2.1% on a 3% bar, ONE
+         -0.8% on a 5% bar — and the section above them read "Where we
+         were wrong". Zero had gone against the call.
+
+         The bar stays because a 0.8% drift over 7 days is noise and
+         crediting it would publish a 100% accuracy number. But
+         "did not clear the bar" and "moved against us" are different
+         claims about the model, and only the second one is a miss. */
+      record.rightWay = rightWay;
+      (correct ? wins : (rightWay ? nears : misses)).push(record);
+    });
+
+    /* Deduplicate by coin (keep the most impressive move per coin). */
+    function dedupe(list, descending) {
+      list.sort(function(a, b) {
+        return descending ? Math.abs(b.change) - Math.abs(a.change)
+                          : Math.abs(a.change) - Math.abs(b.change);
+      });
+      var seen = {};
+      return list.filter(function(x) {
+        if (seen[x.id]) return false;
+        seen[x.id] = true;
+        return true;
+      });
+    }
+
+    wins   = dedupe(wins,   true);
+    nears  = dedupe(nears,  true);
+    misses = dedupe(misses, true);
+
+    var total   = tBull + tRot + tUnd;
+    var correct = cBull + cRot + cUnd;
+    var acc = total > 0 ? Math.round((correct / total) * 100) : null;
+
+    return {
+      wins: wins, nears: nears, misses: misses,
+      stats: { total: total, correct: correct, accuracy: acc,
+               near: nears.length, against: misses.length,
+               bullTotal: tBull, bullCorrect: cBull,
+               rotTotal: tRot, rotCorrect: cRot,
+               undTotal: tUnd, undCorrect: cUnd,
+               peakCovered: peakCovered, fallbackCovered: fallbackCovered }
+    };
+  }
+
+  /* ── DOM helpers ───────────────────────────────────────── */
+  function el(tag, attrs, children) {
+    var e = document.createElement(tag);
+    Object.keys(attrs || {}).forEach(function(k) {
+      if (k === 'className') e.className = attrs[k];
+      else if (k === 'textContent') e.textContent = attrs[k];
+      else e.setAttribute(k, attrs[k]);
+    });
+    (children || []).forEach(function(c) { e.appendChild(c); });
+    return e;
+  }
+
+  function renderCard(r) {
+    var isBull = r.type === 'bullish';
+    var outcome = r.correct ? 'win' : (r.rightWay ? 'near' : 'miss');
+    var card = el('div', { className: 'card ' + outcome });
+    card.innerHTML =
+      '<div class="card-top">'
+    +   '<span class="card-sym">' + escape(r.sym) + '</span>'
+    +   '<span class="card-signal ' + (isBull ? 'bull' : 'bear') + '">'
+    +     escape(r.signal || (isBull ? 'BULLISH' : 'LAGGING'))
+    +   '</span>'
+    +   '<span class="card-age">' + r.daysAgo + 'd ago</span>'
+    + '</div>'
+    + '<div class="card-prices">'
+    +   '<span>' + fmtP(r.priceThen) + '</span>'
+    +   '<span class="arrow">→</span>'
+    +   '<span>' + fmtP(r.priceNow) + '</span>'
+    + '</div>'
+    + '<div class="card-change ' + (r.change >= 0 ? 'up' : 'down') + '">'
+    +   (r.change >= 0 ? '+' : '') + r.change + '%'
+    + '</div>'
+    + '<div class="card-proof">'
+    +   'Flagged as ' + escape(r.signal || (isBull ? 'BULLISH' : 'LAGGING'))
+    +   (r.score != null ? ' (score ' + r.score + ')' : '')
+    +   ' — market did ' + (r.market >= 0 ? '+' : '') + r.market + '% over the same ' + HORIZON_DAYS + ' days, '
+    +   'so this ' + (r.correct ? 'beat it by ' : 'missed by ')
+    +   Math.abs(r.excess) + ' points'
+    +   (r.correct ? ' ✓' : '')
+    + '</div>';
+    return card;
+  }
+
+  function escape(s) {
+    return String(s == null ? '' : s)
+      .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+  }
+
+  /* ── Rotation detail modal + share image ──────────────────── */
+  function _roundRect(ctx, x, y, w, h, r) {
+    ctx.beginPath();
+    ctx.moveTo(x + r, y);
+    ctx.arcTo(x + w, y, x + w, y + h, r);
+    ctx.arcTo(x + w, y + h, x, y + h, r);
+    ctx.arcTo(x, y + h, x, y, r);
+    ctx.arcTo(x, y, x + w, y, r);
+    ctx.closePath();
+  }
+
+  function generateRotationShareImage(r) {
+    var W = 1200, H = 630;
+    var can = document.createElement('canvas');
+    can.width = W; can.height = H;
+    var ctx = can.getContext('2d');
+    var isPending = r.correct === undefined;
+
+    var bg = ctx.createLinearGradient(0, 0, W, H);
+    bg.addColorStop(0, '#080c12'); bg.addColorStop(0.4, '#0d1420'); bg.addColorStop(1, '#080c12');
+    ctx.fillStyle = bg; ctx.fillRect(0, 0, W, H);
+
+    ctx.strokeStyle = 'rgba(243,186,47,0.025)'; ctx.lineWidth = 1;
+    for (var gx = 0; gx < W; gx += 50) { ctx.beginPath(); ctx.moveTo(gx, 0); ctx.lineTo(gx, H); ctx.stroke(); }
+    for (var gy = 0; gy < H; gy += 50) { ctx.beginPath(); ctx.moveTo(0, gy); ctx.lineTo(W, gy); ctx.stroke(); }
+
+    var gold = ctx.createLinearGradient(0, 0, W, 0);
+    gold.addColorStop(0, 'rgba(243,186,47,0)'); gold.addColorStop(0.3, 'rgba(243,186,47,0.9)');
+    gold.addColorStop(0.7, 'rgba(243,186,47,0.9)'); gold.addColorStop(1, 'rgba(243,186,47,0)');
+    ctx.fillStyle = gold; ctx.fillRect(0, 0, W, 4);
+
+    var badgeColor = isPending ? '#7a8699' : (r.correct ? '#00c896' : '#ff4560');
+    var badgeText  = isPending ? '⏳ PENDING' : (r.correct ? '🟢 CALLED IT' : '🔴 MISSED');
+    ctx.fillStyle = isPending ? 'rgba(122,134,153,.12)' : (r.correct ? 'rgba(0,200,150,.12)' : 'rgba(255,69,96,.12)');
+    _roundRect(ctx, 60, 40, 260, 50, 8); ctx.fill();
+    ctx.strokeStyle = badgeColor; ctx.lineWidth = 2;
+    _roundRect(ctx, 60, 40, 260, 50, 8); ctx.stroke();
+    ctx.fillStyle = badgeColor;
+    ctx.font = 'bold 26px "IBM Plex Mono", monospace';
+    ctx.fillText(badgeText, 80, 74);
+
+    ctx.fillStyle = 'rgba(255,255,255,0.4)'; ctx.font = '22px "IBM Plex Mono", monospace';
+    ctx.textAlign = 'right'; ctx.fillText(r.daysAgo + ' days ago', W - 70, 74); ctx.textAlign = 'left';
+
+    /* Pair */
+    ctx.fillStyle = '#ff4560'; ctx.font = 'bold 64px "IBM Plex Mono", monospace';
+    ctx.fillText(r.fromSym, 70, 165);
+    ctx.fillStyle = 'rgba(243,186,47,0.6)'; ctx.font = '42px "IBM Plex Mono", monospace';
+    ctx.fillText('→', 70 + ctx.measureText(r.fromSym).width + 340, 155);
+    ctx.fillStyle = '#00c896'; ctx.font = 'bold 64px "IBM Plex Mono", monospace';
+    ctx.fillText(r.toSym, W - 70 - ctx.measureText(r.toSym).width, 165);
+
+    ctx.fillStyle = 'rgba(255,255,255,0.4)'; ctx.font = '22px "IBM Plex Mono", monospace';
+    ctx.fillText('Score ' + r.fromScore, 70, 200);
+    ctx.textAlign = 'right'; ctx.fillText('Score ' + r.toScore, W - 70, 200); ctx.textAlign = 'left';
+
+    if (!isPending) {
+      var spreadStr = (r.spread >= 0 ? '+' : '') + r.spread + '%';
+      ctx.fillStyle = 'rgba(255,255,255,0.5)'; ctx.font = '22px "IBM Plex Mono", monospace';
+      ctx.textAlign = 'center'; ctx.fillText('SPREAD', W / 2, 290);
+      ctx.fillStyle = r.spread >= 0 ? '#00c896' : '#ff4560'; ctx.font = 'bold 84px "IBM Plex Mono", monospace';
+      ctx.fillText(spreadStr, W / 2, 380);
+      ctx.fillStyle = 'rgba(255,255,255,0.4)'; ctx.font = '20px "IBM Plex Mono", monospace';
+      ctx.fillText(r.fromSym + ' ' + (r.fromChange >= 0 ? '+' : '') + r.fromChange + '%   vs   ' + r.toSym + ' ' + (r.toChange >= 0 ? '+' : '') + r.toChange + '%', W / 2, 420);
+      ctx.textAlign = 'left';
+    } else {
+      ctx.fillStyle = 'rgba(255,255,255,0.5)'; ctx.font = 'bold 30px "IBM Plex Mono", monospace';
+      ctx.textAlign = 'center'; ctx.fillText('Result pending — check back after ' + CONFIRM_DAYS_MIN + ' days', W / 2, 350);
+      ctx.textAlign = 'left';
+    }
+
+    ctx.fillStyle = 'rgba(243,186,47,0.06)';
+    _roundRect(ctx, 70, 475, W - 140, 42, 6); ctx.fill();
+    ctx.strokeStyle = 'rgba(243,186,47,0.2)'; ctx.lineWidth = 1;
+    _roundRect(ctx, 70, 475, W - 140, 42, 6); ctx.stroke();
+    ctx.fillStyle = 'rgba(243,186,47,0.85)'; ctx.font = 'bold 18px "IBM Plex Mono", monospace';
+    ctx.textAlign = 'center';
+    ctx.fillText('Free rotation signals at Rotator — see what\'s next', W / 2, 502);
+    ctx.textAlign = 'left';
+
+    ctx.fillStyle = 'rgba(255,255,255,0.06)'; ctx.fillRect(70, H - 60, W - 140, 1);
+    ctx.fillStyle = '#f3ba2f'; ctx.font = 'bold 28px "IBM Plex Mono", monospace';
+    ctx.fillText('ROTATOR', 70, H - 25);
+    ctx.fillStyle = 'rgba(243,186,47,0.7)'; ctx.font = 'bold 16px "IBM Plex Mono", monospace';
+    ctx.textAlign = 'right'; ctx.fillText('rotatortool-official.github.io', W - 70, H - 25); ctx.textAlign = 'left';
+
+    ctx.fillStyle = gold; ctx.fillRect(0, H - 4, W, 4);
+    return can;
+  }
+
+  var _rotModalBlob = null, _rotModalText = '';
+  function openRotationModal(r) {
+    var isPending = r.correct === undefined;
+    var body = document.getElementById('rot-modal-body');
+    body.innerHTML =
+      '<div style="font-family:var(--font-mono);font-size:20px;font-weight:800;margin-bottom:6px;">'
+    +   '<span style="color:var(--red);">' + escape(r.fromSym) + '</span> → <span style="color:var(--green);">' + escape(r.toSym) + '</span>'
+    + '</div>'
+    + '<div style="font-family:var(--font-mono);font-size:12px;color:var(--muted);">Called ' + r.daysAgo + ' days ago on ' + r.snap_date
+    +   ' — ' + escape(r.fromSym) + ' scored ' + r.fromScore + ', ' + escape(r.toSym) + ' scored ' + r.toScore + '</div>';
+
+    var can = generateRotationShareImage(r);
+    can.toBlob(function(blob) {
+      _rotModalBlob = blob;
+      var url = URL.createObjectURL(blob);
+      document.getElementById('rot-modal-preview').innerHTML = '<img src="' + url + '" alt="' + escape(r.fromSym) + ' to ' + escape(r.toSym) + ' rotation call">';
+    }, 'image/png');
+
+    _rotModalText = isPending
+      ? 'Rotator flagged rotating ' + r.fromSym + ' → ' + r.toSym + ' ' + r.daysAgo + ' days ago. Result pending. Free signals: https://rotatortool-official.github.io/'
+      : 'Rotator flagged rotating ' + r.fromSym + ' → ' + r.toSym + ' ' + r.daysAgo + ' days ago. Spread: ' + (r.spread >= 0 ? '+' : '') + r.spread + '% (' + (r.correct ? 'confirmed' : 'missed') + '). Free signals: https://rotatortool-official.github.io/';
+
+    document.getElementById('rot-modal').classList.add('show');
+  }
+
+  document.getElementById('rot-modal-close').addEventListener('click', function() {
+    document.getElementById('rot-modal').classList.remove('show');
+  });
+  document.getElementById('rot-modal').addEventListener('click', function(e) {
+    if (e.target.id === 'rot-modal') document.getElementById('rot-modal').classList.remove('show');
+  });
+  document.getElementById('rot-modal-download').addEventListener('click', function() {
+    if (!_rotModalBlob) return;
+    var a = document.createElement('a');
+    a.href = URL.createObjectURL(_rotModalBlob);
+    a.download = 'rotator-call.png';
+    a.click();
+  });
+  document.getElementById('rot-modal-copy').addEventListener('click', function(e) {
+    navigator.clipboard.writeText(_rotModalText).then(function() {
+      var btn = e.target; var orig = btn.textContent;
+      btn.textContent = '✓ Copied'; setTimeout(function() { btn.textContent = orig; }, 1500);
+    });
+  });
+
+  /* ── Search — filters all four grids (wins/near/misses/rotation) live ── */
+  document.getElementById('search-input').addEventListener('input', function() {
+    var q = this.value.toLowerCase().trim();
+    document.getElementById('search-wrap').classList.toggle('search-active', !!q);
+    ['wins-grid', 'near-grid', 'miss-grid', 'rot-grid'].forEach(function(gridId) {
+      var grid = document.getElementById(gridId);
+      Array.prototype.forEach.call(grid.children, function(card) {
+        var text = card.dataset.searchText || card.textContent.toLowerCase();
+        card.style.display = (!q || text.indexOf(q) >= 0) ? '' : 'none';
+      });
+    });
+  });
+  document.getElementById('search-clear').addEventListener('click', function() {
+    var input = document.getElementById('search-input');
+    input.value = ''; input.dispatchEvent(new Event('input'));
+  });
+
+  /* ── Render ────────────────────────────────────────────── */
+  var _bucket = 'all';   /* which call group the lists are filtered to */
+  var _result = null;    /* kept so a group chip can re-render without refetching */
+
+  function render(result) {
+    _result = result;
+    var stats = result.stats;
+    var pct  = document.getElementById('acc-pct');
+    var det  = document.getElementById('acc-detail');
+    var box  = document.getElementById('accuracy-box');
+
+    var ungraded = stats.accuracy == null;
+    if (ungraded) {
+      pct.textContent = '—';
+      box.style.opacity = '.6';
+    } else {
+      pct.textContent = stats.accuracy + '%';
+      /* Judged against the null, not against a round number. 50% is
+         where the metric says nothing; below it the calls are worse
+         than picking at random. */
+      pct.style.color = stats.accuracy >= 60 ? 'var(--green)'
+                      : stats.accuracy > CHANCE_SINGLE ? 'var(--bnb)' : 'var(--red)';
+      box.style.opacity = '';
+    }
+    {
+      /* Three groups, not two. They are graded identically where the
+         direction is the same — see the note in the scorer — but shown
+         apart so the page can say which KIND of call is working. Each
+         one filters the wins and misses below it. */
+      var GROUPS = [
+        { id:'all',     label:'All',              c:stats.correct,     t:stats.total,     cls:'' },
+        { id:'bullish', label:'Bullish',          c:stats.bullCorrect, t:stats.bullTotal, cls:'ok' },
+        { id:'rotate',  label:'Rotate-out',       c:stats.rotCorrect,  t:stats.rotTotal,  cls:'' },
+        { id:'under',   label:'Underperforming',  c:stats.undCorrect,  t:stats.undTotal,  cls:'bad' }
+      ];
+      /* Rendered even before anything grades. The counts read 0/0 and the
+         headline stays "—", but a reader can see WHAT will be measured
+         rather than a bare dash — and after a reset that is most of what
+         the page has to say for a week. */
+      det.innerHTML = (ungraded ? '<div style="margin-bottom:12px">' + trackingLine() + '</div>' : '')
+        + GROUPS.map(function(g) {
+        var p = g.t ? Math.round((g.c / g.t) * 100) + '%' : '—';
+        return '<span class="acc-grp' + (g.id === _bucket ? ' on' : '') + '" data-b="' + g.id + '">'
+             + '<span class="' + g.cls + '">' + g.label + '</span>'
+             + '<span class="n">' + p + '</span>'
+             + '<span style="opacity:.55">' + g.c + '/' + g.t + '</span></span>';
+        }).join('') + '<div class="acc-base" id="acc-base"></div>';
+
+      Array.prototype.forEach.call(det.querySelectorAll('.acc-grp'), function(chip) {
+        chip.addEventListener('click', function() {
+          _bucket = chip.dataset.b;
+          render(_result);
+        });
+      });
+    }
+
+    /* `empty` overrides the icon and heading. The default "⏳ Nothing to
+       show yet" reads as "still waiting" — right for the wins list on day
+       one, wrong for the two lists below it, where empty is a RESULT and
+       not a pending state. Now that near-misses have their own bucket,
+       an empty misses list is the normal case, not a stalled one. */
+    function fill(gridId, emptyId, countId, list, emptyMsg, empty) {
+      var grid  = document.getElementById(gridId);
+      var slot  = document.getElementById(emptyId);
+      var count = document.getElementById(countId);
+      grid.innerHTML = '';
+      slot.innerHTML = '';
+      count.textContent = list.length ? list.length + (list.length === 1 ? ' call' : ' calls') : '';
+      if (!list.length) {
+        empty = empty || {};
+        slot.innerHTML = '<div class="status"><div class="status-icon">' + (empty.icon || '⏳') + '</div>'
+                        + '<h3>' + (empty.title || 'Nothing to show yet') + '</h3>'
+                        + '<p>' + emptyMsg + '</p></div>';
+        return;
+      }
+      list.slice(0, MAX_CARDS_PER_LIST).forEach(function(r) { grid.appendChild(renderCard(r)); });
+    }
+
+    function ofBucket(list) {
+      return _bucket === 'all' ? list
+           : list.filter(function(r) { return r.bucket === _bucket; });
+    }
+
+    fill('wins-grid',  'wins-empty',  'wins-count',
+         ofBucket(result.wins),   'A call reaches the wins list by beating the median coin, in the direction we flagged, over the 30 days after it was made.');
+    fill('near-grid',  'near-empty',  'near-count',
+         ofBucket(result.nears || []),
+         'Every graded call either beat the market or moved against the call outright.',
+         { icon: '🟡', title: 'Nothing in between' });
+    fill('miss-grid',  'miss-empty',  'miss-count',
+         ofBucket(result.misses),
+         'No call moved against the direction we flagged. Misses are published beside the wins for honest accounting, so this list is shown empty rather than hidden.',
+         { icon: '🔴', title: 'Nothing went against us' });
+
+    /* What the retired v2 engine managed on the same kind of call, so a
+       group can be read against something. v2 recorded only two buckets,
+       so rotate-out has no separate baseline and this says so rather than
+       splitting 80.8% into a number v2 never measured. */
+    var base = document.getElementById('acc-base');
+    if (base) {
+      base.innerHTML =
+        (_bucket === 'bullish' ? 'Engine v2 managed <b>71.9%</b> on bullish calls over 90 days.'
+       : _bucket === 'under'   ? 'Engine v2 managed <b>80.8%</b> on the combined lagging bucket over 90 days.'
+       : _bucket === 'rotate'  ? 'Engine v2 did not record rotate-out separately — these sat inside its 80.8% lagging figure, so there is no like-for-like baseline.'
+       :                         'Engine v2 finished on <b>76.2%</b> across 863 graded calls. Graded on the best price in the window, so read it as an upper bound.')
+      + chanceNote();
+    }
+  }
+
+  /* ── The bar the number has to beat ──────────────────────
+     50%, by construction. Half the coins beat the median coin; a call
+     that gets it right more often than that is the only evidence of
+     skill this page can offer.
+
+     Worth remembering what it replaced. The absolute-bar test published
+     here until 2026-09-17 had a null of ~68% — a blanket call on every
+     coin cleared it — and the figure on this page was 63%. A metric
+     whose null you have not measured is not a metric, and this one was
+     below its own. promptove/49.
+
+     The rotation record is graded differently (spread between two
+     coins' closes, no benchmark) and keeps its own measured null.
+     KEEP IN SYNC with ROTATOR_EVIDENCE in js/config.js. */
+  var CHANCE_SINGLE   = 50;
+  var CHANCE_ROTATION = 50;
+  /* The bar the RETIRED v2 record has to be read against. v2 was graded
+     by the old peak-capture method (ordered 1-14d window, 3x adverse),
+     where a blanket call on every coin confirms ~68%. Its 76.2% badge
+     sat beside "50% is the bar" with nothing saying so (promptove/64).
+     KEEP IN SYNC with ROTATOR_EVIDENCE.singleCoin.chance;
+     verify-grading-invariants checks it. */
+  var CHANCE_V2_METHOD = 68;
+  (function () {
+    var el = document.getElementById('legacy-bar');
+    var row = document.getElementById('legacy-bar-row');
+    if (el && row) { el.textContent = CHANCE_V2_METHOD + '%'; row.hidden = false; }
+  })();
+  function chanceNote() {
+    return '<br><span style="opacity:.9">Every call is scored against the median coin over the '
+      + 'same 30 days, so the bar is <b>' + CHANCE_SINGLE + '%</b> — half of all coins beat the '
+      + 'median by definition. Above it is skill; below it is not. '
+      + 'The rotation record below compares two coins directly, and its bar is the same <b>'
+      + CHANCE_ROTATION + '%</b> — measured, not assumed: random pairs over 30 days clear a '
+      + 'positive spread 50.3% of the time.</span>';
+  }
+
+
+  function showError(msg) {
+    var pct = document.getElementById('acc-pct');
+    var det = document.getElementById('acc-detail');
+    pct.textContent = '—';
+    det.textContent = msg;
+    document.getElementById('wins-empty').innerHTML =
+      '<div class="status"><div class="status-icon">⚠️</div>'
+      + '<h3>Could not load data</h3><p>' + escape(msg) + '</p></div>';
+  }
+
+  /* ── Go ────────────────────────────────────────────────── */
+  /* ── The shadow test, retired 2026-09-23 (promptove/61) ─────────────
+     From 2026-09-18 the site recorded the reverse of every rotation call
+     and graded it here beside the real one. It was retired because it
+     could never add information: a reversed pair is the same two coins at
+     the same prices, so its spread is exactly minus the live pair's. The
+     live figure above already answers "is the rule pointed the right
+     way", and it is now tested against ranges fixed in advance
+     (rotator-backtest/rotation-verdict.js). The 15 reversed rows stay in
+     the table as history. The block says so rather than vanishing, because
+     a test this page announced should not disappear without a word. */
+  function renderShadow() {
+    var box = document.getElementById('shadow-block');
+    if (!box) return;
+    box.innerHTML = '<div class="shadow-in">'
+      + '<div class="shadow-hd">Shadow test · retired 2026-09-23</div>'
+      + '<p>From Sep 18 to Sep 21 this page also graded the <i>reverse</i> of every rotation call. '
+      + 'A reversed call is the same two coins at the same prices, so its result is always the exact '
+      + 'opposite of the real call: it could not tell us anything the figure above does not. '
+      + 'The rotation rule is now judged against ranges written down before any call was old enough to grade.</p>'
+      + '</div>';
+  }
+
+  function renderRotation(result) {
+    var evalList = result.evaluated, pendingList = result.pending;
+    var stats = result.stats;
+    var accLine = document.getElementById('rot-acc-line');
+    if (stats.accuracy == null) {
+      accLine.textContent = pendingList.length
+        ? pendingList.length + ' call' + (pendingList.length === 1 ? '' : 's') + ' recorded, none old enough to grade yet (needs ' + CONFIRM_DAYS_MIN + '+ days).'
+        : 'No rotation calls recorded yet.';
+    } else {
+      /* Green/red against CHANCE_ROTATION, not against 50. Beating a
+         coin flip is not the test here — two coins picked at random
+         clear a 2% spread 41% of the time, so 45% is a losing number
+         dressed as a winning one. */
+      accLine.innerHTML = '<b style="color:' + (stats.accuracy >= CHANCE_ROTATION ? 'var(--green)' : 'var(--red)') + ';">' + stats.accuracy + '%</b> spread accuracy ('
+        + stats.correct + ' of ' + stats.total + ' confirmed over ' + HORIZON_DAYS + ' days)'
+        + (pendingList.length ? ' · ' + pendingList.length + ' more pending' : '')
+        + '<br><span style="color:var(--muted);font-size:12px;">Two coins picked at random clear a positive spread <b>'
+        + CHANCE_ROTATION + '%</b> of the time, so that is the bar. '
+        + 'The call is relative: a confirmed rotation often means both coins fell and the target fell less.</span>';
+      if (stats.preGuardGraded && stats.cleanAccuracy != null) {
+        accLine.innerHTML += '<br><span style="color:var(--muted);font-size:12px;">Without the ' + stats.preGuardGraded
+          + ' graded call' + (stats.preGuardGraded === 1 ? '' : 's') + ' on coins Binance announced for delisting, made before the delisting guard: <b style="color:var(--text);">'
+          + stats.cleanAccuracy + '%</b> (' + stats.cleanCorrect + ' of ' + stats.cleanTotal + '). The headline above keeps every call.</span>';
+      }
+    }
+    /* Said up front, before any of them is graded, so the second line
+       never appears as a surprise after the misses come in. */
+    if (stats.preGuard) {
+      var conv = Object.keys(SETTLEMENTS).map(function(k) { return k + ' into ' + SETTLEMENTS[k].into; }).join(', ');
+      accLine.innerHTML += '<br><span style="color:var(--amber);font-size:12px;">⚠ ' + stats.preGuard + ' of these calls name a coin Binance is delisting and were made before the delisting guard went live on 25 Sep. '
+        + 'They stay on the record, graded at the conversion value (' + conv + ').</span>';
+    }
+
+    var grid  = document.getElementById('rot-grid');
+    var empty = document.getElementById('rot-empty');
+    var all = evalList.concat(pendingList).sort(function(a, b) { return b.daysAgo - a.daysAgo; });
+    grid.innerHTML = '';
+    empty.innerHTML = '';
+    document.getElementById('rot-count').textContent = all.length ? all.length + (all.length === 1 ? ' call' : ' calls') : '';
+    if (!all.length) {
+      empty.innerHTML = '<div class="status"><div class="status-icon">⏳</div><h3>Nothing to show yet</h3>'
+        + '<p>Rotation calls are recorded daily. Check back soon.</p></div>';
+      return;
+    }
+    all.slice(0, MAX_CARDS_PER_LIST * 2).forEach(function(r) { grid.appendChild(renderRotationCard(r)); });
+  }
+
+  /* Before any fetch: the engine label and reset date are already known
+     from the constants, so the page should never paint a stale one while
+     the network is in flight. */
+  stampEngineCopy();
+
+  Promise.all([fetchSnapshots(), fetchCurrentPrices(), fetchRotationSnapshots()])
+    .then(function(vals) {
+      var snaps = vals[0] || [];
+      var pricePack = vals[1] || { priceMap: {}, mcapMap: {} };
+      var priceMap = pricePack.priceMap || {};
+      var mcapMap  = pricePack.mcapMap  || {};
+      var rotSnaps = vals[2] || [];
+
+      function gradeRotation() { renderRotation(evaluateRotation(rotSnaps, priceMap, false)); }
+      gradeRotation();
+      renderShadow();
+
+      if (!snaps.length) {
+        var pct = document.getElementById('acc-pct');
+        pct.textContent = '—';
+        document.getElementById('acc-detail').textContent = trackingLine();
+        return warmKlines([], rotSnaps).then(gradeRotation);
+      }
+      /* Render current-price-only result first for fast paint, then
+         warm Binance klines and re-render with the locked verdicts. */
+      render(evaluate(snaps, priceMap, mcapMap));
+      return warmKlines(snaps, rotSnaps).then(function() {
+        render(evaluate(snaps, priceMap, mcapMap));
+        gradeRotation();
+      });
+    })
+    .catch(function(e) {
+      showError(e && e.message ? e.message : 'Network error');
+    });
+})();
+</script>
+
+<script>
+/* Telegram picks, 28 Apr – 31 Aug 2026: the card beside the v2 record and
+   #calls-section. One frozen file, data/bot-calls-2026-04-28-to-08-31.json;
+   rows are [day, side, symbol, score, price, ret7, ex7, ret30, ex30]. */
+(function () {
+  var PAGE = 50;
+  function esc(s) { return String(s == null ? '' : s).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); }
+  function pct(v) { return v == null ? '<span class="na">no data</span>' : '<span class="' + (v >= 0 ? 'up' : 'dn') + '">' + (v >= 0 ? '+' : '') + v.toFixed(1) + '%</span>'; }
+  function price(p) { return p == null ? '' : '$' + (p >= 1 ? p.toLocaleString('en-US', { maximumFractionDigits: 2 }) : Number(p.toPrecision(3))); }
+  /* Whole phrases, so the MK dictionary can map them. */
+  function sideWord(s) { return s === 'in' ? 'rotate in' : 'rotate out'; }
+  fetch('data/bot-calls-2026-04-28-to-08-31.json')
+    .then(function (r) { if (!r.ok) throw new Error(r.status); return r.json(); })
+    .then(function (d) {
+      var S = d.summary, i30 = S.in30, o30 = S.out30;
+      /* ── the card ── */
+      document.getElementById('botrec-pct').textContent = i30.pct.toFixed(1) + '%';
+      /* Two benchmarks, both shown (2026-10-01): the bot picked from about
+         the top 150, and in these months big coins beat small ones, so the
+         all-coin median flatters any big-coin list. The 100 largest and the
+         bot's own rotate-out list are the fair comparisons. */
+      var L30 = S.inLarge30, LN = S.inLargeNow, VO = S.inVsOutNow, asOf = S.asOf;
+      document.getElementById('botrec-meta').innerHTML =
+        '<b>' + i30.right + '</b> of <b>' + i30.n + '</b> rotate-in picks beat the median coin at 30 days<br>'
+        + 'Against the 100 largest coins only: <b>' + L30.pct.toFixed(1) + '%</b><br>'
+        + 'To ' + esc(asOf) + ': <b>' + LN.pct.toFixed(1) + '%</b> beat the 100 largest; rotate-in beat that day\'s rotate-out on <b>' + VO.pct.toFixed(0) + '%</b> of days<br>'
+        + 'Rotate-out picks: <b>' + o30.pct.toFixed(1) + '%</b> trailed the median at 30 days, no edge<br>'
+        + '<span style="opacity:.7">' + d.meta.days + ' days · ' + d.meta.window[0] + ' → ' + d.meta.window[1] + ' · ' + S.skippedNoHistory + ' picks had no Binance history</span>';
+      document.getElementById('botrec-months').innerHTML = d.months.filter(function (m) { return m.in.n >= 20; }).map(function (m) {
+        return '<span>' + esc(m.month) + ' <b>' + Math.round(m.in.right / m.in.n * 100) + '%</b></span>';
+      }).join('');
+      /* ── the section ── */
+      document.getElementById('calls-count').textContent = d.picks.length + ' picks · ' + (i30.n + o30.n) + ' graded';
+      var asOfTxt = esc(S.asOf);
+      function small(rows) {
+        return '<div class="call-row head"><span>DAY</span><span>COIN</span><span>PRICE THEN</span><span>VS MEDIAN, 30D</span></div>'
+          + rows.map(function (r) { return '<div class="call-row"><span>' + esc(r[0]) + '</span><span>' + esc(r[2]) + '</span><span>' + price(r[4]) + '</span>' + pct(r[8]) + '</div>'; }).join('');
+      }
+      /* To the latest close: the price change since the pick, and the same
+         against the median coin. Only picks at least 30 days old. */
+      function smallNow(rows) {
+        return '<div class="call-row now head"><span>DAY</span><span>COIN</span><span>PRICE THEN</span><span>SINCE THE PICK</span><span>VS MEDIAN</span></div>'
+          + rows.map(function (r) { return '<div class="call-row now"><span>' + esc(r[0]) + '</span><span>' + esc(r[2]) + '</span><span>' + price(r[4]) + '</span>' + pct(r[9]) + pct(r[10]) + '</div>'; }).join('');
+      }
+      var tabNow = document.getElementById('calls-tab-now');
+      if (tabNow) tabNow.textContent = 'To ' + S.asOf;
+      function drawTop(h) {
+        var now = h === 'now';
+        document.getElementById('calls-best').innerHTML = now ? smallNow(d.bestNow) : small(d.best);
+        document.getElementById('calls-worst').innerHTML = now ? smallNow(d.worstNow) : small(d.worst);
+        document.getElementById('calls-best-h').textContent = now ? 'BEST 20 ROTATE-IN PICKS, TO ' + S.asOf : 'BEST 20 ROTATE-IN PICKS, 30 DAYS';
+        document.getElementById('calls-worst-h').textContent = now ? 'WORST 20 ROTATE-IN PICKS, TO ' + S.asOf : 'WORST 20 ROTATE-IN PICKS, 30 DAYS';
+        [].forEach.call(document.querySelectorAll('.calls-tab'), function (b) { b.classList.toggle('on', b.getAttribute('data-h') === h); });
+      }
+      document.addEventListener('click', function (e) {
+        var b = e.target && e.target.closest && e.target.closest('.calls-tab');
+        if (b) drawTop(b.getAttribute('data-h'));
+      });
+      drawTop('30');
+      var all = d.picks.slice().sort(function (a, b) { return a[0] < b[0] ? 1 : a[0] > b[0] ? -1 : 0; });
+      /* Listeners on the document, elements looked up on every draw, so a
+         re-render of this block can never leave dead listeners behind. */
+      var shown = PAGE;
+      function el(id) { return document.getElementById(id); }
+      function draw() {
+        var q = el('calls-q'), side = el('calls-side'), more = el('calls-more');
+        if (!q || !side || !more) return;
+        var t = q.value.trim().toUpperCase(), sd = side.value;
+        var rows = all.filter(function (r) { return (!t || String(r[2] || '').indexOf(t) === 0) && (!sd || r[1] === sd); });
+        el('calls-all').innerHTML =
+          '<div class="call-row head"><span>DAY</span><span>SIDE</span><span>COIN</span><span>PRICE THEN</span><span class="c7">VS MEDIAN, 7D</span><span>VS MEDIAN, 30D</span><span>SINCE THE PICK</span></div>'
+          + rows.slice(0, shown).map(function (r) {
+              return '<div class="call-row"><span>' + esc(r[0]) + '</span><span>' + sideWord(r[1]) + '</span><span>' + esc(r[2]) + '</span><span>' + price(r[4]) + '</span>'
+                + '<span class="c7">' + pct(r[6]) + '</span>' + pct(r[8]) + pct(r[9]) + '</div>';
+            }).join('');
+        more.hidden = rows.length <= shown;
+      }
+      document.addEventListener('input', function (e) { if (e.target && e.target.id === 'calls-q') { shown = PAGE; draw(); } });
+      document.addEventListener('change', function (e) { if (e.target && e.target.id === 'calls-side') { shown = PAGE; draw(); } });
+      document.addEventListener('click', function (e) { if (e.target && e.target.id === 'calls-more') { shown += PAGE * 4; draw(); } });
+      draw();
+    })
+    .catch(function () {
+      document.getElementById('botrec-meta').textContent = 'The saved picks could not be loaded right now.';
+    });
+})();
+</script>
+
+<script>
+/* Channel posts: market_events (site sql/market_events.sql). Read-only,
+   public key, its own scope so nothing above depends on it. */
+(function () {
+  var URL = 'https://wyvwycatgexpbugzkdfw.supabase.co/rest/v1/market_events'
+    + '?posted_at=not.is.null&select=kind,event_date,side,detail,grade_7d,grade_30d&order=event_date.desc';
+  var KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Ind5dnd5Y2F0Z2V4cGJ1Z3prZGZ3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU0ODcwNTAsImV4cCI6MjA5MTA2MzA1MH0.msUPOUjd1iZwuG6SxFlhr-0xYPt6fqTUy5iOYnf8Z20';
+  var GROUP = { btc: 'BTC', large: 'large caps', small: 'small caps' };
+  var list = document.getElementById('mev-list'), count = document.getElementById('mev-count');
+  if (!list) return;
+  function esc(s) { return String(s == null ? '' : s).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); }
+  function what(e) {
+    if (e.kind === 'btc200') return e.side === 'above' ? 'BTC moved above its 200-day average' : 'BTC fell below its 200-day average';
+    if (e.kind === 'breadth') return e.side === 'up' ? 'Breadth turned up' : 'Breadth turned down';
+    return 'Leadership: ' + (GROUP[e.side] || e.side) + ' took the lead from ' + (GROUP[(e.detail || {}).from] || (e.detail || {}).from);
+  }
+  function grade(g) {
+    /* Whole phrases: the MK dictionary maps text nodes, and 'held'
+       alone is already the holdings tag. */
+    return g === true ? '<span class="mev-g">the move held</span>'
+      : g === false ? '<span class="mev-g">the move did not hold</span>'
+      : '<span class="mev-g pending">not graded yet</span>';
+  }
+  fetch(URL, { headers: { apikey: KEY, Authorization: 'Bearer ' + KEY } })
+    .then(function (r) { if (!r.ok) throw new Error(r.status); return r.json(); })
+    .then(function (rows) {
+      if (!rows.length) {
+        list.innerHTML = '<div class="mev-empty">No market change has crossed a threshold since 2 Oct 2026.</div>';
+        return;
+      }
+      var g30 = rows.filter(function (e) { return e.grade_30d != null; });
+      var held = g30.filter(function (e) { return e.grade_30d; }).length;
+      count.textContent = rows.length + ' posts' + (g30.length ? ' · ' + held + ' of ' + g30.length + ' held at 30 days' : '');
+      list.innerHTML = '<div class="mev-row mev-head"><span>DATE</span><span>WHAT HAPPENED</span><span>7 DAYS</span><span>30 DAYS</span></div>'
+        + rows.map(function (e) {
+            return '<div class="mev-row"><span class="mev-date">' + esc(e.event_date) + '</span><span>' + esc(what(e)) + '</span>'
+              + grade(e.grade_7d) + grade(e.grade_30d) + '</div>';
+          }).join('');
+    })
+    .catch(function () {
+      list.innerHTML = '<div class="mev-empty">The channel posts could not be loaded right now.</div>';
+    });
+})();
+</script>
+
+<!-- Macedonian (promptove/73): the same layer as the main page, following
+     the language chosen there (localStorage rot_lang). -->
+<script src="js/i18n-mk.js"></script>
+<script src="js/i18n-mk-dict.js"></script>
+<script>try { if (localStorage.getItem('rot_lang') === 'mk') { document.documentElement.lang = 'mk'; applyMkLayer('mk'); } } catch (e) {}</script>
+</body>
+</html>

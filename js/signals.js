@@ -1,0 +1,1863 @@
+/* ══════════════════════════════════════════════════════════════════
+   signals.js  —  Investment opportunities, rotation/momentum signals,
+                  leaderboard table & scoring engine
+   
+   HOW TO EDIT THIS FILE:
+   ──────────────────────
+   • CHANGE HOW MANY TILES SHOW:  Edit the .slice(0, 6) calls in
+     renderTopBars() — change 6 to any number you want.
+   
+   • CHANGE ROTATION THRESHOLD:   In renderTopBars(), find:
+       c.score >= 62   (sells — coins to rotate out of)
+       c.score <= 38   (buys  — coins to rotate into)
+     Adjust these numbers to make signals more or less strict.
+   
+   • CHANGE HIGH MOMENTUM THRESHOLD: Find c.score >= 60 in
+     renderTopBars() and change the number.
+   
+   • CHANGE SCORING WEIGHTS:  Edit computeScores() below.
+     L1 = momentum rank (base),  L2 = macro adjustment,
+     L3 = tokenomics bonus/penalty.
+══════════════════════════════════════════════════════════════════ */
+
+/* ── Shared state ─────────────────────────────────────────────── */
+var coins   = [];
+var btcMA200 = null;
+var btcPrice = null;
+var sortTF   = 7;   /* default sort column: 7-day */
+
+/* ── Format helpers ──────────────────────────────────────────── */
+function fmtP(p) {
+  if (p === null || p === undefined) return '—';
+  if (p >= 1000) return '$' + p.toLocaleString('en-US', {maximumFractionDigits: 0});
+  if (p >= 1)    return '$' + p.toFixed(2);
+  if (p >= 0.01) return '$' + p.toFixed(4);
+  return '$' + p.toFixed(6);
+}
+function pctSpan(v) {
+  var c = v >= 0 ? 'pct up' : 'pct dn';
+  return '<span class="' + c + '">' + (v >= 0 ? '+' : '') + v.toFixed(2) + '%</span>';
+}
+/* ── BTC trend pill ──────────────────────────────────────────── */
+var _bearDismissed = false;
+try { _bearDismissed = localStorage.getItem('rot_bear_dismissed') === '1'; } catch(e) {}
+
+function _showScaleBannerIfNeeded() {
+  var scaleDismissed = false;
+  try { scaleDismissed = localStorage.getItem('rot_scale_dismissed') === '1'; } catch(e) {}
+  var sb = document.getElementById('scale-banner');
+  if (sb && !scaleDismissed) sb.classList.add('show');
+}
+
+function renderBTC() {
+  var pill    = document.getElementById('btc-pill');
+  var pillTxt = document.getElementById('btc-pill-txt');
+  var mobInner = document.getElementById('mob-btc-inner');
+  var mobTxt   = document.getElementById('mob-btc-txt');
+  if (!btcMA200 || !btcPrice) return;
+
+  /* Transparency: when BTC's real Mayer Multiple is pushing scoring into
+     the 'stretched'/'oversold' tier (see _adaptiveThresholds() in this
+     file), show the actual number in the pill's tooltip rather than
+     silently shifting buy/sell bands behind the scenes. Score changes
+     that aren't explainable erode trust in the score. */
+  var cycleLabel = (typeof _btcCycleLabel === 'function') ? _btcCycleLabel() : null;
+  var mm = (typeof marketCycleData !== 'undefined' && marketCycleData.BTC) ? marketCycleData.BTC.mayer_multiple : null;
+  var cycleTip = '';
+  if (mm != null) {
+    cycleTip = ' — Mayer Multiple ' + mm.toFixed(2) + '×'
+      + (cycleLabel === 'stretched' ? ' (historically stretched — the signal bar is stricter)'
+        : cycleLabel === 'oversold' ? ' (historically oversold — the signal bar is looser)'
+        : ' (neutral zone)');
+  }
+
+  if (btcPrice > btcMA200) {
+    if (pill)    { pill.className = 'btc-pill bull'; pill.title = 'BTC above its 200-day average' + cycleTip; }
+    if (pillTxt) pillTxt.textContent = 'BTC UPTREND ▲' + (cycleLabel === 'stretched' ? ' 🔥' : '');
+    if (mobInner) mobInner.className = 'mob-btc-cell bull';
+    if (mobTxt)   mobTxt.textContent = '▲ BTC';
+    document.getElementById('bear-banner').classList.remove('show');
+    _bearDismissed = false;
+    try { localStorage.removeItem('rot_bear_dismissed'); } catch(e) {}
+    /* No bear banner → show scale tip directly */
+    _showScaleBannerIfNeeded();
+  } else {
+    if (pill)    { pill.className = 'btc-pill bear'; pill.title = 'BTC below its 200-day average' + cycleTip; }
+    if (pillTxt) pillTxt.textContent = 'BTC DOWNTREND ▼' + (cycleLabel === 'oversold' ? ' 🧊' : '');
+    if (mobInner) mobInner.className = 'mob-btc-cell';
+    if (mobTxt)   mobTxt.textContent = '▼ BTC';
+    if (!_bearDismissed) {
+      document.getElementById('bear-banner').classList.add('show');
+    } else {
+      /* Bear banner already dismissed → show scale tip */
+      _showScaleBannerIfNeeded();
+    }
+  }
+}
+
+/* ── The market now (promptove/106) ──────────────────────────
+   One row at the top of TODAY that answers "what is the market doing"
+   before the macro tiles below it. Nothing new is measured: BTC's price
+   and changes come from coins[], the trend is the same BTC-vs-200-day
+   reading as the pill (one definition everywhere, PRODUCT-FLOW.md),
+   Fear & Greed is window.fearGreed, and the last cell counts how many
+   listed coins did better than BTC over 7 days. A cell with no reading
+   says so in words; it never shows a guess. */
+function renderMarketNow() {
+  var host = document.getElementById('mkt-now');
+  if (!host) return;
+  var btc = coins.find(function (c) { return c.sym === 'BTC' && !c.isStock; });
+  if (!btc) { host.style.display = 'none'; return; }
+
+  function pct(v) {
+    if (v == null || isNaN(v)) return '';
+    return '<span class="bf-d ' + (v >= 0 ? 'up' : 'dn') + '">' + (v >= 0 ? '+' : '') + v.toFixed(1) + '%</span>';
+  }
+  function cell(k, v, sub, tip) {
+    return '<div class="mn-cell"' + (tip ? ' title="' + tip + '"' : '') + '>'
+      + '<div class="bf-k">' + k + '</div><div class="mn-v">' + v + '</div>'
+      + '<div class="mn-sub">' + sub + '</div></div>';
+  }
+  var none = '<span class="mn-none">No reading yet</span>';
+  var html = '';
+
+  html += cell('Bitcoin', fmtP(btc.price),
+    pct(btc.p24) + ' 24h · ' + pct(btc.p7) + ' 7d');
+
+  if (btcMA200 && btcPrice) {
+    var gap = (btcPrice / btcMA200 - 1) * 100;
+    var above = gap >= 0;
+    html += cell('BTC trend',
+      '<span class="' + (above ? 'mn-up' : 'mn-dn') + '">' + (above ? '▲ Above' : '▼ Below') + ' its 200-day average</span>',
+      pct(gap) + ' from the average, ' + fmtP(btcMA200),
+      'The market direction we use everywhere: BTC above or below its 200-day average.');
+  } else {
+    html += cell('BTC trend', none, 'The 200-day average has not loaded.');
+  }
+
+  var fg = window.fearGreed;
+  if (fg && typeof fg.value === 'number') {
+    /* Coloured like the retired top bar (fngColor: red at fear through
+       yellow to green at greed), now that this is the only reading. */
+    var fgc = (typeof fngColor === 'function') ? fngColor(fg.value) : 'var(--text)';
+    html += cell('Fear & Greed', '<span class="fng-c" style="color:' + fgc + ';">' + fg.value + '</span> <span class="mn-lbl fng-c" style="color:' + fgc + ';opacity:.85;">' + (fg.label || '') + '</span>',
+      '0 = extreme fear, 100 = extreme greed · alternative.me',
+      'Crypto Fear & Greed Index: the mood of the whole market, not a forecast.');
+  } else {
+    html += cell('Fear & Greed', none, 'alternative.me did not answer. It is not shown as 50.');
+  }
+
+  /* Listed coins only: no tokenized stocks, no stablecoins, not BTC. */
+  var alts = coins.filter(function (c) {
+    return !c.isStock && !c.isStable && c.sym !== 'BTC' && typeof c.p7 === 'number' && !isNaN(c.p7);
+  });
+  if (alts.length && typeof btc.p7 === 'number') {
+    var beat = alts.filter(function (c) { return c.p7 > btc.p7; }).length;
+    var s = alts.map(function (c) { return c.p7; }).sort(function (a, b) { return a - b; });
+    var med = s.length % 2 ? s[(s.length - 1) / 2] : (s[s.length / 2 - 1] + s[s.length / 2]) / 2;
+    html += cell('Coins vs BTC, 7 days', beat + ' <span class="mn-lbl">of ' + alts.length + '</span>',
+      'did better than BTC · the middle coin ' + pct(med),
+      'Listed coins only: no tokenized stocks and no stablecoins.');
+  }
+
+  /* Freshness on the title row (promptove/107): filled and ticked by
+     _renderLastUpdated() in js/data-loaders.js; hidden until it knows. */
+  host.innerHTML = '<div class="mn-title"><span>The market now</span>'
+    + '<span class="mn-fresh" style="display:none;">'
+    + '<span id="mn-fresh-t"></span><span class="mn-fresh-sep"> · </span><span>refreshes every 15 min</span>'
+    + '<button type="button" class="info-i" aria-label="The age of the market data itself. It also refreshes when you come back to this tab. A 7 to 30 day tool does not need second-by-second prices.">ⓘ</button></span></div>'
+    + '<div class="mn-grid">' + html + '</div>';
+  host.style.display = '';
+  if (typeof _renderLastUpdated === 'function') _renderLastUpdated();
+}
+
+/* ══════════════════════════════════════════════════════════════
+   ZONE STATE — the classifier itself lives in the engine
+   ──────────────────────────────────────────────────────────────
+   Adaptive bands, hysteresis and the mean-reversion gate are all
+   RotatorEngine's — see _classifyZones() and _SIG_HYSTERESIS there.
+   This file holds only the per-coin zone state, mirrored to
+   localStorage so hysteresis survives a reload.
+
+   _SIG_BUY_BASE, _SIG_SELL_BASE and _SIG_DEADBAND were declared here
+   until 2.5.0. Nothing had read them since the 2026-09-06 inversion
+   moved the classifier into the engine, and by then the deadband they
+   named was gone as well — 2.5.0 replaced the absolute 50 with a
+   margin measured from the threshold actually crossed. A dead constant
+   that still looks like a threshold is worse than no constant: it is
+   the first thing a reader trusts and the last thing anyone updates.
+══════════════════════════════════════════════════════════════ */
+
+var _lastZone = {};
+try {
+  var _zRaw = localStorage.getItem('rot_last_zone');
+  if (_zRaw) _lastZone = JSON.parse(_zRaw) || {};
+} catch (e) {}
+
+function _adaptiveThresholds() {
+  return (typeof RotatorEngine !== 'undefined')
+    ? RotatorEngine.internals.adaptiveThresholds()
+    : null;
+}
+
+function _passesMeanRevGate(c) {
+  return (typeof RotatorEngine !== 'undefined')
+    ? RotatorEngine.internals.passesMeanRevGate(c)
+    : false;
+}
+
+/* ── Delegates to the canonical engine ───────────────────────────────
+   The site no longer holds a copy of the scoring maths. Until 2026-09-06
+   these bodies lived here and build.js lifted them verbatim into
+   rotator-engine/engine.js; the direction is now inverted and engine.js
+   is the source. See promptove/23-build-js-inversion-plan.md.
+
+   Neutral returns if the engine script is missing: the page is already
+   broken at that point (runSignalEngine reports it loudly), and a
+   delegate that guesses would be a second copy of the maths by the back
+   door. passesMeanRevGate fails CLOSED — no engine, nothing reaches a
+   buy list.
+
+   _quickInsight() was here too, delegating to the engine's forward-looking
+   proxy. Both are gone as of engine 2.3.0: the proxy derived an
+   "RSI-style" reading from a coin's position in the 30-day return
+   ranking, and the pillars that replaced it read the real thing. Nothing
+   on the page called this delegate — _classifyZones() left the site in
+   2026-09-06's Step B — so removing it removes a name, not a behaviour.
+   See ARCHITECTURE-MAP.md gap 1. */
+
+/* Classify every coin's zone with hysteresis + adaptive bands.
+   Sets c._zone ∈ {'buy','sell','neutral'} and persists to localStorage. */
+/* _classifyZones lived here. Removed 2026-09-06: zones now arrive with
+   the engine run (runSignalEngine in data-loaders.js) or from the server
+   row, and a second in-page classifier could only ever disagree with
+   them. See promptove/23. */
+
+/* Exposed for signal-history.js (rotation snapshot uses the same gates).
+   Phase 1: these now resolve to the canonical engine's copies rather than
+   the in-page ones, so signal-history.js and the engine can never apply
+   different gates to the same coin. Falls back to the local definitions
+   if the engine script failed to load, for the same reason
+   runSignalEngine() does — a missing script must not blank the page. */
+window.RotZones = {
+  classify: function() {
+    /* No-op: zones arrive with the engine run (see runSignalEngine()). */
+  },
+  passesMeanRevGate: (typeof RotatorEngine !== 'undefined')
+    ? RotatorEngine.internals.passesMeanRevGate : _passesMeanRevGate,
+  adaptiveThresholds: (typeof RotatorEngine !== 'undefined')
+    ? RotatorEngine.internals.adaptiveThresholds : _adaptiveThresholds,
+  /* Exposed so the daily snapshot recorder applies the SAME candidate
+     test the rotation panel does, rather than growing its own. Reads
+     c._candidateClass, which the engine set — see _isPresentable(). */
+  isPresentable: _isPresentable
+};
+
+/* ══════════════════════════════════════════════════════════════
+   INVESTMENT OPPORTUNITIES (top signal bar)
+   Three columns: Rotation Opps | High Momentum | Worst 30D
+══════════════════════════════════════════════════════════════ */
+
+/* Single signal tile (momentum / worst) */
+/* One stat cell: a period return, e.g. "30D -18.2%". */
+function _sigPeriod(days, v) {
+  v = Number(v) || 0;
+  return '<div class="sig-stat"><span class="sig-stat-l">' + days + 'D</span><span class="sig-stat-v ' + (v >= 0 ? 'up' : 'dn') + '">'
+    + (v >= 0 ? '+' : '') + v.toFixed(1) + '%</span></div>';
+}
+
+function sigTile(c, kind) {
+  var badges = {rot:'ROT', mom:'MOM', wrst:'WORST'};
+  var scC  = { hi: 'up', md: 'am', lo: 'dn' }[scoreBand(c.score)];
+
+  /* Supply & sentiment */
+  var circ = c.circulating_supply || 0;
+  var maxS = c.max_supply || 0;
+  var unlockPct = (circ && maxS > 0) ? Math.round((circ / maxS) * 100) : -1;
+  var unlockStr = unlockPct >= 0 ? unlockPct + '%' : '∞';
+  /* SENT (BULL / BEAR from a 24h + 7d mix) is gone (2026-10-04): a
+     forecast word next to the reading line, which already gives the
+     verdict. The tile shows the return that put the coin on this list
+     instead: 7 days for momentum, 30 days for the worst column. */
+  var per = _sigPeriod(kind === 'wrst' ? 30 : 7, kind === 'wrst' ? c.p30 : c.p7);
+
+  /* Market cap formatted */
+  var mcapStr = c.mcap ? (c.mcap >= 1e9 ? '$' + (c.mcap/1e9).toFixed(1) + 'B' : '$' + (c.mcap/1e6).toFixed(0) + 'M') : '—';
+
+  /* Heart rate: the momentum column by 7 days, the worst column by 30. */
+  var hb = hbDurStyle(kind === 'wrst' ? c.p30 : c.p7);
+  return '<div class="sig-tile ' + kind + '" style="' + hb + '" onclick="openTileDetail(\'' + c.id + '\',event)" title="Click for details">'
+    + '<div class="sig-tile-top">'
+      + '<div class="sig-tile-ico"><img src="' + c.image + '" alt="' + c.sym + ' logo" loading="lazy" width="20" height="20" onerror="this.style.display=\'none\'"></div>'
+      + '<span class="sig-tile-sym">' + c.sym + '</span>'
+      + '<span class="sig-tile-badge ' + kind + '">' + badges[kind] + '</span>'
+    + '</div>'
+    + '<div class="sig-tile-stats">'
+      + '<div class="sig-stat"><span class="sig-stat-l">MCAP</span><span class="sig-stat-v am">' + mcapStr + '</span></div>'
+      + '<div class="sig-stat"><span class="sig-stat-l">UNLOCK</span><span class="sig-stat-v am">' + unlockStr + '</span></div>'
+      + per
+      + '<div class="sig-stat"><span class="sig-stat-l">SCR</span><span class="sig-stat-v '  + scC  + '">' + c.score + '</span></div>'
+    + '</div>'
+    + (typeof readingLineHtml === 'function' ? readingLineHtml(c) : '')
+    + seedNote(c)
+    + '</div>';
+}
+
+/* ── Tradability gate for BUY suggestions ────────────────────────
+   A coin can score well and still be something nobody can actually get
+   into. The engine already decides this — _eligibility() in
+   rotator-engine applies a $250k/24h liquidity floor plus a market-cap
+   sanity check that catches migrated/delisted tokens reporting real
+   volume but no market cap (FTM after Sonic, OMNI, CFG).
+
+   That verdict reached signal_run_items and was used by the Telegram
+   bot, but never by this page: the buy lists below filtered on zone,
+   mean-reversion and the delisted set only. The golden-fixture harness
+   made the gap visible on 2026-09-06 — site and bot shared identical
+   scores yet had ZERO overlap in their rotate-in lists, because the
+   site was surfacing CFG (no market cap) and DEXT (~$97k/day) while the
+   bot's own liquidity check refused them.
+
+   Deliberately fails OPEN: a coin the run doesn't cover (bStocks, or
+   anything outside its universe) has no verdict and is left alone,
+   rather than being silently dropped from the UI. */
+function _isTradable(c) {
+  return c && c._eligible !== false;
+}
+
+/* "May this be presented as a NEW entry" — the engine's candidate
+   classification (2.2.0), read here and never re-derived. It is the
+   third of three separate questions the buy list asks, and they are kept
+   separate on purpose:
+
+     _passesMeanRevGate  is this a pullback at all
+     _isTradable         can anyone actually get in and out
+     _isPresentable      has it stopped falling, does RSI agree, and has
+                         it not already made its move
+
+   Before this existed the third question was not asked. On the frozen
+   fixture day the published buy list carried ICX at +46.8% in 24 hours,
+   ranked as a normal buy because everything else about it scored well.
+
+   The thresholds behind the answer — 40% for an extreme daily move, RSI
+   45 for oversold confirmation, the falling-knife gap — live in the
+   engine's CANDIDATE_RULES. None of them appear in this file, and none
+   should ever be copied into it.
+
+   Fails OPEN, exactly like _isTradable(): a coin the run gives no class
+   (a server run older than 2.2.0, or a coin outside the universe) is
+   left alone rather than silently dropped. A stale run degrades to the
+   previous behaviour instead of emptying the panel. */
+function _isPresentable(c) {
+  return !!c && (c._candidateClass == null || c._candidateClass === 'CANDIDATE');
+}
+
+/* Exchange-flagged exclusions for the BUY side.
+   Two separate Binance signals, deliberately checked together because
+   every buy-side filter wants both:
+
+     delistedSymbols   — the USDT pair has stopped trading, does not
+                         exist on Binance, or has an announced
+                         delisting date (BREAK... / NOT_LISTED /
+                         DELIST_ANNOUNCED; see loadDelistedSymbols).
+     monitoringSymbols — still trading, but carrying Binance's
+                         Monitoring Tag: volatility/risk materially
+                         above listing standards, under periodic review
+                         for possible delisting.
+
+   The second is not a subset of the first. When measured on 2026-09-06
+   all 32 Monitoring-tagged USDT pairs were status='TRADING', so the
+   delisted check caught none of them — which is how SYN and GLMR kept
+   reaching the rotation suggestions.
+
+   BUY SIDE ONLY. A flagged coin you already hold still gets scored and
+   still shows its relative performance; hiding it would conceal a
+   position rather than protect it. Same reasoning as the sell-side note
+   further down.
+
+   Both Sets fail open (empty when their fetch fails), so a Supabase
+   outage degrades to "no exclusions", never to "everything excluded".
+   The typeof guards matter: signals.js is also loaded by the golden-
+   fixture harness, where data-loaders.js may not be present at all. */
+function _isExchangeFlagged(c) {
+  if (!c || !c.sym) return false;
+  if (typeof delistedSymbols   !== 'undefined' && delistedSymbols.has(c.sym))   return true;
+  if (typeof monitoringSymbols !== 'undefined' && monitoringSymbols.has(c.sym)) return true;
+  return false;
+}
+
+/* ── Heart rate of a tile (Daniel, 2026-10-03) ────────────────────
+   The page's heartbeat is 42 a minute at rest. A tile whose coin is up
+   beats faster (50 at +5%, 58 at +10%, 66 at +20%: excited but calm); a
+   tile whose coin is down beats slower (38 at -5%, 34 at -10%, 30 at
+   -15%, 26 at -20%). `scale` narrows the steps for things that move less
+   than coins: the TODAY tiles use 0.25 (gold, oil and the dollar at
+   +-1.25 / 2.5 / 5%). Returns the beat length in seconds, or null.
+   styles.css ("Market pulse") reads it as --hb-dur. */
+function hbBeatSeconds(pct, scale) {
+  if (pct == null || !isFinite(pct)) return null;
+  var p = pct / (scale || 1);
+  var bpm = p >= 20 ? 66 : p >= 10 ? 58 : p >= 5 ? 50
+          : p > -5 ? 42 : p > -10 ? 38 : p > -15 ? 34 : p > -20 ? 30 : 26;
+  return 60 / bpm;
+}
+/* The same, as an inline style fragment for a tile's style="" attribute. */
+function hbDurStyle(pct, scale) {
+  var s = hbBeatSeconds(pct, scale);
+  return s == null ? '' : ' --hb-dur:' + s.toFixed(3) + 's;';
+}
+
+/* ── Seed label (promptove/82) ───────────────────────────────────
+   Binance's Seed tag marks an early-stage, higher-risk project. In the
+   2021-2026 test, a Seed coin that had just run into the top 20% by
+   30-day return went on to trail the median coin over the next month
+   about 6 times in 10 — the one sell-side rule there that passed.
+
+   A LABEL, not a call: no list is filtered or reordered by it. The tile
+   carries only a short tag; what history says is stated ONCE under the
+   column (seedEvidenceFooter), the same rule as rotationEvidenceFooter:
+   the same sentence on every Seed tile is one piece of evidence and
+   five times the noise (Daniel, 2026-10-03). Which sentence the footer
+   shows depends on where the column's Seed coins stand now, and the
+   numbers come from ROTATOR_EVIDENCE.seedCoins, never from this file.
+   Renders nothing when the tags or the evidence are missing.
+
+   NOT an unlock flag: some Seed coins are fully unlocked memecoins
+   (MUBARAK). The tile's UNLOCK figure covers supply. */
+function _isSeed(c) {
+  return !!(c && c.sym && typeof binanceTags !== 'undefined'
+    && Array.isArray(binanceTags[c.sym]) && binanceTags[c.sym].indexOf('Seed') >= 0);
+}
+function _inTopP30(c, share) {
+  if (!c || c.p30 == null || typeof coins === 'undefined') return false;
+  var xs = coins.filter(function(x) { return !x.isStock && x.p30 != null; })
+                .map(function(x) { return x.p30; }).sort(function(a, b) { return b - a; });
+  if (!xs.length) return false;
+  return c.p30 >= xs[Math.max(0, Math.ceil(xs.length * share / 100) - 1)];
+}
+function _seedEv() {
+  return (typeof ROTATOR_EVIDENCE !== 'undefined') && ROTATOR_EVIDENCE.seedCoins;
+}
+function seedNote(c) {
+  if (!_seedEv() || !_isSeed(c)) return '';
+  /* Only "⚠ Seed" stays orange; the rest is muted so the warning does
+     not outshine the coin's own reading (Daniel, 2026-10-04). */
+  return '<div class="sig-tile-note"><span class="seed-k">⚠ Seed</span> coin: early-stage, higher risk</div>';
+}
+/* Once per column. `shown` = the coins whose tiles a visitor can read
+   (locked and blurred tiles do not count). */
+function seedEvidenceFooter(shown) {
+  var ev = _seedEv();
+  if (!ev || !shown) return '';
+  var seeds = shown.filter(_isSeed);
+  if (!seeds.length) return '';
+  var anyPumped = seeds.some(function(c) { return _inTopP30(c, ev.pumpShare); });
+  var anyOther  = seeds.some(function(c) { return !_inTopP30(c, ev.pumpShare); });
+  var inTen = function(beat) { return Math.round((100 - beat) / 10); };
+  /* "⚠ Seed" is its own orange span; the rest stays one muted text
+     node, so i18n-mk can still match the whole sentence. */
+  var text = 'is Binance\'s tag for early-stage, higher-risk projects.';
+  if (anyPumped) text += ' Since ' + ev.since + ', Seed coins after a big 30-day run trailed the average coin over the next month '
+    + inTen(ev.pumpBeatPct) + ' times in 10.';
+  if (anyOther) text += ' Since ' + ev.since + ', Seed coins that had fallen behind kept trailing the average coin '
+    + inTen(ev.laggardBeatPct) + ' times in 10.';
+  text += ' History, not a call.';
+  return '<div class="sig-evidence"><p><span class="seed-k">⚠ Seed</span> ' + text + '</p></div>';
+}
+
+/* ── Listed, but never put forward (HANDOVER.md Task 1, engine 2.11.0) ──
+   A coin under $5M average daily volume, or one of the three meme
+   fillers, is in the coin list and is scored, but is never shown as a
+   leader or a turning coin. compute-signal-run decides it and the engine
+   stamps it on `exclusions`, so the page, the alerts and the bot read one
+   answer; this only reads it. The fillers are also checked against the
+   weekly list directly, so the rule holds before the server has caught
+   up with a new list.
+
+   A coin the visitor holds, watches or paper trades always stays visible
+   to them: pass the coin through _isMine() before applying this. */
+var _NOT_PUT_FORWARD = ['thin_volume', 'meme_filler', 'not_in_universe'];
+function _isPutForward(c) {
+  if (!c || c._retired) return false;
+  var ex = c._exclusions || [];
+  for (var i = 0; i < ex.length; i++) if (_NOT_PUT_FORWARD.indexOf(ex[i]) >= 0) return false;
+  return !_isMemeFiller(c);
+}
+function _isMemeFiller(c) {
+  return !!(c && typeof COIN_UNIVERSE !== 'undefined' && COIN_UNIVERSE
+    && COIN_UNIVERSE.fillers.indexOf(c.id) >= 0);
+}
+function _isMine(c) {
+  return (typeof isHeldCoin === 'function' && isHeldCoin(c))
+    || (typeof isWatchedCoin === 'function' && isWatchedCoin(c))
+    || (typeof isPaperCoin === 'function' && isPaperCoin(c));
+}
+
+/* ══ METRIC LENSES ═══════════════════════════════════════════════════
+   The vertical counterpart to the horizontal category tabs. Categories
+   answer "what is this asset"; lenses answer "how is it behaving". The
+   two are independent, so "DEFI coins ranked by long/short skew" falls
+   out of picking one from each.
+
+   Every value is read from data already in the page — _futuresBySym and
+   coinTechnicals, both loaded once on boot. Selecting a lens costs no
+   request.
+
+   A coin with no reading is NOT a cold cell. ~50 of the tracked coins
+   have no Binance USDT pair and can never have open interest or RSI;
+   painting them at the bottom of a heatmap would invent a signal nobody
+   measured. They render hollow and sort last. */
+var activeLens = null;
+
+var LENSES = [
+  { id: 'oi',    label: 'OI',    tip: 'Open interest, USD — size of outstanding futures positions.',
+    get: function(c) { var f = _futuresBySym[c.sym]; return f && f.open_interest_value != null ? +f.open_interest_value : null; },
+    fmt: function(v) { return v >= 1e9 ? '$' + (v/1e9).toFixed(1) + 'B' : v >= 1e6 ? '$' + (v/1e6).toFixed(0) + 'M' : '$' + (v/1e3).toFixed(0) + 'K'; },
+    dir: 'high' },
+  { id: 'oi24',  label: 'OIΔ',   tip: 'Open interest change over 24h, %. Rising OI with rising price = new money; rising OI with falling price = new shorts.',
+    get: function(c) { var f = _futuresBySym[c.sym]; return f && f.oi_change_24h_pct != null ? +f.oi_change_24h_pct : null; },
+    fmt: function(v) { return (v >= 0 ? '+' : '') + v.toFixed(1) + '%'; },
+    dir: 'signed' },
+  { id: 'ls',    label: 'L/S',   tip: 'Global long/short account ratio. Above 1 = more accounts long. Crowding, not a forecast.',
+    get: function(c) { var f = _futuresBySym[c.sym]; return f && f.long_short_ratio != null ? +f.long_short_ratio : null; },
+    fmt: function(v) { return v.toFixed(2); },
+    dir: 'high' },
+  { id: 'fund',  label: 'FND',   tip: 'Funding rate. Positive = longs paying shorts.',
+    get: function(c) { var f = _futuresBySym[c.sym]; return f && f.funding_rate != null ? +f.funding_rate * 100 : null; },
+    fmt: function(v) { return (v >= 0 ? '+' : '') + v.toFixed(3) + '%'; },
+    dir: 'signed' },
+  { id: 'rsid',  label: 'RSI·D', tip: 'Wilder RSI(14) on daily candles. Computed server-side.',
+    get: function(c) { var t = coinTechnicals[c.sym]; return t && t.rsiD != null ? t.rsiD : null; },
+    fmt: function(v) { return v.toFixed(0); },
+    dir: 'rsi' },
+  { id: 'rsiw',  label: 'RSI·W', tip: 'Wilder RSI(14) on weekly closes. Computed server-side.',
+    get: function(c) { var t = coinTechnicals[c.sym]; return t && t.rsiW != null ? t.rsiW : null; },
+    fmt: function(v) { return v.toFixed(0); },
+    dir: 'rsi' },
+  /* Golden / death cross, most recent first (Daniel, 2026-10-04). The value
+     is DAYS SINCE the cross. Only crosses from about the last two weeks can
+     be dated (140 stored days, a 125-day average), and Daniel chose that:
+     "golden cross is attractive only if it happened recently". Older
+     crosses and the opposite state are blank and sort last. The tested
+     record (config.js) is in the tip, so the lens is not read as a call. */
+  { id: 'gc',    label: '✨GC', none: 'none recent', hue: 140, pro: true,
+    tip: 'Golden cross, most recent first: the 60-day average crossed above the 125-day. Only crosses from about the last 2 weeks are dated. Tested: no edge at 7 days (50% beat the market), 53% at 30 days.',
+    get: function(c) { var t = coinTechnicals[c.sym]; return t && t.cross === 'golden' && t.crossDays != null ? t.crossDays : null; },
+    fmt: function(v) { return v === 0 ? 'today' : v + 'd ago'; },
+    dir: 'recent' },
+  { id: 'dc',    label: '☠DC', none: 'none recent', hue: 4, pro: true,
+    tip: 'Death cross, most recent first: the 60-day average crossed below the 125-day. Only crosses from about the last 2 weeks are dated. Tested: not a warning; coins after a death cross beat the market 53% of the time over 30 days.',
+    get: function(c) { var t = coinTechnicals[c.sym]; return t && t.cross === 'death' && t.crossDays != null ? t.crossDays : null; },
+    fmt: function(v) { return v === 0 ? 'today' : v + 'd ago'; },
+    dir: 'recent' }
+];
+
+/* Colour for one reading.
+   'rsi'    — fixed 0-100 scale, so 70 always looks the same day to day.
+   'signed' — diverging around zero; the sign is the meaning.
+   'high'   — relative to the coins currently on screen, since open
+              interest has no natural ceiling. */
+function _lensColor(lens, v, lo, hi) {
+  if (v == null) return null;
+  var t;
+  if (lens.dir === 'recent') {
+    /* Days since a cross: today is full strength, two weeks is faded. */
+    var f = Math.max(0, Math.min(1, 1 - v / 15));
+    return 'hsl(' + lens.hue + ',' + (35 + f * 40).toFixed(0) + '%,' + (38 + f * 14).toFixed(0) + '%)';
+  }
+  if (lens.dir === 'rsi') {
+    t = Math.max(0, Math.min(1, v / 100));
+  } else if (lens.dir === 'signed') {
+    var m = Math.max(Math.abs(lo), Math.abs(hi)) || 1;
+    t = 0.5 + (v / m) * 0.5;
+  } else {
+    t = hi > lo ? (v - lo) / (hi - lo) : 0.5;
+  }
+  t = Math.max(0, Math.min(1, t));
+  /* Red (cold/low) -> amber -> green (hot/high). Same ramp as the score
+     bar so a user is not learning a second colour language. */
+  var hue = 4 + t * 136;
+  return 'hsl(' + hue.toFixed(0) + ',72%,' + (46 + t * 6).toFixed(0) + '%)';
+}
+
+/* Pro-only lenses (golden / death cross, Daniel 2026-10-04): non-Pro
+   visitors see them with a PRO mark, and a click opens the Pro window,
+   as the Signal Assistant does. */
+function _lensLocked(l) { return !!(l && l.pro && (typeof isPro === 'undefined' || !isPro)); }
+function setLens(id) {
+  var l = LENSES.filter(function (x) { return x.id === id; })[0];
+  if (_lensLocked(l)) { if (typeof openPro === 'function') openPro(); return; }
+  activeLens = (activeLens === id) ? null : id;
+  renderTable();
+  renderLensRail();
+}
+
+function renderLensRail() {
+  var panel = document.getElementById('crypto-panel');
+  if (!panel) return;
+  var table = panel.querySelector('table');
+  if (!table) return;
+
+  /* Wrap the table once so the rail can sit beside it without touching
+     the stylesheet or the table's own horizontal scrolling. */
+  var wrap = document.getElementById('lens-wrap');
+  if (!wrap) {
+    wrap = document.createElement('div');
+    wrap.id = 'lens-wrap';
+    wrap.style.cssText = 'display:flex;align-items:flex-start;gap:6px;width:100%;';
+    var scroller = document.createElement('div');
+    scroller.style.cssText = 'flex:1 1 auto;min-width:0;overflow-x:auto;';
+    panel.insertBefore(wrap, table);
+    wrap.appendChild(scroller);
+    scroller.appendChild(table);
+  }
+
+  var rail = document.getElementById('lens-rail');
+  if (!rail) {
+    rail = document.createElement('div');
+    rail.id = 'lens-rail';
+    rail.className = 'lens-rail';
+    wrap.insertBefore(rail, wrap.firstChild);
+  }
+  /* Heartbeat on the rail, always (styles.css, "Market pulse"). It used
+     to stop after a visitor's first lens; Daniel wants it to keep beating
+     (2026-10-03). The selected lens stays solid and does not beat. */
+  rail.classList.add('lens-pulse');
+
+  /* Styled in styles.css (.lens-btn), 2026-09-29: the inline 10px muted
+     labels were easy to miss next to the coin cards. */
+  rail.innerHTML = '<span class="lens-cap">SORT</span>' + LENSES.map(function(l) {
+    var on = activeLens === l.id, locked = _lensLocked(l);
+    return '<button class="lens-btn' + (on ? ' on' : '') + (locked ? ' lens-locked' : '') + '" onclick="setLens(\'' + l.id + '\')"'
+      + ' aria-pressed="' + on + '" title="' + ((locked ? 'Pro: ' : '') + l.tip).replace(/"/g,'&quot;') + '">' + l.label
+      + (locked ? '<span class="lens-pro-tag">PRO</span>' : '') + '</button>';
+  }).join('')
+  + (activeLens
+      ? '<button class="lens-btn lens-clear" onclick="setLens(null)" title="Clear lens — back to score order">×</button>'
+      : '');
+}
+
+/* ── Cross badge, rendered after the coin symbol ────────────────────
+   ✨ golden = fast MA above slow, ☠ death = fast below.
+
+   The periods are named in the tooltip on purpose. This is a 60/125
+   cross, not the classic 50/200, and a badge that says "golden cross"
+   without saying which two lines crossed is a claim the data does not
+   support.
+
+   The grey suffix is the age of the flip. It is only shown when the flip
+   is actually datable: with a 125-bar MA inside a 140-bar window only
+   the last ~15 days have a slow MA at all, so an older cross is real but
+   undatable. Those render the state with no age rather than a guess —
+   `cross_days_ago` is null and we say nothing rather than something
+   wrong. */
+function crossBadge(c) {
+  if (!c || !c.sym || typeof coinTechnicals === 'undefined') return '';
+  /* Pro only since 2026-10-04 (Daniel), like the cross lenses and the
+     coin window's cross tile. */
+  if (typeof isPro === 'undefined' || !isPro) return '';
+  var t = coinTechnicals[c.sym];
+  if (!t || !t.cross) return '';
+
+  var golden = t.cross === 'golden';
+  var icon   = golden ? '✨' : '☠';
+  var color  = golden ? 'var(--green)' : 'var(--red)';
+
+  var age = '';
+  if (t.crossDays != null) {
+    age = '<span style="color:var(--muted);font-size:10px;margin-left:3px;opacity:.75;">'
+        + (t.crossDays === 0 ? 'today' : t.crossDays + 'd')
+        + '</span>';
+  }
+
+  var tip = (golden ? 'Golden cross' : 'Death cross')
+    + ' — the 60-day average is ' + (golden ? 'above' : 'below') + ' the 125-day average.'
+    + (t.crossDays != null
+        ? ' Crossed ' + (t.crossDays === 0 ? 'today' : t.crossDays + ' day' + (t.crossDays === 1 ? '' : 's') + ' ago') + '.'
+        : ' The cross happened before the stored window, so its date is not known.')
+    + ' Descriptive of past price only.';
+
+  return '<span class="cross-badge" title="' + tip.replace(/"/g, '&quot;') + '"'
+    + ' style="margin-left:4px;font-size:11px;color:' + color + ';white-space:nowrap;">'
+    + icon + age + '</span>';
+}
+
+/* Rotation opportunity tile (sell→buy pair) */
+/* ── Standalone "what should I buy" suggestion tile ──────────────
+   Unlike sigRotTile (which always pairs a sell with a buy), this shows
+   ONE buy-zone candidate on its own — for the very common case of
+   someone with no holdings yet asking "what should I buy", where
+   forcing a "sell X for Y" framing makes no sense (there's nothing to
+   sell). Only ever built from real zone-classified buy candidates
+   (_zone==='buy' && passesMeanRevGate), never a raw top/bottom score
+   sort — see the fix in renderTopBars() below. */
+function buySuggestTile(c) {
+  var circ = c.circulating_supply || 0, maxS = c.max_supply || 0;
+  var unlock = (circ && maxS > 0) ? Math.round((circ / maxS) * 100) + '%' : '∞';
+  /* Visual cue for the held-first sort in allBuys above — otherwise
+     why this coin surfaced first is invisible to the person looking. */
+  var isHeld = (typeof isHeldCoin === 'function') && isHeldCoin(c);
+  var ev = (typeof ROTATOR_EVIDENCE !== 'undefined') && ROTATOR_EVIDENCE.laggard;
+  var badgeText = isHeld ? 'ALREADY HELD' : 'HIGH BETA';
+  /* Amber, not green. Green said "buy", which is a claim about
+     direction we cannot support: the rotation buy leg is +0.4% once
+     Harmony is removed from the sample. What IS supported is
+     amplification — this coin exaggerates whatever the market does
+     next — and amber is the colour for "charged, either way". */
+  return '<div class="sig-tile rot" style="' + hbDurStyle(c.p7) + '" onclick="openTileDetail(\'' + c.id + '\',event)" title="Click for details">'
+    + '<div class="sig-tile-top">'
+      + '<div class="sig-tile-ico"><img src="' + c.image + '" alt="' + c.sym + ' logo" loading="lazy" width="20" height="20" onerror="this.style.display=\'none\'"></div>'
+      + '<span class="sig-tile-sym" style="color:var(--amber);">' + c.sym + '</span>'
+      + '<span class="sig-tile-badge mom">' + badgeText + '</span>'
+    + '</div>'
+    + '<div class="sig-tile-stats">'
+      + '<div class="sig-stat"><span class="sig-stat-l">SCORE</span><span class="sig-stat-v am">' + c.score + '</span></div>'
+      + _sigPeriod(30, c.p30)   /* how far it has lagged: why it is a buy-side candidate */
+      + '<div class="sig-stat"><span class="sig-stat-l">UNLOCK</span><span class="sig-stat-v am">' + unlock + '</span></div>'
+    + '</div>'
+    /* The amplification figures are a property of the BUCKET, not of
+       this coin, so they live in the column footer. What belongs here is
+       which coin, and how far behind it is. */
+    + '<div class="sig-tile-note">'
+      + c.sym + ' has lagged the market — this is the amplifying end of the book.'
+    + '</div>'
+    + (isHeld ? '<div class="sig-tile-note">Already in your holdings.</div>' : '')
+    + (typeof readingLineHtml === 'function' ? readingLineHtml(c) : '')
+    + seedNote(c)
+    + '</div>';
+}
+
+/* ── "Told you so" proof line — real proven calls, not a promise ──
+   Reuses SignalHistory.getProvenSignals(), which is already wired to
+   real server data (signal_snapshots, 99+ days of history) via
+   loadServerHistory() on page load — this is not local-browser-only
+   anecdote, it's the same published record shown on track-record.html.
+   Shows at most 1 recent proof, since the point is credibility, not
+   a wall of self-congratulation next to a buy suggestion. */
+/* Market-wide oversold context line (engine 2.10.0).
+
+   The engine computes the flag, its definition and its evidence; this
+   only FORMATS them, and every number shown is read from the run rather
+   than typed here (GUARDRAILS, "prose that quoted a constant").
+
+   Rendered only when the SERVER run measured the flag and it is active.
+   An unmeasured flag is not a calm market (GUARDRAILS rule 4), so it is
+   not drawn as one — it is simply not drawn. The local browser pass has
+   no 4h feed and always reports no_feed, which lands here as nothing.
+
+   It describes the whole market and never a coin: in the measurement
+   behind it an oversold coin did not beat the market. See promptove/42. */
+function marketOversoldLine() {
+  var run = window.ROTATOR_RUN;
+  var mo = run && run.marketOversold;
+  if (!mo || mo.measured !== true || mo.active !== true || !mo.rules) return '';
+  var r = mo.rules, ev = r.evidence || {};
+  var d7 = ev.marketReturnPct && ev.marketReturnPct.d7;
+  var up7 = ev.marketUpCount && ev.marketUpCount.d7;
+  var since = String(ev.window || '').slice(0, 4);
+  var hist = (d7 != null && up7 != null && ev.entries)
+    ? ' In the ' + ev.entries + ' earlier cases since ' + since + ', the market averaged '
+      + (d7 >= 0 ? '+' : '') + d7 + '% over the following 7 days (' + up7 + ' of ' + ev.entries + ' higher).'
+    : '';
+  var title = ('Share of scored coins with 4h RSI(' + r.rsiPeriod + ') below ' + r.rsiBelow
+    + ', at or above ' + Math.round(r.breadthMin * 100) + '% on ' + r.minDays
+    + '+ separate UTC days within 72h. ' + ev.entries + ' occurrences in ' + ev.window
+    + ' - a small sample, drawn from coins that still exist today. It describes the whole market, not any single coin.')
+    .replace(/"/g, '&quot;');
+  return '<div class="proof-line market-oversold-line" title="' + title + '">'
+    + '<span style="color:var(--amber, #f0b90b);">◔ Market-wide oversold —</span> '
+    + Math.round(mo.breadthNow * 100) + '% of ' + mo.coins + ' coins at 4h RSI below ' + r.rsiBelow
+    + ', on ' + mo.daysAtBreadth + ' separate days.' + hist
+    + ' Small sample; describes the market, not a coin.'
+    + '</div>';
+}
+
+function provenProofLine() {
+  if (typeof SignalHistory === 'undefined') return '';
+  var proven = SignalHistory.getProvenSignals();
+  if (!proven || !proven.length) return '';
+  var p = proven[0]; /* already sorted most-recent-relevant by getProvenSignals() */
+  var changeStr = (p.change >= 0 ? '+' : '') + p.change + '%';
+  return '<div class="proof-line" onclick="if(typeof SignalHistory!==\'undefined\')SignalHistory.shareProven(\'' + p.id + '\')" title="Click to share this observation">'
+    + '<span style="color:var(--green);">✓ On the record —</span> '
+    + p.daysAgo + 'd ago Rotator flagged <b>' + p.sym + '</b> at ' + fmtP(p.priceThen)
+    + ', now ' + fmtP(p.priceNow) + ' (<span style="color:' + (p.change >= 0 ? 'var(--green)' : 'var(--red)') + ';">' + changeStr + '</span>)'
+    + '</div>';
+}
+
+/* ── Standalone "consider taking profit" tile — for a HELD coin in
+   sell-zone with NO forced rotation target. Preserves capital framing,
+   not a rotation plan: "this is overheated, consider trimming" without
+   pretending there's a specific place to put the proceeds. */
+function takeProfitTile(c) {
+  var ev = (typeof ROTATOR_EVIDENCE !== 'undefined') && ROTATOR_EVIDENCE.giveBack;
+  return '<div class="sig-tile rot" style="' + hbDurStyle(c.p30) + '" onclick="openTileDetail(\'' + c.id + '\',event)" title="Click for details">'
+    + '<div class="sig-tile-top">'
+      + '<div class="sig-tile-ico"><img src="' + c.image + '" alt="' + c.sym + ' logo" loading="lazy" width="20" height="20" onerror="this.style.display=\'none\'"></div>'
+      /* Information only (promptove/64): the high score is the fact; "give-back
+         zone" was a forecast resting on 9 cases (ROTATOR_EVIDENCE.giveBack). */
+      + '<span class="sig-tile-sym" style="color:var(--amber);">' + c.sym + '</span>'
+      + '<span class="sig-tile-badge wrst">TOP OF RANGE</span>'
+    + '</div>'
+    + '<div class="sig-tile-stats">'
+      + '<div class="sig-stat"><span class="sig-stat-l">SCORE</span><span class="sig-stat-v am">' + c.score + '</span></div>'
+      + '<div class="sig-stat"><span class="sig-stat-l">30D</span><span class="sig-stat-v ' + (c.p30 >= 0 ? 'up' : 'dn') + '">' + (c.p30 >= 0 ? '+' : '') + c.p30.toFixed(1) + '%</span></div>'
+    + '</div>'
+    + '<div class="sig-tile-note">'
+      + 'You hold ' + c.sym + ' and it scores near the top of the range. Information, not a call to sell.'
+    + '</div>'
+    + (typeof readingLineHtml === 'function' ? readingLineHtml(c) : '')
+    + seedNote(c)
+    + '</div>';
+}
+
+function sigRotTile(sell, buy) {
+  var delta = sell.score - buy.score;
+  _noteRotationContext(sell, buy, delta);
+
+
+  /* Buy-side unlock % */
+  var bCirc = buy.circulating_supply || 0;
+  var bMax  = buy.max_supply || 0;
+  var bUnlock = (bCirc && bMax > 0) ? Math.round((bCirc / bMax) * 100) + '%' : '∞';
+
+  return '<div class="sig-tile rot" onclick="openTileDetail(\'' + buy.id + '\',event)" title="Click for details">'
+    + '<div class="sig-tile-top">'
+      + '<div class="sig-tile-ico"><img src="' + sell.image + '" alt="' + sell.sym + ' logo" loading="lazy" width="20" height="20" onerror="this.style.display=\'none\'"></div>'
+      /* INFORMATION ONLY since 2026-09-25 (promptove/64). No arrow, no
+         sell-red / buy-green: those read as an instruction, and over
+         771 days moving from the higher score into the lower one did
+         WORSE than a random pick (ROTATOR_EVIDENCE.rotation.backtest).
+         The tile now states the gap and nothing it cannot support. */
+      + '<span class="sig-tile-sym">' + sell.sym + '</span>'
+      + '<span style="color:var(--muted);font-size:12px;">vs</span>'
+      + '<div class="sig-tile-ico"><img src="' + buy.image + '" alt="' + buy.sym + ' logo" loading="lazy" width="20" height="20" onerror="this.style.display=\'none\'"></div>'
+      + '<span class="sig-tile-sym">' + buy.sym  + '</span>'
+      + '<span class="sig-tile-badge rot">Δ' + delta + '</span>'
+    + '</div>'
+    + '<div class="sig-tile-head">You hold ' + sell.sym + ', scoring ' + delta + ' points above ' + buy.sym + '.</div>'
+    + '<div class="sig-tile-stats">'
+      + _sigPeriod(7, buy.p7)   /* the other coin's week, in place of BULL / BEAR */
+      + '<div class="sig-stat"><span class="sig-stat-l">UNLOCK</span><span class="sig-stat-v am">' + bUnlock + '</span></div>'
+      + '<div class="sig-stat"><span class="sig-stat-l">SCR DELTA</span><span class="sig-stat-v am">' + sell.score + '→' + buy.score + '</span></div>'
+    + '</div>'
+    /* The claim is RELATIVE and the copy has to say so — the tile
+       states WHY the pair exists, then what the record is. The
+       "not a forecast that it rises" qualifier moved to the detail
+       modal (window.ROTATION_CONTEXT below): at column width it pushed
+       the tile past a readable height, and the caveat was the least
+       scannable line on it. Publishing the chance rate stays here,
+       because 63% means nothing until you know chance pays 41%. */
+    /* Only what is true of THIS pair. The record, the chance bar and
+       the entry-timing note are identical on every rotation tile, so
+       they are rendered once under the column instead of three or four
+       times inside it — see rotationEvidenceFooter(). Four tiles each
+       repeating the same two sentences is not four times the evidence,
+       it is one piece of evidence and three times the noise. */
+    + '<div class="sig-tile-note">'
+      + '<span class="hi">' + sell.sym + '</span> has run ahead and '
+      + '<span class="hi">' + buy.sym + '</span> has lagged it. Information, not a call.'
+    + '</div>'
+    + seedNote(sell) + seedNote(buy)
+    + '</div>';
+}
+
+/* What the detail modal needs to explain a rotation target, keyed by
+   the coin the tile opens. Written as the tiles are built so the modal
+   never has to re-derive a pairing the run already decided. */
+function _noteRotationContext(sell, buy, delta) {
+  if (typeof window === 'undefined') return;
+  window.ROTATION_CONTEXT = window.ROTATION_CONTEXT || {};
+  window.ROTATION_CONTEXT[buy.id] = {
+    fromSym: sell.sym, toSym: buy.sym, delta: delta,
+    fromScore: sell.score, toScore: buy.score
+  };
+}
+
+/* ── One evidence block per column, not one per tile ──────────────
+   Every figure below is a property of the SIGNAL TYPE, not of any coin
+   carrying it, so repeating it on each tile told the reader the same
+   thing three or four times and made every tile taller than it needed
+   to be. It is rendered once, under the grid, and the tiles carry only
+   what is specific to their own pair or coin.
+
+   Renders nothing for a figure ROTATOR_EVIDENCE does not hold — an
+   unmeasured claim is not made. */
+function rotationEvidenceFooter(kinds) {
+  if (typeof ROTATOR_EVIDENCE === 'undefined') return '';
+  var bits = [];
+  var has = function(k) { return kinds && kinds.indexOf(k) >= 0; };
+
+  if (has('pair')) {
+    var rv = ROTATOR_EVIDENCE.rotation;
+    if (rv && rv.chance) {
+      bits.push(rv.confirmed
+        ? 'Live test of this pairing: <b>' + rv.confirmed + '% confirmed</b>, against <b>'
+          + rv.chance + '%</b> for two coins picked at random.'
+        : 'The live test of this pairing has no ' + (rv.horizonDays || 30) + '-day result yet; the first pairs grade <b>'
+          + (rv.firstGradesOn || 'once they are old enough') + '</b> on the track record.');
+    }
+    /* What history says about the gap itself, stamped from the evidence
+       block. This is why the tiles make no call (promptove/64). The
+       entry-timing note that used to sit here described how to ENTER a
+       call; with no call there is nothing to enter, so it is gone. */
+    var bt = rv && rv.backtest;
+    if (bt && bt.lowerWonPct != null) {
+      bits.push('Over <b>' + bt.days + ' days</b> of history, the lower-scored coin in pairs like '
+        + 'these did better in only <b>' + bt.lowerWonPct + '%</b> of ' + bt.lowerWonHorizon
+        + '-day periods, against about <b>' + rv.chance + '%</b> for two coins picked at random. '
+        + 'So the gap is shown as information, not as a call.');
+    }
+  }
+
+  if (has('buy')) {
+    var l = ROTATOR_EVIDENCE.laggard;
+    if (l) {
+      bits.push('Coins that have lagged amplify what the market does next: <b>'
+        + (l.upExcess >= 0 ? '+' : '') + l.upExcess + '%</b> against the market when it rises, <b>'
+        + l.downExcess + '%</b> when it falls. Which comes next is your call, not ours.');
+    }
+  }
+
+  if (has('profit')) {
+    var g = ROTATOR_EVIDENCE.giveBack;
+    if (g && g.n) {
+      bits.push('The last <b>' + (g.n - g.wereUp) + ' of ' + g.n + '</b> coins reaching the '
+        + 'top of the range were lower ' + _horizonDays() + ' days later (median <b>'
+        + g.medianReturn + '%</b>). Not a short signal, and a small sample.');
+    }
+  }
+
+  if (!bits.length) return '';
+  return '<div class="sig-evidence">' + bits.map(function(b) {
+    return '<p>' + b + '</p>';
+  }).join('') + '</div>';
+}
+
+/* The horizon every card quotes, read from one place so a card cannot
+   state a window the grader does not use. */
+function _horizonDays() {
+  return (typeof ROTATOR_EVIDENCE !== 'undefined' && ROTATOR_EVIDENCE.rotation
+    && ROTATOR_EVIDENCE.rotation.horizonDays) || 30;
+}
+
+
+
+/* How many tiles the Rotation column renders. The other two columns
+   document .slice(0, 6) in the file header as their knob; this is
+   Rotation's, and it is the SAME number for both tiers — Free renders
+   one of them for real and locks the rest, but it must build the same
+   list, or the two tiers can disagree about what the run said. */
+var ROT_TILE_SLOTS = 4;
+
+/* ── The rotation tile list — ONE builder, both tiers ──────────────────
+   Free and Pro each carried their own copy of this construction:
+   identical, eleven lines, twice. Two copies of a list that decides what
+   the front page recommends is the same shape of defect the engine
+   extraction spent three releases removing, one level down.
+
+   WHAT CHANGED. The old code only reached the buy candidates when the
+   holdings side had produced NOTHING at all:
+
+       if (!tiles.length) { allBuys.slice(0, 4) ... }
+
+   So a single sell-zone holding capped the entire panel at one tile, and
+   the three empty slots beside it read as "the market has nothing to
+   offer" when what they actually meant was "you hold one overheated
+   coin". An inventory fact rendered as a market fact — and the reason
+   two browsers on the SAME run disagreed on 2026-09-08: holding INJ
+   (score 76, RSI 73.1, sell zone) collapsed the panel to one tile, while
+   holding nothing fell through to the fallback and offered JTO.
+
+   Now the holdings tiles take their slots first — a rotate-out signal
+   concerns money already at risk, so it outranks a suggestion — and
+   every slot they do not need is filled with real buy candidates
+   instead of a placeholder.
+
+   Coins already on screen as the buy leg of a pair are sorted LAST
+   rather than dropped. On a normal day the spare slots show different
+   coins and this never triggers; when the candidate list is one coin
+   deep — run 308: JTO was the only one of 195 to survive the classifier
+   — a repeat says more than a blank does.
+
+   NOT a scoring change, and deliberately not a place where one could
+   hide. Every coin here was already filtered by the caller through
+   _passesMeanRevGate / _isTradable / _isPresentable / _isExchangeFlagged;
+   this function only chooses which of those survivors get the slots. It
+   reads no globals and touches no DOM, so verify-rotation-tiles.js runs
+   this exact function rather than a retyped approximation of it. */
+function _buildRotationTiles(sells, buys, allBuys, slots) {
+  var tiles = [];
+  var sl = (typeof slots === 'number' && slots > 0) ? slots : 4;
+  var bl = buys || [];
+
+  /* Every render rebuilds the pairings, so the context map is rebuilt
+     with them. Without this it only ever grows: renderSuggestions runs
+     several times per session, and a coin paired in an earlier pass
+     kept its entry forever — SAND was still registered as a rotation
+     target while being rendered as a standalone HIGH BETA tile, which
+     would have opened a detail modal describing a pairing the current
+     run never made. */
+  if (typeof window !== 'undefined') window.ROTATION_CONTEXT = {};
+
+  /* 1. Holdings first — a sell-zone coin paired with a buy target, or a
+        standalone take-profit tile when there is no target left to pair
+        it with (the real signal, not discarded for a fake pair). */
+  (sells || []).forEach(function(s, i) {
+    if (i < bl.length) tiles.push({ type: 'pair', sell: s, buy: bl[i] });
+    else tiles.push({ type: 'profit', c: s });
+  });
+  tiles = tiles.slice(0, sl);
+
+  /* 2. Fill what is left with buy candidates — ones not already on
+        screen ahead of ones that are. */
+  var onScreen = {};
+  tiles.forEach(function(t) { if (t.buy) onScreen[t.buy.sym] = true; });
+  var fresh = [], repeats = [];
+  (allBuys || []).forEach(function(c) { (onScreen[c.sym] ? repeats : fresh).push(c); });
+  fresh.concat(repeats).forEach(function(c) {
+    if (tiles.length < sl) tiles.push({ type: 'buy', c: c });
+  });
+
+  return tiles;
+}
+
+/* Render all three signal columns */
+function renderTopBars() {
+  /* No re-run here any more (Step B). Zone/score are server-authoritative
+     for crypto now (see runSignalEngine() in data-loaders.js) and don't
+     change on a render — the old re-run existed only to reapply the
+     insight↔zone cross-link with a visitor's own rich Insight score, a
+     per-visitor effect this migration deliberately removed. The insight
+     BADGE itself (coin.insight, rendered in ui.js) is untouched and needs
+     no re-run: it's just read off coins[] here like everything else. */
+  var hSyms = holdings.map(function(h) { return h.sym; });
+
+  /* Helper: single supporter unlock tile (one per column only) */
+  function proUnlockTile(msg) {
+    return '<div class="sig-tile pro-locked" onclick="openPro()" style="cursor:pointer;'
+      + 'display:flex;flex-direction:column;align-items:center;justify-content:center;'
+      + 'gap:6px;min-height:88px;opacity:.85;">'
+      + '<span style="font-size:18px;">☕</span>'
+      + '<span style="font-size:12px;font-weight:700;letter-spacing:.1em;color:var(--bnb);">SUPPORTERS</span>'
+      + '<span style="font-size:12px;color:var(--muted);text-align:center;line-height:1.4;">' + msg + '</span>'
+      + '</div>';
+  }
+
+  /* Helper: empty placeholder tile — guides user to add holdings */
+  /* Opens the add-coin window. It used to focus #coin-sel, which has
+     been display:none since the modal replaced it, so a click did
+     nothing. "Signals" went too: these are comparisons, not calls. */
+  function emptyPlaceholderTile() {
+    return '<div class="sig-tile sig-tile-empty" onclick="openAddHoldingsModal()" title="Add a coin you hold or watch">'
+      + '<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;gap:4px;opacity:.5;padding:6px;text-align:center;">'
+      + '<span style="font-size:16px;color:var(--green);line-height:1;">+</span>'
+      + '<span style="font-size:12px;letter-spacing:.04em;color:var(--muted);font-family:var(--font-ui);line-height:1.4;">Add your coins to compare them here</span>'
+      + '</div></div>';
+  }
+
+  /* ── Column 3: Worst 30D — 2 free / 4 Pro ──
+     bStocks excluded — separate scoring model (momentum-only, no
+     tokenomics), not directly comparable to crypto rotation signals. */
+  var worstAll = coins.slice().filter(function(c) { return !c.isStock; }).sort(function(a, b) { return a.p30 - b.p30; });
+  var worstEl  = document.getElementById('worst-cards');
+  if (isPro) {
+    /* SIX, not four. The three signal columns share a row, so the tallest
+       sets the height — and Rotation is the tall one: its tile carries a
+       sentence of explanation while a momentum tile is four compact stats.
+       Four tiles fill two rows against Rotation's two taller ones, leaving
+       a third row of dead space in the middle of the screen. Six fills it
+       with real coins instead of nothing. Measured 2026-09-08 at 2371px:
+       184px of content in a 236px column. The file header has always
+       documented .slice(0, 6) as the knob; this is it being turned. */
+    var worstTiles = worstAll.slice(0, 6).map(function(c) { return sigTile(c, 'wrst'); }).join('');
+    for (var wp = worstAll.slice(0, 6).length; wp < 6; wp++) worstTiles += emptyPlaceholderTile();
+    worstEl.innerHTML = '<div class="sig-tiles-grid">' + worstTiles + '</div>' + seedEvidenceFooter(worstAll.slice(0, 6));
+  } else {
+    var w3 = worstAll.slice(0, 2).map(function(c) { return sigTile(c, 'wrst'); }).join('');
+    var wLocked = proUnlockTile('4 more in Pro') + emptyPlaceholderTile();
+    worstEl.innerHTML = '<div class="sig-tiles-grid">' + w3 + wLocked + '</div>' + seedEvidenceFooter(worstAll.slice(0, 2));
+  }
+
+  /* ── Column 2: High Momentum — 1 free / 6 Pro ── */
+  /* Same delisted-coin exclusion as the buy-side filters above — a
+     score-60+ coin shown here reads as a tip, not a warning, so the
+     same "don't point at something you can't actually buy" reasoning
+     applies. Worst-30D-Performers (below) is deliberately left
+     untouched — cautionary framing, not a suggestion to act on. */
+  /* And not a thin-volume coin or a meme filler unless it is the
+     visitor's own (_isPutForward, HANDOVER.md Task 1). */
+  var momAll  = coins.slice().filter(function(c) { return c.score >= 60 && !c.isStock && !_isExchangeFlagged(c) && (_isPutForward(c) || _isMine(c)); })
+                             .sort(function(a, b) { return b.score - a.score; });
+
+  /* Persist today's momentum tier + your holdings' scores, once/day,
+     for the Telegram alert Edge Function (send-telegram-alerts) —
+     signal_snapshots can't be reused here, see
+     sql/create_momentum_and_holdings_snapshots.sql for why. Both RPCs
+     are idempotent (server checks "already recorded today" and no-ops),
+     so calling this on every render is safe, same pattern as the
+     existing takeSnapshot() call. */
+  if (typeof supaRecordMomentumSnapshot === 'function') {
+    var momRows = momAll.slice(0, 20).map(function(c) {
+      return {
+        coin_id: c.id, coin_sym: c.sym, coin_name: c.name || '',
+        score: c.score, price: c.price,
+        vol_ratio: (typeof window._volRatio === 'function') ? Math.round(window._volRatio(c) * 100) / 100 : 1,
+        mcap: c.mcap || 0
+      };
+    });
+    if (momRows.length) supaRecordMomentumSnapshot(momRows, (window.ROTATOR_RUN && window.ROTATOR_RUN.engineVersion) || null);
+  }
+  if (typeof supaRecordHoldingsSnapshot === 'function' && typeof holdings !== 'undefined' && holdings.length) {
+    /* This one writes a SERVER snapshot, so resolving the wrong coin
+       would record the wrong asset permanently rather than just
+       mis-drawing a tile. Goes through coinOfHolding() like everything
+       else — it already emits coin_id, which was the right instinct. */
+    var heldRows = holdings.map(function(h) {
+      var c = (typeof coinOfHolding === 'function') ? coinOfHolding(h) : null;
+      if (!c) return null;
+      return { sym: c.sym, coin_id: c.id, score: c.score, price: c.price };
+    }).filter(Boolean);
+    if (heldRows.length) supaRecordHoldingsSnapshot(heldRows, (window.ROTATOR_RUN && window.ROTATOR_RUN.engineVersion) || null);
+  }
+  var momEl   = document.getElementById('mom-cards');
+  if (isPro) {
+    if (momAll.length) {
+    /* SIX, not four. The three signal columns share a row, so the tallest
+       sets the height — and Rotation is the tall one: its tile carries a
+       sentence of explanation while a momentum tile is four compact stats.
+       Four tiles fill two rows against Rotation's two taller ones, leaving
+       a third row of dead space in the middle of the screen. Six fills it
+       with real coins instead of nothing. Measured 2026-09-08 at 2371px:
+       184px of content in a 236px column. The file header has always
+       documented .slice(0, 6) as the knob; this is it being turned. */
+      var momTiles = momAll.slice(0, 6).map(function(c) { return sigTile(c, 'mom'); }).join('');
+      for (var mp = momAll.slice(0, 6).length; mp < 6; mp++) momTiles += emptyPlaceholderTile();
+      momEl.innerHTML = '<div class="sig-tiles-grid">' + momTiles + '</div>' + seedEvidenceFooter(momAll.slice(0, 6));
+    } else {
+      momEl.innerHTML = '<div class="no-sug">Scanning \u2014 no coins above momentum threshold right now.</div>';
+    }
+  } else {
+    if (momAll.length) {
+      var m1 = sigTile(momAll[0], 'mom');
+      var mLocked = proUnlockTile('unlock 5 more') + emptyPlaceholderTile() + emptyPlaceholderTile();
+      momEl.innerHTML = '<div class="sig-tiles-grid">' + m1 + mLocked + '</div>' + seedEvidenceFooter(momAll.slice(0, 1));
+    } else {
+      momEl.innerHTML = '<div class="no-sug">Scanning \u2014 no coins above momentum threshold right now.</div>';
+    }
+  }
+
+  /* ── Column 1: Rotation Opportunities — 1 free (real, unblurred) / 5 blurred+locked Pro ── */
+  var sugEl = document.getElementById('sug-cards');
+
+  /* Compute real rotation pairs regardless of tier — bStocks excluded,
+     rotation logic (tokenomics-aware buy/sell zones) doesn't apply to equities. */
+  var held  = coins.filter(function(c) { return hSyms.indexOf(c.sym) >= 0 && !c.isStock; });
+  var sells = held.filter(function(c)  { return c._zone === 'sell'; }).sort(function(a, b) { return b.score - a.score; });
+  var buys  = coins.filter(function(c) { return hSyms.indexOf(c.sym) < 0 && !c.isStock && c._zone === 'buy' && _passesMeanRevGate(c) && _isTradable(c) && _isPresentable(c) && !_isExchangeFlagged(c); }).sort(function(a, b) { return a.score - b.score; });
+
+  /* Fallback candidates from all coins when no holdings exist —
+     REAL zone-classified buy candidates only. The old version also
+     built a fake "sell" side from unrelated market data and forced
+     everyone with no holdings into a "sell X for Y" framing even
+     though they held neither — replaced below with genuine mixed-type
+     tiles (pair / take-profit / standalone buy) that reflect what's
+     actually true for the visitor. */
+  /* Real reported harm fix: exclude coins whose Binance USDT pair is
+     delisted/suspended, missing, or announced for delisting (see
+     loadDelistedSymbols() in data-loaders.js, populated daily by
+     sync-binance-status). Only excluded
+     from the BUY side — if someone already holds a coin that's since
+     been delisted, take-profit/sell advice is still valid, arguably
+     more urgent (get out before it's fully illiquid), so the sell
+     side is deliberately untouched. */
+  /* Held-first sort: a coin the user already holds (but is still in
+     buy-zone — e.g. bought early, still looks good) should surface
+     ahead of a suggestion for something they've never held. Score
+     order (strongest buy-zone conviction first) still applies within
+     each group. */
+  var allBuys  = coins.slice().filter(function(c) { return !c.isStock && c._zone === 'buy' && _passesMeanRevGate(c) && _isTradable(c) && _isPresentable(c) && !_isExchangeFlagged(c); }).sort(function(a, b) {
+    var aHeld = hSyms.indexOf(a.sym) >= 0, bHeld = hSyms.indexOf(b.sym) >= 0;
+    if (aHeld !== bHeld) return aHeld ? -1 : 1;
+    return a.score - b.score;
+  });
+
+  if (!isPro) {
+    /* Up to ROT_TILE_SLOTS genuinely mixed tiles — rotation pair,
+       standalone take-profit, or standalone buy. Built identically for
+       both tiers (see _buildRotationTiles); the tier decides only how
+       many of them are rendered for real, never what the list says. */
+    var previewTiles = _buildRotationTiles(sells, buys, allBuys, ROT_TILE_SLOTS);
+
+    function tileHtmlFor(t) {
+      if (t.type === 'pair') return sigRotTile(t.sell, t.buy);
+      if (t.type === 'profit') return takeProfitTile(t.c);
+      return buySuggestTile(t.c);
+    }
+
+    /* Helper: blurred tile with a centred lock overlay, clicking opens Pro modal */
+    function blurLockedTile(t) {
+      return '<div class="sig-rot-locked" onclick="openPro()" title="Unlock with Pro">'
+        + '<div class="sig-rot-blur">' + tileHtmlFor(t) + '</div>'
+        + '<div class="sig-rot-lock-overlay">'
+        + '<span style="font-size:14px;">⚡</span>'
+        + '<span style="font-size:12px;font-weight:700;letter-spacing:.09em;color:var(--pro);">PRO</span>'
+        + '</div>'
+        + '</div>';
+    }
+
+    var gridHtml = '';
+    previewTiles.forEach(function(t, idx) {
+      if (idx === 0) {
+        /* First tile: real, fully visible, clickable for detail */
+        gridHtml += tileHtmlFor(t);
+      } else if (idx === 1) {
+        /* Second tile: single Pro unlock tile */
+        gridHtml += proUnlockTile('unlock more');
+      } else {
+        /* Remaining tiles: plain placeholders */
+        gridHtml += emptyPlaceholderTile();
+      }
+    });
+
+    /* Always pad to exactly 4 slots with plain placeholders */
+    var filledCount = previewTiles.length;
+    if (filledCount === 1) gridHtml += proUnlockTile('unlock more');
+    for (var pad = Math.max(filledCount, 2); pad < ROT_TILE_SLOTS; pad++) {
+      gridHtml += emptyPlaceholderTile();
+    }
+
+    sugEl.innerHTML = '<div class="sig-tiles-grid">' + gridHtml + '</div>'
+      + rotationEvidenceFooter(previewTiles.map(function(t) { return t.type; }))
+      + seedEvidenceFooter(_tileCoins(previewTiles.slice(0, 1)))
+      + marketOversoldLine() + provenProofLine();
+    return;
+  }
+
+  /* Pro: full signals — genuinely mixed types, same logic as the free
+     tier above but showing up to 4 real tiles instead of 1. */
+  /* Same builder the Free branch above uses. Pro renders every tile it
+     returns; Free renders the first and locks the rest. */
+  var proTiles = _buildRotationTiles(sells, buys, allBuys, ROT_TILE_SLOTS);
+
+  if (!proTiles.length) {
+    /* The context line matters most here: an empty column on a flush day
+       reads as "nothing is happening" when the market is doing a lot. */
+    sugEl.innerHTML = '<div class="no-sug">Scanning — no rotation setups in range right now.</div>' + marketOversoldLine();
+    return;
+  }
+  var rotHtml = proTiles.map(function(t) {
+    if (t.type === 'pair') return sigRotTile(t.sell, t.buy);
+    if (t.type === 'profit') return takeProfitTile(t.c);
+    return buySuggestTile(t.c);
+  }).join('');
+  for (var rp = proTiles.length; rp < ROT_TILE_SLOTS; rp++) rotHtml += emptyPlaceholderTile();
+  sugEl.innerHTML = '<div class="sig-tiles-grid">' + rotHtml + '</div>'
+    + rotationEvidenceFooter(proTiles.map(function(t) { return t.type; }))
+    + seedEvidenceFooter(_tileCoins(proTiles))
+    + marketOversoldLine() + provenProofLine();
+}
+
+/* The coins a list of rotation tiles shows: both sides of a pair. */
+function _tileCoins(tiles) {
+  var out = [];
+  (tiles || []).forEach(function(t) {
+    if (t.type === 'pair') out.push(t.sell, t.buy); else if (t.c) out.push(t.c);
+  });
+  return out;
+}
+
+/* ══════════════════════════════════════════════════════════════
+   INSIGHT ENGINE — the badge, and only the badge
+
+   The 7 pillars used to be computed HERE, in the visitor's browser, from
+   a local kline cache with a rank-derived RSI proxy when no candles were
+   loaded. That number was not display-only: the engine's _classifyZones()
+   read c.insight.score and used it to pull a coin's effective score
+   toward neutral, so a calculation living in a consumer moved a live
+   zone. It was ARCHITECTURE-MAP.md gap 1, and the last parallel scoring
+   path in the project.
+
+   Engine 2.3.0 owns them. c.insight now ARRIVES with the run — from the
+   server row, or from the local engine pass on a cold start — and
+   everything below is presentation: a tooltip string, and the extra
+   candle-derived signal lines for holdings and watchlist coins.
+
+   What this file may still do: format. What it may not do, and no longer
+   can, is produce a number that anything scores on.
+══════════════════════════════════════════════════════════════ */
+
+/* ── Binance 4h candle cache ───────────────────────────────────────
+   Candles come from Supabase (binance_klines_4h), not api.binance.com.
+   This is a CACHE now and nothing more: it holds closes and volumes, and
+   the indicator maths that used to live beside it (_calcRSI, _calcEMA,
+   _calcMACD, _calcBollinger) moved into rotator-engine/engine.js with
+   the pillars. RotatorEngine.insightDetail() reads these. */
+var _klineCache = {};  /* sym → { ts, closes, volumes } */
+var _klineTTL   = 10 * 60 * 1000;  /* 10 min cache */
+
+function _buildKlineEntry(sym, raw) {
+  if (!raw || !Array.isArray(raw.closes) || raw.closes.length < 30) return null;
+  var entry = {
+    ts: Date.now(),
+    closes: raw.closes.map(Number),
+    volumes: (raw.volumes || []).map(Number)
+  };
+  _klineCache[sym] = entry;
+  return entry;
+}
+
+async function _preloadKlines(syms) {
+  if (typeof supaLoad4hKlines !== 'function') return;
+  var fresh = syms.filter(function(s) {
+    return !(_klineCache[s] && (Date.now() - _klineCache[s].ts) < _klineTTL);
+  });
+  if (!fresh.length) return;
+  var map = await supaLoad4hKlines(fresh);
+  fresh.forEach(function(s) { _buildKlineEntry(s, map[s]); });
+}
+
+/* ── Fetch candles for holdings + watchlist (called after data load) ── */
+async function fetchInsightKlines() {
+  /* Skip bStocks entirely: a tokenized stock has no <sym>USDT spot pair,
+     so it would never have a row to find. A stock's momentum data comes
+     from unified_market_data; there is no RSI/MACD/Bollinger equivalent
+     for bStocks yet, so those rows simply go without the extra detail. */
+  /* This one genuinely wants TICKERS, not ids: the klines cache is
+     keyed by Binance symbol. So holdings and watchlist entries are
+     resolved to coins first and the ticker is taken from the coin —
+     rather than trusting a stored string to still be a ticker, which
+     it is not after the 2026-09-16 re-key. A stock is skipped by its
+     isStock flag rather than by matching against a list of stock
+     tickers, which was the same symbol-comparison trap one level down. */
+  var all = (typeof coins !== 'undefined' && Array.isArray(coins)) ? coins : [];
+  function symsOf(keys) {
+    var out = [];
+    keys.forEach(function(k) {
+      var c = all.find(function(x) { return x.id === k || x.sym === k; });
+      if (c && !c.isStock && out.indexOf(c.sym) < 0) out.push(c.sym);
+    });
+    return out;
+  }
+  var hSyms = symsOf(holdings.map(function(h) { return holdingKey(h); }));
+  var wSyms = (typeof watchlist !== 'undefined') ? symsOf(watchlist) : [];
+  var targetSyms = hSyms.concat(wSyms.filter(function(s) { return hSyms.indexOf(s) < 0; }));
+  /* Capped at 10 — not for rate limits (this is one Supabase read), but
+     because this depth of detail is only surfaced for holdings and
+     watchlist entries. */
+  var batch = targetSyms.slice(0, 10);
+  await _preloadKlines(batch);
+  computeInsights();
+}
+
+/* Attach the presentation layer to the insight the ENGINE produced.
+
+   Called on every render. It reads c.insight — set by applySignalRun()
+   or by the server-row overwrite in runSignalEngine() — and adds the
+   tooltip. For the handful of coins whose candles are loaded it also
+   appends MACD / Bollinger / candle-volume lines from
+   RotatorEngine.insightDetail().
+
+   Those lines are DISPLAY ONLY and deliberately do not touch
+   insight.score. Candles reach at most ten symbols in one visitor's
+   browser; a score built from them could not be reproduced by the server
+   or matched by the next visitor. Before 2.3.0 the score did include
+   them, normalised over a different range, so the same coin showed a
+   different number to someone who held it than to someone who did not. */
+function computeInsights() {
+  if (typeof coins === 'undefined' || !coins.length) return;
+  var fg      = (window.fearGreed && typeof window.fearGreed.value === 'number') ? window.fearGreed.value : null;
+  var fgLabel = (window.fearGreed && window.fearGreed.label) || 'Neutral';
+  var haveEngine = (typeof RotatorEngine !== 'undefined' && typeof RotatorEngine.insightDetail === 'function');
+
+  coins.forEach(function(c) {
+    /* Format from the ENGINE'S object every time, never from the last
+       formatted one. This runs on every render, and again after
+       fetchInsightKlines() resolves — reading back what it wrote would
+       stack the candle signal lines a second time and lose the
+       rsiApplied / fearGreedApplied flags the tooltip branches on
+       (those are not carried onto the formatted object, because nothing
+       downstream reads them).
+
+       c._insightRun is set by applySignalRun() and by the server-row
+       overwrite, both in data-loaders.js — the same two places that set
+       every other engine field — so a new run replaces it rather than
+       leaving this reading a previous one. */
+    var ins = c._insightRun;
+    if (!ins || typeof ins.score !== 'number') { c.insight = null; return; }
+
+    var signals = Array.isArray(ins.signals) ? ins.signals.slice() : [];
+    var kd = _klineCache[c.sym];
+    var detailed = false;
+    if (haveEngine && kd) {
+      var d = RotatorEngine.insightDetail(kd);
+      if (d && d.signals.length) { signals = signals.concat(d.signals); detailed = true; }
+    }
+
+    var tooltip = signals.length ? signals.join(' · ') : 'No strong signals — monitoring';
+    /* Fear & greed is stated whether or not the run had a reading, and
+       says which — pillar 6 is skipped rather than defaulted when the
+       run has none, and a tooltip that shows "50 (Neutral)" for a
+       missing reading would be describing a pillar that did not run. */
+    tooltip += ins.fearGreedApplied && fg != null
+      ? ' | F&G: ' + fg + ' (' + fgLabel + ')'
+      : ' | F&G: not available this run';
+    if (ins.rsi != null) tooltip += ' | RSI(14) ' + ins.rsi;
+    if (detailed) tooltip += ' | Binance 4H data';
+
+    c.insight = {
+      score:   ins.score,
+      label:   ins.label,
+      color:   ins.color,
+      signals: signals,
+      tooltip: tooltip,
+      rsi:     ins.rsi != null ? ins.rsi : null
+    };
+  });
+}
+
+/* ══════════════════════════════════════════════════════════════════
+   Daily insight snapshot sync.
+
+   Twofold job, runs lazily from renderAll():
+     1. POST current insights to insight_snapshots — first-writer-of-day
+        wins (server enforces via ON CONFLICT DO NOTHING).
+     2. For free users: GET yesterday's snapshot map so the coin detail
+        panel can render yesterday's insight instead of a hard paywall.
+
+   All runs are gated by a session key (sessionStorage + in-memory) so
+   opening the app in two tabs doesn't spam the RPC.
+   ══════════════════════════════════════════════════════════════════ */
+window.yesterdayInsights = window.yesterdayInsights || { date: null, map: {} };
+var _insightSyncStarted = false;
+
+function maybeSyncInsightSnapshots() {
+  if (_insightSyncStarted) return;
+  if (!coins || !coins.length) return;
+  /* Make sure at least one coin has an insight computed — otherwise
+     computeInsights hasn't run yet (e.g. very first boot frame). */
+  var hasAny = coins.some(function(c) { return c.insight && typeof c.insight.score === 'number'; });
+  if (!hasAny) return;
+  _insightSyncStarted = true;
+
+  /* ── 1. Post today's insights (session-guarded — once per tab) ── */
+  postTodaysInsights();
+
+  /* ── 2. Fetch yesterday's snapshot for free users only ── */
+  if (!isPro && typeof supaLoadYesterdayInsights === 'function') {
+    supaLoadYesterdayInsights().then(function(res) {
+      window.yesterdayInsights = res || { date: null, map: {} };
+      /* If a coin detail panel is open, re-render its insight section. */
+      if (typeof _tdCoin !== 'undefined' && _tdCoin && typeof openTileDetail === 'function') {
+        try { openTileDetail(_tdCoin.id); } catch (e) {}   /* takes an id (fixed promptove/108) */
+      }
+    });
+  }
+}
+
+function postTodaysInsights() {
+  if (typeof supaRecordInsights !== 'function') return;
+  /* Session guard — one post per tab per day. */
+  var today = new Date();
+  var dStr  = today.getFullYear() + '-'
+            + String(today.getMonth() + 1).padStart(2, '0') + '-'
+            + String(today.getDate()).padStart(2, '0');
+  var postedKey = 'rot_insights_posted';
+  try {
+    if (sessionStorage.getItem(postedKey) === dStr) return;
+  } catch (e) {}
+
+  /* Every coin with an insight, which since engine 2.3.0 means every
+     coin the run classified rather than whichever ten the FIRST VISITOR
+     OF THE DAY happened to hold. The snapshot used to depend on that
+     visitor's portfolio — the same per-visitor drift the zone migration
+     removed, sitting quietly in a stored table. The RPC is still
+     first-writer-of-day and idempotent, so this is one write of ~170
+     rows a day, not 170 more writes. */
+  var rows = [];
+  coins.forEach(function(c) {
+    if (!c || !c.insight || typeof c.insight.score !== 'number') return;
+    rows.push({
+      coin_id:  c.id,
+      coin_sym: c.sym,
+      price:    c.price != null ? c.price : null,
+      insight: {
+        score:   c.insight.score,
+        label:   c.insight.label,
+        color:   c.insight.color,
+        signals: Array.isArray(c.insight.signals) ? c.insight.signals.slice(0, 12) : [],
+        tooltip: c.insight.tooltip || ''
+      }
+    });
+  });
+  if (!rows.length) return;
+
+  /* Small delay so we don't fight the initial render for CPU. */
+  setTimeout(function() {
+    supaRecordInsights(rows).then(function(res) {
+      if (res && res.ok) {
+        try { sessionStorage.setItem(postedKey, dStr); } catch (e) {}
+      }
+    });
+  }, 1200);
+}
+
+/* ── Toggle watchlist from the leaderboard eye icon ────────── */
+/* Takes a coin ID (2026-09-16). The watchlist used to store tickers,
+   which made a watched coin ambiguous exactly the way a held one was.
+   An entry left on a ticker by an older build still matches through
+   isWatchedCoin(), and upgradeHoldingKeys() rewrites it on the next
+   load. */
+function toggleWatch(coinId, btn) {
+  if (typeof watchlist === 'undefined') return;
+  var c = (typeof coins !== 'undefined' && Array.isArray(coins))
+    ? coins.find(function(x) { return x.id === coinId || x.sym === coinId; }) : null;
+  var key = c ? c.id : coinId;
+  /* Remove BOTH shapes, so toggling off a not-yet-upgraded ticker
+     entry actually removes it rather than adding a duplicate id. */
+  var idx = watchlist.indexOf(key);
+  if (idx < 0 && c) idx = watchlist.indexOf(c.sym);
+  var sym = key;
+  if (idx >= 0) {
+    watchlist.splice(idx, 1);
+    if (btn) { btn.classList.remove('watching'); btn.title = 'Add to watchlist'; }
+  } else {
+    watchlist.push(key);
+    if (btn) { btn.classList.add('watching'); btn.title = 'Watching'; }
+  }
+  if (typeof saveWatchlist === 'function') saveWatchlist();
+  if (typeof renderWatchlist === 'function') renderWatchlist();
+}
+
+/* ══════════════════════════════════════════════════════════════
+   LEADERBOARD TABLE
+══════════════════════════════════════════════════════════════ */
+/* ── Category visibility ─────────────────────────────────────── */
+/* All categories are open to free & Pro users.                   */
+/* Pro gating applies only to: Score column, Insight Engine,      */
+/* Best-Time-to-Swap, and holdings limits (2 free / 10 Pro).      */
+
+function initCategoryLocks() {
+  document.querySelectorAll('.cat-tab').forEach(function(el) {
+    var cat = el.dataset.cat;
+    /* Hide DEMO tab for Pro users — it's for new/free users only */
+    if (cat === 'demo') {
+      el.style.display = isPro ? 'none' : '';
+      return;
+    }
+    /* Remove any legacy locks — all categories are free */
+    el.classList.remove('pro-locked');
+    var lock = el.querySelector('.pro-lock-ico');
+    if (lock) lock.remove();
+  });
+}
+
+/* ── Category switching (lazy load) ───────────────────────────── */
+async function switchCategory(cat) {
+  if (cat === activeCategory) return;
+  /* All categories open to everyone — Pro gating is on Score/Insights only */
+  activeCategory = cat;
+  /* Update tab UI */
+  document.querySelectorAll('.cat-tab').forEach(function(el) {
+    el.classList.toggle('active', el.dataset.cat === cat);
+  });
+  /* If category not loaded yet, fetch it */
+  if (cat !== 'all' && !_loadedCategories[cat]) {
+    /* Show skeleton while loading */
+    var tbody = document.getElementById('tbody');
+    if (tbody) {
+      var skRows = '';
+      for (var s = 0; s < 8; s++) {
+        skRows += '<tr class="skel-tr"><td></td>'
+          + '<td><div class="skel-row"><div class="skel skel-ico"></div><div class="skel skel-name"></div></div></td>'
+          + '<td><div class="skel skel-val" style="margin:auto"></div></td>'
+          + '<td><div class="skel skel-val" style="margin:auto"></div></td>'
+          + '<td><div class="skel skel-val" style="margin:auto"></div></td>'
+          + '<td><div class="skel skel-val" style="margin:auto"></div></td>'
+          + '<td><div class="skel skel-val" style="margin:auto"></div></td>'
+          + '<td><div class="skel skel-val" style="margin:auto"></div></td>'
+          + '</tr>';
+      }
+      tbody.innerHTML = skRows;
+    }
+    await loadCoins(cat);
+    await runSignalEngine();
+    window.coins = coins;
+  } else if (cat === 'all' && !_loadedCategories['all']) {
+    var tbody = document.getElementById('tbody');
+    if (tbody) {
+      var skRows = '';
+      for (var s = 0; s < 15; s++) {
+        skRows += '<tr class="skel-tr"><td></td>'
+          + '<td><div class="skel-row"><div class="skel skel-ico"></div><div class="skel skel-name"></div></div></td>'
+          + '<td><div class="skel skel-val" style="margin:auto"></div></td>'
+          + '<td><div class="skel skel-val" style="margin:auto"></div></td>'
+          + '<td><div class="skel skel-val" style="margin:auto"></div></td>'
+          + '<td><div class="skel skel-val" style="margin:auto"></div></td>'
+          + '<td><div class="skel skel-val" style="margin:auto"></div></td>'
+          + '<td><div class="skel skel-val" style="margin:auto"></div></td>'
+          + '</tr>';
+      }
+      tbody.innerHTML = skRows;
+    }
+    await loadCoins('all');
+    await runSignalEngine();
+    window.coins = coins;
+  }
+  renderTable();
+  renderCoinSel();
+}
+
+function renderTable() {
+  var body = document.getElementById('tbody');
+  if (!coins.length) return;
+
+  /* Filter by active category */
+  var DEMO_IDS = ['bitcoin','ethereum','binancecoin','solana','cardano','ripple','polkadot','avalanche-2','chainlink','dogecoin'];
+  var catCoins;
+  if (activeCategory === 'demo') {
+    catCoins = coins.filter(function(c) { return DEMO_IDS.indexOf(c.id) >= 0; });
+  } else if (activeCategory === 'all') {
+    /* 'ALL' means all crypto — bStocks are a separate filterable category
+       (see migration plan Step 2), not blended into the crypto leaderboard. */
+    catCoins = coins.filter(function(c) { return !c.isStock; });
+  } else if (activeCategory === 'stocks') {
+    catCoins = coins.filter(function(c) { return c.isStock; });
+  } else {
+    catCoins = coins.filter(function(c) { return categoryOf(c) === activeCategory; });
+  }
+  /* A coin that left the weekly list is only in coins[] for the visitor
+     who has it, and it has no score; it lives on its YOURS tile, not in
+     the ranked table. */
+  catCoins = catCoins.filter(function(c) { return !c._retired; });
+
+  /* A lens takes over the ordering while it is active — that is the
+     point of picking one. Readings with no value sort LAST regardless of
+     direction: "no data" is not the weakest reading, it is the absence
+     of one, and burying it at the bottom keeps it out of the ranking
+     rather than pretending it lost. */
+  var _lens = activeLens ? LENSES.filter(function(l) { return l.id === activeLens; })[0] : null;
+  if (_lensLocked(_lens)) { _lens = null; activeLens = null; }   /* Pro lapsed: back to score order */
+  var _lensLo = 0, _lensHi = 0;
+  if (_lens) {
+    var vals = catCoins.map(function(c) { return _lens.get(c); })
+                       .filter(function(v) { return v != null; });
+    if (vals.length) { _lensLo = Math.min.apply(null, vals); _lensHi = Math.max.apply(null, vals); }
+  }
+
+  var sorted = catCoins.sort(function(a, b) {
+    if (_lens) {
+      var av = _lens.get(a), bv = _lens.get(b);
+      if (av == null && bv == null) return b.score - a.score;
+      if (av == null) return 1;
+      if (bv == null) return -1;
+      return _lens.dir === 'recent' ? av - bv : bv - av;
+    }
+    if (sortTF === 0)  return b.score - a.score;
+    if (sortTF === 24) return b.p24 - a.p24;
+    if (sortTF === 7)  return b.p7  - a.p7;
+    if (sortTF === 14) return b.p14 - a.p14;
+    return b.p30 - a.p30;
+  });
+  var hSyms    = holdings.map(function(h) { return h.sym; });
+  var freeCoins = sorted.filter(function(c) { return !c.isPro; });
+  var proCoins  = sorted.filter(function(c) { return  c.isPro; });
+  var toRender  = isPro ? sorted : freeCoins;
+
+  var html = toRender.map(function(c, i) {
+    var isH    = hSyms.indexOf(c.sym) >= 0;
+    var sc     = c.score;
+    var scC    = scoreColor(sc);
+    var mcapStr = c.mcap ? '$' + (c.mcap/1e9 >= 1 ? (c.mcap/1e9).toFixed(2) + 'B' : (c.mcap/1e6).toFixed(0) + 'M') : '—';
+    var circSup = c.circulating_supply || 0;
+    var maxSup  = c.max_supply || 0;
+    var unlockPct = (circSup && maxSup && maxSup > 0) ? Math.round((circSup / maxSup) * 100) : -1;
+    var tipData = 'data-sym="' + c.sym + '" data-name="' + c.name + '" data-mcap="' + mcapStr + '" data-score="' + sc + '" data-p24="' + c.p24.toFixed(2) + '" data-p7="' + c.p7.toFixed(2) + '" data-p30="' + c.p30.toFixed(2) + '" data-held="' + (isH ? '1' : '0') + '" data-circ="' + circSup + '" data-maxsup="' + maxSup + '" data-unlock="' + unlockPct + '"';
+    var isW = (typeof isWatchedCoin === 'function') && isWatchedCoin(c);
+    var eyeSvg = '<svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>';
+    var qaBtnHtml = isH
+      ? '<button class="qa-btn held" title="In holdings" onclick="event.stopPropagation()">✓</button>'
+      : '<button class="qa-btn watch-eye' + (isW ? ' watching' : '') + '" title="' + (isW ? 'Watching' : 'Add to watchlist') + '" onclick="event.stopPropagation();toggleWatch(\'' + c.sym + '\',this)">' + eyeSvg + '</button>';
+
+    /* ── Stablecoin APR display / bStock badge ── */
+    var stableTag = '';
+    var col24, col7, col14, col30, colScore;
+    if (c.isStable) {
+      stableTag = '<span class="htag stable-tag" style="background:#2a6e4e;color:#8dffc0;margin-left:4px;">STABLE</span>';
+      var aprStr = '<span class="stable-yield" style="color:#8dffc0;font-size:12px;" title="Estimated DeFi lending/staking APR on ' + c.aprPlatform + '">' + c.apr.toFixed(1) + '% <span style="font-size:12px;opacity:.7;">APR</span></span>';
+      col24  = '<td class="pc">' + aprStr + '</td>';
+      col7   = '<td class="pc" style="text-align:center;"><span style="color:var(--muted);font-size:12px;" title="' + c.aprPlatform + '">' + c.aprPlatform.split(' / ')[0] + '</span></td>';
+      col14  = '<td class="pc" style="text-align:center;"><span style="color:var(--muted);font-size:12px;">~$1.00</span></td>';
+      col30  = '<td class="pc" style="text-align:center;"><span style="color:var(--muted);font-size:12px;">PEG</span></td>';
+      colScore = '<td class="r" data-label="SCORE"><div class="sw"><span class="sv stable-yield" style="color:#8dffc0;">YIELD</span></div></td>';
+    } else if (c.isStock) {
+      /* bStock rows: honest partial score — momentum only, no tokenomics
+         (UNLOCK %/whale SENT are meaningless for equities). Badge makes
+         clear these are tokenized certificates, not crypto — see the
+         migration plan's Step 2 note on Binance's own risk disclosures
+         (liquidity, issuer, custody, broker risk). */
+      stableTag = '<span class="htag" style="background:transparent;color:var(--muted);border:1px solid var(--bdr);margin-left:4px;font-weight:400;" title="Binance bStock — a tokenized certificate tracking the price of ' + c.name + ', not direct share ownership.">🏛 stock</span>';
+      col24  = '<td class="pc" data-label="24H">' + pctSpan(c.p24) + '</td>';
+      col7   = '<td class="pc" data-label="7D">'  + pctSpan(c.p7)  + '</td>';
+      col14  = '<td class="pc" data-label="14D">' + pctSpan(c.p14) + '</td>';
+      col30  = '<td class="pc" data-label="30D">' + pctSpan(c.p30) + '</td>';
+      colScore = '<td class="r" data-label="SCORE" title="Partial score: momentum only (max 70). No tokenomics data applies to equities — not directly comparable to a crypto score."><div class="sw"><span class="sv" style="color:' + scC + ';">' + sc + '</span><div class="sb"><div class="sbf" style="width:' + Math.max(2, sc) + '%;background:' + scC + ';"></div></div><span style="font-size:12px;color:var(--muted);margin-left:3px;">MOM</span></div></td>';
+    } else if (isPro) {
+      col24  = '<td class="pc" data-label="24H">' + pctSpan(c.p24) + '</td>';
+      col7   = '<td class="pc" data-label="7D">' + pctSpan(c.p7)  + '</td>';
+      col14  = '<td class="pc" data-label="14D">' + pctSpan(c.p14) + '</td>';
+      col30  = '<td class="pc" data-label="30D">' + pctSpan(c.p30) + '</td>';
+      colScore = '<td class="r" data-label="SCORE"><div class="sw"><span class="sv" style="color:' + scC + ';">' + sc + '</span><div class="sb"><div class="sbf" style="width:' + Math.max(2, sc) + '%;background:' + scC + ';"></div></div></div></td>';
+    } else {
+      /* Free users: all % columns visible, only Score gated */
+      col24  = '<td class="pc" data-label="24H">' + pctSpan(c.p24) + '</td>';
+      col7   = '<td class="pc" data-label="7D">' + pctSpan(c.p7)  + '</td>';
+      col14  = '<td class="pc" data-label="14D">' + pctSpan(c.p14) + '</td>';
+      col30  = '<td class="pc" data-label="30D">' + pctSpan(c.p30) + '</td>';
+      colScore = '<td class="r pro-blur-cell" data-label="SCORE" onclick="event.stopPropagation();openPro()" title="Unlock Rotator Score with Pro"><div class="pro-blur-wrap"><div class="sw"><span class="sv" style="color:var(--muted);">' + sc + '</span><div class="sb"><div class="sbf" style="width:' + Math.max(2, sc) + '%;background:var(--muted);"></div></div></div></div><span class="pro-blur-lock">🔒</span></td>';
+    }
+
+    var _lv = _lens ? _lens.get(c) : null;
+    var _lc = _lens ? _lensColor(_lens, _lv, _lensLo, _lensHi) : null;
+    /* Hollow left edge when the lens has no reading for this coin —
+       visibly different from a low reading, never the same. */
+    var _lensStyle = _lens
+      ? ' style="box-shadow:inset 3px 0 0 ' + (_lc || 'transparent')
+        + (_lc ? '' : ';outline:0') + ';"'
+      : '';
+    return '<tr class="' + (isH ? 'held' : '') + (c.isStable ? ' stable-row' : '') + (c.isStock ? ' stock-row' : '') + '"' + _lensStyle + ' ' + tipData + ' onmouseenter="showRowTip(this,event)" onmouseleave="hideTip()" onclick="openTileDetail(\'' + c.id + '\',event)">'
+      + '<td class="qa-cell">' + qaBtnHtml + '</td>'
+      + '<td style="color:var(--muted);font-size:11px;opacity:.5;">' + (i+1) + '</td>'
+      + '<td><div class="cc"><div class="ti"><img src="' + c.image + '" alt="' + c.sym + ' logo" loading="lazy" width="18" height="18" onerror="this.style.display=\'none\'"></div><div><div style="display:flex;align-items:center;"><span class="tsym">' + c.sym + '</span>' + (isH ? '<span class="htag">HELD</span>' : '') + stableTag + (_isMemeFiller(c) ? '<span class="htag meme-tag" title="One of three high-volume memes outside the top 250. Listed, never shown as a leader.">MEME</span>' : '') + crossBadge(c) + (_lens
+        ? '<span class="lens-chip" title="' + _lens.label + ' — ' + _lens.tip.replace(/"/g,'&quot;') + '" style="margin-left:5px;font-size:10px;font-family:var(--font-mono);padding:1px 4px;border-radius:3px;'
+          + (_lv == null
+              ? 'color:var(--muted);border:1px dashed var(--bdr);opacity:.6;">' + (_lens.none || 'no data')
+              : 'color:' + _lc + ';border:1px solid ' + _lc + '33;">' + _lens.fmt(_lv))
+          + '</span>'
+        : '') + '</div><div class="tname">' + (c.name.length > 17 ? c.name.slice(0,15) + '…' : c.name) + '</div></div></div></td>'
+      + '<td class="r price-col" data-label="PRICE">' + fmtP(c.price) + '</td>'
+      + col24 + col7 + col14 + col30 + colScore
+      + '</tr>';
+  }).join('');
+
+  if (!isPro && proCoins.length) {
+    html += '<tr class="pro-upsell-row"><td colspan="9"><div class="pro-upsell-banner">'
+      + '<div class="pub-left"><span class="pub-icon">⚡</span><div><div class="pub-txt">+' + proCoins.length + ' more coins available in Pro</div><div class="pub-sub">Share with 5 friends or pay $20 crypto — instant unlock</div></div></div>'
+      + '<button class="pub-btn" onclick="openPro()">UNLOCK PRO →</button>'
+      + '</div></td></tr>';
+  }
+  body.innerHTML = html;
+  if (typeof renderLensRail === 'function') renderLensRail();
+}
+
+function renderCoinSel() {
+  var sel   = document.getElementById('coin-sel');
+  /* The VALUE is the coin id, not the ticker (2026-09-16). addHolding()
+     resolves it back to a coin, so two coins sharing a ticker can no
+     longer be confused for one another at the moment of adding. The
+     ticker is still what the option DISPLAYS. */
+  sel.innerHTML = '<option value="">Select…</option>'
+    + coins.map(function(c) {
+      var held = (typeof isHeldCoin === 'function') && isHeldCoin(c);
+      return '<option value="' + c.id + '"' + (held ? ' disabled' : '') + '>'
+        + (held ? '✓ ' : '') + c.sym + ' — ' + c.name + '</option>';
+    }).join('');
+}
+
+/* Sort column click */
+function setSort(tf) {
+  sortTF = tf;
+  ['24','7','14','30','score'].forEach(function(k) {
+    var th = document.getElementById('th-' + k);
+    if (th) th.classList.toggle('sorted', (tf === 0 && k === 'score') || (tf > 0 && String(tf) === k));
+  });
+  renderTable();
+}
+
+/* Master render — call this after any data change */
+var _klinesFetched = false;
+function renderAll() {
+  /* Macro risk gate — suppresses BUY-side alerts (Telegram, and any
+     future in-app "safe to buy" badge) when broad conditions favor
+     caution, independent of any single coin's own score.
+       · Fear & Greed > 70 (Greed/Extreme Greed)
+       · DXY up >2% over 7d (dollar strength headwind for crypto)
+       · Oil up >5% over 7d (risk-off proxy — no absolute oil price
+         feed exists in this project, only % 7d change via _macroData,
+         so this is a % proxy for the originally-requested ">$95"
+         absolute threshold; swap in a real price feed if you wire one
+         in later) */
+  /* A MISSING READING MUST NOT READ AS 50. This defaulted to 50 when
+     window.fearGreed was absent, and 50 is a real value that happens to
+     pass the `> 70` test — so a dead sentiment feed silently meant "not
+     overheated", on a flag that gates BUY suggestions in
+     send-telegram-alerts.
+
+     The behaviour is deliberately unchanged when there is no reading:
+     sentiment simply does not get a vote, and oil and DXY still do.
+     What changes is that it is now WRITTEN that way instead of arriving
+     through a magic constant. Failing closed was considered and
+     rejected — suppressing every buy whenever alternative.me is down is
+     a bigger error than declining to veto. */
+  var fgVal  = (window.fearGreed && typeof window.fearGreed.value === 'number')
+    ? window.fearGreed.value : null;
+  var fgHot  = fgVal != null && fgVal > 70;
+  var oilHot = (typeof _macroData !== 'undefined' && _macroData.oilP7 != null) && _macroData.oilP7 > 5;
+  var dxyHot = (typeof _macroData !== 'undefined' && _macroData.dxyP7 != null) && _macroData.dxyP7 > 2;
+  window.safeToBuy = !(fgHot || oilHot || dxyHot);
+  window.safeToBuyReason = fgHot ? 'sentiment ' + fgVal
+    : oilHot ? 'oil' : dxyHot ? 'dollar' : (fgVal == null ? 'no sentiment reading' : '');
+
+  computeInsights();
+  maybeSyncInsightSnapshots();
+  renderBTC(); renderMarketNow(); renderTiles(); renderTopBars(); renderTable(); renderCoinSel(); updateTierBadge(); if (typeof initCategoryLocks === 'function') initCategoryLocks(); if (typeof updateProGates === 'function') updateProGates();
+  /* The watchlist grid had no owner in the render cycle — it was only
+     ever drawn by toggleWatch() and removeFromWatchlist(), so on a cold
+     load it kept the hardcoded placeholder from index.html and a
+     returning visitor's saved symbols never appeared until they touched
+     an eye icon. It reads the same `coins` array as renderTiles(), so it
+     belongs on the same line. */
+  if (typeof renderWatchlist === 'function') renderWatchlist();
+  /* promptove/70: the turn-sign list and the alerts read the same coins. */
+  if (typeof renderTurnScan === 'function') renderTurnScan();
+  if (typeof renderCoinAlerts === 'function') renderCoinAlerts();
+  if (typeof renderPaperTrades === 'function') renderPaperTrades();
+  /* Async: fetch Binance klines for holdings to enrich Insight Engine */
+  if (holdings.length && !_klinesFetched) {
+    _klinesFetched = true;
+    fetchInsightKlines().then(function() {
+      /* Re-render insight sections in tile detail if open */
+      renderTopBars();
+    }).catch(function(e) { console.warn('[Insight] Kline enrich failed:', e); });
+  }
+  var now      = new Date();
+  var coinsUrl = 'https://api.coingecko.com/api/v3/coins/markets';
+  var info     = getCacheInfo(coinsUrl);
+  var suffix   = '';
+  if (info && info.fresh && info.age > 30000) {
+    var ageMins = Math.floor(info.age / 60000);
+    var ageSecs = Math.floor((info.age % 60000) / 1000);
+    var remMins = Math.floor(info.remaining / 60000);
+    suffix = ' · cached ' + (ageMins > 0 ? ageMins + 'm ' : '') + ageSecs + 's ago'
+      + (remMins > 0 ? ' · ↻ in ~' + remMins + 'm' : '');
+  }
+  renderDonationBar('sidebar-goal-left');
+  /* Signal Track Record — snapshot + render */
+  if (typeof SignalHistory !== 'undefined') {
+    SignalHistory.takeSnapshot();
+    SignalHistory.render();
+    /* Update accuracy badge */
+    var stats = SignalHistory.getAccuracyStats();
+    var badge = document.getElementById('str-accuracy-badge');
+    if (badge && stats) {
+      badge.textContent = stats.accuracy + '% accuracy';
+      badge.className = 'str-section-badge ' + (stats.accuracy >= 65 ? 'good' : stats.accuracy >= 50 ? 'mid' : 'low');
+      badge.style.display = '';
+    }
+  }
+  document.getElementById('ts').textContent = 'UPDATED ' + now.toLocaleTimeString('en-US', {hour:'2-digit', minute:'2-digit', second:'2-digit'}) + suffix;
+  /* Sync three-panel vertical alignment after every render */
+  requestAnimationFrame(function() {
+    if (typeof syncPanelAlignment === 'function') syncPanelAlignment();
+  });
+}

@@ -1,0 +1,323 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>ROTATOR — How the model has changed</title>
+<meta name="description" content="Every change to Rotator's scoring engine, what it moved, and why the accuracy counter restarted.">
+
+<!-- Open Graph / Twitter card -->
+<meta property="og:title" content="Rotator — How the model has changed">
+<meta property="og:description" content="Every change to the scoring engine, what it moved, and why the accuracy counter restarted.">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://rotatortool-official.github.io/engine-changelog.html">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Rotator — How the model has changed">
+<meta name="twitter:description" content="Every change to the scoring engine, what it moved, and why the accuracy counter restarted.">
+
+<link rel="canonical" href="https://rotatortool-official.github.io/engine-changelog.html">
+<link rel="icon" href="icon-192.png" type="image/png">
+<style>
+:root{
+  --bg:#05080c; --bg2:#0a0f17; --bg3:#0f1620; --bg4:#18212e;
+  --bdr:rgba(255,255,255,.06); --bdr2:rgba(255,255,255,.09);
+  --text:#e6eaf0; --muted:#7a8699;
+  --green:#00c896; --red:#ff4560; --bnb:#f3ba2f; --amber:#ffb347;
+  --font-mono:'IBM Plex Mono',ui-monospace,Menlo,monospace;
+  --font-ui:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{background:var(--bg);color:var(--text);font-family:var(--font-ui);-webkit-font-smoothing:antialiased;}
+body{min-height:100vh;display:flex;flex-direction:column;}
+a{color:inherit;text-decoration:none}
+.wrap{max-width:920px;margin:0 auto;width:100%;padding:0 20px;}
+
+.topbar{border-bottom:1px solid var(--bdr);background:var(--bg2);padding:14px 0;}
+.topbar-inner{display:flex;align-items:center;justify-content:space-between;gap:16px;}
+.logo{font-family:var(--font-mono);font-size:20px;font-weight:800;letter-spacing:.06em;color:var(--bnb);}
+.logo .dot-g{color:var(--green)} .logo .dot-r{color:var(--red)}
+.back-btn{font-size:12px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);
+  padding:8px 14px;border:1px solid var(--bdr2);border-radius:4px;transition:all .15s;}
+.back-btn:hover{background:var(--bg3);color:var(--text);border-color:rgba(243,186,47,.4);}
+
+.hero{text-align:center;padding:50px 0 36px;border-bottom:1px solid var(--bdr);}
+.hero-kicker{font-family:var(--font-mono);font-size:11px;letter-spacing:.22em;color:var(--bnb);margin-bottom:14px;}
+h1{font-size:clamp(26px,4.4vw,40px);font-weight:800;letter-spacing:-.02em;margin-bottom:14px;}
+.hero-sub{color:var(--muted);font-size:15px;line-height:1.65;max-width:660px;margin:0 auto;}
+
+section{padding:38px 0;border-bottom:1px solid var(--bdr);}
+h2{font-size:20px;font-weight:700;letter-spacing:-.01em;margin-bottom:14px;}
+h2 .num{font-family:var(--font-mono);color:var(--bnb);font-size:13px;margin-right:10px;letter-spacing:.1em;}
+p{color:var(--muted);font-size:14.5px;line-height:1.72;margin-bottom:13px;}
+p strong,li strong{color:var(--text);font-weight:600;}
+ul{margin:0 0 13px 20px;} li{color:var(--muted);font-size:14.5px;line-height:1.72;margin-bottom:8px;}
+
+.rule{background:var(--bg2);border:1px solid var(--bdr2);border-left:3px solid var(--bnb);
+  border-radius:5px;padding:18px 20px;margin:18px 0;}
+.rule .lbl{font-family:var(--font-mono);font-size:10.5px;letter-spacing:.18em;color:var(--bnb);
+  text-transform:uppercase;margin-bottom:9px;}
+
+.rel{background:var(--bg2);border:1px solid var(--bdr);border-radius:6px;padding:20px 22px;margin-bottom:16px;}
+.rel-head{display:flex;align-items:baseline;gap:12px;flex-wrap:wrap;margin-bottom:6px;}
+.rel-v{font-family:var(--font-mono);font-size:17px;font-weight:800;color:var(--bnb);letter-spacing:.03em;}
+.rel-date{font-family:var(--font-mono);font-size:11px;color:var(--muted);letter-spacing:.1em;}
+.rel-title{font-size:15.5px;font-weight:650;color:var(--text);margin-bottom:11px;}
+.rel p{margin-bottom:11px;} .rel p:last-child{margin-bottom:0;}
+
+.tag{display:inline-block;font-family:var(--font-mono);font-size:10px;letter-spacing:.13em;
+  text-transform:uppercase;padding:3px 9px;border-radius:3px;border:1px solid;}
+.tag-moved{color:var(--amber);border-color:rgba(255,179,71,.35);background:rgba(255,179,71,.07);}
+.tag-still{color:var(--green);border-color:rgba(0,200,150,.3);background:rgba(0,200,150,.07);}
+
+.tbl{width:100%;border-collapse:collapse;margin:14px 0;font-size:13.5px;}
+.tbl th{text-align:left;font-family:var(--font-mono);font-size:10.5px;letter-spacing:.13em;
+  text-transform:uppercase;color:var(--muted);padding:8px 10px;border-bottom:1px solid var(--bdr2);font-weight:600;}
+.tbl td{padding:9px 10px;border-bottom:1px solid var(--bdr);color:var(--muted);vertical-align:top;}
+.tbl td:first-child{color:var(--text);font-family:var(--font-mono);font-size:12.5px;white-space:nowrap;}
+.tbl-scroll{overflow-x:auto;-webkit-overflow-scrolling:touch;}
+
+.footer{margin-top:auto;background:var(--bg2);border-top:1px solid var(--bdr);
+  padding:26px 0;text-align:center;color:var(--muted);font-size:12px;line-height:1.7;}
+.footer a{color:var(--muted);text-decoration:underline;text-underline-offset:2px;}
+.disclaimer{max-width:800px;margin:0 auto;}
+</style>
+</head>
+<body>
+
+<header class="topbar">
+  <div class="wrap topbar-inner">
+    <a href="/" class="logo">R<span class="dot-g">O</span>TAT<span class="dot-r">O</span>R</a>
+    <a href="/" class="back-btn">← Back to app</a>
+  </div>
+</header>
+
+<div class="hero">
+  <div class="wrap">
+    <div class="hero-kicker">◆ MODEL CHANGE LOG</div>
+    <h1>How the model has changed</h1>
+    <p class="hero-sub">
+      Rotator's scoring engine is not fixed. When it changes, the numbers it produces
+      change with it — and sometimes the published accuracy counter has to restart,
+      because an old score and a new one are not measuring the same thing.
+      This page lists every change, what it moved, and what it did not.
+    </p>
+  </div>
+</div>
+
+<section>
+  <div class="wrap">
+    <h2><span class="num">01</span>Why this page exists</h2>
+    <p>
+      The counter on the <a href="track-record.html" style="color:var(--bnb);text-decoration:underline;text-underline-offset:2px;">track record</a>
+      page has restarted twice in one week. Without an explanation that looks like
+      a tool hiding a bad run, so here is the explanation.
+    </p>
+    <p>
+      Rotator publishes a running accuracy figure. That figure is only meaningful if
+      every call inside it was produced the same way. Change how the model scores, and
+      the calls before and after are two different measurements — averaging them into
+      one number would report something that was never true of either.
+    </p>
+    <p>
+      So the record restarts instead. It costs the history, and it is still the honest
+      option. The retired engine's final figure is kept and shown separately rather
+      than quietly folded in.
+    </p>
+  </div>
+</section>
+
+<section>
+  <div class="wrap">
+    <h2><span class="num">02</span>When the counter restarts</h2>
+    <p>Two things force a restart. Nothing else does.</p>
+    <div class="rule">
+      <div class="lbl">The test</div>
+      <p style="margin-bottom:9px;"><strong>1. A score changed meaning.</strong> The same
+      number now describes something different, so old and new calls cannot share an average.</p>
+      <p style="margin-bottom:0;"><strong>2. The published selection changed.</strong> The
+      scores are identical, but a different set of assets reaches the shortlist — so the
+      calls being graded are drawn from a different population.</p>
+    </div>
+    <p>
+      Of the four releases below, <strong>two moved a score and two did not</strong>.
+      The two that did not were built that way deliberately: a change that only adds
+      information, without touching any existing number, leaves the record intact and
+      comparable. That is worth designing for, and it is why 2.2.0 was built as a
+      separate classification rather than as another term inside the score.
+    </p>
+  </div>
+</section>
+
+<section>
+  <div class="wrap">
+    <h2><span class="num">03</span>The releases</h2>
+
+    <div class="rel">
+      <div class="rel-head">
+        <span class="rel-v">2.0.0</span>
+        <span class="rel-date">5 SEP 2026</span>
+        <span class="tag tag-still">no score moved</span>
+      </div>
+      <div class="rel-title">A second model was built, measured, and not shipped</div>
+      <p>
+        A redesigned scoring model was built alongside the live one and tested against
+        771 days of price history, measuring whether its scores actually related to what
+        assets did next.
+      </p>
+      <p>
+        <strong>They did not — no better than the existing model, and on one measure
+        worse.</strong> So it was not shipped. It still runs alongside the live model on
+        every update and is recorded, unpublished, in case later evidence changes the
+        answer. The live scoring was left untouched.
+      </p>
+    </div>
+
+    <div class="rel">
+      <div class="rel-head">
+        <span class="rel-v">2.1.0</span>
+        <span class="rel-date">7 SEP 2026</span>
+        <span class="tag tag-moved">score moved · counter restarted</span>
+      </div>
+      <div class="rel-title">A market-cap adjustment was doing the opposite of its job</div>
+      <p>
+        Smaller assets carried a size adjustment meant to dampen their scores. Because of
+        how it was applied, on assets already scoring negatively it <strong>raised</strong>
+        the score instead of lowering it — moving exactly the assets it was meant to hold
+        back toward the top of the shortlist.
+      </p>
+      <p>
+        It affected <strong>145 of 191 tracked assets</strong>, so this was the normal case,
+        not an edge case. Rewriting it changed 93 scores and moved 4 assets between bands.
+        Assets in the mid-cap range were unaffected, exactly as expected — that zero is
+        what confirmed the fix behaved as designed.
+      </p>
+      <p>
+        A 2.1.0 score is a different quantity from the one before it, so the counter
+        restarted here.
+      </p>
+    </div>
+
+    <div class="rel">
+      <div class="rel-head">
+        <span class="rel-v">2.2.0</span>
+        <span class="rel-date">8 SEP 2026</span>
+        <span class="tag tag-still">no score moved</span>
+      </div>
+      <div class="rel-title">The shortlist learned to say no</div>
+      <p>
+        Until this release, an asset reached the rotation shortlist by scoring low and
+        having fallen over the past month. Nothing checked whether the fall had
+        <em>stopped</em>, whether the weakness was confirmed by anything other than past
+        performance, or whether the asset had already moved sharply in the other direction.
+      </p>
+      <p>
+        On one recorded day the shortlist included an asset that had <strong>risen 46.8%
+        in 24 hours</strong>. Every other component scored it well, and nothing was
+        watching the one number that mattered.
+      </p>
+      <p>
+        Five checks now run before anything is presented as a new rotation candidate:
+        an extreme recent move, whether a pullback exists at all, whether the decline is
+        accelerating, whether RSI confirms the weakness, and whether prices have steadied.
+        Assets that fail are still shown and still scored — they are labelled rather than
+        promoted.
+      </p>
+      <p>
+        <strong>No score, ranking or band changed.</strong> The shortlist narrowed: on live
+        data it went from nine candidates to three. Two of those removed had actually
+        <em>risen</em> over the previous week and were on the list purely because their
+        30-day figure was negative.
+      </p>
+    </div>
+
+    <div class="rel">
+      <div class="rel-head">
+        <span class="rel-v">2.3.0</span>
+        <span class="rel-date">8 SEP 2026</span>
+        <span class="tag tag-still">no score moved</span>
+        <span class="tag tag-moved">counter restarted</span>
+      </div>
+      <div class="rel-title">The last calculation left the browser</div>
+      <p>
+        Part of the model still ran <em>in your browser</em> rather than on the server.
+        That had two consequences worth stating plainly. The number was
+        <strong>not the same for every visitor</strong> — it was calculated on a different
+        scale depending on which assets you happened to be tracking. And where real RSI
+        was unavailable, it substituted a stand-in derived from an asset's ranking against
+        the others, which is not the same measurement and should not have carried the same
+        name.
+      </p>
+      <p>
+        All of it now runs once, on the server, from real indicator data. Every visitor
+        sees the same number, and the stand-in has been removed rather than kept as a
+        fallback.
+      </p>
+      <p>
+        <strong>No score and no band changed in production</strong> — checked against live
+        data before and after the update. The counter restarted here for 2.2.0's reason,
+        not this one: the shortlist is now drawn from a stricter selection than the calls
+        recorded the day before.
+      </p>
+    </div>
+  </div>
+</section>
+
+<section>
+  <div class="wrap">
+    <h2><span class="num">04</span>What has not changed</h2>
+    <div class="tbl-scroll">
+      <table class="tbl">
+        <thead><tr><th>Since</th><th>Unchanged across all four releases</th></tr></thead>
+        <tbody>
+          <tr><td>momentum</td><td>The 7 / 14 / 30-day ranking blend at the core of the score. Re-weighting it was tested and moved the ordering so little it was left alone.</td></tr>
+          <tr><td>eligibility</td><td>Liquidity floor, market-cap sanity and delisted-pair exclusion. An asset can score well and still be untradeable; that has been filtered since before this log begins.</td></tr>
+          <tr><td>grading</td><td>How a published call is judged: price clearing a market-cap-aware threshold within 7–14 days. Unchanged, so accuracy figures are comparable between engines even when scores are not.</td></tr>
+          <tr><td>data</td><td>Prices and market data from CoinGecko; exchange and indicator data from Binance. No change in sources.</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+<section>
+  <div class="wrap">
+    <h2><span class="num">05</span>Where the numbers on this page come from</h2>
+    <p>
+      Every figure quoted here was measured, not estimated. Model changes are tested
+      against a frozen day of real market data before release, then checked again on
+      live data afterwards — comparing the update before against the update after, so
+      what moved is observed rather than assumed.
+    </p>
+    <p>
+      One correction worth recording. The retired engine's final accuracy was published
+      as 66%. Re-grading the stored calls under the same rules gives <strong>76.2% across
+      863 calls</strong>. The difference was a fault in how the page loaded price history,
+      not in the calls themselves — it had been <em>under</em>-reporting. The figure now
+      shown is the re-graded one.
+    </p>
+    <p>
+      Accuracy is graded on the best price reached inside the 7–14 day window, so read it
+      as an upper bound rather than a typical outcome.
+    </p>
+  </div>
+</section>
+
+<footer class="footer">
+  <div class="wrap">
+    <div class="disclaimer">
+      Rotator is a market-research and relative-strength analysis tool. It describes what
+      the tracked market has already done and shows the evidence behind each observation.
+      It does not tell anyone what to do with that information, and nothing here is a
+      forecast. Algorithmic rotation signal only · Not financial advice · DYOR.
+    </div>
+    <div style="margin-top:10px;">
+      <a href="track-record.html">Track record</a> ·
+      <a href="api.html">API</a> ·
+      <a href="/">Dashboard</a>
+    </div>
+    <div style="margin-top:10px;">ROTATOR © 2026 · <a href="/">rotatortool-official.github.io</a></div>
+  </div>
+</footer>
+
+</body>
+</html>
