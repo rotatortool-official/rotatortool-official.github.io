@@ -411,22 +411,22 @@ var SWAP_TUT_STEPS = [
   {
     title: "Swap Tool — the ratio between two assets",
     desc: "This tool tracks the live price ratio between two assets over time, so you can see where today sits in its recent range. It shows where the ratio is, not where it goes next.",
-    anchor: "ratio-section"
+    anchor: ".new-ratio-hook"
   },
   {
     title: "Pick your pair",
     desc: "Select the coin you **hold** (FROM) and the coin you are **considering** (TO). The ratio shows how many TO coins you would receive per 1 FROM coin at current prices.",
-    anchor: "rt-from"
+    anchor: ".new-pair-grid"
   },
   {
     title: "Read the ratio chart",
     desc: "The range bar shows the ratio over your chosen timeframe. **peak** marks the highest ratio in that period: the most TO coins one FROM coin could buy. Where the ratio goes next is not known.",
-    anchor: "rt-bar-track"
+    anchor: ".new-chart-section"
   },
   {
     title: "Amount and result",
     desc: "Enter your amount on the FROM card and the TO card shows what you would receive. Underneath: the dollar value, both ratio directions, and price overrides for what-if scenarios. Always check on your exchange before trading, because prices move fast.",
-    anchor: "rt-hero-amt"
+    anchor: ".new-swap-hero .new-pair-grid, .new-swap-hero .swap-detail"
   }
 ];
 /* English snapshot; applyLang() falls back to it (see i18n.js). */
@@ -442,7 +442,7 @@ function startSwapTut() {
 }
 function endSwapTut() {
   document.getElementById('swap-tut-overlay').classList.remove('show');
-  if (_swapTutHighlighted) { _swapTutHighlighted.classList.remove('swap-tut-highlight'); _swapTutHighlighted = null; }
+  _swapTutUnmark();
   try { localStorage.setItem('rot_swap_tut', 'done'); } catch(e) {}
 }
 function swapTutNext() {
@@ -463,40 +463,88 @@ function swapTutRender() {
   var dots = '';
   for (var i = 0; i < SWAP_TUT_STEPS.length; i++) dots += '<div class="swap-tut-dot' + (i===_swapTutStep?' active':'') + '"></div>';
   document.getElementById('swap-tut-dots').innerHTML = dots;
-  // highlight anchor element and position box
-  if (_swapTutHighlighted) _swapTutHighlighted.classList.remove('swap-tut-highlight');
-  var anchor = step.anchor ? document.getElementById(step.anchor) : null;
-  if (anchor) {
-    anchor.classList.add('swap-tut-highlight');
-    _swapTutHighlighted = anchor;
-    var r = anchor.getBoundingClientRect();
-    var box = document.getElementById('swap-tut-box');
-    /* Measured, not assumed (Daniel, 2026-10-04: no card outside the
-       screen). The old fixed 280x200 guess put step 1's card at x=1419 on
-       a 1280px screen (the anchor is full width, so "right of it" is off
-       the page) and step 3's Next button below the fold, since the real
-       card is 270-320px tall, more in Macedonian. Left of the anchor if it
-       fits, else right of it, else inside the right edge; always clamped
-       to the screen. */
-    /* The card sits inside <main>, which is zoomed 1.1 on wide screens
-       (styles.css, --page-zoom). Work in screen pixels, then divide by
-       the zoom actually applied when writing left/top. */
-    var vw = window.innerWidth, vh = window.innerHeight;
-    var z  = (box.offsetWidth && box.getBoundingClientRect().width / box.offsetWidth) || 1;
-    var bw = box.getBoundingClientRect().width || 316 * z, bh = box.getBoundingClientRect().height || 260 * z;
-    var left, beside = true;
-    if (r.left - bw - 12 >= 8)            left = r.left - bw - 12;
-    else if (r.right + 12 + bw <= vw - 8) left = r.right + 12;
-    else                                { left = vw - bw - 16; beside = false; }
-    /* The pointer is drawn on the card's right edge, so it is only true
-       when the card sits to the LEFT of what it describes. */
-    box.classList.toggle('no-arrow', !(beside && left < r.left));
-    var top = Math.min(Math.max(8, r.top + 8), vh - bh - 8);
-    box.style.left = Math.max(8, left) / z + 'px';
-    box.style.top  = Math.max(8, top)  / z + 'px';
-    // update arrow direction
-    box.style.setProperty('--arr', left < r.left ? 'right' : 'left');
+
+  /* Highlight what the step talks about, scroll it into view, then place
+     the card. `anchor` is a CSS selector and may match several parts
+     (step 4: the coin cards and the details row under them); the card is
+     placed against all of them together. Until 2026-10-04 step 2 pointed
+     at a hidden 2px <select> and step 3 at the 3px range line, and
+     nothing scrolled, so a step could describe something off screen
+     (Daniel). */
+  _swapTutUnmark();
+  var parts = step.anchor ? Array.prototype.slice.call(document.querySelectorAll(step.anchor)) : [];
+  if (!parts.length) return;
+  parts.forEach(function(p) { p.classList.add('swap-tut-highlight'); });
+  _swapTutHighlighted = parts;
+  _swapTutPlace(parts);
+  var r0 = _swapTutRect(parts), topbar = (typeof rotTopbarH === 'function') ? rotTopbarH() : 60;
+  if ((r0.top < topbar || r0.bottom > window.innerHeight - 8) && typeof rotScrollToEl === 'function') {
+    /* The scroll listener below re-places the card as the page moves.
+       rotScrollToEl jumps instead of animating in some cases (reduced
+       motion, a hidden tab), and rAF can be paused, so place it again
+       right after, and once more after the longest animation (600ms). */
+    rotScrollToEl(parts[0]);
+    _swapTutPlace(parts);
+    setTimeout(function() { if (_swapTutHighlighted === parts) _swapTutPlace(parts); }, 650);
   }
+}
+/* Keep the card beside its part while the page scrolls or resizes: the
+   tour's own scroll (long from the top of the page) or the reader's. */
+var _swapTutRaf = 0;
+function _swapTutReflow() {
+  if (!_swapTutHighlighted || _swapTutRaf) return;
+  _swapTutRaf = requestAnimationFrame(function() { _swapTutRaf = 0; if (_swapTutHighlighted) _swapTutPlace(_swapTutHighlighted); });
+}
+/* Capture, on document: on phones the page scrolls inside a container, not
+   the window, and a plain window listener never hears it. */
+document.addEventListener('scroll', _swapTutReflow, { passive: true, capture: true });
+window.addEventListener('resize', _swapTutReflow);
+function _swapTutUnmark() {
+  if (!_swapTutHighlighted) return;
+  _swapTutHighlighted.forEach(function(p) { p.classList.remove('swap-tut-highlight'); });
+  _swapTutHighlighted = null;
+}
+function _swapTutRect(parts) {
+  var u = null;
+  parts.forEach(function(p) {
+    var b = p.getBoundingClientRect();
+    u = u ? { left: Math.min(u.left, b.left), top: Math.min(u.top, b.top), right: Math.max(u.right, b.right), bottom: Math.max(u.bottom, b.bottom) }
+          : { left: b.left, top: b.top, right: b.right, bottom: b.bottom };
+  });
+  return u;
+}
+function _swapTutPlace(parts) {
+  var r = _swapTutRect(parts);
+  var box = document.getElementById('swap-tut-box');
+  /* Measured, not assumed (Daniel, 2026-10-04: no card outside the
+     screen). Left of the target if it fits, else right of it; with no
+     room beside it (phones, full-width parts) below it, else above it,
+     so the card never covers what it describes; always clamped to the
+     screen. */
+  /* The card sits inside <main>, which is zoomed 1.1 on wide screens
+     (styles.css, --page-zoom). Work in screen pixels, then divide by
+     the zoom actually applied when writing left/top. */
+  var vw = window.innerWidth, vh = window.innerHeight;
+  var z  = (box.offsetWidth && box.getBoundingClientRect().width / box.offsetWidth) || 1;
+  var bw = box.getBoundingClientRect().width || 316 * z, bh = box.getBoundingClientRect().height || 260 * z;
+  var left, top, beside = true;
+  if (r.left - bw - 12 >= 8)            left = r.left - bw - 12;
+  else if (r.right + 12 + bw <= vw - 8) left = r.right + 12;
+  else                                  beside = false;
+  if (beside) {
+    top = Math.min(Math.max(8, r.top + 8), vh - bh - 8);
+  } else {
+    left = Math.min(Math.max(8, r.left + 8), vw - bw - 8);
+    if (r.bottom + 12 + bh <= vh - 8)      top = r.bottom + 12;
+    else if (r.top - 12 - bh >= 8)         top = r.top - 12 - bh;
+    else                                   top = vh - bh - 8;
+  }
+  /* The pointer is drawn on the card's right edge, so it is only true
+     when the card sits to the LEFT of what it describes. */
+  box.classList.toggle('no-arrow', !(beside && left < r.left));
+  box.style.left = Math.max(8, left) / z + 'px';
+  /* Clamped: mid-scroll the part can still be far below the screen. */
+  box.style.top  = Math.max(8, Math.min(top, vh - bh - 8)) / z + 'px';
 }
 
 // Auto-show swap tut on first visit to swap tool area
