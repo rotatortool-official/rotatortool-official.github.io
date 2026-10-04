@@ -1241,7 +1241,7 @@ td.qa-cell{text-align:center;width:28px;padding:0 4px !important;}
 .swap-tut-btn:hover{background:rgba(243,186,47,.22);}
 .swap-tut-skip{font-size:12px;color:var(--muted);cursor:pointer;background:none;border:none;font-family:inherit;text-decoration:underline;letter-spacing:.04em;padding:0;}
 .swap-tut-skip:hover{color:var(--text);}
-.swap-tut-highlight{outline:2px solid rgba(243,186,47,.6);outline-offset:3px;border-radius:3px;box-shadow:0 0 14px rgba(243,186,47,.18);transition:outline .2s;}
+.swap-tut-highlight{outline:2px solid rgba(243,186,47,.6);outline-offset:3px;border-radius:3px;box-shadow:0 0 14px rgba(243,186,47,.18);transition:outline .2s;animation:tutPulseSwap 1.6s ease-in-out infinite;}   /* pulse: see .tut-hole */
 
 .ad-panel-spacer{flex-shrink:0;border-bottom:1px solid var(--bdr2);background:var(--bg3);display:flex;align-items:center;padding:0 14px;min-height:34px;}
 .ad-panel-spacer-label{font-size:12px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);font-family:var(--font-display);}
@@ -2033,7 +2033,21 @@ td.qa-cell{text-align:center;width:28px;padding:0 4px !important;}
   transition:all .35s cubic-bezier(.4,0,.2,1);
   pointer-events:none;
   z-index:801;
+  animation:tutPulseHole 1.6s ease-in-out infinite;
 }
+/* Tour pulse (Daniel, 2026-10-04): what a step points at glows in and out,
+   like a hover, so the eye goes there. tutorial.js restarts it on every
+   step; it ends with the tour. The 9999px dimming stays the same in every
+   frame, only the gold ring and glow breathe. */
+@keyframes tutPulseHole{
+  0%,100%{border-color:var(--bnb);box-shadow:0 0 0 9999px rgba(0,0,0,.72),0 0 0 4px rgba(243,186,47,.18),0 0 24px rgba(243,186,47,.35);}
+  50%    {border-color:#ffd666;box-shadow:0 0 0 9999px rgba(0,0,0,.72),0 0 0 8px rgba(243,186,47,.34),0 0 42px rgba(243,186,47,.65);}
+}
+@keyframes tutPulseSwap{
+  0%,100%{outline-color:rgba(243,186,47,.6);box-shadow:0 0 14px rgba(243,186,47,.18);filter:none;}
+  50%    {outline-color:rgba(255,214,102,1);box-shadow:0 0 30px rgba(243,186,47,.5);filter:brightness(1.08);}
+}
+@media (prefers-reduced-motion:reduce){.tut-hole,.swap-tut-highlight{animation:none !important;}}
 .tut-box{
   position:fixed;
   background:var(--bg2);

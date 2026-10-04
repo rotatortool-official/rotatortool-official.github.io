@@ -474,6 +474,7 @@ function swapTutRender() {
   _swapTutUnmark();
   var parts = step.anchor ? Array.prototype.slice.call(document.querySelectorAll(step.anchor)) : [];
   if (!parts.length) return;
+  void document.body.offsetWidth;   /* steps 2 and 4 share the coin cards: restart their pulse */
   parts.forEach(function(p) { p.classList.add('swap-tut-highlight'); });
   _swapTutHighlighted = parts;
   _swapTutPlace(parts);

@@ -461,6 +461,11 @@ function tutRender() {
 
   _tutReveal(step);
 
+  /* Restart the pulse (styles.css, .tut-hole), so each step's spot starts
+     with a fresh glow instead of picking up the last step's mid-beat. */
+  var _hole = document.getElementById('tut-hole');
+  _hole.style.animation = 'none'; void _hole.offsetWidth; _hole.style.animation = '';
+
   /* Place once straight away (so the card never sits on the previous
      step's spot), then again once the section is open and in view. */
   tutPosition();
