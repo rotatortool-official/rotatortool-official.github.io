@@ -1925,7 +1925,7 @@ function _bfChange(c, label, pts, usd) {
 function _bfFmt(v, kind) {
   if (v == null || !isFinite(v)) return null;
   if (kind === 'rate') return v.toFixed(2) + '%';
-  if (kind === 'cents') return (v * 100).toFixed(1) + '¢';
+  if (kind === 'cents') return (v * 100).toFixed(v * 100 < 10 ? 2 : 1) + '¢';   /* gas per kWh in MK is ~1¢: two decimals */
   if (kind === 'usdBig') return _bfUsd(v);
   var dp = v >= 1000 ? 0 : v >= 100 ? 1 : 2;
   return (kind === 'usd' ? '$' : '') + v.toLocaleString('en-US', { minimumFractionDigits: dp, maximumFractionDigits: dp });
@@ -1995,8 +1995,14 @@ function _bfWorldCell(it, o) {
     w[30] = { c: it.c1m, s: s, l: '1m' };
     if (Array.isArray(it.s3) && it.s3.length > 2) w[1095] = { c: it.c1095, s: it.s3, l: '3y' };
   }
+  /* o.mk: the Macedonian page shows SI units (Daniel, 2026-10-04): copper
+     per tonne, natural gas per kWh. Only the price is converted; the
+     changes are percentages, and a line keeps its shape when scaled.
+     English keeps the units the markets quote. */
+  var si = o.mk && typeof currentLang !== 'undefined' && currentLang === 'mk' ? o.mk : null;
   return {
-    k: o.k, v: _bfFmt(it.v, o.kind), u: o.u || '', pts: o.kind === 'rate', usd: !!o.usdpts, w: w,
+    k: o.k, v: si ? _bfFmt(it.v * si.mul, si.kind || o.kind) : _bfFmt(it.v, o.kind), u: si ? si.u : (o.u || ''),
+    pts: o.kind === 'rate', usd: !!o.usdpts, w: w,
     right: cn && cn.v != null ? _bfChinaRight(cn) : '',
     d: o.d, extra: (o.range && it.lo != null ? '<div class="bf-step">target ' + it.lo.toFixed(2) + '–' + it.hi.toFixed(2) + '%</div>' : '')
       + (cn && cn.v != null ? _bfChinaNote(cn) : '')
@@ -2071,6 +2077,7 @@ function renderBriefing() {
       _bfWorldCell(it('silver', 'silverP7'), { k: 'Silver', kind: 'usd', src: BF_SRC.comex, sym: 'SI=F',
         d: 'Industrial demand as well as a metal' }),
       _bfWorldCell(W.copper, { k: 'Copper', kind: 'usd', u: ' /lb', src: BF_SRC.comex, sym: 'HG=F',
+        mk: { mul: 2204.62262, u: ' /t' },   /* pounds in a metric tonne */
         d: 'Copper is in almost everything electric: appliances, data centers and the tiny parts that make AI possible.' }),
       _bfWorldCell(W.aluminum, { k: 'Aluminum', kind: 'usd', u: ' /t', src: BF_SRC.comex, sym: 'ALI=F',
         d: 'Light metal for data centers, power lines, solar frames and electric cars; often the cheaper stand-in for copper.' })
@@ -2083,6 +2090,7 @@ function renderBriefing() {
       _bfWorldCell(W.crack, { k: 'Diesel crack spread', kind: 'usd', u: ' /bbl', usdpts: true, src: BF_SRC.nymex, sym: 'HO=F',
         d: 'What refiners earn turning a barrel of crude into diesel. When it is high, diesel is scarce and transport costs feed into prices.' }),
       _bfWorldCell(W.gas, { k: 'Natural gas', kind: 'usd', u: ' /MMBtu', src: BF_SRC.nymex, sym: 'NG=F',
+        mk: { mul: 1 / 293.07107, kind: 'cents', u: ' /kWh' },   /* 1 MMBtu = 293.07 kWh; cents, like Electricity */
         d: 'The fuel behind much of US electricity, so its price feeds into what power costs.' }),
       _bfWorldCell(W.power, { k: 'Electricity', kind: 'cents', u: ' /kWh', monthly: true, src: BF_SRC.bls,
         d: 'What US homes pay, monthly average. It is also the running cost of data centers, AI and Bitcoin mining.' })
@@ -2603,6 +2611,8 @@ function setLang(lang) {
   if (typeof applyMkLayer === 'function') applyMkLayer(lang);
   /* ETF tiles and an open ETF window carry their own en/mk text. */
   if (typeof renderEtfFlows === 'function') renderEtfFlows();
+  /* TODAY: copper and gas show SI units in Macedonian (_bfWorldCell o.mk). */
+  if (typeof renderBriefing === 'function') renderBriefing();
   if (typeof _twTgSync === 'function') _twTgSync(false);   /* Telegram alerts follow the site language */
   var etfM = document.getElementById('etf-modal');
   if (etfM && etfM.classList.contains('show') && typeof openEtfModal === 'function') openEtfModal();

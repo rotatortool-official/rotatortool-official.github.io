@@ -1244,8 +1244,8 @@ Object.assign(MK_TEXT, {
 /* ── Oil: crack spread and China's price (promptove/109) ── */
 Object.assign(MK_TEXT, {
   /* „Маржа на дизелот“ read like the margin at the pump; the number is
-     what a refinery earns (Daniel asked, 2026-10-04). */
-  'Diesel crack spread': 'Рафинериска маржа на дизел',
+     what a refinery earns. Shorter one-line name chosen by Daniel, 2026-10-04. */
+  'Diesel crack spread': 'Маржа на рафинериите',
   '/bbl': '/барел',
   /* Source names: only the joining word translates. */
   'NYMEX via Yahoo Finance': 'NYMEX преку Yahoo Finance', 'COMEX via Yahoo Finance': 'COMEX преку Yahoo Finance',
