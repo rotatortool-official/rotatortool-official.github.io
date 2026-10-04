@@ -602,9 +602,16 @@ var RatioTracker = (function() {
             ctx2.strokeStyle=color; ctx2.lineWidth=width||1; ctx2.globalAlpha=alpha||0.55;
             ctx2.beginPath(); ctx2.moveTo(area.left,y); ctx2.lineTo(area.right,y); ctx2.stroke();
             ctx2.setLineDash([]);
-            /* 8px at 80% was hard to read (Daniel, 2026-10-04). */
-            ctx2.globalAlpha=0.95; ctx2.font='700 11px IBM Plex Mono,monospace'; ctx2.fillStyle=color;
-            ctx2.fillText(label,area.left+4,y-5);
+            /* 8px at 80% was hard to read (Daniel, 2026-10-04). Then the
+               Courier fallback (IBM Plex Mono is never loaded) and the
+               yellow over the green fill were barely readable either
+               (Daniel, 2026-10-04): the site's Inter, on a dark backing. */
+            ctx2.globalAlpha=1; ctx2.font='700 12px Inter,sans-serif';
+            var tw=ctx2.measureText(label).width, tx=area.left+4, ty=y-6;
+            ctx2.fillStyle='rgba(10,14,20,.82)';
+            ctx2.fillRect(tx-4,ty-12,tw+8,16);
+            ctx2.fillStyle=color;
+            ctx2.fillText(label,tx,ty);
             ctx2.restore();
           }
           /* Painted on the canvas, so the MK page translator never sees them. */
@@ -639,7 +646,7 @@ var RatioTracker = (function() {
             display:true,
             grid:{display:false},
             ticks:{
-              font:{size:10.5,family:'IBM Plex Mono,monospace'},
+              font:{size:11,family:'Inter,sans-serif'},
               color:'#8b9bb0',   /* was rgba(90,110,133,.7), hard to read (2026-10-04) */
               maxTicksLimit:S.days===1?6:8,
               maxRotation:0
@@ -651,7 +658,7 @@ var RatioTracker = (function() {
             position:'right',
             grid:{color:'rgba(255,255,255,.04)',drawBorder:false},
             ticks:{
-              font:{size:10.5,family:'IBM Plex Mono,monospace'},
+              font:{size:11,family:'Inter,sans-serif'},
               color:'#8b9bb0',   /* was rgba(90,110,133,.7), hard to read (2026-10-04) */
               /* fmtRatio, not toFixed(2). A BTC -> sub-cent pair has a ratio
                  around 1e8 and toFixed(2) printed an unreadable wall of
