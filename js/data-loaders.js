@@ -1818,7 +1818,7 @@ function _bfAge(ms) {
 /* overlay (promptove/109): a second series lined up day by day with
    `series` (China's oil price on the WTI tile). Same scale as the main
    line, so the gap is drawn as it is; a null breaks the line (a China
-   holiday). Dashed and neutral, so it never reads as up or down. */
+   holiday). Blue (Daniel, 2026-10-04), so it never reads as up or down. */
 function _bfSpark(series, up, minSpan, neutral, overlay) {
   if (!Array.isArray(series) || series.length < 3) return '';
   var pts = series.filter(function (v) { return typeof v === 'number' && isFinite(v); });
@@ -1856,7 +1856,7 @@ function _bfSpark(series, up, minSpan, neutral, overlay) {
   }
   return '<svg class="bf-spark" viewBox="0 0 ' + W + ' ' + H + '" preserveAspectRatio="none"'
     + ' aria-hidden="true" focusable="false">'
-    + (d2 ? '<path class="bf-spark-ov" d="' + d2.trim() + '" fill="none" stroke-width="1.2" stroke-dasharray="2.5 2"'
+    + (d2 ? '<path class="bf-spark-ov" d="' + d2.trim() + '" fill="none" stroke-width="1.3"'
       + ' stroke-linejoin="round" stroke-linecap="round" vector-effect="non-scaling-stroke"/>' : '')
     + '<path d="' + d + '" fill="none" stroke="' + col
     + '" stroke-width="1.5" stroke-linejoin="round" stroke-linecap="round"/>'
@@ -1874,8 +1874,10 @@ function _bfSpark(series, up, minSpan, neutral, overlay) {
    and the dollar fall back to macro_data so the section never goes
    blank.
 
-   Front of a tile: 7 days. Back: 30 days, 1 year or 3 years, whichever
-   the bar above says (_bfLong). Rates move in POINTS, not percent: a yield going
+   Every tile shows the window the bar above picks (_bfLong: 7, 30, 365
+   or 1095 days; opens on 30). The per-tile 7D/30D flip was retired on
+   2026-10-04 (Daniel: the corner "7D" was an artifact from before
+   30D/1Y/3Y existed and read as a second, conflicting filter). Rates move in POINTS, not percent: a yield going
    from 4.00% to 4.40% is "+0.40 pts", where "+10%" would mislead. The
    wording explains what a reading is; it does not predict (the yield
    test is pre-registered separately, promptove/86). */
@@ -1938,14 +1940,23 @@ function _bfStep(last) {
    The gap is on China's latest trading day, against the US and the
    global benchmark. Shanghai crude is Middle-East oil delivered to
    China, so Brent is the like-for-like comparison. */
+var BF_CN_TIP = 'Shanghai crude futures (INE SC) via Sina Finance, in dollars at the day\'s yuan rate (CNY=X, Yahoo Finance)';
+/* Right of the WTI price, in blue like its line (Daniel, 2026-10-04). */
+function _bfChinaRight(cn) {
+  return '<div class="bf-cn-big" title="' + BF_CN_TIP + '">'
+    + '<span class="bf-cn-lbl">China (Shanghai)</span>'
+    + '<span class="bf-cn-v">$' + cn.v.toFixed(2) + '</span></div>';
+}
 function _bfChinaNote(cn) {
+  var parts = [];
   var g = function (v, name) {
-    if (v == null || !isFinite(v)) return '';
-    return ' · $' + Math.abs(v).toFixed(2) + (v >= 0 ? ' over ' : ' under ') + name;
+    if (v == null || !isFinite(v)) return;
+    parts.push('$' + Math.abs(v).toFixed(2) + (v >= 0 ? ' over ' : ' under ') + name);
   };
-  return '<div class="bf-step bf-cn" title="Shanghai crude futures (INE SC) via Sina Finance, in dollars at the day\'s yuan rate (CNY=X, Yahoo Finance)">'
-    + '<span class="bf-cn-key" aria-hidden="true"></span>'
-    + 'China (Shanghai) $' + cn.v.toFixed(2) + g(cn.vsBrent, 'Brent') + g(cn.vsWti, 'WTI')
+  g(cn.vsBrent, 'Brent'); g(cn.vsWti, 'WTI');
+  if (!parts.length) return '';
+  return '<div class="bf-step bf-cn" title="' + BF_CN_TIP + '">'
+    + '<span class="bf-cn-gap">' + parts.join(' · ') + '</span>'
     + ' <span class="bf-cn-d">' + _bfDay(cn.date) + '</span></div>';
 }
 
@@ -1980,6 +1991,7 @@ function _bfWorldCell(it, o) {
   }
   return {
     k: o.k, v: _bfFmt(it.v, o.kind), u: o.u || '', pts: o.kind === 'rate', usd: !!o.usdpts, w: w,
+    right: cn && cn.v != null ? _bfChinaRight(cn) : '',
     d: o.d, extra: (o.range && it.lo != null ? '<div class="bf-step">target ' + it.lo.toFixed(2) + '–' + it.hi.toFixed(2) + '%</div>' : '')
       + (cn && cn.v != null ? _bfChinaNote(cn) : '')
       + (o.policy ? _bfStep(it.last) : '')
@@ -2097,15 +2109,13 @@ function renderBriefing() {
   groups = groups.filter(function (g) { return g.cells.length; });
   if (!groups.length) { host.style.display = 'none'; return; }
 
-  var face = function (c, days, back) {
+  var face = function (c, days) {
     var win = c.w[days];
-    var other = back ? '7D' : ({ 30: '30D', 365: '1Y', 1095: '3Y' })[_bfLong];
-    var label = back ? 'Show 7 days' : ({ 30: 'Show 30 days', 365: 'Show 1 year', 1095: 'Show 3 years' })[_bfLong];
-    return '<div class="bf-face ' + (back ? 'bf-back' : 'bf-front') + '"' + (back ? ' aria-hidden="true"' : '') + '>'
-      + '<button type="button" class="bf-flip" onclick="bfFlip(this)" aria-label="' + label + '"'
-      + (back ? ' tabindex="-1"' : '') + '>' + other + '</button>'
+    return '<div class="bf-face bf-front">'
       + '<div class="bf-k">' + c.k + '</div>'
-      + '<div class="bf-v">' + c.v + '<span class="bf-u">' + c.u + '</span></div>'
+      + (c.right
+          ? '<div class="bf-vrow"><div class="bf-v">' + c.v + '<span class="bf-u">' + c.u + '</span></div>' + c.right + '</div>'
+          : '<div class="bf-v">' + c.v + '<span class="bf-u">' + c.u + '</span></div>')
       + _bfChange(win.c, win.l, c.pts, c.usd) + c.extra
       + _bfSpark(win.s, (win.c == null) || win.c >= 0, c.pts ? 0.25 : 0,
                  c.pts && win.c != null && Math.abs(win.c) < 0.005, win.o)
@@ -2125,12 +2135,11 @@ function renderBriefing() {
   groups.forEach(function (g) {
     html += '<div class="bf-group">' + g.t + '</div>';
     g.cells.forEach(function (c) {
-      var p7 = (c.pts || c.usd) ? null : c.w[7].c, pl = (c.pts || c.usd) ? null : c.w[_bfLong].c;
-      var hb7 = hbBeatSeconds(p7, 0.25), hbl = hbBeatSeconds(pl, 0.25);
-      html += '<div class="bf-cell' + (_bfIsFlipped(c.k) ? ' flipped' : '') + '" data-k="' + c.k + '"'
-        + (hb7 != null ? ' data-hb7="' + hb7.toFixed(3) + '"' : '')
-        + (hbl != null ? ' data-hb30="' + hbl.toFixed(3) + '"' : '') + '>'
-        + '<div class="bf-tilt"><div class="bf-inner">' + face(c, 7, false) + face(c, _bfLong, true) + '</div></div>'
+      var pl = (c.pts || c.usd) ? null : c.w[_bfLong].c;
+      var hbl = hbBeatSeconds(pl, 0.25);
+      html += '<div class="bf-cell" data-k="' + c.k + '"'
+        + (hbl != null ? ' style="--hb-dur:' + hbl.toFixed(3) + 's"' : '') + '>'
+        + '<div class="bf-tilt"><div class="bf-inner">' + face(c, _bfLong) + '</div></div>'
         + '</div>';
     });
     /* Fill the row so a short group (energy has three) does not leave a
@@ -2141,90 +2150,48 @@ function renderBriefing() {
   html += '<div class="bf-age">' + _bfAge(ages.length ? Math.min.apply(null, ages) : null) + '</div>';
   host.innerHTML = html;
 
-  var cs = host.querySelectorAll('.bf-cell:not(.bf-cell-empty)');
-  for (var ci = 0; ci < cs.length; ci++) _bfApply(cs[ci], cs[ci].classList.contains('flipped'));
   _bfSyncSeg(host);
   _bfWireTilt(host);
   _bfWireFlash(host);
 }
-/* A short glow as each tile lands on its new side. Only the flip's own
-   transform transition fires it (the tilt's is on another element). */
+/* A short glow on every tile when the period changes, in a quick
+   left-to-right ripple (it used to fire when a tile finished flipping). */
 function _bfWireFlash(host) {
-  var inners = host.querySelectorAll('.bf-inner');
-  for (var i = 0; i < inners.length; i++) {
-    (function (inner) {
-      var cell = inner.closest('.bf-cell');
-      inner.addEventListener('transitionend', function (e) {
-        if (e.target !== inner || e.propertyName !== 'transform') return;
-        cell.classList.remove('bf-flash');
-        void cell.offsetWidth;            /* restart the animation */
-        cell.classList.add('bf-flash');
-      });
-      cell.addEventListener('animationend', function () { cell.classList.remove('bf-flash'); });
-    })(inners[i]);
+  var cells = host.querySelectorAll('.bf-cell:not(.bf-cell-empty)');
+  for (var i = 0; i < cells.length; i++) {
+    cells[i].addEventListener('animationend', function () { this.classList.remove('bf-flash'); });
+  }
+}
+function _bfRipple(host) {
+  if (!host || _bfReduced()) return;
+  var cells = host.querySelectorAll('.bf-cell:not(.bf-cell-empty)');
+  for (var i = 0; i < cells.length; i++) {
+    (function (cell, d) {
+      setTimeout(function () { cell.classList.remove('bf-flash'); void cell.offsetWidth; cell.classList.add('bf-flash'); }, d);
+    })(cells[i], i * _BF_FLIP_STEP_MS);
   }
 }
 
-/* ── TODAY tiles: 7D/30D flip and hover tilt (Daniel, 2026-10-03) ──
-   Subtle on purpose: a data page, not a toy. Each tile flips on its own
-   (the small 30D / 7D button), and the bar above flips all of them with
-   a short left-to-right ripple. The tilt follows the mouse on devices
-   with a real pointer only; phones get the flip on tap and no tilt.
-   With reduced motion asked for, the flip is an instant swap (CSS) and
-   there is no tilt. State survives a re-render, keyed by tile name. */
-var _bfFlipped = {};
-/* TODAY opens on 30 days (Daniel, 2026-10-04): a tile nobody has turned
-   yet shows its long side, which is 30D until the bar picks 1Y or 3Y. */
-function _bfIsFlipped(k) { return (k in _bfFlipped) ? _bfFlipped[k] : true; }
+/* ── TODAY tiles: one period for all, and the hover tilt ────────────
+   The bar above sets the window for every tile (7D, 30D, 1Y, 3Y); there
+   is no per-tile flip any more (2026-10-04). The tilt follows the mouse
+   on devices with a real pointer only; with reduced motion asked for
+   there is no tilt and no ripple. */
 function _bfReduced() {
   try { return window.matchMedia('(prefers-reduced-motion: reduce)').matches; } catch (e) { return false; }
 }
-function _bfApply(cell, on) {
-  cell.classList.toggle('flipped', on);
-  _bfFlipped[cell.getAttribute('data-k')] = on;
-  var hb = cell.getAttribute(on ? 'data-hb30' : 'data-hb7');
-  if (hb) cell.style.setProperty('--hb-dur', hb + 's'); else cell.style.removeProperty('--hb-dur');
-  var f = cell.querySelector('.bf-front'), b = cell.querySelector('.bf-back');
-  if (f) { f.setAttribute('aria-hidden', on ? 'true' : 'false'); f.querySelector('.bf-flip').tabIndex = on ? -1 : 0; }
-  if (b) { b.setAttribute('aria-hidden', on ? 'false' : 'true'); b.querySelector('.bf-flip').tabIndex = on ? 0 : -1; }
-}
-function bfFlip(btn) {
-  var cell = btn.closest('.bf-cell');
-  if (!cell) return;
-  var inner = cell.querySelector('.bf-inner');
-  if (inner) inner.style.transitionDelay = '0ms';
-  _bfApply(cell, !cell.classList.contains('flipped'));
-  _bfSyncSeg(document.getElementById('briefing'));
-}
-/* The section switch: 7D turns every tile to its front; 30D or 1Y sets
-   the long window for every back (re-rendering them when it changes)
-   and turns every tile over, in a short ripple in page order. Daniel's
-   2026-10-03 order for the first eight tiles went with the regrouping
-   the same day: the tiles now sit in four groups. */
-var _BF_FLIP_STEP_MS = 60;
+var _BF_FLIP_STEP_MS = 40;
 function bfSetAll(days) {
   var host = document.getElementById('briefing');
-  if (!host) return;
-  var on = days !== 7;
-  if (on && _bfLong !== days) { _bfLong = days; renderBriefing(); }
-  var cells = host.querySelectorAll('.bf-cell:not(.bf-cell-empty)');
-  for (var i = 0; i < cells.length; i++) {
-    var inner = cells[i].querySelector('.bf-inner');
-    if (inner) inner.style.transitionDelay = _bfReduced() ? '0ms' : (i * _BF_FLIP_STEP_MS) + 'ms';
-    _bfApply(cells[i], on);
-  }
-  _bfSyncSeg(host);
+  if (!host || ({ 7: 1, 30: 1, 365: 1, 1095: 1 })[days] !== 1) return;
+  if (_bfLong !== days) { _bfLong = days; renderBriefing(); }
+  _bfRipple(document.getElementById('briefing'));
 }
-/* The bar shows which side is up when all tiles agree, and no button
-   pressed when they are mixed. */
 function _bfSyncSeg(host) {
   if (!host) return;
-  var cells = host.querySelectorAll('.bf-cell:not(.bf-cell-empty)'), nb = 0;
-  for (var i = 0; i < cells.length; i++) if (cells[i].classList.contains('flipped')) nb++;
-  var mode = nb === 0 ? '7' : nb === cells.length ? String(_bfLong) : '';
   var bs = host.querySelectorAll('.bf-seg-b');
   for (var j = 0; j < bs.length; j++) {
-    var on = bs[j].getAttribute('data-days') === mode;
+    var on = bs[j].getAttribute('data-days') === String(_bfLong);
     bs[j].classList.toggle('on', on);
     bs[j].setAttribute('aria-pressed', on ? 'true' : 'false');
   }
@@ -5070,7 +5037,7 @@ function _hbBlip(ctx, t) {
     /* A TODAY tile: the glow goes on the face that is showing, so it
        turns with the card and never leaks past its edge. */
     if (!t.classList.contains('bf-cell')) return t;
-    return t.querySelector(t.classList.contains('flipped') ? '.bf-back' : '.bf-front') || t;
+    return t.querySelector('.bf-front') || t;
   }
   document.addEventListener('mousemove', function (e) {
     var t = e.target && e.target.closest ? e.target.closest(SEL) : null;

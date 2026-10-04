@@ -5375,7 +5375,17 @@ html.no-anim .mt-viewport::-webkit-scrollbar{display:none;}
 .radio-frame audio{display:none;}
 
 /* ── Oil: China's price as a second line (promptove/109) ──────────── */
-.bf-spark-ov{stroke:var(--text);opacity:.55;}
-.bf-cn{display:flex;align-items:center;gap:5px;flex-wrap:wrap;}
-.bf-cn-key{display:inline-block;width:14px;height:0;border-top:1.5px dashed var(--text);opacity:.6;flex:0 0 auto;}
+
+/* ── TODAY: one period for every tile, China in blue (2026-10-04) ──
+   The per-tile flip button is gone, so the label takes the full width. */
+.bf-face .bf-k{padding-right:0;}
+:root{--cn-blue:#4ea1ff;}
+:root.light{--cn-blue:#1f6fd1;}
+.bf-vrow{display:flex;align-items:flex-end;justify-content:space-between;gap:8px;}
+.bf-cn-big{display:flex;flex-direction:column;align-items:flex-end;text-align:right;cursor:help;min-width:0;}
+.bf-cn-lbl{font-size:10px;font-weight:600;letter-spacing:.04em;color:var(--cn-blue);opacity:.85;white-space:nowrap;}
+.bf-cn-v{font-size:18px;font-weight:700;color:var(--cn-blue);line-height:1.1;font-variant-numeric:tabular-nums;}
+.bf-cn{cursor:help;}
+.bf-cn-gap{color:var(--cn-blue);}
 .bf-cn-d{color:var(--muted);}
+.bf-spark-ov{stroke:var(--cn-blue);opacity:.9;}

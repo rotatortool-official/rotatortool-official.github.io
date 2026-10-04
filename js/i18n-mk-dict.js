@@ -1262,3 +1262,5 @@ Object.assign(MK_TEXT, {
   P(/^China \(Shanghai\) \$([\d.]+)$/, function (m) { return 'Кина (Шангај) $' + comma(m[1]); });
   P(/^\$([\d.]+) (over|under) (Brent|WTI)$/, function (m) { return '$' + comma(m[1]) + (m[2] === 'over' ? ' повеќе од ' : ' помалку од ') + m[3]; });
 })();
+
+Object.assign(MK_TEXT, { 'China (Shanghai)': 'Кина (Шангај)' });
