@@ -2354,6 +2354,15 @@ td.qa-cell{text-align:center;width:28px;padding:0 4px !important;}
 .rt-saved-chip{display:inline-flex;align-items:center;gap:4px;background:var(--bg3);border:1px solid var(--bdr2);color:var(--text);font-family:var(--font-mono);font-size:12px;padding:2px 5px 2px 7px;border-radius:2px;cursor:pointer;transition:all .15s;}
 .rt-saved-chip:hover{border-color:var(--bnb);color:var(--bnb);}
 .rt-saved-chip.active{border-color:var(--bnb);color:var(--bnb);background:var(--bnbd);}
+/* Saved-pair alerts (promptove/111): a target box under the chips. */
+.rt-chip-bell{font-size:10px;}
+.rt-pair-alert{flex-basis:100%;display:flex;flex-wrap:wrap;align-items:center;gap:6px;margin-top:6px;font-size:12px;color:var(--text);}
+.rt-pa-l{font-weight:600;}
+.rt-pa-eq{font-weight:600;color:var(--muted);}
+.rt-pa-inp{width:110px;background:var(--bg3);border:1px solid var(--bdr2);color:var(--text);border-radius:4px;padding:3px 6px;font-size:12px;font-family:var(--font-ui);}
+.rt-pa-inp:focus{outline:none;border-color:var(--bnb);}
+.rt-pa-note{flex-basis:100%;font-size:11px;color:var(--muted);line-height:1.4;}
+.rt-pa-lock{flex-basis:100%;margin-top:6px;text-align:left;background:none;border:1px dashed rgba(243,186,47,.35);color:var(--pro);border-radius:4px;padding:4px 8px;font-size:12px;cursor:pointer;}
 .rt-chip-x{font-size:12px;line-height:1;color:var(--muted);padding:0 1px;transition:color .15s;}
 .rt-chip-x:hover{color:var(--red);}
 

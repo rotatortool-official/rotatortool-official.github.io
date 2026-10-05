@@ -201,6 +201,7 @@ function _twAlerts() {
         title: 'ETF flows: ' + etf.headline, detail: (etf.detail || '') + ' Source: Farside Investors.' }, base));
     }
   });
+  if (isPro) out = out.concat(_twPairAlerts());   /* saved swap pairs (promptove/111) */
   out.sort(function (a, b) { return b.sev - a.sev || (a.sym < b.sym ? -1 : 1); });
   return out;
 }
@@ -251,15 +252,19 @@ function renderCoinAlerts() {
   var fresh = visible.filter(function (a) { return !seen[a.key]; });
   if (badge) { badge.textContent = fresh.length ? String(fresh.length) : ''; badge.style.display = fresh.length ? '' : 'none'; }
   _twNotify(visible);
+  _twPairsRefresh(false);
   if (!host) return;
-  if (!_twMyCoins().length) {
+  if (!_twMyCoins().length && !_twPairs.list.length) {
     host.innerHTML = '<div class="ca-hd"><span class="ca-title">🔔 Alerts for your coins</span></div>'
       + '<div class="ca-empty">Add a holding or watch a coin, and changes to it show up here: exchange warnings, big unlocks, and new turn signs.</div>';
     return;
   }
   var notifyOn = false; try { notifyOn = localStorage.getItem(_TW_NOTIFY_ON) === '1'; } catch (e) {}
   var rows = visible.map(function (a) {
-    return '<button type="button" class="ca-row ' + a.kind + (seen[a.key] ? '' : ' new') + '" onclick="openTileDetail(\'' + a.id + '\', event)">'
+    /* A pair alert opens its pair in the swap tool; ids were checked
+       against _TW_PAIR_ID in _twPairAlerts. */
+    var go = a.pair ? '_twOpenPair(\'' + a.pair[0] + '\',\'' + a.pair[1] + '\')' : 'openTileDetail(\'' + a.id + '\', event)';
+    return '<button type="button" class="ca-row ' + a.kind + (seen[a.key] ? '' : ' new') + '" onclick="' + go + '">'
       + '<span class="ca-sym">' + _esc(a.sym) + '<span class="ca-role">' + a.role + '</span></span>'
       + '<span class="ca-body"><span class="ca-t">' + _esc(a.title) + (seen[a.key] ? '' : ' <span class="ca-new">NEW</span>') + '</span>'
       + (a.detail ? '<span class="ca-d">' + _esc(a.detail) + '</span>' : '') + '</span></button>';
@@ -273,7 +278,7 @@ function renderCoinAlerts() {
         ? _twTgFoot()
           + '<button type="button" class="ca-act" onclick="_twToggleNotify()">' + (notifyOn ? '🔕 Turn off browser notifications' : '🔔 Notify me in this browser') + '</button>'
           + '<span>Browser notifications fire while Rotator is open in a tab. "New" is remembered in this browser.</span>'
-        : '<span>Exchange and unlock warnings are free. Pro adds turn signs, ETF alerts, Telegram messages and browser notifications.</span>')
+        : '<span>Exchange and unlock warnings are free. Pro adds turn signs, ETF alerts, saved swap pair alerts, Telegram messages and browser notifications.</span>')
     + '</div>';
   _twTgSync(false);
 }
@@ -304,15 +309,83 @@ function _twTgCoins() {
 function _twTgSync(force) {
   if (!isPro || typeof getMyId !== 'function' || typeof SUPA_URL === 'undefined') return;
   var lang = (typeof currentLang !== 'undefined' && currentLang === 'mk') ? 'mk' : 'en';
-  var list = _twTgCoins(), sig = lang + JSON.stringify(list);
+  /* The saved swap pairs go with the coins (promptove/111): Telegram reads
+     the server's copy, never this browser. */
+  var list = _twTgCoins(), pairs = _twSavedPairs(), sig = lang + JSON.stringify(list) + JSON.stringify(pairs);
   if (!force && sig === _twTg.sig) return;
   _twTg.sig = sig;
   _twRpc('alert_set_coins', { p_uid: getMyId(), p_coins: list, p_lang: lang }).then(function (linked) {
     var was = _twTg.linked;
     _twTg.linked = linked === true;
+    if (_twTg.linked) _twRpc('alert_set_pairs', { p_uid: getMyId(), p_pairs: pairs });
     if (was !== _twTg.linked) renderCoinAlerts();
   });
 }
+
+/* ── Saved swap pairs (promptove/111, Pro) ───────────────────────────
+   A: the pair enters its good swap zone (top quarter of its 30-day
+   range, the chart's green dashed line). B: the ratio reaches the
+   user's target. The state comes from the server (pair_alert_check, the
+   same _pair_state() send-dm-alerts reads), refreshed when the list
+   changes and every 15 minutes, as often as the server's prices move. */
+var _twPairs = { list: [], sig: '', at: 0 };
+var _TW_PAIR_ID = /^[a-z0-9][a-z0-9-]{0,63}$/;
+
+function _twSavedPairs() {
+  try { return (window.RatioTracker && RatioTracker.getSaved) ? RatioTracker.getSaved() : []; } catch (e) { return []; }
+}
+
+function _twPairsRefresh(force) {
+  if (!isPro || typeof getMyId !== 'function' || typeof SUPA_URL === 'undefined') { _twPairs.list = []; return; }
+  var pairs = _twSavedPairs(), sig = JSON.stringify(pairs);
+  if (!pairs.length) { _twPairs.list = []; _twPairs.sig = sig; return; }
+  if (!force && sig === _twPairs.sig && Date.now() - _twPairs.at < 15 * 60 * 1000) return;
+  _twPairs.sig = sig; _twPairs.at = Date.now();
+  _twRpc('pair_alert_check', { p_uid: getMyId(), p_pairs: pairs }).then(function (res) {
+    if (_twPairs.sig !== sig) return;   /* the list changed while this was out */
+    _twPairs.list = Array.isArray(res) ? res : [];
+    renderCoinAlerts();
+  });
+}
+
+/* A swap ratio as the swap tool prints it. */
+function _twFmtRatio(v) {
+  v = Number(v);
+  return v.toLocaleString('en-US', { maximumFractionDigits: v >= 1000 ? 2 : v >= 1 ? 4 : v >= 0.01 ? 6 : 8 });
+}
+
+function _twPairAlerts() {
+  var out = [], zs = _twLoad('rot_tw_pairzone'), zs0 = JSON.stringify(zs), today = new Date().toISOString().slice(0, 10);
+  _twPairs.list.forEach(function (p) {
+    if (!p || p.ratio == null || !_TW_PAIR_ID.test(p.from || '') || !_TW_PAIR_ID.test(p.to || '')) return;
+    var id = p.from + '>' + p.to, fs = String(p.from_sym || ''), ts = String(p.to_sym || ''), r = _twFmtRatio(p.ratio);
+    var base = { sym: fs + ' → ' + ts, id: null, pair: [p.from, p.to], role: 'pair', kind: 'up', pro: true, sev: 2 };
+    /* The zone key carries the day it was first seen there, so staying in
+       it stays "read", and coming back after leaving is new. */
+    if (p.in_zone) {
+      zs[id] = zs[id] || today;
+      out.push(Object.assign({ key: 'pair|' + id + '|zone|' + zs[id], title: 'In the good swap zone',
+        detail: '1 ' + fs + ' = ' + r + ' ' + ts + ', in the top quarter of its 30-day range.' }, base));
+    } else {
+      delete zs[id];
+    }
+    if (p.target_hit && p.target != null) {
+      out.push(Object.assign({ key: 'pair|' + id + '|target|' + p.target, title: 'Your target is reached',
+        detail: '1 ' + fs + ' = ' + r + ' ' + ts + '. Your target: ' + _twFmtRatio(p.target) + '.' }, base));
+    }
+  });
+  if (JSON.stringify(zs) !== zs0) _twSave('rot_tw_pairzone', zs);
+  return out;
+}
+
+function _twOpenPair(f, t) {
+  if (!_TW_PAIR_ID.test(f) || !_TW_PAIR_ID.test(t) || !window.RatioTracker) return;
+  RatioTracker._loadFav(f, t);
+  if (typeof railGo === 'function') railGo('sec-swap');
+}
+
+document.addEventListener('rot:pairs', function () { _twPairsRefresh(true); _twTgSync(false); });
+setInterval(function () { _twPairsRefresh(false); }, 5 * 60 * 1000);
 
 function _twTgFoot() {
   if (_twTg.linked) {

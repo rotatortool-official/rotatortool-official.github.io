@@ -133,7 +133,22 @@ var RatioTracker = (function() {
   function savePair(){ try{ localStorage.setItem(LS_PAIR,JSON.stringify({from:S.from,to:S.to})); }catch(e){} }
   function loadPair(){ try{ var r=localStorage.getItem(LS_PAIR); if(r) return JSON.parse(r); }catch(e){} return null; }
   function loadSaved(){ try{ var r=localStorage.getItem(LS_SAVED); if(r) S.saved=JSON.parse(r); }catch(e){} if(!Array.isArray(S.saved)) S.saved=[]; }
-  function persistSaved(){ try{ localStorage.setItem(LS_SAVED,JSON.stringify(S.saved)); }catch(e){} }
+  /* Saved pairs feed the pair alerts (promptove/111): tell the bell and
+     the Telegram sync in js/turn-watch.js whenever the list changes. */
+  function persistSaved(){
+    try{ localStorage.setItem(LS_SAVED,JSON.stringify(S.saved)); }catch(e){}
+    try{ document.dispatchEvent(new Event('rot:pairs')); }catch(e){}
+  }
+
+  /* B: the user's own target for the current saved pair: alert when
+     1 FROM buys at least this many TO. Empty or not a positive number
+     clears it. */
+  function setTarget(v){
+    var p=S.saved.find(function(x){ return x.from===S.from&&x.to===S.to; }); if(!p) return;
+    var n=parseFloat(String(v).replace(',','.'));
+    if(isFinite(n)&&n>0) p.target=+n.toPrecision(12); else delete p.target;
+    persistSaved(); renderSavedPairs();
+  }
   function isSaved(f,t){ return S.saved.some(function(p){ return p.from===f&&p.to===t; }); }
 
   function saveFavourite(){
@@ -269,10 +284,32 @@ var RatioTracker = (function() {
     wrap.innerHTML=S.saved.map(function(p){
       var active=(p.from===S.from&&p.to===S.to);
       return '<button class="rt-saved-chip'+(active?' active':'')+'" onclick="RatioTracker._loadFav(\''+p.from+'\',\''+p.to+'\')">'
-        +lbl(p.from)+' → '+lbl(p.to)
+        +lbl(p.from)+' → '+lbl(p.to)+(p.target>0?' <span class="rt-chip-bell" aria-hidden="true">🔔</span>':'')
         +'<span class="rt-chip-x" onclick="event.stopPropagation();RatioTracker._removeFav(\''+p.from+'\',\''+p.to+'\')">×</span>'
         +'</button>';
-    }).join('');
+    }).join('')+_pairAlertRow();
+  }
+
+  /* Alerts for the current saved pair (promptove/111, Pro): A, the good
+     swap zone, needs nothing; B, a target, is the box. The bell and
+     Telegram both read the server's state (pair_alert_check /
+     send-dm-alerts), not this page. */
+  function _pairAlertRow(){
+    var cur=S.saved.find(function(x){ return x.from===S.from&&x.to===S.to; });
+    if(!cur) return '';
+    if(typeof isPro==='undefined'||!isPro){
+      return '<button type="button" class="rt-pa-lock" onclick="openPro()">⚡ Alerts for saved pairs are a Pro feature</button>';
+    }
+    var now=(S.fromPrice&&S.toPrice)?S.fromPrice/S.toPrice:null;
+    var ph=now?String(fmtRatio(now)).replace(/,/g,''):'';
+    return '<div class="rt-pair-alert">'
+      +'<span class="rt-pa-l">🔔 Alert when</span>'
+      +'<span class="rt-pa-eq">1 '+lbl(S.from)+' ≥</span>'
+      +'<input type="number" min="0" step="any" inputmode="decimal" class="rt-pa-inp" aria-label="Target ratio"'
+        +' value="'+(cur.target>0?cur.target:'')+'" placeholder="'+ph+'" onchange="RatioTracker._setTarget(this.value)">'
+      +'<span class="rt-pa-eq">'+lbl(S.to)+'</span>'
+      +'<span class="rt-pa-note">Also when it enters the good swap zone. Shown on the bell, and on Telegram once linked.</span>'
+      +'</div>';
   }
 
   /* ── Data loading ────────────────────────────────────────────── */
@@ -1033,9 +1070,12 @@ var RatioTracker = (function() {
     loadAll:function(force){loadAll(force!==undefined?force:true);},
     onFromChange:onFromChange, onToChange:onToChange, calcSwap:calcSwap,
     swapPair:swapPair,
-    _loadFav:loadFavourite, _removeFav:removeFavourite,
+    _loadFav:loadFavourite, _removeFav:removeFavourite, _setTarget:setTarget,
     _openPicker:_openPicker, _closePicker:_closePicker, _pickerFilter:_pickerFilter, _pickerSelect:_pickerSelect,
     getState:function(){ return { from:S.from, to:S.to, fromPrice:S.fromPrice, toPrice:S.toPrice, series:S.series||[] }; },
+    /* Saved pairs with their alert targets, for the bell and Telegram
+       (js/turn-watch.js, promptove/111). A copy: callers cannot edit it. */
+    getSaved:function(){ return S.saved.map(function(p){ var o={from:p.from,to:p.to}; if(p.target>0) o.target=p.target; return o; }); },
     lbl:lbl
   };
 

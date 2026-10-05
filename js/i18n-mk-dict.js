@@ -132,8 +132,8 @@ Object.assign(MK_TEXT, {
   'Turn off browser notifications': 'Исклучи ги известувањата во прелистувачот',
   'Browser notifications fire while Rotator is open in a tab. "New" is remembered in this browser.':
     'Известувањата во прелистувачот се појавуваат додека Rotator е отворен во јазиче. „Ново“ се памети во овој прелистувач.',
-  'Exchange and unlock warnings are free. Pro adds turn signs, ETF alerts, Telegram messages and browser notifications.':
-    'Предупредувањата од берзата и за отклучувања се бесплатни. Pro додава знаци за свртување, известувања за ETF, пораки на Telegram и известувања во прелистувачот.',
+  'Exchange and unlock warnings are free. Pro adds turn signs, ETF alerts, saved swap pair alerts, Telegram messages and browser notifications.':
+    'Предупредувањата од берзата и за отклучувања се бесплатни. Pro додава знаци за свртување, известувања за ETF, известувања за зачуваните парови за замена, пораки на Telegram и известувања во прелистувачот.',
   'Telegram connected. New alerts are messaged to you daily.': 'Telegram е поврзан. Новите известувања ви стигнуваат секој ден.',
   'Disconnect': 'Исклучи',
   'Telegram disconnected.': 'Telegram е исклучен.',
@@ -1279,3 +1279,25 @@ Object.assign(MK_TEXT, {
 })();
 
 Object.assign(MK_TEXT, { 'China (Shanghai)': 'Кина (Шангај)' });
+
+/* ── Saved swap pair alerts (promptove/111, 2026-10-05) ── */
+Object.assign(MK_TEXT, {
+  'Alert when': 'Извести кога',
+  'Target ratio': 'Целен однос',
+  'Also when it enters the good swap zone. Shown on the bell, and on Telegram once linked.':
+    'И кога ќе влезе во добрата зона за замена. Се прикажува на ѕвончето, а и на Telegram откако ќе го поврзете.',
+  'Alerts for saved pairs are a Pro feature': 'Известувањата за зачуваните парови се Pro функција',
+  'In the good swap zone': 'Во добрата зона за замена',
+  'Your target is reached': 'Вашата цел е достигната',
+  'pair': 'пар'
+});
+(function () {
+  var P = function (re, fn) { MK_PATTERNS.push([re, fn]); };
+  /* A ratio is a price: it keeps the dot. */
+  P(/^1 (\S+) = ([\d.,]+) (\S+), in the top quarter of its 30-day range\.$/, function (m) {
+    return '1 ' + m[1] + ' = ' + m[2] + ' ' + m[3] + ', во горната четвртина од опсегот за 30 дена.';
+  });
+  P(/^1 (\S+) = ([\d.,]+) (\S+)\. Your target: ([\d.,]+)\.$/, function (m) {
+    return '1 ' + m[1] + ' = ' + m[2] + ' ' + m[3] + '. Вашата цел: ' + m[4] + '.';
+  });
+})();
