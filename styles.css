@@ -5194,6 +5194,11 @@ details.td-reading-trust[open] > summary::before{content:'▾ ';}
 /* The reading's headline on small tiles (readingLineHtml, 2026-10-04) */
 .tile-reading{font-size:11px;line-height:1.3;font-weight:600;font-family:var(--font-ui);margin:4px 0 1px;color:var(--muted);overflow-wrap:anywhere;}
 .tile-reading.good{color:var(--green);} .tile-reading.bad{color:var(--red);} .tile-reading.warn{color:var(--amber);}
+/* Momentum / Worst 30d tiles: up to 6 red messages side by side were too
+   loud (Daniel, 2026-10-05). A muted red at normal weight there; the red
+   bar, WORST badge and red percentages still say which way it went. */
+.sig-tile .tile-reading.bad{color:rgba(239,68,68,.68);font-weight:500;}
+:root.light .sig-tile .tile-reading.bad{color:rgba(185,28,28,.75);}
 
 /* Volume tile in the Insight Engine (_tdVolumeTile, 2026-10-04) */
 .td-vol-hi{color:var(--amber);}

@@ -498,13 +498,44 @@ function tutGoNext() {
 }
 
 function tutStep(dir) {
+  /* The phone suggestion's "Start here anyway" is the Next button. */
+  if (_tutGate) { var go = _tutGate; _tutGate = null; if (dir > 0) go(); return; }
   tutStep_ += dir;
   if (tutStep_ < 0) tutStep_ = 0;
   if (tutStep_ >= TUT_STEPS.length) { endTutorial(); return; }
   tutRender();
 }
 
-function startTutorial() {
+/* ── Phones: suggest the computer first (Daniel, 2026-10-05) ──
+   On a phone the tour card covers 80-90% of the screen, so the reader
+   never sees what it points at. Before either tour starts on a phone,
+   one card says so and offers to start anyway; "Turn off" ends it, and
+   the ⚙ gear can replay it. */
+var _tutGate = null;
+function _tutIsPhone() { return window.innerWidth < 700; }   /* same test as tutPosition()'s centred phone card */
+function _tutShowGate(go) {
+  _tutGate = go; tutActive = true;
+  var tr = function(k, d) { return (typeof t === 'function') ? t(k) : d; };
+  document.getElementById('tut-hole').style.display = 'none';
+  document.getElementById('tut-box').style.display  = 'block';
+  document.getElementById('tut-backdrop').classList.add('active');
+  document.getElementById('tut-step-label').textContent = tr('tut_phone_label', 'TIP');
+  document.getElementById('tut-title').textContent      = tr('tut_phone_title', 'The tour is made for a computer');
+  document.getElementById('tut-desc').innerHTML         = '<div style="font-size:14px;line-height:1.8;">' + _tutMd(tr('tut_phone_text', '')) + '</div>';
+  document.getElementById('tut-disclaimer').style.display = 'none';
+  document.getElementById('tut-agree').style.display      = 'none';
+  document.getElementById('tut-dots').innerHTML = '';
+  document.getElementById('tut-prev').style.display = 'none';
+  var next = document.getElementById('tut-next');
+  next.disabled = false; next.textContent = tr('tut_phone_go', 'Start here anyway →');
+  var box = document.getElementById('tut-box');
+  box.style.maxHeight = ''; box.style.overflowY = '';
+  tutPosition();
+}
+
+function startTutorial(force) {
+  if (force !== true && _tutIsPhone()) { _tutShowGate(function() { startTutorial(true); }); return; }
+  _tutGate = null;
   tutStep_ = 0; tutActive = true;
   document.getElementById('tut-hole').style.display     = 'block';
   document.getElementById('tut-box').style.display      = 'block';
@@ -513,7 +544,7 @@ function startTutorial() {
 }
 
 function endTutorial() {
-  tutActive = false;
+  tutActive = false; _tutGate = null;
   _tutReveal(null);
   document.getElementById('tut-hole').style.display = 'none';
   document.getElementById('tut-box').style.display  = 'none';
@@ -677,9 +708,19 @@ var PRO_TUT_EN = JSON.parse(JSON.stringify(PRO_TUT_STEPS));
 /* ── Pro tutorial engine (reuses base tutorial UI) ──────────── */
 var proTutOrigSteps = null;
 
-function startProTutorial() {
-  /* Don't show if already completed */
-  try { if (localStorage.getItem(PRO_TUT_KEY) === 'done') return; } catch(e) {}
+function startProTutorial(force) {
+  if (force !== true) {
+    /* Don't show if already completed */
+    try { if (localStorage.getItem(PRO_TUT_KEY) === 'done') return; } catch(e) {}
+    /* Phones: the computer suggestion first (see _tutShowGate). It counts
+       as seen, so it does not come back; the ⚙ gear replays the tour. */
+    if (_tutIsPhone()) {
+      try { localStorage.setItem(PRO_TUT_KEY, 'done'); } catch(e) {}
+      _tutShowGate(function() { startProTutorial(true); });
+      return;
+    }
+  }
+  _tutGate = null;
 
   /* Swap in Pro steps, preserving originals */
   proTutOrigSteps = TUT_STEPS;
