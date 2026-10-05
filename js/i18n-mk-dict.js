@@ -373,7 +373,7 @@ Object.assign(MK_TEXT, {
   'High Volume + Stable Price (Accumulation)': 'Висок обем + стабилна цена (акумулација)',
   'High Liquidity Interest': 'Висок интерес за ликвидност', 'Moderate Volume Activity': 'Умерена активност на обемот',
   'Low Liquidity (Large Cap)': 'Ниска ликвидност (голема капитализација)', 'Below-Average Volume': 'Обем под просекот',
-  'MACD Bullish Cross': 'MACD пресек во пораст', 'MACD Bearish Cross': 'MACD пресек во опаѓање',
+  'MACD Bullish Cross': 'MACD пресек во пораст', 'MACD Bearish Cross': 'MACD пресек во опаѓање', 'MACD Above Signal': 'MACD над сигналната линија', 'MACD Below Signal': 'MACD под сигналната линија',
   'BB Wide — High Volatility': 'BB широки — висока волатилност', 'Volume Drying Up': 'Обемот пресушува',
   'Binance 4H data': 'Binance 4H податоци',
   'FEAR & GREED INDEX ': 'ИНДЕКС НА СТРАВ И АЛЧНОСТ',
@@ -560,7 +560,7 @@ Object.assign(MK_TEXT, {
   var n = '([−\\-+]?[\\d.,]+)';
   var plur = function (k, one, many) { return Number(k) === 1 ? one : many; };
   P(/^(\d+) days? of history recorded so far — the trend line appears at (\d+)\. One reading is added per day\.$/, function (m) { return m[1] + ' ' + plur(m[1], 'ден', 'дена') + ' историја досега — линијата на трендот се појавува на ' + m[2] + '. Секој ден се додава по едно читање.'; });
-  var RSI_ZONE = { 'Oversold': 'Препродадено', 'Low Momentum': 'Слаб моментум', 'Cooling': 'Се лади', 'Overbought': 'Прекупено', 'Hot Zone': 'Жешка зона', 'Warming': 'Се загрева' };
+  var RSI_ZONE = { 'Low': 'Ниско', 'Neutral': 'Неутрално', 'Elevated': 'Покачено', 'Oversold': 'Препродадено', 'Low Momentum': 'Слаб моментум', 'Cooling': 'Се лади', 'Overbought': 'Прекупено', 'Hot Zone': 'Жешка зона', 'Warming': 'Се загрева' };
 
   /* Coin window: the reading */
   P(/^Ran ahead this week · (\d+) cooling signs?$/, function (m) { return 'Истрча напред оваа недела · ' + m[1] + ' ' + plur(m[1], 'знак на смирување', 'знаци на смирување'); });
@@ -637,6 +637,10 @@ Object.assign(MK_TEXT, {
   /* Score extras, market cells */
   P(/^#(\d+) · top (\d+)%$/, function (m) { return '#' + m[1] + ' · горни ' + m[2] + '%'; });
   P(/^no 30-day pullback yet \(30D ([^)]+)\)$/, function (m) { return 'сè уште без 30-дневно повлекување (30D ' + m[1] + ')'; });
+  /* RSI line caption since promptove/114: last week and the whole window. */
+  var DIR_MK = { falling: 'паѓа', rising: 'расте', flat: 'рамно' };
+  P(/^Last 7 days: ([\d.]+) → ([\d.]+), (falling|rising|flat) · (\d+) days: ([\d.]+) → ([\d.]+), (falling|rising|flat)$/, function (m) { return 'Последните 7 дена: ' + m[1] + ' → ' + m[2] + ', ' + DIR_MK[m[3]] + ' · ' + m[4] + ' дена: ' + m[5] + ' → ' + m[6] + ', ' + DIR_MK[m[7]]; });
+  P(/^(\d+) days: ([\d.]+) → ([\d.]+), (falling|rising|flat)$/, function (m) { return m[1] + ' дена: ' + m[2] + ' → ' + m[3] + ', ' + DIR_MK[m[4]]; });
   P(/^([\d.]+) → ([\d.]+) · (falling|rising|flat) across the recorded window$/, function (m) { return m[1] + ' → ' + m[2] + ' · ' + { falling: 'паѓа', rising: 'расте', flat: 'рамно' }[m[3]] + ' низ забележаниот период'; });
   P(/^([^ ]+) across the window$/, function (m) { return m[1] + ' низ периодот'; });
   P(/^now ([^ ]+) per 8h$/, function (m) { return 'сега ' + m[1] + ' на 8ч'; });
@@ -660,7 +664,11 @@ Object.assign(MK_TEXT, {
     });
   P(/^Snapshot from ([\d-]+) · Pro sees today's live$/, function (m) { return 'Слика од ' + m[1] + ' · Pro го гледа денешното во живо'; });
   /* Insight Engine readings */
-  P(/^RSI\((\d+)\) (Oversold|Low Momentum|Cooling|Overbought|Hot Zone|Warming)$/, function (m) { return 'RSI(' + m[1] + ') ' + RSI_ZONE[m[2]]; });
+  P(/^RSI\((\d+)\) (Oversold|Low|Neutral|Elevated|Low Momentum|Cooling|Overbought|Hot Zone|Warming)$/, function (m) { return 'RSI(' + m[1] + ') ' + RSI_ZONE[m[2]]; });
+  /* Engine 2.12.0 (promptove/114): the weeks are named, with both numbers. */
+  var MOM_MK = { 'Accelerating': 'Моментумот забрзува', 'Building': 'Моментумот расте', 'Decelerating': 'Моментумот забавува', 'Fading': 'Моментумот слабее' };
+  P(/^Momentum (Accelerating|Building|Decelerating|Fading) \(([^ ]+) this week vs ([^ ]+) the week before\)$/, function (m) { return MOM_MK[m[1]] + ' (' + m[2] + ' оваа недела наспроти ' + m[3] + ' претходната)'; });
+  P(/^(Recovery|Weakening) Trend \(([^ ]+) this week vs a 30D pace of ([^ ]+) a week\)$/, function (m) { return (m[1] === 'Recovery' ? 'Тренд на опоравување' : 'Тренд на слабеење') + ' (' + m[2] + ' оваа недела наспроти просек од ' + m[3] + ' неделно во последните 30 дена)'; });
   P(/^Momentum Accelerating \(([^)]+)\)$/, function (m) { return 'Моментумот забрзува (' + m[1] + ')'; });
   P(/^Momentum Decelerating \(([^)]+)\)$/, function (m) { return 'Моментумот забавува (' + m[1] + ')'; });
   P(/^Recovery Trend \(([^ ]+) vs 30D\)$/, function (m) { return 'Тренд на опоравување (' + m[1] + ' наспроти 30D)'; });

@@ -259,6 +259,48 @@ ul{margin:0 0 13px 20px;} li{color:var(--muted);font-size:14.5px;line-height:1.7
         recorded the day before.
       </p>
     </div>
+
+    <div class="rel">
+      <div class="rel-head">
+        <span class="rel-v">2.12.0</span>
+        <span class="rel-date">5 OCT 2026</span>
+        <span class="tag tag-moved">insight score moved</span>
+        <span class="tag tag-still">counter not restarted</span>
+      </div>
+      <div class="rel-title">The insight said the opposite of what the numbers showed</div>
+      <p>
+        <strong>Bug fixed: this week was compared with the wrong week.</strong> The insight
+        compared an asset's last 7 days with its 14-day and 30-day changes. Those two
+        figures already <em>include</em> the last 7 days, so the comparison was mostly
+        measuring the week before, with the sign flipped. One asset up 71% in a week, after
+        19% the week before, was labelled "Momentum Decelerating". On 5 October,
+        <strong>117 assets that rose over the week were labelled "Weakening Trend"</strong>.
+        It now compares the last 7 days with the 7 days before them, and with the average
+        weekly pace of the last 30 days. Both numbers are printed next to the label, so you
+        can check it yourself.
+      </p>
+      <p>
+        <strong>Bug fixed: RSI words that sounded like a direction.</strong> The insight
+        called an RSI of 38–45 "Cooling" and 55–62 "Warming", which reads as "falling" and
+        "rising". The label only ever looked at the level, never at how RSI had moved, and
+        one asset was "Cooling" while its RSI had climbed from 34.8 to 42.3. It also used
+        different band names from the RSI panel: 72 was "Hot Zone" in one place and
+        "overbought" in the other. The insight now uses the panel's words (oversold, low,
+        neutral, elevated, overbought), and they describe the level only.
+      </p>
+      <p>
+        <strong>Smaller fixes.</strong> "MACD Bullish Cross" described a state, not a cross
+        that just happened, and is now "MACD Above Signal". In the coin window, the RSI line
+        now ends at the live reading shown above it, and its caption gives the last 7 days
+        and the whole recorded period separately, each with its own numbers.
+      </p>
+      <p>
+        The insight score moved on most assets, and through the insight's small nudge it
+        shifted 7 of 177 effective scores in the reference test. <strong>The main score,
+        the rankings and the thresholds did not change.</strong> The counter was kept
+        running: the owner chose not to restart it for this fix.
+      </p>
+    </div>
   </div>
 </section>
 

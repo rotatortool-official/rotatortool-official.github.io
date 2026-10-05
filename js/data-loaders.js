@@ -3648,6 +3648,11 @@ function openTileDetail(coinId, evt) {
           var box = document.getElementById('td-rsi-hist');
           if (!box || box.getAttribute('data-sym') !== sym) return;   /* modal moved on */
           var series = _seriesOf(rows, 'rsi14_daily');
+          /* The live reading ends the line (promptove/114). The history is
+             one snapshot a day and lags the number above it: FOGO showed
+             39.6 over a line ending at 32.2. Now the last point IS the
+             number above, so the two cannot disagree. */
+          if (series.length && rNow != null && Math.abs(series[series.length - 1] - rNow) > 0.05) series.push(rNow);
           var svg = _sparkline(series, 'var(--bnb)', 200, 34);
           if (!svg) {
             box.innerHTML = '<div class="td-hist-note">' + series.length + ' day'
@@ -3655,13 +3660,21 @@ function openTileDetail(coinId, evt) {
               + 'appears at ' + _SPARK_MIN_POINTS + '. One reading is added per day.</div>';
             return;
           }
+          /* Two spans, each with its own numbers (promptove/114). First vs
+             last over the whole window alone called 2Z "rising" (35.6 →
+             38.6) the week it fell from 68.7 to 38.6. A 1-point band
+             counts as flat, so day-to-day noise is not called a move. */
+          var dirOf = function (a, b) { return b - a > 1 ? 'rising' : a - b > 1 ? 'falling' : 'flat'; };
           var first = series[0], last = series[series.length - 1];
-          var dir = last > first ? 'rising' : last < first ? 'falling' : 'flat';
+          var wkFirst = series[Math.max(0, series.length - 8)];
+          var spanTxt = function (a, b) { return a.toFixed(1) + ' → ' + b.toFixed(1) + ', ' + dirOf(a, b); };
           box.innerHTML = '<div class="td-hist-cell" style="margin-top:10px;">'
             + '<div class="td-cell-l">RSI · DAILY OVER TIME<span style="color:var(--muted);font-weight:400;"> · '
             + series.length + ' days</span></div>' + svg
-            + '<div class="td-hist-sub">' + first.toFixed(1) + ' → ' + last.toFixed(1)
-            + ' · ' + dir + ' across the recorded window</div></div>';
+            + '<div class="td-hist-sub">'
+            + (series.length > 8 ? 'Last 7 days: ' + spanTxt(wkFirst, last) + ' · ' + series.length + ' days: ' + spanTxt(first, last)
+                                 : series.length + ' days: ' + spanTxt(first, last))
+            + '</div></div>';
         });
       })(c.sym);
     }
@@ -4023,8 +4036,8 @@ function openTileDetail(coinId, evt) {
         ins.signals.forEach(function(s) {
           s = String(s == null ? '' : s);
           var cls = 'neutral';
-          if (s.indexOf('Oversold') >= 0 || s.indexOf('Accumulation') >= 0 || s.indexOf('Hidden Strength') >= 0 || s.indexOf('Cleared') >= 0 || s.indexOf('Extreme Fear') >= 0 || s.indexOf('Outperforming') >= 0 || s.indexOf('Bullish Cross') >= 0 || s.indexOf('Accelerating') >= 0 || s.indexOf('Recovery') >= 0) cls = 'good';   /* BB Squeeze left neutral: it says nothing about direction (promptove/75) */
-          else if (s.indexOf('Overbought') >= 0 || s.indexOf('Dilution') >= 0 || s.indexOf('Greed') >= 0 || s.indexOf('Underperforming') >= 0 || s.indexOf('Low Liquidity') >= 0 || s.indexOf('Bearish Cross') >= 0 || s.indexOf('Decelerating') >= 0 || s.indexOf('Weakening') >= 0) cls = 'bad';
+          if (s.indexOf('Oversold') >= 0 || s.indexOf('Accumulation') >= 0 || s.indexOf('Hidden Strength') >= 0 || s.indexOf('Cleared') >= 0 || s.indexOf('Extreme Fear') >= 0 || s.indexOf('Outperforming') >= 0 || s.indexOf('Bullish Cross') >= 0 || s.indexOf('MACD Above') >= 0 || s.indexOf('Accelerating') >= 0 || s.indexOf('Recovery') >= 0) cls = 'good';   /* BB Squeeze left neutral: it says nothing about direction (promptove/75) */
+          else if (s.indexOf('Overbought') >= 0 || s.indexOf('Dilution') >= 0 || s.indexOf('Greed') >= 0 || s.indexOf('Underperforming') >= 0 || s.indexOf('Low Liquidity') >= 0 || s.indexOf('Bearish Cross') >= 0 || s.indexOf('MACD Below') >= 0 || s.indexOf('Decelerating') >= 0 || s.indexOf('Weakening') >= 0) cls = 'bad';
           var icon = cls === 'good' ? '✓' : cls === 'bad' ? '−' : '—';
           var hlCls = cls === 'good' ? ' highlight-good' : cls === 'bad' ? ' highlight-bad' : '';
           dlHtml += '<div class="signal-tile' + hlCls + '">'
@@ -4055,8 +4068,8 @@ function openTileDetail(coinId, evt) {
         insHtml += '<div class="signal-tile-grid">';
         ins.signals.forEach(function(s) {
           var cls = 'neutral';
-          if (s.indexOf('Oversold') >= 0 || s.indexOf('Accumulation') >= 0 || s.indexOf('Hidden Strength') >= 0 || s.indexOf('Cleared') >= 0 || s.indexOf('Extreme Fear') >= 0 || s.indexOf('Outperforming') >= 0 || s.indexOf('Bullish Cross') >= 0 || s.indexOf('Accelerating') >= 0 || s.indexOf('Recovery') >= 0) cls = 'good';   /* BB Squeeze left neutral: it says nothing about direction (promptove/75) */
-          else if (s.indexOf('Overbought') >= 0 || s.indexOf('Dilution') >= 0 || s.indexOf('Greed') >= 0 || s.indexOf('Underperforming') >= 0 || s.indexOf('Low Liquidity') >= 0 || s.indexOf('Bearish Cross') >= 0 || s.indexOf('Decelerating') >= 0 || s.indexOf('Weakening') >= 0) cls = 'bad';
+          if (s.indexOf('Oversold') >= 0 || s.indexOf('Accumulation') >= 0 || s.indexOf('Hidden Strength') >= 0 || s.indexOf('Cleared') >= 0 || s.indexOf('Extreme Fear') >= 0 || s.indexOf('Outperforming') >= 0 || s.indexOf('Bullish Cross') >= 0 || s.indexOf('MACD Above') >= 0 || s.indexOf('Accelerating') >= 0 || s.indexOf('Recovery') >= 0) cls = 'good';   /* BB Squeeze left neutral: it says nothing about direction (promptove/75) */
+          else if (s.indexOf('Overbought') >= 0 || s.indexOf('Dilution') >= 0 || s.indexOf('Greed') >= 0 || s.indexOf('Underperforming') >= 0 || s.indexOf('Low Liquidity') >= 0 || s.indexOf('Bearish Cross') >= 0 || s.indexOf('MACD Below') >= 0 || s.indexOf('Decelerating') >= 0 || s.indexOf('Weakening') >= 0) cls = 'bad';
           var icon = cls === 'good' ? '✓' : cls === 'bad' ? '−' : '—';
           var hlCls = cls === 'good' ? ' highlight-good' : cls === 'bad' ? ' highlight-bad' : '';
           insHtml += '<div class="signal-tile' + hlCls + '">'

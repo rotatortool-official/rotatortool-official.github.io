@@ -208,7 +208,16 @@
      no score, rank or zone, only `eligible`, `exclusions` and therefore
      the candidate class; test/verify-eligibility.js asserts it. An absent
      map changes nothing. */
-  var ENGINE_VERSION = '2.11.0';
+  /* 2.12.0 — insight fixes (2026-10-05, promptove/114). NOT additive:
+     the insight score moves, and through the insight↔rotation dampening
+     a zone near a band can too. Pillar 2 compared this week with
+     cumulative 14- and 30-day returns that already contain this week;
+     it now uses the week before (p14 − p7) and the 30-day weekly pace,
+     the split the candidate classifier always used. RSI words follow the
+     RSI panel's bands and name a level, never a direction; MACD states
+     say "above / below signal" instead of "cross". The record is NOT
+     reset (owner, 2026-10-05): see verify-tracking-labels.js. */
+  var ENGINE_VERSION = '2.12.0';
   var SCORING_MODELS = ['v1', 'v2'];
 
   /* ── Eligibility defaults ──────────────────────────────────────────
@@ -884,25 +893,50 @@
     var signals = [];
 
     /* PILLAR 1 — RSI momentum. Real Wilder RSI(14) or nothing. */
+    /* The WORD is the level, in the same bands the coin window's RSI panel
+       and Turn signs use (CANDIDATE_RULES.rsi: 30 / 45 / 60 / 70). Until
+       2.12.0 this pillar printed its own scoring band names — "Cooling",
+       "Warming", "Hot Zone", "Low Momentum" — which read as a DIRECTION
+       the reading never measured: DEXE was "RSI(42) Cooling" while its
+       RSI had risen 34.8 → 42.3, and RSI 72 was "Hot Zone" here and
+       "overbought" one panel down. The point bands below did not move. */
     if (typeof rsi === 'number') {
-      var lbl = 'RSI(' + rsi.toFixed(0) + ')';
-      if      (rsi <= r.rsi.deepOversold) { pts += r.rsi.pts.deepOversold; signals.push(lbl + ' Oversold'); }
-      else if (rsi <= r.rsi.oversold)     { pts += r.rsi.pts.oversold;     signals.push(lbl + ' Low Momentum'); }
-      else if (rsi <= r.rsi.cooling)      { pts += r.rsi.pts.cooling;      signals.push(lbl + ' Cooling'); }
-      else if (rsi >= r.rsi.overbought)   { pts += r.rsi.pts.overbought;   signals.push(lbl + ' Overbought'); }
-      else if (rsi >= r.rsi.hot)          { pts += r.rsi.pts.hot;          signals.push(lbl + ' Hot Zone'); }
-      else if (rsi >= r.rsi.warming)      { pts += r.rsi.pts.warming;      signals.push(lbl + ' Warming'); }
+      var cr = CANDIDATE_RULES.rsi;
+      var word = rsi <= cr.oversold ? 'Oversold' : rsi <= cr.confirm ? 'Low'
+               : rsi < cr.neutralHigh ? 'Neutral' : rsi < cr.overbought ? 'Elevated' : 'Overbought';
+      var lbl = 'RSI(' + rsi.toFixed(0) + ') ' + word;
+      if      (rsi <= r.rsi.deepOversold) { pts += r.rsi.pts.deepOversold; signals.push(lbl); }
+      else if (rsi <= r.rsi.oversold)     { pts += r.rsi.pts.oversold;     signals.push(lbl); }
+      else if (rsi <= r.rsi.cooling)      { pts += r.rsi.pts.cooling;      signals.push(lbl); }
+      else if (rsi >= r.rsi.overbought)   { pts += r.rsi.pts.overbought;   signals.push(lbl); }
+      else if (rsi >= r.rsi.hot)          { pts += r.rsi.pts.hot;          signals.push(lbl); }
+      else if (rsi >= r.rsi.warming)      { pts += r.rsi.pts.warming;      signals.push(lbl); }
     }
 
-    /* PILLAR 2 — momentum shape, from the aggregate returns. */
-    var d714 = (c.p7 || 0) - (c.p14 || 0);
-    var d730 = (c.p7 || 0) - (c.p30 || 0);
-    if      (d714 >  r.momentum.fast) { pts += r.momentum.pts.fast; signals.push('Momentum Accelerating (+' + d714.toFixed(1) + '%)'); }
-    else if (d714 >  r.momentum.slow) { pts += r.momentum.pts.slow; signals.push('Momentum Building'); }
-    else if (d714 < -r.momentum.fast) { pts += r.momentum.pts.drop; signals.push('Momentum Decelerating (' + d714.toFixed(1) + '%)'); }
-    else if (d714 < -r.momentum.slow) { pts += r.momentum.pts.fade; signals.push('Momentum Fading'); }
-    if      (d730 >  r.momentum.recovery) { pts += r.momentum.pts.recovery; signals.push('Recovery Trend (+' + d730.toFixed(1) + '% vs 30D)'); }
-    else if (d730 < -r.momentum.recovery) { pts += r.momentum.pts.decay;    signals.push('Weakening Trend (' + d730.toFixed(1) + '% vs 30D)'); }
+    /* PILLAR 2 — momentum shape, from the aggregate returns.
+       FIXED in 2.12.0. It compared p7 with p14 and with p30 directly, but
+       p14 and p30 are CUMULATIVE and already contain this week. So
+       "p7 − p14" was just minus last week's move: NIGHT, up 71% this week
+       after 19% the week before, read "Momentum Decelerating (−19.3%)".
+       And "p7 − p30" set a week against a month: 117 coins that were up
+       on the week read "Weakening Trend" on 2026-10-05.
+       Now the same split the candidate classifier has always used: the
+       week before is days 8-14 (p14 − p7), and the 30-day trend is its
+       weekly pace (p30 × 7 / 30). Thresholds and points are unchanged. */
+    var p7 = c.p7 || 0;
+    var priorWeek = (c.p14 || 0) - p7;
+    var pace30 = (c.p30 || 0) * 7 / 30;
+    var d714 = p7 - priorWeek;
+    var d730 = p7 - pace30;
+    var sp = function (v) { return (v >= 0 ? '+' : '') + v.toFixed(1) + '%'; };
+    var wk = ' (' + sp(p7) + ' this week vs ' + sp(priorWeek) + ' the week before)';
+    var pc = ' (' + sp(p7) + ' this week vs a 30D pace of ' + sp(pace30) + ' a week)';
+    if      (d714 >  r.momentum.fast) { pts += r.momentum.pts.fast; signals.push('Momentum Accelerating' + wk); }
+    else if (d714 >  r.momentum.slow) { pts += r.momentum.pts.slow; signals.push('Momentum Building' + wk); }
+    else if (d714 < -r.momentum.fast) { pts += r.momentum.pts.drop; signals.push('Momentum Decelerating' + wk); }
+    else if (d714 < -r.momentum.slow) { pts += r.momentum.pts.fade; signals.push('Momentum Fading' + wk); }
+    if      (d730 >  r.momentum.recovery) { pts += r.momentum.pts.recovery; signals.push('Recovery Trend' + pc); }
+    else if (d730 < -r.momentum.recovery) { pts += r.momentum.pts.decay;    signals.push('Weakening Trend' + pc); }
 
     /* PILLAR 4 — turnover against market cap. (Pillar 3, Bollinger, is
        display-only now — see insightDetail(). The numbering is kept
@@ -993,8 +1027,8 @@
     out.macd = _calcMACD(closes);
     out.bb = _calcBollinger(closes, d.bbPeriod, d.bbMult);
 
-    if (out.macd.line > out.macd.signal && out.macd.hist > 0) out.signals.push('MACD Bullish Cross');
-    else if (out.macd.line < out.macd.signal && out.macd.hist < 0) out.signals.push('MACD Bearish Cross');
+    if (out.macd.line > out.macd.signal && out.macd.hist > 0) out.signals.push('MACD Above Signal');   /* a state, not a crossing: was "MACD Bullish Cross" until 2.12.0 */
+    else if (out.macd.line < out.macd.signal && out.macd.hist < 0) out.signals.push('MACD Below Signal');
 
     if      (out.bb.width < d.bbSqueeze) out.signals.push('BB Squeeze (width ' + out.bb.width.toFixed(1) + '%) — volatility compressed');   /* was "Breakout Likely": a forecast nothing here tested, and a squeeze says nothing about direction (promptove/75) */
     else if (out.bb.width > d.bbWide)    out.signals.push('BB Wide — High Volatility');

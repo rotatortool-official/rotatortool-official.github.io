@@ -114,7 +114,12 @@ var SignalHistory = (function() {
      10-11 to the end of October. Calls already made are graded on their
      own stored data either way. */
   var STATS_FROM_DATE = '2026-09-11';
-  var ENGINE_LABEL    = '2.11.0';
+  /* 2.12.0 since 2026-10-05, ALSO without moving STATS_FROM_DATE: it
+     fixes the insight's momentum maths and wording (promptove/114). The
+     insight score moves, and a zone near a band can through the
+     dampening; the owner chose not to restart the record ("they will
+     become better over time"). */
+  var ENGINE_LABEL    = '2.12.0';
 
   function _passesCutoff(dateStr) {
     return typeof dateStr === 'string' && dateStr >= STATS_FROM_DATE;
