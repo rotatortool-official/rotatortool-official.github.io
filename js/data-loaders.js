@@ -1993,6 +1993,13 @@ function _bfWorldCell(it, o) {
        before; 30D does the same; both draw the 12 months. */
     w[7] = { c: it.c1m, s: s, l: '1m' };
     w[30] = { c: it.c1m, s: s, l: '1m' };
+    /* 3M / 6M in months, not days (Daniel, 2026-10-05). The server's n90
+       counts the points inside 90 days (Jun, Jul, Aug for an August
+       reading): two months of line, while c90 compares with May. A change
+       over N months needs N+1 monthly points, so the line now starts at
+       the same month the percentage does. */
+    if (s.length >= 4) w[90]  = { c: it.c90,  s: s.slice(-4), l: '3m' };
+    if (s.length >= 7) w[182] = { c: it.c182, s: s.slice(-7), l: '6m' };
     if (Array.isArray(it.s3) && it.s3.length > 2) w[1095] = { c: it.c1095, s: it.s3, l: '3y' };
   }
   /* o.mk: the Macedonian page shows SI units (Daniel, 2026-10-04): copper
