@@ -109,8 +109,8 @@ ul{margin:0 0 13px 20px;} li{color:var(--muted);font-size:14.5px;line-height:1.7
     <h2><span class="num">01</span>Why this page exists</h2>
     <p>
       The counter on the <a href="track-record.html" style="color:var(--bnb);text-decoration:underline;text-underline-offset:2px;">track record</a>
-      page has restarted twice in one week. Without an explanation that looks like
-      a tool hiding a bad run, so here is the explanation.
+      page has restarted several times, all of them in September 2026. Without an
+      explanation that looks like a tool hiding a bad run, so here is the explanation.
     </p>
     <p>
       Rotator publishes a running accuracy figure. That figure is only meaningful if
@@ -139,11 +139,16 @@ ul{margin:0 0 13px 20px;} li{color:var(--muted);font-size:14.5px;line-height:1.7
       calls being graded are drawn from a different population.</p>
     </div>
     <p>
-      Of the four releases below, <strong>two moved a score and two did not</strong>.
-      The two that did not were built that way deliberately: a change that only adds
-      information, without touching any existing number, leaves the record intact and
-      comparable. That is worth designing for, and it is why 2.2.0 was built as a
-      separate classification rather than as another term inside the score.
+      Most releases below moved no score. They were built that way deliberately: a change
+      that only adds information, without touching any existing number, leaves the record
+      intact and comparable. That is worth designing for, and it is why 2.2.0 was built as
+      a separate classification rather than as another term inside the score.
+    </p>
+    <p>
+      <strong>Two exceptions, stated plainly.</strong> 2.11.0 changed which coins can be
+      selected, and 2.12.0 moved the insight score. By the test above, both should have
+      restarted the counter. The owner chose to keep it running instead, so the first
+      30-day results would not be pushed back again. Both entries below say so.
     </p>
   </div>
 </section>
@@ -262,6 +267,183 @@ ul{margin:0 0 13px 20px;} li{color:var(--muted);font-size:14.5px;line-height:1.7
 
     <div class="rel">
       <div class="rel-head">
+        <span class="rel-v">2.4.0</span>
+        <span class="rel-date">9 SEP 2026</span>
+        <span class="tag tag-still">no score moved</span>
+      </div>
+      <div class="rel-title">Every update now says what changed since the last one</div>
+      <p>
+        Each update now lists which assets moved rank, moved score, changed band or changed
+        class since the previous update. This is the data behind "what changed" on the main
+        page, and the same list feeds the Telegram channel and alerts, so they can never
+        disagree with each other.
+      </p>
+      <p>
+        <strong>No score, ranking or band changed.</strong> Found while building it: two
+        different coins both report as FRAX, so the comparison is keyed on the coin itself,
+        not its ticker. Keyed on the ticker, an identical rerun had reported a 9-point move
+        that never happened.
+      </p>
+    </div>
+
+    <div class="rel">
+      <div class="rel-head">
+        <span class="rel-v">2.4.1</span>
+        <span class="rel-date">10 SEP 2026</span>
+        <span class="tag tag-still">no score moved</span>
+      </div>
+      <div class="rel-title">The movers list stopped leading with untradable coins</div>
+      <p>
+        The biggest mover in one update was a coin with $686 of daily trading volume, and it
+        was leading the brief. Movers already excluded for being untradable are now left out
+        of the list. A coin excluded for another reason, for example being delisted on one
+        exchange while trading over $100 million a day elsewhere, is still reported.
+      </p>
+    </div>
+
+    <div class="rel">
+      <div class="rel-head">
+        <span class="rel-v">2.5.0</span>
+        <span class="rel-date">10 SEP 2026</span>
+        <span class="tag tag-moved">band moved · counter restarted</span>
+      </div>
+      <div class="rel-title">A label stuck to assets long after their score had left</div>
+      <p>
+        To stop assets flickering in and out of a band, a label is held for a while after the
+        score leaves it. That hold ran all the way back to 50, so an asset that entered the
+        buy band at 38 kept the label until 50. Nobody chose those distances, and they changed
+        with the market cycle.
+      </p>
+      <p>
+        Across 501 stored updates, <strong>41% of published SELL labels and 14% of published
+        BUY labels</strong> were on assets whose score no longer met the line the label
+        claimed. The hold is now 4 points past whichever line the asset crossed, the same in
+        every cycle. Bands moved, so the counter restarted.
+      </p>
+    </div>
+
+    <div class="rel">
+      <div class="rel-head">
+        <span class="rel-v">2.6.0</span>
+        <span class="rel-date">10 SEP 2026</span>
+        <span class="tag tag-moved">score moved</span>
+      </div>
+      <div class="rel-title">The supply reading no longer depended on one missing field</div>
+      <p>
+        How much of a coin's supply is already unlocked was read from its maximum supply
+        only. 55 of 166 assets have no maximum, so they all took the same flat penalty: a coin
+        with 100% in circulation scored the same as one with 25%. The reading now falls back
+        to total supply, which every asset has.
+      </p>
+      <p>
+        Scores moved for those 55 assets, by +7.7 points on average (from −15 to +10). The
+        other 111 did not move.
+      </p>
+    </div>
+
+    <div class="rel">
+      <div class="rel-head">
+        <span class="rel-v">2.7.0</span>
+        <span class="rel-date">10 SEP 2026</span>
+        <span class="tag tag-still">no score moved</span>
+      </div>
+      <div class="rel-title">Futures data was added, and given no weight on purpose</div>
+      <p>
+        Funding rates, open interest, the long/short ratio and taker buy/sell volume from
+        Binance futures were brought into every update for the first time. They are shown,
+        but they count for <strong>nothing</strong> in the score: there was not yet enough
+        history to show that they predict anything, and in the few days available, funding
+        pointed one way and then the other.
+      </p>
+      <p>
+        A test runs the same day with and without the futures data and requires identical
+        scores, rankings and bands. If the data is ever given weight, that test has to change,
+        and the change has to come with the measurement that justifies it.
+      </p>
+    </div>
+
+    <div class="rel">
+      <div class="rel-head">
+        <span class="rel-v">2.8.0</span>
+        <span class="rel-date">11 SEP 2026</span>
+        <span class="tag tag-moved">selection changed · counter restarted</span>
+      </div>
+      <div class="rel-title">Coins Binance may delist were hidden on the page, but not in the alerts</div>
+      <p>
+        Binance's Monitoring Tag marks a pair that still trades but is under review for
+        possible delisting. The website already hid these coins, but the engine did not, so
+        the alerts would have sent them. Across every stored update, <strong>308 of 685 buy
+        candidates (45%)</strong> carried that tag.
+      </p>
+      <p>
+        The tag is now an exclusion inside the engine, so the page, the stored data, the
+        alerts and the bot all share one answer. The tracked list also grew from 194 to 250
+        assets. The selection changed, so the counter restarted.
+      </p>
+    </div>
+
+    <div class="rel">
+      <div class="rel-head">
+        <span class="rel-v">2.9.0</span>
+        <span class="rel-date">11 SEP 2026</span>
+        <span class="tag tag-moved">score moved · selection changed</span>
+      </div>
+      <div class="rel-title">The unlock penalty was pushing coins onto the buy list</div>
+      <p>
+        <strong>Bug fixed.</strong> A coin with a large token unlock due within 30 days lost
+        15 points. In this model a <em>low</em> score is the buy side, so the penalty pushed
+        those coins <strong>toward</strong> being recommended. It had never fired, because no
+        unlock data existed. When a real unlock feed arrived, the first coin it touched went
+        from neutral (50) to the buy list (35) purely because of the penalty.
+      </p>
+      <p>
+        An unlock above 5% within 30 days now keeps a coin off the buy list instead, and takes
+        no points from the score. A coin you already hold is still scored and reported. The
+        coin window shows the unlock percentage and date, and says "no schedule" where none is
+        known, rather than a dash that would look like "none due".
+      </p>
+    </div>
+
+    <div class="rel">
+      <div class="rel-head">
+        <span class="rel-v">2.10.0</span>
+        <span class="rel-date">15 SEP 2026</span>
+        <span class="tag tag-still">no score moved</span>
+      </div>
+      <div class="rel-title">A flag for when the whole market is oversold</div>
+      <p>
+        Each update now records whether the market as a whole is oversold: the share of
+        tracked coins whose 4-hour RSI is below 20. It describes the market, not any single
+        coin, and is shown as context only.
+      </p>
+      <p>
+        <strong>No score, ranking, band or class changed</strong>: a test runs the same day
+        with and without the flag and requires identical results. The counter did not restart.
+      </p>
+    </div>
+
+    <div class="rel">
+      <div class="rel-head">
+        <span class="rel-v">2.11.0</span>
+        <span class="rel-date">1 OCT 2026</span>
+        <span class="tag tag-still">no score moved</span>
+        <span class="tag tag-still">counter not restarted</span>
+      </div>
+      <div class="rel-title">The coin list follows the market, and thin coins are listed but not put forward</div>
+      <p>
+        The tracked list is now rebuilt every week from the market. A coin that trades under
+        $5 million a day on average, or one of three meme fillers in the list, is still listed
+        and scored, but is never put forward as a leader or as a coin that may be turning.
+      </p>
+      <p>
+        <strong>No score, ranking or band changed.</strong> The new list does change which
+        coins can be selected, which would normally restart the counter. The owner chose to
+        keep it running, so the first 30-day results still arrive from 11 October.
+      </p>
+    </div>
+
+    <div class="rel">
+      <div class="rel-head">
         <span class="rel-v">2.12.0</span>
         <span class="rel-date">5 OCT 2026</span>
         <span class="tag tag-moved">insight score moved</span>
@@ -309,15 +491,23 @@ ul{margin:0 0 13px 20px;} li{color:var(--muted);font-size:14.5px;line-height:1.7
     <h2><span class="num">04</span>What has not changed</h2>
     <div class="tbl-scroll">
       <table class="tbl">
-        <thead><tr><th>Since</th><th>Unchanged across all four releases</th></tr></thead>
+        <thead><tr><th>Since</th><th>Unchanged across every release</th></tr></thead>
         <tbody>
           <tr><td>momentum</td><td>The 7 / 14 / 30-day ranking blend at the core of the score. Re-weighting it was tested and moved the ordering so little it was left alone.</td></tr>
-          <tr><td>eligibility</td><td>Liquidity floor, market-cap sanity and delisted-pair exclusion. An asset can score well and still be untradeable; that has been filtered since before this log begins.</td></tr>
-          <tr><td>grading</td><td>How a published call is judged: price clearing a market-cap-aware threshold within 7–14 days. Unchanged, so accuracy figures are comparable between engines even when scores are not.</td></tr>
-          <tr><td>data</td><td>Prices and market data from CoinGecko; exchange and indicator data from Binance. No change in sources.</td></tr>
+          <tr><td>eligibility</td><td>The liquidity floor, market-cap sanity and delisted-pair exclusion. Exclusions have been <em>added</em> since (Binance's Monitoring Tag in 2.8.0, pending unlocks in 2.9.0, thin-volume coins in 2.11.0); none of the original ones was removed or loosened.</td></tr>
+          <tr><td>data</td><td>Prices and market data from CoinGecko; exchange and indicator data from Binance. Sources have been added since (Binance futures in 2.7.0, DefiLlama unlock schedules in 2.9.0); none was replaced.</td></tr>
         </tbody>
       </table>
     </div>
+    <p>
+      <strong>One thing that did change: how a call is graded.</strong> Until 17 September
+      2026 a call counted as right if the price cleared a fixed bar (1.5% to 5% by market
+      cap) within 7 to 14 days. A blanket call on every coin cleared those bars 66–72% of
+      the time, so they proved little. Since then every call is judged by whether the coin
+      beat the median tracked coin over the next 30 days, which a coin flip wins half the
+      time. This is part of the track record page, not the engine, so it has no version
+      number above.
+    </p>
   </div>
 </section>
 
