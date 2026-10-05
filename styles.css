@@ -5437,3 +5437,54 @@ html.no-anim .mt-viewport::-webkit-scrollbar{display:none;}
 .bf-cn-gap{color:var(--cn-blue);}
 .bf-cn-d{color:var(--muted);}
 .bf-spark-ov{stroke:var(--cn-blue);opacity:.9;}
+
+/* ── TODAY: emblems and text placement, LIGHT THEME ONLY (promptove/113) ──
+   The light theme is the experimental board (Daniel, 2026-10-05). Every
+   rule below is scoped to :root.light; in the dark theme the new
+   elements stay display:none, so it renders exactly as before. The lab
+   bar (data-emb / data-lay on #briefing) is a temporary chooser. */
+.bf-emb,.bf-info,.bf-lab,.bf-more{display:none;}
+:root.light .bf-lab{display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-right:auto;order:-1;}
+:root.light .bf-bar{flex-wrap:wrap;}
+:root.light .bf-emb{display:block;position:absolute;pointer-events:none;z-index:0;line-height:0;}
+:root.light .bf-emb svg{display:block;width:100%;height:100%;overflow:visible;}
+:root.light .bf-front > :not(.bf-emb):not(.hb-ecg){position:relative;z-index:1;}
+/* B, corner badge: the default. Room kept beside the title. */
+:root.light #briefing[data-emb="b"] .bf-emb{top:9px;right:12px;opacity:.6;}
+:root.light #briefing[data-emb="b"] .bf-emb-flag{width:27px;height:18px;}
+:root.light #briefing[data-emb="b"] .bf-emb-ico{width:22px;height:22px;top:7px;}
+:root.light #briefing[data-emb="b"] .bf-front .bf-k{padding-right:34px;}
+/* A, faint background: centred behind the whole tile. */
+:root.light #briefing[data-emb="a"] .bf-emb{top:50%;left:50%;width:62%;height:62%;transform:translate(-50%,-50%);opacity:.08;}
+/* C, big faded corner: cropped by the tile's edge, fading toward the text. */
+:root.light #briefing[data-emb="c"] .bf-emb{right:-16px;bottom:-14px;width:118px;height:118px;opacity:.16;transform:rotate(-8deg);
+  -webkit-mask-image:radial-gradient(circle at 72% 72%, #000 30%, transparent 72%);
+          mask-image:radial-gradient(circle at 72% 72%, #000 30%, transparent 72%);}
+:root.light #briefing[data-emb="c"] .bf-emb-flag{width:140px;height:94px;}
+/* Text "Top": the one-line explanation right under the title, so a reader
+   knows what the tile is before reading its numbers. */
+:root.light #briefing[data-lay="top"] .bf-front{display:flex;flex-direction:column;}
+:root.light #briefing[data-lay="top"] .bf-front > *{order:2;}
+:root.light #briefing[data-lay="top"] .bf-front > .bf-k{order:0;}
+:root.light #briefing[data-lay="top"] .bf-front > .bf-d-note{order:1;margin:0 0 6px;opacity:.9;}
+:root.light #briefing[data-lay="top"] .bf-front > .bf-src{order:3;}
+/* Text "Back": the front keeps title, number and line; the explanation
+   and source are on the back, a tap away. Tiles get shorter. */
+:root.light #briefing[data-lay="back"] .bf-front > .bf-d-note,
+:root.light #briefing[data-lay="back"] .bf-front > .bf-src{display:none;}
+/* The front sets the height; a long explanation scrolls on the back. */
+:root.light #briefing[data-lay="back"] .bf-info{display:block;position:absolute;inset:0;overflow-y:auto;}
+:root.light #briefing[data-lay="back"] .bf-info .bf-d-note{font-size:11px;opacity:.95;margin-top:4px;color:var(--text);}
+:root.light #briefing[data-lay="back"] .bf-cell:not(.bf-cell-empty){cursor:pointer;}
+:root.light #briefing[data-lay="back"] .bf-more{
+  display:flex;align-items:center;justify-content:center;position:absolute;right:10px;bottom:8px;z-index:2;
+  width:14px;height:14px;border-radius:50%;border:1px solid var(--bdr2);
+  font:italic 700 9px/1 Georgia,serif;color:var(--muted);
+}
+@media(max-width:900px){
+  :root.light #briefing[data-emb="b"] .bf-emb-flag{width:21px;height:14px;top:9px;right:10px;}
+  :root.light #briefing[data-emb="b"] .bf-emb-ico{width:18px;height:18px;right:10px;}
+  :root.light #briefing[data-emb="b"] .bf-front .bf-k{padding-right:28px;}
+  :root.light #briefing[data-emb="c"] .bf-emb{width:78px;height:78px;right:-10px;bottom:-10px;}
+  :root.light #briefing[data-emb="c"] .bf-emb-flag{width:92px;height:62px;}
+}

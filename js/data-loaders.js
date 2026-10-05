@@ -2042,6 +2042,155 @@ function _bfNetCell(o) {
   };
 }
 
+/* ── TODAY emblems: what a tile is about, before its numbers ──────────
+   Light theme only for now; the light theme is the experimental board
+   (Daniel, 2026-10-05, promptove/113). Every tile gets a small picture of
+   its subject: a flag for a central bank or a government bond, an ingot
+   for a metal, a barrel, a flame, a bolt, a coin. Decoration only: the
+   title still says what the tile is, so the picture is aria-hidden.
+
+   Flags are drawn, not emoji: Windows has no flag emoji and would print
+   the letters "EU" or "JP" instead. Keyed by the English label, which
+   is what c.k holds before the Macedonian layer translates the page. */
+var BF_EMB_BY_K = {
+  'Fed rate': 'us', 'US 3-month': 'us', 'US 2-year': 'us', 'US 10-year': 'us',
+  'ECB rate': 'eu', 'BoJ rate': 'jp', 'Japan 10-year': 'jp', 'Dollar index': 'usd',
+  'Gold': 'gold', 'Silver': 'silver', 'Copper': 'copper', 'Aluminum': 'aluminum',
+  'Oil · WTI': 'barrel', 'Diesel crack spread': 'diesel', 'Natural gas': 'flame', 'Electricity': 'bolt',
+  'Hash rate': 'btc', 'Active addresses': 'btc', 'DeFi TVL': 'lock', 'Stablecoin supply': 'stable',
+  'Ethereum fees': 'eth', 'Solana fees': 'sol', 'Solana DEX volume': 'sol'
+};
+var _BF_INGOT = { gold: ['#e3b23c', '#a87a12'], silver: ['#b0b8c0', '#5d666e'],
+                  copper: ['#c87a4a', '#8a4a26'], aluminum: ['#98a3ad', '#55606a'] };
+function _bfStar(cx, cy, r) {
+  var p = [];
+  for (var i = 0; i < 10; i++) {
+    var a = -Math.PI / 2 + i * Math.PI / 5, rr = i % 2 ? r * 0.42 : r;
+    p.push((cx + rr * Math.cos(a)).toFixed(2) + ' ' + (cy + rr * Math.sin(a)).toFixed(2));
+  }
+  return '<polygon points="' + p.join(' ') + '" fill="#ffcc00"/>';
+}
+function _bfIngot(x, y, w, col) {
+  return '<polygon points="' + (x + 2.5) + ' ' + y + ' ' + (x + w - 2.5) + ' ' + y + ' ' + (x + w) + ' ' + (y + 6) + ' ' + x + ' ' + (y + 6) + '"'
+    + ' fill="' + col[0] + '" stroke="' + col[1] + '" stroke-width=".8" stroke-linejoin="round"/>'
+    + '<line x1="' + (x + 3.2) + '" y1="' + (y + 1.4) + '" x2="' + (x + w - 3.2) + '" y2="' + (y + 1.4) + '" stroke="#fff" stroke-opacity=".55" stroke-width=".8"/>';
+}
+var _bfEmbCache = {};
+function _bfEmbSvg(id) {
+  if (_bfEmbCache[id]) return _bfEmbCache[id];
+  var flag = id === 'us' || id === 'eu' || id === 'jp';
+  var s = '';
+  if (id === 'us') {
+    for (var i = 0; i < 7; i++) s += '<rect y="' + (i * 20 / 7).toFixed(3) + '" width="30" height="' + (20 / 7).toFixed(3) + '" fill="' + (i % 2 ? '#fff' : '#b22234') + '"/>';
+    s += '<rect width="13" height="' + (80 / 7).toFixed(3) + '" fill="#3c3b6e"/>';
+    for (var r = 0; r < 3; r++) for (var q = 0; q < 4; q++) s += '<circle cx="' + (2 + q * 3) + '" cy="' + (2 + r * 3.4) + '" r=".7" fill="#fff"/>';
+  } else if (id === 'eu') {
+    s = '<rect width="30" height="20" fill="#003399"/>';
+    for (var k = 0; k < 12; k++) {
+      var a = k * Math.PI / 6;
+      s += _bfStar(15 + 6 * Math.cos(a), 10 + 6 * Math.sin(a), 1.25);
+    }
+  } else if (id === 'jp') {
+    s = '<rect width="30" height="20" fill="#fff"/><circle cx="15" cy="10" r="6" fill="#bc002d"/>';
+  } else if (_BF_INGOT[id]) {
+    var c = _BF_INGOT[id];
+    s = _bfIngot(1, 15, 11, c) + _bfIngot(12, 15, 11, c) + _bfIngot(6.5, 8.6, 11, c);
+  } else if (id === 'barrel' || id === 'diesel') {
+    var bx = id === 'diesel' ? 2 : 5;
+    s = '<rect x="' + bx + '" y="3" width="14" height="18" rx="3" fill="#33424a"/>'
+      + '<rect x="' + bx + '" y="7.6" width="14" height="1.3" fill="#7d8f99"/>'
+      + '<rect x="' + bx + '" y="15.1" width="14" height="1.3" fill="#7d8f99"/>';
+    if (id === 'diesel') s += '<path d="M19.5 8.5c0 0-3.5 4.4-3.5 6.8a3.5 3.5 0 0 0 7 0c0-2.4-3.5-6.8-3.5-6.8z" fill="#d49a12"/>';
+  } else if (id === 'flame') {
+    s = '<path d="M12 2c.8 3.6 6 6 6 12a6 6 0 0 1-12 0c0-2.9 1.7-4.9 3-6.6.1 1.9 1 3 2.1 3.2C11 7.7 10.6 5 12 2z" fill="#2f80ed"/>'
+      + '<path d="M12 12.2c.6 1.6 2.6 2.6 2.6 4.6a2.6 2.6 0 0 1-5.2 0c0-1.6 1.6-2.6 2.6-4.6z" fill="#9cc7ff"/>';
+  } else if (id === 'bolt') {
+    s = '<polygon points="13.5 1.5 4 13.5 11 13.5 9.5 22.5 20 9.5 13 9.5" fill="#f2b705" stroke="#b98600" stroke-width=".6" stroke-linejoin="round"/>';
+  } else if (id === 'btc' || id === 'usd' || id === 'stable') {
+    var fill = id === 'btc' ? '#f7931a' : id === 'stable' ? '#26a17b' : 'none';
+    s = '<circle cx="12" cy="12" r="10" fill="' + fill + '"' + (id === 'usd' ? ' stroke="#2e7d32" stroke-width="1.8"' : '') + '/>';
+    if (id === 'btc') s += '<path d="M10 5.5v13M13 5.5v13" stroke="#fff" stroke-width="1.3"/>'
+      + '<text x="12.3" y="16.6" text-anchor="middle" font-family="Arial,sans-serif" font-weight="700" font-size="13" fill="#fff">B</text>';
+    else s += '<text x="12" y="17" text-anchor="middle" font-family="Arial,sans-serif" font-weight="700" font-size="14" fill="'
+      + (id === 'usd' ? '#2e7d32' : '#fff') + '">$</text>';
+  } else if (id === 'lock') {
+    s = '<path d="M8 11V8a4 4 0 0 1 8 0v3" fill="none" stroke="#7b61ff" stroke-width="2.2"/>'
+      + '<rect x="4.5" y="10.5" width="15" height="11" rx="2.2" fill="#7b61ff"/><circle cx="12" cy="15.4" r="1.6" fill="#fff"/>';
+  } else if (id === 'eth') {
+    s = '<polygon points="12 1.5 5 12.3 12 16.4 19 12.3" fill="#627eea"/>'
+      + '<polygon points="12 17.8 5 13.7 12 22.5 19 13.7" fill="#8fa2f2"/>';
+  } else if (id === 'sol') {
+    s = '<polygon points="7 4.5 21 4.5 17.5 8.5 3.5 8.5" fill="#9945ff"/>'
+      + '<polygon points="3.5 10.2 17.5 10.2 21 14.2 7 14.2" fill="#43b4ca"/>'
+      + '<polygon points="7 15.9 21 15.9 17.5 19.9 3.5 19.9" fill="#14f195"/>';
+  }
+  if (!s) return '';
+  return (_bfEmbCache[id] = '<svg viewBox="0 0 ' + (flag ? '30 20' : '24 24') + '" focusable="false">' + s
+    + (flag ? '<rect x=".3" y=".3" width="29.4" height="19.4" fill="none" stroke="#000" stroke-opacity=".18" stroke-width=".6"/>' : '')
+    + '</svg>');
+}
+function _bfEmb(k) {
+  var id = BF_EMB_BY_K[k];
+  var svg = id ? _bfEmbSvg(id) : '';
+  if (!svg) return '';
+  var flag = id === 'us' || id === 'eu' || id === 'jp';
+  return '<span class="bf-emb ' + (flag ? 'bf-emb-flag' : 'bf-emb-ico') + '" aria-hidden="true">' + svg + '</span>';
+}
+
+/* ── TODAY lab: compare looks side by side (light theme only) ─────────
+   A temporary switch for choosing (promptove/113). Emblem: A faint
+   background, B corner badge, C large faded corner. Text: description
+   under the title, on the back of the tile (tap to flip), or where it
+   was. Shown only on a local preview or with ?lab in the address; the
+   losing options get deleted once Daniel picks. */
+var _bfLabOn = (function () {
+  try {
+    return /^(localhost|127\.0\.0\.1)$/.test(location.hostname) || /[?&]lab\b/.test(location.search);
+  } catch (e) { return false; }
+})();
+var _bfLab = { e: 'b', t: 'top' };
+try {
+  var _bfLabSaved = JSON.parse(localStorage.getItem('rot_bf_lab') || 'null');
+  if (_bfLabSaved && /^[abc]$/.test(_bfLabSaved.e)) _bfLab.e = _bfLabSaved.e;
+  if (_bfLabSaved && /^(top|back|now)$/.test(_bfLabSaved.t)) _bfLab.t = _bfLabSaved.t;
+} catch (e) {}
+function _bfLabBar() {
+  if (!_bfLabOn) return '';
+  var b = function (grp, v, label) {
+    return '<button type="button" class="bf-seg-b bf-lab-b" data-g="' + grp + '" data-v="' + v + '" onclick="bfLabSet(\'' + grp + '\',\'' + v + '\')">' + label + '</button>';
+  };
+  return '<div class="bf-lab" translate="no"><span class="bf-bar-l">Lab · emblem</span><div class="bf-seg">'
+    + b('e', 'a', 'A back') + b('e', 'b', 'B corner') + b('e', 'c', 'C big')
+    + '</div><span class="bf-bar-l">text</span><div class="bf-seg">'
+    + b('t', 'top', 'Top') + b('t', 'back', 'Back') + b('t', 'now', 'Now')
+    + '</div></div>';
+}
+function bfLabSet(g, v) {
+  _bfLab[g] = v;
+  try { localStorage.setItem('rot_bf_lab', JSON.stringify(_bfLab)); } catch (e) {}
+  var host = document.getElementById('briefing');
+  if (host) {
+    var flipped = host.querySelectorAll('.bf-cell.flipped');
+    for (var i = 0; i < flipped.length; i++) flipped[i].classList.remove('flipped');
+    _bfLabApply(host);
+  }
+}
+function _bfLabApply(host) {
+  host.setAttribute('data-emb', _bfLab.e);
+  host.setAttribute('data-lay', _bfLab.t);
+  var bs = host.querySelectorAll('.bf-lab-b');
+  for (var i = 0; i < bs.length; i++) bs[i].classList.toggle('on', _bfLab[bs[i].getAttribute('data-g')] === bs[i].getAttribute('data-v'));
+  if (host._bfFlipWired) return;
+  host._bfFlipWired = true;
+  /* "Back" trial: a tap turns the tile to its explanation and back. */
+  host.addEventListener('click', function (e) {
+    if (!document.documentElement.classList.contains('light') || host.getAttribute('data-lay') !== 'back') return;
+    if (e.target.closest('a,button')) return;
+    var cell = e.target.closest('.bf-cell');
+    if (cell && !cell.classList.contains('bf-cell-empty')) cell.classList.toggle('flipped');
+  });
+}
+
 function renderBriefing() {
   var host = document.getElementById('briefing');
   if (!host) return;
@@ -2137,6 +2286,7 @@ function renderBriefing() {
   var face = function (c, days) {
     var win = c.w[days];
     return '<div class="bf-face bf-front">'
+      + _bfEmb(c.k)
       + '<div class="bf-k">' + c.k + '</div>'
       + (c.right
           ? '<div class="bf-vrow"><div class="bf-v">' + c.v + '<span class="bf-u">' + c.u + '</span></div>' + c.right + '</div>'
@@ -2144,6 +2294,14 @@ function renderBriefing() {
       + _bfChange(win.c, win.l, c.pts, c.usd) + c.extra
       + _bfSpark(win.s, (win.c == null) || win.c >= 0, c.pts ? 0.25 : 0,
                  c.pts && win.c != null && Math.abs(win.c) < 0.005, win.o)
+      + '<div class="bf-d-note">' + c.d + '</div>'
+      + c.src
+      + '<span class="bf-more" aria-hidden="true">i</span>'
+      + '</div>'
+      /* The explanation side, for the light-theme "text on the back"
+         trial (promptove/113). Hidden everywhere else. */
+      + '<div class="bf-face bf-back bf-info">'
+      + '<div class="bf-k">' + c.k + '</div>'
       + '<div class="bf-d-note">' + c.d + '</div>'
       + c.src
       + '</div>';
@@ -2158,7 +2316,7 @@ function renderBriefing() {
     + '<button type="button" class="bf-seg-b" data-days="182" onclick="bfSetAll(182)">6M</button>'
     + '<button type="button" class="bf-seg-b" data-days="365" onclick="bfSetAll(365)">1Y</button>'
     + '<button type="button" class="bf-seg-b" data-days="1095" onclick="bfSetAll(1095)">3Y</button>'
-    + '</div></div>';
+    + '</div>' + _bfLabBar() + '</div>';
   groups.forEach(function (g) {
     html += '<div class="bf-group">' + g.t + '</div>';
     g.cells.forEach(function (c) {
@@ -2180,6 +2338,7 @@ function renderBriefing() {
   _bfSyncSeg(host);
   _bfWireTilt(host);
   _bfWireFlash(host);
+  _bfLabApply(host);
 }
 /* A short glow on every tile when the period changes, in a quick
    left-to-right ripple (it used to fire when a tile finished flipping). */
@@ -2595,6 +2754,31 @@ var LANG_STRINGS = {
   mk:{support:'☕ ПОДДРЖИ',    unlockpro:'⚡ ОТКЛУЧИ ПРО',         flag:'🇲🇰'}
 };
 var currentLang = 'en';
+/* Windows draws no flag emoji: "🇬🇧 EN" came out as "GB EN" and "🇲🇰 MK"
+   as "MK MK" (promptove/113). Draw one on a canvas; a real flag has
+   colour, the letter fallback is plain grey. Where it is grey, the flags
+   are removed from the language buttons and the code alone remains. */
+function _flagEmojiOk() {
+  try {
+    var c = document.createElement('canvas'); c.width = c.height = 24;
+    var x = c.getContext('2d');
+    x.textBaseline = 'top'; x.font = '18px sans-serif';
+    x.fillText('🇬🇧', 0, 0);
+    var d = x.getImageData(0, 0, 24, 24).data;
+    for (var i = 0; i < d.length; i += 4) {
+      if (d[i + 3] > 40 && (Math.abs(d[i] - d[i + 1]) > 40 || Math.abs(d[i] - d[i + 2]) > 40)) return true;
+    }
+    return false;
+  } catch (e) { return true; }
+}
+function _stripFlagEmoji() {
+  if (_flagEmojiOk()) return;
+  var bs = document.querySelectorAll('.lang-btn-modal');
+  for (var i = 0; i < bs.length; i++) bs[i].textContent = bs[i].textContent.replace(/\uD83C[\uDDE6-\uDDFF]/g, '').trim();
+}
+if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', _stripFlagEmoji);
+else _stripFlagEmoji();
+
 function setLang(lang) {
   currentLang = lang;
   /* Macedonian side banners key off this class (styles.css, promptove/72). */
