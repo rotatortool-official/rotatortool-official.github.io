@@ -2043,8 +2043,8 @@ function _bfNetCell(o) {
 }
 
 /* ── TODAY emblems: what a tile is about, before its numbers ──────────
-   Light theme only for now; the light theme is the experimental board
-   (Daniel, 2026-10-05, promptove/113). Every tile gets a small picture of
+   Tried on the light theme first (the experimental board), then both
+   themes (Daniel, 2026-10-05, promptove/113). Every tile gets a picture of
    its subject: a flag for a central bank or a government bond, an ingot
    for a metal, a barrel, a flame, a bolt, a coin. Decoration only: the
    title still says what the tile is, so the picture is aria-hidden.
@@ -2097,7 +2097,7 @@ function _bfEmbSvg(id) {
     s = _bfIngot(1, 15, 11, c) + _bfIngot(12, 15, 11, c) + _bfIngot(6.5, 8.6, 11, c);
   } else if (id === 'barrel' || id === 'diesel') {
     var bx = id === 'diesel' ? 2 : 5;
-    s = '<rect x="' + bx + '" y="3" width="14" height="18" rx="3" fill="#33424a"/>'
+    s = '<rect x="' + bx + '" y="3" width="14" height="18" rx="3" fill="#4a5b65"/>'
       + '<rect x="' + bx + '" y="7.6" width="14" height="1.3" fill="#7d8f99"/>'
       + '<rect x="' + bx + '" y="15.1" width="14" height="1.3" fill="#7d8f99"/>';
     if (id === 'diesel') s += '<path d="M19.5 8.5c0 0-3.5 4.4-3.5 6.8a3.5 3.5 0 0 0 7 0c0-2.4-3.5-6.8-3.5-6.8z" fill="#d49a12"/>';
@@ -2137,76 +2137,35 @@ function _bfEmb(k) {
   return '<span class="bf-emb ' + (flag ? 'bf-emb-flag' : 'bf-emb-ico') + '" aria-hidden="true">' + svg + '</span>';
 }
 
-/* ── TODAY lab: compare looks side by side (light theme only) ─────────
-   A temporary switch for choosing (promptove/113). Emblem: A faint
-   background, B corner badge, C large faded corner. Text: description
-   under the title, on the back of the tile (tap to flip), or where it
-   was. Shown only on a local preview or with ?lab in the address; the
-   losing options get deleted once Daniel picks. */
-var _bfLabOn = (function () {
-  try {
-    return /^(localhost|127\.0\.0\.1)$/.test(location.hostname) || /[?&]lab\b/.test(location.search);
-  } catch (e) { return false; }
-})();
-var _bfLab = { e: 'auto', t: 'auto' };
-try {
-  var _bfLabSaved = JSON.parse(localStorage.getItem('rot_bf_lab') || 'null');
-  if (_bfLabSaved && /^(a|b|c|auto)$/.test(_bfLabSaved.e)) _bfLab.e = _bfLabSaved.e;
-  if (_bfLabSaved && /^(top|back|now|auto)$/.test(_bfLabSaved.t)) _bfLab.t = _bfLabSaved.t;
-} catch (e) {}
-function _bfLabBar() {
-  if (!_bfLabOn) return '';
-  var b = function (grp, v, label) {
-    return '<button type="button" class="bf-seg-b bf-lab-b" data-g="' + grp + '" data-v="' + v + '" onclick="bfLabSet(\'' + grp + '\',\'' + v + '\')">' + label + '</button>';
+/* ── TODAY: the explanation is on the back of each tile ───────────────
+   (Daniel, 2026-10-05, promptove/113.) The front is title, number and
+   line; a click or tap turns the tile to what the reading is and where
+   it comes from, and another turns it back. The source link on the back
+   still opens normally. Every tile is a button for the keyboard too. */
+function _bfWireInfo(host) {
+  var cells = host.querySelectorAll('.bf-cell:not(.bf-cell-empty)');
+  for (var i = 0; i < cells.length; i++) {
+    cells[i].setAttribute('tabindex', '0');
+    cells[i].setAttribute('role', 'button');
+    cells[i].setAttribute('aria-pressed', 'false');
+  }
+  if (host._bfInfoWired) return;
+  host._bfInfoWired = true;
+  var turn = function (cell) {
+    var on = cell.classList.toggle('flipped');
+    cell.setAttribute('aria-pressed', on ? 'true' : 'false');
   };
-  return '<div class="bf-lab" translate="no"><span class="bf-bar-l">Lab · emblem</span><div class="bf-seg">'
-    + b('e', 'auto', 'Auto') + b('e', 'a', 'A back') + b('e', 'b', 'B corner') + b('e', 'c', 'C big')
-    + '</div><span class="bf-bar-l">text</span><div class="bf-seg">'
-    + b('t', 'auto', 'Auto') + b('t', 'top', 'Top') + b('t', 'back', 'Back') + b('t', 'now', 'Now')
-    + '</div></div>';
-}
-function bfLabSet(g, v) {
-  _bfLab[g] = v;
-  try { localStorage.setItem('rot_bf_lab', JSON.stringify(_bfLab)); } catch (e) {}
-  var host = document.getElementById('briefing');
-  if (host) {
-    var flipped = host.querySelectorAll('.bf-cell.flipped');
-    for (var i = 0; i < flipped.length; i++) flipped[i].classList.remove('flipped');
-    _bfLabApply(host);
-  }
-}
-/* Auto (Daniel, 2026-10-05: "all are good, can't decide"): the screen
-   decides. Desktop has room for the big faded picture and the
-   description under the title; a phone gets the small badge and the
-   description on the back, so its tiles stay short. */
-var _bfPhoneMq = null;
-try { _bfPhoneMq = window.matchMedia('(max-width: 900px)'); } catch (e) {}
-function _bfIsPhone() { return !!(_bfPhoneMq && _bfPhoneMq.matches); }
-function _bfLabApply(host) {
-  var phone = _bfIsPhone();
-  var lay = _bfLab.t === 'auto' ? (phone ? 'back' : 'top') : _bfLab.t;
-  host.setAttribute('data-emb', _bfLab.e === 'auto' ? (phone ? 'b' : 'c') : _bfLab.e);
-  if (lay !== host.getAttribute('data-lay')) {
-    var flipped = host.querySelectorAll('.bf-cell.flipped');
-    for (var j = 0; j < flipped.length; j++) flipped[j].classList.remove('flipped');
-  }
-  host.setAttribute('data-lay', lay);
-  var bs = host.querySelectorAll('.bf-lab-b');
-  for (var i = 0; i < bs.length; i++) bs[i].classList.toggle('on', _bfLab[bs[i].getAttribute('data-g')] === bs[i].getAttribute('data-v'));
-  if (host._bfFlipWired) return;
-  host._bfFlipWired = true;
-  /* Turning a phone sideways or resizing the window switches with it. */
-  if (_bfPhoneMq) {
-    var re = function () { _bfLabApply(host); };
-    if (_bfPhoneMq.addEventListener) _bfPhoneMq.addEventListener('change', re);
-    else if (_bfPhoneMq.addListener) _bfPhoneMq.addListener(re);
-  }
-  /* "Back" trial: a tap turns the tile to its explanation and back. */
   host.addEventListener('click', function (e) {
-    if (!document.documentElement.classList.contains('light') || host.getAttribute('data-lay') !== 'back') return;
     if (e.target.closest('a,button')) return;
     var cell = e.target.closest('.bf-cell');
-    if (cell && !cell.classList.contains('bf-cell-empty')) cell.classList.toggle('flipped');
+    if (cell && !cell.classList.contains('bf-cell-empty')) turn(cell);
+  });
+  host.addEventListener('keydown', function (e) {
+    if (e.key !== 'Enter' && e.key !== ' ') return;
+    var cell = e.target.closest && e.target.closest('.bf-cell');
+    if (!cell || cell !== e.target || cell.classList.contains('bf-cell-empty')) return;
+    e.preventDefault();
+    turn(cell);
   });
 }
 
@@ -2317,8 +2276,8 @@ function renderBriefing() {
       + c.src
       + '<span class="bf-more" aria-hidden="true">i</span>'
       + '</div>'
-      /* The explanation side, for the light-theme "text on the back"
-         trial (promptove/113). Hidden everywhere else. */
+      /* The explanation side (promptove/113): a click turns the tile.
+         _bfWireInfo below. */
       + '<div class="bf-face bf-back bf-info">'
       + '<div class="bf-k">' + c.k + '</div>'
       + '<div class="bf-d-note">' + c.d + '</div>'
@@ -2335,7 +2294,7 @@ function renderBriefing() {
     + '<button type="button" class="bf-seg-b" data-days="182" onclick="bfSetAll(182)">6M</button>'
     + '<button type="button" class="bf-seg-b" data-days="365" onclick="bfSetAll(365)">1Y</button>'
     + '<button type="button" class="bf-seg-b" data-days="1095" onclick="bfSetAll(1095)">3Y</button>'
-    + '</div>' + _bfLabBar() + '</div>';
+    + '</div></div>';
   groups.forEach(function (g) {
     html += '<div class="bf-group">' + g.t + '</div>';
     g.cells.forEach(function (c) {
@@ -2357,7 +2316,7 @@ function renderBriefing() {
   _bfSyncSeg(host);
   _bfWireTilt(host);
   _bfWireFlash(host);
-  _bfLabApply(host);
+  _bfWireInfo(host);
 }
 /* A short glow on every tile when the period changes, in a quick
    left-to-right ripple (it used to fire when a tile finished flipping). */
