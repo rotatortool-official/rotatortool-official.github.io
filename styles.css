@@ -5514,3 +5514,15 @@ html.no-anim .mt-viewport::-webkit-scrollbar{display:none;}
 :root.light #sec-swap .new-chart-section .rt-range-meta strong{color:#0f172a;}
 :root.light #sec-swap .new-chart-section .rt-bar-track{background:rgba(15,23,42,.12);}
 :root.light #sec-swap .new-chart-section .rt-bar-labels{color:#475569;}
+
+/* ── LEARN MORE: Crypto Gemidzija academy (promptove/119) ──────────
+   Sits above SUPPORT at the rail's foot and takes over its margin-top:auto,
+   so the pair stays at the bottom together. Green, so a partner link does
+   not read as part of the gold "keep Rotator free" ask. */
+.rail-academy{margin-top:auto;text-decoration:none;}
+.rail-academy + .rail-support{margin-top:0;}
+.rail-academy .rail-label{color:var(--green);}
+.rail-academy .rail-support-icon{background:var(--gd);border-color:rgba(0,200,150,.3);}
+.rail-academy:hover .rail-support-icon{border-color:var(--green);}
+.rail-academy:focus-visible{outline:2px solid var(--green);outline-offset:-2px;}
+.mob-more-academy{text-decoration:none;}

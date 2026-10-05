@@ -34,6 +34,9 @@ Object.assign(MK_TEXT, {
   'Download App': 'Преземи апликација', 'Mobile App': 'Мобилна апликација', 'Desktop App': 'Десктоп апликација',
   'Alerts for your coins': 'Известувања за вашите монети', 'Signal Assistant': 'Асистент за сигнали',
   'Buy Me a Coffee': 'Купете ми кафе', 'About Rotator': 'За Rotator', 'Toggle light/dark theme': 'Светла/темна тема',
+  'LEARN MORE': 'ЕДУКАЦИЈА', 'Gemidzija videos': 'Гемиџија видеа',   /* ЕДУКАЦИЈА: their own word, and НАУЧИ ПОВЕЌЕ wrapped in the rail */
+  'Free crypto video lessons from Crypto Gemidzija': 'Бесплатни видео лекции за крипто од Крипто Гемиџија',
+  'Learn more: Crypto Gemidzija videos': 'Научи повеќе: видеа од Крипто Гемиџија',
   'Keep Rotator free': 'Rotator да остане бесплатен', 'keep it free': 'нека остане бесплатен', 'Unlock Pro': 'Отклучи Pro',
   'Support Rotator': 'Поддржи го Rotator',
   'Rotator — an honest market pulse for Binance traders: crypto and tokenized stock scores, portfolio tracking and holder warnings':

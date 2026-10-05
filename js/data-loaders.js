@@ -2660,6 +2660,12 @@ function renderFearGreed(force) {
   el.classList.add('show');
 }
 
+/* LEARN MORE: counts the click out to the Crypto Gemidzija academy, once a
+   session (promptove/119). The link itself is a plain <a target=_blank>. */
+function academyClick() {
+  if (typeof supaCountFeature === 'function') supaCountFeature('academy_click', true);
+}
+
 /* ── Mobile nav — scroll-to helpers ─────────────────────────── */
 function _mobScrollTo(el) {
   if (!el) return;
