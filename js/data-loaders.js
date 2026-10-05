@@ -1579,7 +1579,7 @@ async function doLoad() {
      from going unhandled before it is awaited. */
   function _quiet(pr) { return Promise.resolve(pr).catch(function(e) { console.warn('[doLoad] early read failed:', e && e.message); }); }
   var _early = Promise.all([
-    _quiet(loadNetworkData()), _quiet(loadWorldData()), _quiet(loadEtfFlows()),
+    _quiet(loadNetworkData()), _quiet(loadWorldData()), _quiet(loadEtfFlows()), _quiet(loadChainFlows()),
     _quiet(typeof loadSignSince === 'function' ? loadSignSince() : null)
   ]);
   try {
@@ -1611,6 +1611,7 @@ async function doLoad() {
     await _early;          /* network, world, ETF flows, turn-sign results: usually done by now */
     renderBriefing();
     renderEtfFlows();
+    renderChainFlows();
     renderFearGreed(); /* takes the banner slot if the scaling tip is already dismissed */
     prog(92, 'Almost ready — building your dashboard…');
     renderAll();         prog(100, 'All done! This free tool is built by one person — thanks for your patience ♥');
@@ -2609,6 +2610,155 @@ function openEtfModal(asset) {
   if (typeof supaCountFeature === 'function') supaCountFeature('etf_flows', true);
 }
 
+/* ── Where the money is going: stablecoins per chain ───────────────
+   READ ONLY (promptove/125). sync-chain-flows (03:47 UTC) reads
+   DefiLlama's stablecoins per chain and writes ONE summary to
+   market_cache.chain_flows_summary: for each chain with $50M+ of
+   stablecoins, the amount on the latest settled day and its change over
+   7 and 30 days.
+
+   CONTEXT, NOT A SIGNAL. The backtests (promptove/120-123) found that
+   stablecoins arriving on a chain tilted the odds toward its coin beating
+   the market, and leaving tilted them the other way, but neither held in
+   both halves of the history. A hidden live test runs until mid-2027
+   (promptove/124). So the board describes where dollars already moved: it
+   never marks the test's +10% / -10% lines, and it never says buy or sell. */
+var _cf = null;
+var _cfAgeMs = null;
+var _CF_ROWS = 4;   /* chains listed per tile */
+
+var _CF_TXT = {
+  en: {
+    group: 'Where the money is going', in: 'Arriving', out: 'Leaving', details: 'details ›', open: 'Open details',
+    week: 'this week', chains: function (n) { return n + (n === 1 ? ' chain' : ' chains'); },
+    headIn: 'Stablecoins that moved onto these chains in the last 7 days.',
+    headOut: 'Stablecoins that left these chains in the last 7 days.',
+    none: 'No chain gained stablecoins this week.', noneOut: 'No chain lost stablecoins this week.',
+    strip: 'Stablecoins per chain', source: 'Source', title: 'Stablecoins by chain',
+    total: 'On these chains', d7: '7 days', d30: '30 days', chain: 'Chain', now: 'Now',
+    on: function (d) { return 'Amounts on ' + d + '.'; },
+    whatHd: 'What this shows',
+    what: 'Stablecoins are dollars parked on a blockchain (USDT, USDC and others), ready to be used there. '
+      + 'When they rise on a chain, people moved dollars onto it; when they fall, dollars left. '
+      + 'Base has no coin of its own, so it has no ticker.',
+    canHd: 'What this can and cannot tell you',
+    can: 'We tested two and a half years of these flows on 36 chains. When stablecoins on a chain rose 10% or more in a week while its coin '
+      + 'had not moved yet, the coin beat the average coin <b>57 times in 100</b> over the next two weeks. When they fell 10% or more, '
+      + 'it beat it only <b>41 times in 100</b>. That held in one half of the history but not the other, so it is not a signal. '
+      + 'A live test runs quietly until mid-2027.',
+    canEnd: 'Read this as where dollars already moved, not where prices go next.',
+    srcTail: ', stablecoins circulating on each chain, in US dollars. Chains with less than $50M are left out.',
+    reading: 'Reading', months: ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec']
+  },
+  mk: {
+    group: 'Каде одат парите', in: 'Пристигнуваат', out: 'Заминуваат', details: 'детали ›', open: 'Отвори детали',
+    week: 'оваа недела', chains: function (n) { return n + (n === 1 ? ' мрежа' : ' мрежи'); },
+    headIn: 'Стејблкоини што дојдоа на овие мрежи во последните 7 дена.',
+    headOut: 'Стејблкоини што ги напуштија овие мрежи во последните 7 дена.',
+    none: 'Оваа недела ниедна мрежа не доби стејблкоини.', noneOut: 'Оваа недела ниедна мрежа не изгуби стејблкоини.',
+    strip: 'Стејблкоини по мрежа', source: 'Извор', title: 'Стејблкоини по мрежа',
+    total: 'На овие мрежи', d7: '7 дена', d30: '30 дена', chain: 'Мрежа', now: 'Сега',
+    on: function (d) { return 'Износи на ' + d + '.'; },
+    whatHd: 'Што покажува ова',
+    what: 'Стејблкоините се долари паркирани на блокчејн (USDT, USDC и други), спремни за користење таму. '
+      + 'Кога растат на некоја мрежа, луѓето донеле долари на неа; кога паѓаат, доларите заминале. '
+      + 'Base нема своја монета, па нема ни ознака.',
+    canHd: 'Што може, а што не може да ви каже ова',
+    can: 'Ги тестиравме овие текови две и пол години на 36 мрежи. Кога стејблкоините на некоја мрежа пораснаа 10% или повеќе за една недела, '
+      + 'а нејзината монета уште не се помрднала, монетата ја победи просечната монета <b>57 пати од 100</b> во следните две недели. '
+      + 'Кога паднаа 10% или повеќе, ја победи само <b>41 пат од 100</b>. Тоа важеше во едната половина од историјата, но не и во другата, '
+      + 'па не е сигнал. Тивко тече тест во живо до средината на 2027.',
+    canEnd: 'Читајте го ова како каде доларите веќе отидоа, а не каде ќе оди цената.',
+    srcTail: ', стејблкоини во оптек на секоја мрежа, во американски долари. Мрежите со помалку од $50M не се прикажани.',
+    reading: 'Читање', months: ['јан','фев','мар','апр','мај','јун','јул','авг','сеп','окт','ное','дек']
+  }
+};
+function _cfL() { return (typeof currentLang !== 'undefined' && currentLang === 'mk') ? _CF_TXT.mk : _CF_TXT.en; }
+
+async function loadChainFlows() {
+  if (typeof supaCacheGetStale !== 'function') return;
+  try {
+    var row = await supaCacheGetStale('chain_flows_summary');
+    if (row && row.data) { _cf = row.data; _cfAgeMs = row.ageMs; }
+  } catch (e) {
+    console.warn('[chain flows] read skipped:', e.message);
+  }
+}
+
+/* US dollars in: +$412M, −$1.24B, $86.3B. */
+function _cfUsd(v, signed) {
+  if (v == null || !isFinite(v)) return '—';
+  var a = Math.abs(v), s;
+  if (a >= 1e9) s = '$' + (a / 1e9).toFixed(a >= 1e11 ? 0 : a >= 1e10 ? 1 : 2) + 'B';
+  else if (a >= 1e6) s = '$' + Math.round(a / 1e6) + 'M';
+  else s = '$' + Math.round(a / 1e3) + 'K';
+  return signed ? (v < 0 ? '−' : '+') + s : s;
+}
+function _cfPct(p) { return p == null || !isFinite(p) ? '' : (p < 0 ? '−' : '+') + Math.abs(p).toFixed(Math.abs(p) < 10 ? 1 : 0) + '%'; }
+function _cfDay(d) { if (!d) return ''; var t = new Date(d + 'T00:00:00Z'); return t.getUTCDate() + ' ' + _cfL().months[t.getUTCMonth()]; }
+function _cfName(r) { return _esc(r.chain) + (r.sym && r.sym !== r.chain ? ' <span class="cf-sym">' + _esc(r.sym) + '</span>' : ''); }
+
+function _cfTile(dir) {
+  var L = _cfL(), rows = (_cf.chains || []).filter(function (r) { return r.d7 != null && (dir > 0 ? r.d7 > 0 : r.d7 < 0); });
+  rows.sort(function (a, b) { return dir > 0 ? b.d7 - a.d7 : a.d7 - b.d7; });   /* biggest move first */
+  var sum = rows.reduce(function (s, r) { return s + r.d7; }, 0);
+  var list = rows.slice(0, _CF_ROWS).map(function (r) {
+    return '<div class="cf-row"><span class="cf-name">' + _cfName(r) + '</span>'
+      + '<span class="cf-d ' + (dir > 0 ? 'up' : 'dn') + '">' + _cfUsd(r.d7, true) + '</span>'
+      + '<span class="cf-p">' + _cfPct(r.p7) + '</span></div>';
+  }).join('');
+  return '<button type="button" class="etf-tile cf-tile" onclick="openChainFlowsModal()" aria-label="' + (dir > 0 ? L.in : L.out) + ': '
+    + (dir > 0 ? L.headIn : L.headOut) + ' ' + L.open + '.">'
+    + '<div class="etf-tile-top"><span class="bf-k">' + (dir > 0 ? L.in : L.out) + '</span><span class="etf-more">' + L.details + '</span></div>'
+    + '<div class="etf-num ' + (dir > 0 ? 'up' : 'dn') + '">' + (rows.length ? _cfUsd(sum, true) : '—') + '</div>'
+    + '<div class="etf-subs"><span class="etf-sub">' + L.week + '</span><span class="etf-sub">' + L.chains(rows.length) + '</span></div>'
+    + (list ? '<div class="cf-list">' + list + '</div>' : '')
+    + '<div class="etf-head">' + (rows.length ? (dir > 0 ? L.headIn : L.headOut) : (dir > 0 ? L.none : L.noneOut)) + '</div>'
+    + '</button>';
+}
+
+function renderChainFlows() {
+  var host = document.getElementById('cf-strip');
+  if (!host) return;
+  var L = _cfL();
+  if (!_cf || !Array.isArray(_cf.chains) || _cf.chains.length < 5) { host.style.display = 'none'; return; }
+  host.style.display = '';
+  host.innerHTML = '<div class="bf-group etf-group">' + L.group + '</div>' + _cfTile(1) + _cfTile(-1)
+    + '<div class="etf-src">' + L.strip + ' · ' + L.source + ': <a href="https://defillama.com/stablecoins/chains" target="_blank" rel="noopener">DefiLlama</a>'
+    + (_cfAgeMs != null && L === _CF_TXT.en ? ' · ' + _bfAge(_cfAgeMs) : '') + '</div>';
+}
+
+function openChainFlowsModal() {
+  var body = document.getElementById('cf-modal-body');
+  var L = _cfL();
+  if (!body || !_cf || !Array.isArray(_cf.chains)) return;
+  var t = _cf.total || {};
+  var cls = function (v) { return v == null ? '' : v >= 0 ? 'up' : 'dn'; };
+  var rows = _cf.chains.slice().sort(function (a, b) { return (b.d7 || 0) - (a.d7 || 0); }).map(function (r) {
+    return '<tr><td>' + _cfName(r) + '</td><td>' + _cfUsd(r.now) + '</td>'
+      + '<td class="' + cls(r.d7) + '">' + _cfUsd(r.d7, true) + ' <em>' + _cfPct(r.p7) + '</em></td>'
+      + '<td class="' + cls(r.d30) + '">' + _cfPct(r.p30) + '</td></tr>';
+  }).join('');
+  body.innerHTML =
+      '<div class="modal-title">' + L.title + '</div>'
+    + '<div class="etf-scroll">'
+    + '<div class="etf-stats cf-stats">'
+    +   '<div><span class="bf-k">' + L.total + '</span><b>' + _cfUsd(t.now) + '</b><em>' + L.chains(_cf.chains.length) + '</em></div>'
+    +   '<div><span class="bf-k">' + L.d7 + '</span><b class="' + cls(t.d7) + '">' + _cfUsd(t.d7, true) + '</b><em>' + _cfPct(t.p7) + '</em></div>'
+    +   '<div><span class="bf-k">' + L.d30 + '</span><b class="' + cls(t.d30) + '">' + _cfUsd(t.d30, true) + '</b><em>&nbsp;</em></div>'
+    + '</div>'
+    + '<table class="cf-table"><thead><tr><th>' + L.chain + '</th><th>' + L.now + '</th><th>' + L.d7 + '</th><th>' + L.d30 + '</th></tr></thead>'
+    + '<tbody>' + rows + '</tbody></table>'
+    + '<div class="etf-axis"><span>' + L.on(_cfDay(_cf.day)) + '</span></div>'
+    + '<div class="etf-m-sec"><div class="bf-k">' + L.whatHd + '</div><p>' + L.what + '</p></div>'
+    + '<div class="etf-m-sec"><div class="bf-k">' + L.canHd + '</div><p>' + L.can + ' ' + L.canEnd + '</p></div>'
+    + '<div class="etf-src">' + L.source + ': <a href="https://defillama.com/stablecoins/chains" target="_blank" rel="noopener">DefiLlama</a>' + L.srcTail
+    + (_cfAgeMs != null && L === _CF_TXT.en ? ' ' + L.reading + ' ' + _bfAge(_cfAgeMs) + '.' : '') + '</div>'
+    + '</div>';
+  openModal('cf-modal');
+  if (typeof supaCountFeature === 'function') supaCountFeature('chain_flows', true);
+}
+
 /* ── Fear & Greed, in the banner slot ───────────────────────────────
    Deliberately plain text, no gauge, no needle. It is one number and it
    changes once a day; a dial would be more chrome than information.
@@ -2813,11 +2963,14 @@ function setLang(lang) {
   if (typeof applyMkLayer === 'function') applyMkLayer(lang);
   /* ETF tiles and an open ETF window carry their own en/mk text. */
   if (typeof renderEtfFlows === 'function') renderEtfFlows();
+  if (typeof renderChainFlows === 'function') renderChainFlows();
   /* TODAY: copper and gas show SI units in Macedonian (_bfWorldCell o.mk). */
   if (typeof renderBriefing === 'function') renderBriefing();
   if (typeof _twTgSync === 'function') _twTgSync(false);   /* Telegram alerts follow the site language */
   var etfM = document.getElementById('etf-modal');
   if (etfM && etfM.classList.contains('show') && typeof openEtfModal === 'function') openEtfModal();
+  var cfM = document.getElementById('cf-modal');
+  if (cfM && cfM.classList.contains('show') && typeof openChainFlowsModal === 'function') openChainFlowsModal();
 }
 (function() { try { var l = localStorage.getItem('rot_lang'); if (l) setTimeout(function() { setLang(l); }, 50); } catch(e) {} })();
 

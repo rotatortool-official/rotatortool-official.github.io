@@ -4221,7 +4221,7 @@ rect.etf-out.etf-prov{stroke:var(--red);}
 .etf-src a:hover{color:var(--text);}
 
 .etf-modal{max-width:560px;}
-#etf-modal-body{display:flex;flex-direction:column;min-height:0;}
+#etf-modal-body,#cf-modal-body{display:flex;flex-direction:column;min-height:0;}
 .etf-scroll{flex:1 1 auto;overflow-y:auto;min-height:0;margin:0 -4px;padding:0 4px;}
 .etf-tabs{display:flex;gap:6px;margin:6px 0 12px;}
 .etf-tab{
@@ -4251,6 +4251,40 @@ rect.etf-out.etf-prov{stroke:var(--red);}
   .etf-tile{padding:9px 12px 7px;}
   .etf-src{padding:5px 12px 7px;}
   .etf-stats{grid-template-columns:repeat(2,minmax(0,1fr));}
+}
+
+/* ── Where the money is going: stablecoins per chain (promptove/125) ──
+   Reuses the ETF strip: amber group heading, two tiles (Arriving,
+   Leaving), each opening #cf-modal. Only the per-chain list and the
+   window's table are new. */
+.cf-list{margin-top:7px;display:flex;flex-direction:column;gap:2px;}
+.cf-row{display:grid;grid-template-columns:minmax(0,1fr) auto 3.6em;gap:8px;align-items:baseline;font-size:12px;}
+.cf-name{color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.cf-sym{font-family:var(--font-mono);font-size:10px;color:var(--muted);margin-left:2px;}
+.cf-d{font-family:var(--font-mono);font-weight:700;text-align:right;}
+.cf-p{font-family:var(--font-mono);font-size:11px;color:var(--muted);text-align:right;}
+.cf-d.up,.cf-table td.up{color:var(--green);}
+.cf-d.dn,.cf-table td.dn{color:var(--red);}
+.cf-stats{grid-template-columns:repeat(3,minmax(0,1fr));}
+.cf-table{width:100%;border-collapse:collapse;margin:12px 0 4px;font-size:12px;}
+.cf-table th{font-size:10px;font-weight:400;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);text-align:right;padding:0 6px 5px;border-bottom:1px solid var(--bdr);}
+.cf-table td{font-family:var(--font-mono);text-align:right;padding:4px 6px;border-bottom:1px solid var(--bdr);white-space:nowrap;color:var(--text);}
+.cf-table th:first-child,.cf-table td:first-child{text-align:left;font-family:inherit;padding-left:0;}
+.cf-table td em{font-style:normal;font-size:10px;color:var(--muted);margin-left:3px;}
+@media(max-width:600px){
+  .cf-stats{grid-template-columns:repeat(3,minmax(0,1fr));}
+  /* The site turns every table into cards on phones (thead hidden, rows
+     as grids, some cells hidden). This one stays a plain table. */
+  #cf-modal .cf-table{border-collapse:collapse;}
+  #cf-modal .cf-table thead{display:table-header-group;}
+  #cf-modal .cf-table tbody{display:table-row-group;padding:0;gap:0;}
+  #cf-modal .cf-table tr{display:table-row;padding:0;border:0;border-radius:0;background:none !important;}
+  #cf-modal .cf-table th,#cf-modal .cf-table td{display:table-cell;text-align:right;white-space:nowrap;font-size:11px;}
+  #cf-modal .cf-table td{padding:4px 4px;border-bottom:1px solid var(--bdr);}
+  #cf-modal .cf-table th:first-child,#cf-modal .cf-table td:first-child{text-align:left;padding-left:0;}
+  #cf-modal .cf-table td em{display:none;}   /* the 7-day % is in the tiles; the dollar change is enough here */
+  .cf-table{font-size:11px;}
+  .cf-table th,.cf-table td{padding-left:4px;padding-right:4px;}
 }
 
 /* ── A narrower page ────────────────────────────────────────────────

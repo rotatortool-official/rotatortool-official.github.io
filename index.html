@@ -761,6 +761,13 @@
   </div>
 </div>
 
+<!-- STABLECOINS BY CHAIN MODAL — filled by openChainFlowsModal() in js/data-loaders.js -->
+<div class="overlay" id="cf-modal" onclick="if(event.target===this)closeModal('cf-modal')">
+  <div class="modal etf-modal cf-modal">
+    <button class="modal-x" onclick="closeModal('cf-modal')" aria-label="Close">×</button>
+    <div id="cf-modal-body"></div>
+  </div>
+</div>
 <!-- ETF FLOWS MODAL — filled by openEtfModal() in js/data-loaders.js -->
 <div class="overlay" id="etf-modal" onclick="if(event.target===this)closeModal('etf-modal')">
   <div class="modal etf-modal">
@@ -1040,6 +1047,13 @@
          and drawn by renderEtfFlows() in js/data-loaders.js. Each tile
          opens #etf-modal. Source: Farside Investors, always credited. -->
     <div class="etf-strip" id="etf-strip" style="display:none;"></div>
+    <!-- WHERE THE MONEY IS GOING — stablecoins per chain, this week.
+         Written once a day by sync-chain-flows into
+         market_cache.chain_flows_summary, drawn by renderChainFlows() in
+         js/data-loaders.js; each tile opens #cf-modal (promptove/125).
+         Context only: the live test of these flows runs hidden until
+         mid-2027 (promptove/124). Source: DefiLlama. -->
+    <div class="etf-strip cf-strip" id="cf-strip" style="display:none;"></div>
     <!-- MARKET TICKER — BTC anchor + infinite-loop global movers -->
     <div class="market-ticker" id="market-ticker">
       <div class="mt-anchor">
