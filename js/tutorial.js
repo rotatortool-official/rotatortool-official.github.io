@@ -689,6 +689,20 @@ var PRO_TUT_STEPS = [
     "note": "It shows where the ratio is, not where it goes next."
   },
 
+  /* 7b. Saved-pair alerts (promptove/111, Daniel 2026-10-05) */
+  {
+    "target": "#rt-saved-wrap",
+    "goto": "rt-saved-wrap",
+    "open": "swap",
+    "pos": "section",
+    "title": "🔔 Alerts for saved pairs",
+    "p": [
+      "Tap **☆** to save a pair. Rotator then tells you when it enters its **good swap zone**: the top quarter of its 30-day range, the green dashed line on the chart.",
+      "Type a number under the saved pairs to set your own **target**, for example 1 BNB ≥ 6.70 SOL. Alerts show on the bell, and on Telegram once it is linked."
+    ],
+    "note": "It shows where the ratio is, not a forecast."
+  },
+
   /* 8. Recovery key — it is a bearer token (promptove/108), so say so */
   {
     "target": "#pro-topbar-btn",
