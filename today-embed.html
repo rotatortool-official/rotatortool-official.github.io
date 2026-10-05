@@ -1,0 +1,346 @@
+<!doctype html>
+<html lang="mk">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Rotator · TODAY</title>
+<meta name="description" content="The market around crypto: central bank rates, bond yields, the dollar, metals, energy and on-chain activity, from Rotator.">
+<meta name="robots" content="noindex">
+<link rel="preconnect" href="https://wyvwycatgexpbugzkdfw.supabase.co">
+<!--
+  ROTATOR · TODAY, embeddable (2026-10-05, promptove/117).
+
+  The TODAY indices from the main page as one standalone panel that any
+  site can place with an <iframe>. Asked for by the CRYPTO GEMIDZIJA
+  channel ("the indices visible to all our members"). Reads the same
+  public rows the site reads (market_cache world_data and network_data,
+  documented at api.html#today) with the public key; no other script,
+  no cookies, no tracking.
+
+  URL options:
+    ?lang=mk | en          default mk
+    ?theme=dark | light    default: follows the viewer's system setting
+    ?period=7 | 30 | 365   default 30
+
+  The parent page can size the frame to its content by listening for
+  { rotatorEmbedHeight: <px> } messages (snippet in api.html#today).
+
+  Titles and one-line descriptions are the site's own wording, EN from
+  renderBriefing() in js/data-loaders.js and MK from js/i18n-mk-dict.js,
+  copied on 2026-10-05. If a tile's wording changes there, change it here.
+-->
+<style>
+:root{
+  --bg:#0f1318;--card:#151a21;--panel:#1a2029;--bdr:rgba(255,255,255,.08);--bdr2:rgba(255,255,255,.14);
+  --text:#e6ebf2;--muted:#8b9bb0;--faint:#6b7a8e;--green:#00c896;--red:#ff4d6a;--amber:#f0b90b;--link:#f3ba2f;
+  --tab:rgba(255,255,255,.06);
+}
+:root[data-theme="light"]{
+  --bg:#f3f5f8;--card:#ffffff;--panel:#fbfcfd;--bdr:rgba(15,23,42,.10);--bdr2:rgba(15,23,42,.18);
+  --text:#0f172a;--muted:#475569;--faint:#64748b;--green:#05875f;--red:#d4283e;--amber:#9a6a00;--link:#8a6610;
+  --tab:#e8ecf2;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+html,body{background:var(--bg);color:var(--text);}
+body{font:14px/1.45 Inter,system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;padding:14px;}
+a{color:var(--link);}
+.hdr{display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:space-between;gap:10px;margin-bottom:12px;}
+.brand{font-weight:800;letter-spacing:.14em;font-size:13px;}
+.brand .o1{color:var(--green);} .brand .o2{color:var(--red);}
+.title{font-size:18px;font-weight:700;margin-top:2px;}
+.sub{font-size:12px;color:var(--muted);}
+.seg{display:inline-flex;border:1px solid var(--bdr2);border-radius:7px;overflow:hidden;}
+.seg button{font-family:inherit;font-weight:700;font-size:11px;line-height:1;font-variant-numeric:tabular-nums;letter-spacing:.05em;background:transparent;color:var(--muted);border:0;padding:7px 11px;cursor:pointer;}
+.seg button+button{border-left:1px solid var(--bdr2);}
+.seg button.on{background:var(--tab);color:var(--text);}
+.grp{font-size:11px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--amber);margin:16px 2px 8px;}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:8px;}
+.tile{position:relative;overflow:hidden;background:var(--card);border:1px solid var(--bdr);border-radius:10px;padding:11px 13px 10px;}
+.k{font-size:10.5px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);padding-right:30px;}
+.v{font-weight:700;font-size:20px;line-height:1.15;font-variant-numeric:tabular-nums;letter-spacing:-.01em;margin-top:4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.u{font-size:12px;font-weight:600;color:var(--muted);margin-left:2px;}
+.d{font-weight:700;font-size:11.5px;line-height:1.3;font-variant-numeric:tabular-nums;margin-top:2px;}
+.d.up{color:var(--green);} .d.dn{color:var(--red);} .d.flat{color:var(--muted);}
+.spark{display:block;width:100%;height:28px;margin:7px 0 4px;}
+.note{font-size:11.5px;color:var(--muted);line-height:1.4;}
+.src{font-size:10.5px;color:var(--faint);margin-top:6px;}
+.src a{color:inherit;}
+.emb{position:absolute;top:10px;right:11px;width:20px;height:20px;opacity:.65;pointer-events:none;}
+.emb.flag{width:22px;height:15px;top:12px;}
+.emb svg{display:block;width:100%;height:100%;}
+.foot{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:10px;margin-top:16px;padding-top:12px;border-top:1px solid var(--bdr);}
+.foot .meta{font-size:11.5px;color:var(--faint);}
+.cta{display:flex;gap:8px;flex-wrap:wrap;}
+.btn{display:inline-block;text-decoration:none;font-weight:700;font-size:12.5px;padding:8px 13px;border-radius:8px;border:1px solid var(--bdr2);color:var(--text);background:var(--card);}
+.btn.main{background:var(--green);border-color:var(--green);color:#04130e;}
+.msg{padding:28px 10px;text-align:center;color:var(--muted);}
+@media(max-width:420px){body{padding:10px;}.grid{grid-template-columns:repeat(2,minmax(0,1fr));}.v{font-size:17px;}.tile{padding:10px 11px 9px;}}
+</style>
+</head>
+<body>
+<div class="hdr">
+  <div>
+    <div class="brand">R<span class="o1">O</span>TAT<span class="o2">O</span>R</div>
+    <div class="title" id="t-title"></div>
+    <div class="sub" id="t-sub"></div>
+  </div>
+  <div class="seg" role="group" id="seg"></div>
+</div>
+<div id="body"><div class="msg" id="t-loading"></div></div>
+<div class="foot">
+  <div class="meta" id="t-meta"></div>
+  <div class="cta">
+    <a class="btn" id="t-tg" href="https://t.me/rotatortool" target="_blank" rel="noopener">Telegram</a>
+    <a class="btn main" id="t-open" href="https://rotatortool-official.github.io/" target="_blank" rel="noopener"></a>
+  </div>
+</div>
+
+<script>
+(function () {
+  'use strict';
+  var URL_ = 'https://wyvwycatgexpbugzkdfw.supabase.co/rest/v1/market_cache';
+  /* The public anon key: the same one the site ships to every browser
+     and api.html prints. Read-only by row level security. */
+  var KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Ind5dnd5Y2F0Z2V4cGJ1Z3prZGZ3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU0ODcwNTAsImV4cCI6MjA5MTA2MzA1MH0.msUPOUjd1iZwuG6SxFlhr-0xYPt6fqTUy5iOYnf8Z20';
+
+  var q = {};
+  try { new URLSearchParams(location.search).forEach(function (v, k) { q[k] = v; }); } catch (e) {}
+  var LANG = q.lang === 'en' ? 'en' : 'mk';
+  var THEME = q.theme === 'light' || q.theme === 'dark' ? q.theme
+    : (window.matchMedia && matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark');
+  var PERIOD = { '7': 7, '30': 30, '365': 365 }[q.period] || 30;
+  document.documentElement.setAttribute('data-theme', THEME);
+  document.documentElement.lang = LANG;
+  var MK = LANG === 'mk';
+
+  var T = MK ? {
+    title: 'Пазарот околу криптото', sub: 'Каматни стапки, долар, метали, енергија и активност на синџирот',
+    loading: 'Се вчитува…', failed: 'Податоците моментално не се достапни.', open: 'Отвори Rotator →',
+    source: 'Извор', updated: 'Ажурирано', ago: 'пред', h: 'ч', d: 'д', now: 'пред помалку од час',
+    note: 'Само информативно, не е финансиски совет.', pts: 'поени', unchanged: 'без промена',
+    win: { 7: 'за 7 дена', 30: 'за 30 дена', 365: 'за 1 година', m1: 'за 1 месец' }, seg: { 7: '7Д', 30: '30Д', 365: '1Г' }
+  } : {
+    title: 'The market around crypto', sub: 'Rates, the dollar, metals, energy and on-chain activity',
+    loading: 'Loading…', failed: 'The data is not available right now.', open: 'Open Rotator →',
+    source: 'Source', updated: 'Updated', ago: '', h: 'h ago', d: 'd ago', now: 'in the last hour',
+    note: 'Information only, not financial advice.', pts: 'pts', unchanged: 'unchanged',
+    win: { 7: '7d', 30: '30d', 365: '1y', m1: '1m' }, seg: { 7: '7D', 30: '30D', 365: '1Y' }
+  };
+
+  /* The site's wording: [MK title, EN description, MK description]. */
+  var COPY = {"Fed rate":["Камата на ФЕД","The US central bank rate. It sets the price of dollars for the whole world.","Каматата на централната банка на САД. Таа ја одредува цената на доларот за целиот свет."],"ECB rate":["Камата на ЕЦБ","The euro area central bank rate, paid on money banks park with it.","Каматата на централната банка на еврозоната, што ја плаќа на парите што банките ги чуваат кај неа."],"BoJ rate":["Камата во Јапонија","For years near zero, so investors borrowed cheap yen to buy risky assets abroad. When Japan raises it, some of that money goes home.","Со години беше речиси нула, па инвеститорите позајмуваа евтини јени за да купуваат ризични средства надвор. Кога Јапонија ја крева, дел од тие пари се враќаат дома."],"US 3-month":["САД 3 месеци","What cash earns in safe US government bonds. When it pays more, money has less reason to sit in risky assets like crypto.","Колку заработуваат парите во сигурни американски државни обврзници. Кога плаќаат повеќе, парите имаат помалку причина да стојат во ризични средства како крипто."],"US 2-year":["САД 2 години","Where markets expect US rates over the next two years. Rising means money is getting tighter.","Каде пазарот очекува да бидат каматите во САД во следните две години. Ако расте, парите стануваат поскапи."],"US 10-year":["САД 10 години","The benchmark for loans and mortgages worldwide. A fast rise makes money tighter everywhere.","Репер за кредити и хипотеки во целиот свет. Ако брзо расте, парите стануваат поскапи насекаде."],"Japan 10-year":["Јапонија 10 години","Japan's long-term rate. Higher means Japanese savers have more reason to keep money at home.","Долгорочната камата во Јапонија. Кога е повисока, јапонските штедачи имаат повеќе причина да ги чуваат парите дома."],"Dollar index":["Индекс на доларот","A rising dollar is a headwind for risk assets","Доларот што расте е спротивен ветер за ризичните средства"],"Gold":["Злато","The oldest store of value, as a benchmark","Најстарата вредност за чување, како репер"],"Silver":["Сребро","Industrial demand as well as a metal","Индустриска побарувачка, а не само метал"],"Copper":["Бакар","Copper is in almost everything electric: appliances, data centers and the tiny parts that make AI possible.","Бакарот е во речиси сè што работи на струја: апарати, центри за податоци и ситните делови што го овозможуваат AI."],"Aluminum":["Алуминиум","Light metal for data centers, power lines, solar frames and electric cars; often the cheaper stand-in for copper.","Лесен метал за центри за податоци, далноводи, соларни рамки и електрични автомобили; често поевтина замена за бакарот."],"Oil · WTI":["Нафта · WTI","WTI crude — input cost for the real economy","Сурова нафта WTI — влезен трошок за реалната економија"],"Diesel crack spread":["Маржа на рафинериите","What refiners earn turning a barrel of crude into diesel. When it is high, diesel is scarce and transport costs feed into prices.","Колку заработуваат рафинериите кога од барел сурова нафта прават дизел. Кога е висока, дизел нема доволно, а трошоците за превоз се прелеваат во цените."],"Natural gas":["Природен гас","The fuel behind much of US electricity, so its price feeds into what power costs.","Горивото од кое се прави голем дел од струјата во САД, па неговата цена влијае на цената на струјата."],"Electricity":["Струја","What US homes pay, monthly average. It is also the running cost of data centers, AI and Bitcoin mining.","Колку плаќаат домовите во САД, месечен просек. Тоа е и трошокот за работа на центрите за податоци, AI и рударењето биткоин."],"Hash rate":["Хаш-моќ","Computing power securing Bitcoin, averaged over 7 days. The daily figure is inferred from blocks found, so one day alone carries about 7% of noise — the line below is the raw daily estimate and shows that spread.","Пресметковната моќ што го обезбедува Bitcoin, просек за 7 дена. Дневната бројка се изведува од пронајдените блокови, па еден ден сам по себе носи околу 7% шум — линијата подолу е суровата дневна проценка и го покажува тоа отстапување."],"Active addresses":["Активни адреси","Bitcoin addresses used per day, averaged over 7 days. Weekends run well below midweek, so a single day reports partly which day of the week it is.","Bitcoin адреси користени дневно, просек за 7 дена. Викендите се значително под средината на неделата, па еден ден делумно кажува кој ден од неделата е."],"DeFi TVL":["DeFi TVL","Value locked across every tracked chain","Заклучена вредност на сите следени синџири"],"Stablecoin supply":["Понуда на стејблкоини","Dollars sitting on-chain, unallocated","Долари што стојат на синџирот, нераспоредени"],"Ethereum fees":["Провизии на Ethereum","What users paid in gas to use Ethereum in a day. More demand for the network means more fees.","Колку платија корисниците за гас за да користат Ethereum за еден ден. Поголема побарувачка за мрежата значи повеќе провизии."],"Solana fees":["Провизии на Solana","What users paid to use Solana in a day.","Колку платија корисниците за да користат Solana за еден ден."],"Solana DEX volume":["DEX промет на Solana","Dollars traded on Solana's exchanges in a day, a gauge of how busy the chain is.","Долари со кои се тргуваше на берзите на Solana за еден ден, мерка колку е зафатена мрежата."]};
+
+  var SRC = {
+    nyfed: ['New York Fed', 'https://www.newyorkfed.org/markets/reference-rates/effr'],
+    ecb: ['European Central Bank', 'https://data.ecb.europa.eu/data/datasets/FM/FM.D.U2.EUR.4F.KR.DFR.LEV'],
+    boj: ['Bank of Japan', 'https://www.stat-search.boj.or.jp/'],
+    treasury: ['U.S. Treasury', 'https://home.treasury.gov/resource-center/data-chart-center/interest-rates'],
+    mof: ['Japan Ministry of Finance', 'https://www.mof.go.jp/english/policy/jgbs/reference/interest_rate/'],
+    ice: ['ICE via Yahoo Finance', 'https://finance.yahoo.com/quote/DX-Y.NYB'],
+    comex: ['COMEX via Yahoo Finance', 'https://finance.yahoo.com/quote/'],
+    nymex: ['NYMEX via Yahoo Finance', 'https://finance.yahoo.com/quote/'],
+    bls: ['U.S. Bureau of Labor Statistics', 'https://data.bls.gov/timeseries/APU000072610'],
+    bc: ['Blockchain.com', 'https://www.blockchain.com/explorer/charts'],
+    llama: ['DefiLlama', 'https://defillama.com/']
+  };
+
+  /* Tile specs, in the site's order and groups. kind: rate (changes in
+     points), usd, num, cents, usdBig; usdpts: changes in dollars.
+     mk: the SI units the Macedonian site shows. net: on-chain headline
+     from network_data (7-day averages), as on the site. */
+  var GROUPS = [
+    { en: 'Central banks & money', mk: 'Централни банки и пари', cells: [
+      { id: 'fed', k: 'Fed rate', kind: 'rate', src: 'nyfed', emb: 'us', range: true },
+      { id: 'ecb', k: 'ECB rate', kind: 'rate', src: 'ecb', emb: 'eu' },
+      { id: 'boj', k: 'BoJ rate', kind: 'rate', src: 'boj', emb: 'jp' },
+      { id: 'us3m', k: 'US 3-month', kind: 'rate', src: 'treasury', emb: 'us' },
+      { id: 'us2y', k: 'US 2-year', kind: 'rate', src: 'treasury', emb: 'us' },
+      { id: 'us10y', k: 'US 10-year', kind: 'rate', src: 'treasury', emb: 'us' },
+      { id: 'jgb10y', k: 'Japan 10-year', kind: 'rate', src: 'mof', emb: 'jp' },
+      { id: 'dxy', k: 'Dollar index', kind: 'num', src: 'ice', emb: 'usd' } ] },
+    { en: 'Metals', mk: 'Метали', cells: [
+      { id: 'gold', k: 'Gold', kind: 'usd', src: 'comex', sym: 'GC=F', emb: 'gold' },
+      { id: 'silver', k: 'Silver', kind: 'usd', src: 'comex', sym: 'SI=F', emb: 'silver' },
+      { id: 'copper', k: 'Copper', kind: 'usd', u: ' /lb', src: 'comex', sym: 'HG=F', emb: 'copper', mk: { mul: 2204.62262, u: ' /t' } },
+      { id: 'aluminum', k: 'Aluminum', kind: 'usd', u: ' /t', src: 'comex', sym: 'ALI=F', emb: 'aluminum' } ] },
+    { en: 'Energy cost', mk: 'Цена на енергијата', cells: [
+      { id: 'oil', k: 'Oil · WTI', kind: 'usd', src: 'nymex', sym: 'CL=F', emb: 'barrel' },
+      { id: 'crack', k: 'Diesel crack spread', kind: 'usd', u: ' /bbl', usdpts: true, src: 'nymex', sym: 'HO=F', emb: 'diesel' },
+      { id: 'gas', k: 'Natural gas', kind: 'usd', u: ' /MMBtu', src: 'nymex', sym: 'NG=F', emb: 'flame', mk: { mul: 1 / 293.07107, kind: 'cents', u: ' /kWh' } },
+      { id: 'power', k: 'Electricity', kind: 'cents', u: ' /kWh', monthly: true, src: 'bls', emb: 'bolt' } ] },
+    { en: 'On-chain', mk: 'На синџирот', cells: [
+      { id: 'hash', k: 'Hash rate', kind: 'num0', u: ' EH/s', src: 'bc', emb: 'btc', net: ['hashrateEh', 'hashrateP7'] },
+      { id: 'addr', k: 'Active addresses', kind: 'num0', src: 'bc', emb: 'btc', net: ['addrCount', 'addrP7'] },
+      { id: 'tvl', k: 'DeFi TVL', kind: 'usdBig', src: 'llama', emb: 'lock', net: ['tvlUsd', 'tvlP7'] },
+      { id: 'stable', k: 'Stablecoin supply', kind: 'usdBig', src: 'llama', emb: 'stable', net: ['stableUsd', 'stableP7'] },
+      { id: 'ethFees', k: 'Ethereum fees', kind: 'usdBig', u: ' /day', src: 'llama', emb: 'eth' },
+      { id: 'solFees', k: 'Solana fees', kind: 'usdBig', u: ' /day', src: 'llama', emb: 'sol' },
+      { id: 'solDex', k: 'Solana DEX volume', kind: 'usdBig', u: ' /day', src: 'llama', emb: 'sol' } ] }
+  ];
+
+  /* ── Numbers. Macedonian: thousands with a narrow space; the decimal
+     comma only in percentages and points (the site's rule, promptove/112). */
+  function grp(s) { return MK ? s.replace(/,/g, ' ') : s; }
+  function dec(s) { return MK ? s.replace('.', ',') : s; }
+  function num(v, dp) { return grp(v.toLocaleString('en-US', { minimumFractionDigits: dp, maximumFractionDigits: dp })); }
+  function big(v) {
+    if (v >= 1e12) return '$' + (v / 1e12).toFixed(2) + 'T';
+    if (v >= 1e9) return '$' + (v / 1e9).toFixed(1) + 'B';
+    if (v >= 1e6) return '$' + (v / 1e6).toFixed(1) + 'M';
+    if (v >= 1e4) return '$' + Math.round(v / 1e3) + 'K';
+    return '$' + num(Math.round(v), 0);
+  }
+  function fmt(v, kind) {
+    if (v == null || !isFinite(v)) return null;
+    if (kind === 'rate') return dec(v.toFixed(2)) + '%';
+    if (kind === 'cents') return (v * 100).toFixed(v * 100 < 10 ? 2 : 1) + '¢';
+    if (kind === 'usdBig') return big(v);
+    if (kind === 'num0') return num(v, 0);
+    var dp = v >= 1000 ? 0 : v >= 100 ? 1 : 2;
+    return (kind === 'usd' ? '$' : '') + num(v, dp);
+  }
+  function change(c, label, pts, usd) {
+    if (c == null || !isFinite(c)) return '';
+    var cls = c > 0 ? 'up' : c < 0 ? 'dn' : 'flat';
+    if (usd) return '<div class="d ' + cls + '">' + (c >= 0 ? '+$' : '-$') + Math.abs(c).toFixed(2) + ' ' + label + '</div>';
+    if (pts) {
+      if (Math.abs(c) < 0.005) return '<div class="d flat">' + T.unchanged + ' ' + label + '</div>';
+      return '<div class="d ' + cls + '">' + (c >= 0 ? '+' : '') + dec(c.toFixed(2)) + ' ' + T.pts + ' ' + label + '</div>';
+    }
+    return '<div class="d ' + cls + '">' + (c >= 0 ? '+' : '') + dec(c.toFixed(1)) + '% ' + label + '</div>';
+  }
+  function spark(s, up) {
+    if (!Array.isArray(s)) return '';
+    var p = s.filter(function (v) { return typeof v === 'number' && isFinite(v); });
+    if (p.length < 3) return '';
+    var W = 100, H = 28, P = 2, lo = Math.min.apply(null, p), hi = Math.max.apply(null, p), sp = (hi - lo) || 1, st = W / (p.length - 1);
+    var d = p.map(function (v, i) { return (i ? 'L' : 'M') + (i * st).toFixed(1) + ' ' + (P + (H - P * 2) * (1 - (v - lo) / sp)).toFixed(1); }).join(' ');
+    return '<svg class="spark" viewBox="0 0 100 28" preserveAspectRatio="none" aria-hidden="true"><path d="' + d
+      + '" fill="none" stroke="' + (up ? 'var(--green)' : 'var(--red)') + '" stroke-width="1.6" vector-effect="non-scaling-stroke" stroke-linejoin="round"/></svg>';
+  }
+  var MON_EN = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+  var MON_MK = ['јан', 'фев', 'мар', 'апр', 'мај', 'јун', 'јул', 'авг', 'сеп', 'окт', 'ное', 'дек'];
+  function day(iso, monthly) {
+    if (!iso || !/^\d{4}-\d{2}-\d{2}$/.test(iso)) return '';
+    var a = iso.split('-'), M = MK ? MON_MK : MON_EN;
+    return monthly ? M[+a[1] - 1] + ' ' + a[0] : (+a[2]) + ' ' + M[+a[1] - 1];
+  }
+  function esc(s) { return String(s).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); }
+
+  /* ── Emblems: the site's drawings (js/data-loaders.js _bfEmbSvg), so a
+     tile here and on Rotator look like the same thing. */
+  var ING = { gold: ['#e3b23c', '#a87a12'], silver: ['#b0b8c0', '#5d666e'], copper: ['#c87a4a', '#8a4a26'], aluminum: ['#98a3ad', '#55606a'] };
+  function star(cx, cy, r) { var p = []; for (var i = 0; i < 10; i++) { var a = -Math.PI / 2 + i * Math.PI / 5, rr = i % 2 ? r * 0.42 : r; p.push((cx + rr * Math.cos(a)).toFixed(2) + ' ' + (cy + rr * Math.sin(a)).toFixed(2)); } return '<polygon points="' + p.join(' ') + '" fill="#ffcc00"/>'; }
+  function ingot(x, y, w, c) { return '<polygon points="' + (x + 2.5) + ' ' + y + ' ' + (x + w - 2.5) + ' ' + y + ' ' + (x + w) + ' ' + (y + 6) + ' ' + x + ' ' + (y + 6) + '" fill="' + c[0] + '" stroke="' + c[1] + '" stroke-width=".8" stroke-linejoin="round"/><line x1="' + (x + 3.2) + '" y1="' + (y + 1.4) + '" x2="' + (x + w - 3.2) + '" y2="' + (y + 1.4) + '" stroke="#fff" stroke-opacity=".55" stroke-width=".8"/>'; }
+  function emblem(id) {
+    var flag = id === 'us' || id === 'eu' || id === 'jp', s = '', i;
+    if (id === 'us') { for (i = 0; i < 7; i++) s += '<rect y="' + (i * 20 / 7).toFixed(3) + '" width="30" height="' + (20 / 7).toFixed(3) + '" fill="' + (i % 2 ? '#fff' : '#b22234') + '"/>'; s += '<rect width="13" height="11.43" fill="#3c3b6e"/>'; for (var r = 0; r < 3; r++) for (var q2 = 0; q2 < 4; q2++) s += '<circle cx="' + (2 + q2 * 3) + '" cy="' + (2 + r * 3.4) + '" r=".7" fill="#fff"/>'; }
+    else if (id === 'eu') { s = '<rect width="30" height="20" fill="#003399"/>'; for (i = 0; i < 12; i++) { var a = i * Math.PI / 6; s += star(15 + 6 * Math.cos(a), 10 + 6 * Math.sin(a), 1.25); } }
+    else if (id === 'jp') s = '<rect width="30" height="20" fill="#fff"/><circle cx="15" cy="10" r="6" fill="#bc002d"/>';
+    else if (ING[id]) s = ingot(1, 15, 11, ING[id]) + ingot(12, 15, 11, ING[id]) + ingot(6.5, 8.6, 11, ING[id]);
+    else if (id === 'barrel' || id === 'diesel') { var bx = id === 'diesel' ? 2 : 5; s = '<rect x="' + bx + '" y="3" width="14" height="18" rx="3" fill="#4a5b65"/><rect x="' + bx + '" y="7.6" width="14" height="1.3" fill="#7d8f99"/><rect x="' + bx + '" y="15.1" width="14" height="1.3" fill="#7d8f99"/>'; if (id === 'diesel') s += '<path d="M19.5 8.5c0 0-3.5 4.4-3.5 6.8a3.5 3.5 0 0 0 7 0c0-2.4-3.5-6.8-3.5-6.8z" fill="#d49a12"/>'; }
+    else if (id === 'flame') s = '<path d="M12 2c.8 3.6 6 6 6 12a6 6 0 0 1-12 0c0-2.9 1.7-4.9 3-6.6.1 1.9 1 3 2.1 3.2C11 7.7 10.6 5 12 2z" fill="#2f80ed"/><path d="M12 12.2c.6 1.6 2.6 2.6 2.6 4.6a2.6 2.6 0 0 1-5.2 0c0-1.6 1.6-2.6 2.6-4.6z" fill="#9cc7ff"/>';
+    else if (id === 'bolt') s = '<polygon points="13.5 1.5 4 13.5 11 13.5 9.5 22.5 20 9.5 13 9.5" fill="#f2b705" stroke="#b98600" stroke-width=".6" stroke-linejoin="round"/>';
+    else if (id === 'btc' || id === 'usd' || id === 'stable') { var f = id === 'btc' ? '#f7931a' : id === 'stable' ? '#26a17b' : 'none'; s = '<circle cx="12" cy="12" r="10" fill="' + f + '"' + (id === 'usd' ? ' stroke="#2e7d32" stroke-width="1.8"' : '') + '/>'; s += id === 'btc' ? '<path d="M10 5.5v13M13 5.5v13" stroke="#fff" stroke-width="1.3"/><text x="12.3" y="16.6" text-anchor="middle" font-family="Arial,sans-serif" font-weight="700" font-size="13" fill="#fff">B</text>' : '<text x="12" y="17" text-anchor="middle" font-family="Arial,sans-serif" font-weight="700" font-size="14" fill="' + (id === 'usd' ? '#2e7d32' : '#fff') + '">$</text>'; }
+    else if (id === 'lock') s = '<path d="M8 11V8a4 4 0 0 1 8 0v3" fill="none" stroke="#7b61ff" stroke-width="2.2"/><rect x="4.5" y="10.5" width="15" height="11" rx="2.2" fill="#7b61ff"/><circle cx="12" cy="15.4" r="1.6" fill="#fff"/>';
+    else if (id === 'eth') s = '<polygon points="12 1.5 5 12.3 12 16.4 19 12.3" fill="#627eea"/><polygon points="12 17.8 5 13.7 12 22.5 19 13.7" fill="#8fa2f2"/>';
+    else if (id === 'sol') s = '<polygon points="7 4.5 21 4.5 17.5 8.5 3.5 8.5" fill="#9945ff"/><polygon points="3.5 10.2 17.5 10.2 21 14.2 7 14.2" fill="#43b4ca"/><polygon points="7 15.9 21 15.9 17.5 19.9 3.5 19.9" fill="#14f195"/>';
+    if (!s) return '';
+    return '<span class="emb' + (flag ? ' flag' : '') + '" aria-hidden="true"><svg viewBox="0 0 ' + (flag ? '30 20' : '24 24') + '">' + s
+      + (flag ? '<rect x=".3" y=".3" width="29.4" height="19.4" fill="none" stroke="#000" stroke-opacity=".18" stroke-width=".6"/>' : '') + '</svg></span>';
+  }
+
+  /* ── One tile for the chosen period ── */
+  function windowOf(it, cell, days) {
+    var s = Array.isArray(it.s) ? it.s : [];
+    if (cell.monthly) {
+      if (days === 365) return { c: it.c365, s: s, l: T.win[365] };
+      return { c: it.c1m, s: s, l: T.win.m1 };   /* a monthly figure has no week */
+    }
+    if (days === 7) return { c: it.c7, s: it.n7 >= 2 ? s.slice(-it.n7) : null, l: T.win[7] };
+    if (days === 30) return { c: it.c30, s: it.n30 >= 2 ? s.slice(-it.n30) : null, l: T.win[30] };
+    return { c: it.c365, s: s, l: T.win[365] };
+  }
+  function tile(cell, W, N) {
+    var it = W[cell.id];
+    var v = null, unit = cell.u || '', w;
+    if (cell.net && N && N[cell.net[0]] != null) {
+      /* On-chain: the 7-day averages headline, as on the site. */
+      var ns = (N.series || {})[cell.net[0]];
+      v = fmt(N[cell.net[0]], cell.kind);
+      if (PERIOD === 7) w = { c: N[cell.net[1]], s: Array.isArray(ns) && (N.n7 || {})[cell.net[0]] >= 3 ? ns.slice(-(N.n7 || {})[cell.net[0]]) : ns, l: T.win[7] };
+      else if (PERIOD === 30) w = { c: (N.p30 || {})[cell.net[0]], s: ns, l: T.win[30] };
+      else w = it ? windowOf(it, cell, 365) : { c: null, s: null, l: T.win[365] };
+    } else {
+      if (!it || it.v == null) return '';
+      var si = MK && cell.mk ? cell.mk : null;
+      v = fmt(si ? it.v * si.mul : it.v, si ? (si.kind || cell.kind) : cell.kind);
+      if (si) unit = si.u;
+      w = windowOf(it, cell, PERIOD);
+    }
+    if (v == null) return '';
+    var copy = COPY[cell.k] || [cell.k, '', ''];
+    var title = MK ? copy[0] : cell.k, desc = MK ? copy[2] : copy[1];
+    var src = SRC[cell.src], when = it ? day(it.date, cell.monthly) : '';
+    var extra = '';
+    if (cell.range && it && it.lo != null) extra = '<div class="src">' + (MK ? 'цел ' : 'target ') + dec(it.lo.toFixed(2)) + '–' + dec(it.hi.toFixed(2)) + '%</div>';
+    return '<div class="tile">' + emblem(cell.emb)
+      + '<div class="k">' + esc(title) + '</div>'
+      + '<div class="v">' + v + '<span class="u">' + esc(unit) + '</span></div>'
+      + change(w.c, w.l, cell.kind === 'rate', !!cell.usdpts) + extra
+      + spark(w.s, w.c == null || w.c >= 0)
+      + '<div class="note">' + esc(desc) + '</div>'
+      + '<div class="src">' + T.source + ': <a href="' + src[1] + (cell.sym ? encodeURIComponent(cell.sym) : '') + '" target="_blank" rel="noopener">' + esc(src[0]) + '</a>' + (when ? ' · ' + when : '') + '</div>'
+      + '</div>';
+  }
+
+  var DATA = null;
+  function render() {
+    var host = document.getElementById('body');
+    if (!DATA) return;
+    var W = (DATA.world && DATA.world.items) || {}, N = DATA.net || null, html = '';
+    GROUPS.forEach(function (g) {
+      var cells = g.cells.map(function (c) { return tile(c, W, N); }).filter(Boolean);
+      if (!cells.length) return;
+      html += '<div class="grp">' + esc(MK ? g.mk : g.en) + '</div><div class="grid">' + cells.join('') + '</div>';
+    });
+    host.innerHTML = html || '<div class="msg">' + T.failed + '</div>';
+    var seg = document.getElementById('seg');
+    seg.innerHTML = [7, 30, 365].map(function (d) { return '<button type="button" data-d="' + d + '" class="' + (d === PERIOD ? 'on' : '') + '">' + T.seg[d] + '</button>'; }).join('');
+    var ages = [DATA.worldAt, DATA.netAt].filter(Boolean).map(function (t) { return Date.now() - Date.parse(t); });
+    var age = ages.length ? Math.min.apply(null, ages) / 3600000 : null;
+    var ageTxt = age == null ? '' : age < 1.5 ? T.now : age < 36 ? (MK ? T.ago + ' ' + Math.round(age) + T.h : Math.round(age) + T.h) : (MK ? T.ago + ' ' + Math.round(age / 24) + T.d : Math.round(age / 24) + T.d);
+    document.getElementById('t-meta').innerHTML = (ageTxt ? T.updated + ' ' + ageTxt + ' · ' : '') + T.note;
+    postHeight();
+  }
+
+  function postHeight() {
+    try { window.parent.postMessage({ rotatorEmbedHeight: Math.ceil(document.documentElement.scrollHeight) }, '*'); } catch (e) {}
+  }
+
+  document.getElementById('t-title').textContent = T.title;
+  document.getElementById('t-sub').textContent = T.sub;
+  document.getElementById('t-loading').textContent = T.loading;
+  document.getElementById('t-open').textContent = T.open;
+  document.getElementById('seg').addEventListener('click', function (e) {
+    var b = e.target.closest('button[data-d]'); if (!b) return;
+    PERIOD = +b.getAttribute('data-d'); render();
+  });
+  window.addEventListener('resize', postHeight);
+
+  function row(key) {
+    return fetch(URL_ + '?cache_key=eq.' + key + '&select=updated_at,data', { headers: { apikey: KEY, Authorization: 'Bearer ' + KEY } })
+      .then(function (r) { if (!r.ok) throw new Error(r.status); return r.json(); })
+      .then(function (rows) { return rows && rows[0] ? rows[0] : null; })
+      .catch(function () { return null; });
+  }
+  Promise.all([row('world_data'), row('network_data')]).then(function (r) {
+    var w = r[0], n = r[1];
+    if (!w && !n) { document.getElementById('body').innerHTML = '<div class="msg">' + T.failed + '</div>'; postHeight(); return; }
+    DATA = { world: w && w.data, worldAt: w && w.updated_at, net: n && n.data, netAt: n && n.updated_at };
+    render();
+  });
+})();
+</script>
+</body>
+</html>

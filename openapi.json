@@ -2,7 +2,7 @@
   "openapi": "3.1.0",
   "info": {
     "title": "Rotator public API",
-    "version": "2026-09-23",
+    "version": "2026-10-05",
     "summary": "Read-only scored universe of ~290 crypto assets and tokenized stocks, rescored every 15 minutes, plus the published call history.",
     "description": "PostgREST over Supabase. Every request sends the public anon key as both the `apikey` header and a Bearer token; it is not a secret and grants read access only.\n\nTypical agent flow: GET /signal_runs?order=as_of.desc&limit=2, take the first run whose items are non-empty (the header is written a moment before its items), then GET /signal_run_items?run_id=eq.<id>&select=<columns>.\n\nFilters use PostgREST syntax on any column: `col=eq.value`, `gte.`, `lte.`, `in.(a,b)`, `is.true`, `is.null`. Always pass `select=` on signal_run_items: its jsonb columns are large.\n\nEvidence, from a 771-day backtest and not from live results: a higher `score` preceded better 30-day relative performance (rank IC +0.053). `zone='buy'` is the LOW end of the score and is not a prediction of outperformance. There is no live accuracy claim yet; see https://rotatortool-official.github.io/track-record.html. Not financial advice.\n\nHuman-readable docs: https://rotatortool-official.github.io/api.html",
     "contact": { "url": "https://rotatortool-official.github.io/api.html" }
@@ -131,6 +131,13 @@
           "mayer_multiple": { "type": "number", "description": "Only BTC has calibrated bands (2.4x stretched / 0.8x oversold)." },
           "sample_size": { "type": "integer" }, "computed_at": { "type": "string", "format": "date-time" }
         }
+      },
+      "MarketCacheRow": {
+        "type": "object",
+        "properties": {
+          "cache_key": { "type": "string" }, "updated_at": { "type": "string", "format": "date-time" },
+          "data": { "type": "object", "description": "For world_data: { updatedAt, items: { <key>: { v, date, c7, c30, c90, c182, c365, c1095, s, s3, n7, n30, n90, n182, ... } } }" }
+        }
       }
     }
   },
@@ -219,6 +226,18 @@
         "summary": "200-day MA and Mayer multiple for BTC, ETH, BNB, SOL, XRP, PAXG.",
         "parameters": [ { "$ref": "#/components/parameters/select" } ],
         "responses": { "200": { "description": "Cycle readings", "content": { "application/json": { "schema": { "type": "array", "items": { "$ref": "#/components/schemas/MarketCycle" } } } } } }
+      }
+    },
+    "/market_cache": {
+      "get": {
+        "operationId": "getMarketBackdrop",
+        "summary": "The TODAY indices: central bank rates, bond yields, dollar, metals, energy, on-chain activity. Always filter on cache_key.",
+        "description": "cache_key=eq.world_data returns every index in data.items.<key> with v (latest value), date, changes c7/c30/c90/c182/c365/c1095 (percent for prices and activity, points for rates and yields, dollars for crack), s (about a year of daily values, oldest first), s3 (three years, thinned) and n7/n30/n90/n182 (points of s inside each window). Keys: fed, ecb, boj, us3m, us2y, us10y, jgb10y, dxy, gold, silver, copper, aluminum, oil, brent, crack, gas, power, hash, addr, tvl, stable, ethFees, solFees, solDex. Units and sources: https://rotatortool-official.github.io/api.html#today. cache_key=eq.network_data returns the 7-day on-chain averages; cache_key=eq.fear_greed the Fear & Greed Index. Context only, not signals. Other cache_key values are internal and may change without notice.",
+        "parameters": [
+          { "name": "cache_key", "in": "query", "required": true, "description": "eq.world_data, eq.network_data or eq.fear_greed", "schema": { "type": "string", "enum": ["eq.world_data", "eq.network_data", "eq.fear_greed"] } },
+          { "$ref": "#/components/parameters/select" }
+        ],
+        "responses": { "200": { "description": "One row", "content": { "application/json": { "schema": { "type": "array", "items": { "$ref": "#/components/schemas/MarketCacheRow" } } } } } }
       }
     }
   }

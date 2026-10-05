@@ -74,7 +74,7 @@ footer{border-top:1px solid var(--bdr);padding:24px 0;text-align:center;font-fam
   <div class="wrap">
     <div class="hero-kicker">◆ PUBLIC API</div>
     <h1>Read-only. Free. No signup.</h1>
-    <p>The same data Rotator's own site and Telegram bot read: about 290 crypto assets and tokenized stocks, rescored every 15 minutes, with the numbers behind every score. This page exists so developers and AI agents can query it directly instead of scraping the UI.</p>
+    <p>The same data Rotator's own site and Telegram bot read: about 290 crypto assets and tokenized stocks, rescored every 15 minutes, with the numbers behind every score. Also the market backdrop on the TODAY page: central bank rates, bond yields, metals, energy and on-chain activity (<a href="#today">below</a>). This page exists so developers and AI agents can query it directly instead of scraping the UI.</p>
     <p>All endpoints are standard <a href="https://postgrest.org/en/stable/references/api.html" target="_blank" rel="noopener">PostgREST</a>: plain HTTPS GET requests, JSON responses, filterable and sortable with query parameters. Agents: the machine-readable contract is <a href="openapi.json">openapi.json</a>.</p>
     <div class="badge-row">
       <span class="badge">Public key, no signup</span>
@@ -209,6 +209,83 @@ curl "https://wyvwycatgexpbugzkdfw.supabase.co/rest/v1/signal_runs?select=id,as_
         <tr><td class="col-field">engine_version / source</td><td class="col-type">text</td><td>which engine made the call; 'dashboard' or 'bot'</td></tr>
       </table></div>
     </div>
+  </div>
+
+  <div class="section" id="today">
+    <div class="section-title">Market backdrop: the TODAY indices</div>
+    <div class="section-desc">
+      The readings on the TODAY section of the main page: central bank rates and government bond yields, the dollar index, metals, energy, and Bitcoin and DeFi network activity. Each comes from a named public source and is collected by the same sync that feeds the scores. They describe the market around crypto; they are context, not signals, and none of them is a forecast. One request returns all of them.
+    </div>
+
+    <div class="endpoint">
+      <div class="endpoint-name">GET /market_cache?cache_key=eq.world_data</div>
+      <div class="endpoint-desc">Every TODAY index in one row: the latest value, the date of that reading, its change over six windows, and the daily history the site draws its charts from. Refreshed once a day after the US close; the Treasury and central banks publish on their own calendars, so each item carries its own <code>date</code>.</div>
+      <div class="codebox">curl "https://wyvwycatgexpbugzkdfw.supabase.co/rest/v1/market_cache?cache_key=eq.world_data&amp;select=updated_at,data" \
+  -H "apikey: &lt;anon key&gt;" -H "Authorization: Bearer &lt;anon key&gt;"
+
+# the response: data.items.&lt;key&gt; for each index, e.g. the Fed rate
+# { "v": 3.88, "date": "2026-10-01", "lo": 3.75, "hi": 4, "c30": 0.25, "c365": -0.21, "s": [ … ], … }</div>
+      <div class="tbl"><table>
+        <tr><th>field (per item)</th><th>type</th><th>notes</th></tr>
+        <tr><td class="col-field">v</td><td class="col-type">number</td><td>latest value, in the unit listed below</td></tr>
+        <tr><td class="col-field">date</td><td class="col-type">text</td><td>the day of that reading (YYYY-MM-DD); for <code>power</code> the first day of its month</td></tr>
+        <tr><td class="col-field">c7 / c30 / c90 / c182 / c365 / c1095</td><td class="col-type">number</td><td>change over 7 days, 30 days, 3 months, 6 months, 1 year, 3 years. <b>Percent</b> for prices and activity; <b>points</b> for rates and yields (4.00% → 4.40% is 0.40); <b>dollars</b> for <code>crack</code>. null when there is no reading that far back.</td></tr>
+        <tr><td class="col-field">s</td><td class="col-type">number[]</td><td>about one year of daily values, oldest first (monthly for <code>power</code>)</td></tr>
+        <tr><td class="col-field">s3</td><td class="col-type">number[]</td><td>three years, thinned to about 150 points</td></tr>
+        <tr><td class="col-field">n7 / n30 / n90 / n182</td><td class="col-type">integer</td><td>how many points of <code>s</code> fall inside that window; <code>s.slice(-n30)</code> is the 30-day line</td></tr>
+        <tr><td class="col-field">lo / hi</td><td class="col-type">number</td><td><code>fed</code> only: the target range around the effective rate</td></tr>
+        <tr><td class="col-field">last</td><td class="col-type">object</td><td>central banks only: the latest rate decision, <code>{from, to, date}</code></td></tr>
+        <tr><td class="col-field">cn</td><td class="col-type">object</td><td><code>oil</code> only: Shanghai crude in dollars, with its own series and its gap to Brent and WTI</td></tr>
+        <tr><td class="col-field">gwei</td><td class="col-type">number</td><td><code>ethFees</code> only: the current gas price</td></tr>
+      </table></div>
+      <div class="tbl"><table>
+        <tr><th>key</th><th>what it is</th><th>unit of v</th><th>source</th></tr>
+        <tr><td class="col-field">fed / ecb / boj</td><td>US, euro area and Japan central bank policy rates</td><td>%</td><td>New York Fed, ECB, Bank of Japan</td></tr>
+        <tr><td class="col-field">us3m / us2y / us10y</td><td>US Treasury yields, 3 months, 2 and 10 years</td><td>%</td><td>U.S. Treasury</td></tr>
+        <tr><td class="col-field">jgb10y</td><td>Japan 10-year government bond yield</td><td>%</td><td>Japan Ministry of Finance</td></tr>
+        <tr><td class="col-field">dxy</td><td>US dollar index</td><td>index</td><td>ICE via Yahoo Finance</td></tr>
+        <tr><td class="col-field">gold / silver</td><td>futures, front month</td><td>$ per troy ounce</td><td>COMEX via Yahoo Finance</td></tr>
+        <tr><td class="col-field">copper</td><td>futures, front month</td><td>$ per pound</td><td>COMEX via Yahoo Finance</td></tr>
+        <tr><td class="col-field">aluminum</td><td>futures, front month</td><td>$ per tonne</td><td>COMEX via Yahoo Finance</td></tr>
+        <tr><td class="col-field">oil / brent</td><td>WTI and Brent crude futures</td><td>$ per barrel</td><td>NYMEX via Yahoo Finance (CL=F, BZ=F)</td></tr>
+        <tr><td class="col-field">crack</td><td>diesel crack spread: heating oil × 42 minus Brent, what refiners earn per barrel</td><td>$ per barrel</td><td>computed from heating oil (HO=F) and Brent (BZ=F), Yahoo Finance</td></tr>
+        <tr><td class="col-field">gas</td><td>US natural gas futures</td><td>$ per MMBtu</td><td>NYMEX via Yahoo Finance</td></tr>
+        <tr><td class="col-field">power</td><td>average US household electricity price, monthly, about six weeks behind</td><td>$ per kWh</td><td>U.S. Bureau of Labor Statistics</td></tr>
+        <tr><td class="col-field">hash</td><td>Bitcoin hash rate</td><td>EH/s</td><td>Blockchain.com</td></tr>
+        <tr><td class="col-field">addr</td><td>active Bitcoin addresses per day</td><td>count</td><td>Blockchain.com</td></tr>
+        <tr><td class="col-field">tvl / stable</td><td>DeFi value locked across all chains; stablecoin supply</td><td>$</td><td>DefiLlama</td></tr>
+        <tr><td class="col-field">ethFees / solFees</td><td>fees users paid on Ethereum and Solana in a day</td><td>$ per day</td><td>DefiLlama</td></tr>
+        <tr><td class="col-field">solDex</td><td>value traded on Solana's exchanges in a day</td><td>$ per day</td><td>DefiLlama</td></tr>
+      </table></div>
+    </div>
+
+    <div class="endpoint">
+      <div class="endpoint-name">GET /market_cache?cache_key=eq.network_data</div>
+      <div class="endpoint-desc">The on-chain readings averaged over 7 days, which is what the TODAY tiles show as their headline value: <code>hashrateEh</code>, <code>addrCount</code>, <code>tvlUsd</code>, <code>stableUsd</code>, each with its 7-day change (<code>hashrateP7</code>, <code>addrP7</code>, <code>tvlP7</code>, <code>stableP7</code>), 30-day changes in <code>p30</code>, and a month of daily values in <code>series</code>. Refreshed daily.</div>
+      <div class="codebox">curl "https://wyvwycatgexpbugzkdfw.supabase.co/rest/v1/market_cache?cache_key=eq.network_data&amp;select=updated_at,data" \
+  -H "apikey: &lt;anon key&gt;" -H "Authorization: Bearer &lt;anon key&gt;"</div>
+    </div>
+
+    <div class="endpoint">
+      <div class="endpoint-name">GET /market_cache?cache_key=eq.fear_greed</div>
+      <div class="endpoint-desc">The Crypto Fear &amp; Greed Index: <code>{value, label, asOf, source}</code>, 0 = extreme fear, 100 = extreme greed. One reading a day, from alternative.me.</div>
+      <div class="codebox">curl "https://wyvwycatgexpbugzkdfw.supabase.co/rest/v1/market_cache?cache_key=eq.fear_greed&amp;select=data" \
+  -H "apikey: &lt;anon key&gt;" -H "Authorization: Bearer &lt;anon key&gt;"</div>
+    </div>
+
+    <div class="note-box">
+      <b>Showing these on another site?</b> A ready-made panel exists: <a href="today-embed.html">today-embed.html</a> shows every index with its source, in English or Macedonian, light or dark, and can be placed on any page with one <code>&lt;iframe&gt;</code>. Please keep the visible link to Rotator and the source of each reading.
+    </div>
+    <div class="codebox">&lt;!-- Rotator · TODAY. Options: lang=mk|en, theme=dark|light (default: the viewer's setting), period=7|30|365 --&gt;
+&lt;iframe id="rotator-today" src="https://rotatortool-official.github.io/today-embed.html?lang=mk&amp;period=30"
+        style="width:100%;height:1400px;border:0;" loading="lazy" title="Rotator · TODAY"&gt;&lt;/iframe&gt;
+&lt;script&gt;
+  // optional: size the frame to its content
+  window.addEventListener('message', function (e) {
+    if (e.origin === 'https://rotatortool-official.github.io' &amp;&amp; e.data &amp;&amp; e.data.rotatorEmbedHeight)
+      document.getElementById('rotator-today').style.height = e.data.rotatorEmbedHeight + 'px';
+  });
+&lt;/script&gt;</div>
   </div>
 
   <div class="section">
