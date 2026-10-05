@@ -2148,11 +2148,11 @@ var _bfLabOn = (function () {
     return /^(localhost|127\.0\.0\.1)$/.test(location.hostname) || /[?&]lab\b/.test(location.search);
   } catch (e) { return false; }
 })();
-var _bfLab = { e: 'b', t: 'top' };
+var _bfLab = { e: 'auto', t: 'auto' };
 try {
   var _bfLabSaved = JSON.parse(localStorage.getItem('rot_bf_lab') || 'null');
-  if (_bfLabSaved && /^[abc]$/.test(_bfLabSaved.e)) _bfLab.e = _bfLabSaved.e;
-  if (_bfLabSaved && /^(top|back|now)$/.test(_bfLabSaved.t)) _bfLab.t = _bfLabSaved.t;
+  if (_bfLabSaved && /^(a|b|c|auto)$/.test(_bfLabSaved.e)) _bfLab.e = _bfLabSaved.e;
+  if (_bfLabSaved && /^(top|back|now|auto)$/.test(_bfLabSaved.t)) _bfLab.t = _bfLabSaved.t;
 } catch (e) {}
 function _bfLabBar() {
   if (!_bfLabOn) return '';
@@ -2160,9 +2160,9 @@ function _bfLabBar() {
     return '<button type="button" class="bf-seg-b bf-lab-b" data-g="' + grp + '" data-v="' + v + '" onclick="bfLabSet(\'' + grp + '\',\'' + v + '\')">' + label + '</button>';
   };
   return '<div class="bf-lab" translate="no"><span class="bf-bar-l">Lab · emblem</span><div class="bf-seg">'
-    + b('e', 'a', 'A back') + b('e', 'b', 'B corner') + b('e', 'c', 'C big')
+    + b('e', 'auto', 'Auto') + b('e', 'a', 'A back') + b('e', 'b', 'B corner') + b('e', 'c', 'C big')
     + '</div><span class="bf-bar-l">text</span><div class="bf-seg">'
-    + b('t', 'top', 'Top') + b('t', 'back', 'Back') + b('t', 'now', 'Now')
+    + b('t', 'auto', 'Auto') + b('t', 'top', 'Top') + b('t', 'back', 'Back') + b('t', 'now', 'Now')
     + '</div></div>';
 }
 function bfLabSet(g, v) {
@@ -2175,13 +2175,32 @@ function bfLabSet(g, v) {
     _bfLabApply(host);
   }
 }
+/* Auto (Daniel, 2026-10-05: "all are good, can't decide"): the screen
+   decides. Desktop has room for the big faded picture and the
+   description under the title; a phone gets the small badge and the
+   description on the back, so its tiles stay short. */
+var _bfPhoneMq = null;
+try { _bfPhoneMq = window.matchMedia('(max-width: 900px)'); } catch (e) {}
+function _bfIsPhone() { return !!(_bfPhoneMq && _bfPhoneMq.matches); }
 function _bfLabApply(host) {
-  host.setAttribute('data-emb', _bfLab.e);
-  host.setAttribute('data-lay', _bfLab.t);
+  var phone = _bfIsPhone();
+  var lay = _bfLab.t === 'auto' ? (phone ? 'back' : 'top') : _bfLab.t;
+  host.setAttribute('data-emb', _bfLab.e === 'auto' ? (phone ? 'b' : 'c') : _bfLab.e);
+  if (lay !== host.getAttribute('data-lay')) {
+    var flipped = host.querySelectorAll('.bf-cell.flipped');
+    for (var j = 0; j < flipped.length; j++) flipped[j].classList.remove('flipped');
+  }
+  host.setAttribute('data-lay', lay);
   var bs = host.querySelectorAll('.bf-lab-b');
   for (var i = 0; i < bs.length; i++) bs[i].classList.toggle('on', _bfLab[bs[i].getAttribute('data-g')] === bs[i].getAttribute('data-v'));
   if (host._bfFlipWired) return;
   host._bfFlipWired = true;
+  /* Turning a phone sideways or resizing the window switches with it. */
+  if (_bfPhoneMq) {
+    var re = function () { _bfLabApply(host); };
+    if (_bfPhoneMq.addEventListener) _bfPhoneMq.addEventListener('change', re);
+    else if (_bfPhoneMq.addListener) _bfPhoneMq.addListener(re);
+  }
   /* "Back" trial: a tap turns the tile to its explanation and back. */
   host.addEventListener('click', function (e) {
     if (!document.documentElement.classList.contains('light') || host.getAttribute('data-lay') !== 'back') return;
