@@ -2718,7 +2718,7 @@ function _cfTile(dir) {
       + '<span class="cf-d ' + (dir > 0 ? 'up' : 'dn') + '">' + _cfUsd(r.d7, true) + '</span>'
       + '<span class="cf-p">' + _cfPct(r.p7) + '</span></div>';
   }).join('');
-  return '<button type="button" class="etf-tile cf-tile" onclick="openChainFlowsModal()" aria-label="' + (dir > 0 ? L.in : L.out) + ': '
+  return '<button type="button" class="etf-tile cf-tile" onclick="openChainFlowsModal(' + dir + ')" aria-label="' + (dir > 0 ? L.in : L.out) + ': '
     + (dir > 0 ? L.headIn : L.headOut) + ' ' + L.open + '.">'
     + '<div class="etf-tile-top"><span class="bf-k">' + (dir > 0 ? L.in : L.out) + '</span><span class="etf-more">' + L.details + '</span></div>'
     + '<div class="etf-num ' + (dir > 0 ? 'up' : 'dn') + '">' + (rows.length ? _cfUsd(sum, true) : '—') + '</div>'
@@ -2739,7 +2739,10 @@ function renderChainFlows() {
     + (_cfAgeMs != null && L === _CF_TXT.en ? ' · ' + _bfAge(_cfAgeMs) : '') + '</div>';
 }
 
-function openChainFlowsModal() {
+/* dir: 1 from Arriving (biggest gain on top), -1 from Leaving (biggest loss on top). Without it
+   (a header click, a language switch) the current order stays. */
+function openChainFlowsModal(dir) {
+  if (dir === 1 || dir === -1) _cfSort = { key: 'p7', dir: -dir };
   var body = document.getElementById('cf-modal-body');
   var L = _cfL();
   if (!body || !_cf || !Array.isArray(_cf.chains)) return;
