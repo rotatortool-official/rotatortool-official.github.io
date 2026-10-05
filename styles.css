@@ -4262,7 +4262,7 @@ rect.etf-out.etf-prov{stroke:var(--red);}
 .cf-name{color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
 .cf-sym{font-family:var(--font-mono);font-size:10px;color:var(--muted);margin-left:2px;}
 .cf-d{font-family:var(--font-mono);font-weight:700;text-align:right;}
-.cf-p{font-family:var(--font-mono);font-size:11px;color:var(--muted);text-align:right;}
+.cf-p{font-family:var(--font-mono);font-size:11px;color:var(--text);opacity:.78;text-align:right;}   /* a step brighter than muted (Daniel) */
 .cf-d.up,.cf-table td.up{color:var(--green);}
 .cf-d.dn,.cf-table td.dn{color:var(--red);}
 .cf-stats{grid-template-columns:repeat(3,minmax(0,1fr));}

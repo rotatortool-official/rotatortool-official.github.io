@@ -2628,7 +2628,7 @@ var _cfAgeMs = null;
 var _CF_ROWS = 4;   /* chains listed per tile */
 /* The window's table sorts by any column (Daniel, 2026-10-05: "clicking on top will sort them by
    change of percentages?"). Biggest first; the same header again flips it. */
-var _cfSort = { key: 'd7', dir: -1 };
+var _cfSort = { key: 'p7', dir: -1 };   /* opens on the biggest 7-day % change */
 function cfSortBy(key) {
   _cfSort = { key: key, dir: _cfSort.key === key ? -_cfSort.dir : (key === 'chain' ? 1 : -1) };
   var sc = document.querySelector('#cf-modal .etf-scroll'), top = sc ? sc.scrollTop : 0;
@@ -2709,7 +2709,9 @@ function _cfName(r) { return _esc(r.chain) + (r.sym && r.sym !== r.chain ? ' <sp
 
 function _cfTile(dir) {
   var L = _cfL(), rows = (_cf.chains || []).filter(function (r) { return r.d7 != null && (dir > 0 ? r.d7 > 0 : r.d7 < 0); });
-  rows.sort(function (a, b) { return dir > 0 ? b.d7 - a.d7 : a.d7 - b.d7; });   /* biggest move first */
+  /* Biggest PERCENTAGE change first (Daniel, 2026-10-05), so a small chain doubling its dollars
+     shows above a giant moving 1%. The big number stays the dollar total. */
+  rows.sort(function (a, b) { var x = a.p7 == null ? 0 : a.p7, y = b.p7 == null ? 0 : b.p7; return dir > 0 ? y - x : x - y; });
   var sum = rows.reduce(function (s, r) { return s + r.d7; }, 0);
   var list = rows.slice(0, _CF_ROWS).map(function (r) {
     return '<div class="cf-row"><span class="cf-name">' + _cfName(r) + '</span>'
