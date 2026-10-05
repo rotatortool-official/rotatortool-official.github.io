@@ -594,6 +594,7 @@ var RatioTracker = (function() {
              but at 55% the green showed through the yellow and it read
              as behind (Daniel, 2026-10-04). The support line is drawn
              solid and a little thicker, so it sits visibly on top. */
+          var taken=[];   /* label boxes already drawn, for the peak label to avoid */
           function drawLevel(val,color,label,alpha,width){
             var y=yAxis.getPixelForValue(val);
             if(y<area.top||y>area.bottom) return;
@@ -608,6 +609,7 @@ var RatioTracker = (function() {
                (Daniel, 2026-10-04): the site's Inter, on a dark backing. */
             ctx2.globalAlpha=1; ctx2.font='700 12px Inter,sans-serif';
             var tw=ctx2.measureText(label).width, tx=area.left+4, ty=y-6;
+            taken.push({l:tx-4,t:ty-12,r:tx+tw+4,b:ty+4});
             ctx2.fillStyle='rgba(10,14,20,.82)';
             ctx2.fillRect(tx-4,ty-12,tw+8,16);
             ctx2.fillStyle=color;
@@ -616,8 +618,50 @@ var RatioTracker = (function() {
           }
           /* Painted on the canvas, so the MK page translator never sees them. */
           var _tr=function(s){ return (typeof currentLang!=='undefined' && currentLang==='mk' && window.mkTranslate) ? window.mkTranslate(s) : s; };
-          drawLevel(resistLvl,'#00bd8e',_tr('BEST SWAP ▲'));
+          /* The dashed line is the period's top quarter, not its best point,
+             so it is a zone; the red dot below is the best moment
+             (Daniel, 2026-10-05: was "BEST SWAP ▲"). */
+          drawLevel(resistLvl,'#00bd8e',_tr('GOOD SWAP ZONE ▲'));
           drawLevel(supportLvl,'#f0a030',_tr('SUPPORT ▼'),1,1.5);
+
+          /* The red dot: the period's peak ratio, the most TO coins one
+             FROM coin bought in this period (Daniel, 2026-10-05). Its label
+             takes the first spot beside the dot (left, right, below,
+             above) that stays inside the chart and clear of the level
+             labels, on the same dark backing. */
+          var pt=chart.getDatasetMeta(0).data[peakIdx];
+          if(pt){
+            ctx2.save();
+            ctx2.font='700 12px Inter,sans-serif';
+            var gap=10, plabel, pw, lx=null, ly=null;
+            var clampY=function(y){ return Math.max(area.top+12,Math.min(y,area.bottom-4)); };
+            var place=function(text){
+              var w=ctx2.measureText(text).width;
+              var clampX=function(x){ return Math.max(area.left+4,Math.min(x,area.right-w-4)); };
+              var spots=[
+                [pt.x-gap-w, clampY(pt.y+4)],        /* left of the dot (nudged inside at the top) */
+                [pt.x+gap,   clampY(pt.y+4)],        /* right of it */
+                [clampX(pt.x-w/2), pt.y+22],         /* below it */
+                [clampX(pt.x-w/2), pt.y-12]          /* above it */
+              ];
+              for(var s=0;s<spots.length;s++){
+                var x=spots[s][0], y=spots[s][1], ok=!(x<area.left+2||x+w>area.right-2||y-12<area.top||y>area.bottom);
+                for(var k=0;ok&&k<taken.length;k++){ var b=taken[k]; if(x-8<b.r&&x+w+8>b.l&&y-16<b.b&&y+8>b.t) ok=false; }   /* 4px clear of it */
+                if(ok) return {t:text,w:w,x:x,y:y};
+              }
+              return {t:text,w:w,x:null,y:clampY(pt.y+22),cx:clampX(pt.x-gap-w)};
+            };
+            /* The full text first; on a narrow chart (phones) where it finds
+               no clear spot, the short one. */
+            var p=place(_tr('Best moment to swap in this period'));
+            if(p.x===null){ var q=place(_tr('Best moment')); p=(q.x!==null)?q:{t:q.t,w:q.w,x:q.cx,y:q.y}; }
+            plabel=p.t; pw=p.w; lx=p.x; ly=p.y;
+            ctx2.fillStyle='rgba(10,14,20,.82)';
+            ctx2.fillRect(lx-4,ly-12,pw+8,16);
+            ctx2.fillStyle='#f03e58';
+            ctx2.fillText(plabel,lx,ly);
+            ctx2.restore();
+          }
         }
       }],
       options:{

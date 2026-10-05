@@ -3804,7 +3804,11 @@ td.qa-cell{text-align:center;width:28px;padding:0 4px !important;}
 #sec-swap .new-ratio-hook {grid-column:3;grid-row:1;align-self:stretch;}
 #sec-swap .rt-status      {grid-column:1 / -1;grid-row:2;}
 #sec-swap .rt-saved-wrap  {grid-column:1 / -1;grid-row:3;}
-#sec-swap .new-chart-section{grid-column:1 / -1;grid-row:4;min-height:320px;}
+#sec-swap .new-chart-section{grid-column:1 / -1;grid-row:4;min-height:320px;display:flex;flex-direction:column;}
+/* The chart takes the height the panel has left (Daniel, 2026-10-05): it
+   was a fixed 140px and left empty space under the range bar. Basis 0, so
+   Chart.js sizing the canvas to the box cannot feed back into the box. */
+#sec-swap .new-chart-section .rt-chart-wrap{flex:1 1 0;height:auto;min-height:140px;}
 #sec-swap .rt-footer      {grid-column:1 / -1;grid-row:5;}
 
 /* ── Quantity on the pair itself ───────────────────────────────────
