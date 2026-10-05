@@ -6,9 +6,8 @@
    Two kinds of station:
    - YouTube: the default since 2026-10-05 is Daniel's own channel, Blink
      Ortodox: the playlist "Macedonian Poetry x Dark Folk", starting at
-     "Ленка". Then CRYPTO GEMIDZIJA (@cryptogemidzija, partner channel),
-     played as its coin and token analysis playlist, newest first; and up
-     to 5 YouTube links the visitor adds. YouTube's embed
+     "Ленка"; and up to 5 YouTube links the visitor adds. (Crypto
+     Gemidzija had a station until 2026-10-05; it has its own button now.) YouTube's embed
      terms apply: the player stays VISIBLE while it plays, closing it
      stops the sound, no hidden or audio-only mode. youtube-nocookie.com.
    - Live radio (promptove/107, Daniel: "go with the mix"): Jazz FM and
@@ -38,11 +37,10 @@ var RADIO_STATIONS = [
      already picked a station keeps it (rot_radio_station). */
   { key: 'blink', label: 'Macedonian Poetry', icon: '🎻', type: 'list', id: 'PLIA-5btKd__dHKXlSy0Tzk4C1r0SvyrkV', start: '1zBF55zWSXc',
     by: 'Blink Ortodox', url: 'https://www.youtube.com/@Blink_Ortodox' },
-  /* 2026-10-04 (Daniel, promptove/107): the channel's coin and token
-     analysis playlist ("Анализа на Коини/Токени"), newest first,
-     instead of the whole uploads list. */
-  { key: 'gemidzija', label: 'Crypto Gemidzija', icon: '📺', type: 'list', id: 'PLMZFAeDxJ2EtTGfwt3xOyRb1pq5j6w8AL',
-    by: 'CRYPTO GEMIDZIJA', url: 'https://www.youtube.com/@cryptogemidzija' },
+  /* The Crypto Gemidzija station (their coin analysis playlist) was
+     removed 2026-10-05 (Daniel): the partner has its own LEARN MORE button
+     now, to its video academy. A visitor who had it saved falls back to
+     the first station (_radioFind). */
   /* Live radio: each station's own public https stream (checked
      2026-10-04 to play from our https page, referrer included). */
   { key: 'jazzfm',   label: 'Jazz FM',   icon: '🎷', type: 'audio', stream: 'https://radio.jazzfm.mk/listen/jazzfm/live',

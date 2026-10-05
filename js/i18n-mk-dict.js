@@ -1233,8 +1233,8 @@ MK_PATTERNS.push([/^(\d+)% Unlocked$/, function (m) { return m[1] + '% откл�
 
 /* ── Live radio (promptove/107) ── */
 Object.assign(MK_TEXT, {
-  'Crypto Gemidzija, live radio from Skopje and Radio Paradise, and up to 5 of your own YouTube links':
-    'Crypto Gemidzija, радио во живо од Скопје и Radio Paradise, и до 5 ваши YouTube линкови',
+  'Macedonian poetry, live radio from Skopje and Radio Paradise, and up to 5 of your own YouTube links':
+    'Македонска поезија, радио во живо од Скопје и Radio Paradise, и до 5 ваши YouTube линкови',
   'Connecting…': 'Се поврзува…', '● Live': '● Во живо', 'Live': 'Во живо', 'Buffering…': 'Се вчитува…',
   'This station is offline right now. Try another one.': 'Оваа станица моментално не работи. Пробајте друга.',
   'Press the station again to start.': 'Притиснете ја станицата повторно за да почне.',
