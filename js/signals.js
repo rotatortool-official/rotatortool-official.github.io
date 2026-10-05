@@ -282,7 +282,9 @@ function _sigPeriod(days, v) {
 }
 
 function sigTile(c, kind) {
-  var badges = {rot:'ROT', mom:'MOM', wrst:'WORST'};
+  /* No MOM / WORST badge (Daniel, 2026-10-05): the column title already
+     says it, and six tiles each repeating it was noise. The left bar
+     (styles.css .sig-tile.mom / .wrst) carries the column's colour. */
   var scC  = { hi: 'up', md: 'am', lo: 'dn' }[scoreBand(c.score)];
 
   /* Supply & sentiment */
@@ -305,7 +307,6 @@ function sigTile(c, kind) {
     + '<div class="sig-tile-top">'
       + '<div class="sig-tile-ico"><img src="' + c.image + '" alt="' + c.sym + ' logo" loading="lazy" width="20" height="20" onerror="this.style.display=\'none\'"></div>'
       + '<span class="sig-tile-sym">' + c.sym + '</span>'
-      + '<span class="sig-tile-badge ' + kind + '">' + badges[kind] + '</span>'
     + '</div>'
     + '<div class="sig-tile-stats">'
       + '<div class="sig-stat"><span class="sig-stat-l">MCAP</span><span class="sig-stat-v am">' + mcapStr + '</span></div>'
