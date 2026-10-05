@@ -97,11 +97,18 @@ var MK_BLOCKS = {};      /* CSS selector → Macedonian innerHTML, for legal pro
      everything else in the same text stay as they are. */
   var PCT = /(\d)\.(\d+)(\s?%)/g;
   function pctComma(s) { return s.replace(PCT, '$1,$2$3'); }
+  /* Thousands (Daniel, 2026-10-05): "$4,180" next to "$61.21" read as a
+     decimal comma in Macedonian. The English thousands comma becomes a
+     narrow no-break space: "$4 180", "502 298", "$79 258.00". Runs after
+     translation (the dictionary keys keep their English commas) and
+     before pctComma, so only the source's thousands commas change. */
+  var THOU = /\d{1,3}(?:,\d{3})+(?!\d)/g;
+  function thouSpace(s) { return s.replace(THOU, function (m) { return m.replace(/,/g, ' '); }); }
 
   function doText(n) {
     var raw = n.nodeValue;
     if (!raw) return;
-    var pct = /\d\.\d+\s?%/.test(raw);
+    var pct = /\d\.\d+\s?%/.test(raw) || /\d,\d{3}(?!\d)/.test(raw);
     if (!pct && !wordy(raw)) return;
     if (n.__mk !== undefined && raw === n.__mk) return;          /* ours already */
     var lead = raw.match(/^\s*/)[0], trail = raw.match(/\s*$/)[0];
@@ -110,9 +117,9 @@ var MK_BLOCKS = {};      /* CSS selector → Macedonian innerHTML, for legal pro
     if (t == null) {
       if (/[A-Za-z]{3,}/.test(core) && core.length < 400) window.__mkMissing.add(core);
       if (!pct) return;
-      t = core;                                                    /* "3.88%", "+0.6% 24h": numbers only */
+      t = core;                                                    /* "3.88%", "+0.6% 24h", "$4,180": numbers only */
     }
-    t = pctComma(t);
+    t = pctComma(thouSpace(t));
     if (lead + t + trail === raw) return;
     n.__en = raw; n.__mk = lead + t + trail;
     busy = true; n.nodeValue = n.__mk; busy = false;
