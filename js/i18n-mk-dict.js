@@ -542,7 +542,7 @@ Object.assign(MK_TEXT, {
   'CRYPTO': 'КРИПТО', 'STOCK': 'АКЦИЈА',
   'BULLISH': 'ВО ПОРАСТ', 'BEARISH': 'ВО ОПАЃАЊЕ',
   '7D RANK': 'РАНГ 7D', '14D RANK': 'РАНГ 14D', '30D RANK': 'РАНГ 30D', 'COMPOSITE': 'ВКУПНО',
-  'ALREADY HELD': 'ВЕЌЕ ГО ДРЖИТЕ',
+  'ALREADY HELD': 'ВЕЌЕ ГО ДРЖИТЕ', 'Already in your holdings.': 'Веќе е меѓу вашите монети.',
   'ASSESSMENT': 'ПРОЦЕНКА', 'MKT CAP': 'ПАЗАРНА ВРЕДНОСТ', '24H VOL': 'ОБЕМ 24H',
   '200D AVG': 'ПРОСЕК 200 ДЕНА', 'CYCLE STATE': 'ФАЗА НА ЦИКЛУСОТ',
   'MC RANK': 'РАНГ ПО ВРЕДНОСТ', 'BINANCE TAGS': 'ОЗНАКИ НА BINANCE',
@@ -567,6 +567,8 @@ Object.assign(MK_TEXT, {
   var RSI_ZONE = { 'Low': 'Ниско', 'Neutral': 'Неутрално', 'Elevated': 'Покачено', 'Oversold': 'Препродадено', 'Low Momentum': 'Слаб моментум', 'Cooling': 'Се лади', 'Overbought': 'Прекупено', 'Hot Zone': 'Жешка зона', 'Warming': 'Се загрева' };
 
   /* Coin window: the reading */
+  /* Momentum tile note, with the ticker inside (2026-10-05: it was showing in English). */
+  P(/^([A-Z0-9.$-]{1,15}) has lagged the market — this is the amplifying end of the book\.$/, function (m) { return m[1] + ' заостанува зад пазарот — ова е делот од листата каде движењата се најсилни.'; });
   P(/^Ran ahead this week · (\d+) cooling signs?$/, function (m) { return 'Истрча напред оваа недела · ' + m[1] + ' ' + plur(m[1], 'знак на смирување', 'знаци на смирување'); });
   P(/^Ran ahead this week · no cooling signs yet$/, function () { return 'Истрча напред оваа недела · сè уште без знаци на смирување'; });
   P(/^Lagged this week · (\d+) turn-up signs?$/, function (m) { return 'Заостана оваа недела · ' + m[1] + ' ' + plur(m[1], 'знак за свртување нагоре', 'знаци за свртување нагоре'); });

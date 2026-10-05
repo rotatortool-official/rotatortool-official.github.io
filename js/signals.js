@@ -723,7 +723,7 @@ function buySuggestTile(c) {
   return '<div class="sig-tile rot" style="' + hbDurStyle(c.p7) + '" onclick="openTileDetail(\'' + c.id + '\',event)" title="Click for details">'
     + '<div class="sig-tile-top">'
       + '<div class="sig-tile-ico"><img src="' + c.image + '" alt="' + c.sym + ' logo" loading="lazy" width="20" height="20" onerror="this.style.display=\'none\'"></div>'
-      + '<span class="sig-tile-sym" style="color:var(--amber);">' + c.sym + '</span>'
+      + '<span class="sig-tile-sym" style="color:var(--tile-amber,var(--amber));">' + c.sym + '</span>'
       + '<span class="sig-tile-badge mom">' + badgeText + '</span>'
     + '</div>'
     + '<div class="sig-tile-stats">'
@@ -812,7 +812,7 @@ function takeProfitTile(c) {
       + '<div class="sig-tile-ico"><img src="' + c.image + '" alt="' + c.sym + ' logo" loading="lazy" width="20" height="20" onerror="this.style.display=\'none\'"></div>'
       /* Information only (promptove/64): the high score is the fact; "give-back
          zone" was a forecast resting on 9 cases (ROTATOR_EVIDENCE.giveBack). */
-      + '<span class="sig-tile-sym" style="color:var(--amber);">' + c.sym + '</span>'
+      + '<span class="sig-tile-sym" style="color:var(--tile-amber,var(--amber));">' + c.sym + '</span>'
       + '<span class="sig-tile-badge wrst">TOP OF RANGE</span>'
     + '</div>'
     + '<div class="sig-tile-stats">'
