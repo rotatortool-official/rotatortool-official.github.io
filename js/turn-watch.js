@@ -389,10 +389,10 @@ setInterval(function () { _twPairsRefresh(false); }, 5 * 60 * 1000);
 
 function _twTgFoot() {
   if (_twTg.linked) {
-    /* "daily", not "every hour" (owner, 2026-10-01): send-dm-alerts checks
-       hourly, but the turn signs come from the once-a-day detector and a
-       quiet hour sends nothing, so in practice it is a daily message. */
-    return '<span class="ca-tg on">📨 Telegram connected. New alerts are messaged to you daily.'
+    /* A briefing twice a week since 2026-10-05 (promptove/112): Monday and
+       Thursday 06:10 UTC; only a delisting and saved-pair alerts are sent
+       as they happen (send-dm-alerts urgent mode, hourly). */
+    return '<span class="ca-tg on">📨 Telegram connected: a briefing every Monday and Thursday, delistings and pair alerts right away.'
       + ' <button type="button" class="ca-act" onclick="_twTgUnlink()">Disconnect</button></span>';
   }
   return '<button type="button" class="ca-act ca-tg-btn" onclick="_twTgConnect()"' + (_twTg.busy ? ' disabled' : '') + '>📨 Get these on Telegram</button>'
