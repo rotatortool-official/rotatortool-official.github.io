@@ -4270,7 +4270,10 @@ rect.etf-out.etf-prov{stroke:var(--red);}
 .cf-table th{font-size:10px;font-weight:400;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);text-align:right;padding:0 6px 5px;border-bottom:1px solid var(--bdr);}
 .cf-table td{font-family:var(--font-mono);text-align:right;padding:4px 6px;border-bottom:1px solid var(--bdr);white-space:nowrap;color:var(--text);}
 .cf-table th:first-child,.cf-table td:first-child{text-align:left;font-family:inherit;padding-left:0;}
-.cf-table td em{font-style:normal;font-size:10px;color:var(--muted);margin-left:3px;}
+.cf-sort{all:unset;cursor:pointer;color:inherit;font:inherit;letter-spacing:inherit;text-transform:inherit;white-space:nowrap;}
+.cf-sort:hover,.cf-sort.on{color:var(--text);}
+.cf-sort:focus-visible{outline:2px solid var(--amber);outline-offset:2px;}
+.cf-arrow{display:inline-block;width:.9em;font-size:8px;margin-left:2px;color:var(--amber);}
 @media(max-width:600px){
   .cf-stats{grid-template-columns:repeat(3,minmax(0,1fr));}
   /* The site turns every table into cards on phones (thead hidden, rows
@@ -4282,7 +4285,7 @@ rect.etf-out.etf-prov{stroke:var(--red);}
   #cf-modal .cf-table th,#cf-modal .cf-table td{display:table-cell;text-align:right;white-space:nowrap;font-size:11px;}
   #cf-modal .cf-table td{padding:4px 4px;border-bottom:1px solid var(--bdr);}
   #cf-modal .cf-table th:first-child,#cf-modal .cf-table td:first-child{text-align:left;padding-left:0;}
-  #cf-modal .cf-table td em{display:none;}   /* the 7-day % is in the tiles; the dollar change is enough here */
+  #cf-modal .cf-table .cf-sym{display:none;}   /* five columns: the ticker gives way on a phone */
   .cf-table{font-size:11px;}
   .cf-table th,.cf-table td{padding-left:4px;padding-right:4px;}
 }

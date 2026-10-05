@@ -2626,6 +2626,15 @@ function openEtfModal(asset) {
 var _cf = null;
 var _cfAgeMs = null;
 var _CF_ROWS = 4;   /* chains listed per tile */
+/* The window's table sorts by any column (Daniel, 2026-10-05: "clicking on top will sort them by
+   change of percentages?"). Biggest first; the same header again flips it. */
+var _cfSort = { key: 'd7', dir: -1 };
+function cfSortBy(key) {
+  _cfSort = { key: key, dir: _cfSort.key === key ? -_cfSort.dir : (key === 'chain' ? 1 : -1) };
+  var sc = document.querySelector('#cf-modal .etf-scroll'), top = sc ? sc.scrollTop : 0;
+  openChainFlowsModal();
+  sc = document.querySelector('#cf-modal .etf-scroll'); if (sc) sc.scrollTop = top;
+}
 
 var _CF_TXT = {
   en: {
@@ -2635,7 +2644,7 @@ var _CF_TXT = {
     headOut: 'Stablecoins that left these chains in the last 7 days.',
     none: 'No chain gained stablecoins this week.', noneOut: 'No chain lost stablecoins this week.',
     strip: 'Stablecoins per chain', source: 'Source', title: 'Stablecoins by chain',
-    total: 'On these chains', d7: '7 days', d30: '30 days', chain: 'Chain', now: 'Now',
+    total: 'On these chains', d7: '7 days', d30: '30 days', chain: 'Chain', now: 'Now', p7: '7d %', p30: '30d %', sortBy: 'Sort by',
     on: function (d) { return 'Amounts on ' + d + '.'; },
     whatHd: 'What this shows',
     what: 'Stablecoins are dollars parked on a blockchain (USDT, USDC and others), ready to be used there. '
@@ -2657,7 +2666,7 @@ var _CF_TXT = {
     headOut: 'Стејблкоини што ги напуштија овие мрежи во последните 7 дена.',
     none: 'Оваа недела ниедна мрежа не доби стејблкоини.', noneOut: 'Оваа недела ниедна мрежа не изгуби стејблкоини.',
     strip: 'Стејблкоини по мрежа', source: 'Извор', title: 'Стејблкоини по мрежа',
-    total: 'На овие мрежи', d7: '7 дена', d30: '30 дена', chain: 'Мрежа', now: 'Сега',
+    total: 'На овие мрежи', d7: '7 дена', d30: '30 дена', chain: 'Мрежа', now: 'Сега', p7: '7д %', p30: '30д %', sortBy: 'Подреди по',
     on: function (d) { return 'Износи на ' + d + '.'; },
     whatHd: 'Што покажува ова',
     what: 'Стејблкоините се долари паркирани на блокчејн (USDT, USDC и други), спремни за користење таму. '
@@ -2734,11 +2743,24 @@ function openChainFlowsModal() {
   if (!body || !_cf || !Array.isArray(_cf.chains)) return;
   var t = _cf.total || {};
   var cls = function (v) { return v == null ? '' : v >= 0 ? 'up' : 'dn'; };
-  var rows = _cf.chains.slice().sort(function (a, b) { return (b.d7 || 0) - (a.d7 || 0); }).map(function (r) {
+  var k = _cfSort.key, dir = _cfSort.dir;
+  var rows = _cf.chains.slice().sort(function (a, b) {
+    if (k === 'chain') return dir * String(a.chain).localeCompare(String(b.chain));
+    var x = a[k], y = b[k];
+    if (x == null) return 1; if (y == null) return -1;          /* missing values always last */
+    return dir * (x - y);
+  }).map(function (r) {
     return '<tr><td>' + _cfName(r) + '</td><td>' + _cfUsd(r.now) + '</td>'
-      + '<td class="' + cls(r.d7) + '">' + _cfUsd(r.d7, true) + ' <em>' + _cfPct(r.p7) + '</em></td>'
-      + '<td class="' + cls(r.d30) + '">' + _cfPct(r.p30) + '</td></tr>';
+      + '<td class="' + cls(r.d7) + '">' + _cfUsd(r.d7, true) + '</td>'
+      + '<td class="' + cls(r.p7) + '">' + _cfPct(r.p7) + '</td>'
+      + '<td class="' + cls(r.p30) + '">' + _cfPct(r.p30) + '</td></tr>';
   }).join('');
+  var th = function (key, label) {
+    var on = k === key;
+    return '<th aria-sort="' + (on ? (dir > 0 ? 'ascending' : 'descending') : 'none') + '"><button type="button" class="cf-sort' + (on ? ' on' : '')
+      + '" onclick="cfSortBy(\'' + key + '\')" title="' + L.sortBy + ' ' + label + '">' + label
+      + '<span class="cf-arrow" aria-hidden="true">' + (on ? (dir > 0 ? '▲' : '▼') : '') + '</span></button></th>';
+  };
   body.innerHTML =
       '<div class="modal-title">' + L.title + '</div>'
     + '<div class="etf-scroll">'
@@ -2747,7 +2769,7 @@ function openChainFlowsModal() {
     +   '<div><span class="bf-k">' + L.d7 + '</span><b class="' + cls(t.d7) + '">' + _cfUsd(t.d7, true) + '</b><em>' + _cfPct(t.p7) + '</em></div>'
     +   '<div><span class="bf-k">' + L.d30 + '</span><b class="' + cls(t.d30) + '">' + _cfUsd(t.d30, true) + '</b><em>&nbsp;</em></div>'
     + '</div>'
-    + '<table class="cf-table"><thead><tr><th>' + L.chain + '</th><th>' + L.now + '</th><th>' + L.d7 + '</th><th>' + L.d30 + '</th></tr></thead>'
+    + '<table class="cf-table"><thead><tr>' + th('chain', L.chain) + th('now', L.now) + th('d7', L.d7) + th('p7', L.p7) + th('p30', L.p30) + '</tr></thead>'
     + '<tbody>' + rows + '</tbody></table>'
     + '<div class="etf-axis"><span>' + L.on(_cfDay(_cf.day)) + '</span></div>'
     + '<div class="etf-m-sec"><div class="bf-k">' + L.whatHd + '</div><p>' + L.what + '</p></div>'
