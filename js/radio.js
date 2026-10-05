@@ -4,9 +4,11 @@
    A small player for everyone on the site. FREE, not Pro.
 
    Two kinds of station:
-   - YouTube: the default, CRYPTO GEMIDZIJA (@cryptogemidzija, partner
-     channel), played as its coin and token analysis playlist, newest
-     first; and up to 5 YouTube links the visitor adds. YouTube's embed
+   - YouTube: the default since 2026-10-05 is Daniel's own channel, Blink
+     Ortodox: the playlist "Macedonian Poetry x Dark Folk", starting at
+     "Ленка". Then CRYPTO GEMIDZIJA (@cryptogemidzija, partner channel),
+     played as its coin and token analysis playlist, newest first; and up
+     to 5 YouTube links the visitor adds. YouTube's embed
      terms apply: the player stays VISIBLE while it plays, closing it
      stops the sound, no hidden or audio-only mode. youtube-nocookie.com.
    - Live radio (promptove/107, Daniel: "go with the mix"): Jazz FM and
@@ -30,6 +32,12 @@
 ══════════════════════════════════════════════════════════════ */
 
 var RADIO_STATIONS = [
+  /* The default (Daniel, 2026-10-05): his own channel's poetry playlist,
+     opening on track 3, "Ленка" (Racin, Бели мугри), then on through the
+     list. `start` is the video the playlist opens on. A visitor who
+     already picked a station keeps it (rot_radio_station). */
+  { key: 'blink', label: 'Macedonian Poetry', icon: '🎻', type: 'list', id: 'PLIA-5btKd__dHKXlSy0Tzk4C1r0SvyrkV', start: '1zBF55zWSXc',
+    by: 'Blink Ortodox', url: 'https://www.youtube.com/@Blink_Ortodox' },
   /* 2026-10-04 (Daniel, promptove/107): the channel's coin and token
      analysis playlist ("Анализа на Коини/Токени"), newest first,
      instead of the whole uploads list. */
@@ -51,7 +59,7 @@ var _radioStation = null;
 function radioPlaying() { return !!_radioStation; }
 
 function _radioSaved() {
-  try { return localStorage.getItem('rot_radio_station') || 'gemidzija'; } catch (e) { return 'gemidzija'; }
+  try { return localStorage.getItem('rot_radio_station') || 'blink'; } catch (e) { return 'blink'; }
 }
 function _radioFind(key) {
   var all = RADIO_STATIONS.concat(_radioCustom());
@@ -345,7 +353,7 @@ function _radioPlayNow(key) {
   if (s.type === 'audio') { _radioPlayAudio(p, s); return; }
   document.getElementById('radio-frame').innerHTML =
     '<iframe src="https://www.youtube-nocookie.com/embed/'
-    + (s.type === 'list' ? 'videoseries?list=' + s.id + '&' : s.id + '?')
+    + (s.type === 'list' ? (s.start ? s.start + '?list=' + s.id + '&' : 'videoseries?list=' + s.id + '&') : s.id + '?')
     + 'autoplay=1&playsinline=1&rel=0&enablejsapi=1&origin=' + encodeURIComponent(location.origin) + '"'
     + ' title="' + _radioEsc(s.label) + '" allow="autoplay; encrypted-media; picture-in-picture"'
     + ' referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>';
