@@ -718,6 +718,11 @@ document.addEventListener('DOMContentLoaded', function() {
       if (tog) tog.checked = isLight;
       if (ico) ico.textContent = isLight ? '🌙' : '☀';
       if (lbl) lbl.textContent = isLight ? 'DARK' : 'LIGHT';
+      /* The swap chart is a canvas: its colours are painted, not styled,
+         so it is redrawn with the new theme's palette (2026-10-05). After
+         a beat, so the light card's frame and padding are laid out first;
+         drawn at once it kept the old size and spilled out of its frame. */
+      if (typeof RatioTracker !== 'undefined' && RatioTracker.redraw) setTimeout(RatioTracker.redraw, 60);
       _themeRAF = null;
     });
   }

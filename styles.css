@@ -5493,3 +5493,24 @@ html.no-anim .mt-viewport::-webkit-scrollbar{display:none;}
 @media (prefers-reduced-motion: reduce){
   .bf-front,.bf-back{transition:none;}   /* the turn is instant, so the swap is too */
 }
+
+/* ── Swap: ratio history chart, LIGHT THEME (2026-10-05) ──────────────
+   The light card was the page's pale blue with the dark theme's chart
+   painted on it: a washed-out surface, faint ticks, dark label boxes.
+   A neutral, slightly cooler-than-white card with a framed plot area
+   gives the line and its labels something to stand on; the canvas
+   palette itself is in js/ratio.js (P, light branch). Dark untouched. */
+:root.light #sec-swap .new-chart-section{
+  background:#f3f5f8;border:1px solid rgba(15,23,42,.12);
+  box-shadow:0 1px 2px rgba(15,23,42,.05);
+}
+:root.light #sec-swap .new-chart-section .rt-chart-wrap{
+  background:#fbfcfd;border:1px solid rgba(15,23,42,.08);border-radius:8px;padding:6px 4px 2px;
+}
+:root.light #sec-swap .new-chart-title{color:#334155;}
+:root.light #sec-swap .rt-tf-btn{background:#fff;border-color:rgba(15,23,42,.16);color:#475569;}
+:root.light #sec-swap .rt-tf-btn.active{background:#e8ecf2;border-color:rgba(15,23,42,.28);color:#0f172a;}
+:root.light #sec-swap .new-chart-section .rt-range-meta{color:#475569;}
+:root.light #sec-swap .new-chart-section .rt-range-meta strong{color:#0f172a;}
+:root.light #sec-swap .new-chart-section .rt-bar-track{background:rgba(15,23,42,.12);}
+:root.light #sec-swap .new-chart-section .rt-bar-labels{color:#475569;}

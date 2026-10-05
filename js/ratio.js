@@ -583,12 +583,30 @@ var RatioTracker = (function() {
       yLabel='×';
     }
 
+    /* Two palettes (2026-10-05). The colours were written for the dark
+       theme only, so on the light one the label backings stayed near-black,
+       the ticks were a faint grey and the grid was white at 4%, invisible
+       on white. Dark keeps every value it had; light gets deeper inks that
+       hold contrast on a pale surface without shouting. A theme switch
+       redraws (RatioTracker.redraw, called from ui.js). */
+    var LT=document.documentElement.classList.contains('light');
+    var P=LT ? {
+      line:'#0a9474', fill:['rgba(10,148,116,0.24)','rgba(10,148,116,0.14)','rgba(10,148,116,0.06)','rgba(10,148,116,0.015)'],
+      zone:'#05805c', zoneA:0.85, support:'#b86e00', peak:'#d4283e', peakRing:'rgba(212,40,62,.25)', lineRing:'rgba(10,148,116,.25)',
+      backing:'rgba(255,255,255,.94)', backingEdge:'rgba(15,23,42,.14)', tick:'#4b5b6e', grid:'rgba(15,23,42,.07)',
+      tipBg:'rgba(255,255,255,.98)', tipEdge:'rgba(15,23,42,.14)', tipTitle:'#64748b', tipBody:'#0f172a'
+    } : {
+      line:'#00bd8e', fill:['rgba(0,189,142,0.40)','rgba(0,189,142,0.23)','rgba(0,189,142,0.11)','rgba(0,189,142,0.06)'],
+      zone:'#00bd8e', zoneA:0.55, support:'#f0a030', peak:'#f03e58', peakRing:'rgba(240,62,88,.3)', lineRing:'rgba(0,189,142,.3)',
+      backing:'rgba(10,14,20,.82)', backingEdge:null, tick:'#8b9bb0', grid:'rgba(255,255,255,.04)',
+      tipBg:'rgba(15,19,24,.96)', tipEdge:'rgba(243,186,47,.25)', tipTitle:'#5a6e85', tipBody:'#dce4f0'
+    };
     var grad=ctx.createLinearGradient(0,0,0,h);
     /* +0.05 at every stop (Daniel, 2026-10-04): the fill read faint. */
-    grad.addColorStop(0,'rgba(0,189,142,0.40)');
-    grad.addColorStop(0.4,'rgba(0,189,142,0.23)');
-    grad.addColorStop(0.75,'rgba(0,189,142,0.11)');
-    grad.addColorStop(1,'rgba(0,189,142,0.06)');
+    grad.addColorStop(0,P.fill[0]);
+    grad.addColorStop(0.4,P.fill[1]);
+    grad.addColorStop(0.75,P.fill[2]);
+    grad.addColorStop(1,P.fill[3]);
 
     /* ── Support / Resistance levels for "Best Time to Swap" cues ── */
     var sorted=data.slice().sort(function(a,b){return a-b;});
@@ -602,7 +620,7 @@ var RatioTracker = (function() {
         labels:labels,
         datasets:[{
           data:data,
-          borderColor:'#00bd8e',
+          borderColor:P.line,
           borderWidth:2,
           backgroundColor:grad,
           tension:0.45,
@@ -610,10 +628,10 @@ var RatioTracker = (function() {
             return (i===peakIdx||i===data.length-1)?5:0;
           }),
           pointBackgroundColor:data.map(function(v,i){
-            return i===peakIdx?'#f03e58':'#00bd8e';
+            return i===peakIdx?P.peak:P.line;
           }),
           pointBorderColor:data.map(function(v,i){
-            return i===peakIdx?'rgba(240,62,88,.3)':'rgba(0,189,142,.3)';
+            return i===peakIdx?P.peakRing:P.lineRing;
           }),
           pointBorderWidth:data.map(function(v,i){
             return (i===peakIdx||i===data.length-1)?2:0;
@@ -647,8 +665,9 @@ var RatioTracker = (function() {
             ctx2.globalAlpha=1; ctx2.font='700 12px Inter,sans-serif';
             var tw=ctx2.measureText(label).width, tx=area.left+4, ty=y-6;
             taken.push({l:tx-4,t:ty-12,r:tx+tw+4,b:ty+4});
-            ctx2.fillStyle='rgba(10,14,20,.82)';
+            ctx2.fillStyle=P.backing;
             ctx2.fillRect(tx-4,ty-12,tw+8,16);
+            if(P.backingEdge){ ctx2.strokeStyle=P.backingEdge; ctx2.lineWidth=1; ctx2.strokeRect(tx-3.5,ty-11.5,tw+7,15); }
             ctx2.fillStyle=color;
             ctx2.fillText(label,tx,ty);
             ctx2.restore();
@@ -658,8 +677,8 @@ var RatioTracker = (function() {
           /* The dashed line is the period's top quarter, not its best point,
              so it is a zone; the red dot below is the best moment
              (Daniel, 2026-10-05: was "BEST SWAP ▲"). */
-          drawLevel(resistLvl,'#00bd8e',_tr('GOOD SWAP ZONE ▲'));
-          drawLevel(supportLvl,'#f0a030',_tr('SUPPORT ▼'),1,1.5);
+          drawLevel(resistLvl,P.zone,_tr('GOOD SWAP ZONE ▲'),P.zoneA);
+          drawLevel(supportLvl,P.support,_tr('SUPPORT ▼'),1,1.5);
 
           /* The red dot: the period's peak ratio, the most TO coins one
              FROM coin bought in this period (Daniel, 2026-10-05). Its label
@@ -693,9 +712,10 @@ var RatioTracker = (function() {
             var p=place(_tr('Best moment to swap in this period'));
             if(p.x===null){ var q=place(_tr('Best moment')); p=(q.x!==null)?q:{t:q.t,w:q.w,x:q.cx,y:q.y}; }
             plabel=p.t; pw=p.w; lx=p.x; ly=p.y;
-            ctx2.fillStyle='rgba(10,14,20,.82)';
+            ctx2.fillStyle=P.backing;
             ctx2.fillRect(lx-4,ly-12,pw+8,16);
-            ctx2.fillStyle='#f03e58';
+            if(P.backingEdge){ ctx2.strokeStyle=P.backingEdge; ctx2.lineWidth=1; ctx2.strokeRect(lx-3.5,ly-11.5,pw+7,15); }
+            ctx2.fillStyle=P.peak;
             ctx2.fillText(plabel,lx,ly);
             ctx2.restore();
           }
@@ -708,11 +728,11 @@ var RatioTracker = (function() {
         plugins:{
           legend:{display:false},
           tooltip:{
-            backgroundColor:'rgba(15,19,24,.96)',
-            borderColor:'rgba(243,186,47,.25)',
+            backgroundColor:P.tipBg,
+            borderColor:P.tipEdge,
             borderWidth:1,
-            titleColor:'#5a6e85',
-            bodyColor:'#dce4f0',
+            titleColor:P.tipTitle,
+            bodyColor:P.tipBody,
             padding:8,
             callbacks:{
               label:function(c){
@@ -728,7 +748,7 @@ var RatioTracker = (function() {
             grid:{display:false},
             ticks:{
               font:{size:11,family:'Inter,sans-serif'},
-              color:'#8b9bb0',   /* was rgba(90,110,133,.7), hard to read (2026-10-04) */
+              color:P.tick,   /* was rgba(90,110,133,.7), hard to read (2026-10-04) */
               maxTicksLimit:S.days===1?6:8,
               maxRotation:0
             },
@@ -737,10 +757,10 @@ var RatioTracker = (function() {
           y:{
             display:true,
             position:'right',
-            grid:{color:'rgba(255,255,255,.04)',drawBorder:false},
+            grid:{color:P.grid,drawBorder:false},
             ticks:{
               font:{size:11,family:'Inter,sans-serif'},
-              color:'#8b9bb0',   /* was rgba(90,110,133,.7), hard to read (2026-10-04) */
+              color:P.tick,   /* was rgba(90,110,133,.7), hard to read (2026-10-04) */
               /* fmtRatio, not toFixed(2). A BTC -> sub-cent pair has a ratio
                  around 1e8 and toFixed(2) printed an unreadable wall of
                  digits; the inverse pair is ~1e-8 and printed "0.00" on
@@ -1072,6 +1092,8 @@ var RatioTracker = (function() {
     swapPair:swapPair,
     _loadFav:loadFavourite, _removeFav:removeFavourite, _setTarget:setTarget,
     _openPicker:_openPicker, _closePicker:_closePicker, _pickerFilter:_pickerFilter, _pickerSelect:_pickerSelect,
+    /* Redraw with the current theme's palette (ui.js, on a theme switch). */
+    redraw:function(){ if(S.series&&S.series.length) renderChart(S.series); },
     getState:function(){ return { from:S.from, to:S.to, fromPrice:S.fromPrice, toPrice:S.toPrice, series:S.series||[] }; },
     /* Saved pairs with their alert targets, for the bell and Telegram
        (js/turn-watch.js, promptove/111). A copy: callers cannot edit it. */
