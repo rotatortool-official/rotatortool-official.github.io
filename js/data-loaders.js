@@ -2021,24 +2021,51 @@ function _bfWorldCell(it, o) {
 /* The on-chain tiles keep their 7/30-day numbers from network_data. Their
    1Y side comes from world_data (o.year: a year of the same reading);
    until that exists, 1Y falls back to the 30 days. */
+/* 2026-10-05 (Daniel: "the BTC addresses text is only for 7d"). The hash
+   rate and address tiles say their number is a 7-day average, and their
+   7D and 30D changes are (sync-market-data compares 7-day means), but
+   3M, 6M and 1Y came from world_data's c90/c182/c365: one raw day against
+   one raw day, which carries the ~7% block noise and, for addresses, the
+   weekday the two days fell on. o.avg7 recomputes those three the same
+   way as 7D/30D, from the daily line already loaded: the mean of the last
+   7 points against the mean of the 7 points ending where the window
+   starts. 3Y stays as stored (s3 is thinned to about one point a week, so
+   there is no week to average) and the tile text says so. */
+function _bfMean(a) {
+  var v = a.filter(function (x) { return typeof x === 'number' && isFinite(x); });
+  return v.length ? v.reduce(function (t, x) { return t + x; }, 0) / v.length : null;
+}
+function _bfAvg7Change(s, n) {
+  if (!Array.isArray(s) || s.length < 14 || !(n >= 2)) return null;
+  var i0 = Math.max(0, s.length - n);            /* first point inside the window */
+  var from = Math.max(0, i0 - 6);
+  var past = _bfMean(s.slice(from, from + 7)), now = _bfMean(s.slice(-7));
+  return past ? (now / past - 1) * 100 : null;
+}
 function _bfNetCell(o) {
   if (o.v == null) return null;
-  var s = o.s;
+  var y = o.year && Array.isArray(o.year.s) ? o.year : null;
+  /* Stablecoin supply has no line in network_data, so 7D/30D drew no
+     chart; the same reading's daily line is in world_data. */
+  var s = Array.isArray(o.s) ? o.s : (y && y.n30 >= 2 ? y.s.slice(-y.n30) : null);
+  var s7 = Array.isArray(o.s) ? ((o.n7 >= 3) ? o.s.slice(-o.n7) : o.s) : (y && y.n7 >= 2 ? y.s.slice(-y.n7) : null);
+  var yc = function (n, stored) { return o.avg7 ? _bfAvg7Change(y.s, n) : stored; };
   return {
     k: o.k, v: o.v, u: o.u || '', pts: false,
-    w: { 7: { c: o.p, s: (Array.isArray(s) && o.n7 >= 3) ? s.slice(-o.n7) : s, l: '7d' },
+    w: { 7: { c: o.p, s: s7, l: '7d' },
          30: { c: o.p30, s: s, l: '30d' },
-         90: o.year && Array.isArray(o.year.s) && o.year.n90 >= 2
-           ? { c: o.year.c90, s: o.year.s.slice(-o.year.n90), l: '3m' } : { c: null, s: null, l: '3m' },
-         182: o.year && Array.isArray(o.year.s) && o.year.n182 >= 2
-           ? { c: o.year.c182, s: o.year.s.slice(-o.year.n182), l: '6m' } : { c: null, s: null, l: '6m' },
-         365: o.year && Array.isArray(o.year.s) && o.year.s.length > 30
-           ? { c: o.year.c365, s: o.year.s, l: '1y' } : { c: o.p30, s: s, l: '30d' },
+         90: y && y.n90 >= 2
+           ? { c: yc(y.n90, y.c90), s: y.s.slice(-y.n90), l: '3m' } : { c: null, s: null, l: '3m' },
+         182: y && y.n182 >= 2
+           ? { c: yc(y.n182, y.c182), s: y.s.slice(-y.n182), l: '6m' } : { c: null, s: null, l: '6m' },
+         365: y && y.s.length > 30
+           ? { c: yc(y.s.length, y.c365), s: y.s, l: '1y' } : { c: o.p30, s: s, l: '30d' },
          1095: o.year && Array.isArray(o.year.s3) && o.year.s3.length > 2
            ? { c: o.year.c1095, s: o.year.s3, l: '3y' }
-           : o.year && Array.isArray(o.year.s) && o.year.s.length > 30
-           ? { c: o.year.c365, s: o.year.s, l: '1y' } : { c: o.p30, s: s, l: '30d' } },
-    d: o.d, extra: '', src: _bfSrc(o.src, null, null)
+           : y && y.s.length > 30
+           ? { c: yc(y.s.length, y.c365), s: y.s, l: '1y' } : { c: o.p30, s: s, l: '30d' } },
+    /* The date of the reading, like every other tile (it was left out). */
+    d: o.d, extra: '', src: _bfSrc(o.src, null, o.year && o.year.date)
   };
 }
 
@@ -2231,16 +2258,16 @@ function renderBriefing() {
     ] },
     { t: 'On-chain', cells: [
       _bfNetCell({ k: 'Hash rate', v: _bfNum(n.hashrateEh, 0), u: ' EH/s', p: n.hashrateP7, s: ns.hashrateEh,
-        p30: np.hashrateEh, n7: nn.hashrateEh, year: W.hash, src: BF_SRC.bc,
-        d: 'Computing power securing Bitcoin, averaged over 7 days. '
+        p30: np.hashrateEh, n7: nn.hashrateEh, year: W.hash, src: BF_SRC.bc, avg7: true,
+        d: 'Computing power securing Bitcoin, averaged over 7 days, and so are its changes. '
            + 'The daily figure is inferred from blocks found, so one day '
            + 'alone carries about 7% of noise — the line below is the raw '
-           + 'daily estimate and shows that spread.' }),
+           + 'daily estimate and shows that spread. The 3-year change compares single days.' }),
       _bfNetCell({ k: 'Active addresses', v: _bfNum(n.addrCount, 0), p: n.addrP7, s: ns.addrCount,
-        p30: np.addrCount, n7: nn.addrCount, year: W.addr, src: BF_SRC.bc,
-        d: 'Bitcoin addresses used per day, averaged over 7 days. '
+        p30: np.addrCount, n7: nn.addrCount, year: W.addr, src: BF_SRC.bc, avg7: true,
+        d: 'Bitcoin addresses used per day, averaged over 7 days, and so are its changes. '
            + 'Weekends run well below midweek, so a single day reports '
-           + 'partly which day of the week it is.' }),
+           + 'partly which day of the week it is. The 3-year change compares single days.' }),
       _bfNetCell({ k: 'DeFi TVL', v: _bfUsd(n.tvlUsd), p: n.tvlP7, s: ns.tvlUsd,
         p30: np.tvlUsd, n7: nn.tvlUsd, year: W.tvl, src: BF_SRC.llama,
         d: 'Value locked across every tracked chain' }),

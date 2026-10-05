@@ -69,10 +69,10 @@ Object.assign(MK_TEXT, {
   'Last 30 days.': 'Последните 30 дена.',
   'Last 30 days, weekdays only.': 'Последните 30 дена, само работни денови.',
   "This week's average against the week 30 days earlier.": 'Просекот од оваа недела наспроти неделата пред 30 дена.',
-  'Computing power securing Bitcoin, averaged over 7 days. The daily figure is inferred from blocks found, so one day alone carries about 7% of noise — the line below is the raw daily estimate and shows that spread.':
-    'Пресметковната моќ што го обезбедува Bitcoin, просек за 7 дена. Дневната бројка се изведува од пронајдените блокови, па еден ден сам по себе носи околу 7% шум — линијата подолу е суровата дневна проценка и го покажува тоа отстапување.',
-  'Bitcoin addresses used per day, averaged over 7 days. Weekends run well below midweek, so a single day reports partly which day of the week it is.':
-    'Bitcoin адреси користени дневно, просек за 7 дена. Викендите се значително под средината на неделата, па еден ден делумно кажува кој ден од неделата е.',
+  'Computing power securing Bitcoin, averaged over 7 days, and so are its changes. The daily figure is inferred from blocks found, so one day alone carries about 7% of noise — the line below is the raw daily estimate and shows that spread. The 3-year change compares single days.':
+    'Пресметковната моќ што го обезбедува Bitcoin, просек за 7 дена, како и нејзините промени. Дневната бројка се изведува од пронајдените блокови, па еден ден сам по себе носи околу 7% шум — линијата подолу е суровата дневна проценка и го покажува тоа отстапување. Промената за 3 години споредува поединечни денови.',
+  'Bitcoin addresses used per day, averaged over 7 days, and so are its changes. Weekends run well below midweek, so a single day reports partly which day of the week it is. The 3-year change compares single days.':
+    'Bitcoin адреси користени дневно, просек за 7 дена, како и нивните промени. Викендите се значително под средината на неделата, па еден ден делумно кажува кој ден од неделата е. Промената за 3 години споредува поединечни денови.',
   'updated in the last hour': 'ажурирано во последниот час',
 });
 
