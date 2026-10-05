@@ -5526,3 +5526,7 @@ html.no-anim .mt-viewport::-webkit-scrollbar{display:none;}
 .rail-academy:hover .rail-support-icon{border-color:var(--green);}
 .rail-academy:focus-visible{outline:2px solid var(--green);outline-offset:-2px;}
 .mob-more-academy{text-decoration:none;}
+/* Their logo in place of the 📚 (Daniel, 2026-10-05): fills the icon tile. */
+.rail-academy .rail-support-icon{overflow:hidden;padding:0;}
+.rail-academy .rail-support-icon img,.mmi-logo img{display:block;width:100%;height:100%;object-fit:cover;}
+.mmi-logo{width:26px;height:26px;border-radius:6px;overflow:hidden;flex-shrink:0;}

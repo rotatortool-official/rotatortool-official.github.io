@@ -37,7 +37,7 @@ Object.assign(MK_TEXT, {
   'Macedonian Poetry': 'Македонска поезија',
   'LEARN MORE': 'ЕДУКАЦИЈА', 'Gemidzija videos': 'Гемиџија видеа',   /* ЕДУКАЦИЈА: their own word, and НАУЧИ ПОВЕЌЕ wrapped in the rail */
   'Free crypto video lessons from Crypto Gemidzija': 'Бесплатни видео лекции за крипто од Крипто Гемиџија',
-  'Learn more: Crypto Gemidzija videos': 'Научи повеќе: видеа од Крипто Гемиџија',
+  'Crypto Gemidzija videos': 'видеа од Крипто Гемиџија',
   'Keep Rotator free': 'Rotator да остане бесплатен', 'keep it free': 'нека остане бесплатен', 'Unlock Pro': 'Отклучи Pro',
   'Support Rotator': 'Поддржи го Rotator',
   'Rotator — an honest market pulse for Binance traders: crypto and tokenized stock scores, portfolio tracking and holder warnings':

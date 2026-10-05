@@ -1012,7 +1012,7 @@
          Macedonian, searchable, with coin analyses. A link out, in a new
          tab; the radio keeps playing the channel's coin playlist. -->
     <a class="rail-support rail-academy" href="https://cryptogemidzija.mk/academy.html" target="_blank" rel="noopener" onclick="academyClick()" title="Free crypto video lessons from Crypto Gemidzija">
-      <span class="rail-support-icon" aria-hidden="true">📚</span>
+      <span class="rail-support-icon" aria-hidden="true"><img src="img/gemidzija-64.jpg" width="26" height="26" alt="" decoding="async"></span>
       <span class="rail-text"><span class="rail-label">LEARN MORE</span><span class="rail-sub">Gemidzija videos</span></span>
     </a>
     <button class="rail-support" onclick="openModal('donate-modal')" title="Keep Rotator free">
@@ -1585,6 +1585,12 @@
 <!-- MORE MENU: the two remaining sections first, then the project. -->
 <div class="mob-more-backdrop" id="mob-more-backdrop" onclick="closeMobMore()"></div>
 <div class="mob-more-menu" id="mob-more-menu" role="menu" aria-label="Menu">
+  <!-- First in the menu (Daniel, 2026-10-05): the partner's tab for Rotator,
+       reciprocated. Their logo; opens their video academy in a new tab. -->
+  <a class="mob-more-item mob-more-academy" href="https://cryptogemidzija.mk/academy.html" target="_blank" rel="noopener" onclick="academyClick();closeMobMore();">
+    <span class="mmi-ico mmi-logo" aria-hidden="true"><img src="img/gemidzija-64.jpg" width="26" height="26" alt="" decoding="async"></span><span class="mmi-text"><span class="mmi-lbl">LEARN MORE</span><span class="mmi-sub">Crypto Gemidzija videos</span></span>
+  </a>
+  <div class="mob-more-divider"></div>
   <button type="button" class="mob-more-item mob-more-sec" data-sec="sec-coins" onclick="mobGo('sec-coins')">
     <span class="mmi-ico" aria-hidden="true">≡</span><span class="mmi-text"><span class="mmi-lbl">COINS</span><span class="mmi-sub">every tracked coin</span></span>
   </button>
@@ -1598,9 +1604,6 @@
   <button type="button" class="mob-more-item" onclick="openSignalAssistant();closeMobMore();">
     <span class="mmi-ico" aria-hidden="true">🤖</span><span>Signal Assistant</span>
   </button>
-  <a class="mob-more-item mob-more-academy" href="https://cryptogemidzija.mk/academy.html" target="_blank" rel="noopener" onclick="academyClick();closeMobMore();">
-    <span class="mmi-ico" aria-hidden="true">📚</span><span>Learn more: Crypto Gemidzija videos</span>
-  </a>
   <button type="button" class="mob-more-item" onclick="openModal('donate-modal');closeMobMore();">
     <span class="mmi-ico" aria-hidden="true">☕</span><span>Support the Project</span>
   </button>
