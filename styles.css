@@ -5470,3 +5470,26 @@ html.no-anim .mt-viewport::-webkit-scrollbar{display:none;}
   .bf-emb-flag{width:21px;height:14px;}
   .bf-front .bf-k{padding-right:28px;}
 }
+
+/* ── TODAY flip on iOS: the front showed through the back (2026-10-05) ──
+   Reported on iPhone (Brave and Safari, both WebKit): a flipped tile in
+   "Central banks & money" showed its front mirrored over the back.
+   WebKit stops honouring backface-visibility once a face's children get
+   their own layers (the sparkline SVG, the relatively positioned rows
+   above the emblem), and draws the turned-away face anyway.
+   So the 3D hiding gets its prefixes and a 1px lift for each face, and
+   behind that a fallback no engine can ignore: each face turns invisible
+   at the flip's midpoint, when the card is edge-on and neither face can
+   be seen. .3s is half of .bf-inner's .6s. Visibility also stops the
+   hidden side from taking taps, so the back's source link cannot be hit
+   through the front. */
+.bf-inner{-webkit-transform-style:preserve-3d;}
+.bf-front{-webkit-transform:translateZ(1px);transform:translateZ(1px);}
+.bf-back{-webkit-transform:rotateY(180deg) translateZ(1px);transform:rotateY(180deg) translateZ(1px);}
+.bf-front,.bf-back{transition:visibility 0s linear .3s;}
+.bf-back{visibility:hidden;}
+.bf-cell.flipped .bf-front{visibility:hidden;}
+.bf-cell.flipped .bf-back{visibility:visible;}
+@media (prefers-reduced-motion: reduce){
+  .bf-front,.bf-back{transition:none;}   /* the turn is instant, so the swap is too */
+}

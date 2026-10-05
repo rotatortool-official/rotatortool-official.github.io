@@ -2875,6 +2875,10 @@ document.addEventListener('keydown', function(e) {
     /* The info windows the rail foot and MORE open (promptove/103). */
     closeModal('how-modal'); closeModal('about-modal'); closeModal('faq-modal');
     closeMobMore();
+    /* The coin window and the row hover card (2026-10-05): Escape left
+       both open. Both functions are safe to call when nothing is open. */
+    if (typeof hideTip === 'function') hideTip();
+    if (typeof closeTileDetail === 'function') closeTileDetail();
   }
 });
 
@@ -3192,6 +3196,9 @@ function _tdLoadVolumeDays(sym) {
 
 function openTileDetail(coinId, evt) {
   if (evt) evt.stopPropagation();
+  /* The row's hover card (or its pending 200ms timer) must not outlive
+     the click that opened this window and sit on top of it. */
+  if (typeof hideTip === 'function') hideTip();
   var c = coins.find(function(x) { return x.id === coinId || x.sym === coinId; });
   if (!c) return;
   if (typeof supaCountFeature === 'function') supaCountFeature('coin_window');
@@ -4751,7 +4758,25 @@ function hideTip() {
   var t = getTip(); if (t) t.classList.remove('show');
 }
 
+/* The card is a mouse-hover helper and nothing else (2026-10-05).
+   On a phone the tap that opens a coin window also fires the emulated
+   mouseenter, so the card appeared 200ms later ON TOP of the window
+   (position:fixed, z-index 900, pointer-events none) and never closed,
+   because a finger never sends mouseleave. Reported on iPhone: "SAND —
+   The Sandbox" pinned over the coin window. The window already shows
+   everything the card does, so touch input simply does not open it. */
+var _tipLastTouch = 0;
+document.addEventListener('touchstart', function () { _tipLastTouch = Date.now(); hideTip(); }, { passive: true, capture: true });
+/* A fixed card stays where it was drawn; once the page moves it points
+   at a different row, so any scroll closes it (capture: modal bodies too). */
+window.addEventListener('scroll', function () { if (_tipRow) hideTip(); }, { passive: true, capture: true });
+function _tipTouchInput() {
+  if (Date.now() - _tipLastTouch < 1000) return true;
+  try { return window.matchMedia('(hover: none)').matches; } catch (e) { return false; }
+}
+
 function showRowTip(row, e) {
+  if (_tipTouchInput()) return;
   /* 200ms hover-intent delay */
   if (_tipTimer) clearTimeout(_tipTimer);
   _tipRow = row;
