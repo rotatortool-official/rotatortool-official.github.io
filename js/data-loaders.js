@@ -3657,7 +3657,7 @@ window.addEventListener('resize', function() { syncPanelAlignment(); });
    yearly reports to the US SEC. READ ONLY: the sync-business-check edge
    function writes market_cache.business_check every Sunday. A DISPLAY,
    labelled as not part of the score (nothing enters the score untested).
-   Light theme only until Daniel approves the look. English is written
+   Both themes since 2026-10-06 (Daniel approved). English is written
    into the page and i18n-mk-dict.js translates it, so a language switch
    needs no redraw. A check without figures says "no data", never a guess. */
 var _bizData = null, _bizLoad = null;
@@ -3720,7 +3720,7 @@ function _bizRow(ch, cur) {
       label = 'Revenue grew in 5 years'; val = _bizChange(ch.now, ch.then); detail = then5(money); break;
     case 'ltl':
       label = 'Long-term debts vs. free cash';
-      val = ch.v != null ? ch.v + ' yrs' : (ch.ok === false ? 'No free cash' : '');
+      val = ch.v != null ? ch.v + (ch.v === 1 ? ' yr' : ' yrs') : (ch.ok === false ? 'No free cash' : '');
       detail = 'Years of free cash to cover long-term liabilities · Passes under 5'; break;
     case 'pfcf5':
       label = 'Price vs. 5 years of free cash';
@@ -3739,7 +3739,7 @@ function _bizRow(ch, cur) {
 function _tdBiz(c) {
   var sec = document.getElementById('td-biz-sec');
   if (!sec) return;
-  if (!c || !c.isStock || !document.documentElement.classList.contains('light')) { sec.style.display = 'none'; return; }
+  if (!c || !c.isStock) { sec.style.display = 'none'; return; }
   var el = document.getElementById('td-biz'), chip = document.getElementById('td-biz-chip');
   var draw = function (items) {
     if (_tdCoin !== c) return;                       /* another window opened meanwhile */

@@ -678,6 +678,22 @@ function renderLensRail() {
 function _crossStale(t) {
   return !!t && !!t.cross && (t.crossDays == null || t.crossDays > 30);
 }
+/* ── Business check badge (bStocks, promptove/143) ──────────────────
+   "8/8" after the symbol when the company passes all 8 business checks
+   (Daniel, 2026-10-06). Context only, like the check itself: not part of
+   the score. The data loads the first time a bStock row is drawn; the
+   table is redrawn once when it arrives. */
+var _bizAsked = false;
+function bizBadge(c) {
+  if (!c || !c.isStock || typeof _bizGet !== 'function') return '';
+  if (!_bizData) {
+    if (!_bizAsked) { _bizAsked = true; _bizGet().then(function () { if (typeof renderTable === 'function') renderTable(); }); }
+    return '';
+  }
+  var it = _bizData[c.sym];
+  if (!it || it.pass !== 8) return '';
+  return '<span class="htag biz-tag" title="Passes all 8 business checks, from the company&#39;s yearly reports to the US SEC. Not part of the score.">✓ 8/8</span>';
+}
 function crossBadge(c) {
   if (!c || !c.sym || typeof coinTechnicals === 'undefined') return '';
   /* Pro only since 2026-10-04 (Daniel), like the cross lenses and the
@@ -1754,7 +1770,7 @@ function renderTable() {
     return '<tr class="' + (isH ? 'held' : '') + (c.isStable ? ' stable-row' : '') + (c.isStock ? ' stock-row' : '') + '"' + _lensStyle + ' ' + tipData + ' onmouseenter="showRowTip(this,event)" onmouseleave="hideTip()" onclick="openTileDetail(\'' + c.id + '\',event)">'
       + '<td class="qa-cell">' + qaBtnHtml + '</td>'
       + '<td style="color:var(--muted);font-size:11px;opacity:.5;">' + (i+1) + '</td>'
-      + '<td><div class="cc"><div class="ti"><img src="' + c.image + '" alt="' + c.sym + ' logo" loading="lazy" width="18" height="18" onerror="this.style.display=\'none\'"></div><div><div style="display:flex;align-items:center;"><span class="tsym">' + c.sym + '</span>' + (isH ? '<span class="htag">HELD</span>' : '') + stableTag + (_isMemeFiller(c) ? '<span class="htag meme-tag" title="One of three high-volume memes outside the top 250. Listed, never shown as a leader.">MEME</span>' : '') + crossBadge(c) + (_lens
+      + '<td><div class="cc"><div class="ti"><img src="' + c.image + '" alt="' + c.sym + ' logo" loading="lazy" width="18" height="18" onerror="this.style.display=\'none\'"></div><div><div style="display:flex;align-items:center;"><span class="tsym">' + c.sym + '</span>' + (isH ? '<span class="htag">HELD</span>' : '') + stableTag + (_isMemeFiller(c) ? '<span class="htag meme-tag" title="One of three high-volume memes outside the top 250. Listed, never shown as a leader.">MEME</span>' : '') + crossBadge(c) + bizBadge(c) + (_lens
         ? '<span class="lens-chip" title="' + _lens.label + ' — ' + _lens.tip.replace(/"/g,'&quot;') + '" style="margin-left:5px;font-size:10px;font-family:var(--font-mono);padding:1px 4px;border-radius:3px;'
           + (_lv == null
               ? 'color:var(--muted);border:1px dashed var(--bdr);opacity:.6;">' + (_lens.none || 'no data')

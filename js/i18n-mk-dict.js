@@ -1652,6 +1652,8 @@ Object.assign(MK_TEXT, {
   "Equity is not in the reports": "Сопствените пари на компанијата ги нема во извештаите",
   "Long-term liabilities are not in the reports": "Долгорочните обврски ги нема во извештаите",
   "No market cap": "Нема пазарна вредност",
+  "Passes all 8 business checks, from the company's yearly reports to the US SEC. Not part of the score.":
+    "Ги поминува сите 8 проверки на бизнисот, од годишните извештаи на компанијата до американската SEC. Не влегува во оценката.",
   "Free cash = cash from the business minus spending on buildings and equipment. Market cap at today's price.":
     "Слободна готовина = готовината од работата минус она што е потрошено на згради и опрема. Пазарната вредност е по денешната цена."
 });
@@ -1661,7 +1663,7 @@ Object.assign(MK_TEXT, {
   P(new RegExp('^' + AMT + ' last year$'), function (m) { return m[1] + ' минатата година'; });
   P(new RegExp('^' + AMT + ' 5 years before$'), function (m) { return m[1] + ' пред 5 години'; });
   P(new RegExp('^' + AMT + ' now$'), function (m) { return m[1] + ' сега'; });
-  P(/^([\d.]+) yrs$/, function (m) { return m[1].replace('.', ',') + ' год.'; });
+  P(/^([\d.]+) yrs?$/, function (m) { return m[1].replace('.', ',') + ' год.'; });
   P(/^(\d) of 8 checks pass$/, function (m) { return 'Поминуваат ' + m[1] + ' од 8 проверки'; });
   P(/^(\d) without data$/, function (m) { return m[1] + ' без податоци'; });
   /* unshift: the generic /^Source: (.+)$/ above would win otherwise */

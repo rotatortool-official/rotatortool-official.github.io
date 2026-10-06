@@ -723,8 +723,6 @@ document.addEventListener('DOMContentLoaded', function() {
          a beat, so the light card's frame and padding are laid out first;
          drawn at once it kept the old size and spilled out of its frame. */
       if (typeof RatioTracker !== 'undefined' && RatioTracker.redraw) setTimeout(RatioTracker.redraw, 60);
-      /* The Business check lives on the light theme only (promptove/143). */
-      if (typeof _tdCoin !== 'undefined' && _tdCoin && typeof _tdBiz === 'function') _tdBiz(_tdCoin);
       _themeRAF = null;
     });
   }
