@@ -417,6 +417,10 @@
       <div class="td-score-bars-col" id="td-score-bars"></div>
     </div>
     <div id="td-score-extra"></div>
+    <!-- Stablecoins on the coin's own chain this week (promptove/126).
+         Chain coins only; filled by _tdChainFlow() in js/data-loaders.js
+         from market_cache.chain_flows_summary. Context, never in the score. -->
+    <div id="td-chainflow"></div>
   </div>
 
   <!-- Edit Holdings (shown only for held coins). Not folded: a holder

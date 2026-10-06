@@ -2787,6 +2787,34 @@ function openChainFlowsModal(dir) {
   if (typeof supaCountFeature === 'function') supaCountFeature('chain_flows', true);
 }
 
+/* Coin window: stablecoins on the coin's OWN chain this week (promptove/126).
+   Daniel asked whether this could move the score (e.g. -5 for Berachain);
+   it cannot until the hidden test holds (promptove/124: outflow coins lagged
+   6 times in 10 but did not lose on average, inflow faded in its second
+   half). So it sits under the score as context, and says so. Shown only
+   for the ~24 coins whose chain is on the board. */
+var _CF_TD = {
+  en: { k: function (ch) { return 'Stablecoins on ' + ch; }, week: 'this week', m30: 'in 30 days',
+        note: function (s) { return 'Dollars arriving on or leaving ' + s + '\'s own chain. Context only: not part of the score.'; } },
+  mk: { k: function (ch) { return 'Стејблкоини на ' + ch; }, week: 'оваа недела', m30: 'за 30 дена',
+        note: function (s) { return 'Долари што пристигнуваат на или заминуваат од мрежата на ' + s + '. Само контекст: не влегува во оценката.'; } }
+};
+function _tdChainFlow(c) {
+  var el = document.getElementById('td-chainflow');
+  if (!el) return;
+  var r = (c && !c.isStock && !c.isStable && _cf && Array.isArray(_cf.chains))
+    ? _cf.chains.filter(function (x) { return x.sym && x.sym === c.sym; })[0] : null;
+  if (!r || r.d7 == null) { el.innerHTML = ''; return; }
+  var T = (typeof currentLang !== 'undefined' && currentLang === 'mk') ? _CF_TD.mk : _CF_TD.en;
+  var tone = r.d7 >= 0 ? 'up' : 'dn';
+  el.innerHTML = '<div class="td-cf">'
+    + '<span class="td-cf-k">' + T.k(_esc(r.chain)) + '</span> '
+    + '<b class="' + tone + '">' + _cfUsd(r.d7, true) + '</b> '
+    + '<span class="td-cf-p ' + tone + '">' + _cfPct(r.p7) + '</span> ' + T.week
+    + (r.p30 != null ? ' · <span class="td-cf-p ' + (r.p30 >= 0 ? 'up' : 'dn') + '">' + _cfPct(r.p30) + '</span> ' + T.m30 : '')
+    + '<div class="td-cf-note">' + T.note(_esc(c.sym)) + '</div></div>';
+}
+
 /* ── Fear & Greed, in the banner slot ───────────────────────────────
    Deliberately plain text, no gauge, no needle. It is one number and it
    changes once a day; a dial would be more chrome than information.
@@ -2999,6 +3027,7 @@ function setLang(lang) {
   if (etfM && etfM.classList.contains('show') && typeof openEtfModal === 'function') openEtfModal();
   var cfM = document.getElementById('cf-modal');
   if (cfM && cfM.classList.contains('show') && typeof openChainFlowsModal === 'function') openChainFlowsModal();
+  if (typeof _tdCoin !== 'undefined' && _tdCoin && typeof _tdChainFlow === 'function') _tdChainFlow(_tdCoin);
 }
 (function() { try { var l = localStorage.getItem('rot_lang'); if (l) setTimeout(function() { setLang(l); }, 50); } catch(e) {} })();
 
@@ -3418,6 +3447,7 @@ function openTileDetail(coinId, evt) {
   if (typeof supaCountFeature === 'function') supaCountFeature('coin_window');
   _tdCoin = c;
   _tdAbout(c);
+  _tdChainFlow(c);
   var panel = document.getElementById('td-panel');
   var icoEl = document.getElementById('td-ico');
   /* Logo, with initials behind it when the image does not load. The
