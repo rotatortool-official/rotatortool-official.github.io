@@ -3849,6 +3849,7 @@ function _tdCrossTile(c) {
   if (!c || c.isStock || c.isStable || typeof coinTechnicals === 'undefined') return '';
   var t = coinTechnicals[c.sym];
   if (!t || !t.cross) return '';
+  if (typeof _deathCrossStale === 'function' && _deathCrossStale(t)) return '';   /* recent death crosses only (2026-10-06) */
   var golden = t.cross === 'golden';
   var cls = golden ? 'good' : 'bad';
   var when = t.crossDays == null ? 'crossed more than 2 weeks ago'

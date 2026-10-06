@@ -670,6 +670,12 @@ function renderLensRail() {
    undatable. Those render the state with no age rather than a guess —
    `cross_days_ago` is null and we say nothing rather than something
    wrong. */
+/* A death cross is shown only while it is recent (Daniel, 2026-10-06):
+   undated (older than the ~15 days the stored window can date) or more
+   than 30 days old, it says nothing new and only adds a red mark. */
+function _deathCrossStale(t) {
+  return !!t && t.cross === 'death' && (t.crossDays == null || t.crossDays > 30);
+}
 function crossBadge(c) {
   if (!c || !c.sym || typeof coinTechnicals === 'undefined') return '';
   /* Pro only since 2026-10-04 (Daniel), like the cross lenses and the
@@ -677,6 +683,7 @@ function crossBadge(c) {
   if (typeof isPro === 'undefined' || !isPro) return '';
   var t = coinTechnicals[c.sym];
   if (!t || !t.cross) return '';
+  if (_deathCrossStale(t)) return '';
 
   var golden = t.cross === 'golden';
   var icon   = golden ? '✨' : '☠';
