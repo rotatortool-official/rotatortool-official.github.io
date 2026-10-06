@@ -1,0 +1,113 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<title>Rotator Weekly — draft</title>
+<!-- The Monday "Rotator Weekly" draft (weekly-post edge function,
+     promptove/134). Opened from the private link the bot's Monday admin
+     heartbeat sends: weekly.html?id=W-YYYY-MM-DD&key=... Without the key
+     the function returns nothing. Substack has no posting API, so the post
+     is copied from here and pasted into Substack by hand; pasting its link
+     back marks it published and announces it in the Telegram channel. -->
+<style>
+  :root{--bg:#0f1115;--card:#171a21;--text:#e8eaef;--muted:#9aa3b2;--bdr:#2a2f3a;--amber:#f0b90b;--ok:#2ebd85;--bad:#f6465d;}
+  @media (prefers-color-scheme: light){:root{--bg:#f4f5f8;--card:#fff;--text:#14171f;--muted:#5d6675;--bdr:#dde1e8;--amber:#b88700;--ok:#138a5c;--bad:#c62f43;}}
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--text);font:15px/1.6 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;}
+  .wrap{max-width:760px;margin:0 auto;padding:24px 16px 60px;}
+  .bar{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin:0 0 16px;}
+  .tag{font:700 11px/1 ui-monospace,Menlo,monospace;letter-spacing:.08em;text-transform:uppercase;color:var(--amber);}
+  .status{font:600 12px/1 system-ui;padding:4px 9px;border-radius:999px;border:1px solid var(--bdr);color:var(--muted);}
+  .status.pub{color:var(--ok);border-color:var(--ok);}
+  button,.btn{font:600 13px/1 system-ui;padding:9px 14px;border-radius:8px;border:1px solid var(--bdr);background:var(--card);color:var(--text);cursor:pointer;}
+  button.primary{background:var(--amber);border-color:var(--amber);color:#1a1300;}
+  button:disabled{opacity:.5;cursor:default;}
+  .steps{background:var(--card);border:1px solid var(--bdr);border-radius:12px;padding:14px 16px;margin:0 0 18px;}
+  .steps ol{margin:6px 0 0;padding-left:20px;color:var(--muted);font-size:14px;}
+  .steps li{margin:4px 0;}
+  .field{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px;}
+  .field input{flex:1 1 260px;min-width:0;padding:9px 11px;border-radius:8px;border:1px solid var(--bdr);background:var(--bg);color:var(--text);font:14px system-ui;}
+  .msg{margin-top:8px;font-size:13px;min-height:1.2em;}
+  .msg.ok{color:var(--ok)} .msg.bad{color:var(--bad)}
+  article{background:var(--card);border:1px solid var(--bdr);border-radius:12px;padding:22px 22px 10px;}
+  article h1{font-size:26px;line-height:1.25;margin:0 0 6px;}
+  article .sub{color:var(--muted);margin:0 0 18px;}
+  article h2{font-size:18px;margin:22px 0 6px;}
+  article a{color:var(--amber);}
+  article ul{padding-left:20px;}
+  .empty{color:var(--muted);text-align:center;padding:60px 0;}
+  @media (max-width:600px){article{padding:16px 14px 6px;} article h1{font-size:22px;}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="bar"><span class="tag">Rotator Weekly · draft</span><span class="status" id="status"></span></div>
+  <div id="app"><p class="empty">Loading…</p></div>
+</div>
+<script>
+(function () {
+  var FN = 'https://wyvwycatgexpbugzkdfw.supabase.co/functions/v1/weekly-post';
+  var q = new URLSearchParams(location.search), id = q.get('id') || '', key = q.get('key') || '';
+  var app = document.getElementById('app'), statusEl = document.getElementById('status');
+  var esc = function (s) { return String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;'); };
+  if (!id || !key) { app.innerHTML = '<p class="empty">Open this page from the link in the Monday admin message.</p>'; return; }
+
+  fetch(FN + '?id=' + encodeURIComponent(id) + '&key=' + encodeURIComponent(key))
+    .then(function (r) { return r.json(); })
+    .then(function (p) {
+      if (!p || p.error) { app.innerHTML = '<p class="empty">This draft was not found.</p>'; return; }
+      var pub = p.status === 'published';
+      statusEl.textContent = pub ? 'Published' : 'Draft';
+      statusEl.className = 'status' + (pub ? ' pub' : '');
+      app.innerHTML =
+        '<div class="steps"><strong>Publish on Substack</strong><ol>'
+        + '<li>New post on Substack. <button type="button" data-copy="title">Copy title</button> <button type="button" data-copy="subtitle">Copy subtitle</button></li>'
+        + '<li>Click into the body. <button type="button" class="primary" data-copy="body">Copy post for Substack</button> then paste (Ctrl+V).</li>'
+        + '<li>Publish, then paste the post link here. It is announced once in the Telegram channel.</li></ol>'
+        + '<div class="field"><input id="url" type="url" placeholder="https://substack.com/@rotatortool/p-…" value="' + esc(p.substack_url || '') + '">'
+        + '<button type="button" id="done"' + (pub ? ' disabled' : '') + '>' + (pub ? 'Published' : 'Mark published') + '</button></div>'
+        + '<div class="msg" id="msg"></div></div>'
+        + '<article><h1>' + esc(p.title) + '</h1><p class="sub">' + esc(p.subtitle || '') + '</p>' + p.html + '</article>';
+
+      var msg = document.getElementById('msg');
+      var say = function (t, ok) { msg.textContent = t; msg.className = 'msg ' + (ok ? 'ok' : 'bad'); };
+      app.addEventListener('click', function (e) {
+        var b = e.target.closest('[data-copy]');
+        if (!b) return;
+        var what = b.getAttribute('data-copy');
+        var done = function () { say(what === 'body' ? 'Post copied. Paste it into the Substack editor.' : 'Copied.', true); };
+        var fail = function () { say('Copy failed: select the text below and copy it by hand.', false); };
+        try {
+          if (what === 'body' && window.ClipboardItem) {
+            /* HTML keeps headings, bold and links when pasted into Substack. */
+            navigator.clipboard.write([new ClipboardItem({
+              'text/html': new Blob([p.html], { type: 'text/html' }),
+              'text/plain': new Blob([p.text], { type: 'text/plain' })
+            })]).then(done, fail);
+          } else {
+            navigator.clipboard.writeText(what === 'title' ? p.title : what === 'subtitle' ? (p.subtitle || '') : p.text).then(done, fail);
+          }
+        } catch (er) { fail(); }
+      });
+      var doneBtn = document.getElementById('done');
+      doneBtn.addEventListener('click', function () {
+        var url = document.getElementById('url').value.trim();
+        if (!/^https:\/\/[^\s/]+\/(?:\S*\/)?p[\/-]\S+$/.test(url)) { say('Paste the Substack post link (it contains /p/ or /p-).', false); return; }
+        if (!confirm('Mark as published and announce this link in the Telegram channel?')) return;
+        doneBtn.disabled = true;
+        fetch(FN, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action: 'published', id: id, key: key, url: url }) })
+          .then(function (r) { return r.json(); })
+          .then(function (j) {
+            if (j && j.ok) {
+              say(j.announced ? 'Published and announced in the channel.' : 'Marked published; the channel post failed: ' + (j.error || ''), !!j.announced);
+              statusEl.textContent = 'Published'; statusEl.className = 'status pub'; doneBtn.textContent = 'Published';
+            } else { doneBtn.disabled = false; say((j && j.error) || 'Something went wrong.', false); }
+          }, function () { doneBtn.disabled = false; say('Network error, try again.', false); });
+      });
+    }, function () { app.innerHTML = '<p class="empty">Could not load the draft.</p>'; });
+})();
+</script>
+</body>
+</html>
