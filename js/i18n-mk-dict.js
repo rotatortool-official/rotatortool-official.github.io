@@ -1530,3 +1530,76 @@ Object.assign(MK_TEXT, {
   "Weekly on Substack": "Неделно на Substack",
   "Telegram channel": "Telegram канал"
 });
+
+/* ── TODAY: Stock market group (promptove/140, 2026-10-06; light theme first) ── */
+Object.assign(MK_TEXT, {
+  "Stock market": "Пазар на акции",
+  "VIX fear index": "VIX, индекс на страв",
+  "Strategy & Coinbase": "Strategy и Coinbase",
+  "Buffett indicator": "Бафетов показател",
+  "Calm: under 20": "Мирно: под 20",
+  "Nervous: 20 to 30": "Нервозно: од 20 до 30",
+  "Fear: over 30": "Страв: над 30",
+  "Panic: over 40": "Паника: над 40",
+  "Nasdaq via Yahoo Finance": "Nasdaq преку Yahoo Finance",
+  "Cboe via Yahoo Finance": "Cboe преку Yahoo Finance",
+  "FTSE Russell via Yahoo Finance": "FTSE Russell преку Yahoo Finance",
+  "Wilshire 5000 via Yahoo Finance": "Wilshire 5000 преку Yahoo Finance",
+  "OECD (GDP)": "ОЕЦД (БДП)",
+  "In points": "Во поени",
+  "Next to crypto": "Покрај криптото",
+  "What they are": "Што се тие",
+  "How to read them": "Како да ги читате",
+  "The two lines": "Двете линии",
+  "Not a timing signal": "Не кажува кога",
+  "How it is measured here": "Како го мериме тука",
+  "The biggest US tech companies. Crypto has often moved in the same direction.":
+    "Најголемите американски технолошки компании. Криптото често се движело во иста насока.",
+  "How nervous US stock traders are about the next 30 days. Under 20 is calm, over 30 is fear.":
+    "Колку се нервозни трговците со акции во САД за следните 30 дена. Под 20 е мирно, над 30 е страв.",
+  "Two thousand smaller US companies. They do best when money is cheap and easy, much like smaller coins.":
+    "Две илјади помали американски компании. Најдобро им оди кога парите се евтини и ги има многу, слично како на помалите монети.",
+  "Two crypto companies on the US stock market: Strategy holds Bitcoin, Coinbase runs the biggest US crypto exchange.":
+    "Две крипто компании на американската берза: Strategy чува биткоин, Coinbase ја води најголемата крипто берза во САД.",
+  "The whole US stock market measured against a year of US output. Higher means stocks are expensive next to the economy.":
+    "Целата американска берза споредена со она што САД го произведуваат за една година. Повисоко значи дека акциите се скапи во однос на економијата.",
+  "An index of the 100 largest companies on the Nasdaq exchange that are not banks: Apple, Microsoft, Nvidia, Amazon and others. A handful of tech giants make up a big part of it.":
+    "Индекс на 100-те најголеми компании на берзата Nasdaq што не се банки: Apple, Microsoft, Nvidia, Amazon и други. Неколку технолошки гиганти прават голем дел од него.",
+  "Both are bets on the future, bought with spare money. When investors feel brave they buy both; when they get scared they sell both, and crypto usually falls harder.":
+    "И двете се облог на иднината, купени со пари што луѓето не им требаат веднаш. Кога инвеститорите се храбри, ги купуваат и двете; кога ќе се исплашат, ги продаваат и двете, а криптото обично паѓа повеќе.",
+  "There are long stretches when they go separate ways. Read it as the mood of the market, not as a forecast for coins.":
+    "Има долги периоди кога одат секое на своја страна. Читајте го како расположение на пазарот, а не како прогноза за монетите.",
+  "A number worked out from what traders pay for protection (options) on the S&P 500 over the next 30 days. When they rush to protect themselves, protection gets expensive and the VIX goes up.":
+    "Број пресметан од тоа колку трговците плаќаат за заштита (опции) на S&P 500 за следните 30 дена. Кога брзаат да се заштитат, заштитата поскапува и VIX расте.",
+  "Under 20: calm. 20 to 30: nervous. Over 30: fear, the kind of days when people sell almost everything. It closed above 80 in March 2020 and, for a few hours on 5 August 2024, went above 60.":
+    "Под 20: мирно. Од 20 до 30: нервозно. Над 30: страв, денови кога луѓето продаваат речиси сè. Во март 2020 затвори над 80, а на 5 август 2024 неколку часа беше над 60.",
+  "In a panic, crypto is usually sold together with stocks, because it can be sold at any hour. A jump in the VIX says the panic is happening, not how long it will last.":
+    "Во паника, криптото обично се продава заедно со акциите, бидејќи може да се продаде во секое време. Скок на VIX кажува дека паниката се случува, а не колку долго ќе трае.",
+  "Its changes are shown in points, not percent, because the VIX is already a measure of how much prices swing.":
+    "Промените се прикажани во поени, не во проценти, бидејќи VIX веќе мери колку цените се нишаат.",
+  "An index of about 2,000 smaller US companies, the ones below the giants.":
+    "Индекс на околу 2.000 помали американски компании, оние под гигантите.",
+  "Small companies borrow more and earn less, so they feel interest rates more than the giants do. When they rise, investors are willing to take risks on smaller names.":
+    "Малите компании позајмуваат повеќе и заработуваат помалку, па каматите ги чувствуваат повеќе од гигантите. Кога тие се во пораст, инвеститорите се подготвени да ризикуваат со помали имиња.",
+  "It is a cousin of the altcoin market: both like falling rates and plenty of spare money, and both suffer first when money gets tight.":
+    "Тој е братучед на пазарот на алткоини: и двата сакаат пониски камати и многу слободни пари, и двата први страдаат кога парите ќе се намалат.",
+  "Strategy (MSTR, formerly MicroStrategy) is a software company that became the largest company holder of Bitcoin, buying it with money raised from shares and loans. Coinbase (COIN) runs the largest crypto exchange in the US and earns mostly from trading fees.":
+    "Strategy (MSTR, порано MicroStrategy) е софтверска компанија што стана компанијата со најмногу биткоин, купен со пари собрани од акции и заеми. Coinbase (COIN) ја води најголемата крипто берза во САД и заработува главно од провизии за тргување.",
+  "Strategy usually moves more than Bitcoin, both up and down. Coinbase follows how busy crypto trading is. When both fall while the Nasdaq rises, money is leaving crypto in particular, not the stock market as a whole.":
+    "Strategy обично се движи повеќе од биткоинот, и нагоре и надолу. Coinbase следи колку е живо тргувањето со крипто. Кога и двете паѓаат додека Nasdaq расте, парите излегуваат токму од криптото, а не од целата берза.",
+  "Both lines start from the same point at the beginning of the period, so you can see which one did better. The blue line and number are Coinbase.":
+    "Двете линии почнуваат од иста точка на почетокот на периодот, за да видите која поминала подобро. Сината линија и бројот се Coinbase.",
+  "The value of all US shares divided by what the US economy produces in a year (GDP). Warren Buffett once called it probably the best single measure of how expensive stocks are.":
+    "Вредноста на сите американски акции поделена со она што американската економија го произведува за една година (БДП). Ворен Бафет еднаш рекол дека ова е можеби најдобрата единечна мерка колку се скапи акциите.",
+  "Around 100% means stocks are worth about one year of output. On our data it peaked near 143% in the dot-com bubble of 2000, fell to about 56% in 2009, and reached about 200% in 2021.":
+    "Околу 100% значи дека акциите вредат колку една година производство. Според нашите податоци, во интернет-балонот во 2000 година беше околу 143%, во 2009 падна на околу 56%, а во 2021 стигна до околу 200%.",
+  "It has said \"expensive\" almost every year since 2013 while stocks kept rising. It shows how high the bar is, not when anything will happen. Crypto is not part of it.":
+    "Речиси секоја година од 2013 наваму покажува „скапо“, а акциите продолжија да растат. Покажува колку е висока летвата, а не кога нешто ќе се случи. Криптото не е дел од него.",
+  "The market value comes from the Wilshire 5000 index, whose points stand for about a billion dollars each. That has drifted over the years, so the level is approximate; the comparison with past readings under the number is not affected. GDP comes from the OECD and changes once a quarter, so the line steps a little when a new quarter is published.":
+    "Вредноста на пазарот доаѓа од индексот Wilshire 5000, каде секој поен е околу милијарда долари. Тоа со годините малку се изместило, па бројот е приближен; споредбата со минатите мерења под бројот не е засегната. БДП доаѓа од ОЕЦД и се менува еднаш на три месеци, па линијата малку скокнува кога ќе се објави нов квартал."
+});
+(function () {
+  var P = function (re, fn) { MK_PATTERNS.push([re, fn]); };
+  P(/^Highest since (\d{4})$/, function (m) { return 'Највисоко од ' + m[1] + ' наваму'; });
+  P(/^Higher than (\d+)% of readings since (\d{4})$/, function (m) { return 'Повисоко од ' + m[1] + '% од мерењата од ' + m[2] + ' наваму'; });
+})();

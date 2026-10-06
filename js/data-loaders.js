@@ -1925,6 +1925,9 @@ var BF_SRC = {
   comex:    { n: 'COMEX via Yahoo Finance', u: 'https://finance.yahoo.com/quote/' },
   nymex:    { n: 'NYMEX via Yahoo Finance', u: 'https://finance.yahoo.com/quote/' },
   ice:      { n: 'ICE via Yahoo Finance', u: 'https://finance.yahoo.com/quote/DX-Y.NYB' },
+  nasdaq:   { n: 'Nasdaq via Yahoo Finance', u: 'https://finance.yahoo.com/quote/' },
+  cboe:     { n: 'Cboe via Yahoo Finance', u: 'https://finance.yahoo.com/quote/' },
+  russell:  { n: 'FTSE Russell via Yahoo Finance', u: 'https://finance.yahoo.com/quote/' },
   bc:       { n: 'Blockchain.com', u: 'https://www.blockchain.com/explorer/charts' },
   llama:    { n: 'DefiLlama', u: 'https://defillama.com/' }
 };
@@ -1944,8 +1947,10 @@ function _bfSrc(src, sym, date, monthly) {
 }
 /* A change, as percent or as points. A policy rate that did not move
    says so in words instead of "+0.00". */
-function _bfChange(c, label, pts, usd) {
+function _bfChange(c, label, pts, usd, inv) {
   if (c == null || !isFinite(c)) return '<span class="bf-d bf-na">No ' + label + ' reading yet</span>';
+  /* inv: a fear gauge (the VIX), where a fall is the good news. */
+  if (inv) return _bfChange(c, label, pts, usd).replace(/bf-d (up|dn)/, function (m, d) { return 'bf-d ' + (d === 'up' ? 'dn' : 'up'); });
   /* A spread changes in dollars, not percent (promptove/109). */
   if (usd) return '<span class="bf-d ' + (c >= 0 ? 'up' : 'dn') + '">' + (c >= 0 ? '+$' : '-$') + Math.abs(c).toFixed(2) + ' ' + label + '</span>';
   if (pts) {
@@ -1959,6 +1964,7 @@ function _bfFmt(v, kind) {
   if (kind === 'rate') return v.toFixed(2) + '%';
   if (kind === 'cents') return (v * 100).toFixed(v * 100 < 10 ? 2 : 1) + '¢';   /* gas per kWh in MK is ~1¢: two decimals */
   if (kind === 'usdBig') return _bfUsd(v);
+  if (kind === 'ratio') return '≈' + Math.round(v) + '%';   /* the Buffett indicator: approximate by design */
   var dp = v >= 1000 ? 0 : v >= 100 ? 1 : 2;
   return (kind === 'usd' ? '$' : '') + v.toLocaleString('en-US', { minimumFractionDigits: dp, maximumFractionDigits: dp });
 }
@@ -2012,6 +2018,10 @@ function _bfWorldCell(it, o) {
   /* China's oil price on the WTI tile (promptove/109): the server lines it
      up with WTI's own days, so each window takes the same slice. */
   var cn = o.china && it.cn && Array.isArray(it.cn.s) && it.cn.s.length === s.length ? it.cn : null;
+  /* A second company on a stock tile (Coinbase next to Strategy,
+     promptove/140), lined up by the server the same way. */
+  var alt = o.pair && it.alt && Array.isArray(it.alt.s) && it.alt.s.length === s.length ? it.alt : null;
+  if (alt) cn = alt;
   if (cn) {
     w[7].o = it.n7 >= 2 ? cn.s.slice(-it.n7) : null;
     w[30].o = it.n30 >= 2 ? cn.s.slice(-it.n30) : null;
@@ -2039,16 +2049,52 @@ function _bfWorldCell(it, o) {
      changes are percentages, and a line keeps its shape when scaled.
      English keeps the units the markets quote. */
   var si = o.mk && typeof currentLang !== 'undefined' && currentLang === 'mk' ? o.mk : null;
+  /* Two companies at different prices: both lines start at the same
+     point in each window, so the chart shows which did better; the
+     second one's change is worked out from its own line. */
+  if (alt) {
+    [7, 30, 90, 182, 365, 1095].forEach(function (d) {
+      var x = w[d], a = _bfFirst(x.s), b = _bfFirst(x.o);
+      if (!x.s || !x.o || !a || !b) return;
+      var lastO = x.o.filter(function (v) { return typeof v === 'number' && isFinite(v); }).pop();
+      x.oc = (lastO / b - 1) * 100;
+      x.s = x.s.map(function (v) { return v == null ? v : v / a * 100; });
+      x.o = x.o.map(function (v) { return v == null ? v : v / b * 100; });
+    });
+  }
   return {
     k: o.k, v: si ? _bfFmt(it.v * si.mul, si.kind || o.kind) : _bfFmt(it.v, o.kind), u: si ? si.u : (o.u || ''),
-    pts: o.kind === 'rate', usd: !!o.usdpts, w: w,
-    right: cn && cn.v != null ? _bfChinaRight(cn) : '',
+    pts: o.kind === 'rate' || !!o.pts, usd: !!o.usdpts, inv: !!o.inv, w: w,
+    vcol: o.vcol ? o.vcol(it) : null,
+    right: alt && alt.v != null ? function (win) { return _bfPairRight(o.pair, alt, win); }
+      : cn && cn.v != null ? _bfChinaRight(cn) : '',
     d: o.d, more: o.more, extra: (o.range && it.lo != null ? '<div class="bf-step">target ' + it.lo.toFixed(2) + '–' + it.hi.toFixed(2) + '%</div>' : '')
-      + (cn && cn.v != null ? _bfChinaNote(cn) : '')
+      + (o.note ? o.note(it) : '')
+      + (cn && cn.v != null && !alt ? _bfChinaNote(cn) : '')
       + (o.policy ? _bfStep(it.last) : '')
       + (o.gas && it.gwei != null ? '<div class="bf-step">gas now ' + it.gwei + ' gwei</div>' : ''),
-    src: _bfSrc(o.src, o.sym, it.date, o.monthly)
+    src: o.srcHtml ? o.srcHtml(it) : _bfSrc(o.src, o.sym, it.date, o.monthly)
   };
+}
+/* The VIX on the Fear & Greed colours, reversed: 13 or lower reads like
+   greed (green), 20 like neutral (yellow), 30 or higher like fear (red). */
+function _vixColor(v) {
+  var score = v <= 20 ? 50 + (20 - v) / 7 * 30 : 50 - (v - 20) / 10 * 25;
+  return fngColor(Math.max(0, Math.min(100, score)));
+}
+function _bfFirst(a) {
+  if (!Array.isArray(a)) return null;
+  for (var i = 0; i < a.length; i++) if (typeof a[i] === 'number' && isFinite(a[i]) && a[i]) return a[i];
+  return null;
+}
+/* Right of the Strategy price: Coinbase, in blue like its line, with its
+   change over the window picked. */
+function _bfPairRight(name, alt, win) {
+  var c = win && win.oc != null && isFinite(win.oc)
+    ? '<span class="bf-d bf-cn-c ' + (win.oc >= 0 ? 'up' : 'dn') + '">' + (win.oc >= 0 ? '+' : '') + win.oc.toFixed(1) + '% ' + win.l + '</span>' : '';
+  return '<div class="bf-cn-big">'
+    + '<span class="bf-cn-lbl">' + name + '</span>'
+    + '<span class="bf-cn-v">$' + alt.v.toFixed(2) + '</span>' + c + '</div>';
 }
 /* The on-chain tiles keep their 7/30-day numbers from network_data. Their
    1Y side comes from world_data (o.year: a year of the same reading);
@@ -2118,7 +2164,9 @@ var BF_EMB_BY_K = {
   'Oil · WTI': 'barrel', 'Diesel crack spread': 'diesel', 'Natural gas': 'flame', 'Electricity': 'bolt',
   'Hash rate': 'btc', 'Active addresses': 'btc', 'DeFi TVL': 'lock', 'Stablecoin supply': 'stable',
   'Ethereum fees': 'eth', 'Solana fees': 'sol', 'Solana DEX volume': 'sol',
-  'Uniswap DEX volume': 'swap'
+  'Uniswap DEX volume': 'swap',
+  'Nasdaq 100': 'ndx', 'VIX fear index': 'vix', 'Russell 2000': 'rut', 'Strategy & Coinbase': 'cobld',
+  'Buffett indicator': 'scale'
 };
 var _BF_INGOT = { gold: ['#e3b23c', '#a87a12'], silver: ['#b0b8c0', '#5d666e'],
                   copper: ['#c87a4a', '#8a4a26'], aluminum: ['#98a3ad', '#55606a'] };
@@ -2186,6 +2234,34 @@ function _bfEmbSvg(id) {
     s = '<polygon points="7 4.5 21 4.5 17.5 8.5 3.5 8.5" fill="#9945ff"/>'
       + '<polygon points="3.5 10.2 17.5 10.2 21 14.2 7 14.2" fill="#43b4ca"/>'
       + '<polygon points="7 15.9 21 15.9 17.5 19.9 3.5 19.9" fill="#14f195"/>';
+  } else if (id === 'ndx') {   /* US stocks (promptove/140): bars and a rising line */
+    s = '<rect x="2.5" y="14" width="4" height="8" rx=".7" fill="#9dbcf2"/>'
+      + '<rect x="7.5" y="11" width="4" height="11" rx=".7" fill="#5b8fe8"/>'
+      + '<rect x="12.5" y="13" width="4" height="9" rx=".7" fill="#9dbcf2"/>'
+      + '<rect x="17.5" y="8" width="4" height="14" rx=".7" fill="#2f6fd6"/>'
+      + '<path d="M2.5 10.5 8.5 6.5 13.5 8.5 20.5 2.8M17.2 2.6h3.5v3.5" fill="none" stroke="#16a34a" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>';
+  } else if (id === 'vix') {   /* a pulse line: how nervous traders are */
+    s = '<circle cx="12" cy="12" r="10" fill="#fdecec" stroke="#e5484d" stroke-width="1.4"/>'
+      + '<path d="M3.5 12.5h3.6l1.9-4.6 3 9.4 2.4-7 1.6 2.2h4.5" fill="none" stroke="#e5484d" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>';
+  } else if (id === 'rut') {   /* a row of small buildings */
+    var bl = function (x, y, w, c) {
+      var o = '<rect x="' + x + '" y="' + y + '" width="' + w + '" height="' + (22 - y) + '" rx=".6" fill="' + c + '"/>';
+      for (var wy = y + 2; wy < 19.5; wy += 3.2) o += '<rect x="' + (x + 1.3) + '" y="' + wy + '" width="' + (w - 2.6) + '" height="1.3" fill="#fff" fill-opacity=".7"/>';
+      return o;
+    };
+    s = bl(2, 12, 6, '#5fb38a') + bl(9, 8, 6, '#2f8f63') + bl(16, 14, 6, '#5fb38a');
+  } else if (id === 'cobld') {   /* a listed company holding a coin (generic, no logo) */
+    s = '<polygon points="10 2 18.5 6.5 1.5 6.5" fill="#5b6b7a"/>'
+      + '<rect x="2.5" y="7.6" width="15" height="1.6" fill="#5b6b7a"/>'
+      + '<rect x="3.6" y="10" width="2.2" height="8" fill="#7d8c99"/><rect x="8.9" y="10" width="2.2" height="8" fill="#7d8c99"/><rect x="14.2" y="10" width="2.2" height="8" fill="#7d8c99"/>'
+      + '<rect x="1.5" y="18.6" width="17" height="2.2" rx=".5" fill="#5b6b7a"/>'
+      + '<circle cx="18" cy="17" r="5.2" fill="#f7931a" stroke="#fff" stroke-width="1"/>'
+      + '<text x="18.1" y="19.9" text-anchor="middle" font-family="Arial,sans-serif" font-weight="700" font-size="7.5" fill="#fff">B</text>';
+  } else if (id === 'scale') {   /* a balance: the market against the economy */
+    s = '<path d="M12 3.5v16M7 21h10M4 7.5h16" fill="none" stroke="#9a7b1c" stroke-width="1.6" stroke-linecap="round"/>'
+      + '<circle cx="12" cy="3.6" r="1.4" fill="#9a7b1c"/>'
+      + '<path d="M4 7.5 1.5 14h5zM20 7.5 17.5 12h5z" fill="none" stroke="#9a7b1c" stroke-width="1" stroke-linejoin="round"/>'
+      + '<path d="M1.2 14h5.6a2.8 2.8 0 0 1-5.6 0zM17.2 12h5.6a2.8 2.8 0 0 1-5.6 0z" fill="#e3b23c"/>';
   }
   if (!s) return '';
   return (_bfEmbCache[id] = '<svg viewBox="0 0 ' + (flag ? '30 20' : '24 24') + '" focusable="false">' + s
@@ -2246,7 +2322,8 @@ var _BF_NEWS_KEY = {
   'Copper': 'copper', 'Aluminum': 'aluminum', 'Oil · WTI': 'oil', 'Diesel crack spread': 'crack',
   'Natural gas': 'gas', 'Hash rate': 'hash', 'Active addresses': 'addr', 'DeFi TVL': 'tvl',
   'Stablecoin supply': 'stable', 'Ethereum fees': 'ethFees', 'Solana fees': 'solFees', 'Solana DEX volume': 'solDex',
-  'Uniswap DEX volume': 'uniDex'
+  'Uniswap DEX volume': 'uniDex', 'Nasdaq 100': 'ndx', 'VIX fear index': 'vix', 'Russell 2000': 'rut',
+  'Strategy & Coinbase': 'mstr', 'Buffett indicator': 'buffett'
 };
 function _bfNews(k) {
   var key = _BF_NEWS_KEY[k], e = key && _tileNews[key];
@@ -2266,6 +2343,9 @@ function _bfNewsHtml(k, e) {
   };
   var key = _BF_NEWS_KEY[k];
   var val = function (v) {
+    if (key === 'vix') return v.toFixed(2);
+    if (key === 'buffett') return Math.round(v) + '%';
+    if (key === 'ndx' || key === 'rut') return v.toLocaleString('en-US', { maximumFractionDigits: 0 });
     if (e.unit === 'pts') return (key === 'crack' ? '$' + v.toFixed(2) : v.toFixed(2) + '%');
     if ({ ethFees: 1, solFees: 1, solDex: 1, tvl: 1, stable: 1 }[key]) return _bfUsd(v);
     if (key === 'hash') return v.toFixed(0) + ' EH/s';
@@ -2472,6 +2552,68 @@ function renderBriefing() {
           ['Why it matters', 'Much of the world borrows in dollars. A stronger dollar makes those debts harder to pay and leaves less spare money for risky assets. Over the years it has often moved opposite to Bitcoin, though not every week.']
         ] })
     ] },
+    /* US stocks (Daniel, 2026-10-06, promptove/140). On the light theme
+       only until Daniel approves it (lab: styles.css hides it in dark).
+       Display only: none of it reaches the score. */
+    { t: 'Stock market', lab: true, cells: [
+      _bfWorldCell(W.ndx, { k: 'Nasdaq 100', kind: 'num', src: BF_SRC.nasdaq, sym: '^NDX',
+        d: 'The biggest US tech companies. Crypto has often moved in the same direction.',
+        more: [
+          ['What it is', 'An index of the 100 largest companies on the Nasdaq exchange that are not banks: Apple, Microsoft, Nvidia, Amazon and others. A handful of tech giants make up a big part of it.'],
+          ['Why crypto cares', 'Both are bets on the future, bought with spare money. When investors feel brave they buy both; when they get scared they sell both, and crypto usually falls harder.'],
+          ['Keep it in proportion', 'There are long stretches when they go separate ways. Read it as the mood of the market, not as a forecast for coins.']
+        ] }),
+      _bfWorldCell(W.vix, { k: 'VIX fear index', kind: 'num', pts: true, inv: true, src: BF_SRC.cboe, sym: '^VIX',
+        /* Coloured like Fear & Greed (Daniel, 2026-10-06): green when calm,
+           yellow around 20, red from 30. The bar below runs 10 to 40. */
+        vcol: function (x) { return _vixColor(x.v); },
+        note: function (x) {
+          var col = _vixColor(x.v), pos = Math.max(0, Math.min(100, (x.v - 10) / 30 * 100));
+          return '<div class="bf-step bf-vix-lbl fng-c" style="color:' + col + '">'
+            + (x.v < 20 ? 'Calm: under 20' : x.v < 30 ? 'Nervous: 20 to 30' : x.v < 40 ? 'Fear: over 30' : 'Panic: over 40') + '</div>'
+            + '<div class="bf-vix-bar" aria-hidden="true"><span style="left:' + pos.toFixed(1) + '%"></span></div>';
+        },
+        d: 'How nervous US stock traders are about the next 30 days. Under 20 is calm, over 30 is fear.',
+        more: [
+          ['What it is', 'A number worked out from what traders pay for protection (options) on the S&P 500 over the next 30 days. When they rush to protect themselves, protection gets expensive and the VIX goes up.'],
+          ['How to read it', 'Under 20: calm. 20 to 30: nervous. Over 30: fear, the kind of days when people sell almost everything. It closed above 80 in March 2020 and, for a few hours on 5 August 2024, went above 60.'],
+          ['Why crypto cares', 'In a panic, crypto is usually sold together with stocks, because it can be sold at any hour. A jump in the VIX says the panic is happening, not how long it will last.'],
+          ['In points', 'Its changes are shown in points, not percent, because the VIX is already a measure of how much prices swing.']
+        ] }),
+      _bfWorldCell(W.rut, { k: 'Russell 2000', kind: 'num', src: BF_SRC.russell, sym: '^RUT',
+        d: 'Two thousand smaller US companies. They do best when money is cheap and easy, much like smaller coins.',
+        more: [
+          ['What it is', 'An index of about 2,000 smaller US companies, the ones below the giants.'],
+          ['Why it matters', 'Small companies borrow more and earn less, so they feel interest rates more than the giants do. When they rise, investors are willing to take risks on smaller names.'],
+          ['Next to crypto', 'It is a cousin of the altcoin market: both like falling rates and plenty of spare money, and both suffer first when money gets tight.']
+        ] }),
+      _bfWorldCell(W.mstr, { k: 'Strategy & Coinbase', kind: 'usd', pair: 'Coinbase (COIN)', src: BF_SRC.nasdaq, sym: 'MSTR',
+        d: 'Two crypto companies on the US stock market: Strategy holds Bitcoin, Coinbase runs the biggest US crypto exchange.',
+        more: [
+          ['What they are', 'Strategy (MSTR, formerly MicroStrategy) is a software company that became the largest company holder of Bitcoin, buying it with money raised from shares and loans. Coinbase (COIN) runs the largest crypto exchange in the US and earns mostly from trading fees.'],
+          ['How to read them', 'Strategy usually moves more than Bitcoin, both up and down. Coinbase follows how busy crypto trading is. When both fall while the Nasdaq rises, money is leaving crypto in particular, not the stock market as a whole.'],
+          ['The two lines', 'Both lines start from the same point at the beginning of the period, so you can see which one did better. The blue line and number are Coinbase.']
+        ] }),
+      _bfWorldCell(W.buffett, { k: 'Buffett indicator', kind: 'ratio', pts: true,
+        note: function (x) {
+          if (x.rank == null) return '';
+          return '<div class="bf-step">' + (x.rank >= 100
+            ? 'Highest since ' + x.rankFrom
+            : 'Higher than ' + x.rank + '% of readings since ' + x.rankFrom) + '</div>';
+        },
+        srcHtml: function (x) {
+          return '<div class="bf-src"><span>Source</span> <a href="https://finance.yahoo.com/quote/%5EW5000" target="_blank" rel="noopener">Wilshire 5000 via Yahoo Finance</a>'
+            + ' · <a href="https://data-explorer.oecd.org/" target="_blank" rel="noopener">OECD (GDP)</a>'
+            + (x.date ? ' · <span>' + _bfDay(x.date) + '</span>' : '') + '</div>';
+        },
+        d: 'The whole US stock market measured against a year of US output. Higher means stocks are expensive next to the economy.',
+        more: [
+          ['What it is', 'The value of all US shares divided by what the US economy produces in a year (GDP). Warren Buffett once called it probably the best single measure of how expensive stocks are.'],
+          ['How to read it', 'Around 100% means stocks are worth about one year of output. On our data it peaked near 143% in the dot-com bubble of 2000, fell to about 56% in 2009, and reached about 200% in 2021.'],
+          ['Not a timing signal', 'It has said "expensive" almost every year since 2013 while stocks kept rising. It shows how high the bar is, not when anything will happen. Crypto is not part of it.'],
+          ['How it is measured here', 'The market value comes from the Wilshire 5000 index, whose points stand for about a billion dollars each. That has drifted over the years, so the level is approximate; the comparison with past readings under the number is not affected. GDP comes from the OECD and changes once a quarter, so the line steps a little when a new quarter is published.']
+        ] })
+    ] },
     { t: 'Metals', cells: [
       _bfWorldCell(it('gold', 'goldP7'), { k: 'Gold', more: [
           ['What it is', 'The price of one troy ounce (31.1 grams) of gold on the New York futures market.'],
@@ -2614,10 +2756,11 @@ function renderBriefing() {
       + _bfEmb(c.k)
       + '<div class="bf-k">' + c.k + '</div>'
       + (c.right
-          ? '<div class="bf-vrow"><div class="bf-v">' + c.v + '<span class="bf-u">' + c.u + '</span></div>' + c.right + '</div>'
-          : '<div class="bf-v">' + c.v + '<span class="bf-u">' + c.u + '</span></div>')
-      + _bfChange(win.c, win.l, c.pts, c.usd) + c.extra
-      + _bfSpark(win.s, (win.c == null) || win.c >= 0, c.pts ? 0.25 : 0,
+          ? '<div class="bf-vrow"><div class="bf-v">' + c.v + '<span class="bf-u">' + c.u + '</span></div>'
+            + (typeof c.right === 'function' ? c.right(win) : c.right) + '</div>'
+          : '<div class="bf-v' + (c.vcol ? ' fng-c" style="color:' + c.vcol : '') + '">' + c.v + '<span class="bf-u">' + c.u + '</span></div>')
+      + _bfChange(win.c, win.l, c.pts, c.usd, c.inv) + c.extra
+      + _bfSpark(win.s, (win.c == null) || (c.inv ? win.c <= 0 : win.c >= 0), c.pts ? 0.25 : 0,
                  c.pts && win.c != null && Math.abs(win.c) < 0.005, win.o)
       + '<div class="bf-d-note">' + c.d + '</div>'
       + c.src
@@ -2646,18 +2789,19 @@ function renderBriefing() {
     + '<button type="button" class="bf-seg-b" data-days="1095" onclick="bfSetAll(1095)">3Y</button>'
     + '</div></div>';
   groups.forEach(function (g) {
-    html += '<div class="bf-group">' + g.t + '</div>';
+    var lab = g.lab ? ' bf-lab' : '';
+    html += '<div class="bf-group' + lab + '">' + g.t + '</div>';
     g.cells.forEach(function (c) {
       var pl = (c.pts || c.usd) ? null : c.w[_bfLong].c;
       var hbl = hbBeatSeconds(pl, 0.25);
-      html += '<div class="bf-cell" data-k="' + c.k + '"'
+      html += '<div class="bf-cell' + lab + '" data-k="' + c.k + '"'
         + (hbl != null ? ' style="--hb-dur:' + hbl.toFixed(3) + 's"' : '') + '>'
         + '<div class="bf-tilt"><div class="bf-inner">' + face(c, _bfLong) + '</div></div>'
         + '</div>';
     });
     /* Fill the row so a short group (energy has three) does not leave a
        hole showing the grid's border colour. */
-    for (var f = g.cells.length % 4; f && f < 4; f++) html += '<div class="bf-cell bf-cell-empty" aria-hidden="true"></div>';
+    for (var f = g.cells.length % 4; f && f < 4; f++) html += '<div class="bf-cell bf-cell-empty' + lab + '" aria-hidden="true"></div>';
   });
   var ages = [_worldAgeMs, _networkAgeMs].filter(function (a) { return a != null; });
   html += '<div class="bf-age">' + _bfAge(ages.length ? Math.min.apply(null, ages) : null) + '</div>';
@@ -2933,7 +3077,7 @@ function openEtfModal(asset) {
   if (typeof supaCountFeature === 'function') supaCountFeature('etf_flows', true);
 }
 
-/* ── Where the money is going: stablecoins per chain ───────────────
+/* ── Where the capital rotated (was "Where the money is going", Daniel 2026-10-06): stablecoins per chain ───────────────
    READ ONLY (promptove/125). sync-chain-flows (03:47 UTC) reads
    DefiLlama's stablecoins per chain and writes ONE summary to
    market_cache.chain_flows_summary: for each chain with $50M+ of
@@ -2961,7 +3105,7 @@ function cfSortBy(key) {
 
 var _CF_TXT = {
   en: {
-    group: 'Where the money is going', in: 'Arriving', out: 'Leaving', details: 'details ›', open: 'Open details',
+    group: 'Where the capital rotated', in: 'Arriving', out: 'Leaving', details: 'details ›', open: 'Open details',
     week: 'this week', chains: function (n) { return n + (n === 1 ? ' chain' : ' chains'); },
     headIn: 'Stablecoins that moved onto these chains in the last 7 days.',
     headOut: 'Stablecoins that left these chains in the last 7 days.',
@@ -2983,7 +3127,7 @@ var _CF_TXT = {
     reading: 'Reading', months: ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec']
   },
   mk: {
-    group: 'Каде одат парите', in: 'Пристигнуваат', out: 'Заминуваат', details: 'детали ›', open: 'Отвори детали',
+    group: 'Каде ротираше капиталот', in: 'Пристигнуваат', out: 'Заминуваат', details: 'детали ›', open: 'Отвори детали',
     week: 'оваа недела', chains: function (n) { return n + (n === 1 ? ' мрежа' : ' мрежи'); },
     headIn: 'Стејблкоини што дојдоа на овие мрежи во последните 7 дена.',
     headOut: 'Стејблкоини што ги напуштија овие мрежи во последните 7 дена.',

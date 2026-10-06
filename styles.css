@@ -5481,6 +5481,19 @@ html.no-anim .mt-viewport::-webkit-scrollbar{display:none;}
 .bf-cn-gap{color:var(--cn-blue);}
 .bf-cn-d{color:var(--muted);}
 .bf-spark-ov{stroke:var(--cn-blue);opacity:.9;}
+/* Coinbase's change under its price on the Strategy tile (promptove/140). */
+.bf-cn-c{font-size:11px;margin-top:1px;white-space:nowrap;}
+.bf-cn-big:has(.bf-cn-c){cursor:default;}
+
+/* The Stock market group (promptove/140) is a light-theme experiment:
+   hidden on dark until Daniel approves it. */
+:root:not(.light) .bf-lab{display:none;}
+/* VIX on the Fear & Greed colours: a scale from 10 (calm, green) to 40
+   (panic, red) with a marker at today's reading. */
+.bf-vix-lbl{font-weight:700;}
+.bf-vix-bar{position:relative;height:5px;margin:5px 0 2px;border-radius:3px;max-width:160px;
+  background:linear-gradient(90deg,hsl(140,70%,45%) 0%,hsl(50,85%,50%) 33%,hsl(25,85%,52%) 55%,hsl(0,78%,52%) 67%,hsl(0,78%,40%) 100%);}
+.bf-vix-bar span{position:absolute;top:-3px;width:3px;height:11px;margin-left:-1.5px;border-radius:2px;background:var(--text);box-shadow:0 0 0 1.5px var(--bg2,#fff);}
 
 /* ── TODAY: subject emblems, explanation on the back (promptove/113) ──
    Tried on the light theme first, ported to dark (Daniel, 2026-10-05).
