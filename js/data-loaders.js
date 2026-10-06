@@ -2454,6 +2454,28 @@ function bfOpenMore(k, from) {
   var x = document.querySelector('#bf-more-modal .modal-x');
   if (x) x.focus();
 }
+/* Fear & Greed's own explanation (Daniel, 2026-10-06): CoinGecko showed
+   40 and Coinbase 68 while alternative.me said 73, so the window says why
+   versions differ and which one Rotator uses. Same window as the tiles. */
+var BF_FNG_MORE = [
+  ['What it is', "A daily score from 0 to 100 for the mood of the crypto market, made by alternative.me. It mixes how much Bitcoin's price swings, how busy trading is, social media, Bitcoin's share of the market and Google searches."],
+  ['Why other sites show a different number', "There is no single official Fear & Greed. Each site makes its own from its own data. CoinMarketCap's version, for example, looks at what traders pay for protection in options and at the top 10 coins, so it can say \"fear\" on a day when alternative.me says \"greed\". Some apps show alternative.me's number, so theirs stays close to ours."],
+  ['How to read a gap', 'When two versions disagree, two groups feel differently: ordinary buyers can be calm and happy while professional traders pay for protection. The gap is information, not a mistake.'],
+  ['Why Rotator uses alternative.me', 'It is the most quoted one, it is free, and it has a daily history back to 2018, so today can be compared with the past. The rest of Rotator uses the same number.']
+];
+function bfOpenFng(from) {
+  var body = document.getElementById('bf-more-body');
+  if (!body) return;
+  document.getElementById('bf-more-title').textContent = 'Fear & Greed';
+  body.innerHTML = BF_FNG_MORE.map(function (p) {
+    return '<div class="bf-more-h">' + p[0] + '</div><p class="bf-more-p">' + p[1] + '</p>';
+  }).join('') + '<div class="bf-more-note">General background, not advice.</div>';
+  body.scrollTop = 0;
+  _bfMoreFrom = from || null;
+  openModal('bf-more-modal');
+  var x = document.querySelector('#bf-more-modal .modal-x');
+  if (x) x.focus();
+}
 document.addEventListener('keydown', function (e) {
   var m = document.getElementById('bf-more-modal');
   if (e.key !== 'Escape' || !m || !m.classList.contains('show')) return;

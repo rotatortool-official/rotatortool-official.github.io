@@ -1598,6 +1598,22 @@ Object.assign(MK_TEXT, {
   "The market value comes from the Wilshire 5000 index, whose points stand for about a billion dollars each. That has drifted over the years, so the level is approximate; the comparison with past readings under the number is not affected. GDP comes from the OECD and changes once a quarter, so the line steps a little when a new quarter is published.":
     "Вредноста на пазарот доаѓа од индексот Wilshire 5000, каде секој поен е околу милијарда долари. Тоа со годините малку се изместило, па бројот е приближен; споредбата со минатите мерења под бројот не е засегната. БДП доаѓа од ОЕЦД и се менува еднаш на три месеци, па линијата малку скокнува кога ќе се објави нов квартал."
 });
+/* ── Fear & Greed: why other sites differ (2026-10-06) ── */
+Object.assign(MK_TEXT, {
+  "Why other sites differ ›": "Зошто другите сајтови се разликуваат ›",
+  "Fear & Greed": "Страв и алчност",
+  "Why other sites show a different number": "Зошто другите сајтови покажуваат друг број",
+  "How to read a gap": "Како да ја читате разликата",
+  "Why Rotator uses alternative.me": "Зошто Rotator користи alternative.me",
+  "A daily score from 0 to 100 for the mood of the crypto market, made by alternative.me. It mixes how much Bitcoin's price swings, how busy trading is, social media, Bitcoin's share of the market and Google searches.":
+    "Дневна оценка од 0 до 100 за расположението на крипто пазарот, ја прави alternative.me. Ги меша тоа колку се ниша цената на биткоинот, колку е живо тргувањето, социјалните мрежи, делот на биткоинот во пазарот и пребарувањата на Google.",
+  "There is no single official Fear & Greed. Each site makes its own from its own data. CoinMarketCap's version, for example, looks at what traders pay for protection in options and at the top 10 coins, so it can say \"fear\" on a day when alternative.me says \"greed\". Some apps show alternative.me's number, so theirs stays close to ours.":
+    "Не постои еден официјален индекс на страв и алчност. Секој сајт прави свој, од свои податоци. Верзијата на CoinMarketCap, на пример, гледа колку трговците плаќаат за заштита преку опции и првите 10 монети, па може да покаже „страв“ на ден кога alternative.me покажува „алчност“. Некои апликации го прикажуваат бројот на alternative.me, па нивниот е близу до нашиот.",
+  "When two versions disagree, two groups feel differently: ordinary buyers can be calm and happy while professional traders pay for protection. The gap is information, not a mistake.":
+    "Кога две верзии не се согласуваат, две групи се чувствуваат различно: обичните купувачи може да се мирни и задоволни, додека професионалните трговци плаќаат за заштита. Разликата е информација, а не грешка.",
+  "It is the most quoted one, it is free, and it has a daily history back to 2018, so today can be compared with the past. The rest of Rotator uses the same number.":
+    "Тој е најцитиран, бесплатен е и има дневна историја од 2018 наваму, па денешниот ден може да се спореди со минатото. Остатокот од Rotator го користи истиот број."
+});
 (function () {
   var P = function (re, fn) { MK_PATTERNS.push([re, fn]); };
   P(/^Highest since (\d{4})$/, function (m) { return 'Највисоко од ' + m[1] + ' наваму'; });

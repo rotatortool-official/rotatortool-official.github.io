@@ -156,7 +156,10 @@ function renderMarketNow() {
        yellow to green at greed), now that this is the only reading. */
     var fgc = (typeof fngColor === 'function') ? fngColor(fg.value) : 'var(--text)';
     html += cell('Fear & Greed', '<span class="fng-c" style="color:' + fgc + ';">' + fg.value + '</span> <span class="mn-lbl fng-c" style="color:' + fgc + ';opacity:.85;">' + (fg.label || '') + '</span>',
-      '0 = extreme fear, 100 = extreme greed · alternative.me',
+      '0 = extreme fear, 100 = extreme greed · alternative.me'
+        /* Other sites show other numbers (Daniel, 2026-10-06): the reason,
+           in the TODAY explanation window (bfOpenFng, data-loaders.js). */
+        + '<br><button type="button" class="mn-why" onclick="bfOpenFng(this)">Why other sites differ ›</button>',
       'Crypto Fear & Greed Index: the mood of the whole market, not a forecast.');
   } else {
     html += cell('Fear & Greed', none, 'alternative.me did not answer. It is not shown as 50.');
