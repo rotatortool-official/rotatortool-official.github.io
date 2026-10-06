@@ -2096,7 +2096,8 @@ var BF_EMB_BY_K = {
   'Gold': 'gold', 'Silver': 'silver', 'Copper': 'copper', 'Aluminum': 'aluminum',
   'Oil · WTI': 'barrel', 'Diesel crack spread': 'diesel', 'Natural gas': 'flame', 'Electricity': 'bolt',
   'Hash rate': 'btc', 'Active addresses': 'btc', 'DeFi TVL': 'lock', 'Stablecoin supply': 'stable',
-  'Ethereum fees': 'eth', 'Solana fees': 'sol', 'Solana DEX volume': 'sol'
+  'Ethereum fees': 'eth', 'Solana fees': 'sol', 'Solana DEX volume': 'sol',
+  'Uniswap DEX volume': 'swap'
 };
 var _BF_INGOT = { gold: ['#e3b23c', '#a87a12'], silver: ['#b0b8c0', '#5d666e'],
                   copper: ['#c87a4a', '#8a4a26'], aluminum: ['#98a3ad', '#55606a'] };
@@ -2157,6 +2158,9 @@ function _bfEmbSvg(id) {
   } else if (id === 'eth') {
     s = '<polygon points="12 1.5 5 12.3 12 16.4 19 12.3" fill="#627eea"/>'
       + '<polygon points="12 17.8 5 13.7 12 22.5 19 13.7" fill="#8fa2f2"/>';
+  } else if (id === 'swap') {   /* a generic swap sign in Uniswap pink, not their logo */
+    s = '<circle cx="12" cy="12" r="10" fill="#ff007a"/>'
+      + '<path d="M7 9.5h9.5M14 6.8l2.7 2.7-2.7 2.7M17 14.5H7.5M10 11.8l-2.7 2.7 2.7 2.7" fill="none" stroke="#fff" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/>';
   } else if (id === 'sol') {
     s = '<polygon points="7 4.5 21 4.5 17.5 8.5 3.5 8.5" fill="#9945ff"/>'
       + '<polygon points="3.5 10.2 17.5 10.2 21 14.2 7 14.2" fill="#43b4ca"/>'
@@ -2220,7 +2224,8 @@ var _BF_NEWS_KEY = {
   'US 10-year': 'us10y', 'Japan 10-year': 'jgb10y', 'Dollar index': 'dxy', 'Gold': 'gold', 'Silver': 'silver',
   'Copper': 'copper', 'Aluminum': 'aluminum', 'Oil · WTI': 'oil', 'Diesel crack spread': 'crack',
   'Natural gas': 'gas', 'Hash rate': 'hash', 'Active addresses': 'addr', 'DeFi TVL': 'tvl',
-  'Stablecoin supply': 'stable', 'Ethereum fees': 'ethFees', 'Solana fees': 'solFees', 'Solana DEX volume': 'solDex'
+  'Stablecoin supply': 'stable', 'Ethereum fees': 'ethFees', 'Solana fees': 'solFees', 'Solana DEX volume': 'solDex',
+  'Uniswap DEX volume': 'uniDex'
 };
 function _bfNews(k) {
   var key = _BF_NEWS_KEY[k], e = key && _tileNews[key];
@@ -2280,12 +2285,42 @@ function _bfNewsHtml(k, e) {
         : 'Headlines from Google News, as published. They show only when the reading moves unusually, until ' + day(e.until) + '.')
     + '</div></div>';
 }
+/* Live lists inside a window (Daniel, 2026-10-06), from world_data:
+   the busiest exchanges and Hyperliquid on the Uniswap tile; the biggest
+   lending and staking protocols on the TVL tile. Names are DefiLlama's. */
+function _bfLiveHtml(k) {
+  var it = (_worldData && _worldData.items && _worldData.items[_BF_NEWS_KEY[k]]) || null;
+  if (!it || !it.top) return '';
+  var mk = typeof currentLang !== 'undefined' && currentLang === 'mk';
+  var rows = function (list, withC7) {
+    return '<ul class="bf-live-list">' + list.map(function (p) {
+      var c7 = withC7 && p.c7 != null
+        ? ' <span class="bf-live-c ' + (p.c7 >= 0 ? 'up' : 'dn') + '">' + (p.c7 >= 0 ? '+' : '−') + Math.abs(p.c7).toFixed(1) + '% ' + (mk ? '7 дена' : '7d') + '</span>'
+        : '';
+      return '<li><span class="bf-live-n">' + _esc(p.n) + '</span><span class="bf-live-v">' + _bfUsd(p.v) + c7 + '</span></li>';
+    }).join('') + '</ul>';
+  };
+  var h = function (t) { return '<div class="bf-more-h">' + t + '</div>'; };
+  var out = '';
+  if (_BF_NEWS_KEY[k] === 'uniDex' && Array.isArray(it.top) && it.top.length) {
+    out = h(mk ? 'Најпрометни берзи, последни 24 часа' : 'Busiest exchanges, last 24 hours') + rows(it.top, false)
+      + (it.hl ? '<ul class="bf-live-list bf-live-perp"><li><span class="bf-live-n">Hyperliquid · '
+        + (mk ? 'фјучерси' : 'perpetual futures') + '</span><span class="bf-live-v">' + _bfUsd(it.hl) + '</span></li></ul>' : '');
+  } else if (it.top.lend && it.top.stake) {
+    out = h(mk ? 'Најголеми за позајмување' : 'Biggest in lending') + rows(it.top.lend, true)
+      + h(mk ? 'Најголеми за стејкинг' : 'Biggest in staking') + rows(it.top.stake, true);
+  }
+  return out ? '<div class="bf-live" translate="no">' + out
+    + '<div class="bf-news-note">' + (mk ? 'Извор: DefiLlama' : 'Source: DefiLlama')
+    + (_BF_NEWS_KEY[k] === 'uniDex' && it.hl ? (mk ? '; Hyperliquid од неговиот јавен API.' : '; Hyperliquid from its public API.') : '.')
+    + '</div></div>' : '';
+}
 function bfOpenMore(k, from) {
   var c = _bfMore[k], body = document.getElementById('bf-more-body');
   if (!c || !body) return;
   document.getElementById('bf-more-title').textContent = c.k;
   var news = _bfNews(c.k);
-  body.innerHTML = (news ? _bfNewsHtml(c.k, news) : '') + c.more.map(function (p) {
+  body.innerHTML = (news ? _bfNewsHtml(c.k, news) : '') + _bfLiveHtml(c.k) + c.more.map(function (p) {
     return '<div class="bf-more-h">' + p[0] + '</div><p class="bf-more-p">' + p[1] + '</p>';
   }).join('') + '<div class="bf-more-note">General background, not advice.</div>';
   body.scrollTop = 0;
@@ -2462,7 +2497,8 @@ function renderBriefing() {
            + 'partly which day of the week it is. The 3-year change compares single days.' }),
       _bfNetCell({ k: 'DeFi TVL', more: [
           ['What it is', 'The dollar value of coins deposited in lending, trading and other apps on blockchains. DeFi is decentralized finance; TVL is total value locked.'],
-          ['How to read it', 'It rises when coin prices rise even if nobody adds money, so compare it with prices. When TVL grows faster than prices, new money is coming in.']
+          ['How to read it', 'It rises when coin prices rise even if nobody adds money, so compare it with prices. When TVL grows faster than prices, new money is coming in.'],
+          ['Lending and staking', 'Lending apps such as Aave let people deposit coins to earn interest or borrow against them. Staking apps such as Lido stake ETH for their users and hand back a token that keeps earning. Together they hold most of the money in DeFi; the lists above show the biggest of each.']
         ],
         v: _bfUsd(n.tvlUsd), p: n.tvlP7, s: ns.tvlUsd,
         p30: np.tvlUsd, n7: nn.tvlUsd, year: W.tvl, src: BF_SRC.llama,
@@ -2493,7 +2529,16 @@ function renderBriefing() {
           ['How to read it', 'Much of it is fast trading in new and meme coins, so it shows how hungry the market is for risk. Big surges come with hype waves, which can end as fast as they start.']
         ],
         kind: 'usdBig', u: ' /day', src: BF_SRC.llama,
-        d: 'Dollars traded on Solana\'s exchanges in a day, a gauge of how busy the chain is.' })
+        d: 'Dollars traded on Solana\'s exchanges in a day, a gauge of how busy the chain is.' }),
+      /* Uniswap, the eighth on-chain tile (Daniel, 2026-10-06); its window
+         lists the busiest exchanges and Hyperliquid (_bfLiveHtml). */
+      _bfWorldCell(W.uniDex, { k: 'Uniswap DEX volume', more: [
+          ['What it is', 'Uniswap is the biggest decentralized exchange: people swap tokens straight from their wallets, and no company holds their coins. This is its daily trading volume across every version and chain.'],
+          ['How to read it', 'Volume rises when traders are busy: big price moves, new tokens, money moving between coins. A jump during a sell-off often means people rushing out, not new demand.'],
+          ['Spot and perps', 'The list above counts spot swaps, where coins really change hands. Hyperliquid is different: most of its volume is perpetual futures, bets on the price made with borrowed money, so it is shown on its own line and is not comparable one to one.']
+        ],
+        kind: 'usdBig', u: ' /day', src: BF_SRC.llama,
+        d: 'Dollars traded on Uniswap in a day, across every version and chain.' })
     ] }
   ];
   groups.forEach(function (g) { g.cells = g.cells.filter(function (c) { return c && c.v != null; }); });

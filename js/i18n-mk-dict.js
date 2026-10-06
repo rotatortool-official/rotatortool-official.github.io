@@ -1503,3 +1503,23 @@ Object.assign(MK_TEXT, {
   "Much of it is fast trading in new and meme coins, so it shows how hungry the market is for risk. Big surges come with hype waves, which can end as fast as they start.":
     "Голем дел од тоа е брзо тргување со нови и мем-монети, па покажува колку пазарот е гладен за ризик. Големите скокови доаѓаат со бранови на возбуда, кои можат да завршат брзо како што почнале."
 });
+
+/* ── TODAY: Uniswap tile and the TVL lists (Daniel, 2026-10-06) ── */
+Object.assign(MK_TEXT, {
+  "Uniswap DEX volume":
+    "DEX промет на Uniswap",
+  "Dollars traded on Uniswap in a day, across every version and chain.":
+    "Долари со кои се тргувало на Uniswap за еден ден, низ сите верзии и мрежи.",
+  "Spot and perps":
+    "Спот и фјучерси",
+  "Lending and staking":
+    "Позајмување и стејкинг",
+  "Uniswap is the biggest decentralized exchange: people swap tokens straight from their wallets, and no company holds their coins. This is its daily trading volume across every version and chain.":
+    "Uniswap е најголемата децентрализирана берза: луѓето менуваат токени директно од своите паричници, и ниедна компанија не ги чува нивните монети. Ова е нејзиниот дневен промет низ сите верзии и мрежи.",
+  "Volume rises when traders are busy: big price moves, new tokens, money moving between coins. A jump during a sell-off often means people rushing out, not new demand.":
+    "Прометот расте кога трговците се зафатени: големи движења на цената, нови токени, пари што се префрлаат меѓу монети. Скок за време на продавање често значи дека луѓето бегаат, а не нова побарувачка.",
+  "The list above counts spot swaps, where coins really change hands. Hyperliquid is different: most of its volume is perpetual futures, bets on the price made with borrowed money, so it is shown on its own line and is not comparable one to one.":
+    "Листата погоре брои спот размени, каде монетите навистина менуваат сопственик. Hyperliquid е различен: најголемиот дел од неговиот промет се фјучерси, облози на цената со позајмени пари, па е прикажан во посебен ред и не може директно да се спореди.",
+  "Lending apps such as Aave let people deposit coins to earn interest or borrow against them. Staking apps such as Lido stake ETH for their users and hand back a token that keeps earning. Together they hold most of the money in DeFi; the lists above show the biggest of each.":
+    "Апликациите за позајмување како Aave им овозможуваат на луѓето да вложат монети за да заработуваат камата или да позајмат врз нив. Апликациите за стејкинг како Lido стејкуваат ETH за своите корисници и им враќаат токен што продолжува да заработува. Заедно го држат најголемиот дел од парите во DeFi; листите погоре ги покажуваат најголемите од секој вид."
+});

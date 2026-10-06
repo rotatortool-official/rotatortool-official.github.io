@@ -5534,6 +5534,18 @@ html.no-anim .mt-viewport::-webkit-scrollbar{display:none;}
 .bf-news-list a:hover{color:var(--amber,#f0b90b);text-decoration:underline;}
 .bf-news-src{display:block;margin-top:2px;font:11px/1.4 var(--font-ui);color:var(--muted);}
 .bf-news-note{margin-top:8px;font:11px/1.5 var(--font-ui);color:var(--muted);}
+/* Live lists in the Uniswap and TVL windows (_bfLiveHtml). */
+.bf-live{border:1px solid var(--bdr2);border-radius:10px;padding:10px 14px 12px;margin:4px 0 6px;}
+.bf-live .bf-more-h:first-child{margin-top:0;}
+.bf-live-list{list-style:none;margin:0;padding:0;}
+.bf-live-list li{display:flex;justify-content:space-between;gap:12px;padding:6px 0;border-top:1px solid var(--bdr2);font:13.5px/1.4 var(--font-ui);color:var(--text);}
+.bf-live-list li:first-child{border-top:0;}
+.bf-live-v{font-family:var(--font-mono);font-weight:600;white-space:nowrap;}
+.bf-live-c{font-size:11px;font-weight:600;margin-left:6px;}
+.bf-live-c.up{color:var(--green);}
+.bf-live-c.dn{color:var(--red);}
+.bf-live-perp{margin-top:4px;border-top:1px dashed var(--bdr2);}
+.bf-live-perp li{border-top:0;}
 .bf-emb{position:absolute;pointer-events:none;z-index:0;line-height:0;
   right:-16px;bottom:-14px;width:118px;height:118px;opacity:.16;transform:rotate(-8deg);
   -webkit-mask-image:radial-gradient(circle at 72% 72%, #000 30%, transparent 72%);
