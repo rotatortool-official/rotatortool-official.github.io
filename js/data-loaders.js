@@ -2361,6 +2361,22 @@ document.addEventListener('keydown', function (e) {
   closeModal('bf-more-modal');
   if (_bfMoreFrom) { try { _bfMoreFrom.focus(); } catch (er) {} }
 });
+/* Deep link into a tile's window: #more=us10y (world_data key). Used by
+   "Read more on Rotator" in the Substack weekly (promptove/135). Opens
+   once per hash, after the board has drawn. */
+var _bfDeepDone = '';
+function _bfDeepLink() {
+  var m = /^#more=([A-Za-z0-9]+)$/.exec(location.hash || '');
+  if (!m || _bfDeepDone === m[1]) return;
+  var label = null;
+  for (var k in _BF_NEWS_KEY) if (_BF_NEWS_KEY[k] === m[1]) label = k;
+  if (!label || !_bfMore[label]) return;
+  _bfDeepDone = m[1];
+  var sec = document.getElementById('sec-today');
+  if (sec && sec.scrollIntoView) sec.scrollIntoView({ block: 'start' });
+  bfOpenMore(label);
+}
+window.addEventListener('hashchange', _bfDeepLink);
 
 function renderBriefing() {
   var host = document.getElementById('briefing');
@@ -2632,6 +2648,7 @@ function renderBriefing() {
   _bfWireTilt(host);
   _bfWireFlash(host);
   _bfWireInfo(host);
+  _bfDeepLink();
 }
 /* A short glow on every tile when the period changes, in a quick
    left-to-right ripple (it used to fire when a tile finished flipping). */
