@@ -761,7 +761,16 @@ async function loadWorldData() {
   } catch (e) {
     console.warn('[briefing] world read skipped:', e.message);
   }
+  try {
+    var nrow = await supaCacheGetStale('tile_news');
+    if (nrow && nrow.data) _tileNews = nrow.data.items || {};
+  } catch (e) {
+    console.warn('[briefing] tile news read skipped:', e.message);
+  }
 }
+/* Headlines for a tile whose reading just moved unusually (promptove/132).
+   READ ONLY: sync-tile-news is the only writer; most days it is empty. */
+var _tileNews = {};
 
 async function loadNetworkData() {
   if (typeof supaCacheGetStale !== 'function') return;
@@ -2205,11 +2214,78 @@ function _bfWireInfo(host) {
    opens in the site's usual modal. Each paragraph is its own element so
    i18n-mk finds it in MK_TEXT. */
 var _bfMore = {}, _bfMoreFrom = null;
+/* Tile title -> its key in world_data and tile_news. */
+var _BF_NEWS_KEY = {
+  'Fed rate': 'fed', 'ECB rate': 'ecb', 'BoJ rate': 'boj', 'US 3-month': 'us3m', 'US 2-year': 'us2y',
+  'US 10-year': 'us10y', 'Japan 10-year': 'jgb10y', 'Dollar index': 'dxy', 'Gold': 'gold', 'Silver': 'silver',
+  'Copper': 'copper', 'Aluminum': 'aluminum', 'Oil · WTI': 'oil', 'Diesel crack spread': 'crack',
+  'Natural gas': 'gas', 'Hash rate': 'hash', 'Active addresses': 'addr', 'DeFi TVL': 'tvl',
+  'Stablecoin supply': 'stable', 'Ethereum fees': 'ethFees', 'Solana fees': 'solFees', 'Solana DEX volume': 'solDex'
+};
+function _bfNews(k) {
+  var key = _BF_NEWS_KEY[k], e = key && _tileNews[key];
+  if (!e || !e.until || e.until < new Date().toISOString().slice(0, 10)) return null;
+  return e;
+}
+/* The "In the news" block: why the tile lit up, then the headlines as
+   published, linked out. Built in the page's language here, not through
+   MK_TEXT, because it carries numbers and dates. */
+function _bfNewsHtml(k, e) {
+  var mk = typeof currentLang !== 'undefined' && currentLang === 'mk';
+  var MKM = ['јан.', 'фев.', 'мар.', 'апр.', 'мај', 'јун.', 'јул.', 'авг.', 'сеп.', 'окт.', 'ное.', 'дек.'];
+  var day = function (iso) {
+    if (!iso) return '';
+    var p = iso.slice(0, 10).split('-');
+    return mk ? (+p[2]) + ' ' + MKM[+p[1] - 1] : _bfDay(iso.slice(0, 10));
+  };
+  var key = _BF_NEWS_KEY[k];
+  var val = function (v) {
+    if (e.unit === 'pts') return (key === 'crack' ? '$' + v.toFixed(2) : v.toFixed(2) + '%');
+    if ({ ethFees: 1, solFees: 1, solDex: 1, tvl: 1, stable: 1 }[key]) return _bfUsd(v);
+    if (key === 'hash') return v.toFixed(0) + ' EH/s';
+    if (key === 'addr') return Math.round(v).toLocaleString('en-US');
+    return (key === 'dxy' ? '' : '$') + v.toLocaleString('en-US', { maximumFractionDigits: 2 });
+  };
+  var move = function (m) {
+    var s = (m >= 0 ? '+' : '−') + Math.abs(m).toFixed(e.unit === 'pts' ? 2 : 1);
+    return e.unit === 'pts' ? s + (key === 'crack' ? ' $' : (mk ? ' поени' : ' pts')) : s + '%';
+  };
+  var why;
+  if (e.kind === 'high' || e.kind === 'low') {
+    why = mk
+      ? (e.kind === 'high' ? 'Највисоко во последната година' : 'Најниско во последната година') + ' на ' + day(e.date) + ': '
+        + val(e.move) + (e.kind === 'high' ? ', над претходниот врв од ' : ', под претходното дно од ') + val(e.usual) + '.'
+      : (e.kind === 'high' ? 'Highest in a year' : 'Lowest in a year') + ' on ' + day(e.date) + ': '
+        + val(e.move) + (e.kind === 'high' ? ', past the previous high of ' : ', below the previous low of ') + val(e.usual) + '.';
+  } else if (e.kind === 'day') {
+    var x = e.usual ? Math.round(Math.abs(e.move) / e.usual) : null;
+    why = mk
+      ? 'Се помести ' + move(e.move) + ' на ' + day(e.date) + (x ? ', околу ' + x + '× повеќе од вообичаеното дневно движење.' : '.')
+      : 'Moved ' + move(e.move) + ' on ' + day(e.date) + (x ? ', about ' + x + '× its usual daily move.' : '.');
+  } else {
+    why = mk
+      ? 'Се помести ' + move(e.move) + ' за една недела до ' + day(e.date) + ', едно од најголемите неделни движења оваа година.'
+      : 'Moved ' + move(e.move) + ' in the week to ' + day(e.date) + ', one of its biggest weekly moves this year.';
+  }
+  var list = (e.news || []).map(function (n) {
+    return '<li><a href="' + _esc(n.u) + '" target="_blank" rel="noopener nofollow">' + _esc(n.t) + '</a>'
+      + '<span class="bf-news-src">' + _esc(n.src) + (n.d ? ' · ' + day(n.d) : '') + '</span></li>';
+  }).join('');
+  return '<div class="bf-news" translate="no">'
+    + '<div class="bf-more-h">' + (mk ? 'Во вестите' : 'In the news') + '</div>'
+    + '<p class="bf-news-why">' + why + '</p>'
+    + (list ? '<ul class="bf-news-list">' + list + '</ul>' : '')
+    + '<div class="bf-news-note">' + (mk
+        ? 'Наслови од Google News, на англиски, онакви какви што се објавени. Се прикажуваат само кога бројката необично ќе се помести, до ' + day(e.until) + '.'
+        : 'Headlines from Google News, as published. They show only when the reading moves unusually, until ' + day(e.until) + '.')
+    + '</div></div>';
+}
 function bfOpenMore(k, from) {
   var c = _bfMore[k], body = document.getElementById('bf-more-body');
   if (!c || !body) return;
   document.getElementById('bf-more-title').textContent = c.k;
-  body.innerHTML = c.more.map(function (p) {
+  var news = _bfNews(c.k);
+  body.innerHTML = (news ? _bfNewsHtml(c.k, news) : '') + c.more.map(function (p) {
     return '<div class="bf-more-h">' + p[0] + '</div><p class="bf-more-p">' + p[1] + '</p>';
   }).join('') + '<div class="bf-more-note">General background, not advice.</div>';
   body.scrollTop = 0;
@@ -2427,7 +2503,7 @@ function renderBriefing() {
   if (!groups.length) { host.style.display = 'none'; return; }
 
   var face = function (c, days) {
-    var win = c.w[days];
+    var win = c.w[days], hasNews = !!(c.more && _bfNews(c.k));
     return '<div class="bf-face bf-front">'
       + _bfEmb(c.k)
       + '<div class="bf-k">' + c.k + '</div>'
@@ -2439,12 +2515,14 @@ function renderBriefing() {
                  c.pts && win.c != null && Math.abs(win.c) < 0.005, win.o)
       + '<div class="bf-d-note">' + c.d + '</div>'
       + c.src
-      + '<span class="bf-more" aria-hidden="true">i</span>'
+      /* Amber when the reading just moved unusually and there is news
+         behind "More" (promptove/132). */
+      + '<span class="bf-more' + (hasNews ? ' bf-more-news' : '') + '" aria-hidden="true">i</span>'
       + '</div>'
       /* The explanation side (promptove/113): a click turns the tile.
          _bfWireInfo below. */
       + '<div class="bf-face bf-back bf-info' + (c.more ? ' bf-has-more' : '') + '">'
-      + (c.more ? '<button type="button" class="bf-read" data-k="' + c.k + '">More ›</button>' : '')
+      + (c.more ? '<button type="button" class="bf-read' + (hasNews ? ' bf-read-news' : '') + '" data-k="' + c.k + '">More ›</button>' : '')
       + '<div class="bf-k">' + c.k + '</div>'
       + '<div class="bf-d-note">' + c.d + '</div>'
       + c.src
