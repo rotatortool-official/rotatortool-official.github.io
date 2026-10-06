@@ -1393,3 +1393,113 @@ Object.assign(MK_TEXT, {
   "Much of the world borrows in dollars. A stronger dollar makes those debts harder to pay and leaves less spare money for risky assets. Over the years it has often moved opposite to Bitcoin, though not every week.":
     "Голем дел од светот позајмува во долари. Посилен долар ги прави тие долгови потешки за враќање и остава помалку слободни пари за ризични средства. Низ годините често се движел спротивно од Bitcoin, иако не секоја недела."
 });
+
+/* ── TODAY: "More" behind the metals, energy and on-chain tiles (Daniel, 2026-10-06) ── */
+Object.assign(MK_TEXT, {
+  "What it is":
+    "Што е тоа",
+  "The price of one troy ounce (31.1 grams) of gold on the New York futures market.":
+    "Цената на една унца (31,1 грам) злато на њујоршкиот пазар.",
+  "Why it matters":
+    "Зошто е важно",
+  "People and central banks buy gold when they trust paper money or governments less. Central banks have been buying it in record amounts since 2022.":
+    "Луѓето и централните банки купуваат злато кога помалку им веруваат на хартиените пари или на државите. Централните банки од 2022 го купуваат во рекордни количини.",
+  "Next to Bitcoin":
+    "Споредено со Bitcoin",
+  "Bitcoin is often called \"digital gold\", and both can rise on fear of inflation. In a sudden panic gold usually holds up better, because Bitcoin still trades like a risky asset.":
+    "Bitcoin често го нарекуваат „дигитално злато“, и двете можат да растат од страв од инфлација. Во ненадејна паника златото обично издржува подобро, бидејќи со Bitcoin сè уште се тргува како со ризично средство.",
+  "The price of one troy ounce (31.1 grams) of silver on the New York futures market.":
+    "Цената на една унца (31,1 грам) сребро на њујоршкиот пазар.",
+  "Two jobs":
+    "Две улоги",
+  "Silver is partly a money metal, like gold, and partly an industrial one: solar panels, electronics and cars. About half of the demand comes from industry.":
+    "Среброто е делумно метал за чување вредност, како златото, а делумно индустриски метал: соларни панели, електроника и автомобили. Околу половина од побарувачката доаѓа од индустријата.",
+  "How it moves":
+    "Како се движи",
+  "It usually swings harder than gold, both up and down.":
+    "Обично се движи посилно од златото, и нагоре и надолу.",
+  "The price of a pound of copper on the New York futures market (the Macedonian view shows it per tonne).":
+    "Цената на бакарот на њујоршкиот пазар, тука прикажана по тон.",
+  "\"Dr. Copper\"":
+    "„Доктор Бакар“",
+  "Copper goes into buildings, cars, power grids and factories, so traders read its price as a check-up on the world economy. China uses about half of the world's copper.":
+    "Бакарот оди во згради, автомобили, електрични мрежи и фабрики, па трговците ја читаат неговата цена како преглед на здравјето на светската економија. Кина троши околу половина од бакарот во светот.",
+  "The new demand":
+    "Новата побарувачка",
+  "Power grids, electric cars and AI data centers all need a lot of copper, and a new mine takes ten years or more to open.":
+    "Електричните мрежи, електричните автомобили и центрите за податоци за AI бараат многу бакар, а за да се отвори нов рудник требаат десет и повеќе години.",
+  "The price of a tonne of aluminum.":
+    "Цената на еден тон алуминиум.",
+  "Made with electricity":
+    "Се прави со струја",
+  "Making aluminum takes huge amounts of power, so its price also follows the cost of energy. China makes more than half of the world's aluminum.":
+    "За да се направи алуминиум треба огромно количество струја, па неговата цена ја следи и цената на енергијата. Кина произведува повеќе од половина од алуминиумот во светот.",
+  "The price of a barrel (159 liters) of US crude oil, West Texas Intermediate, for next month's delivery. Brent, from the North Sea, is the price most of the world's oil is sold against.":
+    "Цената на барел (159 литри) американска сурова нафта WTI за испорака следниот месец. Брент, од Северното Море, е цената според која се продава поголемиот дел од нафтата во светот.",
+  "Oil is in transport, food, plastics and heating. When it rises fast, prices in shops follow, central banks keep rates higher for longer, and that weighs on risky assets like crypto.":
+    "Нафтата е во превозот, храната, пластиката и греењето. Кога брзо расте, цените во продавниците ја следат, централните банки ги држат каматите високи подолго, а тоа ги притиска ризичните средства како крипто.",
+  "The China line":
+    "Линијата за Кина",
+  "The blue number is crude oil traded in Shanghai, turned into dollars. It is Middle East oil delivered to China, so the fair comparison is Brent. The gap under the price shows how hard China is competing for barrels.":
+    "Синиот број е сурова нафта со која се тргува во Шангај, претворена во долари. Тоа е нафта од Блискиот Исток испорачана во Кина, па фер споредбата е со Брент. Разликата под цената покажува колку силно Кина се бори за нафта.",
+  "Why China paid less for years":
+    "Зошто Кина со години плаќаше помалку",
+  "China's independent refiners bought oil from Iran and Russia, which sanctions made cheap. China took most of Iran's exports, about 1.4 million barrels a day in 2025, usually below world prices.":
+    "Независните рафинерии во Кина купуваа нафта од Иран и Русија, која поради санкциите беше евтина. Кина го земаше најголемиот дел од иранскиот извоз, околу 1,4 милиони барели дневно во 2025, обично под светската цена.",
+  "Why it pays more in 2026":
+    "Зошто во 2026 плаќа повеќе",
+  "The US put its blockade of Iran's ports back on 13 July 2026, and the cheap Iranian barrels dried up. Refiners had to buy at full price and pay costly freight, while Middle East supply was already tight after the Strait of Hormuz was closed in spring and a Saudi pipeline was attacked in September. From April to August Shanghai crude mostly traded $3 to $9 under Brent; in September it was about $9 over.":
+    "САД повторно ја воведоа блокадата на иранските пристаништа на 13 јули 2026, и евтината иранска нафта пресуши. Рафинериите мораа да купуваат по полна цена и со скап превоз, а нафтата од Блискиот Исток веќе беше малку, по затворањето на Ормускиот теснец во пролетта и нападот на саудиски нафтовод во септември. Од април до август нафтата во Шангај главно беше 3 до 9 долари под Брент; во септември беше околу 9 долари над.",
+  "What to watch":
+    "Што да се следи",
+  "High prices make China buy less: at the end of September analysts cut their forecast for China's imports in the last three months of 2026. A shrinking gap to Brent would be the sign that the pressure is easing; a growing one, that the scramble for barrels goes on.":
+    "Високите цени ја тераат Кина да купува помалку: на крајот на септември аналитичарите ја намалија прогнозата за увозот на Кина во последните три месеци од 2026. Ако разликата до Брент се намалува, притисокот попушта; ако расте, борбата за нафта продолжува.",
+  "The price of a barrel of heating oil (a close cousin of diesel) minus the price of a barrel of Brent crude.":
+    "Цената на барел масло за греење (речиси исто што и дизелот) минус цената на барел сурова нафта Брент.",
+  "Trucks, ships, farms and factories run on diesel. A high spread means diesel is short even when crude is not, and that reaches food and goods prices a few weeks later.":
+    "Камионите, бродовите, фармите и фабриките работат на дизел. Висока маржа значи дека дизел нема доволно дури и кога сурова нафта има, а тоа по неколку недели стигнува до цените на храната и стоките.",
+  "The price of US natural gas at Henry Hub in Louisiana, per million BTU (the Macedonian view shows it per kilowatt-hour).":
+    "Цената на американскиот природен гас во Хенри Хаб, Луизијана, тука прикажана по киловат-час.",
+  "Gas burns in power plants and heats homes, so prices jump in cold winters and hot summers. Cheap US gas keeps power cheap for data centers and Bitcoin miners.":
+    "Гасот гори во електраните и ги грее домовите, па цената скока во студени зими и жешки лета. Евтиниот американски гас ја држи струјата евтина за центрите за податоци и рударите на Bitcoin.",
+  "The average price US households paid for a kilowatt-hour, published once a month by the Bureau of Labor Statistics.":
+    "Просечната цена што домаќинствата во САД ја платиле за киловат-час, објавена еднаш месечно од американскиот завод за статистика на трудот.",
+  "Why crypto cares":
+    "Зошто е важно за крипто",
+  "Power is the biggest running cost of Bitcoin mining. When it gets expensive, weaker miners switch off and some sell coins to pay their bills. AI data centers now compete for the same power.":
+    "Струјата е најголемиот трошок на рударењето Bitcoin. Кога поскапува, послабите рудари се исклучуваат, а некои продаваат монети за да ги платат сметките. Центрите за податоци за AI сега се борат за истата струја.",
+  "The total computing power of the machines competing to find the next Bitcoin block. One EH/s is a billion billion guesses a second.":
+    "Вкупната пресметковна моќ на машините што се натпреваруваат да го најдат следниот блок на Bitcoin. Еден EH/s е милијарда милијарди обиди во секунда.",
+  "How to read it":
+    "Како да се чита",
+  "Rising: miners are adding machines, so they expect mining to pay. A sharp drop can mean miners are switching off, often when the price falls below their costs, and some of them may sell coins.":
+    "Ако расте: рударите додаваат машини, значи очекуваат рударењето да се исплати. Нагол пад може да значи дека рударите се исклучуваат, често кога цената ќе падне под нивните трошоци, а некои од нив можат да продаваат монети.",
+  "Not a price signal on its own":
+    "Сам по себе не е сигнал за цената",
+  "It follows the price with a delay more often than it leads it.":
+    "Почесто ја следи цената со задоцнување отколку што ја предводи.",
+  "How many different Bitcoin addresses sent or received coins in a day.":
+    "Колку различни Bitcoin адреси испратиле или примиле монети во еден ден.",
+  "More addresses usually means more people using the network. But one person can have many addresses, and exchanges pack many users into a few, so read the direction, not the exact number.":
+    "Повеќе адреси обично значи повеќе луѓе ја користат мрежата. Но еден човек може да има многу адреси, а берзите ставаат многу корисници во неколку адреси, па гледајте ја насоката, а не точниот број.",
+  "The dollar value of coins deposited in lending, trading and other apps on blockchains. DeFi is decentralized finance; TVL is total value locked.":
+    "Вредноста во долари на монетите вложени во апликации за позајмување, тргување и друго на блокчејните. DeFi е децентрализирани финансии; TVL е вкупната заклучена вредност.",
+  "It rises when coin prices rise even if nobody adds money, so compare it with prices. When TVL grows faster than prices, new money is coming in.":
+    "Расте кога растат цените на монетите, дури и ако никој не додал пари, па споредувајте го со цените. Кога TVL расте побрзо од цените, влегуваат нови пари.",
+  "The total value of stablecoins in circulation: coins like USDT and USDC that are meant to stay at one dollar.":
+    "Вкупната вредност на стејблкоините во оптек: монети како USDT и USDC што треба да вредат еден долар.",
+  "Stablecoins are the cash of crypto. A growing supply means new dollars arriving, ready to buy coins; a shrinking one means money leaving.":
+    "Стејблкоините се готовината на крипто. Ако ги има сè повеќе, пристигнуваат нови долари подготвени за купување монети; ако ги има сè помалку, парите заминуваат.",
+  "The total fees users paid in a day to have their transactions processed on Ethereum.":
+    "Вкупните провизии што корисниците ги платиле за еден ден за нивните трансакции на Ethereum.",
+  "Fees rise when many people want to use the network at once: hype, new launches, sharp price moves. Part of every fee is burned, which takes ETH out of supply for good.":
+    "Провизиите растат кога многу луѓе сакаат да ја користат мрежата во исто време: возбуда на пазарот, нови проекти, нагли движења на цената. Дел од секоја провизија се согорува, а тоа засекогаш вади ETH од понудата.",
+  "The total fees paid on Solana in a day, including the tips users add to be processed first.":
+    "Вкупните провизии платени на Solana за еден ден, вклучително и бакшишите што корисниците ги додаваат за да бидат први.",
+  "A single Solana fee is tiny, so the daily total mostly measures activity, above all trading in new tokens.":
+    "Една провизија на Solana е мала, па дневниот збир главно мери колку се работи на мрежата, пред сè тргување со нови токени.",
+  "The dollars traded in a day on Solana's decentralized exchanges, where users swap coins straight from their wallets.":
+    "Доларите со кои се тргувало за еден ден на децентрализираните берзи на Solana, каде корисниците менуваат монети директно од своите паричници.",
+  "Much of it is fast trading in new and meme coins, so it shows how hungry the market is for risk. Big surges come with hype waves, which can end as fast as they start.":
+    "Голем дел од тоа е брзо тргување со нови и мем-монети, па покажува колку пазарот е гладен за ризик. Големите скокови доаѓаат со бранови на возбуда, кои можат да завршат брзо како што почнале."
+});

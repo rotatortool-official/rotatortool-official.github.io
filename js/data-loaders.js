@@ -2067,7 +2067,7 @@ function _bfNetCell(o) {
            : y && y.s.length > 30
            ? { c: yc(y.s.length, y.c365), s: y.s, l: '1y' } : { c: o.p30, s: s, l: '30d' } },
     /* The date of the reading, like every other tile (it was left out). */
-    d: o.d, extra: '', src: _bfSrc(o.src, null, o.year && o.year.date)
+    d: o.d, more: o.more, extra: '', src: _bfSrc(o.src, null, o.year && o.year.date)
   };
 }
 
@@ -2301,54 +2301,122 @@ function renderBriefing() {
         ] })
     ] },
     { t: 'Metals', cells: [
-      _bfWorldCell(it('gold', 'goldP7'), { k: 'Gold', kind: 'usd', src: BF_SRC.comex, sym: 'GC=F',
+      _bfWorldCell(it('gold', 'goldP7'), { k: 'Gold', more: [
+          ['What it is', 'The price of one troy ounce (31.1 grams) of gold on the New York futures market.'],
+          ['Why it matters', 'People and central banks buy gold when they trust paper money or governments less. Central banks have been buying it in record amounts since 2022.'],
+          ['Next to Bitcoin', 'Bitcoin is often called "digital gold", and both can rise on fear of inflation. In a sudden panic gold usually holds up better, because Bitcoin still trades like a risky asset.']
+        ],
+        kind: 'usd', src: BF_SRC.comex, sym: 'GC=F',
         d: 'The oldest store of value, as a benchmark' }),
-      _bfWorldCell(it('silver', 'silverP7'), { k: 'Silver', kind: 'usd', src: BF_SRC.comex, sym: 'SI=F',
+      _bfWorldCell(it('silver', 'silverP7'), { k: 'Silver', more: [
+          ['What it is', 'The price of one troy ounce (31.1 grams) of silver on the New York futures market.'],
+          ['Two jobs', 'Silver is partly a money metal, like gold, and partly an industrial one: solar panels, electronics and cars. About half of the demand comes from industry.'],
+          ['How it moves', 'It usually swings harder than gold, both up and down.']
+        ],
+        kind: 'usd', src: BF_SRC.comex, sym: 'SI=F',
         d: 'Industrial demand as well as a metal' }),
-      _bfWorldCell(W.copper, { k: 'Copper', kind: 'usd', u: ' /lb', src: BF_SRC.comex, sym: 'HG=F',
+      _bfWorldCell(W.copper, { k: 'Copper', more: [
+          ['What it is', 'The price of a pound of copper on the New York futures market (the Macedonian view shows it per tonne).'],
+          ['"Dr. Copper"', 'Copper goes into buildings, cars, power grids and factories, so traders read its price as a check-up on the world economy. China uses about half of the world\'s copper.'],
+          ['The new demand', 'Power grids, electric cars and AI data centers all need a lot of copper, and a new mine takes ten years or more to open.']
+        ],
+        kind: 'usd', u: ' /lb', src: BF_SRC.comex, sym: 'HG=F',
         mk: { mul: 2204.62262, u: ' /t' },   /* pounds in a metric tonne */
         d: 'Copper is in almost everything electric: appliances, data centers and the tiny parts that make AI possible.' }),
-      _bfWorldCell(W.aluminum, { k: 'Aluminum', kind: 'usd', u: ' /t', src: BF_SRC.comex, sym: 'ALI=F',
+      _bfWorldCell(W.aluminum, { k: 'Aluminum', more: [
+          ['What it is', 'The price of a tonne of aluminum.'],
+          ['Made with electricity', 'Making aluminum takes huge amounts of power, so its price also follows the cost of energy. China makes more than half of the world\'s aluminum.']
+        ],
+        kind: 'usd', u: ' /t', src: BF_SRC.comex, sym: 'ALI=F',
         d: 'Light metal for data centers, power lines, solar frames and electric cars; often the cheaper stand-in for copper.' })
     ] },
     { t: 'Energy cost', cells: [
-      _bfWorldCell(it('oil', 'oilP7'), { k: 'Oil · WTI', kind: 'usd', src: BF_SRC.nymex, sym: 'CL=F', china: true,
+      _bfWorldCell(it('oil', 'oilP7'), { k: 'Oil · WTI', more: [
+          ['What it is', 'The price of a barrel (159 liters) of US crude oil, West Texas Intermediate, for next month\'s delivery. Brent, from the North Sea, is the price most of the world\'s oil is sold against.'],
+          ['Why it matters', 'Oil is in transport, food, plastics and heating. When it rises fast, prices in shops follow, central banks keep rates higher for longer, and that weighs on risky assets like crypto.'],
+          ['The China line', 'The blue number is crude oil traded in Shanghai, turned into dollars. It is Middle East oil delivered to China, so the fair comparison is Brent. The gap under the price shows how hard China is competing for barrels.'],
+          ['Why China paid less for years', 'China\'s independent refiners bought oil from Iran and Russia, which sanctions made cheap. China took most of Iran\'s exports, about 1.4 million barrels a day in 2025, usually below world prices.'],
+          ['Why it pays more in 2026', 'The US put its blockade of Iran\'s ports back on 13 July 2026, and the cheap Iranian barrels dried up. Refiners had to buy at full price and pay costly freight, while Middle East supply was already tight after the Strait of Hormuz was closed in spring and a Saudi pipeline was attacked in September. From April to August Shanghai crude mostly traded $3 to $9 under Brent; in September it was about $9 over.'],
+          ['What to watch', 'High prices make China buy less: at the end of September analysts cut their forecast for China\'s imports in the last three months of 2026. A shrinking gap to Brent would be the sign that the pressure is easing; a growing one, that the scramble for barrels goes on.']
+        ],
+        kind: 'usd', src: BF_SRC.nymex, sym: 'CL=F', china: true,
         d: 'WTI crude — input cost for the real economy' }),
       /* Diesel crack spread (Daniel, 2026-10-04, promptove/109): heating
          oil futures x 42 minus Brent, computed by sync-market-data. */
-      _bfWorldCell(W.crack, { k: 'Diesel crack spread', kind: 'usd', u: ' /bbl', usdpts: true, src: BF_SRC.nymex, sym: 'HO=F',
+      _bfWorldCell(W.crack, { k: 'Diesel crack spread', more: [
+          ['What it is', 'The price of a barrel of heating oil (a close cousin of diesel) minus the price of a barrel of Brent crude.'],
+          ['Why it matters', 'Trucks, ships, farms and factories run on diesel. A high spread means diesel is short even when crude is not, and that reaches food and goods prices a few weeks later.']
+        ],
+        kind: 'usd', u: ' /bbl', usdpts: true, src: BF_SRC.nymex, sym: 'HO=F',
         d: 'What refiners earn turning a barrel of crude into diesel. When it is high, diesel is scarce and transport costs feed into prices.' }),
-      _bfWorldCell(W.gas, { k: 'Natural gas', kind: 'usd', u: ' /MMBtu', src: BF_SRC.nymex, sym: 'NG=F',
+      _bfWorldCell(W.gas, { k: 'Natural gas', more: [
+          ['What it is', 'The price of US natural gas at Henry Hub in Louisiana, per million BTU (the Macedonian view shows it per kilowatt-hour).'],
+          ['Why it matters', 'Gas burns in power plants and heats homes, so prices jump in cold winters and hot summers. Cheap US gas keeps power cheap for data centers and Bitcoin miners.']
+        ],
+        kind: 'usd', u: ' /MMBtu', src: BF_SRC.nymex, sym: 'NG=F',
         mk: { mul: 1 / 293.07107, kind: 'cents', u: ' /kWh' },   /* 1 MMBtu = 293.07 kWh; cents, like Electricity */
         d: 'The fuel behind much of US electricity, so its price feeds into what power costs.' }),
-      _bfWorldCell(W.power, { k: 'Electricity', kind: 'cents', u: ' /kWh', monthly: true, src: BF_SRC.bls,
+      _bfWorldCell(W.power, { k: 'Electricity', more: [
+          ['What it is', 'The average price US households paid for a kilowatt-hour, published once a month by the Bureau of Labor Statistics.'],
+          ['Why crypto cares', 'Power is the biggest running cost of Bitcoin mining. When it gets expensive, weaker miners switch off and some sell coins to pay their bills. AI data centers now compete for the same power.']
+        ],
+        kind: 'cents', u: ' /kWh', monthly: true, src: BF_SRC.bls,
         d: 'What US homes pay, monthly average. It is also the running cost of data centers, AI and Bitcoin mining.' })
     ] },
     { t: 'On-chain', cells: [
-      _bfNetCell({ k: 'Hash rate', v: _bfNum(n.hashrateEh, 0), u: ' EH/s', p: n.hashrateP7, s: ns.hashrateEh,
+      _bfNetCell({ k: 'Hash rate', more: [
+          ['What it is', 'The total computing power of the machines competing to find the next Bitcoin block. One EH/s is a billion billion guesses a second.'],
+          ['How to read it', 'Rising: miners are adding machines, so they expect mining to pay. A sharp drop can mean miners are switching off, often when the price falls below their costs, and some of them may sell coins.'],
+          ['Not a price signal on its own', 'It follows the price with a delay more often than it leads it.']
+        ],
+        v: _bfNum(n.hashrateEh, 0), u: ' EH/s', p: n.hashrateP7, s: ns.hashrateEh,
         p30: np.hashrateEh, n7: nn.hashrateEh, year: W.hash, src: BF_SRC.bc, avg7: true,
         d: 'Computing power securing Bitcoin, averaged over 7 days, and so are its changes. '
            + 'The daily figure is inferred from blocks found, so one day '
            + 'alone carries about 7% of noise — the line below is the raw '
            + 'daily estimate and shows that spread. The 3-year change compares single days.' }),
-      _bfNetCell({ k: 'Active addresses', v: _bfNum(n.addrCount, 0), p: n.addrP7, s: ns.addrCount,
+      _bfNetCell({ k: 'Active addresses', more: [
+          ['What it is', 'How many different Bitcoin addresses sent or received coins in a day.'],
+          ['How to read it', 'More addresses usually means more people using the network. But one person can have many addresses, and exchanges pack many users into a few, so read the direction, not the exact number.']
+        ],
+        v: _bfNum(n.addrCount, 0), p: n.addrP7, s: ns.addrCount,
         p30: np.addrCount, n7: nn.addrCount, year: W.addr, src: BF_SRC.bc, avg7: true,
         d: 'Bitcoin addresses used per day, averaged over 7 days, and so are its changes. '
            + 'Weekends run well below midweek, so a single day reports '
            + 'partly which day of the week it is. The 3-year change compares single days.' }),
-      _bfNetCell({ k: 'DeFi TVL', v: _bfUsd(n.tvlUsd), p: n.tvlP7, s: ns.tvlUsd,
+      _bfNetCell({ k: 'DeFi TVL', more: [
+          ['What it is', 'The dollar value of coins deposited in lending, trading and other apps on blockchains. DeFi is decentralized finance; TVL is total value locked.'],
+          ['How to read it', 'It rises when coin prices rise even if nobody adds money, so compare it with prices. When TVL grows faster than prices, new money is coming in.']
+        ],
+        v: _bfUsd(n.tvlUsd), p: n.tvlP7, s: ns.tvlUsd,
         p30: np.tvlUsd, n7: nn.tvlUsd, year: W.tvl, src: BF_SRC.llama,
         d: 'Value locked across every tracked chain' }),
-      _bfNetCell({ k: 'Stablecoin supply', v: _bfUsd(n.stableUsd), p: n.stableP7, s: null,
+      _bfNetCell({ k: 'Stablecoin supply', more: [
+          ['What it is', 'The total value of stablecoins in circulation: coins like USDT and USDC that are meant to stay at one dollar.'],
+          ['Why it matters', 'Stablecoins are the cash of crypto. A growing supply means new dollars arriving, ready to buy coins; a shrinking one means money leaving.']
+        ],
+        v: _bfUsd(n.stableUsd), p: n.stableP7, s: null,
         p30: np.stableUsd, year: W.stable, src: BF_SRC.llama,
         d: 'Dollars sitting on-chain, unallocated' }),
       /* Activity, in dollars per day (DefiLlama; yesterday, the last
          complete day). Daniel, 2026-10-03: gas fees and Solana volume. */
-      _bfWorldCell(W.ethFees, { k: 'Ethereum fees', kind: 'usdBig', u: ' /day', gas: true, src: BF_SRC.llama,
+      _bfWorldCell(W.ethFees, { k: 'Ethereum fees', more: [
+          ['What it is', 'The total fees users paid in a day to have their transactions processed on Ethereum.'],
+          ['How to read it', 'Fees rise when many people want to use the network at once: hype, new launches, sharp price moves. Part of every fee is burned, which takes ETH out of supply for good.']
+        ],
+        kind: 'usdBig', u: ' /day', gas: true, src: BF_SRC.llama,
         d: 'What users paid in gas to use Ethereum in a day. More demand for the network means more fees.' }),
-      _bfWorldCell(W.solFees, { k: 'Solana fees', kind: 'usdBig', u: ' /day', src: BF_SRC.llama,
+      _bfWorldCell(W.solFees, { k: 'Solana fees', more: [
+          ['What it is', 'The total fees paid on Solana in a day, including the tips users add to be processed first.'],
+          ['How to read it', 'A single Solana fee is tiny, so the daily total mostly measures activity, above all trading in new tokens.']
+        ],
+        kind: 'usdBig', u: ' /day', src: BF_SRC.llama,
         d: 'What users paid to use Solana in a day.' }),
-      _bfWorldCell(W.solDex, { k: 'Solana DEX volume', kind: 'usdBig', u: ' /day', src: BF_SRC.llama,
+      _bfWorldCell(W.solDex, { k: 'Solana DEX volume', more: [
+          ['What it is', 'The dollars traded in a day on Solana\'s decentralized exchanges, where users swap coins straight from their wallets.'],
+          ['How to read it', 'Much of it is fast trading in new and meme coins, so it shows how hungry the market is for risk. Big surges come with hype waves, which can end as fast as they start.']
+        ],
+        kind: 'usdBig', u: ' /day', src: BF_SRC.llama,
         d: 'Dollars traded on Solana\'s exchanges in a day, a gauge of how busy the chain is.' })
     ] }
   ];
