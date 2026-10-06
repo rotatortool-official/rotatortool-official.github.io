@@ -5635,3 +5635,6 @@ html.no-anim .mt-viewport::-webkit-scrollbar{display:none;}
 :root:not(.light) .sig-tile-badge.mom{color:var(--tile-amber);background:rgba(240,160,48,.07);border-color:rgba(240,160,48,.18);}
 :root:not(.light) .sig-stat-v.am{color:var(--tile-amber);}
 :root:not(.light) .sig-tile .seed-k{color:var(--tile-amber);}   /* the Seed warning, same calmer amber */
+/* "This week's headlines" in a quiet tile's window (_bfWeeklyHtml). */
+.bf-weekly{margin-top:14px;padding-top:2px;}
+.bf-weekly .bf-news-list li:first-child{border-top:1px solid var(--bdr2);}

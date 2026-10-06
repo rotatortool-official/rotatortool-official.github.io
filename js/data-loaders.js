@@ -763,14 +763,16 @@ async function loadWorldData() {
   }
   try {
     var nrow = await supaCacheGetStale('tile_news');
-    if (nrow && nrow.data) _tileNews = nrow.data.items || {};
+    if (nrow && nrow.data) { _tileNews = nrow.data.items || {}; _tileWeekly = nrow.data.weekly || null; }
   } catch (e) {
     console.warn('[briefing] tile news read skipped:', e.message);
   }
 }
 /* Headlines for a tile whose reading just moved unusually (promptove/132).
-   READ ONLY: sync-tile-news is the only writer; most days it is empty. */
-var _tileNews = {};
+   READ ONLY: sync-tile-news is the only writer; most days it is empty.
+   _tileWeekly: every tile's top headlines of the week, refreshed on
+   Mondays, shown when the tile has no unusual move to report. */
+var _tileNews = {}, _tileWeekly = null;
 
 async function loadNetworkData() {
   if (typeof supaCacheGetStale !== 'function') return;
@@ -2315,6 +2317,30 @@ function _bfLiveHtml(k) {
     + (_BF_NEWS_KEY[k] === 'uniDex' && it.hl ? (mk ? '; Hyperliquid од неговиот јавен API.' : '; Hyperliquid from its public API.') : '.')
     + '</div></div>' : '';
 }
+/* "This week's headlines" for a quiet tile: the Monday refresh, plain
+   (no amber), after the explanation. Hidden once it is over 10 days old,
+   so a stopped refresh cannot leave old news on the site. */
+function _bfWeeklyHtml(k) {
+  var key = _BF_NEWS_KEY[k], w = _tileWeekly;
+  var list = key && w && w.items && w.items[key];
+  if (!list || !list.length || !w.at || Date.now() - Date.parse(w.at) > 10 * 86400000) return '';
+  var mk = typeof currentLang !== 'undefined' && currentLang === 'mk';
+  var MKM = ['јан.', 'фев.', 'мар.', 'апр.', 'мај', 'јун.', 'јул.', 'авг.', 'сеп.', 'окт.', 'ное.', 'дек.'];
+  var day = function (iso) {
+    var p = iso.slice(0, 10).split('-');
+    return mk ? (+p[2]) + ' ' + MKM[+p[1] - 1] : _bfDay(iso.slice(0, 10));
+  };
+  return '<div class="bf-weekly" translate="no">'
+    + '<div class="bf-more-h">' + (mk ? 'Наслови оваа недела' : 'This week\'s headlines') + '</div>'
+    + '<ul class="bf-news-list">' + list.map(function (n) {
+        return '<li><a href="' + _esc(n.u) + '" target="_blank" rel="noopener nofollow">' + _esc(n.t) + '</a>'
+          + '<span class="bf-news-src">' + _esc(n.src) + (n.d ? ' · ' + day(n.d) : '') + '</span></li>';
+      }).join('') + '</ul>'
+    + '<div class="bf-news-note">' + (mk
+        ? 'Наслови од Google News, на англиски, онакви какви што се објавени; се обновуваат секој понеделник (последно ' + day(w.at) + ').'
+        : 'Headlines from Google News, as published; refreshed every Monday (last ' + day(w.at) + ').')
+    + '</div></div>';
+}
 function bfOpenMore(k, from) {
   var c = _bfMore[k], body = document.getElementById('bf-more-body');
   if (!c || !body) return;
@@ -2322,7 +2348,7 @@ function bfOpenMore(k, from) {
   var news = _bfNews(c.k);
   body.innerHTML = (news ? _bfNewsHtml(c.k, news) : '') + _bfLiveHtml(c.k) + c.more.map(function (p) {
     return '<div class="bf-more-h">' + p[0] + '</div><p class="bf-more-p">' + p[1] + '</p>';
-  }).join('') + '<div class="bf-more-note">General background, not advice.</div>';
+  }).join('') + (news ? '' : _bfWeeklyHtml(c.k)) + '<div class="bf-more-note">General background, not advice.</div>';
   body.scrollTop = 0;
   _bfMoreFrom = from || null;
   openModal('bf-more-modal');
