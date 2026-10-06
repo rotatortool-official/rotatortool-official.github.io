@@ -44,6 +44,15 @@
 <div class="mk-banner mk-banner-r" aria-hidden="true"></div>
 <noscript><div style="padding:40px;text-align:center;font-family:sans-serif;font-size:16px;color:#333;background:#f4f5f8;">Rotator requires JavaScript to run. Please enable JavaScript in your browser settings and reload the page.</div></noscript>
 
+<!-- TODAY: the longer explanation behind a tile's "Read more" (bfOpenMore) -->
+<div class="overlay" id="bf-more-modal" onclick="if(event.target===this)closeModal('bf-more-modal')">
+  <div class="modal bf-more-modal" role="dialog" aria-modal="true" aria-labelledby="bf-more-title">
+    <button class="modal-x" onclick="closeModal('bf-more-modal')" aria-label="Close">×</button>
+    <div class="modal-title" id="bf-more-title"></div>
+    <div class="bf-more-body" id="bf-more-body"></div>
+  </div>
+</div>
+
 <!-- ABOUT MODAL -->
 <div class="overlay" id="about-modal" onclick="if(event.target===this)closeModal('about-modal')">
   <div class="modal" style="max-width:520px;">

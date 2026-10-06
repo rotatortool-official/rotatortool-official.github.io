@@ -2013,7 +2013,7 @@ function _bfWorldCell(it, o) {
     k: o.k, v: si ? _bfFmt(it.v * si.mul, si.kind || o.kind) : _bfFmt(it.v, o.kind), u: si ? si.u : (o.u || ''),
     pts: o.kind === 'rate', usd: !!o.usdpts, w: w,
     right: cn && cn.v != null ? _bfChinaRight(cn) : '',
-    d: o.d, extra: (o.range && it.lo != null ? '<div class="bf-step">target ' + it.lo.toFixed(2) + '–' + it.hi.toFixed(2) + '%</div>' : '')
+    d: o.d, more: o.more, extra: (o.range && it.lo != null ? '<div class="bf-step">target ' + it.lo.toFixed(2) + '–' + it.hi.toFixed(2) + '%</div>' : '')
       + (cn && cn.v != null ? _bfChinaNote(cn) : '')
       + (o.policy ? _bfStep(it.last) : '')
       + (o.gas && it.gwei != null ? '<div class="bf-step">gas now ' + it.gwei + ' gwei</div>' : ''),
@@ -2185,6 +2185,8 @@ function _bfWireInfo(host) {
     cell.setAttribute('aria-pressed', on ? 'true' : 'false');
   };
   host.addEventListener('click', function (e) {
+    var rd = e.target.closest('.bf-read');
+    if (rd) { bfOpenMore(rd.getAttribute('data-k'), rd); return; }
     if (e.target.closest('a,button')) return;
     var cell = e.target.closest('.bf-cell');
     if (cell && !cell.classList.contains('bf-cell-empty')) turn(cell);
@@ -2197,6 +2199,31 @@ function _bfWireInfo(host) {
     turn(cell);
   });
 }
+
+/* The longer explanation behind "Read more" on a tile's back (Daniel,
+   2026-10-06): a tile is too small for more than a line, so the detail
+   opens in the site's usual modal. Each paragraph is its own element so
+   i18n-mk finds it in MK_TEXT. */
+var _bfMore = {}, _bfMoreFrom = null;
+function bfOpenMore(k, from) {
+  var c = _bfMore[k], body = document.getElementById('bf-more-body');
+  if (!c || !body) return;
+  document.getElementById('bf-more-title').textContent = c.k;
+  body.innerHTML = c.more.map(function (p) {
+    return '<div class="bf-more-h">' + p[0] + '</div><p class="bf-more-p">' + p[1] + '</p>';
+  }).join('') + '<div class="bf-more-note">General background, not advice.</div>';
+  body.scrollTop = 0;
+  _bfMoreFrom = from || null;
+  openModal('bf-more-modal');
+  var x = document.querySelector('#bf-more-modal .modal-x');
+  if (x) x.focus();
+}
+document.addEventListener('keydown', function (e) {
+  var m = document.getElementById('bf-more-modal');
+  if (e.key !== 'Escape' || !m || !m.classList.contains('show')) return;
+  closeModal('bf-more-modal');
+  if (_bfMoreFrom) { try { _bfMoreFrom.focus(); } catch (er) {} }
+});
 
 function renderBriefing() {
   var host = document.getElementById('briefing');
@@ -2218,21 +2245,60 @@ function renderBriefing() {
   var groups = [
     { t: 'Central banks & money', cells: [
       _bfWorldCell(W.fed, { k: 'Fed rate', kind: 'rate', policy: true, range: true, src: BF_SRC.nyfed,
-        d: 'The US central bank rate. It sets the price of dollars for the whole world.' }),
+        d: 'The US central bank rate. It sets the price of dollars for the whole world.',
+        more: [
+          ['What it is', 'The rate the US central bank (the Fed) sets for overnight loans between banks. Every other dollar rate, from savings accounts to company loans, is built on top of it.'],
+          ['Why it matters', 'When the Fed cuts, borrowing dollars gets cheaper and money looks for something that pays more, crypto included. When it raises or holds high, safe cash pays well and risky assets lose that push.'],
+          ['What to watch', 'Markets move on what they expect the Fed to do next, not only on decision day. The US 2-year tile shows that guess.']
+        ] }),
       _bfWorldCell(W.ecb, { k: 'ECB rate', kind: 'rate', policy: true, src: BF_SRC.ecb,
-        d: 'The euro area central bank rate, paid on money banks park with it.' }),
+        d: 'The euro area central bank rate, paid on money banks park with it.',
+        more: [
+          ['What it is', 'The rate the European Central Bank pays banks on money they leave with it overnight. It steers borrowing costs in the 20 euro countries.'],
+          ['Why it matters', 'Money moves toward the currency that pays more. When the ECB rate is well below the Fed\'s, the dollar tends to look more attractive than the euro, and a strong dollar is a headwind for crypto.']
+        ] }),
       _bfWorldCell(W.boj, { k: 'BoJ rate', kind: 'rate', policy: true, src: BF_SRC.boj,
-        d: 'For years near zero, so investors borrowed cheap yen to buy risky assets abroad. When Japan raises it, some of that money goes home.' }),
+        d: 'For years near zero, so investors borrowed cheap yen to buy risky assets abroad. When Japan raises it, some of that money goes home.',
+        more: [
+          ['What it is', 'The rate the Bank of Japan sets. It stayed near or below zero for most of the last 25 years.'],
+          ['The yen carry trade', 'Borrowing cheap yen and putting the money into assets abroad that pay more, from US bonds to stocks and crypto. It works while the yen stays cheap and calm.'],
+          ['Why crypto feels it', 'When Japan raises rates or the yen jumps, those loans get expensive and some positions are closed in a hurry. In early August 2024 a small Japanese hike helped set off such a rush, and Bitcoin fell sharply within days.']
+        ] }),
       _bfWorldCell(W.us3m, { k: 'US 3-month', kind: 'rate', src: BF_SRC.treasury,
-        d: 'What cash earns in safe US government bonds. When it pays more, money has less reason to sit in risky assets like crypto.' }),
+        d: 'What cash earns in safe US government bonds. When it pays more, money has less reason to sit in risky assets like crypto.',
+        more: [
+          ['What it is', 'The interest on a US government loan that is paid back in three months. It sits right next to the Fed rate.'],
+          ['Why crypto feels it', 'It is the "risk-free" return: what you earn for doing nothing. The higher it is, the more a coin has to promise to be worth the risk.'],
+          ['A link to stablecoins', 'The big stablecoin issuers keep much of their reserves in these short US bills, so this rate is also roughly what they earn on the dollars behind USDT and USDC.']
+        ] }),
       _bfWorldCell(W.us2y, { k: 'US 2-year', kind: 'rate', src: BF_SRC.treasury,
-        d: 'Where markets expect US rates over the next two years. Rising means money is getting tighter.' }),
+        d: 'Where markets expect US rates over the next two years. Rising means money is getting tighter.',
+        more: [
+          ['What it is', 'The interest on a US government loan for two years. It follows the Fed closely, because it is the market\'s bet on where the Fed rate will be over that time.'],
+          ['How to read it', 'Rising: markets expect the Fed to keep rates high or raise them. Falling: they expect cuts, which usually helps risky assets.'],
+          ['Next to the 10-year', 'Normally the 10-year pays more than the 2-year. When the 2-year is higher (an "inverted curve"), markets expect cuts ahead, often because they fear a slowdown.']
+        ] }),
       _bfWorldCell(W.us10y, { k: 'US 10-year', kind: 'rate', src: BF_SRC.treasury,
-        d: 'The benchmark for loans and mortgages worldwide. A fast rise makes money tighter everywhere.' }),
+        d: 'The benchmark for loans and mortgages worldwide. A fast rise makes money tighter everywhere.',
+        more: [
+          ['What it is', 'The interest the US government pays to borrow for 10 years. A bond\'s price and its yield move in opposite directions: when investors sell bonds, prices fall and the yield goes up.'],
+          ['Why it matters', 'It is the reference for mortgages, company loans and car loans around the world. When it rises, borrowing gets more expensive for the government, for companies and for households.'],
+          ['For crypto and stocks', 'A safe bond that pays more is real competition for risky assets. Growth stocks and crypto, whose price rests on hopes for the future, usually feel it first.'],
+          ['Why it rises', 'Investors expect inflation to stay high, expect the Fed to keep rates up, or want extra pay for lending for so long while the US borrows heavily.'],
+          ['Keep it in proportion', 'A fast climb tightens money and is worth watching, but by itself it is not a crisis. In the early 1980s this yield was above 15%.']
+        ] }),
       _bfWorldCell(W.jgb10y, { k: 'Japan 10-year', kind: 'rate', src: BF_SRC.mof,
-        d: 'Japan\'s long-term rate. Higher means Japanese savers have more reason to keep money at home.' }),
+        d: 'Japan\'s long-term rate. Higher means Japanese savers have more reason to keep money at home.',
+        more: [
+          ['What it is', 'The interest Japan\'s government pays to borrow for 10 years. For years it was held near zero on purpose.'],
+          ['Why it matters outside Japan', 'Japan is the largest foreign holder of US government bonds. When its own bonds pay more, Japanese investors can earn at home, sell some foreign bonds, and that can push US yields up as well.']
+        ] }),
       _bfWorldCell(it('dxy', 'dxyP7'), { k: 'Dollar index', kind: 'num', src: BF_SRC.ice,
-        d: 'A rising dollar is a headwind for risk assets' })
+        d: 'A rising dollar is a headwind for risk assets',
+        more: [
+          ['What it is', 'The US dollar measured against six major currencies, mostly the euro, then the yen and the pound.'],
+          ['Why it matters', 'Much of the world borrows in dollars. A stronger dollar makes those debts harder to pay and leaves less spare money for risky assets. Over the years it has often moved opposite to Bitcoin, though not every week.']
+        ] })
     ] },
     { t: 'Metals', cells: [
       _bfWorldCell(it('gold', 'goldP7'), { k: 'Gold', kind: 'usd', src: BF_SRC.comex, sym: 'GC=F',
@@ -2287,6 +2353,8 @@ function renderBriefing() {
     ] }
   ];
   groups.forEach(function (g) { g.cells = g.cells.filter(function (c) { return c && c.v != null; }); });
+  _bfMore = {};
+  groups.forEach(function (g) { g.cells.forEach(function (c) { if (c.more) _bfMore[c.k] = c; }); });
   groups = groups.filter(function (g) { return g.cells.length; });
   if (!groups.length) { host.style.display = 'none'; return; }
 
@@ -2307,7 +2375,8 @@ function renderBriefing() {
       + '</div>'
       /* The explanation side (promptove/113): a click turns the tile.
          _bfWireInfo below. */
-      + '<div class="bf-face bf-back bf-info">'
+      + '<div class="bf-face bf-back bf-info' + (c.more ? ' bf-has-more' : '') + '">'
+      + (c.more ? '<button type="button" class="bf-read" data-k="' + c.k + '">More ›</button>' : '')
       + '<div class="bf-k">' + c.k + '</div>'
       + '<div class="bf-d-note">' + c.d + '</div>'
       + c.src

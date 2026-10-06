@@ -1315,3 +1315,81 @@ Object.assign(MK_TEXT, {
     return '1 ' + m[1] + ' = ' + m[2] + ' ' + m[3] + '. Вашата цел: ' + m[4] + '.';
   });
 })();
+
+/* ── TODAY: "Read more" behind the rates and money tiles (Daniel, 2026-10-06) ── */
+Object.assign(MK_TEXT, {
+  "More ›":
+    "Повеќе ›",
+  "General background, not advice.":
+    "Општо објаснување, не совет.",
+  "What it is":
+    "Што е тоа",
+  "The rate the US central bank (the Fed) sets for overnight loans between banks. Every other dollar rate, from savings accounts to company loans, is built on top of it.":
+    "Каматата што ја одредува централната банка на САД (ФЕД) за преку-ноќни заеми меѓу банките. Сите други камати во долари, од штедните сметки до кредитите за фирми, се градат врз неа.",
+  "Why it matters":
+    "Зошто е важно",
+  "When the Fed cuts, borrowing dollars gets cheaper and money looks for something that pays more, crypto included. When it raises or holds high, safe cash pays well and risky assets lose that push.":
+    "Кога ФЕД ја намалува, позајмувањето долари поевтинува, а парите бараат нешто што носи повеќе, вклучително и крипто. Кога ја крева или ја држи висока, сигурната готовина носи добро, а ризичните средства го губат тој поттик.",
+  "What to watch":
+    "Што да се следи",
+  "Markets move on what they expect the Fed to do next, not only on decision day. The US 2-year tile shows that guess.":
+    "Пазарот се движи според тоа што очекува ФЕД да направи следно, а не само на денот на одлуката. Плочката „САД 2 години“ го покажува тоа очекување.",
+  "The rate the European Central Bank pays banks on money they leave with it overnight. It steers borrowing costs in the 20 euro countries.":
+    "Каматата што Европската централна банка им ја плаќа на банките за парите што ги оставаат кај неа преку ноќ. Таа ја насочува цената на заемите во 20-те земји со евро.",
+  "Money moves toward the currency that pays more. When the ECB rate is well below the Fed's, the dollar tends to look more attractive than the euro, and a strong dollar is a headwind for crypto.":
+    "Парите одат кон валутата што носи повеќе. Кога каматата на ЕЦБ е многу пониска од таа на ФЕД, доларот обично изгледа попривлечно од еврото, а силен долар му пречи на крипто.",
+  "The rate the Bank of Japan sets. It stayed near or below zero for most of the last 25 years.":
+    "Каматата што ја одредува Банката на Јапонија. Во поголемиот дел од последните 25 години беше околу нула или под нула.",
+  "The yen carry trade":
+    "Позајмување евтини јени",
+  "Borrowing cheap yen and putting the money into assets abroad that pay more, from US bonds to stocks and crypto. It works while the yen stays cheap and calm.":
+    "Се позајмуваат евтини јени, а парите се ставаат во нешто во странство што носи повеќе, од американски обврзници до акции и крипто. Тоа функционира додека јенот е евтин и мирен.",
+  "Why crypto feels it":
+    "Зошто го чувствува крипто",
+  "When Japan raises rates or the yen jumps, those loans get expensive and some positions are closed in a hurry. In early August 2024 a small Japanese hike helped set off such a rush, and Bitcoin fell sharply within days.":
+    "Кога Јапонија ги крева каматите или јенот нагло зајакне, тие заеми поскапуваат и дел од позициите се затвораат набрзина. На почетокот на август 2024 мало зголемување на каматата во Јапонија помогна да тргне токму таква паника, и Bitcoin силно падна за неколку дена.",
+  "The interest on a US government loan that is paid back in three months. It sits right next to the Fed rate.":
+    "Каматата на заем на американската држава што се враќа за три месеци. Таа е речиси иста со каматата на ФЕД.",
+  "It is the \"risk-free\" return: what you earn for doing nothing. The higher it is, the more a coin has to promise to be worth the risk.":
+    "Ова е заработката „без ризик“: она што го добивате без да правите ништо. Колку е повисока, толку повеќе мора една монета да ветува за да вреди ризикот.",
+  "A link to stablecoins":
+    "Врска со стејблкоините",
+  "The big stablecoin issuers keep much of their reserves in these short US bills, so this rate is also roughly what they earn on the dollars behind USDT and USDC.":
+    "Големите издавачи на стејблкоини држат голем дел од резервите во овие краткорочни американски обврзници, па оваа камата е отприлика и она што го заработуваат на доларите зад USDT и USDC.",
+  "The interest on a US government loan for two years. It follows the Fed closely, because it is the market's bet on where the Fed rate will be over that time.":
+    "Каматата на заем на американската држава за две години. Блиску ја следи каматата на ФЕД, бидејќи тоа е облогот на пазарот каде ќе биде каматата на ФЕД во тоа време.",
+  "How to read it":
+    "Како да се чита",
+  "Rising: markets expect the Fed to keep rates high or raise them. Falling: they expect cuts, which usually helps risky assets.":
+    "Ако расте: пазарот очекува ФЕД да ги задржи каматите високи или да ги крене. Ако паѓа: очекува намалување, што обично им помага на ризичните средства.",
+  "Next to the 10-year":
+    "Споредено со 10 години",
+  "Normally the 10-year pays more than the 2-year. When the 2-year is higher (an \"inverted curve\"), markets expect cuts ahead, often because they fear a slowdown.":
+    "Вообичаено 10-годишната обврзница носи повеќе од 2-годишната. Кога 2-годишната носи повеќе („превртена крива“), пазарот очекува намалување на каматите, често затоа што се плаши од забавување на економијата.",
+  "The interest the US government pays to borrow for 10 years. A bond's price and its yield move in opposite directions: when investors sell bonds, prices fall and the yield goes up.":
+    "Каматата што ја плаќа американската држава кога позајмува за 10 години. Цената на обврзницата и нејзината камата се движат во спротивни насоки: кога инвеститорите продаваат обврзници, цената паѓа, а каматата расте.",
+  "It is the reference for mortgages, company loans and car loans around the world. When it rises, borrowing gets more expensive for the government, for companies and for households.":
+    "Таа е репер за хипотеки, кредити за фирми и кредити за автомобили низ целиот свет. Кога расте, позајмувањето поскапува за државата, за фирмите и за домаќинствата.",
+  "For crypto and stocks":
+    "За крипто и акциите",
+  "A safe bond that pays more is real competition for risky assets. Growth stocks and crypto, whose price rests on hopes for the future, usually feel it first.":
+    "Сигурна обврзница што носи повеќе е вистинска конкуренција за ризичните средства. Акциите на компании што брзо растат и крипто, чија цена стои на надежи за иднината, обично први го чувствуваат тоа.",
+  "Why it rises":
+    "Зошто расте",
+  "Investors expect inflation to stay high, expect the Fed to keep rates up, or want extra pay for lending for so long while the US borrows heavily.":
+    "Инвеститорите очекуваат инфлацијата да остане висока, очекуваат ФЕД да ги држи каматите високи, или бараат дополнително плаќање за толку долг заем додека САД позајмуваат многу.",
+  "Keep it in proportion":
+    "Без паника",
+  "A fast climb tightens money and is worth watching, but by itself it is not a crisis. In the early 1980s this yield was above 15%.":
+    "Брзиот раст ги прави парите поскапи и вреди да се следи, но сам по себе не е криза. На почетокот на 1980-тите оваа камата беше над 15%.",
+  "The interest Japan's government pays to borrow for 10 years. For years it was held near zero on purpose.":
+    "Каматата што ја плаќа јапонската држава кога позајмува за 10 години. Со години намерно беше држена околу нула.",
+  "Why it matters outside Japan":
+    "Зошто е важно и надвор од Јапонија",
+  "Japan is the largest foreign holder of US government bonds. When its own bonds pay more, Japanese investors can earn at home, sell some foreign bonds, and that can push US yields up as well.":
+    "Јапонија е најголемиот странски сопственик на американски државни обврзници. Кога нејзините обврзници носат повеќе, јапонските инвеститори можат да заработат дома и да продадат дел од странските обврзници, а тоа може да ги крене и американските камати.",
+  "The US dollar measured against six major currencies, mostly the euro, then the yen and the pound.":
+    "Американскиот долар мерен наспроти шест големи валути, најмногу еврото, па јенот и фунтата.",
+  "Much of the world borrows in dollars. A stronger dollar makes those debts harder to pay and leaves less spare money for risky assets. Over the years it has often moved opposite to Bitcoin, though not every week.":
+    "Голем дел од светот позајмува во долари. Посилен долар ги прави тие долгови потешки за враќање и остава помалку слободни пари за ризични средства. Низ годините често се движел спротивно од Bitcoin, иако не секоја недела."
+});
