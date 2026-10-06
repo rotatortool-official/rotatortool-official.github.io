@@ -5496,11 +5496,14 @@ html.no-anim .mt-viewport::-webkit-scrollbar{display:none;}
 .bf-cell:focus-visible{outline:2px solid var(--amber,#f0b90b);outline-offset:-2px;}
 .bf-info{position:absolute;inset:0;overflow-y:auto;}
 .bf-info .bf-d-note{font-size:11px;opacity:.95;margin-top:4px;color:var(--text);}
+/* The "i": top right and a size up since 2026-10-06 (Daniel); on a phone
+   the subject badge owns that corner, so it sits just left of it. */
 .bf-more{
-  display:flex;align-items:center;justify-content:center;position:absolute;right:10px;bottom:8px;z-index:2;
-  width:14px;height:14px;border-radius:50%;border:1px solid var(--bdr2);background:var(--bg2);
-  font:italic 700 9px/1 Georgia,serif;color:var(--muted);
+  display:flex;align-items:center;justify-content:center;position:absolute;right:10px;top:9px;z-index:2;
+  width:16px;height:16px;border-radius:50%;border:1px solid var(--bdr2);background:var(--bg2);
+  font:italic 700 10px/1 Georgia,serif;color:var(--muted);
 }
+.bf-front .bf-k{padding-right:24px;}
 /* "More" on the back opens the longer explanation in a modal
    (bfOpenMore, Daniel 2026-10-06). */
 .bf-has-more .bf-k{padding-right:64px;}
@@ -5528,7 +5531,8 @@ html.no-anim .mt-viewport::-webkit-scrollbar{display:none;}
   .bf-emb{right:10px;bottom:auto;top:9px;width:18px;height:18px;opacity:.6;transform:none;
     -webkit-mask-image:none;mask-image:none;}
   .bf-emb-flag{width:21px;height:14px;}
-  .bf-front .bf-k{padding-right:28px;}
+  .bf-front .bf-k{padding-right:56px;}
+  .bf-more{right:36px;top:10px;}
 }
 
 /* ── TODAY flip on iOS: the front showed through the back (2026-10-05) ──
