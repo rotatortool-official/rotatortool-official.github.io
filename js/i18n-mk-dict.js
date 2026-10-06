@@ -1334,8 +1334,8 @@ Object.assign(MK_TEXT, {
     "Што да се следи",
   "Markets move on what they expect the Fed to do next, not only on decision day. The US 2-year tile shows that guess.":
     "Пазарот се движи според тоа што очекува ФЕД да направи следно, а не само на денот на одлуката. Плочката „САД 2 години“ го покажува тоа очекување.",
-  "The rate the European Central Bank pays banks on money they leave with it overnight. It steers borrowing costs in the 20 euro countries.":
-    "Каматата што Европската централна банка им ја плаќа на банките за парите што ги оставаат кај неа преку ноќ. Таа ја насочува цената на заемите во 20-те земји со евро.",
+  "The rate the European Central Bank pays banks on money they leave with it overnight. It steers borrowing costs in the 21 euro countries (Bulgaria joined on 1 January 2026).":
+    "Каматата што Европската централна банка им ја плаќа на банките за парите што ги оставаат кај неа преку ноќ. Таа ја насочува цената на заемите во 21-те земји со евро (Бугарија се приклучи на 1 јануари 2026).",
   "Money moves toward the currency that pays more. When the ECB rate is well below the Fed's, the dollar tends to look more attractive than the euro, and a strong dollar is a headwind for crypto.":
     "Парите одат кон валутата што носи повеќе. Кога каматата на ЕЦБ е многу пониска од таа на ФЕД, доларот обично изгледа попривлечно од еврото, а силен долар му пречи на крипто.",
   "The rate the Bank of Japan sets. It stayed near or below zero for most of the last 25 years.":
@@ -1452,8 +1452,8 @@ Object.assign(MK_TEXT, {
     "САД повторно ја воведоа блокадата на иранските пристаништа на 13 јули 2026, и евтината иранска нафта пресуши. Рафинериите мораа да купуваат по полна цена и со скап превоз, а нафтата од Блискиот Исток веќе беше малку, по затворањето на Ормускиот теснец во пролетта и нападот на саудиски нафтовод во септември. Од април до август нафтата во Шангај главно беше 3 до 9 долари под Брент; во септември беше околу 9 долари над.",
   "What to watch":
     "Што да се следи",
-  "High prices make China buy less: at the end of September analysts cut their forecast for China's imports in the last three months of 2026. A shrinking gap to Brent would be the sign that the pressure is easing; a growing one, that the scramble for barrels goes on.":
-    "Високите цени ја тераат Кина да купува помалку: на крајот на септември аналитичарите ја намалија прогнозата за увозот на Кина во последните три месеци од 2026. Ако разликата до Брент се намалува, притисокот попушта; ако расте, борбата за нафта продолжува.",
+  "High prices make China buy less: at the end of September analysts cut their forecast for China's imports in the last three months of 2026. On 2 October the G7 agreed to release 100 million barrels of crude and diesel from emergency stocks over four months. A shrinking gap to Brent would be the sign that the pressure is easing; a growing one, that the scramble for barrels goes on.":
+    "Високите цени ја тераат Кина да купува помалку: на крајот на септември аналитичарите ја намалија прогнозата за увозот на Кина во последните три месеци од 2026. На 2 октомври земјите од Г7 се договорија да пуштат 100 милиони барели нафта и дизел од резервите за итни случаи, во текот на четири месеци. Ако разликата до Брент се намалува, притисокот попушта; ако расте, борбата за нафта продолжува.",
   "The price of a barrel of heating oil (a close cousin of diesel) minus the price of a barrel of Brent crude.":
     "Цената на барел масло за греење (речиси исто што и дизелот) минус цената на барел сурова нафта Брент.",
   "Trucks, ships, farms and factories run on diesel. A high spread means diesel is short even when crude is not, and that reaches food and goods prices a few weeks later.":

@@ -2391,7 +2391,7 @@ function renderBriefing() {
       _bfWorldCell(W.ecb, { k: 'ECB rate', kind: 'rate', policy: true, src: BF_SRC.ecb,
         d: 'The euro area central bank rate, paid on money banks park with it.',
         more: [
-          ['What it is', 'The rate the European Central Bank pays banks on money they leave with it overnight. It steers borrowing costs in the 20 euro countries.'],
+          ['What it is', 'The rate the European Central Bank pays banks on money they leave with it overnight. It steers borrowing costs in the 21 euro countries (Bulgaria joined on 1 January 2026).'],
           ['Why it matters', 'Money moves toward the currency that pays more. When the ECB rate is well below the Fed\'s, the dollar tends to look more attractive than the euro, and a strong dollar is a headwind for crypto.']
         ] }),
       _bfWorldCell(W.boj, { k: 'BoJ rate', kind: 'rate', policy: true, src: BF_SRC.boj,
@@ -2474,7 +2474,7 @@ function renderBriefing() {
           ['The China line', 'The blue number is crude oil traded in Shanghai, turned into dollars. It is Middle East oil delivered to China, so the fair comparison is Brent. The gap under the price shows how hard China is competing for barrels.'],
           ['Why China paid less for years', 'China\'s independent refiners bought oil from Iran and Russia, which sanctions made cheap. China took most of Iran\'s exports, about 1.4 million barrels a day in 2025, usually below world prices.'],
           ['Why it pays more in 2026', 'The US put its blockade of Iran\'s ports back on 13 July 2026, and the cheap Iranian barrels dried up. Refiners had to buy at full price and pay costly freight, while Middle East supply was already tight after the Strait of Hormuz was closed in spring and a Saudi pipeline was attacked in September. From April to August Shanghai crude mostly traded $3 to $9 under Brent; in September it was about $9 over.'],
-          ['What to watch', 'High prices make China buy less: at the end of September analysts cut their forecast for China\'s imports in the last three months of 2026. A shrinking gap to Brent would be the sign that the pressure is easing; a growing one, that the scramble for barrels goes on.']
+          ['What to watch', 'High prices make China buy less: at the end of September analysts cut their forecast for China\'s imports in the last three months of 2026. On 2 October the G7 agreed to release 100 million barrels of crude and diesel from emergency stocks over four months. A shrinking gap to Brent would be the sign that the pressure is easing; a growing one, that the scramble for barrels goes on.']
         ],
         kind: 'usd', src: BF_SRC.nymex, sym: 'CL=F', china: true,
         d: 'WTI crude — input cost for the real economy' }),
