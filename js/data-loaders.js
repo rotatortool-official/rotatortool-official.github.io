@@ -2552,10 +2552,11 @@ function renderBriefing() {
           ['Why it matters', 'Much of the world borrows in dollars. A stronger dollar makes those debts harder to pay and leaves less spare money for risky assets. Over the years it has often moved opposite to Bitcoin, though not every week.']
         ] })
     ] },
-    /* US stocks (Daniel, 2026-10-06, promptove/140). On the light theme
-       only until Daniel approves it (lab: styles.css hides it in dark).
-       Display only: none of it reaches the score. */
-    { t: 'Stock market', lab: true, cells: [
+    /* US stocks (Daniel, 2026-10-06, promptove/140). Tried on the light
+       theme first, on both themes since the same day. `lab: true` on a
+       group adds .bf-lab for the next experiment. Display only: none of
+       it reaches the score. */
+    { t: 'Stock market', cells: [
       _bfWorldCell(W.ndx, { k: 'Nasdaq 100', kind: 'num', src: BF_SRC.nasdaq, sym: '^NDX',
         d: 'The biggest US tech companies. Crypto has often moved in the same direction.',
         more: [

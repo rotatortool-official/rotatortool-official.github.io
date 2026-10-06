@@ -5485,8 +5485,10 @@ html.no-anim .mt-viewport::-webkit-scrollbar{display:none;}
 .bf-cn-c{font-size:11px;margin-top:1px;white-space:nowrap;}
 .bf-cn-big:has(.bf-cn-c){cursor:default;}
 
-/* The Stock market group (promptove/140) is a light-theme experiment:
-   hidden on dark until Daniel approves it. */
+/* A TODAY group marked `lab: true` (renderBriefing) is a light-theme
+   experiment and stays hidden on dark until Daniel approves it. The Stock
+   market group (promptove/140) went through it and is on both themes
+   since 2026-10-06. */
 :root:not(.light) .bf-lab{display:none;}
 /* VIX on the Fear & Greed colours: a scale from 10 (calm, green) to 40
    (panic, red) with a marker at today's reading. */
