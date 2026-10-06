@@ -5659,3 +5659,29 @@ html.no-anim .mt-viewport::-webkit-scrollbar{display:none;}
 .tb-dd-handle{color:var(--muted);margin-left:4px;}
 .tb-connect .tb-dropdown{min-width:210px;}
 a.mob-more-item{text-decoration:none;color:inherit;}
+
+/* ── Business check in the bStock window (promptove/143) ──
+   Light theme only until approved: the section is hidden on dark by
+   _tdBiz(), and every rule here is scoped to :root.light. */
+:root.light .td-biz-chip{font-size:10px;font-weight:800;letter-spacing:.06em;padding:2px 7px;border-radius:999px;background:rgba(0,0,0,.06);color:var(--muted);}
+:root.light .td-biz-chip:empty{display:none;}
+:root.light .td-biz-chip.hi{background:rgba(5,150,105,.12);color:#047857;}
+:root.light .td-biz-chip.mid{background:rgba(217,119,6,.12);color:#b45309;}
+:root.light .td-biz-chip.lo{background:rgba(220,38,38,.10);color:#b91c1c;}
+:root.light .td-biz-head{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap;font-size:14px;color:var(--text);margin-bottom:4px;}
+:root.light .td-biz-sub{font-size:11px;color:var(--muted);}
+:root.light .td-biz-note{font-size:12px;line-height:1.5;color:var(--muted);margin-bottom:10px;}
+:root.light .td-biz-empty{font-size:14px;font-weight:700;color:var(--text);margin-bottom:4px;}
+:root.light .td-biz-list{display:flex;flex-direction:column;border-radius:10px;overflow:hidden;background:rgba(0,0,0,.025);}
+:root.light .td-biz-row{display:grid;grid-template-columns:22px 1fr auto;gap:8px;align-items:center;padding:9px 10px;}
+:root.light .td-biz-row:nth-child(even){background:rgba(0,0,0,.035);}
+:root.light .td-biz-mark{width:20px;height:20px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:800;}
+:root.light .td-biz-row.ok .td-biz-mark{background:rgba(5,150,105,.14);color:#047857;}
+:root.light .td-biz-row.no .td-biz-mark{background:rgba(220,38,38,.12);color:#b91c1c;}
+:root.light .td-biz-row.na .td-biz-mark{background:rgba(0,0,0,.06);color:var(--muted);}
+:root.light .td-biz-main{min-width:0;}
+:root.light .td-biz-label{font-size:13px;font-weight:600;color:var(--text);line-height:1.3;}
+:root.light .td-biz-detail{font-size:11px;color:var(--muted);line-height:1.4;margin-top:2px;overflow-wrap:anywhere;}
+:root.light .td-biz-val{font-size:13px;font-weight:700;font-variant-numeric:tabular-nums;color:var(--text);text-align:right;white-space:nowrap;}
+:root.light .td-biz-row.na .td-biz-val{font-weight:500;color:var(--muted);}
+:root.light .td-biz-src{font-size:11px;color:var(--muted);margin-top:8px;line-height:1.45;}

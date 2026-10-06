@@ -1619,3 +1619,54 @@ Object.assign(MK_TEXT, {
   P(/^Highest since (\d{4})$/, function (m) { return 'Највисоко од ' + m[1] + ' наваму'; });
   P(/^Higher than (\d+)% of readings since (\d{4})$/, function (m) { return 'Повисоко од ' + m[1] + '% од мерењата од ' + m[2] + ' наваму'; });
 })();
+/* ── Business check in the bStock window (promptove/143) ── */
+Object.assign(MK_TEXT, {
+  "Business check": "Проверка на бизнисот",
+  "No filings data": "Нема податоци од извештаи",
+  "This company does not file yearly reports with the US SEC that we can read, so there is nothing to check. Rotator does not guess the figures.":
+    "Оваа компанија не поднесува годишни извештаи до американската SEC што можеме да ги прочитаме, па нема што да се провери. Rotator не ги погодува бројките.",
+  "Eight yes/no checks on the company itself, from its official yearly reports. Not part of the score: it describes the last 5 years of the business, not where the price goes next.":
+    "Осум проверки со да или не за самата компанија, од нејзините официјални годишни извештаи. Не влегува во оценката: покажува како работела компанијата во последните 5 години, а не каде ќе оди цената.",
+  "Price vs. 5 years of profit": "Цена спрема 5 години добивка",
+  "Cash return on capital": "Колку готовина носат парите во компанијата",
+  "Fewer shares than 5 years ago": "Помалку акции од пред 5 години",
+  "Free cash grew in 5 years": "Слободната готовина порасна за 5 години",
+  "Profit grew in 5 years": "Добивката порасна за 5 години",
+  "Revenue grew in 5 years": "Приходите пораснаа за 5 години",
+  "Long-term debts vs. free cash": "Долгорочни долгови спрема слободна готовина",
+  "Price vs. 5 years of free cash": "Цена спрема 5 години слободна готовина",
+  "Market cap ÷ average yearly profit": "Пазарна вредност ÷ просечна годишна добивка",
+  "Passes under 22.5": "Поминува под 22,5",
+  "Average yearly free cash ÷ (equity + debt)": "Просечна годишна слободна готовина ÷ (сопствени пари + долг)",
+  "Passes at 10% or more": "Поминува од 10% нагоре",
+  "Years of free cash to cover long-term liabilities": "Колку години слободна готовина требаат за долгорочните обврски",
+  "Passes under 5": "Поминува под 5",
+  "Market cap ÷ average yearly free cash": "Пазарна вредност ÷ просечна годишна слободна готовина",
+  "Loss": "Загуба",
+  "Negative": "Негативно",
+  "No free cash": "Нема слободна готовина",
+  "No data": "Нема податоци",
+  "Fewer than 5 yearly reports so far": "Досега има помалку од 5 годишни извештаи",
+  "Fewer than 6 yearly reports so far": "Досега има помалку од 6 годишни извештаи",
+  "Some figures are not in the reports": "Некои бројки ги нема во извештаите",
+  "Equity is not in the reports": "Сопствените пари на компанијата ги нема во извештаите",
+  "Long-term liabilities are not in the reports": "Долгорочните обврски ги нема во извештаите",
+  "No market cap": "Нема пазарна вредност",
+  "Free cash = cash from the business minus spending on buildings and equipment. Market cap at today's price.":
+    "Слободна готовина = готовината од работата минус она што е потрошено на згради и опрема. Пазарната вредност е по денешната цена."
+});
+(function () {
+  var P = function (re, fn) { MK_PATTERNS.push([re, fn]); };
+  var AMT = /(-?(?:\$|€|CN¥)?[\d.,]+[TBM]?)/.source;
+  P(new RegExp('^' + AMT + ' last year$'), function (m) { return m[1] + ' минатата година'; });
+  P(new RegExp('^' + AMT + ' 5 years before$'), function (m) { return m[1] + ' пред 5 години'; });
+  P(new RegExp('^' + AMT + ' now$'), function (m) { return m[1] + ' сега'; });
+  P(/^([\d.]+) yrs$/, function (m) { return m[1].replace('.', ',') + ' год.'; });
+  P(/^(\d) of 8 checks pass$/, function (m) { return 'Поминуваат ' + m[1] + ' од 8 проверки'; });
+  P(/^(\d) without data$/, function (m) { return m[1] + ' без податоци'; });
+  /* unshift: the generic /^Source: (.+)$/ above would win otherwise */
+  MK_PATTERNS.unshift([/^Source: yearly report to the US SEC for the year to (\S+), filed (\S+)\.$/, function (m) {
+    return 'Извор: годишниот извештај до американската SEC за годината до ' + m[1] + ', поднесен на ' + m[2] + '.'; }]);
+  P(/^Reported in ([A-Z]{3}); market cap converted at today's rate\.$/, function (m) {
+    return 'Бројките се во ' + m[1] + '; пазарната вредност е претворена по денешниот курс.'; });
+})();

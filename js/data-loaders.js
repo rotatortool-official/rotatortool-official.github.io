@@ -3652,6 +3652,122 @@ window.addEventListener('resize', function() { syncPanelAlignment(); });
    to the old openAssetDetail('stock'/'forex', …) repointed at
    openTileDetail(id, evt) — see follow-up note.
 ══════════════════════════════════════════════════════════════ */
+/* ── Business check (bStocks, promptove/143) ─────────────────────
+   8 yes/no checks on the company behind a bStock, from its official
+   yearly reports to the US SEC. READ ONLY: the sync-business-check edge
+   function writes market_cache.business_check every Sunday. A DISPLAY,
+   labelled as not part of the score (nothing enters the score untested).
+   Light theme only until Daniel approves the look. English is written
+   into the page and i18n-mk-dict.js translates it, so a language switch
+   needs no redraw. A check without figures says "no data", never a guess. */
+var _bizData = null, _bizLoad = null;
+function _bizGet() {
+  if (!_bizLoad) _bizLoad = (typeof supaCacheGetStale === 'function' ? supaCacheGetStale('business_check') : Promise.resolve(null))
+    .then(function (row) { _bizData = (row && row.data && row.data.items) || {}; return _bizData; })
+    .catch(function () { _bizLoad = null; return {}; });
+  return _bizLoad;
+}
+function _bizMoney(n, cur) {
+  if (n == null || !isFinite(n)) return '—';
+  var s = cur === 'USD' ? '$' : cur === 'EUR' ? '€' : cur === 'CNY' ? 'CN¥' : cur ? cur + ' ' : '';
+  var a = Math.abs(n), t;
+  var sig = function (x) { return x >= 100 ? x.toFixed(0) : x >= 10 ? x.toFixed(1) : x.toFixed(2); };
+  if (a >= 1e12) t = sig(a / 1e12) + 'T';
+  else if (a >= 1e9) t = sig(a / 1e9) + 'B';
+  else if (a >= 1e6) t = sig(a / 1e6) + 'M';
+  else t = Math.round(a).toLocaleString('en-US');
+  return (n < 0 ? '-' : '') + s + t;
+}
+function _bizCount(n) {
+  if (n == null) return '—';
+  return _bizMoney(n, '').replace(/^ /, '');
+}
+function _bizChange(now, then) {
+  if (now == null || then == null || !(then > 0)) return '—';
+  var p = (now / then - 1) * 100;
+  return (p >= 0 ? '+' : '') + Math.round(p) + '%';
+}
+var _BIZ_WHY = {
+  'fewer than 5 yearly reports': 'Fewer than 5 yearly reports so far',
+  'fewer than 6 yearly reports': 'Fewer than 6 yearly reports so far',
+  'missing figures': 'Some figures are not in the reports',
+  'no equity figure': 'Equity is not in the reports',
+  'no long-term liabilities figure': 'Long-term liabilities are not in the reports',
+  'no market cap': 'No market cap'
+};
+function _bizRow(ch, cur) {
+  var label, val = '', detail;
+  var then5 = function (f) { return f(ch.now) + ' last year · ' + f(ch.then) + ' 5 years before'; };
+  var money = function (n) { return _bizMoney(n, cur); };
+  switch (ch.k) {
+    case 'pe5':
+      label = 'Price vs. 5 years of profit';
+      val = ch.v != null ? ch.v + '×' : (ch.ok === false ? 'Loss' : '');
+      detail = 'Market cap ÷ average yearly profit · Passes under 22.5'; break;
+    case 'roic5':
+      label = 'Cash return on capital';
+      val = ch.v != null ? ch.v + '%' : (ch.ok === false ? 'Negative' : '');
+      detail = 'Average yearly free cash ÷ (equity + debt) · Passes at 10% or more'; break;
+    case 'shares':
+      label = 'Fewer shares than 5 years ago';
+      val = _bizChange(ch.now, ch.then);
+      detail = _bizCount(ch.now) + ' now · ' + _bizCount(ch.then) + ' 5 years before'; break;
+    case 'fcf':
+      label = 'Free cash grew in 5 years'; val = _bizChange(ch.now, ch.then); detail = then5(money); break;
+    case 'ni':
+      label = 'Profit grew in 5 years'; val = _bizChange(ch.now, ch.then); detail = then5(money); break;
+    case 'rev':
+      label = 'Revenue grew in 5 years'; val = _bizChange(ch.now, ch.then); detail = then5(money); break;
+    case 'ltl':
+      label = 'Long-term debts vs. free cash';
+      val = ch.v != null ? ch.v + ' yrs' : (ch.ok === false ? 'No free cash' : '');
+      detail = 'Years of free cash to cover long-term liabilities · Passes under 5'; break;
+    case 'pfcf5':
+      label = 'Price vs. 5 years of free cash';
+      val = ch.v != null ? ch.v + '×' : (ch.ok === false ? 'No free cash' : '');
+      detail = 'Market cap ÷ average yearly free cash · Passes under 22.5'; break;
+    default: return '';
+  }
+  var st = ch.ok === true ? 'ok' : ch.ok === false ? 'no' : 'na';
+  if (st === 'na') { val = 'No data'; detail = _BIZ_WHY[ch.why] || 'Some figures are not in the reports'; }
+  return '<div class="td-biz-row ' + st + '">'
+    + '<span class="td-biz-mark" aria-hidden="true">' + (st === 'ok' ? '✓' : st === 'no' ? '✗' : '–') + '</span>'
+    + '<div class="td-biz-main"><div class="td-biz-label">' + _esc(label) + '</div>'
+    + '<div class="td-biz-detail">' + _esc(detail) + '</div></div>'
+    + '<div class="td-biz-val">' + _esc(val) + '</div></div>';
+}
+function _tdBiz(c) {
+  var sec = document.getElementById('td-biz-sec');
+  if (!sec) return;
+  if (!c || !c.isStock || !document.documentElement.classList.contains('light')) { sec.style.display = 'none'; return; }
+  var el = document.getElementById('td-biz'), chip = document.getElementById('td-biz-chip');
+  var draw = function (items) {
+    if (_tdCoin !== c) return;                       /* another window opened meanwhile */
+    var it = items && items[c.sym];
+    sec.style.display = '';
+    if (!it || it.na || !Array.isArray(it.checks)) {
+      chip.textContent = '';
+      el.innerHTML = '<div class="td-biz-empty">No filings data</div>'
+        + '<div class="td-biz-note">This company does not file yearly reports with the US SEC that we can read, so there is nothing to check. Rotator does not guess the figures.</div>';
+      return;
+    }
+    var missing = 8 - it.known;
+    chip.textContent = it.pass + '/8';
+    /* No colour when 3+ checks have no data: "2/8" would read as a verdict. */
+    chip.className = 'td-biz-chip ' + (missing > 2 ? '' : it.pass >= 6 ? 'hi' : it.pass >= 4 ? 'mid' : 'lo');
+    el.innerHTML =
+      '<div class="td-biz-head"><b>' + it.pass + ' of 8 checks pass</b>'
+      + (missing ? '<span class="td-biz-sub">' + missing + ' without data</span>' : '') + '</div>'
+      + '<div class="td-biz-note">Eight yes/no checks on the company itself, from its official yearly reports. Not part of the score: it describes the last 5 years of the business, not where the price goes next.</div>'
+      + '<div class="td-biz-list">' + it.checks.map(function (ch) { return _bizRow(ch, it.cur); }).join('') + '</div>'
+      + '<div class="td-biz-src">Source: yearly report to the US SEC for the year to ' + _esc(it.fy) + ', filed ' + _esc(it.filed) + '.</div>'
+      + '<div class="td-biz-src">Free cash = cash from the business minus spending on buildings and equipment. Market cap at today\'s price.</div>'
+      + (it.cur && it.cur !== 'USD' ? '<div class="td-biz-src">Reported in ' + _esc(it.cur) + '; market cap converted at today\'s rate.</div>' : '');
+  };
+  if (_bizData) draw(_bizData);
+  else { sec.style.display = 'none'; _bizGet().then(draw); }
+}
+
 var _tdCoin = null;
 
 function fmtMcap(n) {
@@ -3937,6 +4053,7 @@ function openTileDetail(coinId, evt) {
   _tdCoin = c;
   _tdAbout(c);
   _tdChainFlow(c);
+  _tdBiz(c);
   var panel = document.getElementById('td-panel');
   var icoEl = document.getElementById('td-ico');
   /* Logo, with initials behind it when the image does not load. The
