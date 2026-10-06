@@ -4884,204 +4884,102 @@ function shareAsImage() {
   var scoreEl = document.querySelector('#td-score-num .td-score-num-val');
   var score   = scoreEl ? scoreEl.textContent.trim().split('/')[0].trim() : (c.score || '');
 
-  /* The turn signs as pills, since the badges are gone (2026-10-04). */
+  /* Rotator's reading of the coin: its headline and its up / cooling signs. */
   var R = (typeof coinReading === 'function') ? coinReading(c) : null;
-  var badges = R ? R.S.up.map(function (x) { return '▲ ' + x.title; })
-                     .concat(R.S.down.map(function (x) { return '▼ ' + x.title; })).slice(0, 4) : [];
 
-  /* market data cells */
-  var mktCells = document.querySelectorAll('#td-market .td-mkt-cell');
-  var mktData = [];
-  mktCells.forEach(function(cell) {
-    var label = (cell.querySelector('.td-mkt-label') || {}).textContent || '';
-    var val   = (cell.querySelector('.td-mkt-val')   || {}).textContent || '';
-    if (label && val) mktData.push({ label: label, val: val });
-  });
-
-  /* ── Canvas setup — 1200×630 for OG-compatible ratio ── */
+  /* ── The card (redesigned 2026-10-06, promptove/138) ──────────────
+     Seen at ~500px wide in a feed, so: few things, all large. The week
+     and the month (the story), the price, Rotator's own reading of the
+     coin, its signs (up green, cooling amber, never a warning in green),
+     the score, and the gold bar with "Find out more on Rotator". */
   var W = 1200, H = 630;
   var can = document.createElement('canvas');
   can.width = W; can.height = H;
   var ctx = can.getContext('2d');
 
-  /* ── Background: rich dark gradient ── */
   var bg = ctx.createLinearGradient(0, 0, W, H);
-  bg.addColorStop(0, '#080c12');
-  bg.addColorStop(0.4, '#0d1420');
-  bg.addColorStop(1, '#080c12');
-  ctx.fillStyle = bg;
-  ctx.fillRect(0, 0, W, H);
+  bg.addColorStop(0, '#0a0f17'); bg.addColorStop(0.55, '#101a28'); bg.addColorStop(1, '#0a0f17');
+  ctx.fillStyle = bg; ctx.fillRect(0, 0, W, H);
+  var glow = ctx.createRadialGradient(W - 190, 230, 0, W - 190, 230, 300);
+  glow.addColorStop(0, 'rgba(243,186,47,0.12)'); glow.addColorStop(1, 'rgba(243,186,47,0)');
+  ctx.fillStyle = glow; ctx.fillRect(W - 500, 0, 500, 520);
 
-  /* subtle grid pattern */
-  ctx.strokeStyle = 'rgba(243,186,47,0.025)';
-  ctx.lineWidth = 1;
-  for (var gx = 0; gx < W; gx += 50) { ctx.beginPath(); ctx.moveTo(gx, 0); ctx.lineTo(gx, H); ctx.stroke(); }
-  for (var gy = 0; gy < H; gy += 50) { ctx.beginPath(); ctx.moveTo(0, gy); ctx.lineTo(W, gy); ctx.stroke(); }
+  var L = 60, colW = 760;
+  /* No wordmark above the symbol: "ROTATOR" over "NIGHT" read as one
+     name (Daniel). Rotator is named in the gold bar. */
 
-  /* ── Gold accent line at top ── */
-  var gold = ctx.createLinearGradient(0, 0, W, 0);
-  gold.addColorStop(0, 'rgba(243,186,47,0)');
-  gold.addColorStop(0.3, 'rgba(243,186,47,0.9)');
-  gold.addColorStop(0.7, 'rgba(243,186,47,0.9)');
-  gold.addColorStop(1, 'rgba(243,186,47,0)');
-  ctx.fillStyle = gold;
-  ctx.fillRect(0, 0, W, 4);
-
-  /* ── Large glow behind score area ── */
-  var glow = ctx.createRadialGradient(W - 180, 200, 0, W - 180, 200, 280);
-  glow.addColorStop(0, 'rgba(243,186,47,0.1)');
-  glow.addColorStop(1, 'rgba(243,186,47,0)');
-  ctx.fillStyle = glow;
-  ctx.fillRect(W - 460, 0, 460, 460);
-
-  /* ── Symbol + Name header (bigger) ── */
+  /* Symbol and name */
+  ctx.textAlign = 'left';
   ctx.fillStyle = '#f3ba2f';
-  ctx.font = 'bold 80px Inter, sans-serif';
-  ctx.fillText(sym, 70, 105);
+  shareFit(ctx, sym, 420, '800 {SIZE}px Inter, sans-serif', 96, 56);
+  ctx.fillText(sym, L, 130);
+  var symW = ctx.measureText(sym).width;
+  ctx.fillStyle = 'rgba(255,255,255,0.6)';
+  /* name and price beside the symbol; the price left the stats row,
+     where it ran into the score ring */
+  var nameLine = name + (price.trim() ? '  ·  ' + price.trim() : '');
+  shareFit(ctx, nameLine, colW - symW - 30, '600 {SIZE}px Inter, sans-serif', 32, 20);
+  ctx.fillText(nameLine, L + symW + 22, 130);
 
-  ctx.fillStyle = 'rgba(255,255,255,0.45)';
-  ctx.font = '30px Inter, sans-serif';
-  ctx.fillText(name, 70, 146);
+  /* The week and the month */
+  var pct = function (v) { return v == null || !isFinite(v) ? null : (v >= 0 ? '+' : '\u2212') + Math.abs(v).toFixed(1) + '%'; };
+  var colr = function (v) { return v == null ? 'rgba(255,255,255,0.7)' : v >= 0 ? '#00c896' : '#ff4d6a'; };
+  var stats = [
+    { lbl: 'THIS WEEK', val: pct(c.p7), col: colr(c.p7), size: 74 },
+    { lbl: '30 DAYS', val: pct(c.p30), col: colr(c.p30), size: 52 }
+  ].filter(function (x) { return x.val; });
+  var sx = L;
+  stats.forEach(function (st) {
+    ctx.fillStyle = 'rgba(255,255,255,0.5)';
+    ctx.font = '700 22px Inter, sans-serif';
+    ctx.fillText(st.lbl, sx, 205);
+    ctx.fillStyle = st.col;
+    ctx.font = '800 ' + st.size + 'px Inter, sans-serif';
+    ctx.fillText(st.val, sx, 285);
+    sx += Math.max(ctx.measureText(st.val).width, ctx.measureText(st.lbl).width) + 56;
+  });
 
-  /* ── Price (big and bold) ── */
-  ctx.fillStyle = '#ffffff';
-  ctx.font = 'bold 82px Inter, sans-serif';
-  ctx.fillText(price, 70, 244);
-
-  /* 24H change — large */
-  var isPos = chg.indexOf('+') === 0;
-  var isNeg = chg.indexOf('-') === 0 || chg.indexOf('\u2212') === 0;
-  ctx.fillStyle = isPos ? '#00c896' : isNeg ? '#ff4560' : 'rgba(255,255,255,0.6)';
-  ctx.font = 'bold 40px Inter, sans-serif';
-  var arrow = isPos ? '\u25B2 ' : isNeg ? '\u25BC ' : '';
-  ctx.fillText(arrow + chg + ' (24H)', 70, 296);
-
-  /* ── Score circle (larger, bolder) ── */
-  if (score) {
-    var cx = W - 180, cy = 175, r = 100;
-    /* outer ring bg */
-    ctx.beginPath();
-    ctx.arc(cx, cy, r, 0, Math.PI * 2);
-    ctx.strokeStyle = 'rgba(255,255,255,0.08)';
-    ctx.lineWidth = 8;
-    ctx.stroke();
-    /* score arc */
-    var pct = parseInt(score) / 100;
-    ctx.beginPath();
-    ctx.arc(cx, cy, r, -Math.PI / 2, -Math.PI / 2 + Math.PI * 2 * pct);
-    var arcColor = pct >= 0.6 ? '#00c896' : pct >= 0.35 ? '#f3ba2f' : '#ff4560';
-    ctx.strokeStyle = arcColor;
-    ctx.lineWidth = 8;
-    ctx.lineCap = 'round';
-    ctx.stroke();
-    ctx.lineCap = 'butt';
-    /* score number */
+  /* Rotator's reading of the coin */
+  if (R && R.head) {
     ctx.fillStyle = '#ffffff';
-    ctx.font = 'bold 72px Inter, sans-serif';
+    shareFit(ctx, R.head, colW, '700 {SIZE}px Inter, sans-serif', 34, 24);
+    ctx.fillText(R.head, L, 365);
+  }
+
+  /* Its signs: up in green, cooling in amber */
+  var signs = R ? R.S.up.map(function (x) { return { t: '\u25B2 ' + x.title, tone: 'up' }; })
+    .concat(R.S.down.map(function (x) { return { t: '\u25BC ' + x.title, tone: 'down' }; })) : [];
+  var px = L, py = 395;
+  signs.slice(0, 3).forEach(function (sg) {
+    ctx.font = '700 24px Inter, sans-serif';
+    var w = ctx.measureText(sg.t).width + 34;
+    if (px + w > L + colW) return;
+    px += sharePill(ctx, px, py, sg.t, sg.tone, 24) + 14;
+  });
+
+  /* The score */
+  if (score) {
+    var cx = W - 190, cy = 230, r = 108, sc = parseInt(score, 10);
+    ctx.beginPath(); ctx.arc(cx, cy, r, 0, Math.PI * 2);
+    ctx.strokeStyle = 'rgba(255,255,255,0.1)'; ctx.lineWidth = 12; ctx.stroke();
+    if (isFinite(sc)) {
+      ctx.beginPath();
+      ctx.arc(cx, cy, r, -Math.PI / 2, -Math.PI / 2 + Math.PI * 2 * Math.max(0, Math.min(1, sc / 100)));
+      ctx.strokeStyle = sc >= 60 ? '#00c896' : sc >= 35 ? '#f3ba2f' : '#ff4d6a';
+      ctx.lineCap = 'round'; ctx.stroke(); ctx.lineCap = 'butt';
+    }
     ctx.textAlign = 'center';
-    ctx.fillText(score, cx, cy + 24);
-    ctx.fillStyle = 'rgba(255,255,255,0.35)';
-    ctx.font = '22px Inter, sans-serif';
-    ctx.fillText('/100', cx, cy + 56);
+    ctx.fillStyle = '#ffffff'; ctx.font = '800 78px Inter, sans-serif';
+    ctx.fillText(score, cx, cy + 22);
+    ctx.fillStyle = 'rgba(255,255,255,0.5)'; ctx.font = '700 24px Inter, sans-serif';
+    ctx.fillText('/ 100', cx, cy + 58);
+    ctx.fillStyle = 'rgba(255,255,255,0.7)'; ctx.font = '700 22px Inter, sans-serif';
+    ctx.fillText('SCORE', cx, cy + r + 48);   /* Rotator is named once, in the gold bar */
     ctx.textAlign = 'left';
   }
 
-  /* ── Separator line ── */
-  ctx.fillStyle = 'rgba(243,186,47,0.12)';
-  ctx.fillRect(70, 320, W - 140, 1);
-
-  /* ── Signal badges (larger) ── */
-  if (badges.length) {
-    var badgeY = 350;
-    ctx.fillStyle = 'rgba(255,255,255,0.4)';
-    ctx.font = '18px Inter, sans-serif';
-    ctx.fillText('SIGNALS', 70, badgeY);
-    var bx2 = 70;
-    badgeY += 24;
-    ctx.font = 'bold 22px Inter, sans-serif';
-    badges.slice(0, 4).forEach(function(b) {
-      var tw = ctx.measureText(b).width + 36;
-      /* badge bg */
-      ctx.fillStyle = 'rgba(0,200,150,0.12)';
-      _roundRect(ctx, bx2, badgeY, tw, 44, 8);
-      ctx.fill();
-      ctx.strokeStyle = 'rgba(0,200,150,0.4)';
-      ctx.lineWidth = 1;
-      _roundRect(ctx, bx2, badgeY, tw, 44, 8);
-      ctx.stroke();
-      /* badge text */
-      ctx.fillStyle = '#00c896';
-      ctx.font = 'bold 22px Inter, sans-serif';
-      ctx.fillText(b, bx2 + 18, badgeY + 30);
-      bx2 += tw + 14;
-    });
-  }
-
-  /* ── Market data boxes (larger fonts) ── */
-  var boxY = badges.length ? 430 : 350, boxH = 80, boxGap = 14;
-  var visibleMkt = mktData.slice(0, 5);
-  var boxW = Math.min(200, (W - 140 - boxGap * (visibleMkt.length - 1)) / Math.min(visibleMkt.length, 5));
-  visibleMkt.forEach(function(d, i) {
-    var bx = 70 + i * (boxW + boxGap);
-    /* box bg */
-    ctx.fillStyle = 'rgba(255,255,255,0.04)';
-    _roundRect(ctx, bx, boxY, boxW, boxH, 8);
-    ctx.fill();
-    ctx.strokeStyle = 'rgba(255,255,255,0.08)';
-    ctx.lineWidth = 1;
-    _roundRect(ctx, bx, boxY, boxW, boxH, 8);
-    ctx.stroke();
-    /* label */
-    ctx.fillStyle = 'rgba(255,255,255,0.4)';
-    ctx.font = '14px Inter, sans-serif';
-    ctx.fillText(d.label.toUpperCase(), bx + 14, boxY + 26);
-    /* value */
-    ctx.fillStyle = '#ffffff';
-    ctx.font = 'bold 20px Inter, sans-serif';
-    var dispVal = d.val.length > 12 ? d.val.substring(0, 11) + '\u2026' : d.val;
-    ctx.fillText(dispVal, bx + 14, boxY + 56);
-  });
-
-  /* ── CTA teaser — curiosity hook ── */
-  var ctaY = H - 140;
-  ctx.fillStyle = 'rgba(243,186,47,0.06)';
-  _roundRect(ctx, 50, ctaY, W - 100, 76, 8);
-  ctx.fill();
-  ctx.strokeStyle = 'rgba(243,186,47,0.25)';
-  ctx.lineWidth = 1.5;
-  _roundRect(ctx, 50, ctaY, W - 100, 76, 8);
-  ctx.stroke();
-  ctx.fillStyle = 'rgba(243,186,47,0.9)';
-  ctx.font = 'bold 34px Inter, sans-serif';
-  ctx.textAlign = 'center';
-  ctx.fillText('Is your coin lagging or leading?', W / 2, ctaY + 32);
-  ctx.font = 'bold 26px Inter, sans-serif';
-  ctx.fillStyle = 'rgba(255,255,255,0.7)';
-  ctx.fillText('Find out free at Rotator', W / 2, ctaY + 62);
-  ctx.textAlign = 'left';
-
-  /* ── Footer: branding + URL ── */
-  ctx.fillStyle = 'rgba(255,255,255,0.06)';
-  ctx.fillRect(70, H - 58, W - 140, 1);
-
-  /* Rotator brand */
-  ctx.fillStyle = '#f3ba2f';
-  ctx.font = 'bold 32px Inter, sans-serif';
-  ctx.fillText('ROTATOR', 70, H - 22);
-  ctx.fillStyle = 'rgba(255,255,255,0.35)';
-  ctx.font = '20px Inter, sans-serif';
-  ctx.fillText('Scores, holder warnings & a public track record', 250, H - 22);
-
-  /* URL right-aligned */
-  ctx.fillStyle = 'rgba(243,186,47,0.7)';
-  ctx.font = 'bold 20px Inter, sans-serif';
-  ctx.textAlign = 'right';
-  ctx.fillText('rotatortool-official.github.io', W - 70, H - 22);
-  ctx.textAlign = 'left';
-
-  /* ── Gold bottom accent ── */
-  ctx.fillStyle = gold;
-  ctx.fillRect(0, H - 4, W, 4);
+  /* The gold bar */
+  shareBrandBar(ctx, W, H);
 
   /* ── Show viral share preview modal instead of direct download ── */
   try {
@@ -5121,21 +5019,37 @@ var _viralSym    = '';
 var _viralCanvas = null;
 var _viralCopyIdx = 0;
 
+/* The message that goes with the coin card (rewritten 2026-10-06,
+   promptove/138): what the coin did this week and Rotator's own reading
+   of it, never hype ("analytics don't lie", "level up", "momentum alert"
+   on a coin with a cooling sign). The 24h change string used to end in
+   "(24H)" and then got " in 24H" added; the week is the story now. */
+function _viralFacts(sym) {
+  var c = (typeof coins !== 'undefined' && coins.find(function (x) { return x.sym === sym; })) || _tdCoin || {};
+  var wk = c.p7 != null && isFinite(c.p7) ? (c.p7 >= 0 ? '+' : '−') + Math.abs(c.p7).toFixed(1) + '%' : null;
+  var R = (typeof coinReading === 'function') ? coinReading(c) : null;
+  return { week: wk, head: R && R.head ? R.head : '' };
+}
 var _viralCopyTemplates = [
   function(sym, score, chg, link) {
-    return '📊 ' + sym + ' scored ' + score + '/100 on Rotator — ' + chg + ' in 24H\n\nFull breakdown → ' + link;
+    var f = _viralFacts(sym);
+    return sym + ' on Rotator: ' + (f.week ? f.week + ' this week, ' : '') + 'score ' + score + '/100.' + (f.head ? '\n' + f.head + '.' : '') + '\n\nFind out more on Rotator → ' + link;
   },
   function(sym, score, chg, link) {
-    return 'Found this setup on Rotator. Analytics don\'t lie. ' + sym + ' ' + chg + '\n\n🔍 ' + link;
+    var f = _viralFacts(sym);
+    return 'Money moves. Be there first.\n' + sym + (f.week ? ' ' + f.week + ' this week' : '') + ' · score ' + score + '/100 on Rotator\n\n' + link;
   },
   function(sym, score, chg, link) {
-    return 'Level up your trading edge — ' + sym + ' is showing strong momentum (' + score + '/100)\n\n' + link + ' 🔥';
+    var f = _viralFacts(sym);
+    return 'Where does ' + sym + ' stand in the market? ' + (f.week ? f.week + ' in 7 days, ' : '') + 'score ' + score + '/100.\nScores for 250 coins, cooling warnings and a public track record, free.\n\n→ ' + link;
   },
   function(sym, score, chg, link) {
-    return sym + ' ' + chg + ' · Score: ' + score + '/100\nScores for 250 coins, holder warnings and a public track record, all free.\n\n→ ' + link;
+    var f = _viralFacts(sym);
+    return 'The market pulse: ' + sym + (f.week ? ' ' + f.week + ' in 7 days' : '') + (f.head ? ' · ' + f.head : '') + '\n\nSee it live on Rotator → ' + link;
   },
   function(sym, score, chg, link) {
-    return '⚡ ' + sym + ' momentum alert — ' + score + '/100 composite score\n\nCheck the full analysis: ' + link;
+    var f = _viralFacts(sym);
+    return 'Stay ahead of the crowd with Rotator.\n' + sym + (f.week ? ' ' + f.week + ' this week' : '') + ' · score ' + score + '/100\n\n' + link;
   }
 ];
 

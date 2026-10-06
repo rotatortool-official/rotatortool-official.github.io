@@ -1226,13 +1226,12 @@ function shareSwapCard() {
   ctx.fillStyle = gold;
   ctx.fillRect(0, 0, W, 5);
 
-  /* ── Header row: ROTATOR • SWAP ── */
+  /* ── Header: just SWAP. "ROTATOR" here ran into "SWAP" and was one of
+     several Rotator words on the card; the gold bar names it once
+     (Daniel, 2026-10-06). ── */
   ctx.fillStyle = '#f3ba2f';
-  ctx.font = 'bold 28px Inter, sans-serif';
-  ctx.fillText('ROTATOR', 60, 60);
-  ctx.fillStyle = 'rgba(255,255,255,0.35)';
-  ctx.font = '20px Inter, sans-serif';
-  ctx.fillText('•  SWAP', 60 + ctx.measureText('ROTATOR  ').width, 60);
+  ctx.font = '800 28px Inter, sans-serif';
+  ctx.fillText('SWAP', 60, 60);
 
   /* ── Badge (top right) ── */
   if (badge) {
@@ -1428,12 +1427,11 @@ function shareSwapCard() {
     var _low  = Math.min.apply(null, _vals);
     var _now  = _vals[_vals.length - 1];
     var gainPct = _low > 0 ? ((_now - _low) / _low * 100).toFixed(1) : '0';
-    var viralHooks = [
-      gainPct + '% more value vs period low — timed with Rotator',
-      'Locked in ' + gainPct + '% extra gains on this rotation',
-      'Swapped at ' + gainPct + '% above the worst entry point'
-    ];
-    var hookText = viralHooks[Math.floor(Math.random() * viralHooks.length)];
+    /* A fact about the ratio, not a claimed gain (2026-10-06, promptove/138):
+       the old lines said "Locked in X% extra gains", which the person may
+       never have made. */
+    var hookText = 'Ratio now ' + gainPct + '% above its low for this period';
+
 
     ctx.fillStyle = 'rgba(16,185,129,0.06)';
     _roundRect(ctx, 50, viralY, W - 100, 52, 8);
@@ -1449,42 +1447,9 @@ function shareSwapCard() {
     ctx.textAlign = 'left';
   }
 
-  /* ── CTA bar ── */
-  var ctaY = H - 160;
-  ctx.fillStyle = 'rgba(243,186,47,0.06)';
-  _roundRect(ctx, 50, ctaY, W - 100, 76, 10);
-  ctx.fill();
-  ctx.strokeStyle = 'rgba(243,186,47,0.25)';
-  ctx.lineWidth = 1.5;
-  _roundRect(ctx, 50, ctaY, W - 100, 76, 10);
-  ctx.stroke();
-  ctx.textAlign = 'center';
-  ctx.fillStyle = 'rgba(243,186,47,0.9)';
-  ctx.font = 'bold 32px Inter, sans-serif';
-  ctx.fillText('Stop guessing when to swap.', W / 2, ctaY + 32);
-  ctx.fillStyle = 'rgba(255,255,255,0.7)';
-  ctx.font = 'bold 24px Inter, sans-serif';
-  ctx.fillText('Let the data decide — free at Rotator', W / 2, ctaY + 62);
-  ctx.textAlign = 'left';
-
-  /* ── Footer ── */
-  ctx.fillStyle = 'rgba(255,255,255,0.06)';
-  ctx.fillRect(50, H - 58, W - 100, 1);
-  ctx.fillStyle = '#f3ba2f';
-  ctx.font = 'bold 30px Inter, sans-serif';
-  ctx.fillText('ROTATOR', 60, H - 22);
-  ctx.fillStyle = 'rgba(255,255,255,0.35)';
-  ctx.font = '18px Inter, sans-serif';
-  ctx.fillText('Ratio tracker & swap calculator', 230, H - 22);
-  ctx.fillStyle = 'rgba(243,186,47,0.7)';
-  ctx.font = 'bold 18px Inter, sans-serif';
-  ctx.textAlign = 'right';
-  ctx.fillText('rotatortool-official.github.io', W - 60, H - 22);
-  ctx.textAlign = 'left';
-
-  /* Bottom gold accent */
-  ctx.fillStyle = gold;
-  ctx.fillRect(0, H - 5, W, 5);
+  /* ── The gold bar: the hook, "Find out more on Rotator" and the address
+     at a size that reads in a feed (share-brand.js, promptove/138) ── */
+  shareBrandBar(ctx, W, H);
 
   /* ── Share via viral modal (reuse existing system) ── */
   try {

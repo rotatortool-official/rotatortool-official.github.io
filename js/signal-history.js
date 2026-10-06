@@ -1111,35 +1111,10 @@ var SignalHistory = (function() {
     ctx.fillText(changeStr, W / 2, 440);
     ctx.textAlign = 'left';
 
-    /* CTA */
-    ctx.fillStyle = 'rgba(243,186,47,0.06)';
-    _roundRect(ctx, 70, 475, W - 140, 42, 6);
-    ctx.fill();
-    ctx.strokeStyle = 'rgba(243,186,47,0.2)';
-    ctx.lineWidth = 1;
-    _roundRect(ctx, 70, 475, W - 140, 42, 6);
-    ctx.stroke();
-    ctx.fillStyle = 'rgba(243,186,47,0.85)';
-    ctx.font = 'bold 18px "IBM Plex Mono", monospace';
-    ctx.textAlign = 'center';
-    ctx.fillText('Scores and a public track record, free at Rotator', W / 2, 502);
-    ctx.textAlign = 'left';
 
-    /* Footer */
-    ctx.fillStyle = 'rgba(255,255,255,0.06)';
-    ctx.fillRect(70, H - 60, W - 140, 1);
-    ctx.fillStyle = '#f3ba2f';
-    ctx.font = 'bold 28px "IBM Plex Mono", monospace';
-    ctx.fillText('ROTATOR', 70, H - 25);
-    ctx.fillStyle = 'rgba(243,186,47,0.7)';
-    ctx.font = 'bold 16px "IBM Plex Mono", monospace';
-    ctx.textAlign = 'right';
-    ctx.fillText('rotatortool-official.github.io', W - 70, H - 25);
-    ctx.textAlign = 'left';
 
-    /* Gold bottom */
-    ctx.fillStyle = gold;
-    ctx.fillRect(0, H - 4, W, 4);
+    /* The gold bar (share-brand.js, promptove/138). */
+    shareBrandBar(ctx, W, H);
 
     /* Show in viral modal */
     try {
