@@ -1876,13 +1876,14 @@ function _bfSpark(series, up, minSpan, neutral, overlay) {
    blank.
 
    Every tile shows the window the bar above picks (_bfLong: 7, 30, 90,
-   182, 365 or 1095 days; opens on 30; 3M and 6M added 2026-10-04). The per-tile 7D/30D flip was retired on
+   182, 365 or 1095 days; opens on 90 since 2026-10-06, Daniel: "3M is more informative, the
+   broader picture can be seen"; it opened on 30 before; 3M and 6M added 2026-10-04). The per-tile 7D/30D flip was retired on
    2026-10-04 (Daniel: the corner "7D" was an artifact from before
    30D/1Y/3Y existed and read as a second, conflicting filter). Rates move in POINTS, not percent: a yield going
    from 4.00% to 4.40% is "+0.40 pts", where "+10%" would mislead. The
    wording explains what a reading is; it does not predict (the yield
    test is pre-registered separately, promptove/86). */
-var _bfLong = 30;
+var _bfLong = 90;
 
 var BF_SRC = {
   treasury: { n: 'U.S. Treasury', u: 'https://home.treasury.gov/resource-center/data-chart-center/interest-rates' },
