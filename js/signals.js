@@ -670,11 +670,13 @@ function renderLensRail() {
    undatable. Those render the state with no age rather than a guess —
    `cross_days_ago` is null and we say nothing rather than something
    wrong. */
-/* A death cross is shown only while it is recent (Daniel, 2026-10-06):
-   undated (older than the ~15 days the stored window can date) or more
-   than 30 days old, it says nothing new and only adds a red mark. */
-function _deathCrossStale(t) {
-  return !!t && t.cross === 'death' && (t.crossDays == null || t.crossDays > 30);
+/* A golden or death cross is shown only while it is recent (Daniel,
+   2026-10-06: "only relevant if it happened in the last 30 days, where we
+   have a real track of the price"). Undated (older than the stored window
+   can date) or more than 30 days old, it is hidden, both kinds alike so
+   the table is not left greener or redder than it is. */
+function _crossStale(t) {
+  return !!t && !!t.cross && (t.crossDays == null || t.crossDays > 30);
 }
 function crossBadge(c) {
   if (!c || !c.sym || typeof coinTechnicals === 'undefined') return '';
@@ -683,7 +685,7 @@ function crossBadge(c) {
   if (typeof isPro === 'undefined' || !isPro) return '';
   var t = coinTechnicals[c.sym];
   if (!t || !t.cross) return '';
-  if (_deathCrossStale(t)) return '';
+  if (_crossStale(t)) return '';
 
   var golden = t.cross === 'golden';
   var icon   = golden ? '✨' : '☠';
@@ -698,9 +700,7 @@ function crossBadge(c) {
 
   var tip = (golden ? 'Golden cross' : 'Death cross')
     + ' — the 60-day average is ' + (golden ? 'above' : 'below') + ' the 125-day average.'
-    + (t.crossDays != null
-        ? ' Crossed ' + (t.crossDays === 0 ? 'today' : t.crossDays + ' day' + (t.crossDays === 1 ? '' : 's') + ' ago') + '.'
-        : ' The cross happened before the stored window, so its date is not known.')
+    + ' Crossed ' + (t.crossDays === 0 ? 'today' : t.crossDays + ' day' + (t.crossDays === 1 ? '' : 's') + ' ago') + '.'
     + ' Descriptive of past price only.';
 
   return '<span class="cross-badge" title="' + tip.replace(/"/g, '&quot;') + '"'

@@ -3843,20 +3843,19 @@ function _tdAbout(c) {
 
 /* ── Golden / death cross, inside the Insight Engine (Pro, 2026-10-04) ──
    The 60/125 cross: which side the coin is on, how long ago it crossed
-   (dated for about the last 2 weeks; older is "more than 2 weeks ago"),
+   (only a dated cross from the last 30 days is shown, 2026-10-06),
    and the tested record, so it is read as context, not as a call. */
 function _tdCrossTile(c) {
   if (!c || c.isStock || c.isStable || typeof coinTechnicals === 'undefined') return '';
   var t = coinTechnicals[c.sym];
   if (!t || !t.cross) return '';
-  if (typeof _deathCrossStale === 'function' && _deathCrossStale(t)) return '';   /* recent death crosses only (2026-10-06) */
+  if (typeof _crossStale === 'function' && _crossStale(t)) return '';   /* recent crosses only, golden and death (2026-10-06) */
   var golden = t.cross === 'golden';
   var cls = golden ? 'good' : 'bad';
-  var when = t.crossDays == null ? 'crossed more than 2 weeks ago'
-    : t.crossDays === 0 ? 'crossed at the latest close'
+  var when = t.crossDays === 0 ? 'crossed at the latest close'
     : 'crossed ' + t.crossDays + (t.crossDays === 1 ? ' day' : ' days') + ' ago';
   var tested = (typeof _crossTested === 'function') ? _crossTested(golden ? 'golden' : 'death') : '';
-  return '<div class="signal-tile' + (t.crossDays != null ? ' highlight-' + cls : '') + '" style="margin-top:2px;">'
+  return '<div class="signal-tile highlight-' + cls + '" style="margin-top:2px;">'
     + '<span class="tile-icon ' + cls + '">' + (golden ? '✨' : '☠') + '</span>'
     + '<div class="tile-body"><span class="tile-label">TREND CROSS (60D / 125D)</span>'
     + '<span class="tile-value ' + cls + '">' + (golden ? 'Golden cross' : 'Death cross') + '</span>'
