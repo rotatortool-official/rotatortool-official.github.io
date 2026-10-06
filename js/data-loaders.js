@@ -1562,8 +1562,27 @@ function startAutoRefresh() {
   }, 15 * 60 * 1000); /* 15 minutes */
 }
 
+/* The Substack funnel (promptove/137): links in the Rotator Weekly carry
+   ?utm_source=substack (not ?ref=, which is the referral code). Count the
+   arrival once per session, remember it for the session so a later
+   Telegram click counts as substack_to_telegram (pro-system.js
+   joinTelegram), and drop the parameter from the address bar, keeping
+   any #more= deep link. */
+function _countSubstackArrival() {
+  try {
+    var q = new URLSearchParams(location.search);
+    if ((q.get('utm_source') || '').toLowerCase() !== 'substack') return;
+    if (typeof supaCountFeature === 'function') supaCountFeature('from_substack', true);
+    try { sessionStorage.setItem('rot_from_substack', '1'); } catch (e) {}
+    q.delete('utm_source'); q.delete('utm_medium'); q.delete('utm_campaign');
+    var rest = q.toString();
+    history.replaceState(null, '', location.pathname + (rest ? '?' + rest : '') + location.hash);
+  } catch (e) {}
+}
+
 async function doLoad() {
   if (typeof supaCountFeature === 'function') supaCountFeature('page_view', true);   /* usage count, promptove/64 */
+  _countSubstackArrival();
   processIncomingRef();
   var _d = checkMyReferrals();
   isPro  = _d.pro || loadPro();

@@ -763,6 +763,8 @@ function updateProGates() {
 function joinTelegram(ev) {
   if (window.Analytics) Analytics.track('Telegram Channel Opened');
   if (typeof supaCountFeature === 'function') supaCountFeature('telegram_click');
+  /* The visit came from the Substack weekly (data-loaders.js _countSubstackArrival). */
+  try { if (sessionStorage.getItem('rot_from_substack') && typeof supaCountFeature === 'function') supaCountFeature('substack_to_telegram'); } catch (e) {}
   return true;
 }
 
