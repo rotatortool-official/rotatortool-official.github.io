@@ -1523,3 +1523,10 @@ Object.assign(MK_TEXT, {
   "Lending apps such as Aave let people deposit coins to earn interest or borrow against them. Staking apps such as Lido stake ETH for their users and hand back a token that keeps earning. Together they hold most of the money in DeFi; the lists above show the biggest of each.":
     "Апликациите за позајмување како Aave им овозможуваат на луѓето да вложат монети за да заработуваат камата или да позајмат врз нив. Апликациите за стејкинг како Lido стејкуваат ETH за своите корисници и им враќаат токен што продолжува да заработува. Заедно го држат најголемиот дел од парите во DeFi; листите погоре ги покажуваат најголемите од секој вид."
 });
+
+/* ── Top bar: Connections (Daniel, 2026-10-06) ── */
+Object.assign(MK_TEXT, {
+  "Follow Rotator": "Следете го Rotator",
+  "Weekly on Substack": "Неделно на Substack",
+  "Telegram channel": "Telegram канал"
+});

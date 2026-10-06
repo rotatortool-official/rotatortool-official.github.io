@@ -956,6 +956,28 @@
       </button>
     </div>
 
+    <!-- Connections (Daniel, 2026-10-06): where Rotator posts, next to Pro.
+         The same three links are in the phone's MORE menu. -->
+    <div class="tb-dropdown-wrap tb-connect">
+      <button class="tb-icon-btn" id="connect-topbar-btn" title="Follow Rotator" aria-label="Follow Rotator" aria-haspopup="true">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><path d="M8.6 13.5l6.8 4M15.4 6.5l-6.8 4"/></svg>
+      </button>
+      <div class="tb-dropdown" role="menu" aria-label="Follow Rotator">
+        <a class="tb-dropdown-item" role="menuitem" href="https://x.com/RotatorTool" target="_blank" rel="noopener">
+          <svg class="tb-dd-ico" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M17.8 3h3.1l-6.8 7.8L22 21h-6.2l-4.9-6.4L5.3 21H2.2l7.3-8.3L2 3h6.4l4.4 5.8L17.8 3zm-1.1 16.2h1.7L7.4 4.7H5.6l11.1 14.5z"/></svg>
+          <span>X <span class="tb-dd-handle">@RotatorTool</span></span>
+        </a>
+        <a class="tb-dropdown-item" role="menuitem" href="https://rotatortool.substack.com/" target="_blank" rel="noopener">
+          <svg class="tb-dd-ico" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M4 3h16v2.4H4zM4 7.3h16v2.4H4zM4 11.6h16V21l-8-4.4L4 21z"/></svg>
+          <span>Weekly on Substack</span>
+        </a>
+        <a class="tb-dropdown-item" role="menuitem" href="https://t.me/rotatortool" target="_blank" rel="noopener" onclick="return joinTelegram(event)">
+          <svg class="tb-dd-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" aria-hidden="true"><path d="M21.5 3.5L2.8 10.8l6.4 2.3 2.4 7.4 3.7-4.6 4.6 3.4 1.6-15.8z"/><path d="M9.2 13.1l9-7.2"/></svg>
+          <span>Telegram channel</span>
+        </a>
+      </div>
+    </div>
+
     <!-- Signal Assistant (Pro) — always visible, gates on click for non-Pro (same pattern as joinTelegram()) -->
     <div class="tb-dropdown-wrap">
       <button class="tb-icon-btn" onclick="openSignalAssistant()" title="Signal Assistant" aria-label="Signal Assistant" data-pro-only="1">
@@ -1628,6 +1650,16 @@
   <button type="button" class="mob-more-item" onclick="openPro();closeMobMore();">
     <span class="mmi-ico" aria-hidden="true">⚡</span><span>Unlock Pro</span>
   </button>
+  <!-- Connections: the top bar's "Follow Rotator" menu, for phones -->
+  <a class="mob-more-item" href="https://x.com/RotatorTool" target="_blank" rel="noopener" onclick="closeMobMore();">
+    <span class="mmi-ico" aria-hidden="true">𝕏</span><span>X <span class="tb-dd-handle">@RotatorTool</span></span>
+  </a>
+  <a class="mob-more-item" href="https://rotatortool.substack.com/" target="_blank" rel="noopener" onclick="closeMobMore();">
+    <span class="mmi-ico" aria-hidden="true">📰</span><span>Weekly on Substack</span>
+  </a>
+  <a class="mob-more-item" href="https://t.me/rotatortool" target="_blank" rel="noopener" onclick="closeMobMore(); return joinTelegram(event);">
+    <span class="mmi-ico" aria-hidden="true">✈</span><span>Telegram channel</span>
+  </a>
   <button type="button" class="mob-more-item" onclick="openSignalAssistant();closeMobMore();">
     <span class="mmi-ico" aria-hidden="true">🤖</span><span>Signal Assistant</span>
   </button>

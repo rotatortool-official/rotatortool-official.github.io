@@ -5638,3 +5638,7 @@ html.no-anim .mt-viewport::-webkit-scrollbar{display:none;}
 /* "This week's headlines" in a quiet tile's window (_bfWeeklyHtml). */
 .bf-weekly{margin-top:14px;padding-top:2px;}
 .bf-weekly .bf-news-list li:first-child{border-top:1px solid var(--bdr2);}
+/* Connections: the "Follow Rotator" menu next to Pro (Daniel, 2026-10-06). */
+.tb-dd-handle{color:var(--muted);margin-left:4px;}
+.tb-connect .tb-dropdown{min-width:210px;}
+a.mob-more-item{text-decoration:none;color:inherit;}
