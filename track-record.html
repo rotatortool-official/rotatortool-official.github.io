@@ -1691,7 +1691,10 @@ a{color:inherit;text-decoration:none}
 
     var grid  = document.getElementById('rot-grid');
     var empty = document.getElementById('rot-empty');
-    var all = evalList.concat(pendingList).sort(function(a, b) { return b.daysAgo - a.daysAgo; });
+    /* Newest first. It was oldest first with a cap of 24, which drew only
+       the oldest 24 of 125 calls and left the whole last week off the page
+       with nothing to scroll to (2026-10-07). */
+    var all = evalList.concat(pendingList).sort(function(a, b) { return a.daysAgo - b.daysAgo; });
     grid.innerHTML = '';
     empty.innerHTML = '';
     document.getElementById('rot-count').textContent = all.length ? all.length + (all.length === 1 ? ' call' : ' calls') : '';
@@ -1700,7 +1703,19 @@ a{color:inherit;text-decoration:none}
         + '<p>Rotation calls are recorded daily. Check back soon.</p></div>';
       return;
     }
-    all.slice(0, MAX_CARDS_PER_LIST * 2).forEach(function(r) { grid.appendChild(renderRotationCard(r)); });
+    var step = MAX_CARDS_PER_LIST * 2;
+    if (!renderRotation.shown) renderRotation.shown = step;
+    all.slice(0, renderRotation.shown).forEach(function(r) { grid.appendChild(renderRotationCard(r)); });
+    var more = document.getElementById('rot-more');
+    if (!more) {
+      more = document.createElement('button');
+      more.type = 'button'; more.id = 'rot-more'; more.className = 'calls-more';
+      more.textContent = 'Show more';
+      more.addEventListener('click', function() { renderRotation.shown += step; renderRotation(renderRotation.last); });
+      empty.parentNode.insertBefore(more, empty);
+    }
+    renderRotation.last = result;
+    more.hidden = all.length <= renderRotation.shown;
   }
 
   /* Before any fetch: the engine label and reset date are already known
