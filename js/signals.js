@@ -1572,6 +1572,25 @@ async function switchCategory(cat) {
   renderCoinSel();
 }
 
+/* The score cell's bar and phase (2026-10-11, from BlockHorizon's signal
+   table). The bar keeps its old fill (.sbf) and adds a dot (.sbp) at the
+   score's place on a 0..100 scale (a negative score sits at the
+   left edge); the light theme shows the
+   scale with its red / amber / green zones (scoreBand), dark keeps the
+   fill until Daniel approves. The phase is _tdStatus() from
+   coin-reading.js, the same cut-offs as "Ran ahead / Lagged this week". */
+function _scoreBar(sc, col) {
+  var pos = Math.max(0, Math.min(100, sc));   /* 0..100; below 0 sits at the left edge */
+  return '<div class="sb"><div class="sbf" style="width:' + Math.max(2, sc) + '%;background:' + col + ';"></div>'
+    + '<i class="sbp" style="left:' + pos.toFixed(1) + '%"></i></div>';
+}
+function _scorePhase(c) {
+  if (typeof _tdStatus !== 'function' || c.score == null) return '';
+  var st = _tdStatus(c);
+  var lab = st === 'ahead' ? 'Ahead' : st === 'lagging' ? 'Lagging' : 'Middle';
+  return '<span class="sph sph-' + st + '" title="This week: ' + (st === 'ahead' ? 'ran ahead of most coins' : st === 'lagging' ? 'trailed most coins' : 'in the middle of the pack') + '">' + lab + '</span>';
+}
+
 function renderTable() {
   var body = document.getElementById('tbody');
   if (!coins.length) return;
@@ -1663,13 +1682,13 @@ function renderTable() {
       col7   = '<td class="pc" data-label="7D">'  + pctSpan(c.p7)  + '</td>';
       col14  = '<td class="pc" data-label="14D">' + pctSpan(c.p14) + '</td>';
       col30  = '<td class="pc" data-label="30D">' + pctSpan(c.p30) + '</td>';
-      colScore = '<td class="r" data-label="SCORE" title="Partial score: momentum only (max 70). No tokenomics data applies to equities — not directly comparable to a crypto score."><div class="sw"><span class="sv" style="color:' + scC + ';">' + sc + '</span><div class="sb"><div class="sbf" style="width:' + Math.max(2, sc) + '%;background:' + scC + ';"></div></div><span style="font-size:12px;color:var(--muted);margin-left:3px;">MOM</span></div></td>';
+      colScore = '<td class="r" data-label="SCORE" title="Partial score: momentum only (max 70). No tokenomics data applies to equities — not directly comparable to a crypto score."><div class="sw">' + _scorePhase(c) + '<span class="sv" style="color:' + scC + ';">' + sc + '</span>' + _scoreBar(sc, scC) + '<span style="font-size:12px;color:var(--muted);margin-left:3px;">MOM</span></div></td>';
     } else {   /* the Rotator Score for everyone since 2026-10-10 (was blurred for free) */
       col24  = '<td class="pc" data-label="24H">' + pctSpan(c.p24) + '</td>';
       col7   = '<td class="pc" data-label="7D">' + pctSpan(c.p7)  + '</td>';
       col14  = '<td class="pc" data-label="14D">' + pctSpan(c.p14) + '</td>';
       col30  = '<td class="pc" data-label="30D">' + pctSpan(c.p30) + '</td>';
-      colScore = '<td class="r" data-label="SCORE"><div class="sw"><span class="sv" style="color:' + scC + ';">' + sc + '</span><div class="sb"><div class="sbf" style="width:' + Math.max(2, sc) + '%;background:' + scC + ';"></div></div></div></td>';
+      colScore = '<td class="r" data-label="SCORE"><div class="sw">' + _scorePhase(c) + '<span class="sv" style="color:' + scC + ';">' + sc + '</span>' + _scoreBar(sc, scC) + '</div></td>';
     }
 
     var _lv = _lens ? _lens.get(c) : null;

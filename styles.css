@@ -5774,3 +5774,32 @@ a.mob-more-item{text-decoration:none;color:inherit;}
   :root .bf-cell.flipped .bf-back{display:flex;flex-direction:column;align-items:flex-start;}
   :root .bf-has-more .bf-read{position:static;order:9;margin:6px 0 0;}
 }
+
+/* ── Leaderboard score as a position on the scale + phase, light first
+   (2026-10-11, BlockHorizon's signal table). 0..100 in three zones at
+   the scoreBand() cut-offs, 40 and 65; a negative score sits at the left. */
+.sbp,.sph{display:none;}
+:root.light .sb{
+  display:block;position:relative;overflow:visible;width:64px;height:5px;border-radius:3px;
+  background:linear-gradient(90deg,
+    color-mix(in srgb,var(--red) 70%,transparent) 0 40%,
+    color-mix(in srgb,var(--amber) 75%,transparent) 40% 65%,
+    color-mix(in srgb,var(--green) 75%,transparent) 65% 100%);
+}
+:root.light .sbf{display:none;}
+:root.light .sbp{
+  display:block;position:absolute;top:50%;width:9px;height:9px;border-radius:50%;
+  background:var(--bg2);border:2px solid var(--text);transform:translate(-50%,-50%);box-sizing:border-box;
+}
+:root.light .sph{
+  display:inline-block;font:600 10px/1.5 var(--font-ui);padding:0 6px;border-radius:4px;letter-spacing:.02em;
+}
+:root.light .sph-ahead{color:#047857;background:rgba(5,150,105,.12);}
+:root.light .sph-middle{color:var(--muted);background:rgba(0,0,0,.05);}
+:root.light .sph-lagging{color:#b91c1c;background:rgba(220,38,38,.10);}
+:root.light .sw{gap:7px;}
+/* Phone cards: number and phase on top, the scale under them. */
+@media (max-width:700px){
+  :root.light #crypto-panel .sw{display:grid;grid-template-columns:auto auto;justify-content:end;align-items:center;row-gap:5px;}
+  :root.light #crypto-panel .sb{grid-column:1 / -1;width:auto;}
+}
