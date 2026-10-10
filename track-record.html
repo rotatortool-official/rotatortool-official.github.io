@@ -94,6 +94,9 @@ a{color:inherit;text-decoration:none}
 .legacy-pair .legacy{margin:0;flex:1 1 380px;max-width:560px;}
 .legacy.bot{border-left-color:var(--bnb);}
 .legacy.bot .legacy-title,.legacy.bot .legacy-pct{color:var(--bnb);}
+.botrec-100{margin-top:12px;padding:10px 12px;border:1px solid rgba(243,186,47,.35);border-radius:6px;background:rgba(243,186,47,.06);}
+.b100-main{font-size:14px;color:var(--text);font-weight:600;line-height:1.45;}
+.b100-sub{font-size:12px;color:var(--muted);line-height:1.5;margin-top:4px;}
 .legacy-months{display:grid;grid-template-columns:repeat(5,auto);gap:4px 14px;margin-top:12px;font-family:var(--font-mono);font-size:11px;color:var(--muted);}
 .legacy-months b{color:var(--text);font-weight:600;}
 .legacy-link{display:inline-block;margin-top:12px;font-size:12px;color:var(--bnb);text-decoration:underline;text-underline-offset:2px;}
@@ -299,6 +302,13 @@ a{color:inherit;text-decoration:none}
       <div class="legacy-body">
         <div class="legacy-pct" id="botrec-pct">—</div>
         <div class="legacy-meta" id="botrec-meta">Loading…</div>
+      </div>
+      <!-- "$100 in every pick" (2026-10-10, Daniel): computed in the
+           script below from the same file, never typed. Plain strings so
+           the MK dictionary's patterns can translate them. -->
+      <div class="botrec-100" id="botrec-100" hidden>
+        <div class="b100-main" id="b100-main"></div>
+        <div class="b100-sub" id="b100-sub"></div>
       </div>
       <div class="legacy-months" id="botrec-months"></div>
       <div class="legacy-note">
@@ -1793,6 +1803,21 @@ a{color:inherit;text-decoration:none}
         + 'To ' + esc(asOf) + ': <b>' + LN.pct.toFixed(1) + '%</b> beat the 100 largest; rotate-in beat that day\'s rotate-out on <b>' + VO.pct.toFixed(0) + '%</b> of days<br>'
         + 'Rotate-out picks: <b>' + o30.pct.toFixed(1) + '%</b> trailed the median at 30 days, no edge<br>'
         + '<span style="opacity:.7">' + d.meta.days + ' days · ' + d.meta.window[0] + ' → ' + d.meta.window[1] + ' · ' + S.skippedNoHistory + ' picks had no Binance history</span>';
+      /* $100 in every graded rotate-in pick, sold on the close 30 days
+         later; the median coin's return on the same days is ret30 - ex30. */
+      (function () {
+        var g = d.picks.filter(function (r) { return r[1] === 'in' && r[7] != null && r[8] != null; });
+        if (!g.length) return;
+        var put = g.length * 100, back = 0, med = 0;
+        g.forEach(function (r) { back += 100 * (1 + r[7] / 100); med += 100 * (1 + (r[7] - r[8]) / 100); });
+        function usd(v) { return '$' + Math.round(v).toLocaleString('en-US'); }
+        function sg(v) { return (v >= 0 ? '+' : '-') + Math.abs(v).toFixed(1) + '%'; }
+        document.getElementById('b100-main').textContent = '$100 in each of the ' + g.length + ' rotate-in picks, sold 30 days later: '
+          + usd(put) + ' in, ' + usd(back) + ' back (' + sg((back / put - 1) * 100) + ').';
+        document.getElementById('b100-sub').textContent = 'The same money in the average coin on the same days: '
+          + sg((med / put - 1) * 100) + '. Wins and losses both counted, before trading fees.';
+        document.getElementById('botrec-100').hidden = false;
+      })();
       document.getElementById('botrec-months').innerHTML = d.months.filter(function (m) { return m.in.n >= 20; }).map(function (m) {
         return '<span>' + esc(m.month) + ' <b>' + Math.round(m.in.right / m.in.n * 100) + '%</b></span>';
       }).join('');

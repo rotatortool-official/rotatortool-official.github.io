@@ -703,6 +703,12 @@ Object.assign(MK_TEXT, {
   P(/^(\d+) more in Pro$/, function (m) { return 'уште ' + m[1] + ' во Pro'; });
   /* RECORD: the April-August picks (dynamic lines) */
   P(/^Against the 100 largest coins only: ([\d.]+%)$/, function (m) { return 'Само наспроти 100-те најголеми монети: ' + m[1]; });
+  P(/^\$100 in each of the (\d+) rotate-in picks, sold 30 days later: (\$[\d,]+) in, (\$[\d,]+) back \(([+-][\d.]+%)\)\.$/, function (m) {
+    return '$100 во секој од ' + m[1] + '-те избори за влез, продадени по 30 дена: вложени ' + m[2] + ', назад ' + m[3] + ' (' + m[4].replace('.', ',') + ').';
+  });
+  P(/^The same money in the average coin on the same days: ([+-][\d.]+%)\. Wins and losses both counted, before trading fees\.$/, function (m) {
+    return 'Истите пари во просечната монета во истите денови: ' + m[1].replace('.', ',') + '. Броени се и добивките и загубите, пред провизиите за тргување.';
+  });
   P(/^To (\d{4}-\d\d-\d\d)$/, function (m) { return 'До ' + m[1]; });
   P(/^(BEST|WORST) 20 ROTATE-IN PICKS, TO (\d{4}-\d\d-\d\d)$/, function (m) { return (m[1] === 'BEST' ? 'НАЈДОБРИ' : 'НАЈЛОШИ') + ' 20 ИЗБОРИ ЗА ВЛЕЗ, ДО ' + m[2]; });
   /* RECORD: channel posts (HANDOVER.md Task 2) */
