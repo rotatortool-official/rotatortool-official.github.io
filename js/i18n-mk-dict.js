@@ -703,11 +703,13 @@ Object.assign(MK_TEXT, {
   P(/^(\d+) more in Pro$/, function (m) { return 'уште ' + m[1] + ' во Pro'; });
   /* RECORD: the April-August picks (dynamic lines) */
   P(/^Against the 100 largest coins only: ([\d.]+%)$/, function (m) { return 'Само наспроти 100-те најголеми монети: ' + m[1]; });
-  P(/^\$100 in each of the (\d+) rotate-in picks, sold 30 days later: (\$[\d,]+) in, (\$[\d,]+) back \(([+-][\d.]+%)\)\.$/, function (m) {
-    return '$100 во секој од ' + m[1] + '-те избори за влез, продадени по 30 дена: вложени ' + m[2] + ', назад ' + m[3] + ' (' + m[4].replace('.', ',') + ').';
+  P(/^\$10 in each of the (\d+) rotate-in picks, (sold 30 days later|held to (\d{4}-\d\d-\d\d)): (\$[\d,]+) in, (\$[\d,]+) back \(([+-][\d.]+%)\)\.$/, function (m) {
+    return '$10 во секој од ' + m[1] + '-те избори за влез, ' + (m[3] ? 'задржани до ' + m[3] : 'продадени по 30 дена') + ': вложени ' + m[4] + ', назад ' + m[5] + ' (' + m[6].replace('.', ',') + ').';
   });
-  P(/^The same money in the average coin on the same days: ([+-][\d.]+%)\. Wins and losses both counted, before trading fees\.$/, function (m) {
-    return 'Истите пари во просечната монета во истите денови: ' + m[1].replace('.', ',') + '. Броени се и добивките и загубите, пред провизиите за тргување.';
+  P(/^(\d+) picks went up and (\d+) went down\. All of them are counted, not only the 40 above\. (Each pick is held from its own day, so (\d+) to (\d+) days\. )?The same money in the average coin on the same days: ([+-][\d.]+%)\. Before trading fees\.$/, function (m) {
+    return m[1] + ' избори пораснаа, а ' + m[2] + ' паднаа. Сите се бројат, не само 40-те погоре. '
+      + (m[3] ? 'Секој избор се држи од својот ден, значи од ' + m[4] + ' до ' + m[5] + ' дена. ' : '')
+      + 'Истите пари во просечната монета во истите денови: ' + m[6].replace('.', ',') + '. Пред провизиите за тргување.';
   });
   P(/^To (\d{4}-\d\d-\d\d)$/, function (m) { return 'До ' + m[1]; });
   P(/^(BEST|WORST) 20 ROTATE-IN PICKS, TO (\d{4}-\d\d-\d\d)$/, function (m) { return (m[1] === 'BEST' ? 'НАЈДОБРИ' : 'НАЈЛОШИ') + ' 20 ИЗБОРИ ЗА ВЛЕЗ, ДО ' + m[2]; });
