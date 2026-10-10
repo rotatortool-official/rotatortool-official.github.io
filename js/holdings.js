@@ -379,8 +379,8 @@ function _holderRisk(c) {
   var pct = u && u.unlock30d_pct != null ? Number(u.unlock30d_pct) : null;
   var line = (window.RotatorEngine && window.RotatorEngine.UNLOCK_PENDING_PCT != null)
     ? window.RotatorEngine.UNLOCK_PENDING_PCT : null;
-  /* The warning is free; the amount is Pro Insight (promptove/106). */
-  if (pct != null && line != null && pct > line) out.push(isPro ? pct.toFixed(1) + '% unlocks within 30 days' : 'Big unlock within 30 days');
+  /* The amount is free since 2026-10-10 (Daniel: Pro sells personal alerts, not data). */
+  if (pct != null && line != null && pct > line) out.push(pct.toFixed(1) + '% unlocks within 30 days');
   return out.join(' · ');
 }
 

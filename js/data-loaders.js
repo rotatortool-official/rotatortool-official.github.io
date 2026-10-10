@@ -5004,67 +5004,21 @@ function openTileDetail(coinId, evt) {
 
   renderRotationContext(c);
 
-  /* Insight Engine section — the coin window's ONE Pro section (Daniel,
-     2026-10-04). Pro: the insight score for coins you hold or watch, and
-     the golden / death cross tile on every crypto coin. Free: one unlock,
-     on every coin (the 24h-delayed snapshot for tracked coins stays). */
+  /* Insight Engine section. Free for everyone since 2026-10-10 (Daniel:
+     "offer just personalised alerts with pro and let the data be
+     visible"): the insight score for coins you hold or watch, and the
+     unlock and golden / death cross tiles on every crypto coin. Before,
+     free saw a 24h-delayed snapshot or a paywall (promptove/106). */
   var insSec = document.getElementById('td-insight-sec');
   var insEl  = document.getElementById('td-insight-content');
-  var crossTile = isPro ? _tdCrossTile(c) : '';
-  var unlockTile = isPro ? _tdUnlockTile(c) : '';
+  var crossTile = _tdCrossTile(c);
+  var unlockTile = _tdUnlockTile(c);
   if (insSec && insEl) {
     /* Identity via the shared helpers, so a ticker shared by two coins
        cannot unlock one coin's Insight section from the other. */
     var isTracked = ((typeof isHeldCoin === 'function') && isHeldCoin(c))
                  || ((typeof isWatchedCoin === 'function') && isWatchedCoin(c));
-    /* Free user: try yesterday's server snapshot. Falls back to the
-       old paywall if the snapshot service is offline or empty. */
-    var yi = (window.yesterdayInsights && window.yesterdayInsights.map)
-              ? window.yesterdayInsights.map[c.id] : null;
-    if (!isPro && isTracked && yi && yi.insight) {
-      var ydate = window.yesterdayInsights.date || '';
-      var ins = yi.insight;
-      /* Server data, but escaped anyway (promptove/108): this row used to
-         be writable by any browser, and it is put on the page as HTML. */
-      var insCls = /^insight-(buy|neut|warn)$/.test(ins.color || '') ? ins.color : 'insight-neut';
-      var sc = typeof ins.score === 'number' ? ins.score : 0;
-      var scColor = sc >= 65 ? 'var(--green)' : sc <= 35 ? 'var(--red)' : '#87CEEB';
-      var dlHtml = '<div class="td-delayed-banner">'
-        + '<span class="td-delayed-tag">24H DELAYED</span>'
-        + '<span class="td-delayed-sub">Snapshot from ' + _esc(ydate) + ' · Pro sees today\'s live</span>'
-        + '</div>'
-        + '<div class="td-insight-header">'
-        + '<div class="insight-pulse ' + insCls + ' td-insight-pulse"><span class="insight-dot"></span><span class="insight-lbl">' + _esc(ins.label || '—') + '</span></div>'
-        + '<span class="td-insight-score" style="color:' + scColor + ';">' + sc + '<span style="font-size:12px;color:var(--muted);"> / 100</span></span>'
-        + '</div>';
-      if (Array.isArray(ins.signals) && ins.signals.length) {
-        dlHtml += '<div class="signal-tile-grid">';
-        ins.signals.forEach(function(s) {
-          s = String(s == null ? '' : s);
-          var cls = 'neutral';
-          if (s.indexOf('Oversold') >= 0 || s.indexOf('Accumulation') >= 0 || s.indexOf('Hidden Strength') >= 0 || s.indexOf('Cleared') >= 0 || s.indexOf('Extreme Fear') >= 0 || s.indexOf('Outperforming') >= 0 || s.indexOf('Bullish Cross') >= 0 || s.indexOf('MACD Above') >= 0 || s.indexOf('Accelerating') >= 0 || s.indexOf('Recovery') >= 0) cls = 'good';   /* BB Squeeze left neutral: it says nothing about direction (promptove/75) */
-          else if (s.indexOf('Overbought') >= 0 || s.indexOf('Dilution') >= 0 || s.indexOf('Greed') >= 0 || s.indexOf('Underperforming') >= 0 || s.indexOf('Low Liquidity') >= 0 || s.indexOf('Bearish Cross') >= 0 || s.indexOf('MACD Below') >= 0 || s.indexOf('Decelerating') >= 0 || s.indexOf('Weakening') >= 0) cls = 'bad';
-          var icon = cls === 'good' ? '✓' : cls === 'bad' ? '−' : '—';
-          var hlCls = cls === 'good' ? ' highlight-good' : cls === 'bad' ? ' highlight-bad' : '';
-          dlHtml += '<div class="signal-tile' + hlCls + '">'
-            + '<span class="tile-icon ' + cls + '">' + icon + '</span>'
-            + '<div class="tile-body"><span class="tile-value ' + cls + '">' + _esc(s) + '</span></div></div>';
-        });
-        dlHtml += '</div>';
-      }
-      dlHtml += '<div class="td-delayed-cta">'
-        + '<div class="td-delayed-cta-txt">Today\'s insight, with unlock dates and golden and death cross timing, is live for Pro users.</div>'
-        + '<button class="code-btn" onclick="openPro()" style="font-size:12px;padding:6px 14px;">⚡ UNLOCK TODAY\'S SIGNAL</button>'
-        + '</div>';
-      insEl.innerHTML = dlHtml;
-      insSec.style.display = '';
-    } else if (!isPro && !c.isStable) {
-      insEl.innerHTML = '<div style="text-align:center;padding:10px 0;">'
-        + '<div style="font-size:12px;color:var(--muted);margin-bottom:6px;">The Insight Engine is Pro: the full insight score, unlock amounts and dates, and golden and death cross timing. Free with 5 invites or a code.</div>'
-        + '<button class="code-btn" onclick="openPro()" style="font-size:12px;padding:6px 14px;">⚡ UNLOCK PRO</button>'
-        + '</div>';
-      insSec.style.display = '';
-    } else if (isTracked && c.insight) {
+    if (isTracked && c.insight) {
       var ins = c.insight;
       var insHtml = '<div class="td-insight-header">'
         + '<div class="insight-pulse ' + ins.color + ' td-insight-pulse"><span class="insight-dot"></span><span class="insight-lbl">' + ins.label + '</span></div>'
@@ -5101,7 +5055,7 @@ function openTileDetail(coinId, evt) {
       insEl.innerHTML = insHtml + _tdVolumeTile(c) + unlockTile + crossTile;
       insSec.style.display = '';
       if (document.getElementById('td-vol-days')) _tdLoadVolumeDays(c.sym);
-    } else if (isPro && (crossTile || unlockTile)) {
+    } else if (crossTile || unlockTile) {
       /* A coin you do not hold or watch: the unlock schedule and the
          cross are still shown. */
       insEl.innerHTML = unlockTile + crossTile
@@ -5113,7 +5067,7 @@ function openTileDetail(coinId, evt) {
     /* Open the section when there is a fresh cross to see. */
     var insDet = insSec.querySelector('details');
     var tNow = (typeof coinTechnicals !== 'undefined') && coinTechnicals[c.sym];
-    if (insDet) insDet.open = !!(isPro && tNow && tNow.cross && tNow.crossDays != null);
+    if (insDet) insDet.open = !!(tNow && tNow.cross && tNow.crossDays != null);
   }
 
   /* Edit Holdings section — show only for held coins */

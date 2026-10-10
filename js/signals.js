@@ -559,12 +559,12 @@ var LENSES = [
      "golden cross is attractive only if it happened recently". Older
      crosses and the opposite state are blank and sort last. The tested
      record (config.js) is in the tip, so the lens is not read as a call. */
-  { id: 'gc',    label: '✨GC', none: 'none recent', hue: 140, pro: true,
+  { id: 'gc',    label: '✨GC', none: 'none recent', hue: 140,
     tip: 'Golden cross, most recent first: the 60-day average crossed above the 125-day. Only crosses from about the last 2 weeks are dated. ' + _crossTested('golden'),
     get: function(c) { var t = coinTechnicals[c.sym]; return t && t.cross === 'golden' && t.crossDays != null ? t.crossDays : null; },
     fmt: function(v) { return v === 0 ? 'today' : v + 'd ago'; },
     dir: 'recent' },
-  { id: 'dc',    label: '☠DC', none: 'none recent', hue: 4, pro: true,
+  { id: 'dc',    label: '☠DC', none: 'none recent', hue: 4,
     tip: 'Death cross, most recent first: the 60-day average crossed below the 125-day. Only crosses from about the last 2 weeks are dated. ' + _crossTested('death'),
     get: function(c) { var t = coinTechnicals[c.sym]; return t && t.cross === 'death' && t.crossDays != null ? t.crossDays : null; },
     fmt: function(v) { return v === 0 ? 'today' : v + 'd ago'; },
@@ -599,9 +599,9 @@ function _lensColor(lens, v, lo, hi) {
   return 'hsl(' + hue.toFixed(0) + ',72%,' + (46 + t * 6).toFixed(0) + '%)';
 }
 
-/* Pro-only lenses (golden / death cross, Daniel 2026-10-04): non-Pro
-   visitors see them with a PRO mark, and a click opens the Pro window,
-   as the Signal Assistant does. */
+/* A lens with `pro: true` shows a PRO mark to non-Pro visitors and a
+   click opens the Pro window. None has it since 2026-10-10: the golden /
+   death cross lenses went free (Daniel: Pro sells personal alerts, not data). */
 function _lensLocked(l) { return !!(l && l.pro && (typeof isPro === 'undefined' || !isPro)); }
 function setLens(id) {
   var l = LENSES.filter(function (x) { return x.id === id; })[0];
@@ -696,9 +696,8 @@ function bizBadge(c) {
 }
 function crossBadge(c) {
   if (!c || !c.sym || typeof coinTechnicals === 'undefined') return '';
-  /* Pro only since 2026-10-04 (Daniel), like the cross lenses and the
-     coin window's cross tile. */
-  if (typeof isPro === 'undefined' || !isPro) return '';
+  /* Free since 2026-10-10 (was Pro from 2026-10-04), like the cross
+     lenses and the coin window's cross tile. */
   var t = coinTechnicals[c.sym];
   if (!t || !t.cross) return '';
   if (_crossStale(t)) return '';
@@ -1098,12 +1097,12 @@ function renderTopBars() {
       + '</div></div>';
   }
 
-  /* ── Column 3: Worst 30D — 2 free / 4 Pro ──
+  /* ── Column 3: Worst 30D — the same for everyone since 2026-10-10 ──
      bStocks excluded — separate scoring model (momentum-only, no
      tokenomics), not directly comparable to crypto rotation signals. */
   var worstAll = coins.slice().filter(function(c) { return !c.isStock; }).sort(function(a, b) { return a.p30 - b.p30; });
   var worstEl  = document.getElementById('worst-cards');
-  if (isPro) {
+  {   /* six for everyone since 2026-10-10 (was 2 free / 6 Pro) */
     /* SIX, not four. The three signal columns share a row, so the tallest
        sets the height — and Rotation is the tall one: its tile carries a
        sentence of explanation while a momentum tile is four compact stats.
@@ -1115,13 +1114,9 @@ function renderTopBars() {
     var worstTiles = worstAll.slice(0, 6).map(function(c) { return sigTile(c, 'wrst'); }).join('');
     for (var wp = worstAll.slice(0, 6).length; wp < 6; wp++) worstTiles += emptyPlaceholderTile();
     worstEl.innerHTML = '<div class="sig-tiles-grid">' + worstTiles + '</div>' + seedEvidenceFooter(worstAll.slice(0, 6));
-  } else {
-    var w3 = worstAll.slice(0, 2).map(function(c) { return sigTile(c, 'wrst'); }).join('');
-    var wLocked = proUnlockTile('4 more in Pro') + emptyPlaceholderTile();
-    worstEl.innerHTML = '<div class="sig-tiles-grid">' + w3 + wLocked + '</div>' + seedEvidenceFooter(worstAll.slice(0, 2));
   }
 
-  /* ── Column 2: High Momentum — 1 free / 6 Pro ── */
+  /* ── Column 2: High Momentum — the same for everyone since 2026-10-10 ── */
   /* Same delisted-coin exclusion as the buy-side filters above — a
      score-60+ coin shown here reads as a tip, not a warning, so the
      same "don't point at something you can't actually buy" reasoning
@@ -1163,7 +1158,7 @@ function renderTopBars() {
     if (heldRows.length) supaRecordHoldingsSnapshot(heldRows, (window.ROTATOR_RUN && window.ROTATOR_RUN.engineVersion) || null);
   }
   var momEl   = document.getElementById('mom-cards');
-  if (isPro) {
+  {   /* six for everyone since 2026-10-10 (was 1 free / 6 Pro) */
     if (momAll.length) {
     /* SIX, not four. The three signal columns share a row, so the tallest
        sets the height — and Rotation is the tall one: its tile carries a
@@ -1179,17 +1174,9 @@ function renderTopBars() {
     } else {
       momEl.innerHTML = '<div class="no-sug">Scanning \u2014 no coins above momentum threshold right now.</div>';
     }
-  } else {
-    if (momAll.length) {
-      var m1 = sigTile(momAll[0], 'mom');
-      var mLocked = proUnlockTile('unlock 5 more') + emptyPlaceholderTile() + emptyPlaceholderTile();
-      momEl.innerHTML = '<div class="sig-tiles-grid">' + m1 + mLocked + '</div>' + seedEvidenceFooter(momAll.slice(0, 1));
-    } else {
-      momEl.innerHTML = '<div class="no-sug">Scanning \u2014 no coins above momentum threshold right now.</div>';
-    }
   }
 
-  /* ── Column 1: Rotation Opportunities — 1 free (real, unblurred) / 5 blurred+locked Pro ── */
+  /* ── Column 1: Rotation Opportunities — the same for everyone since 2026-10-10 ── */
   var sugEl = document.getElementById('sug-cards');
 
   /* Compute real rotation pairs regardless of tier — bStocks excluded,
@@ -1224,62 +1211,8 @@ function renderTopBars() {
     return a.score - b.score;
   });
 
-  if (!isPro) {
-    /* Up to ROT_TILE_SLOTS genuinely mixed tiles — rotation pair,
-       standalone take-profit, or standalone buy. Built identically for
-       both tiers (see _buildRotationTiles); the tier decides only how
-       many of them are rendered for real, never what the list says. */
-    var previewTiles = _buildRotationTiles(sells, buys, allBuys, ROT_TILE_SLOTS);
-
-    function tileHtmlFor(t) {
-      if (t.type === 'pair') return sigRotTile(t.sell, t.buy);
-      if (t.type === 'profit') return takeProfitTile(t.c);
-      return buySuggestTile(t.c);
-    }
-
-    /* Helper: blurred tile with a centred lock overlay, clicking opens Pro modal */
-    function blurLockedTile(t) {
-      return '<div class="sig-rot-locked" onclick="openPro()" title="Unlock with Pro">'
-        + '<div class="sig-rot-blur">' + tileHtmlFor(t) + '</div>'
-        + '<div class="sig-rot-lock-overlay">'
-        + '<span style="font-size:14px;">⚡</span>'
-        + '<span style="font-size:12px;font-weight:700;letter-spacing:.09em;color:var(--pro);">PRO</span>'
-        + '</div>'
-        + '</div>';
-    }
-
-    var gridHtml = '';
-    previewTiles.forEach(function(t, idx) {
-      if (idx === 0) {
-        /* First tile: real, fully visible, clickable for detail */
-        gridHtml += tileHtmlFor(t);
-      } else if (idx === 1) {
-        /* Second tile: single Pro unlock tile */
-        gridHtml += proUnlockTile('unlock more');
-      } else {
-        /* Remaining tiles: plain placeholders */
-        gridHtml += emptyPlaceholderTile();
-      }
-    });
-
-    /* Always pad to exactly 4 slots with plain placeholders */
-    var filledCount = previewTiles.length;
-    if (filledCount === 1) gridHtml += proUnlockTile('unlock more');
-    for (var pad = Math.max(filledCount, 2); pad < ROT_TILE_SLOTS; pad++) {
-      gridHtml += emptyPlaceholderTile();
-    }
-
-    sugEl.innerHTML = '<div class="sig-tiles-grid">' + gridHtml + '</div>'
-      + rotationEvidenceFooter(previewTiles.map(function(t) { return t.type; }))
-      + seedEvidenceFooter(_tileCoins(previewTiles.slice(0, 1)))
-      + marketOversoldLine() + provenProofLine();
-    return;
-  }
-
-  /* Pro: full signals — genuinely mixed types, same logic as the free
-     tier above but showing up to 4 real tiles instead of 1. */
-  /* Same builder the Free branch above uses. Pro renders every tile it
-     returns; Free renders the first and locks the rest. */
+  /* Up to ROT_TILE_SLOTS genuinely mixed tiles for everyone since 2026-10-10 (was 1 free):
+     rotation pair, standalone take-profit, or standalone buy (_buildRotationTiles). */
   var proTiles = _buildRotationTiles(sells, buys, allBuys, ROT_TILE_SLOTS);
 
   if (!proTiles.length) {
@@ -1485,16 +1418,8 @@ function maybeSyncInsightSnapshots() {
   /* ── 1. Post today's insights (session-guarded — once per tab) ── */
   postTodaysInsights();
 
-  /* ── 2. Fetch yesterday's snapshot for free users only ── */
-  if (!isPro && typeof supaLoadYesterdayInsights === 'function') {
-    supaLoadYesterdayInsights().then(function(res) {
-      window.yesterdayInsights = res || { date: null, map: {} };
-      /* If a coin detail panel is open, re-render its insight section. */
-      if (typeof _tdCoin !== 'undefined' && _tdCoin && typeof openTileDetail === 'function') {
-        try { openTileDetail(_tdCoin.id); } catch (e) {}   /* takes an id (fixed promptove/108) */
-      }
-    });
-  }
+  /* ── 2. Yesterday's snapshot (supaLoadYesterdayInsights) was the free
+     users' 24h-delayed insight; since 2026-10-10 everyone sees today's. ── */
 }
 
 function postTodaysInsights() {
@@ -1744,19 +1669,12 @@ function renderTable() {
       col14  = '<td class="pc" data-label="14D">' + pctSpan(c.p14) + '</td>';
       col30  = '<td class="pc" data-label="30D">' + pctSpan(c.p30) + '</td>';
       colScore = '<td class="r" data-label="SCORE" title="Partial score: momentum only (max 70). No tokenomics data applies to equities — not directly comparable to a crypto score."><div class="sw"><span class="sv" style="color:' + scC + ';">' + sc + '</span><div class="sb"><div class="sbf" style="width:' + Math.max(2, sc) + '%;background:' + scC + ';"></div></div><span style="font-size:12px;color:var(--muted);margin-left:3px;">MOM</span></div></td>';
-    } else if (isPro) {
+    } else {   /* the Rotator Score for everyone since 2026-10-10 (was blurred for free) */
       col24  = '<td class="pc" data-label="24H">' + pctSpan(c.p24) + '</td>';
       col7   = '<td class="pc" data-label="7D">' + pctSpan(c.p7)  + '</td>';
       col14  = '<td class="pc" data-label="14D">' + pctSpan(c.p14) + '</td>';
       col30  = '<td class="pc" data-label="30D">' + pctSpan(c.p30) + '</td>';
       colScore = '<td class="r" data-label="SCORE"><div class="sw"><span class="sv" style="color:' + scC + ';">' + sc + '</span><div class="sb"><div class="sbf" style="width:' + Math.max(2, sc) + '%;background:' + scC + ';"></div></div></div></td>';
-    } else {
-      /* Free users: all % columns visible, only Score gated */
-      col24  = '<td class="pc" data-label="24H">' + pctSpan(c.p24) + '</td>';
-      col7   = '<td class="pc" data-label="7D">' + pctSpan(c.p7)  + '</td>';
-      col14  = '<td class="pc" data-label="14D">' + pctSpan(c.p14) + '</td>';
-      col30  = '<td class="pc" data-label="30D">' + pctSpan(c.p30) + '</td>';
-      colScore = '<td class="r pro-blur-cell" data-label="SCORE" onclick="event.stopPropagation();openPro()" title="Unlock Rotator Score with Pro"><div class="pro-blur-wrap"><div class="sw"><span class="sv" style="color:var(--muted);">' + sc + '</span><div class="sb"><div class="sbf" style="width:' + Math.max(2, sc) + '%;background:var(--muted);"></div></div></div></div><span class="pro-blur-lock">🔒</span></td>';
     }
 
     var _lv = _lens ? _lens.get(c) : null;

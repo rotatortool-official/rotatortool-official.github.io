@@ -97,16 +97,15 @@ function _twRow(r, dir) {
 }
 
 function _twCol(key, list, dir, title, empty) {
-  var limit = isPro ? (_twShowAll[key] ? list.length : _TW_PRO_ROWS) : _TW_FREE_ROWS;
+  /* The same rows for everyone since 2026-10-10 (was 2 free / 8 Pro). */
+  var limit = _twShowAll[key] ? list.length : _TW_PRO_ROWS;
   var html = '<div class="tw-col"><div class="tw-col-hd ' + dir + '">' + title + ' <span class="tw-n">' + list.length + '</span></div>';
   if (!list.length) return html + '<div class="tw-empty">' + empty + '</div></div>';
   html += list.slice(0, limit).map(function (r) { return _twRow(r, dir); }).join('');
   var rest = list.length - limit;
   if (rest > 0) {
-    html += isPro
-      ? '<button type="button" class="tw-more" onclick="_twShowAll.' + key + '=true;renderTurnScan()">Show all ' + list.length + '</button>'
-      : '<button type="button" class="tw-more pro" onclick="openPro()">⚡ ' + rest + ' more in Pro</button>';
-  } else if (isPro && _twShowAll[key] && list.length > _TW_PRO_ROWS) {
+    html += '<button type="button" class="tw-more" onclick="_twShowAll.' + key + '=true;renderTurnScan()">Show all ' + list.length + '</button>';
+  } else if (_twShowAll[key] && list.length > _TW_PRO_ROWS) {
     html += '<button type="button" class="tw-more" onclick="_twShowAll.' + key + '=false;renderTurnScan()">Show fewer</button>';
   }
   return html + '</div>';
@@ -123,7 +122,7 @@ function renderTurnScan() {
     : 'None of these signs has passed a test yet. A reading, not a forecast.';
   host.innerHTML = '<div class="tw-hd"><span class="tw-title">Turn signs across the market'
     + '<button type="button" class="info-i" aria-label="Early signs that a trend may be changing: a coin that ran ahead cooling off, or a lagging coin turning up. Open a coin to see the tested record behind its sign.">ⓘ</button></span>'
-    + (isPro ? '' : '<span class="tw-pro-tag">PRO shows all</span>') + '</div>'
+    + '</div>'
     + '<div class="tw-sub">Coins that have lagged and now show turn-up signs, and coins that have run ahead and now show cooling signs. '
     + 'The same reading as each coin\'s window; tap a coin to open it.</div>'
     + '<div class="tw-cols">'
@@ -173,11 +172,10 @@ function _twAlerts() {
     var line = (window.RotatorEngine && window.RotatorEngine.UNLOCK_PENDING_PCT != null) ? window.RotatorEngine.UNLOCK_PENDING_PCT : 5;
     if (pct != null && pct > line) {
       var when = u.next_unlock_at ? String(u.next_unlock_at).slice(0, 10) : '';
-      /* Free keeps the warning; the amount and date are Pro Insight
-         (Daniel, 2026-10-04, promptove/106). */
+      /* Amount and date free since 2026-10-10 (Daniel: Pro sells personal alerts, not data). */
       out.push(Object.assign({ key: c.sym + '|unlock|' + when, kind: 'unlock', pro: false, sev: 2,
-        title: isPro ? pct.toFixed(1) + '% of supply unlocks within 30 days' : 'Big unlock within 30 days',
-        detail: !isPro ? 'The amount and date are in the Pro Insight Engine.' : when ? 'Next unlock ' + when + '.' : 'New supply reaching the market can weigh on price.' }, base));
+        title: pct.toFixed(1) + '% of supply unlocks within 30 days',
+        detail: when ? 'Next unlock ' + when + '.' : 'New supply reaching the market can weigh on price.' }, base));
     }
     if (!c.isStock && !c.isStable && typeof _tdSigns === 'function') {
       var S; try { S = _tdSigns(c); } catch (e) { S = null; }

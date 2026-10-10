@@ -307,32 +307,29 @@ function openPro() {
              tool's support/resistance cues are free for everyone, so they
              are not listed here: the list used to claim them as Pro. */
           + '<div style="display:flex;justify-content:space-between;gap:10px;"><span>2 holdings</span><span style="color:var(--pro);text-align:right;">10 holdings</span></div>'
-          + '<div style="display:flex;justify-content:space-between;gap:10px;"><span>Turn signs: top 2 of each list</span><span style="color:var(--pro);text-align:right;">⚡ Every coin with a turn sign</span></div>'
           + '<div style="display:flex;justify-content:space-between;gap:10px;"><span>Exchange and unlock alerts</span><span style="color:var(--pro);text-align:right;">+ turn signs, ETF, Telegram DMs</span></div>'
           + '<div style="display:flex;justify-content:space-between;gap:10px;"><span>Default swap pair</span><span style="color:var(--pro);text-align:right;">Any swap pair</span></div>'
-          + '<div style="display:flex;justify-content:space-between;gap:10px;"><span>Insight Engine, 24h delayed</span><span style="color:var(--pro);text-align:right;">⚡ Insight Engine, live</span></div>'
-          /* Unlock amounts and dates moved into Pro Insight 2026-10-04 (promptove/106). */
-          + '<div style="display:flex;justify-content:space-between;gap:10px;"><span>Unlock due: a warning</span><span style="color:var(--pro);text-align:right;">⚡ Unlock amount, date and countdown</span></div>'
-          + '<div style="display:flex;justify-content:space-between;gap:10px;"><span>1 strongest, 2 weakest tiles</span><span style="color:var(--pro);text-align:right;">All 6 of each</span></div>'
+          /* 2026-10-10 (Daniel): every reading on the site is free; Pro is the
+             personal alerts. The live Insight Engine, unlock amounts, crosses,
+             all board tiles and all turn signs left this list that day. */
+          + '<div style="display:flex;justify-content:space-between;gap:10px;"><span>Save swap pairs</span><span style="color:var(--pro);text-align:right;">⚡ Alert when a saved pair hits its zone or target</span></div>'
+          + '<div style="display:flex;justify-content:space-between;gap:10px;"><span>Unlocks on the board</span><span style="color:var(--pro);text-align:right;">⚡ Telegram warning 3+ days before an unlock on your coins</span></div>'
           + '<div style="display:flex;justify-content:space-between;gap:10px;"><span>Shared market data, every 15 min</span><span style="color:var(--pro);text-align:right;">⚡ Fresh-data priority</span></div>'
-          + '<div style="display:flex;justify-content:space-between;gap:10px;"><span>Telegram market pulse channel</span><span style="color:var(--pro);text-align:right;">+ personal Telegram alerts</span></div>'
+          + '<div style="display:flex;justify-content:space-between;gap:10px;"><span>Telegram market pulse channel</span><span style="color:var(--pro);text-align:right;">+ personal Telegram briefing, Mon and Thu</span></div>'
         + '</div>'
       + '</div>'
 
-      /* ── What Pro shows: a real Insight Engine card (promptove/104) ──
-         A screenshot, EN or MK by page language, so the reader sees the
-         thing itself rather than a line in a table. Re-shoot it with the
-         workbench's capture script when the card changes. */
+      /* ── What Pro sends you (2026-10-10). Was a picture of the Insight
+         Engine (promptove/104); that is free now, so the window shows the
+         personal alerts instead. ── */
       + '<div class="pro-peek">'
-        + '<div class="pro-peek-hdr">WHAT PRO SHOWS IN A COIN WINDOW</div>'
+        + '<div class="pro-peek-hdr">WHAT PRO SENDS YOU</div>'
         + '<div class="pro-peek-body">'
-          + '<figure class="pro-peek-fig"><img src="img/pro-insight-' + ((typeof currentLang !== 'undefined' && currentLang === 'mk') ? 'mk' : 'en') + '.png" alt="The Insight Engine in a coin window, as a Pro member sees it" loading="lazy" tabindex="0" role="button" onclick="openImgZoom(this)" onkeydown="if(event.keyCode===13)openImgZoom(this)">'
-          + '<figcaption>Example: SOL on 4 Oct 2026, with its golden cross at the bottom. Click to enlarge.</figcaption></figure>'
           + '<ul class="pro-peek-list">'
-            + '<li>The insight score, and the readings behind it</li>'
-            + '<li>Volume against the coin’s usual, with the last 7 days</li>'
-            + '<li>Golden cross and death cross: when the 60-day average crossed the 125-day, with the tested record</li>'
-            + '<li>Live, for every coin you hold or watch. Free shows yesterday’s.</li>'
+            + '<li>A Telegram briefing every Monday and Thursday: the market, your coins, your swap pairs</li>'
+            + '<li>A warning 3+ days before an unlock on a coin you hold</li>'
+            + '<li>Right away: a Binance delisting on your coins, and your saved pairs reaching their zone or target</li>'
+            + '<li>Everything on the site stays free to read.</li>'
           + '</ul>'
         + '</div>'
       + '</div>'

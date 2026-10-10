@@ -5342,6 +5342,7 @@ details.td-reading-trust[open] > summary::before{content:'▾ ';}
 .pro-peek-list{margin:0;padding-left:16px;font-size:12px;line-height:1.7;color:var(--text);}
 .pro-peek-list li{margin-bottom:6px;}
 .pro-peek-list li::marker{color:var(--pro);}
+.pro-peek-body > .pro-peek-list:only-child{grid-column:1 / -1;}   /* no picture since 2026-10-10: the list takes the width */
 @media(max-width:480px){
   .pro-peek-body{grid-template-columns:120px minmax(0,1fr);gap:10px;}
 }

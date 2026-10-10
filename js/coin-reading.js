@@ -104,13 +104,12 @@ function _tdSignsRaw(c) {
   /* ── The 60/125 trend: a recent cross is a sign, the state is a fact ── */
   /* 7 days, not longer: the cross was tested at a 7-day horizon, so it
      stops being shown as a sign once that window has passed. */
-  /* Pro only since 2026-10-04 (Daniel): golden / death cross timing is a
-     Pro insight, like the SORT rail's cross lenses. Kept in this list for
-     Pro because the Momentum board and the Pro alerts read it
+  /* Free since 2026-10-10 (Pro-only from 2026-10-04 until Daniel's "let
+     the data be visible"). Kept in this list because the Momentum board and the Pro alerts read it
      (turn-watch.js); the coin window itself shows crosses only inside the
      Insight Engine (_tdCrossTile in data-loaders.js), so renderCoinReading
      leaves them out of Turn signals. */
-  if ((typeof isPro !== 'undefined' && isPro) && tech && tech.cross && tech.crossDays != null && tech.crossDays <= 7) {
+  if (tech && tech.cross && tech.crossDays != null && tech.crossDays <= 7) {
     if (tech.cross === 'golden') up.push({ title: 'Golden cross', when: tech.crossDays === 0 ? 'latest close' : tech.crossDays + ' days ago', detail: '60-day average crossed above the 125-day', ev: 'goldenCross', src: SRC.cross });
     else if (tech.cross === 'death') info.push({ title: 'Death cross', when: tech.crossDays === 0 ? 'latest close' : tech.crossDays + ' days ago', detail: '60-day average crossed below the 125-day. Tested, it was not a warning', ev: 'deathCross', src: SRC.cross });
   }
@@ -334,8 +333,7 @@ function _tdKeyFacts(c, tech) {
   var pct = u && u.unlock30d_pct != null ? Number(u.unlock30d_pct) : null;
   var line = (window.RotatorEngine && window.RotatorEngine.UNLOCK_PENDING_PCT != null) ? window.RotatorEngine.UNLOCK_PENDING_PCT : 5;
   if (pct == null) chip('No unlock schedule', 'muted', 'td-supply-sec', 'No published vesting schedule. That is not the same as no unlock due.');
-  /* Amount and date are Pro Insight (promptove/106); free sees that one is due. */
-  else if (pct > 0 && !isPro) chip('Unlock due in 30D', pct > line ? 'dn' : 'warn', 'td-supply-sec', 'The amount and date are in the Pro Insight Engine.');
+  /* Amount and date free for everyone since 2026-10-10 (Daniel: Pro sells personal alerts, not data). */
   else if (pct > 0) chip('Unlock ' + pct.toFixed(1) + '% in 30D' + (u.next_unlock_at ? ' · ' + String(u.next_unlock_at).slice(5, 10) : ''), pct > line ? 'dn' : 'warn', 'td-supply-sec');
   else chip('No unlock in 30D', 'up', 'td-supply-sec');
   return '<div class="td-facts">' + chips.join('') + '</div>';
