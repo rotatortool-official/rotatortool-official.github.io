@@ -1758,3 +1758,17 @@ Object.assign(MK_TEXT, {
   'Could not send. Try again in a moment.': 'Не успеа да се испрати. Обидете се повторно за момент.',
   'Rate Rotator': 'Оценете го Rotator'
 });
+/* The bell with nothing to watch yet (showAlertsIntro, 2026-10-11). */
+Object.assign(MK_TEXT, {
+  'Add the coins you hold or watch, and Rotator tells you when something changes on them.': 'Додадете ги монетите што ги држите или следите, и Rotator ви кажува кога нешто ќе се смени кај нив.',
+  'Free, here on the site': 'Бесплатно, тука на страницата',
+  'Exchange warnings and delistings': 'Предупредувања од берзата и отстранувања од листата',
+  'Big token unlocks': 'Големи отклучувања на токени',
+  'Pro, on Telegram': 'Pro, на Telegram',
+  'A briefing on your coins every Monday and Thursday': 'Преглед за вашите монети секој понеделник и четврток',
+  'Turn signs and your swap pairs': 'Знаци за свртување и вашите парови за замена',
+  'A message right away if a coin you hold is delisted': 'Порака веднаш ако монета што ја држите е отстранета од листата',
+  'Add a coin': 'Додадете монета',
+  'Open the Telegram bot': 'Отворете го Telegram ботот',
+  'Connect Telegram': 'Поврзете Telegram'
+});

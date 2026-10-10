@@ -448,5 +448,11 @@ function _twTgUnlink() {
 window.addEventListener('focus', function () { if (isPro && !_twTg.linked && _twTg.note) _twTgSync(true); });
 
 function openCoinAlerts() {
+  /* Nothing to alert on yet (no holding, watched coin or saved pair):
+     the bell used to scroll to an empty panel and seemed to do nothing.
+     It now explains what the alerts are and points to the bot
+     (js/engage.js, Daniel 2026-10-11). */
+  var has = (typeof holdings !== 'undefined' && holdings.length) || _twMyCoins().length || _twSavedPairs().length;
+  if (!has && typeof rotShowAlertsIntro === 'function') { rotShowAlertsIntro(); return; }
   if (typeof railGo === 'function') railGo('sec-yours');
 }

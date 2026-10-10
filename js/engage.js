@@ -174,10 +174,63 @@
     };
   }
 
-  var force = (location.search.match(/[?&]engage=(popup|feedback)\b/) || [])[1];
+  /* ── The bell with nothing to watch yet ───────────────────────────
+     BlockHorizon's "Custom alerts" card: what the alerts are, free and
+     Pro, and a way into the bot. Without a link code the bot answers
+     with the Pro pitch (telegram-webhook PITCH); a Pro member gets the
+     usual connect flow (_twTgConnect in turn-watch.js). */
+  function showAlertsIntro() {
+    if (document.querySelector('.ep-ov')) return;
+    var pro = typeof isPro !== 'undefined' && isPro;
+    var ov = document.createElement('div');
+    ov.className = 'ep-ov';
+    ov.innerHTML = '<div class="ai-card" role="dialog" aria-modal="true" aria-labelledby="ai-title">'
+      + '<button type="button" class="ep-x" aria-label="Close">×</button>'
+      + '<div class="ai-bell" aria-hidden="true"><svg viewBox="0 0 24 24" width="30" height="30" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.7 21a2 2 0 0 1-3.4 0"/></svg></div>'
+      + '<h2 class="ai-title" id="ai-title">Alerts for your coins</h2>'
+      + '<p class="ai-sub">Add the coins you hold or watch, and Rotator tells you when something changes on them.</p>'
+      + '<div class="ai-cols">'
+        + '<div class="ai-col"><div class="ai-k">Free, here on the site</div><ul>'
+          + '<li>Exchange warnings and delistings</li><li>Big token unlocks</li></ul></div>'
+        + '<div class="ai-col ai-pro"><div class="ai-k">Pro, on Telegram</div><ul>'
+          + '<li>A briefing on your coins every Monday and Thursday</li><li>Turn signs and your swap pairs</li>'
+          + '<li>A message right away if a coin you hold is delisted</li></ul></div>'
+      + '</div>'
+      + '<div class="ai-btns">'
+        + '<button type="button" class="ai-add">Add a coin</button>'
+        + '<button type="button" class="ai-bot">' + (pro ? 'Connect Telegram' : 'Open the Telegram bot') + '</button>'
+      + '</div>'
+    + '</div>';
+    document.body.appendChild(ov);
+    requestAnimationFrame(function () { ov.classList.add('in'); });
+    function close() { ov.classList.remove('in'); document.removeEventListener('keydown', onKey); setTimeout(function () { ov.remove(); }, 200); }
+    function onKey(e) { if (e.key === 'Escape') close(); }
+    document.addEventListener('keydown', onKey);
+    ov.addEventListener('click', function (e) { if (e.target === ov) close(); });
+    ov.querySelector('.ep-x').onclick = close;
+    ov.querySelector('.ai-add').onclick = function () { close(); if (typeof railGo === 'function') railGo('sec-yours'); };
+    ov.querySelector('.ai-bot').onclick = function () {
+      if (window.Analytics) Analytics.track('Alerts Intro Bot Click', { pro: pro });
+      if (pro && typeof _twTgConnect === 'function') { close(); _twTgConnect(); return; }
+      /* Open the tab inside the click so popup blockers allow it. */
+      var w = null; try { w = window.open('about:blank', '_blank'); } catch (e) {}
+      var go = function (name) {
+        var link = 'https://t.me/' + encodeURIComponent(name || 'rotator_alerts_bot');
+        if (w) w.location.href = link; else window.location.href = link;
+      };
+      var q = (typeof supaCacheGetStale === 'function') ? supaCacheGetStale('telegram_bot_info') : null;
+      if (q && q.then) q.then(function (r) { go(r && r.data && r.data.username); }, function () { go(); }); else go();
+      close();
+    };
+    if (window.Analytics) Analytics.track('Alerts Intro Shown');
+  }
+  window.rotShowAlertsIntro = showAlertsIntro;
+
+  var force = (location.search.match(/[?&]engage=(popup|feedback|alerts)\b/) || [])[1];
   window.addEventListener('load', function () {
     if (force === 'popup') return setTimeout(showPopup, 1500);
     if (force === 'feedback') return setTimeout(showFeedback, 1500);
+    if (force === 'alerts') return setTimeout(showAlertsIntro, 1500);
     if (visits >= 2 && !snoozed('rot_pp_until'))
       when(30000, function () { return !(typeof isPro !== 'undefined' && isPro) && !shownThisVisit; }, showPopup);
     if (visits >= 3 && !snoozed('rot_fb_until'))

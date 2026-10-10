@@ -5893,3 +5893,31 @@ a.mob-more-item{text-decoration:none;color:inherit;}
   .fb-card{left:12px;right:12px;width:auto;bottom:calc(84px + env(safe-area-inset-bottom,0px));}
   .fb-x{top:-10px;right:-6px;}
 }
+
+/* The bell with nothing to watch yet (showAlertsIntro in js/engage.js). */
+.ai-card{position:relative;width:100%;max-width:520px;padding:30px 28px 24px;border-radius:16px;text-align:center;
+  background:var(--bg2);border:1px solid var(--bdr);box-shadow:0 24px 60px rgba(0,0,0,.35);transform:translateY(8px);transition:transform .2s;}
+.ep-ov.in .ai-card{transform:none;}
+.ai-bell{color:var(--muted);margin-bottom:8px;}
+.ai-title{margin:0 0 8px;font-size:22px;font-weight:700;color:var(--text);letter-spacing:-.01em;}
+.ai-sub{margin:0 auto 18px;max-width:400px;font-size:13.5px;line-height:1.55;color:var(--muted);}
+.ai-cols{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:20px;text-align:left;}
+.ai-col{border:1px solid var(--bdr);border-radius:10px;padding:12px 12px 8px;background:var(--bg3);}
+.ai-pro{border-color:color-mix(in srgb,var(--pro,#8b5cf6) 45%,var(--bdr));}
+.ai-k{font:700 10.5px/1.2 var(--font-ui);letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin-bottom:6px;}
+.ai-pro .ai-k{color:var(--pro,#8b5cf6);}
+.ai-col ul{list-style:none;margin:0;padding:0;font-size:12.5px;line-height:1.4;color:var(--text);}
+.ai-col li{position:relative;padding:3px 0 3px 16px;}
+.ai-col li::before{content:'✓';position:absolute;left:0;color:var(--green);font-weight:700;}
+.ai-btns{display:flex;gap:10px;justify-content:center;}
+.ai-add,.ai-bot{padding:11px 18px;border-radius:9px;font:600 14px/1 var(--font-ui);cursor:pointer;}
+.ai-add{background:var(--bg3);color:var(--text);border:1px solid var(--bdr2);}
+.ai-bot{background:#f3ba2f;color:#111;border:0;}
+.ai-bot:hover{filter:brightness(1.06);}
+@media (max-width:700px){
+  .ep-ov .ai-card{padding:24px 18px 18px;}
+  .ai-title{font-size:19px;}
+  .ai-cols{grid-template-columns:1fr;}
+  .ai-btns{flex-direction:column-reverse;}
+  .ai-add,.ai-bot{width:100%;padding:13px;}
+}
