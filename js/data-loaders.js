@@ -1642,6 +1642,7 @@ async function doLoad() {
     renderBriefing();
     renderEtfFlows();
     renderChainFlows();
+    renderTokenUnlocks();
     renderFearGreed(); /* takes the banner slot if the scaling tip is already dismissed */
     prog(92, 'Almost ready — building your dashboard…');
     renderAll();         prog(100, 'All done! This free tool is built by one person — thanks for your patience ♥');
@@ -3229,6 +3230,94 @@ function renderChainFlows() {
     + (_cfAgeMs != null && L === _CF_TXT.en ? ' · ' + _bfAge(_cfAgeMs) : '') + '</div>';
 }
 
+/* ── Upcoming token unlocks, with a countdown (Daniel, 2026-10-10) ───
+   READ ONLY, from the same token_unlocks map the coin window uses
+   (sync-token-unlocks, DefiLlama). One tile: the coins from OUR list
+   with a cliff unlock in the next 30 days, BIGGEST FIRST, each with a
+   live timer to the moment it unlocks.
+
+   CLIFFS ONLY. Many schedules vest a sliver every day (0.1% of supply);
+   listing those would push the real cliffs off the tile, so a next step
+   under _UL_MIN % is left out. Coverage is ~30% of the universe: a coin
+   missing here may simply have no published schedule, and the footer
+   says so rather than implying the rest are clear.
+
+   The size and dollar value are Pro, as in the coin window (Daniel,
+   2026-10-04): free sees which coin unlocks and when, never the amount.
+   Light theme only for now (the experimental board); dark hides it in
+   styles.css until Daniel approves the look. */
+var _UL_ROWS = 8, _UL_MIN = 0.5, _UL_DAYS = 30, _ulTimer = null;
+var _UL_TXT = {
+  en: {
+    group: 'Upcoming token unlocks', supply: 'of supply', pro: 'size in Pro', open: 'Open the coin',
+    none: 'No large unlocks due for our coins in the next 30 days.',
+    note: 'New coins released to holders, biggest first. Extra supply often weighs on the price around the date.',
+    foot: 'Only coins with a published vesting schedule, about 1 in 3 of our list',
+    source: 'Source', d: 'd', now: 'unlocking now'
+  },
+  mk: {
+    group: 'Претстојни отклучувања на токени', supply: 'од понудата', pro: 'износ во Pro', open: 'Отвори ја монетата',
+    none: 'Нема големи отклучувања за нашите монети во следните 30 дена.',
+    note: 'Нови монети пуштени на сопствениците, најголемите прво. Дополнителната понуда често ја притиска цената околу датумот.',
+    foot: 'Само монети со објавен распоред, околу 1 од 3 од нашата листа',
+    source: 'Извор', d: 'д', now: 'се отклучува сега'
+  }
+};
+function _ulL() { return (typeof currentLang !== 'undefined' && currentLang === 'mk') ? _UL_TXT.mk : _UL_TXT.en; }
+
+/* 6d 13:22:05, or 13:22:05 inside the last day. */
+function _ulLeft(ms) {
+  if (ms <= 0) return _ulL().now;
+  var s = Math.floor(ms / 1000), d = Math.floor(s / 86400), p = function (n) { return (n < 10 ? '0' : '') + n; };
+  var hms = p(Math.floor(s % 86400 / 3600)) + ':' + p(Math.floor(s % 3600 / 60)) + ':' + p(s % 60);
+  return d ? d + _ulL().d + ' ' + hms : hms;
+}
+function _ulTick() {
+  var els = document.querySelectorAll('#ul-strip [data-ul-at]');
+  if (!els.length) { clearInterval(_ulTimer); _ulTimer = null; return; }
+  var now = Date.now();
+  els.forEach(function (el) {
+    var left = Number(el.getAttribute('data-ul-at')) - now;
+    el.textContent = _ulLeft(left);
+    el.classList.toggle('soon', left < 86400000);
+  });
+}
+
+function renderTokenUnlocks() {
+  var host = document.getElementById('ul-strip');
+  if (!host) return;
+  var L = _ulL(), now = Date.now(), byId = {};
+  (typeof coins !== 'undefined' && Array.isArray(coins) ? coins : []).forEach(function (c) { if (c && c.id) byId[c.id] = c; });
+  var rows = Object.keys(_tokenUnlocks).map(function (id) {
+    var u = _tokenUnlocks[id], c = byId[id], at = u && u.next_unlock_at ? Date.parse(u.next_unlock_at) : NaN;
+    var pct = u && u.next_unlock_pct != null ? Number(u.next_unlock_pct) : null;
+    if (!c || c.isStable || isNaN(at) || pct == null || pct < _UL_MIN) return null;
+    if (at < now - 3600000 || at > now + _UL_DAYS * 86400000) return null;
+    return { c: c, at: at, pct: pct, usd: c.mcap ? c.mcap * pct / 100 : null };
+  }).filter(Boolean);
+  if (!Object.keys(_tokenUnlocks).length) { host.style.display = 'none'; return; }
+  rows.sort(function (a, b) { return b.pct - a.pct || a.at - b.at; });   /* biggest change on top */
+  var list = rows.slice(0, _UL_ROWS).map(function (r) {
+    var c = r.c, day = new Date(r.at), size = isPro
+      ? '<span class="ul-pct">' + (r.pct >= 10 ? r.pct.toFixed(0) : r.pct.toFixed(1)) + '%</span>'
+        + '<span class="ul-usd">' + (r.usd != null ? '≈' + _cfUsd(r.usd) : '') + '</span>'
+      : '<span class="ul-pro" onclick="event.stopPropagation();openPro()">' + L.pro + '</span>';
+    return '<button type="button" class="ul-row" onclick="openTileDetail(\'' + c.id + '\',event)" title="' + L.open + '">'
+      + '<span class="ul-coin">' + (c.image ? '<img src="' + c.image + '" alt="" width="16" height="16" loading="lazy" onerror="this.style.display=\'none\'">' : '')
+      + '<b>' + _esc(c.sym) + '</b><em>' + day.getUTCDate() + ' ' + _cfL().months[day.getUTCMonth()] + '</em></span>'
+      + size
+      + '<span class="ul-left" data-ul-at="' + r.at + '">' + _ulLeft(r.at - now) + '</span></button>';
+  }).join('');
+  host.style.display = '';
+  host.innerHTML = '<div class="bf-group etf-group">' + L.group + '</div>'
+    + '<div class="etf-tile ul-tile">'
+    + (list ? '<div class="ul-list">' + list + '</div><div class="etf-head">' + L.note + '</div>'
+            : '<div class="etf-head">' + L.none + '</div>')
+    + '</div>'
+    + '<div class="etf-src">' + L.foot + ' · ' + L.source + ': <a href="https://defillama.com/unlocks" target="_blank" rel="noopener">DefiLlama</a></div>';
+  if (list && !_ulTimer) _ulTimer = setInterval(_ulTick, 1000);
+}
+
 /* dir: 1 from Arriving (biggest gain on top), -1 from Leaving (biggest loss on top). Without it
    (a header click, a language switch) the current order stays. */
 function openChainFlowsModal(dir) {
@@ -3509,6 +3598,7 @@ function setLang(lang) {
   /* ETF tiles and an open ETF window carry their own en/mk text. */
   if (typeof renderEtfFlows === 'function') renderEtfFlows();
   if (typeof renderChainFlows === 'function') renderChainFlows();
+  if (typeof renderTokenUnlocks === 'function') renderTokenUnlocks();
   /* TODAY: copper and gas show SI units in Macedonian (_bfWorldCell o.mk). */
   if (typeof renderBriefing === 'function') renderBriefing();
   if (typeof _twTgSync === 'function') _twTgSync(false);   /* Telegram alerts follow the site language */

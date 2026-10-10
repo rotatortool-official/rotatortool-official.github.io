@@ -741,6 +741,7 @@ function _showProRequestPending(msg) {
 
 /* ── Pro feature gates ──────────────────────────────────────── */
 function updateProGates() {
+  if (typeof renderTokenUnlocks === 'function') renderTokenUnlocks();   /* unlock sizes are Pro */
   /* Swap tool — always visible; only coin picker is Pro-gated */
   var swapGate = document.getElementById('swap-pro-gate');
   var swapBody = document.getElementById('ratio-section');
