@@ -5343,6 +5343,8 @@ details.td-reading-trust[open] > summary::before{content:'▾ ';}
 .pro-peek-list{margin:0;padding-left:16px;font-size:12px;line-height:1.7;color:var(--text);}
 .pro-peek-list li{margin-bottom:6px;}
 .pro-peek-list li::marker{color:var(--pro);}
+.pro-places{display:inline-block;margin:0 0 12px;padding:5px 11px;border-radius:999px;font-size:12px;font-weight:700;color:var(--amber);background:var(--ad);border:1px solid var(--amber);}
+.pro-places.full{color:var(--muted);background:none;border-color:var(--bdr2);}
 .pro-why{background:var(--bg3);border:1px solid var(--bdr2);border-radius:4px;padding:12px 14px;margin:0 0 14px;font-size:12px;line-height:1.6;color:var(--text);}
 .pro-why > div + div{margin-top:6px;}
 .pro-why .pro-why-hdr{font-size:11px;letter-spacing:.12em;color:var(--amber);font-weight:700;margin:0 0 6px;}

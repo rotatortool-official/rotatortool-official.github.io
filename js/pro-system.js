@@ -242,6 +242,25 @@ function showExpiryWarning(daysLeft) {
 }
 
 /* ── Pro modal ───────────────────────────────────────────────── */
+/* "N of 10 places left" (Daniel, 2026-10-10). The first 10 who pay keep
+   Pro while Rotator pays its own costs; early_supporter_places_left()
+   counts paid (tx) unlocks server side and returns one number only. A
+   failed read hides the line rather than guessing. */
+function _proPlacesFill() {
+  var el = document.getElementById('pro-places');
+  if (!el || typeof _supaRpc !== 'function') return;
+  _supaRpc('early_supporter_places_left').then(function (n) {
+    n = Number(n);
+    if (!isFinite(n) || n < 0) return;
+    var mk = typeof currentLang !== 'undefined' && currentLang === 'mk';
+    el.textContent = n > 0
+      ? (mk ? '🔥 Уште ' + n + ' од 10 места за раните поддржувачи' : '🔥 ' + n + ' of 10 early-supporter places left')
+      : (mk ? 'Сите 10 места за раните поддржувачи се пополнети' : 'All 10 early-supporter places are taken');
+    el.classList.toggle('full', n === 0);
+    el.style.display = '';
+  }).catch(function () {});
+}
+
 function openPro() {
   if (window.Analytics) Analytics.track('Pro Modal Opened');
   var body  = document.getElementById('pro-modal-body');
@@ -294,6 +313,7 @@ function openPro() {
     try { _proRequested = localStorage.getItem('rot_pro_requested') === '1'; } catch (e) {}
     body.innerHTML = '<div class="modal-title">⚡ Pro — free, or with a contribution</div>'
       + '<div class="modal-sub">Pro is optional. <strong>Rotator is free</strong> and runs on donations and the honor system.<br>Three ways to unlock the full features, all equal: <strong>invite 5 friends</strong> (free), <strong>redeem a Pro code</strong> (free), or a <strong>one-time contribution</strong>. The first 10 who pay keep Pro for as long as Rotator pays its own costs: their contributions cover the domain and the first year of servers. After that, Pro becomes a subscription.</div>'
+      + '<div class="pro-places" id="pro-places" style="display:none;"></div>'   /* filled by _proPlacesFill() */
       /* What Rotator is, and what Pro is worth (Daniel, 2026-10-10). Arithmetic, not a promise. */
       + '<div class="pro-why"><div class="pro-why-hdr">NOT BUY AND SELL SIGNALS</div>'
         + '<div>Rotator does not sell buy or sell signals. It presents data relevant to your holdings, on time, so you stay informed and make your own decisions.</div>'
@@ -443,6 +463,7 @@ function openPro() {
   }
 
   openModal('pro-modal');
+  _proPlacesFill();
   setTimeout(function() {
     var c = document.getElementById('pro-sparkle-c');
     if (c) startSparkle(c);
