@@ -3306,6 +3306,13 @@ var _HR_TXT = {
         foot: 'Откупи и согорувања: провизии вратени на сопствениците; без закажани согорувања како квартално кај BNB',
         up: 'повеќе од претходните 30 дена', dn: 'помалку од претходните 30 дена' }
 };
+/* The TODAY tiles' lock and flame (_bfEmbSvg), faint in the empty middle of
+   the list on a wide tile, never under text; a small badge by the title on
+   a phone (Daniel, 2026-10-10). */
+function _ulEmb(id, inList) {
+  var svg = typeof _bfEmbSvg === 'function' ? _bfEmbSvg(id) : '';
+  return svg ? '<span class="' + (inList ? 'ul-emb-bg' : 'ul-emb-badge') + '" aria-hidden="true">' + svg + '</span>' : '';
+}
 function _hrL() { return (typeof currentLang !== 'undefined' && currentLang === 'mk') ? _HR_TXT.mk : _HR_TXT.en; }
 async function loadHolderReturns() {
   if (typeof supaCacheGetStale !== 'function') return;
@@ -3333,8 +3340,8 @@ function _hrTile() {
       + '<span class="hr-yr">' + (r.yr >= 10 ? r.yr.toFixed(0) : r.yr.toFixed(1)) + '%</span></button>';
   }).join('');
   return '<div class="etf-tile ul-tile hr-tile">'
-    + '<div class="etf-tile-top"><span class="bf-k">' + L.title + '</span><span class="etf-more">' + L.d30 + ' · ' + L.yr + '</span></div>'
-    + '<div class="ul-list">' + list + '</div><div class="etf-head">' + L.note + '</div></div>';
+    + '<div class="etf-tile-top"><span class="bf-k">' + L.title + _ulEmb('flame') + '</span><span class="etf-more">' + L.d30 + ' · ' + L.yr + '</span></div>'
+    + '<div class="ul-list">' + _ulEmb('flame', true) + list + '</div><div class="etf-head">' + L.note + '</div></div>';
 }
 
 function renderTokenUnlocks() {
@@ -3367,8 +3374,8 @@ function renderTokenUnlocks() {
   host.classList.toggle('ul-solo', !hr);
   host.innerHTML = '<div class="bf-group etf-group">' + L.group + '</div>'
     + '<div class="etf-tile ul-tile">'
-    + '<div class="etf-tile-top"><span class="bf-k">' + L.title + '</span><span class="etf-more">' + L.d30 + '</span></div>'
-    + (list ? '<div class="ul-list">' + list + '</div><div class="etf-head">' + L.note + '</div>'
+    + '<div class="etf-tile-top"><span class="bf-k">' + L.title + _ulEmb('lock') + '</span><span class="etf-more">' + L.d30 + '</span></div>'
+    + (list ? '<div class="ul-list">' + _ulEmb('lock', true) + list + '</div><div class="etf-head">' + L.note + '</div>'
             + (isPro ? '' : '<div class="ul-tg" onclick="openPro()">' + L.tg + '</div>')
             : '<div class="etf-head">' + L.none + '</div>')
     + '</div>'

@@ -4295,6 +4295,26 @@ rect.etf-out.etf-prov{stroke:var(--red);}
 .ul-coin i.up{color:var(--green);} .ul-coin i.dn{color:var(--red);}
 .hr-usd{font-family:var(--font-mono);font-size:11px;color:var(--text);opacity:.78;text-align:right;}
 .hr-yr{font-family:var(--font-mono);font-weight:700;color:var(--green);text-align:right;}
+.ul-list{position:relative;}
+.ul-row{position:relative;z-index:1;}
+.ul-emb-bg{position:absolute;z-index:0;pointer-events:none;line-height:0;left:42%;top:50%;width:78px;height:78px;
+  opacity:.13;transform:translate(-50%,-50%) rotate(-8deg);}
+.hr-tile .ul-emb-bg{left:46%;}
+:root:not(.light) .ul-emb-bg{opacity:.18;}
+.ul-emb-bg svg,.ul-emb-badge svg{display:block;width:100%;height:100%;}
+.ul-emb-badge{display:none;}
+@media(max-width:900px){
+  .ul-emb-bg{display:none;}
+  .ul-emb-badge{display:inline-block;vertical-align:-2px;margin-left:6px;width:13px;height:13px;opacity:.65;line-height:0;}
+}
+.ul-tg{position:relative;z-index:1;}   /* the header stays unpositioned so the emblem sits on the tile */
+.ul-emb{left:42%;top:46%;right:auto;bottom:auto;width:78px;height:78px;opacity:.13;
+  transform:translate(-50%,-50%) rotate(-8deg);-webkit-mask-image:none;mask-image:none;}
+.hr-tile .ul-emb{left:46%;}
+@media(min-width:901px){:root:not(.light) .ul-emb{opacity:.18;}}
+@media(max-width:900px){
+  .ul-emb{position:static;display:inline-block;vertical-align:-2px;margin-left:6px;width:13px;height:13px;opacity:.65;transform:none;}
+}
 .ul-tg{margin-top:6px;font-size:12px;color:var(--pro);cursor:pointer;line-height:1.4;}
 .ul-tg:hover{text-decoration:underline;}
 @media(max-width:600px){ .ul-row{grid-template-columns:minmax(0,1fr) 3em 4.2em 6.8em;gap:6px;} }
