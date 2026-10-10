@@ -3242,25 +3242,29 @@ function renderChainFlows() {
    missing here may simply have no published schedule, and the footer
    says so rather than implying the rest are clear.
 
-   The size and dollar value are Pro, as in the coin window (Daniel,
-   2026-10-04): free sees which coin unlocks and when, never the amount.
+   The two biggest are free in full; below them the size and dollar
+   value are Pro (Daniel, 2026-10-10: "2 free and the rest in pro"). The
+   data is public; what Pro sells is the on-time Telegram alert for a
+   coin you hold, 3 days before its unlock.
    Light theme only for now (the experimental board); dark hides it in
    styles.css until Daniel approves the look. */
-var _UL_ROWS = 8, _UL_MIN = 0.5, _UL_DAYS = 30, _ulTimer = null;
+var _UL_ROWS = 8, _UL_FREE = 2, _UL_MIN = 0.5, _UL_DAYS = 30, _ulTimer = null;
 var _UL_TXT = {
   en: {
     group: 'Upcoming token unlocks', supply: 'of supply', pro: 'size in Pro', open: 'Open the coin',
     none: 'No large unlocks due for our coins in the next 30 days.',
     note: 'New coins released to holders, biggest first. Extra supply often weighs on the price around the date.',
     foot: 'Only coins with a published vesting schedule, about 1 in 3 of our list',
-    source: 'Source', d: 'd', now: 'unlocking now'
+    source: 'Source', d: 'd', now: 'unlocking now',
+    tg: '🔔 Pro: your Telegram briefing warns you 3+ days before an unlock on a coin you hold.'
   },
   mk: {
     group: 'Претстојни отклучувања на токени', supply: 'од понудата', pro: 'износ во Pro', open: 'Отвори ја монетата',
     none: 'Нема големи отклучувања за нашите монети во следните 30 дена.',
     note: 'Нови монети пуштени на сопствениците, најголемите прво. Дополнителната понуда често ја притиска цената околу датумот.',
     foot: 'Само монети со објавен распоред, околу 1 од 3 од нашата листа',
-    source: 'Извор', d: 'д', now: 'се отклучува сега'
+    source: 'Извор', d: 'д', now: 'се отклучува сега',
+    tg: '🔔 Pro: вашиот Telegram брифинг ве предупредува 3+ дена пред отклучување на монета што ја држите.'
   }
 };
 function _ulL() { return (typeof currentLang !== 'undefined' && currentLang === 'mk') ? _UL_TXT.mk : _UL_TXT.en; }
@@ -3297,8 +3301,8 @@ function renderTokenUnlocks() {
   }).filter(Boolean);
   if (!Object.keys(_tokenUnlocks).length) { host.style.display = 'none'; return; }
   rows.sort(function (a, b) { return b.pct - a.pct || a.at - b.at; });   /* biggest change on top */
-  var list = rows.slice(0, _UL_ROWS).map(function (r) {
-    var c = r.c, day = new Date(r.at), size = isPro
+  var list = rows.slice(0, _UL_ROWS).map(function (r, i) {
+    var c = r.c, day = new Date(r.at), size = (isPro || i < _UL_FREE)
       ? '<span class="ul-pct">' + (r.pct >= 10 ? r.pct.toFixed(0) : r.pct.toFixed(1)) + '%</span>'
         + '<span class="ul-usd">' + (r.usd != null ? '≈' + _cfUsd(r.usd) : '') + '</span>'
       : '<span class="ul-pro" onclick="event.stopPropagation();openPro()">' + L.pro + '</span>';
@@ -3312,6 +3316,7 @@ function renderTokenUnlocks() {
   host.innerHTML = '<div class="bf-group etf-group">' + L.group + '</div>'
     + '<div class="etf-tile ul-tile">'
     + (list ? '<div class="ul-list">' + list + '</div><div class="etf-head">' + L.note + '</div>'
+            + (isPro ? '' : '<div class="ul-tg" onclick="openPro()">' + L.tg + '</div>')
             : '<div class="etf-head">' + L.none + '</div>')
     + '</div>'
     + '<div class="etf-src">' + L.foot + ' · ' + L.source + ': <a href="https://defillama.com/unlocks" target="_blank" rel="noopener">DefiLlama</a></div>';
