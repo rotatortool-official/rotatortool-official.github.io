@@ -1082,16 +1082,6 @@ function renderTopBars() {
      no re-run: it's just read off coins[] here like everything else. */
   var hSyms = holdings.map(function(h) { return h.sym; });
 
-  /* Helper: single supporter unlock tile (one per column only) */
-  function proUnlockTile(msg) {
-    return '<div class="sig-tile pro-locked" onclick="openPro()" style="cursor:pointer;'
-      + 'display:flex;flex-direction:column;align-items:center;justify-content:center;'
-      + 'gap:6px;min-height:88px;opacity:.85;">'
-      + '<span style="font-size:18px;">☕</span>'
-      + '<span style="font-size:12px;font-weight:700;letter-spacing:.1em;color:var(--bnb);">SUPPORTERS</span>'
-      + '<span style="font-size:12px;color:var(--muted);text-align:center;line-height:1.4;">' + msg + '</span>'
-      + '</div>';
-  }
 
   /* Helper: empty placeholder tile — guides user to add holdings */
   /* Opens the add-coin window. It used to focus #coin-sel, which has
@@ -1411,7 +1401,6 @@ function computeInsights() {
    All runs are gated by a session key (sessionStorage + in-memory) so
    opening the app in two tabs doesn't spam the RPC.
    ══════════════════════════════════════════════════════════════════ */
-window.yesterdayInsights = window.yesterdayInsights || { date: null, map: {} };
 var _insightSyncStarted = false;
 
 function maybeSyncInsightSnapshots() {
@@ -1635,9 +1624,7 @@ function renderTable() {
     return b.p30 - a.p30;
   });
   var hSyms    = holdings.map(function(h) { return h.sym; });
-  var freeCoins = sorted.filter(function(c) { return !c.isPro; });
-  var proCoins  = sorted.filter(function(c) { return  c.isPro; });
-  var toRender  = isPro ? sorted : freeCoins;
+  var toRender  = sorted;   /* every coin is free (the c.isPro split and its banner went 2026-10-10) */
 
   var html = toRender.map(function(c, i) {
     var isH    = hSyms.indexOf(c.sym) >= 0;
@@ -1708,12 +1695,6 @@ function renderTable() {
       + '</tr>';
   }).join('');
 
-  if (!isPro && proCoins.length) {
-    html += '<tr class="pro-upsell-row"><td colspan="9"><div class="pro-upsell-banner">'
-      + '<div class="pub-left"><span class="pub-icon">⚡</span><div><div class="pub-txt">+' + proCoins.length + ' more coins available in Pro</div><div class="pub-sub">Share with 5 friends or pay $20 crypto — instant unlock</div></div></div>'
-      + '<button class="pub-btn" onclick="openPro()">UNLOCK PRO →</button>'
-      + '</div></td></tr>';
-  }
   body.innerHTML = html;
   if (typeof renderLensRail === 'function') renderLensRail();
 }

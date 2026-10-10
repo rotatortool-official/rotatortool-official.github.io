@@ -1237,60 +1237,6 @@ function supaRecordInsights(rows) {
   });
 }
 
-/**
- * Load yesterday's insight snapshots, keyed by coin_id for O(1) lookup.
- * If yesterday has no rows (e.g. first day of deployment), falls back
- * to the most-recent past day that does have rows.
- * @returns {Promise<{date:string|null, map:Object<string,object>}>}
- */
-function supaLoadYesterdayInsights() {
-  /* Ask for up to 7 days back in one query so we have a fallback if
-     yesterday is empty (e.g. first day after launch). */
-  var cutoff = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
-  var cutoffDate = cutoff.getFullYear() + '-'
-                 + String(cutoff.getMonth() + 1).padStart(2, '0') + '-'
-                 + String(cutoff.getDate()).padStart(2, '0');
-
-  return supaRest('insight_snapshots', 'GET', {
-    'snap_date': 'gte.' + cutoffDate,
-    'select':    'snap_date,coin_id,coin_sym,insight,price',
-    'order':     'snap_date.desc'
-  }).then(function(rows) {
-    if (!rows || !rows.length) return { date: null, map: {} };
-
-    /* Today's date in the browser's local timezone — used to skip
-       any rows stamped "today" (Pro users would see them live anyway,
-       and free users should only ever see yesterday or older). */
-    var now = new Date();
-    var todayStr = now.getFullYear() + '-'
-                 + String(now.getMonth() + 1).padStart(2, '0') + '-'
-                 + String(now.getDate()).padStart(2, '0');
-
-    /* Find the most recent snap_date that is NOT today. */
-    var pickDate = null;
-    for (var i = 0; i < rows.length; i++) {
-      if (rows[i].snap_date !== todayStr) { pickDate = rows[i].snap_date; break; }
-    }
-    if (!pickDate) return { date: null, map: {} };
-
-    /* Build map of that day's rows only. */
-    var map = {};
-    rows.forEach(function(r) {
-      if (r.snap_date === pickDate && r.coin_id && r.insight) {
-        map[r.coin_id] = {
-          insight: r.insight,
-          price:   r.price != null ? Number(r.price) : null,
-          sym:     r.coin_sym || ''
-        };
-      }
-    });
-    return { date: pickDate, map: map };
-  }).catch(function(e) {
-    console.warn('[Supabase] load yesterday insights failed:', e.message);
-    return { date: null, map: {} };
-  });
-}
-
 /* ══════════════════════════════════════════════════════════════════
    PRO REQUEST PIPELINE  —  Donation → Auto-verified Pro activation
 

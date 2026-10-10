@@ -641,7 +641,7 @@ var PRO_TUT_STEPS = [
     "title": "📨 Your alerts on Telegram",
     "p": [
       "At the bottom of **Alerts for your coins**, click **Get these on Telegram**. Telegram opens; tap **Start** and you are linked.",
-      "From then on you get a short briefing every Monday and Thursday: the market, your coins and your saved swap pairs, in the language this site is set to. A Binance delisting or a pair alert comes right away."
+      "From then on you get a short briefing every Monday and Thursday: the market, your coins and your saved swap pairs, and a warning 3+ days before an unlock on a coin you hold, in the language this site is set to. A Binance delisting or a pair alert comes right away."
     ],
     "note": "Disconnect any time from the same panel. The market pulse channel stays free for everyone."
   },

@@ -91,7 +91,6 @@ Object.assign(MK_TEXT, {
 /* ── MOMENTUM: turn signs, hot and weakest ──────────────────────── */
 Object.assign(MK_TEXT, {
   'Turn signs across the market': 'Знаци за свртување низ пазарот',
-  'PRO shows all': 'PRO ги прикажува сите',
   "Coins that have lagged and now show turn-up signs, and coins that have run ahead and now show cooling signs. The same reading as each coin's window; tap a coin to open it.":
     'Монети што заостанале, а сега покажуваат знаци за свртување нагоре, и монети што истрчале напред, а сега покажуваат знаци на смирување. Истото читање како во прозорецот на секоја монета; допрете монета за да ја отворите.',
   'Lagged, turn-up signs': 'Заостанати, знаци за свртување нагоре',
@@ -106,7 +105,6 @@ Object.assign(MK_TEXT, {
   'Add holdings to receive signals': 'Додадете позиции за да добивате сигнали',
   'Add your coins to compare them here': 'Додадете ги вашите монети за да ги споредите тука',
   'Add a coin you hold or watch': 'Додадете монета што ја имате или ја следите',
-  'SUPPORTERS': 'ПОДДРЖУВАЧИ',
   'Scanning — no coins above momentum threshold right now.': 'Пребарување — во моментов нема монети над прагот на моментум.',
 });
 
@@ -228,7 +226,6 @@ Object.assign(MK_TEXT, {
   'updated just now': 'ажурирано токму сега',
   'Open interest, USD — size of outstanding futures positions.': 'Отворен интерес, USD — големина на отворените фјучерс позиции.',
   'Funding rate. Positive = longs paying shorts.': 'Стапка на фандинг. Позитивна = лонг позициите им плаќаат на шорт.',
-  'Unlock Rotator Score with Pro': 'Отклучете го резултатот на Rotator со Pro',
   'Search coin…': 'Пребарај монета…', 'ALL': 'СИТЕ', 'STABLE': 'СТЕЈБЛ', 'STOCKS': 'АКЦИИ', 'GAMING': 'ИГРИ',
   'Open interest change over 24h, %. Rising OI with rising price = new money; rising OI with falling price = new shorts.':
     'Промена на отворениот интерес за 24ч, %. OI расте со цена што расте = нови пари; OI расте со цена што паѓа = нови шорт позиции.',
@@ -298,9 +295,8 @@ Object.assign(MK_TEXT, {
   'No turn signal on this coin right now.': 'Во моментов нема знак за свртување кај оваа монета.',
   'Not tested yet': 'Сè уште не е тестирано', 'Tested: no edge on its own': 'Тестирано: само по себе нема предност',
   'No unlock schedule': 'Нема распоред за отклучување', 'No unlock in 30D': 'Нема отклучување за 30D',
-  'Unlock due in 30D': 'Отклучување во следните 30D', 'Unlock due: a warning': 'Отклучување: предупредување', 'Unlock amount, date and countdown': 'Износ, датум и одбројување на отклучувањето', 'Big unlock within 30 days': 'Големо отклучување во следните 30 дена',
-  'The amount and date are in the Pro Insight Engine.': 'Износот и датумот се во Pro Insight Engine.',
-  'due': 'наскоро', 'due ·': 'наскоро ·', 'details in Pro': 'детали во Pro', 'UNLOCK SCHEDULE': 'РАСПОРЕД ЗА ОТКЛУЧУВАЊЕ',
+  'Unlock due: a warning': 'Отклучување: предупредување', 'Unlock amount, date and countdown': 'Износ, датум и одбројување на отклучувањето',
+  'due': 'наскоро', 'due ·': 'наскоро ·', 'UNLOCK SCHEDULE': 'РАСПОРЕД ЗА ОТКЛУЧУВАЊЕ',
   'No published schedule': 'Нема објавен распоред', 'None in the next 30 days': 'Нема во следните 30 дена',
   'No published vesting schedule. That is not the same as no unlock due.': 'Нема објавен распоред за вестинг. Тоа не е исто што и да нема предвидено отклучување.',
   'Circulating supply as a share of max supply': 'Понудата во оптек како дел од максималната понуда',
@@ -378,7 +374,6 @@ Object.assign(MK_TEXT, {
   "Today's insight is already live for Pro users.": 'Денешниот увид е веќе достапен за Pro корисниците.',
   "UNLOCK TODAY'S SIGNAL": 'ОТКЛУЧИ ГО ДЕНЕШНИОТ СИГНАЛ', 'Unlock all signals with Pro': 'Отклучете ги сите сигнали со Pro',
   'Insight Engine is a Pro feature': 'Insight Engine е Pro функција', 'UNLOCK PRO': 'ОТКЛУЧИ PRO',
-  '24H DELAYED': 'ДОЦНИ 24Ч',
 });
 
 /* ── Insight Engine readings (engine.js wording, translated for display) ── */
@@ -485,13 +480,11 @@ Object.assign(MK_TEXT, {
   'The Telegram channel posts the daily market pulse, free for everyone.': 'Telegram каналот го објавува дневниот пазарен пулс, бесплатно за сите.',
   'Pro adds personal Telegram alerts about your own coins.': 'Pro додава лични Telegram известувања за вашите монети.',
   'Free market pulse': 'Бесплатен пазарен пулс', 'The market pulse channel on Telegram is': 'Каналот за пазарен пулс на Telegram е',
-  'free for everyone': 'бесплатен за сите', '. Pro adds personal alerts about your own coins. Discord coming soon.': '. Pro додава лични известувања за вашите монети. Discord наскоро.',
-  'Telegram market pulse channel': 'Telegram канал за пазарен пулс', '+ personal Telegram alerts': '+ лични Telegram известувања',
+  'free for everyone': 'бесплатен за сите',
   'Pro is optional.': 'Pro е незадолжителен.', 'Rotator is free': 'Rotator е бесплатен', 'and runs on donations and the honor system.': 'и се одржува со донации и на доверба.',
   'A one-time contribution unlocks the full features — no subscriptions.': 'Еднократен придонес ги отклучува сите функции — без претплати.',
   'FREE': 'БЕСПЛАТНО',
-  '2 holdings': '2 позиции', '10 holdings': '10 позиции', 'Default swap pair': 'Стандарден пар за замена', 'Any swap pair': 'Кој било пар за замена',
-  'Shared market data, every 15 min': 'Заеднички податоци, на секои 15 мин', 'Fresh-data priority': 'Предност за свежи податоци',
+  '2 holdings': '2 позиции', '10 holdings': '10 позиции',
   'Hot run: higher pullback risk': 'Вжештен раст: поголем ризик од пад', 'a risk, not a sell signal': 'ризик, не сигнал за продажба',
   'VOLUME vs ITS 30-DAY USUAL': 'ОБЕМ НАСПРОТИ ВООБИЧАЕНИОТ (30 ДЕНА)',
   'A volume surge. In past data, days like this raised the chance of big moves both ways; it is not a direction': 'Скок во обемот. Во минатите податоци, вакви денови ја зголемуваа можноста за големи движења во двете насоки; тоа не е насока',
@@ -499,11 +492,9 @@ Object.assign(MK_TEXT, {
   'Source: Binance daily candles, settled days': 'Извор: дневни свеќи на Binance, затворени денови',
   'Buyers are stepping in': 'Купувачите влегуваат', 'Sellers are stepping in': 'Продавачите влегуваат', 'last hour': 'последниот час',
   'LAGGED THIS WEEK': 'ЗАОСТАНА ОВАА НЕДЕЛА', 'RAN AHEAD THIS WEEK': 'ИСТРЧА НАПРЕД ОВАА НЕДЕЛА', 'MIDDLE OF THE PACK': 'ВО СРЕДИНАТА',
-  'Insight Engine, 24h delayed': 'Insight Engine, доцни 24ч', 'Insight Engine, live': 'Insight Engine, во живо',
   '1 strongest, 2 weakest tiles': '1 најсилна, 2 најслаби плочки', 'All 6 of each': 'Сите 6 од секоја',
   'First 2 coin badges': 'Првите 2 ознаки на монетата', 'Every coin badge': 'Сите ознаки на монетата', 'Telegram market pulse notifications': 'Известувања за пазарниот пулс на Telegram',
   'Turn signs: top 2 of each list': 'Знаци за свртување: првите 2 од секоја листа', 'Every coin with a turn sign': 'Секоја монета со знак за свртување',
-  'Exchange and unlock alerts': 'Известувања од берзата и за отклучувања', '+ turn signs, ETF, Telegram DMs': '+ знаци за свртување, ETF, пораки на Telegram',
   'PAY WITH CRYPTO — AUTO-VERIFIED, INSTANT PRO': 'ПЛАТЕТЕ СО КРИПТО — АВТОМАТСКА ПРОВЕРКА, PRO ВЕДНАШ',
   'Send': 'Испратете', '(or equivalent BNB/ETH) to any wallet below. Submit your TX hash and': '(или еквивалент во BNB/ETH) на кој било паричник подолу. Внесете го TX хешот и',
   '— fully automated, no waiting.': '— целосно автоматски, без чекање.',
@@ -1058,8 +1049,6 @@ Object.assign(MK_TEXT, {
   'Tested: no edge at 7 days (50% beat the market), 53% at 30 days.': 'Тестирано: без предност за 7 дена (50% го победија пазарот), 53% за 30 дена.',
   'Tested: not a warning; coins after a death cross beat the market 53% of the time over 30 days.': 'Тестирано: не е предупредување; по крст на смртта монетите го победија пазарот 53% од времето за 30 дена.',
   'The full insight score shows for coins you hold or watch.': 'Целосната оценка од Insight се прикажува за монетите што ги држите или следите.',
-  'The Insight Engine is Pro: the full insight score, unlock amounts and dates, and golden and death cross timing. Free with 5 invites or a code.':
-    'Insight Engine е Pro: целосната оценка, износите и датумите на отклучувањата, и времето на златниот крст и крстот на смртта. Бесплатно со 5 покани или код.',
   "Today's insight, with unlock dates and golden and death cross timing, is live for Pro users.": 'Денешниот увид, со датумите на отклучувањата и времето на златниот крст и крстот на смртта, е достапен за Pro корисниците.',
 });
 MK_PATTERNS.push([/^crossed (\d+) days? ago$/, function (m) { return 'се вкрсти пред ' + m[1] + (m[1] === '1' ? ' ден' : ' дена'); }]);
@@ -1144,27 +1133,8 @@ Object.assign(MK_TEXT, {
   'The first 10 who pay keep Pro for as long as Rotator pays its own costs. After that, Pro becomes a subscription.': 'Првите 10 што ќе платат го задржуваат Pro додека Rotator сам ги покрива своите трошоци. Потоа Pro ќе биде претплата.',
   'Three ways to get Pro: invite 5 friends (free), redeem a Pro code (free), or pay $20 below.': 'Три начини да добиете Pro: поканете 5 пријатели (бесплатно), внесете Pro код (бесплатно) или платете $20 подолу.',
   /* Pro window, 2026-10-10: Pro is the personal alerts. */
-  '. The first 10 who pay keep Pro for as long as Rotator pays its own costs: their contributions cover the domain and the first year of servers. After that, Pro becomes a subscription.': '. Првите 10 што ќе платат го задржуваат Pro додека Rotator сам ги покрива своите трошоци: нивните придонеси ги покриваат доменот и серверите за првата година. Потоа Pro ќе биде претплата.',
-  'NOT BUY AND SELL SIGNALS': 'НЕ СЕ СИГНАЛИ ЗА КУПУВАЊЕ И ПРОДАЖБА',
-  'Rotator does not sell buy or sell signals. It presents data relevant to your holdings, on time, so you stay informed and make your own decisions.': 'Rotator не продава сигнали за купување или продажба. Ви прикажува податоци важни за монетите што ги држите, навреме, за да бидете информирани и сами да одлучувате.',
-  'Pro sends that data to you personally, about the coins you hold. $20 is what a 2% drop costs on a $1,000 portfolio.': 'Pro ви ги испраќа тие податоци лично, за монетите што ги држите. $20 е колку чини пад од 2% на портфолио од $1 000.',
-  'See even one of those coming in time, and Pro has paid for itself.': 'Ако навреме видите барем еден таков пад, Pro се исплатил.',
-  'The first 10 who pay $20 keep Pro for as long as Rotator pays its own costs; after that Pro becomes a subscription. You can also invite 5 friends or use a Pro code. A Support donation does not unlock it.': 'Првите 10 што ќе платат $20 го задржуваат Pro додека Rotator сам ги покрива своите трошоци; потоа Pro ќе биде претплата. Може и да поканите 5 пријатели или да внесете Pro код. Донацијата за поддршка не го отклучува.',
-  'WHAT PRO SENDS YOU': 'ШТО ВИ ИСПРАЌА PRO',
-  'A Telegram briefing every Monday and Thursday: the market, your coins, your swap pairs': 'Telegram брифинг секој понеделник и четврток: пазарот, вашите монети, вашите парови за замена',
-  'A warning 3+ days before an unlock on a coin you hold': 'Предупредување 3+ дена пред отклучување на монета што ја држите',
-  'Right away: a Binance delisting on your coins, and your saved pairs reaching their zone or target': 'Веднаш: отстранување од Binance на вашите монети, и вашите зачувани парови кога ќе стигнат до зоната или целта',
-  'Everything on the site stays free to read.': 'Сè на страницата останува бесплатно за читање.',
-  'Save swap pairs': 'Зачувајте парови за замена',
-  '⚡ Alert when a saved pair hits its zone or target': '⚡ Известување кога зачуван пар ќе стигне до зоната или целта',
-  'Unlocks on the board': 'Отклучувања на таблата',
-  '⚡ Telegram warning 3+ days before an unlock on your coins': '⚡ Telegram предупредување 3+ дена пред отклучување на вашите монети',
-  '⚡ Fresh-data priority': '⚡ Предност за свежи податоци',
-  '+ personal Telegram briefing, Mon and Thu': '+ личен Telegram брифинг, понеделник и четврток',
-  'WHAT PRO SHOWS IN A COIN WINDOW': 'ШТО ПРИКАЖУВА PRO ВО ПРОЗОРЕЦОТ НА МОНЕТАТА',
   'The Insight Engine in a coin window, as a Pro member sees it': 'Insight Engine во прозорецот на монета, како што го гледа Pro член',
   'Example: SOL on 4 Oct 2026.': 'Пример: SOL на 4 окт 2026.',
-  'The insight score, and the readings behind it': 'Оценката од Insight и читањата зад неа',
   'Volume against the coin’s usual, with the last 7 days': 'Обемот спрема вообичаениот за монетата, со последните 7 дена',
   'Golden cross and death cross: when the 60-day average crossed the 125-day, with the tested record': 'Златен крст и крст на смртта: кога 60-дневниот просек го вкрстил 125-дневниот, со тестираните резултати',
   'Live, for every coin you hold or watch. Free shows yesterday’s.': 'Во живо, за секоја монета што ја држите или следите. Бесплатно се гледа вчерашното.',
