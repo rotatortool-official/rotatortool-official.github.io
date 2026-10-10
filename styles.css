@@ -5788,8 +5788,10 @@ a.mob-more-item{text-decoration:none;color:inherit;}
 }
 :root.light .sbf{display:none;}
 :root.light .sbp{
-  display:block;position:absolute;top:50%;width:9px;height:9px;border-radius:50%;
-  background:var(--bg2);border:2px solid var(--text);transform:translate(-50%,-50%);box-sizing:border-box;
+  /* An upside-down triangle resting on the bar, pointing at the score (Daniel). */
+  display:block;position:absolute;bottom:3px;width:0;height:0;
+  border-left:5px solid transparent;border-right:5px solid transparent;border-top:7px solid var(--text);
+  transform:translateX(-50%);
 }
 :root.light .sph{
   display:inline-block;font:600 10px/1.5 var(--font-ui);padding:0 6px;border-radius:4px;letter-spacing:.02em;
