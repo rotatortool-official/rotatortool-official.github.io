@@ -175,8 +175,8 @@ Object.assign(MK_TEXT, {
   'VS MEDIAN, 7D': 'НАСПРОТИ ПРОСЕЧНАТА, 7Д', 'VS MEDIAN, 30D': 'НАСПРОТИ ПРОСЕЧНАТА, 30Д',
   'no data': 'нема податоци', 'Show more': 'Прикажи повеќе',
   '30 days': '30 дена', 'SINCE THE PICK': 'ОД ИЗБОРОТ', 'VS MEDIAN': 'НАСПРОТИ ПРОСЕЧНАТА',
-  'Every day the bot saved its 5 rotate-in and 5 rotate-out picks with the price of the day. Here each one is graded on the close 30 days later against the median coin, where chance is 50%. Stricter than the 76.2% beside it, and it depends on the month: June, bought near the bottom, carries most of it. The bot picked from the biggest coins, which did better than small ones in these months, so the comparison with the 100 largest is the fairer one.':
-    'Секој ден ботот ги зачувуваше своите 5 избори за влез и 5 за излез, со цената од тој ден. Тука секој е оценет според затворањето 30 дена подоцна наспроти просечната монета, каде случајноста е 50%. Построго од 76,2% до него, и зависи од месецот: јуни, купено близу дното, носи најголем дел. Ботот избираше од најголемите монети, кои во овие месеци поминаа подобро од малите, па споредбата со 100-те најголеми е пофер.',
+  'Every day the bot saved its 5 rotate-in and 5 rotate-out picks with the price of the day. Here each one is graded on the close 30 days later against the median coin, where chance is 50%. Stricter than the 76.2% of the old engine (part 4), and it depends on the month: June, bought near the bottom, carries most of it. The bot picked from the biggest coins, which did better than small ones in these months, so the comparison with the 100 largest is the fairer one.':
+    'Секој ден ботот ги зачувуваше своите 5 избори за влез и 5 за излез, со цената од тој ден. Тука секој е оценет според затворањето 30 дена подоцна наспроти просечната монета, каде случајноста е 50%. Построго од 76,2% на стариот начин на бодување (дел 4), и зависи од месецот: јуни, купено близу дното, носи најголем дел. Ботот избираше од најголемите монети, кои во овие месеци поминаа подобро од малите, па споредбата со 100-те најголеми е пофер.',
   'The saved picks could not be loaded right now.': 'Зачуваните избори моментално не можат да се вчитаат.',
   /* RECORD: Telegram channel posts (HANDOVER.md Task 2, 2026-10-01) */
   '📊 Channel posts: market changes': '📊 Објави на каналот: промени на пазарот',
@@ -794,13 +794,23 @@ Object.assign(MK_TEXT, {
   'ROTATOR — Signal Track Record': 'ROTATOR — Евиденција на сигналите',
   '← Back to app': '← Назад кон апликацијата', 'SIGNAL TRACK RECORD': 'ЕВИДЕНЦИЈА НА СИГНАЛИТЕ',
   'Every call, tracked.': 'Секој повик, следен.',
+  'Every call Rotator made, checked afterwards against the average coin. Good results and bad ones, nothing deleted.':
+    'Секој повик на Rotator, проверен потоа наспроти просечната монета. Добрите и лошите резултати, ништо избришано.',
+  'This record runs in the background and is being tested until the end of 2026.': 'Оваа евиденција работи во позадина и се тестира до крајот на 2026.',
+  '1 · Current engine': '1 · Сегашно бодување', '2 · Telegram picks': '2 · Избори на Telegram',
+  '3 · Channel posts': '3 · Објави на каналот', '4 · Old engine': '4 · Старо бодување',
+  'Current engine, live since 11 Sep 2026': 'Сегашниот начин на бодување, во живо од 11 септ. 2026',
+  'Telegram picks, 28 Apr – 31 Aug 2026': 'Изборите на Telegram, 28 апр. – 31 авг. 2026',
+  'Channel posts, since 2 Oct 2026': 'Објави на каналот, од 2 окт. 2026',
+  'Old engine v2, history': 'Стариот начин на бодување v2, историја',
+  'The best 20, the worst 20 and every pick are just below ↓': 'Најдобрите 20, најлошите 20 и секој избор се веднаш подолу ↓',
   'Rotator snapshots its top bullish, rotate-out and underperforming signals every day. After 30 days, we compare the call against':
     'Rotator секој ден ги зачувува своите најсилни сигнали за пораст, сигнали за излез и сигнали за слаб учинок. По 30 дена, повикот го споредуваме со',
   'the median coin over the same 30 days': 'просечната монета во истите 30 дена',
   '— beating the market is the whole test, and half of all coins beat it by definition. The result is published here: the calls that beat it, the ones that moved our way but trailed it, and the ones that went the wrong way outright. The counter below restarted on':
     '— да се победи пазарот е целиот тест, а половина од сите монети го победуваат по дефиниција. Резултатот се објавува тука: повиците што го победија, оние што тргнаа во наша насока, но заостанаа, и оние што отидоа целосно во погрешна насока. Бројачот подолу почна одново на',
   'with scoring engine': 'со начинот на бодување',
-  "; the retired v2 engine's final record is kept underneath it.": '; конечната евиденција на пензионираниот начин на бодување v2 е зачувана под него.',
+  "; the retired v2 engine's final record is in part 4.": '; конечната евиденција на пензионираниот начин на бодување v2 е во дел 4.',
   'Every model change is logged here.': 'Секоја промена на моделот е запишана тука.',
   'Signal Accuracy': 'Точност на сигналите', 'Loading…': 'Се вчитува…',
   'Engine v2 — final record': 'Мотор v2 — конечна евиденција',

@@ -41,6 +41,23 @@ a{color:inherit;text-decoration:none}
   padding:8px 14px;border:1px solid var(--bdr2);border-radius:4px;transition:all .15s;}
 .back-btn:hover{background:var(--bg3);color:var(--text);border-color:rgba(243,186,47,.4);}
 
+/* Layout parts (2026-10-10) */
+.exp-note{display:inline-block;margin:0 auto 22px;padding:8px 14px;font-size:13px;color:var(--muted);border:1px solid rgba(243,186,47,.35);border-radius:6px;background:rgba(243,186,47,.06);}
+.exp-note strong{color:var(--bnb);}
+.jump{display:flex;gap:8px;justify-content:center;flex-wrap:wrap;}
+.jump a{font-family:var(--font-mono);font-size:12px;letter-spacing:.06em;padding:7px 12px;border:1px solid var(--bdr2);border-radius:5px;color:var(--text);background:var(--bg2);}
+.jump a:hover{border-color:var(--bnb);color:var(--bnb);}
+.grp{padding:44px 0 8px;border-bottom:1px solid var(--bdr);scroll-margin-top:12px;}
+.grp:last-child{border-bottom:0;}
+.grp-hdr{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:14px;}
+.grp-num{font-family:var(--font-mono);font-weight:800;font-size:15px;width:30px;height:30px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;background:var(--bnb);color:#000;flex:none;}
+.grp-title{font-family:var(--font-mono);font-size:clamp(16px,2.6vw,22px);font-weight:800;letter-spacing:.04em;color:var(--text);flex:1 1 auto;}
+.grp-lead{font-size:14px;color:var(--muted);line-height:1.55;max-width:760px;margin-bottom:18px;}
+.grp-center{text-align:center;margin-bottom:8px;}
+.section.sub{padding:26px 0;}
+.legacy-solo{margin:0 auto 10px;}
+.grp .legacy.bot{max-width:none;margin:0 0 6px;}
+.grp .engines{margin:0 auto 18px;}
 /* ── Hero ──────────────────────────────────────────────── */
 .hero{text-align:center;padding:50px 0 40px;border-bottom:1px solid var(--bdr);}
 .hero-kicker{font-family:var(--font-mono);font-size:12px;letter-spacing:.24em;color:var(--bnb);margin-bottom:12px;}
@@ -236,19 +253,34 @@ a{color:inherit;text-decoration:none}
   </div>
 </header>
 
+<!-- Layout (2026-10-10, Daniel): a short top, jump buttons, then four
+     numbered parts, newest first: 1 the current engine, 2 the Telegram
+     picks of April-August, 3 the channel posts, 4 the retired v2 engine.
+     Every block below keeps its ids, so the scripts are unchanged. -->
 <section class="hero">
   <div class="wrap">
     <div class="hero-kicker">◆ SIGNAL TRACK RECORD</div>
     <h1>Every call, tracked.</h1>
-    <p class="hero-sub">
-      Rotator snapshots its top bullish, rotate-out and underperforming signals every day. After 30 days, we compare the call against <b>the median coin over the same 30 days</b> — beating the market is the whole test, and half of all coins beat it by definition. The result is published here: the calls that beat it, the ones that moved our way but trailed it, and the ones that went the wrong way outright. The counter below restarted on <span id="copy-reset-date"></span> with scoring engine <span id="copy-engine-hero"></span>; the retired v2 engine's final record is kept underneath it. <a href="engine-changelog.html" style="color:#f3ba2f;text-decoration:underline;text-underline-offset:2px;">Every model change is logged here.</a>
+    <p class="hero-sub">Every call Rotator made, checked afterwards against the average coin. Good results and bad ones, nothing deleted.</p>
+    <div class="exp-note"><strong>Experimental.</strong> This record runs in the background and is being tested until the end of 2026.</div>
+    <nav class="jump">
+      <a href="#part-current">1 · Current engine</a>
+      <a href="#part-telegram">2 · Telegram picks</a>
+      <a href="#part-channel">3 · Channel posts</a>
+      <a href="#part-old">4 · Old engine</a>
+    </nav>
+  </div>
+</section>
+
+<main class="wrap">
+
+  <!-- 1 · CURRENT ENGINE -->
+  <div class="grp" id="part-current">
+    <div class="grp-hdr"><span class="grp-num">1</span><span class="grp-title">Current engine, live since 11 Sep 2026</span></div>
+    <p class="grp-lead">
+      Rotator snapshots its top bullish, rotate-out and underperforming signals every day. After 30 days, we compare the call against <b>the median coin over the same 30 days</b> — beating the market is the whole test, and half of all coins beat it by definition. The result is published here: the calls that beat it, the ones that moved our way but trailed it, and the ones that went the wrong way outright. The counter below restarted on <span id="copy-reset-date"></span> with scoring engine <span id="copy-engine-hero"></span>; the retired v2 engine's final record is in part 4. <a href="engine-changelog.html" style="color:#f3ba2f;text-decoration:underline;text-underline-offset:2px;">Every model change is logged here.</a>
     </p>
-    <!-- Old and new engine in plain words. Moved here from the app's
-         RECORD section on 2026-10-10 (Daniel). -->
-    <div class="engines">
-      <p><strong>Our old engine</strong> (April to September 2026) was confirmed on <strong>76.2% of 863 graded calls</strong>. That grading was generous: it counted the best price reached inside a 7 to 14 day window, where calling every coin would have scored about 68%. Read it as an upper bound, roughly 8 points better than chance.</p>
-      <p><strong>The current engine</strong> is held to a stricter test: a call counts only if the coin beats the median coin over the next 30 days, where chance is 50%. It started on 11 September, so its first results arrive from 11 October. Until then there is nothing to claim yet.</p>
-    </div>
+    <div class="grp-center">
     <div id="accuracy-box" class="acc-box">
       <div class="acc-big" id="acc-pct">—</div>
       <div class="acc-lbl">Signal Accuracy</div>
@@ -257,38 +289,54 @@ a{color:inherit;text-decoration:none}
     <div>
       <span class="window-pill" id="window-pill"></span>
     </div>
-
-    <!-- Retired v2 record. Frozen, not recomputed: these numbers are final
-         and are inlined deliberately so the badge never depends on a live
-         query against tables that no longer hold v2 rows. Provenance and
-         the raw 2120-row snapshot export live in the private workbench at
-         archive/v2-engine/ (v2-final-record.json carries the methodology). -->
-    <div class="legacy-pair">
-    <div class="legacy">
-      <div class="legacy-hdr">
-        <span class="legacy-title">🏅 Engine v2 — final record</span>
-        <span class="legacy-retired">Retired 2026-09-07</span>
-      </div>
-      <div class="legacy-body">
-        <div class="legacy-pct">76.2%</div>
-        <div class="legacy-meta">
-          <b>658</b> of <b>863</b> graded calls confirmed<br>
-          <span id="legacy-bar-row" hidden><b>Bar for this method: <span id="legacy-bar"></span></b>. A blanket call on every coin scored that, so the edge is the gap, not the distance to 50%<br></span>
-          Bullish <b>71.9%</b> · Underperforming <b>80.8%</b><br>
-          <span style="opacity:.7">v2 did not separate rotate-out calls; they sit inside that 80.8%</span><br>
-          90 trading days · 2026-04-26 → 2026-08-31
-        </div>
-      </div>
-      <div class="legacy-note">
-        Engine 2.1.0 changed the market-cap adjustment from a multiplier to a
-        signed additive term, so v2 and later scores don't mean the same thing.
-        Rather than splice them into one running number, v2's book is closed
-        here and the live counter above restarts from scratch. Graded on the
-        best price reached inside the 7–14 day window, so read it as an upper
-        bound — not as the bar the current engine has already cleared.
-      </div>
+    <div class="search-wrap" id="search-wrap">
+      <span class="search-icon">🔍</span>
+      <input type="text" class="search-input" id="search-input" placeholder="Search by coin symbol or name…" autocomplete="off">
+      <span class="search-clear" id="search-clear">✕</span>
     </div>
+    </div>
+  <section class="section sub">
+    <div class="section-hdr">
+      <span class="section-title">🟢 Wins — Beat the market</span>
+      <span class="section-count" id="wins-count"></span>
+    </div>
+    <div id="wins-grid" class="grid"></div>
+    <div id="wins-empty"></div>
+  </section>
 
+  <section class="section sub">
+    <div class="section-hdr">
+      <span class="section-title">🟡 Right direction — but the market did better</span>
+      <span class="section-count" id="near-count"></span>
+    </div>
+    <div id="near-grid" class="grid"></div>
+    <div id="near-empty"></div>
+  </section>
+
+  <section class="section sub">
+    <div class="section-hdr">
+      <span class="section-title">🔴 Misses — Moved against the call</span>
+      <span class="section-count" id="miss-count"></span>
+    </div>
+    <div id="miss-grid" class="grid"></div>
+    <div id="miss-empty"></div>
+  </section>
+
+  <section class="section sub">
+    <div class="section-hdr">
+      <span class="section-title">🔁 Rotation Calls — Strong asset → Weak asset</span>
+      <span class="section-count" id="rot-count"></span>
+    </div>
+    <div id="rot-acc-line" style="font-family:var(--font-mono);font-size:12px;color:var(--muted);margin-bottom:16px;"></div>
+    <div id="rot-grid" class="grid"></div>
+    <div id="rot-empty"></div>
+    <div id="shadow-block"></div>
+  </section>
+  </div>
+
+  <!-- 2 · TELEGRAM PICKS, APRIL-AUGUST -->
+  <div class="grp" id="part-telegram">
+    <div class="grp-hdr"><span class="grp-num">2</span><span class="grp-title">Telegram picks, 28 Apr – 31 Aug 2026</span><span class="section-count" id="calls-count"></span></div>
     <!-- The same months, the Telegram bot's own daily picks, graded the
          strict way. Frozen: data/bot-calls-2026-04-28-to-08-31.json is
          written once by the workbench's grade-bot-snapshots.js from the
@@ -307,44 +355,17 @@ a{color:inherit;text-decoration:none}
       <div class="legacy-note">
         Every day the bot saved its 5 rotate-in and 5 rotate-out picks with the price
         of the day. Here each one is graded on the close 30 days later against the
-        median coin, where chance is 50%. Stricter than the 76.2% beside it, and it
+        median coin, where chance is 50%. Stricter than the 76.2% of the old engine (part 4), and it
         depends on the month: June, bought near the bottom, carries most of it. The
         bot picked from the biggest coins, which did better than small ones in these
         months, so the comparison with the 100 largest is the fairer one.
-        <br><a class="legacy-link" href="#calls-section">See every pick, the best 20 and the worst 20 ↓</a>
+        <br><a class="legacy-link" href="#calls-section">The best 20, the worst 20 and every pick are just below ↓</a>
       </div>
     </div>
-    </div>
-
-    <div class="search-wrap" id="search-wrap">
-      <span class="search-icon">🔍</span>
-      <input type="text" class="search-input" id="search-input" placeholder="Search by coin symbol or name…" autocomplete="off">
-      <span class="search-clear" id="search-clear">✕</span>
-    </div>
-  </div>
-</section>
-
-<main class="wrap">
-
-  <!-- Telegram channel posts since 2 Oct 2026 (HANDOVER.md Task 2):
-       every market event post, graded after 7 and 30 days on whether the
-       move it described held. Filled by the script at the end of the body. -->
-  <section class="section" id="mev-section">
-    <div class="section-hdr">
-      <span class="section-title">📊 Channel posts: market changes</span>
-      <span class="section-count" id="mev-count"></span>
-    </div>
-    <div class="mev-sub">Since 2 Oct 2026 the Telegram channel posts only when the market changed and the change held. Each post is graded after 7 and 30 days on whether the move it described held. Chance is about 50%.</div>
-    <div id="mev-list"></div>
-  </section>
 
   <!-- The Telegram picks of April to August, in full. Filled from
        data/bot-calls-2026-04-28-to-08-31.json by the script at the end. -->
-  <section class="section" id="calls-section">
-    <div class="section-hdr">
-      <span class="section-title">📬 Telegram picks, 28 Apr – 31 Aug 2026</span>
-      <span class="section-count" id="calls-count"></span>
-    </div>
+  <section class="section sub" id="calls-section">
     <div class="mev-sub">The picks the bot saved each day, graded on the close 7 and 30 days later against the median coin. The best 20 and the worst 20 rotate-in picks are shown together, one per coin, then every pick. Coins with no Binance history cannot be graded and say so.</div>
     <div class="calls-tools">
       <button type="button" class="calls-tab on" data-h="30">30 days</button>
@@ -369,44 +390,60 @@ a{color:inherit;text-decoration:none}
     <div id="calls-all"></div>
     <button type="button" class="calls-more" id="calls-more" hidden>Show more</button>
   </section>
+  </div>
 
-  <section class="section">
-    <div class="section-hdr">
-      <span class="section-title">🔁 Rotation Calls — Strong asset → Weak asset</span>
-      <span class="section-count" id="rot-count"></span>
-    </div>
-    <div id="rot-acc-line" style="font-family:var(--font-mono);font-size:12px;color:var(--muted);margin-bottom:16px;"></div>
-    <div id="rot-grid" class="grid"></div>
-    <div id="rot-empty"></div>
-    <div id="shadow-block"></div>
+  <!-- 3 · CHANNEL POSTS -->
+  <div class="grp" id="part-channel">
+    <div class="grp-hdr"><span class="grp-num">3</span><span class="grp-title">Channel posts, since 2 Oct 2026</span><span class="section-count" id="mev-count"></span></div>
+  <!-- Telegram channel posts since 2 Oct 2026 (HANDOVER.md Task 2):
+       every market event post, graded after 7 and 30 days on whether the
+       move it described held. Filled by the script at the end of the body. -->
+  <section class="section sub" id="mev-section">
+    <div class="mev-sub">Since 2 Oct 2026 the Telegram channel posts only when the market changed and the change held. Each post is graded after 7 and 30 days on whether the move it described held. Chance is about 50%.</div>
+    <div id="mev-list"></div>
   </section>
+  </div>
 
-  <section class="section">
-    <div class="section-hdr">
-      <span class="section-title">🟢 Wins — Beat the market</span>
-      <span class="section-count" id="wins-count"></span>
+  <!-- 4 · OLD ENGINE v2 -->
+  <div class="grp" id="part-old">
+    <div class="grp-hdr"><span class="grp-num">4</span><span class="grp-title">Old engine v2, history</span></div>
+    <!-- Old and new engine in plain words. Moved here from the app's
+         RECORD section on 2026-10-10 (Daniel). -->
+    <div class="engines">
+      <p><strong>Our old engine</strong> (April to September 2026) was confirmed on <strong>76.2% of 863 graded calls</strong>. That grading was generous: it counted the best price reached inside a 7 to 14 day window, where calling every coin would have scored about 68%. Read it as an upper bound, roughly 8 points better than chance.</p>
+      <p><strong>The current engine</strong> is held to a stricter test: a call counts only if the coin beats the median coin over the next 30 days, where chance is 50%. It started on 11 September, so its first results arrive from 11 October. Until then there is nothing to claim yet.</p>
     </div>
-    <div id="wins-grid" class="grid"></div>
-    <div id="wins-empty"></div>
-  </section>
 
-  <section class="section">
-    <div class="section-hdr">
-      <span class="section-title">🟡 Right direction — but the market did better</span>
-      <span class="section-count" id="near-count"></span>
+    <!-- Retired v2 record. Frozen, not recomputed: these numbers are final
+         and are inlined deliberately so the badge never depends on a live
+         query against tables that no longer hold v2 rows. Provenance and
+         the raw 2120-row snapshot export live in the private workbench at
+         archive/v2-engine/ (v2-final-record.json carries the methodology). -->
+        <div class="legacy legacy-solo">
+      <div class="legacy-hdr">
+        <span class="legacy-title">🏅 Engine v2 — final record</span>
+        <span class="legacy-retired">Retired 2026-09-07</span>
+      </div>
+      <div class="legacy-body">
+        <div class="legacy-pct">76.2%</div>
+        <div class="legacy-meta">
+          <b>658</b> of <b>863</b> graded calls confirmed<br>
+          <span id="legacy-bar-row" hidden><b>Bar for this method: <span id="legacy-bar"></span></b>. A blanket call on every coin scored that, so the edge is the gap, not the distance to 50%<br></span>
+          Bullish <b>71.9%</b> · Underperforming <b>80.8%</b><br>
+          <span style="opacity:.7">v2 did not separate rotate-out calls; they sit inside that 80.8%</span><br>
+          90 trading days · 2026-04-26 → 2026-08-31
+        </div>
+      </div>
+      <div class="legacy-note">
+        Engine 2.1.0 changed the market-cap adjustment from a multiplier to a
+        signed additive term, so v2 and later scores don't mean the same thing.
+        Rather than splice them into one running number, v2's book is closed
+        here and the live counter above restarts from scratch. Graded on the
+        best price reached inside the 7–14 day window, so read it as an upper
+        bound — not as the bar the current engine has already cleared.
+      </div>
     </div>
-    <div id="near-grid" class="grid"></div>
-    <div id="near-empty"></div>
-  </section>
-
-  <section class="section">
-    <div class="section-hdr">
-      <span class="section-title">🔴 Misses — Moved against the call</span>
-      <span class="section-count" id="miss-count"></span>
-    </div>
-    <div id="miss-grid" class="grid"></div>
-    <div id="miss-empty"></div>
-  </section>
+  </div>
 
 </main>
 
