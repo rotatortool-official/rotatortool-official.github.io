@@ -4273,7 +4273,8 @@ rect.etf-out.etf-prov{stroke:var(--red);}
    One full-width tile in the ETF strip's rhythm; each row opens the coin.
    Light theme only until Daniel approves it for dark. */
 :root:not(.light) #ul-strip{display:none !important;}
-.ul-strip{grid-template-columns:minmax(0,1fr);}
+.ul-strip.ul-solo{grid-template-columns:minmax(0,1fr);}   /* no buybacks summary: unlocks take the row */
+.ul-strip .etf-tile-top{margin-bottom:4px;}
 .ul-tile{cursor:default;}
 .ul-tile:hover{background:var(--bg2);}
 .ul-list{display:flex;flex-direction:column;gap:1px;margin:2px 0 3px;}
@@ -4289,6 +4290,11 @@ rect.etf-out.etf-prov{stroke:var(--red);}
 .ul-pro{grid-column:span 2;font-size:11px;color:var(--pro);text-align:right;text-decoration:underline;text-decoration-color:var(--prod);}
 .ul-left{font-family:var(--font-mono);font-variant-numeric:tabular-nums;text-align:right;color:var(--text);}
 .ul-left.soon{color:var(--amber);font-weight:700;}
+.hr-row{grid-template-columns:minmax(0,1fr) 4.6em 4em;}
+.ul-coin i{font-style:normal;font-size:9px;}
+.ul-coin i.up{color:var(--green);} .ul-coin i.dn{color:var(--red);}
+.hr-usd{font-family:var(--font-mono);font-size:11px;color:var(--text);opacity:.78;text-align:right;}
+.hr-yr{font-family:var(--font-mono);font-weight:700;color:var(--green);text-align:right;}
 .ul-tg{margin-top:6px;font-size:12px;color:var(--pro);cursor:pointer;line-height:1.4;}
 .ul-tg:hover{text-decoration:underline;}
 @media(max-width:600px){ .ul-row{grid-template-columns:minmax(0,1fr) 3em 4.2em 6.8em;gap:6px;} }

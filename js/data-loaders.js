@@ -1609,7 +1609,7 @@ async function doLoad() {
      from going unhandled before it is awaited. */
   function _quiet(pr) { return Promise.resolve(pr).catch(function(e) { console.warn('[doLoad] early read failed:', e && e.message); }); }
   var _early = Promise.all([
-    _quiet(loadNetworkData()), _quiet(loadWorldData()), _quiet(loadEtfFlows()), _quiet(loadChainFlows()),
+    _quiet(loadNetworkData()), _quiet(loadWorldData()), _quiet(loadEtfFlows()), _quiet(loadChainFlows()), _quiet(loadHolderReturns()),
     _quiet(typeof loadSignSince === 'function' ? loadSignSince() : null)
   ]);
   try {
@@ -3251,18 +3251,18 @@ function renderChainFlows() {
 var _UL_ROWS = 8, _UL_FREE = 2, _UL_MIN = 0.5, _UL_DAYS = 30, _ulTimer = null;
 var _UL_TXT = {
   en: {
-    group: 'Upcoming token unlocks', supply: 'of supply', pro: 'size in Pro', open: 'Open the coin',
+    group: 'Token supply', title: 'Upcoming unlocks', d30: 'next 30 days', supply: 'of supply', pro: 'size in Pro', open: 'Open the coin',
     none: 'No large unlocks due for our coins in the next 30 days.',
     note: 'New coins released to holders, biggest first. Extra supply often weighs on the price around the date.',
-    foot: 'Only coins with a published vesting schedule, about 1 in 3 of our list',
+    foot: 'Unlocks: only coins with a published vesting schedule, about 1 in 3 of our list',
     source: 'Source', d: 'd', now: 'unlocking now',
     tg: '🔔 Pro: your Telegram briefing warns you 3+ days before an unlock on a coin you hold.'
   },
   mk: {
-    group: 'Претстојни отклучувања на токени', supply: 'од понудата', pro: 'износ во Pro', open: 'Отвори ја монетата',
+    group: 'Понуда на токени', title: 'Претстојни отклучувања', d30: 'следните 30 дена', supply: 'од понудата', pro: 'износ во Pro', open: 'Отвори ја монетата',
     none: 'Нема големи отклучувања за нашите монети во следните 30 дена.',
     note: 'Нови монети пуштени на сопствениците, најголемите прво. Дополнителната понуда често ја притиска цената околу датумот.',
-    foot: 'Само монети со објавен распоред, околу 1 од 3 од нашата листа',
+    foot: 'Отклучувања: само монети со објавен распоред, околу 1 од 3 од нашата листа',
     source: 'Извор', d: 'д', now: 'се отклучува сега',
     tg: '🔔 Pro: вашиот Telegram брифинг ве предупредува 3+ дена пред отклучување на монета што ја држите.'
   }
@@ -3285,6 +3285,56 @@ function _ulTick() {
     el.textContent = _ulLeft(left);
     el.classList.toggle('soon', left < 86400000);
   });
+}
+
+/* ── Buybacks & burns, beside the unlocks (Daniel, 2026-10-10) ──────
+   READ ONLY: market_cache.holder_returns_summary, written once a day by
+   sync-holder-returns from DefiLlama's "holders revenue": dollars a
+   protocol sent back to its token holders, by buyback, burn, or for
+   some, staker payouts. Never called "burned" alone for that reason.
+   Ranked by the 30 days as a share of market cap, a year's pace, so the
+   biggest change in supply comes first, like the unlocks beside it.
+   Free in full: there is no alert to sell here. */
+var _hr = null, _HR_ROWS = 8;
+var _HR_TXT = {
+  en: { title: 'Buybacks & burns', d30: 'last 30 days', yr: 'of mcap / yr',
+        note: 'Fees a project spent buying back or burning its own coin, or paid to its stakers. Biggest against the coin’s size first.',
+        foot: 'Buybacks & burns: fees returned to holders; not scheduled burns like BNB’s quarterly one',
+        up: 'more than the 30 days before', dn: 'less than the 30 days before' },
+  mk: { title: 'Откупи и согорувања', d30: 'последните 30 дена', yr: 'од капит. / год.',
+        note: 'Провизии што проектот ги потрошил да ја откупи или согори својата монета, или ги исплатил на стејкерите. Најголемите во однос на големината на монетата прво.',
+        foot: 'Откупи и согорувања: провизии вратени на сопствениците; без закажани согорувања како квартално кај BNB',
+        up: 'повеќе од претходните 30 дена', dn: 'помалку од претходните 30 дена' }
+};
+function _hrL() { return (typeof currentLang !== 'undefined' && currentLang === 'mk') ? _HR_TXT.mk : _HR_TXT.en; }
+async function loadHolderReturns() {
+  if (typeof supaCacheGetStale !== 'function') return;
+  try { var row = await supaCacheGetStale('holder_returns_summary'); if (row && row.data) _hr = row.data; }
+  catch (e) { console.warn('[buybacks] read skipped:', e.message); }
+}
+function _hrTile() {
+  if (!_hr || !Array.isArray(_hr.coins)) return '';
+  var L = _hrL(), byId = {};
+  (typeof coins !== 'undefined' && Array.isArray(coins) ? coins : []).forEach(function (c) { if (c && c.id) byId[c.id] = c; });
+  var rows = _hr.coins.map(function (r) {
+    var c = byId[r.id];
+    if (!c || c.isStable || !c.mcap || !(r.d30 > 0)) return null;
+    return { c: c, d30: r.d30, p30: r.p30, yr: r.d30 * 365 / 30 / c.mcap * 100 };
+  }).filter(Boolean).sort(function (a, b) { return b.yr - a.yr; });
+  if (rows.length < 3) return '';
+  var list = rows.slice(0, _HR_ROWS).map(function (r) {
+    var c = r.c, tr = r.p30 > 0 ? r.d30 / r.p30 - 1 : null;
+    var arrow = tr == null || Math.abs(tr) < 0.1 ? '' : tr > 0
+      ? '<i class="up" title="' + L.up + '">▲</i>' : '<i class="dn" title="' + L.dn + '">▼</i>';
+    return '<button type="button" class="ul-row hr-row" onclick="openTileDetail(\'' + c.id + '\',event)" title="' + _ulL().open + '">'
+      + '<span class="ul-coin">' + (c.image ? '<img src="' + c.image + '" alt="" width="16" height="16" loading="lazy" onerror="this.style.display=\'none\'">' : '')
+      + '<b>' + _esc(c.sym) + '</b>' + arrow + '</span>'
+      + '<span class="hr-usd">' + _cfUsd(r.d30) + '</span>'
+      + '<span class="hr-yr">' + (r.yr >= 10 ? r.yr.toFixed(0) : r.yr.toFixed(1)) + '%</span></button>';
+  }).join('');
+  return '<div class="etf-tile ul-tile hr-tile">'
+    + '<div class="etf-tile-top"><span class="bf-k">' + L.title + '</span><span class="etf-more">' + L.d30 + ' · ' + L.yr + '</span></div>'
+    + '<div class="ul-list">' + list + '</div><div class="etf-head">' + L.note + '</div></div>';
 }
 
 function renderTokenUnlocks() {
@@ -3312,14 +3362,19 @@ function renderTokenUnlocks() {
       + size
       + '<span class="ul-left" data-ul-at="' + r.at + '">' + _ulLeft(r.at - now) + '</span></button>';
   }).join('');
+  var hr = _hrTile();
   host.style.display = '';
+  host.classList.toggle('ul-solo', !hr);
   host.innerHTML = '<div class="bf-group etf-group">' + L.group + '</div>'
     + '<div class="etf-tile ul-tile">'
+    + '<div class="etf-tile-top"><span class="bf-k">' + L.title + '</span><span class="etf-more">' + L.d30 + '</span></div>'
     + (list ? '<div class="ul-list">' + list + '</div><div class="etf-head">' + L.note + '</div>'
             + (isPro ? '' : '<div class="ul-tg" onclick="openPro()">' + L.tg + '</div>')
             : '<div class="etf-head">' + L.none + '</div>')
     + '</div>'
-    + '<div class="etf-src">' + L.foot + ' · ' + L.source + ': <a href="https://defillama.com/unlocks" target="_blank" rel="noopener">DefiLlama</a></div>';
+    + hr
+    + '<div class="etf-src">' + L.foot + (hr ? ' · ' + _hrL().foot : '') + ' · ' + L.source
+    + ': <a href="https://defillama.com/unlocks" target="_blank" rel="noopener">DefiLlama</a></div>';
   if (list && !_ulTimer) _ulTimer = setInterval(_ulTick, 1000);
 }
 
