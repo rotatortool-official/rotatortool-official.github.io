@@ -5709,3 +5709,23 @@ a.mob-more-item{text-decoration:none;color:inherit;}
 :root.light .td-biz-row.no .td-biz-mark{background:rgba(220,38,38,.12);color:#b91c1c;}
 :root.light .td-biz-row.na .td-biz-mark{background:rgba(0,0,0,.06);}
 :root.light .htag.biz-tag{color:#047857;border-color:rgba(5,150,105,.35);}
+
+/* ── Phones (2026-10-10, 59% of visits are mobile) ─────────────────────
+   Touch-only, so desktop with a mouse is unchanged. Tap areas grow with
+   invisible ::after boxes (same trick as .info-i), not bigger buttons. */
+.rec-intro a{color:var(--text);text-decoration:underline;text-underline-offset:2px;}
+@media (pointer:coarse){
+  .bf-seg-b,.mn-why,.footer-link{position:relative;}
+  .bf-seg-b::after{content:'';position:absolute;inset:-12px 0;}
+  .mn-why::after{content:'';position:absolute;inset:-10px -4px;}
+  .ul-row{padding-top:7px;padding-bottom:7px;}
+}
+/* The footer was one nowrap line with overflow hidden: on a phone only
+   ABOUT US and half of FAQ showed, and Terms, Privacy, Contact and
+   Support Us could not be reached. Wrap it instead. */
+@media (max-width:700px) and (orientation:portrait){
+  .site-footer{flex-direction:column !important;flex-wrap:wrap !important;padding:10px 12px !important;gap:4px !important;}
+  .footer-links{flex-wrap:wrap !important;justify-content:center !important;overflow:visible !important;gap:2px 4px !important;}
+  .footer-link{display:inline-block;padding:9px 6px;font-size:11px !important;}
+  .footer-copy{white-space:normal !important;text-align:center;}
+}

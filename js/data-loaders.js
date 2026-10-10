@@ -1138,6 +1138,12 @@ function applySignalRun(run) {
 /* Set when the engine could not run at all. Read by the UI so a failed
    engine reads as "unavailable" rather than as a page full of zeros. */
 var _engineUnavailable = false;
+/* The last server run read, header + items, keyed by run id (2026-10-10).
+   The bStocks load calls runSignalEngine() a second time seconds after
+   the first, and refetched the same ~360KB run; on phones (59% of
+   visits) that doubled the biggest download on the page. A newer run id
+   still fetches fresh. */
+var _serverRunCache = null;
 
 async function runSignalEngine() {
   var localRun = null;
@@ -1236,7 +1242,8 @@ async function runSignalEngine() {
       select: 'run_id', order: 'run_id.desc', limit: '1'
     });
     var latestId = lastItem && lastItem[0] && lastItem[0].run_id;
-    var runRows = latestId == null ? [] : await supaRest('signal_runs', 'GET', {
+    var cached = (_serverRunCache && _serverRunCache.id === latestId) ? _serverRunCache : null;
+    var runRows = latestId == null ? [] : cached ? [cached.header] : await supaRest('signal_runs', 'GET', {
       id:     'eq.' + latestId,
       /* params->marketOversold arrives as `marketOversold` (engine 2.10.0).
          Only that key: the rest of params is provenance, not page data. */
@@ -1245,11 +1252,12 @@ async function runSignalEngine() {
     });
     var latest = runRows && runRows[0];
     if (latest) {
-      var items = await supaRest('signal_run_items', 'GET', {
+      var items = cached ? cached.items : await supaRest('signal_run_items', 'GET', {
         run_id: 'eq.' + latest.id,
         select: 'coin_id,score,effective_score,zone,r7,r14,r30,breakdown,eligible,'
                 + 'candidate_class,rsi,rsi_state,candidate,insight,positioning,strength,exclusions'
       });
+      if (!cached && items && items.length) _serverRunCache = { id: latest.id, header: latest, items: items };
       var byId = {};
       (items || []).forEach(function(it) { byId[it.coin_id] = it; });
       coins.forEach(function(c) {
