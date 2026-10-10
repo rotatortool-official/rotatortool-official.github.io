@@ -28,6 +28,10 @@ Object.assign(MK_TEXT, {
   'every observation published, and what happened next': 'секое објавено набљудување, и што следеше потоа',
   'learn more: how our readings have held up so far': 'дознајте повеќе: колку издржаа нашите читања досега',
   'what Rotator said before, and what happened next': 'што кажа Rotator порано, и што се случи потоа',
+  'Experimental.': 'Експериментално.',
+  'This feature runs in the background while we test it until the end of 2026, so read the numbers below as a test in progress. How the old and the new engine are graded is explained on the':
+    'Оваа функција работи во позадина додека ја тестираме до крајот на 2026, па бројките подолу читајте ги како тест што сè уште трае. Како се оценуваат стариот и новиот начин на бодување е објаснето на',
+  'track record': 'евиденцијата',
   'Our old engine': 'Нашиот стар начин на бодување', '(April to September 2026) was confirmed on': '(април до септември 2026) беше потврден кај',
   '76.2% of 863 graded calls': '76,2% од 863 оценети повици',
   '. That grading was generous: it counted the best price reached inside a 7 to 14 day window, where calling every coin would have scored about 68%. Read it as an upper bound, roughly 8 points better than chance.':

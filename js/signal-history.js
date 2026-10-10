@@ -877,7 +877,7 @@ var SignalHistory = (function() {
 
     /* Public track-record page link — shown in every render state */
     var publicLink = '<div class="str-public-link">'
-      + '<a href="track-record.html" target="_blank" rel="noopener">'
+      + '<a href="track-record.html">'
       + 'View the full public track record →</a></div>';
 
     /* Engine-2.1.0 reset notice — explains why the accuracy number is

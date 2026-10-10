@@ -1148,3 +1148,47 @@ function animRowClick(e) {
 }
 applyAnimPref();
 document.addEventListener('DOMContentLoaded', applyAnimPref);
+
+/* ── Track record over the app (2026-10-10, Daniel) ───────────────
+   Links to track-record.html open the page in a full-screen layer
+   above the app instead of leaving it. "Back to app" on that page, or
+   the phone's back button, closes the layer, and the app underneath is
+   exactly as it was: no reload, no fresh data load. The layer is kept
+   after the first open, so a second visit is instant too.
+   A new-tab click (ctrl/cmd/middle) still opens the page normally. */
+(function () {
+  var layer = null;
+  function closeTR() {
+    if (!layer || layer.style.display === 'none') return;
+    layer.style.display = 'none';
+    document.documentElement.style.overflow = '';
+  }
+  window.rotCloseTrackRecord = function () {
+    if (history.state && history.state.rotTR) history.back(); /* popstate closes it */
+    else closeTR();
+  };
+  function openTR() {
+    if (!layer) {
+      layer = document.createElement('div');
+      layer.id = 'tr-layer';
+      layer.style.cssText = 'position:fixed;inset:0;z-index:15000;background:var(--bg);';
+      var f = document.createElement('iframe');
+      f.src = 'track-record.html';
+      f.title = 'Signal Track Record';
+      f.style.cssText = 'width:100%;height:100%;border:0;display:block;';
+      layer.appendChild(f);
+      document.body.appendChild(layer);
+    }
+    layer.style.display = 'block';
+    document.documentElement.style.overflow = 'hidden';
+    try { history.pushState({ rotTR: 1 }, ''); } catch (e) {}
+  }
+  window.addEventListener('popstate', closeTR);
+  document.addEventListener('click', function (ev) {
+    var a = ev.target && ev.target.closest && ev.target.closest('a[href]');
+    if (!a || !/^(\.\/)?track-record\.html(#.*)?$/.test(a.getAttribute('href'))) return;
+    if (ev.defaultPrevented || ev.button !== 0 || ev.metaKey || ev.ctrlKey || ev.shiftKey || ev.altKey) return;
+    ev.preventDefault();
+    openTR();
+  });
+})();
