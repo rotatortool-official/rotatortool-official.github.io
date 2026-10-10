@@ -293,7 +293,7 @@ function openPro() {
     var _proRequested = false;
     try { _proRequested = localStorage.getItem('rot_pro_requested') === '1'; } catch (e) {}
     body.innerHTML = '<div class="modal-title">⚡ Pro — free, or with a contribution</div>'
-      + '<div class="modal-sub">Pro is optional. <strong>Rotator is free</strong> and runs on donations and the honor system.<br>Three ways to unlock the full features, all equal: <strong>invite 5 friends</strong> (free), <strong>redeem a Pro code</strong> (free), or a <strong>one-time contribution</strong>. The first 10 who pay keep Pro for good: their contributions cover the domain and the first year of servers. After that, Pro becomes a subscription.</div>'
+      + '<div class="modal-sub">Pro is optional. <strong>Rotator is free</strong> and runs on donations and the honor system.<br>Three ways to unlock the full features, all equal: <strong>invite 5 friends</strong> (free), <strong>redeem a Pro code</strong> (free), or a <strong>one-time contribution</strong>. The first 10 who pay keep Pro for as long as Rotator runs: their contributions cover the domain and the first year of servers. After that, Pro becomes a subscription.</div>'
       /* What Rotator is, and what Pro is worth (Daniel, 2026-10-10). Arithmetic, not a promise. */
       + '<div class="pro-why"><div class="pro-why-hdr">NOT BUY AND SELL SIGNALS</div>'
         + '<div>Rotator does not sell buy or sell signals. It presents data relevant to your holdings, on time, so you stay informed and make your own decisions.</div>'
@@ -304,7 +304,7 @@ function openPro() {
       + '<div style="background:var(--bg3);border:1px solid rgba(167,139,250,.2);border-radius:4px;padding:12px 14px;margin-bottom:14px;">'
         + '<div style="display:flex;gap:12px;margin-bottom:10px;">'
           + '<div style="flex:1;font-size:12px;letter-spacing:.12em;color:var(--muted);text-transform:uppercase;">FREE</div>'
-          + '<div style="flex:1;font-size:12px;letter-spacing:.12em;color:var(--pro);text-transform:uppercase;text-align:right;">⚡ PRO<button type="button" class="info-i" aria-label="The first 10 who pay $20 keep Pro for good; after that Pro becomes a subscription. You can also invite 5 friends or use a Pro code. A Support donation does not unlock it.">ⓘ</button></div>'
+          + '<div style="flex:1;font-size:12px;letter-spacing:.12em;color:var(--pro);text-transform:uppercase;text-align:right;">⚡ PRO<button type="button" class="info-i" aria-label="The first 10 who pay $20 keep Pro for as long as Rotator runs; after that Pro becomes a subscription. You can also invite 5 friends or use a Pro code. A Support donation does not unlock it.">ⓘ</button></div>'
         + '</div>'
         + '<div style="font-size:12px;color:var(--text);line-height:2.4;">'
           /* What Pro actually changes, checked against the code 2026-09-26
