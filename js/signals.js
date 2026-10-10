@@ -1575,9 +1575,8 @@ async function switchCategory(cat) {
 /* The score cell's bar and phase (2026-10-11, from BlockHorizon's signal
    table). The bar keeps its old fill (.sbf) and adds a dot (.sbp) at the
    score's place on a 0..100 scale (a negative score sits at the
-   left edge); the light theme shows the
-   scale with its red / amber / green zones (scoreBand), dark keeps the
-   fill until Daniel approves. The phase is _tdStatus() from
+   left edge); CSS shows the scale with its red /
+   amber / green zones (scoreBand) and hides the fill, in both themes. The phase is _tdStatus() from
    coin-reading.js, the same cut-offs as "Ran ahead / Lagged this week". */
 function _scoreBar(sc, col) {
   var pos = Math.max(0, Math.min(100, sc));   /* 0..100; below 0 sits at the left edge */
