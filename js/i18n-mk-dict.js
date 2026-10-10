@@ -1783,3 +1783,12 @@ Object.assign(MK_TEXT, {
   'No unlock': 'Без отклучување'
 });
 MK_PATTERNS.push([/^Unlock ([\d.]+)%$/, function (m) { return 'Отклучување ' + m[1].replace('.', ',') + '%'; }]);
+/* Coin window: Overview list (2026-10-11). */
+Object.assign(MK_TEXT, {
+  'Overview': 'Преглед',
+  'Market cap': 'Пазарна вредност',
+  'Company market cap': 'Пазарна вредност на компанијата',
+  '24h volume': 'Промет за 24 часа',
+  'Market cap rank': 'Место по пазарна вредност',
+  'From all-time high': 'Од највисоката цена досега'
+});

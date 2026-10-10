@@ -354,8 +354,34 @@ function _tdKeyFacts(c, tech) {
     'Next 30 days', 'Unlock ' + pct.toFixed(1) + '%' + (u.next_unlock_at ? ' · ' + String(u.next_unlock_at).slice(5, 10) : ''));
   else chip('No unlock in 30D', 'up', 'td-supply-sec', '', 'Next 30 days', 'No unlock');
   return '<div class="td-facts">' + chips.join('') + '</div>'
+    + _tdOverviewHtml(c)
     + _tdPerfHtml(c)
     + (kvs.length ? '<div class="td-card td-kv"><div class="td-card-h">Key facts</div>' + kvs.join('') + '</div>' : '');
+}
+
+/* ── Overview (light first, 2026-10-11) ─────────────────────────────
+   BlockHorizon's "Series" list: the numbers people look for first, at
+   the top, instead of inside the Market data fold. Same sources and the
+   same stock rule as that fold: a bStock shows its company's market cap
+   (equityMcap) and no crypto rank. */
+function _tdOverviewHtml(c) {
+  if (!c) return '';
+  var rows = [];
+  var row = function (k, v, style, sec, tip) {
+    rows.push('<button type="button" class="td-kv-row"' + (sec ? ' onclick="_tdOpenFold(\'' + sec + '\')"' : ' tabindex="-1"')
+      + (tip ? ' title="' + _esc(tip) + '"' : '') + '><span class="td-kv-k">' + k + '</span>'
+      + '<span class="td-kv-v"' + (style ? ' style="' + style + '"' : '') + '>' + v + '</span></button>');
+  };
+  var cap = c.isStock ? c.equityMcap : c.mcap;
+  if (cap && typeof fmtMcap === 'function') row(c.isStock ? 'Company market cap' : 'Market cap', fmtMcap(cap), '', 'td-market-sec');
+  var vol = c.volume24 || c.total_volume;
+  if (vol && typeof fmtVol === 'function') row('24h volume', fmtVol(vol), '', 'td-market-sec');
+  if (!c.isStock && c.rank) row('Market cap rank', '#' + c.rank, '', 'td-market-sec');
+  if (!c.isStable && c.score != null && isFinite(c.score) && typeof scoreColor === 'function')
+    row('Score', c.score + '<span class="td-kv-of"> / ' + (c.isStock ? 70 : 100) + '</span>', 'color:' + scoreColor(c.score), 'td-breakdown-sec',
+      'How the coin has done against the rest, from −50 to 100. It describes the past, not the future.');
+  if (!c.isStock && !c.isStable && c.ath_change_pct) row('From all-time high', _tdPct(Number(c.ath_change_pct)), '', 'td-market-sec');
+  return rows.length ? '<div class="td-card td-kv td-ov"><div class="td-card-h">Overview</div>' + rows.join('') + '</div>' : '';
 }
 
 /* ── Performance bars (light first, 2026-10-11) ─────────────────────
