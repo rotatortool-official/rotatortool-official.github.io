@@ -5734,42 +5734,43 @@ a.mob-more-item{text-decoration:none;color:inherit;}
   .footer-copy{white-space:normal !important;text-align:center;}
 }
 
-/* ── TODAY as rows on phones, light theme first (2026-10-11) ───────────
+/* ── TODAY as rows on phones, both themes (light 2026-10-11, dark the same day) ───────────
    From BlockHorizon's "one scale" table: one row per reading, name | mini
    chart | value + change. 29 tiles in 2-column cards were ~2,050px of
    scrolling on a phone. Tap opens the row in place with the explanation
    (the back face) instead of turning a card too short to hold it. The
    extra lines (Fed target, China oil, Coinbase, VIX bar) stay in the
-   card view and the More window. Port to dark only after Daniel's OK. */
+   card view and the More window. Daniel approved it on light and asked
+   for dark too. */
 @media (max-width:600px){
-  :root.light .briefing{grid-template-columns:1fr;gap:1px 0;}
-  :root.light .bf-cell-empty{display:none;}
-  :root.light .bf-cell{perspective:none;}
-  :root.light .bf-tilt,:root.light .bf-cell.hovering .bf-tilt{transform:none;box-shadow:none;animation:none;}
-  :root.light .bf-cell.flipped .bf-inner{transform:none;}
-  :root.light .bf-inner{transition:none;display:block;}
-  :root.light .bf-front{
+  :root .briefing{grid-template-columns:1fr;gap:1px 0;}
+  :root .bf-cell-empty{display:none;}
+  :root .bf-cell{perspective:none;}
+  :root .bf-tilt,:root .bf-cell.hovering .bf-tilt{transform:none;box-shadow:none;animation:none;}
+  :root .bf-cell.flipped .bf-inner{transform:none;}
+  :root .bf-inner{transition:none;display:block;}
+  :root .bf-front{
     display:grid;grid-template-columns:20px minmax(0,1fr) 64px minmax(84px,auto);
     grid-template-rows:auto auto;column-gap:10px;align-items:center;
     padding:5px 12px;transform:none;-webkit-transform:none;
   }
-  :root.light .bf-front > *{display:none;}
-  :root.light .bf-front > .bf-emb{display:block;position:static;grid-column:1;grid-row:1 / 3;width:18px;height:18px;opacity:.85;}
-  :root.light .bf-front > .bf-emb-flag{width:20px;height:14px;}
-  :root.light .bf-front > .bf-k{display:block;grid-column:2;grid-row:1 / 3;padding:0;margin:0;font-size:11px;line-height:1.25;}
-  :root.light .bf-front > .bf-spark{display:block;grid-column:3;grid-row:1 / 3;width:64px;height:22px;margin:0;}
-  :root.light .bf-front > .bf-v,:root.light .bf-front > .bf-vrow{display:block;grid-column:4;grid-row:1;text-align:right;}
-  :root.light .bf-front .bf-v{font-size:15px;line-height:1.15;white-space:nowrap;}
-  :root.light .bf-front .bf-vrow > :not(.bf-v){display:none;}
-  :root.light .bf-front > .bf-d{display:block;grid-column:4;grid-row:2;text-align:right;font-size:11px;white-space:nowrap;}
+  :root .bf-front > *{display:none;}
+  :root .bf-front > .bf-emb{display:block;position:static;grid-column:1;grid-row:1 / 3;width:18px;height:18px;opacity:.85;}
+  :root .bf-front > .bf-emb-flag{width:20px;height:14px;}
+  :root .bf-front > .bf-k{display:block;grid-column:2;grid-row:1 / 3;padding:0;margin:0;font-size:11px;line-height:1.25;}
+  :root .bf-front > .bf-spark{display:block;grid-column:3;grid-row:1 / 3;width:64px;height:22px;margin:0;}
+  :root .bf-front > .bf-v,:root .bf-front > .bf-vrow{display:block;grid-column:4;grid-row:1;text-align:right;}
+  :root .bf-front .bf-v{font-size:15px;line-height:1.15;white-space:nowrap;}
+  :root .bf-front .bf-vrow > :not(.bf-v){display:none;}
+  :root .bf-front > .bf-d{display:block;grid-column:4;grid-row:2;text-align:right;font-size:11px;white-space:nowrap;}
   /* The amber "news behind More" mark survives as a dot by the icon. */
-  :root.light .bf-front > .bf-more.bf-more-news{display:block;position:absolute;left:6px;top:5px;width:7px;height:7px;padding:0;border:0;font-size:0;background:var(--amber,#f0b90b);}
+  :root .bf-front > .bf-more.bf-more-news{display:block;position:absolute;left:6px;top:5px;width:7px;height:7px;padding:0;border:0;font-size:0;background:var(--amber,#f0b90b);}
   /* Open row: the explanation under the row, not a turned card. */
-  :root.light .bf-back{position:static;transform:none;-webkit-transform:none;display:none;visibility:visible;padding:2px 12px 10px 42px;overflow:visible;}
-  :root.light .bf-back > .bf-k{display:none;}
-  :root.light .bf-cell.flipped .bf-front{visibility:visible;}
-  :root.light .bf-cell.flipped .bf-back{display:block;}
-  :root.light .bf-cell.flipped{background:var(--bg3);}
-  :root.light .bf-cell.flipped .bf-back{display:flex;flex-direction:column;align-items:flex-start;}
-  :root.light .bf-has-more .bf-read{position:static;order:9;margin:6px 0 0;}
+  :root .bf-back{position:static;transform:none;-webkit-transform:none;display:none;visibility:visible;padding:2px 12px 10px 42px;overflow:visible;}
+  :root .bf-back > .bf-k{display:none;}
+  :root .bf-cell.flipped .bf-front{visibility:visible;}
+  :root .bf-cell.flipped .bf-back{display:block;}
+  :root .bf-cell.flipped{background:var(--bg3);}
+  :root .bf-cell.flipped .bf-back{display:flex;flex-direction:column;align-items:flex-start;}
+  :root .bf-has-more .bf-read{position:static;order:9;margin:6px 0 0;}
 }
