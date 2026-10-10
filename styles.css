@@ -1717,6 +1717,10 @@ td.qa-cell{text-align:center;width:28px;padding:0 4px !important;}
   .sig-tiles-grid::-webkit-scrollbar{display:none;}
   /* Every tile visible — clear any prior hide rules */
   .sig-tiles-grid > *:nth-child(n+3){display:flex !important;}
+  /* ...but a card is a block, like cards 1-2 (2026-10-11). As a flex ROW,
+     cards 3+ squeezed the reading line to ~9px wide and ~440px tall, and
+     the whole carousel row stretched to match (Daniel's screenshot). */
+  .sig-tiles-grid > .sig-tile:nth-child(n+3){display:block !important;}
   /* Fixed-width snap card */
   .sig-tile{
     flex-shrink:0;
