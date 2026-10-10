@@ -324,9 +324,9 @@ function _tdOpenFold(secId) {
    and is new supply coming. Each chip opens the section with the rest. */
 function _tdKeyFacts(c, tech) {
   var chips = [], kvs = [];
-  /* Each fact is written twice: a chip (dark, until Daniel approves) and
-     a row of the "Key facts" list (light, 2026-10-11, from BlockHorizon's
-     chart card). CSS shows one per theme. */
+  /* Each fact is written twice: a chip (.td-facts, hidden since
+     2026-10-11) and a row of the "Key facts" list (BlockHorizon's chart
+     card, both themes). Drop the chips once nobody misses them. */
   var chip = function (txt, cls, sec, tip, k, v) {
     chips.push('<button type="button" class="td-fact ' + (cls || '') + '"' + (sec ? ' onclick="_tdOpenFold(\'' + sec + '\')"' : ' tabindex="-1"')
       + (tip ? ' title="' + _esc(tip) + '"' : '') + '>' + txt + '</button>');
