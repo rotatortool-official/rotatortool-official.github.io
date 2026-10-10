@@ -1730,3 +1730,31 @@ Object.assign(MK_TEXT, {
   P(/^Reported in ([A-Z]{3}); market cap converted at today's rate\.$/, function (m) {
     return 'Бројките се во ' + m[1] + '; пазарната вредност е претворена по денешниот курс.'; });
 })();
+/* Pro alerts popup + feedback window (js/engage.js, 2026-10-11). */
+Object.assign(MK_TEXT, {
+  'Track your coins without watching the charts.': 'Следете ги вашите монети без да ги гледате графиконите.',
+  'Rotator Alerts': 'Rotator известувања',
+  'your briefing': 'вашиот преглед', 'Thursday': 'четврток', 'Your coins': 'Вашите монети',
+  '(held)': '(во сопственост)', '(watched)': '(следите)',
+  '+52% in 7 days': '+52% за 7 дена', 'score 69': 'резултат 69', 'score 70': 'резултат 70',
+  '↳ quick RSI bounce': '↳ брз RSI отскок', '↳ unlock in 4 days, 3.3% of supply': '↳ отклучување за 4 дена, 3,3% од понудата',
+  'Your swap pairs': 'Вашите парови за замена', ': in the good swap zone': ': во добрата зона за замена',
+  'Example briefing': 'Пример за преглед',
+  'Your coins, on Telegram': 'Вашите монети, на Telegram',
+  'Pick your coins once. Every Monday and Thursday Rotator sends you what changed on them: turn signs, big unlocks, your swap pairs.':
+    'Ги избирате монетите еднаш. Секој понеделник и четврток Rotator ви праќа што се сменило кај нив: знаци за свртување, големи отклучувања, вашите парови за замена.',
+  'A message right away if a coin you hold is being delisted': 'Порака веднаш ако монета што ја држите се отстранува од листата',
+  'No account, no email': 'Без сметка, без е-пошта',
+  'Stop any time with /stop': 'Запирате кога сакате со /stop',
+  'Get Pro alerts': 'Добијте Pro известувања',
+  'Maybe later': 'Можеби подоцна',
+  'How would you rate Rotator so far?': 'Како би го оцениле Rotator досега?',
+  'Your answer helps us decide what to fix next.': 'Вашиот одговор ни помага да одлучиме што да поправиме следно.',
+  'Bad': 'Лошо', 'Good': 'Добро',
+  'Anything we should fix? (optional)': 'Нешто што треба да поправиме? (не е задолжително)',
+  'Send': 'Испрати', 'Sending…': 'Се испраќа…',
+  'No name or account is sent with it.': 'Со него не се праќа име ниту сметка.',
+  'Thank you! Every answer is read.': 'Ви благодариме! Секој одговор се чита.',
+  'Could not send. Try again in a moment.': 'Не успеа да се испрати. Обидете се повторно за момент.',
+  'Rate Rotator': 'Оценете го Rotator'
+});

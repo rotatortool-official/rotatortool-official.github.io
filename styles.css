@@ -5809,3 +5809,87 @@ a.mob-more-item{text-decoration:none;color:inherit;}
   :root #crypto-panel .sw{display:grid;grid-template-columns:auto auto;justify-content:end;align-items:center;row-gap:5px;}
   :root #crypto-panel .sb{grid-column:1 / -1;width:auto;}
 }
+
+/* ── Pro alerts popup + feedback window (js/engage.js, 2026-10-11) ────
+   BlockHorizon's clean two-panel sign-up and PostHog-style rating card,
+   in the site's own colours so both themes work. */
+.ep-ov{position:fixed;inset:0;z-index:9000;display:flex;align-items:center;justify-content:center;padding:16px;
+  background:rgba(8,10,14,.55);backdrop-filter:blur(3px);-webkit-backdrop-filter:blur(3px);opacity:0;transition:opacity .2s;}
+.ep-ov.in{opacity:1;}
+.ep-card{position:relative;display:grid;grid-template-columns:1fr 1fr;width:100%;max-width:780px;overflow:hidden;
+  border-radius:16px;background:var(--bg2);border:1px solid var(--bdr);box-shadow:0 24px 60px rgba(0,0,0,.35);
+  transform:translateY(8px);transition:transform .2s;}
+.ep-ov.in .ep-card{transform:none;}
+.ep-x{position:absolute;top:10px;right:12px;z-index:2;width:30px;height:30px;border:0;border-radius:50%;background:transparent;
+  color:var(--muted);font-size:22px;line-height:1;cursor:pointer;}
+.ep-x:hover{color:var(--text);background:var(--bg3);}
+.ep-art{position:relative;padding:28px 24px;display:flex;flex-direction:column;justify-content:space-between;gap:20px;min-height:380px;
+  background:radial-gradient(120% 90% at 85% 100%,rgba(243,186,47,.55),transparent 60%),
+             radial-gradient(90% 70% at 0% 0%,rgba(139,92,246,.35),transparent 60%),#121722;color:#fff;}
+.ep-art-k{font-size:21px;font-weight:700;line-height:1.25;letter-spacing:-.01em;max-width:280px;}
+.ep-tg{background:rgba(255,255,255,.96);color:#1c2430;border-radius:12px;padding:10px 12px 8px;font-size:11.5px;line-height:1.45;
+  box-shadow:0 12px 30px rgba(0,0,0,.35);transform:rotate(-1.5deg);}
+.ep-tg-top{display:flex;align-items:center;gap:7px;font-weight:700;font-size:12px;padding-bottom:7px;margin-bottom:7px;border-bottom:1px solid #e6e9ee;}
+.ep-tg-av{width:22px;height:22px;border-radius:50%;background:#f3ba2f;color:#111;display:inline-flex;align-items:center;justify-content:center;font-size:12px;}
+.ep-tg-h{margin-bottom:4px;}
+.ep-tg-s{margin-top:5px;}
+.ep-tg-sub{color:#5b6573;padding-left:10px;}
+.ep-tg-ex{margin-top:7px;font-size:10px;color:#8a93a0;text-align:right;letter-spacing:.04em;}
+.ep-body{padding:34px 30px 26px;display:flex;flex-direction:column;}
+.ep-logo{font:700 11px/1 var(--font-ui);letter-spacing:.28em;color:var(--muted);margin-bottom:18px;text-align:center;}
+.ep-logo span{color:var(--pro,#8b5cf6);}
+.ep-title{margin:0 0 8px;font-size:24px;font-weight:700;line-height:1.2;color:var(--text);text-align:center;letter-spacing:-.01em;}
+.ep-sub{margin:0 0 16px;font-size:13.5px;line-height:1.55;color:var(--muted);text-align:center;}
+.ep-list{list-style:none;margin:0 0 20px;padding:0;font-size:13px;color:var(--text);}
+.ep-list li{position:relative;padding:6px 0 6px 22px;border-top:1px solid var(--bdr);}
+.ep-list li:first-child{border-top:0;}
+.ep-list li::before{content:'✓';position:absolute;left:2px;color:var(--green);font-weight:700;}
+.ep-go{margin-top:auto;width:100%;padding:13px 16px;border:0;border-radius:10px;cursor:pointer;
+  background:#f3ba2f;color:#111;font:700 15px/1 var(--font-ui);}
+.ep-go:hover{filter:brightness(1.06);}
+.ep-later{margin-top:10px;background:none;border:0;color:var(--muted);font:500 13px/1.4 var(--font-ui);cursor:pointer;text-decoration:underline;text-underline-offset:3px;}
+@media (max-width:700px){
+  .ep-ov{align-items:flex-end;padding:10px;}
+  .ep-card{grid-template-columns:1fr;max-height:calc(100dvh - 20px);overflow-y:auto;border-radius:16px;}
+  .ep-art{min-height:0;padding:22px 18px 18px;gap:14px;}
+  .ep-art-k{font-size:17px;}
+  .ep-tg{font-size:11px;}
+  .ep-body{padding:20px 18px 16px;}
+  .ep-logo{margin-bottom:10px;}
+  .ep-title{font-size:20px;}
+  .ep-sub{font-size:13px;margin-bottom:10px;}
+  .ep-list{margin-bottom:12px;font-size:12.5px;}
+  .ep-list li{padding:4px 0 4px 22px;}
+  .ep-tg-pair{display:none;}   /* the example is shorter on a phone, so "Maybe later" fits */
+  .ep-art{padding-bottom:14px;}
+  .ep-body{padding-top:14px;}
+  .ep-sub{line-height:1.45;}
+  .ep-x{color:#fff;}
+}
+
+.fb-card{position:fixed;right:18px;bottom:18px;z-index:8900;width:300px;padding:16px 16px 12px;border-radius:14px;
+  background:var(--bg2);border:1px solid var(--bdr2);box-shadow:0 14px 40px rgba(0,0,0,.3);color:var(--text);
+  opacity:0;transform:translateY(10px);transition:opacity .2s,transform .2s;}
+.fb-card.in{opacity:1;transform:none;}
+.fb-x{position:absolute;top:-12px;right:-12px;width:30px;height:30px;border-radius:50%;border:1px solid var(--bdr2);
+  background:var(--bg2);color:var(--muted);font-size:18px;line-height:1;cursor:pointer;box-shadow:0 2px 8px rgba(0,0,0,.2);}
+.fb-x:hover{color:var(--text);}
+.fb-q{font-size:14px;font-weight:600;line-height:1.35;padding-right:6px;}
+.fb-s{font-size:12px;color:var(--muted);margin:4px 0 12px;line-height:1.4;}
+.fb-row{display:grid;grid-template-columns:repeat(5,1fr);border:1px solid var(--bdr2);border-radius:8px;overflow:hidden;}
+.fb-n{border:0;border-left:1px solid var(--bdr2);background:var(--bg3);color:var(--text);font:600 14px/1 var(--font-ui);padding:11px 0;cursor:pointer;}
+.fb-n:first-child{border-left:0;}
+.fb-n:hover{background:var(--bg4);}
+.fb-n.on{background:var(--bnb,#f3ba2f);color:#111;}
+.fb-ends{display:flex;justify-content:space-between;font-size:11px;color:var(--muted);margin:4px 2px 10px;}
+.fb-c{display:none;width:100%;box-sizing:border-box;resize:vertical;margin-bottom:10px;padding:8px 10px;border-radius:8px;
+  border:1px solid var(--bdr2);background:var(--bg3);color:var(--text);font:13px/1.4 var(--font-ui);}
+.fb-card.picked .fb-c{display:block;}
+.fb-send{width:100%;padding:11px;border:0;border-radius:8px;background:var(--text);color:var(--bg2);font:600 14px/1 var(--font-ui);cursor:pointer;}
+.fb-send:disabled{opacity:.35;cursor:default;}
+.fb-foot{font-size:10.5px;color:var(--muted);text-align:center;margin-top:8px;opacity:.8;}
+.fb-done{padding:14px 4px;text-align:center;font-size:14px;font-weight:600;}
+@media (max-width:700px){
+  .fb-card{left:12px;right:12px;width:auto;bottom:calc(84px + env(safe-area-inset-bottom,0px));}
+  .fb-x{top:-10px;right:-6px;}
+}

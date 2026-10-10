@@ -294,8 +294,12 @@ function openPro() {
         + '<div style="font-size:12px;color:var(--muted);letter-spacing:.12em;margin-bottom:8px;">YOUR RECOVERY KEY</div>'
         + '<div style="font-size:12px;color:var(--muted);line-height:1.6;margin-bottom:8px;">Save this key to restore Pro on another device or browser:</div>'
         + '<div style="display:flex;gap:6px;">'
-          + '<input class="code-input" id="recovery-key-display" value="' + getMyId() + '" readonly onclick="this.select()" style="font-size:12px;font-weight:600;color:var(--pro);letter-spacing:.08em;">'
-          + '<button class="code-btn" onclick="copyRecoveryKey()">COPY</button>'
+          /* Hidden until SHOW (2026-10-11): the key restores Pro and controls
+             the Telegram alerts, and Daniel's leaked on a screen recording.
+             COPY works without showing it. */
+          + '<input class="code-input" id="recovery-key-display" type="password" value="' + getMyId() + '" readonly onclick="this.select()" style="font-size:12px;font-weight:600;color:var(--pro);letter-spacing:.08em;flex:1;min-width:0;">'
+          + '<button class="code-btn" onclick="copyRecoveryKey()" style="flex-shrink:0;padding-left:10px;padding-right:10px;">COPY</button>'
+          + '<button class="code-btn" id="recovery-key-show" onclick="toggleRecoveryKey()" style="flex-shrink:0;padding-left:10px;padding-right:10px;">SHOW</button>'
         + '</div>'
       + '</div>'
       + '<div class="refx-section" style="margin-top:14px;">'
@@ -620,6 +624,15 @@ function copyAddr(addr, btnId) {
 }
 
 /* ── Recovery key helpers ────────────────────────────────────── */
+function toggleRecoveryKey() {
+  var inp = document.getElementById('recovery-key-display');
+  var btn = document.getElementById('recovery-key-show');
+  if (!inp || !btn) return;
+  var show = inp.type === 'password';
+  inp.type = show ? 'text' : 'password';
+  btn.textContent = show ? 'HIDE' : 'SHOW';
+}
+
 function copyRecoveryKey() {
   var inp = document.getElementById('recovery-key-display');
   var val = inp ? inp.value : getMyId();
