@@ -130,6 +130,8 @@ Object.assign(MK_TEXT, {
   'Mark all read': 'Означи сè како прочитано',
   'Add a holding or watch a coin, and changes to it show up here: exchange warnings, big unlocks, and new turn signs.':
     'Додадете позиција или следете монета, и промените кај неа ќе се појават тука: предупредувања од берзата, големи отклучувања и нови знаци за свртување.',
+  'A potential turn, not a signal to go all in. Buy in steps (DCA), never invest more than you can afford to lose, and check other sources before you put money in.':
+    'Можно свртување, не сигнал да вложите сè. Купувајте во делови (DCA), никогаш не вложувајте повеќе отколку што можете да си дозволите да изгубите и проверете и други извори пред да вложите пари.',
   'Nothing to flag on your coins right now.': 'Во моментов нема ништо за истакнување кај вашите монети.',
   'Get these on Telegram': 'Добивај ги на Telegram',
   'Notify me in this browser': 'Извести ме во овој прелистувач',
@@ -711,6 +713,7 @@ Object.assign(MK_TEXT, {
   P(/^unlock (\d+) more$/, function (m) { return 'отклучете уште ' + m[1]; });
   P(/^Show all (\d+)$/, function (m) { return 'Прикажи ги сите ' + m[1]; });
   P(/^\+(\d+) the other way$/, function (m) { return '+' + m[1] + ' во спротивна насока'; });
+  P(/^(\d+) potential turn signs? or ETF alerts? on your coins\. See (?:it|them) with Pro$/, function (m) { var one = m[1] === '1'; return m[1] + (one ? ' можен знак за свртување или ETF известување' : ' можни знаци за свртување или ETF известувања') + ' за вашите монети. Видете ' + (one ? 'го' : 'ги') + ' со Pro'; });
   P(/^(\d+) turn-sign and ETF alerts? on your coins\. Unlock with Pro$/, function (m) { return m[1] + ' ' + plur(m[1], 'известување', 'известувања') + ' за знаци за свртување и ETF за вашите монети. Отклучете со Pro'; });
   P(/^([\d.]+)% of supply unlocks within 30 days$/, function (m) { return m[1] + '% од понудата се отклучува во рок од 30 дена'; });
   P(/^Next unlock ([\d-]+)\.$/, function (m) { return 'Следно отклучување ' + m[1] + '.'; });

@@ -270,8 +270,12 @@ function renderCoinAlerts() {
   host.innerHTML = '<div class="ca-hd"><span class="ca-title">🔔 Alerts for your coins</span>'
     + (fresh.length ? '<button type="button" class="ca-act" onclick="_twMarkRead()">Mark all read</button>' : '') + '</div>'
     + (rows || '<div class="ca-empty">Nothing to flag on your coins right now.</div>')
-    + (locked ? '<button type="button" class="ca-lock" onclick="openPro()">⚡ ' + locked + ' turn-sign and ETF alert' + (locked === 1 ? '' : 's')
-        + ' on your coins. Unlock with Pro</button>' : '')
+    + (locked ? '<button type="button" class="ca-lock" onclick="openPro()">⚡ ' + locked + (locked === 1
+        ? ' potential turn sign or ETF alert on your coins. See it with Pro' : ' potential turn signs or ETF alerts on your coins. See them with Pro')
+        + '</button>' : '')
+    /* Framing (Daniel, 2026-10-10): a turn sign is a possibility, never a
+       reason to go all in. Shown whenever there is something to act on. */
+    + ((rows || locked) ? '<div class="ca-care">A potential turn, not a signal to go all in. Buy in steps (DCA), never invest more than you can afford to lose, and check other sources before you put money in.</div>' : '')
     + '<div class="ca-foot">' + (isPro
         ? _twTgFoot()
           + '<button type="button" class="ca-act" onclick="_twToggleNotify()">' + (notifyOn ? '🔕 Turn off browser notifications' : '🔔 Notify me in this browser') + '</button>'
