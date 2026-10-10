@@ -174,15 +174,30 @@ function supaCheckPro(uid) {
 
 /* ── Restore Pro on page load (non-blocking) ─────────────────── */
 function supaRestoreOnLoad() {
-  var uid = localStorage.getItem('rot_uid');
+  /* getMyId() makes one if it is missing, so deleting rot_uid cannot
+     skip the server check below. */
+  var uid = (typeof getMyId === 'function') ? getMyId() : localStorage.getItem('rot_uid');
   if (!uid) return;
 
-  /* Already Pro locally? Nothing to do — we can no longer push a
-     local-only Pro flag to the server (that was a forgery vector,
-     closed in Step 0b). If the server doesn't know about this uid
-     the user will just have local Pro on this device until they
-     redeem a code / tx / referrals. */
-  if (isPro) return;
+  /* Already Pro locally? The server decides (Daniel, 2026-10-10). The
+     local flag lives in this browser's storage, so anyone with developer
+     tools could switch it on; Telegram was always checked server side,
+     but the site extras (10 holdings, any swap pair, paper trades,
+     notifications) were not. A clear NO from the server now takes local
+     Pro away. An error is not a no: offline or an outage keeps Pro, so a
+     paying user is never locked out by a hiccup. */
+  if (isPro) {
+    _supaRpc('pro_status', { p_uid: uid }).then(function (v) {
+      if (v !== false || !isPro) return;
+      isPro = false;
+      savePro(false);
+      if (typeof updateTierBadge === 'function') updateTierBadge();
+      if (typeof updateProGates === 'function') updateProGates();
+      if (typeof renderAll === 'function') renderAll();
+      console.warn('[Supabase] local Pro removed: the server has no Pro for this browser');
+    }).catch(function (e) { console.warn('[Supabase] Pro check failed, keeping local Pro:', e.message); });
+    return;
+  }
 
   /* Not Pro locally — check Supabase */
   supaCheckPro(uid).then(function(hasPro) {
