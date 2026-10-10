@@ -262,7 +262,11 @@ function renderCoinAlerts() {
   if (!host) return;
   if (!_twMyCoins().length && !_twPairs.list.length) {
     host.innerHTML = '<div class="ca-hd"><span class="ca-title">🔔 Alerts for your coins</span></div>'
-      + '<div class="ca-empty">Add a holding or watch a coin, and changes to it show up here: exchange warnings, big unlocks, and new turn signs.</div>';
+      + '<div class="ca-empty">Add a holding or watch a coin, and changes to it show up here: exchange warnings, big unlocks, and new turn signs.</div>'
+      /* Phones have no bell (it is in the desktop top bar), so the empty
+         panel opens the same window: what the alerts are, and the bot. */
+      + (typeof rotShowAlertsIntro === 'function'
+          ? '<div class="ca-foot"><button type="button" class="ca-act ca-tg-btn" onclick="rotShowAlertsIntro()">📨 Get alerts on Telegram</button></div>' : '');
     return;
   }
   var notifyOn = false; try { notifyOn = localStorage.getItem(_TW_NOTIFY_ON) === '1'; } catch (e) {}

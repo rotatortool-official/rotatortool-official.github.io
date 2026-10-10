@@ -1770,5 +1770,6 @@ Object.assign(MK_TEXT, {
   'A message right away if a coin you hold is delisted': 'Порака веднаш ако монета што ја држите е отстранета од листата',
   'Add a coin': 'Додадете монета',
   'Open the Telegram bot': 'Отворете го Telegram ботот',
-  'Connect Telegram': 'Поврзете Telegram'
+  'Connect Telegram': 'Поврзете Telegram',
+  'Get alerts on Telegram': 'Добивајте известувања на Telegram'
 });
