@@ -311,52 +311,38 @@ function openPro() {
   } else {
     var _proRequested = false;
     try { _proRequested = localStorage.getItem('rot_pro_requested') === '1'; } catch (e) {}
-    body.innerHTML = '<div class="modal-title">⚡ Pro — free, or with a contribution</div>'
-      + '<div class="modal-sub">Pro is optional. <strong>Rotator is free</strong> and runs on donations and the honor system.<br>Three ways to unlock the full features, all equal: <strong>invite 5 friends</strong> (free), <strong>redeem a Pro code</strong> (free), or a <strong>one-time contribution</strong>. The first 10 who pay keep Pro for as long as Rotator pays its own costs: their contributions cover the domain and the first year of servers. After that, Pro becomes a subscription.</div>'
-      + '<div class="pro-places" id="pro-places" style="display:none;"></div>'   /* filled by _proPlacesFill() */
-      /* What Rotator is, and what Pro is worth (Daniel, 2026-10-10). Arithmetic, not a promise. */
-      + '<div class="pro-why"><div class="pro-why-hdr">NOT BUY AND SELL SIGNALS</div>'
-        + '<div>Rotator does not sell buy or sell signals. It presents data relevant to your holdings, on time, so you stay informed and make your own decisions.</div>'
-        + '<div>Pro sends that data to you personally, about the coins you hold. $20 is what a 2% drop costs on a $1,000 portfolio.</div>'
-        + '<div>See even one of those coming in time, and Pro has paid for itself.</div></div>'
-
-      /* ── FREE vs PRO comparison ── */
-      + '<div style="background:var(--bg3);border:1px solid rgba(167,139,250,.2);border-radius:4px;padding:12px 14px;margin-bottom:14px;">'
-        + '<div style="display:flex;gap:12px;margin-bottom:10px;">'
-          + '<div style="flex:1;font-size:12px;letter-spacing:.12em;color:var(--muted);text-transform:uppercase;">FREE</div>'
-          + '<div style="flex:1;font-size:12px;letter-spacing:.12em;color:var(--pro);text-transform:uppercase;text-align:right;">⚡ PRO<button type="button" class="info-i" aria-label="The first 10 who pay $20 keep Pro for as long as Rotator pays its own costs; after that Pro becomes a subscription. You can also invite 5 friends or use a Pro code. A Support donation does not unlock it.">ⓘ</button></div>'
-        + '</div>'
-        + '<div style="font-size:12px;color:var(--text);line-height:2.4;">'
-          /* What Pro actually changes, checked against the code 2026-09-26
-             (promptove/69). Score gaps, the score breakdown and the swap
-             tool's support/resistance cues are free for everyone, so they
-             are not listed here: the list used to claim them as Pro. */
-          + '<div style="display:flex;justify-content:space-between;gap:10px;"><span>2 holdings</span><span style="color:var(--pro);text-align:right;">10 holdings</span></div>'
-          + '<div style="display:flex;justify-content:space-between;gap:10px;"><span>Exchange and unlock alerts</span><span style="color:var(--pro);text-align:right;">+ turn signs, ETF, Telegram DMs</span></div>'
-          + '<div style="display:flex;justify-content:space-between;gap:10px;"><span>Default swap pair</span><span style="color:var(--pro);text-align:right;">Any swap pair</span></div>'
-          /* 2026-10-10 (Daniel): every reading on the site is free; Pro is the
-             personal alerts. The live Insight Engine, unlock amounts, crosses,
-             all board tiles and all turn signs left this list that day. */
-          + '<div style="display:flex;justify-content:space-between;gap:10px;"><span>Save swap pairs</span><span style="color:var(--pro);text-align:right;">⚡ Alert when a saved pair hits its zone or target</span></div>'
-          + '<div style="display:flex;justify-content:space-between;gap:10px;"><span>Unlocks on the board</span><span style="color:var(--pro);text-align:right;">⚡ Telegram warning 3+ days before an unlock on your coins</span></div>'
-          + '<div style="display:flex;justify-content:space-between;gap:10px;"><span>Telegram market pulse channel</span><span style="color:var(--pro);text-align:right;">+ personal Telegram briefing, Mon and Thu</span></div>'
-        + '</div>'
+    /* Layout B, chosen by Daniel 2026-10-10 from three drafts ("best
+       clarity"): what stays free and what Pro sends you, side by side;
+       what it costs to run Rotator; the price and places left. Each thing
+       is said once. Before, the briefing, the unlock warning and the pair
+       alerts each appeared in a table AND a list, and "free" three times. */
+    body.innerHTML = '<div class="plb">'
+      + '<div class="plb-title">⚡ Pro</div>'
+      + '<div class="plb-sub">Rotator presents data relevant to your holdings, on time, so you stay informed and decide for yourself. It does not sell buy or sell signals.</div>'
+      + '<div class="plb-cols">'
+        + '<div class="plb-col"><div class="plb-col-hd">FREE · on the site</div><ul>'
+          + '<li>Every score, sign and tile</li>'
+          + '<li>Unlocks, buybacks and burns</li>'
+          + '<li>Exchange and unlock warnings on your coins</li>'
+          + '<li>2 holdings, the default swap pair</li>'
+          + '<li>The Telegram market channel</li></ul></div>'
+        + '<div class="plb-col pro"><div class="plb-col-hd">PRO · sent to you</div><ul>'
+          + '<li><b>Telegram briefing</b>, Mon and Thu</li>'
+          + '<li><b>Unlock warning</b>, 3+ days ahead</li>'
+          + '<li><b>Delisting and swap-pair alerts</b>, right away</li>'
+          + '<li>10 holdings, any swap pair</li>'
+          + '<li>Browser notifications</li></ul></div>'
       + '</div>'
-
-      /* ── What Pro sends you (2026-10-10). Was a picture of the Insight
-         Engine (promptove/104); that is free now, so the window shows the
-         personal alerts instead. ── */
-      + '<div class="pro-peek">'
-        + '<div class="pro-peek-hdr">WHAT PRO SENDS YOU</div>'
-        + '<div class="pro-peek-body">'
-          + '<ul class="pro-peek-list">'
-            + '<li>A Telegram briefing every Monday and Thursday: the market, your coins, your swap pairs</li>'
-            + '<li>A warning 3+ days before an unlock on a coin you hold</li>'
-            + '<li>Right away: a Binance delisting on your coins, and your saved pairs reaching their zone or target</li>'
-            + '<li>Everything on the site stays free to read.</li>'
-          + '</ul>'
-        + '</div>'
-      + '</div>'
+      /* Why it costs money (Daniel: API calls have limits, one person cannot
+         carry them). Kinds of cost, never amounts we have not published. */
+      + '<div class="plb-ledger"><div class="plb-ledger-hd">WHY PRO COSTS MONEY</div>'
+        + '<div class="plb-row"><span>Servers and database</span><span>monthly</span></div>'
+        + '<div class="plb-row"><span>Market-data APIs</span><span>call limits</span></div>'
+        + '<div class="plb-row"><span>Domain</span><span>yearly</span></div>'
+        + '<div class="plb-note">One person cannot carry these alone. Pro is how the people who get the most from Rotator keep it running for everyone.</div></div>'
+      + '<div class="plb-price"><b>$20 once</b><span>The first 10 who pay keep Pro for as long as Rotator pays its own costs. After that, Pro becomes a subscription.</span>'
+        + '<div class="pro-places" id="pro-places" style="display:none;"></div></div>'   /* filled by _proPlacesFill() */
+      + '<div class="plb-ways">Three ways to get Pro: invite 5 friends (free), redeem a Pro code (free), or pay $20 below.</div>'
 
       /* ── Viral: Invite 5 friends → Pro free ── */
       + '<div class="refx-section">'
@@ -426,7 +412,7 @@ function openPro() {
       /* ── SECONDARY: Community channels (Telegram = market pulse notifications, Discord placeholder) ── */
       + '<div style="font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);margin-bottom:8px;">COMMUNITY &amp; NOTIFICATIONS</div>'
       + '<div style="background:var(--bg3);border:1px solid var(--bdr2);border-radius:6px;padding:14px;margin-bottom:14px;">'
-        + '<div style="font-size:12px;color:var(--muted);margin-bottom:8px;line-height:1.6;">The market pulse channel on Telegram is <strong style="color:var(--pro);">free for everyone</strong>. Pro adds personal alerts about your own coins. Discord coming soon.</div>'
+        + '<div style="font-size:12px;color:var(--muted);margin-bottom:8px;line-height:1.6;">The market pulse channel on Telegram is <strong style="color:var(--pro);">free for everyone</strong>. Discord coming soon.</div>'
         + '<div class="community-tier-row">'
           + '<a href="https://t.me/rotatortool" target="_blank" rel="noopener" class="community-btn community-btn-tg" onclick="return joinTelegram(event)">'
             + '<div style="font-size:14px;font-weight:800;">Telegram</div>'
