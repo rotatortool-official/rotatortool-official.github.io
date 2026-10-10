@@ -1754,8 +1754,10 @@
   <script src="js/tx-verify.js"></script>
   <script src="js/i18n.js"></script>
   <script src="js/i18n-mk.js"></script>
-  <script src="js/i18n-mk-dict.js"></script>
-  <script src="js/i18n-mk-legal.js"></script>
+  <!-- The Macedonian dictionary only when MK is the saved choice (2026-10-11):
+       ~270 KB that English visitors no longer download. A switch to MK on
+       the page loads it from js/i18n-mk.js. -->
+  <script>try { if (localStorage.getItem('rot_lang') === 'mk') document.write('<script src="js/i18n-mk-dict.js"><\/script><script src="js/i18n-mk-legal.js"><\/script>'); } catch (e) {}</script>
   <script src="js/signals.js"></script>
   <script src="js/holdings.js"></script>
   <script src="js/share-brand.js"></script>

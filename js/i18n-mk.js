@@ -206,9 +206,39 @@ var MK_BLOCKS = {};      /* CSS selector → Macedonian innerHTML, for legal pro
     });
   }
 
+  /* The dictionary loads only for Macedonian (2026-10-11, Daniel): ~250 KB
+     that 59% of visits, on phones, downloaded in English too. A visitor
+     who already chose MK gets it while the page loads (the document.write
+     after this file in index.html); a switch to MK fetches it here, then
+     runs setLang('mk') again so text the scripts translated with
+     mkTranslate() before it arrived is redrawn. Other pages that load the
+     files themselves (today-embed, track-record) find them already there. */
+  var MK_FILES = ['js/i18n-mk-dict.js', 'js/i18n-mk-legal.js'];
+  var dictState = 'none';
+  function loadDict() {
+    if (dictState !== 'none') return;
+    dictState = 'loading';
+    var i = 0;
+    (function next() {
+      if (i >= MK_FILES.length) {
+        dictState = 'ready';
+        if (typeof currentLang !== 'undefined' && currentLang === 'mk' && typeof setLang === 'function') setLang('mk');
+        return;
+      }
+      var s = document.createElement('script');
+      s.src = MK_FILES[i++];
+      s.onload = next;
+      s.onerror = function () { dictState = 'none'; };   /* the next switch to MK tries again */
+      document.head.appendChild(s);
+    })();
+  }
+  /* Ready once the dictionary has run, however it arrived. */
+  window.mkDictReady = function () { return Object.keys(MK_TEXT).length > 0; };
+
   var TITLE_EN = document.title;
   window.applyMkLayer = function (lang) {
     var want = lang === 'mk';
+    if (want && !window.mkDictReady()) { loadDict(); return; }
     if (want === ON) { if (want) walk(document.body); return; }
     ON = want;
     blocks(want);
