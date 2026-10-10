@@ -1954,16 +1954,19 @@ function _bfStep(last) {
    China, so Brent is the like-for-like comparison. */
 var BF_CN_TIP = 'Shanghai crude futures (INE SC) via Sina Finance, in dollars at the day\'s yuan rate (CNY=X, Yahoo Finance)';
 /* Right of the WTI price, in blue like its line (Daniel, 2026-10-04). */
-function _bfChinaRight(cn) {
+/* si: the Macedonian per-tonne units of the oil tile, or null. The China
+   price and its gaps scale with WTI so the three stay comparable. */
+function _bfChinaRight(cn, si) {
   return '<div class="bf-cn-big" title="' + BF_CN_TIP + '">'
     + '<span class="bf-cn-lbl">China (Shanghai)</span>'
-    + '<span class="bf-cn-v">$' + cn.v.toFixed(2) + '</span></div>';
+    + '<span class="bf-cn-v">' + (si ? _bfFmt(cn.v * si.mul, 'usd') + si.u : '$' + cn.v.toFixed(2)) + '</span></div>';
 }
-function _bfChinaNote(cn) {
+function _bfChinaNote(cn, si) {
   var parts = [];
   var g = function (v, name) {
     if (v == null || !isFinite(v)) return;
-    parts.push('$' + Math.abs(v).toFixed(2) + (v >= 0 ? ' over ' : ' under ') + name);
+    var a = si ? String(Math.round(Math.abs(v) * si.mul)) : Math.abs(v).toFixed(2);
+    parts.push('$' + a + (v >= 0 ? ' over ' : ' under ') + name);
   };
   g(cn.vsBrent, 'Brent'); g(cn.vsWti, 'WTI');
   if (!parts.length) return '';
@@ -2019,10 +2022,13 @@ function _bfWorldCell(it, o) {
     if (Array.isArray(it.s3) && it.s3.length > 2) w[1095] = { c: it.c1095, s: it.s3, l: '3y' };
   }
   /* o.mk: the Macedonian page shows SI units (Daniel, 2026-10-04): copper
-     per tonne, natural gas per kWh. Only the price is converted; the
+     per tonne, natural gas per kWh; oil and the diesel spread per tonne
+     too since 2026-10-10 (Daniel: no pounds or barrels). Only the price is converted; the
      changes are percentages, and a line keeps its shape when scaled.
      English keeps the units the markets quote. */
   var si = o.mk && typeof currentLang !== 'undefined' && currentLang === 'mk' ? o.mk : null;
+  /* A change in dollars (the diesel spread), not a percentage, scales too. */
+  if (si && o.usdpts) Object.keys(w).forEach(function (d) { if (w[d] && w[d].c != null) w[d].c *= si.mul; });
   /* Two companies at different prices: both lines start at the same
      point in each window, so the chart shows which did better; the
      second one's change is worked out from its own line. */
@@ -2041,10 +2047,10 @@ function _bfWorldCell(it, o) {
     pts: o.kind === 'rate' || !!o.pts, usd: !!o.usdpts, inv: !!o.inv, w: w,
     vcol: o.vcol ? o.vcol(it) : null,
     right: alt && alt.v != null ? function (win) { return _bfPairRight(o.pair, alt, win); }
-      : cn && cn.v != null ? _bfChinaRight(cn) : '',
+      : cn && cn.v != null ? _bfChinaRight(cn, si) : '',
     d: o.d, more: o.more, extra: (o.range && it.lo != null ? '<div class="bf-step">target ' + it.lo.toFixed(2) + '–' + it.hi.toFixed(2) + '%</div>' : '')
       + (o.note ? o.note(it) : '')
-      + (cn && cn.v != null && !alt ? _bfChinaNote(cn) : '')
+      + (cn && cn.v != null && !alt ? _bfChinaNote(cn, si) : '')
       + (o.policy ? _bfStep(it.last) : '')
       + (o.gas && it.gwei != null ? '<div class="bf-step">gas now ' + it.gwei + ' gwei</div>' : ''),
     src: o.srcHtml ? o.srcHtml(it) : _bfSrc(o.src, o.sym, it.date, o.monthly)
@@ -2643,7 +2649,7 @@ function renderBriefing() {
     ] },
     { t: 'Energy cost', cells: [
       _bfWorldCell(it('oil', 'oilP7'), { k: 'Oil · WTI', more: [
-          ['What it is', 'The price of a barrel (159 liters) of US crude oil, West Texas Intermediate, for next month\'s delivery. Brent, from the North Sea, is the price most of the world\'s oil is sold against.'],
+          ['What it is', 'The price of a barrel (159 liters) of US crude oil, West Texas Intermediate, for next month\'s delivery (the Macedonian view shows it per tonne, about 7.33 barrels). Brent, from the North Sea, is the price most of the world\'s oil is sold against.'],
           ['Why it matters', 'Oil is in transport, food, plastics and heating. When it rises fast, prices in shops follow, central banks keep rates higher for longer, and that weighs on risky assets like crypto.'],
           ['The China line', 'The blue number is crude oil traded in Shanghai, turned into dollars. It is Middle East oil delivered to China, so the fair comparison is Brent. The gap under the price shows how hard China is competing for barrels.'],
           ['Why China paid less for years', 'China\'s independent refiners bought oil from Iran and Russia, which sanctions made cheap. China took most of Iran\'s exports, about 1.4 million barrels a day in 2025, usually below world prices.'],
@@ -2651,14 +2657,16 @@ function renderBriefing() {
           ['What to watch', 'High prices make China buy less: at the end of September analysts cut their forecast for China\'s imports in the last three months of 2026. On 2 October the G7 agreed to release 100 million barrels of crude and diesel from emergency stocks over four months. A shrinking gap to Brent would be the sign that the pressure is easing; a growing one, that the scramble for barrels goes on.']
         ],
         kind: 'usd', src: BF_SRC.nymex, sym: 'CL=F', china: true,
+        mk: { mul: 7.33, u: ' /t' },   /* barrels in a tonne of crude, the usual average; light WTI is nearer 7.6 */
         d: 'WTI crude — input cost for the real economy' }),
       /* Diesel crack spread (Daniel, 2026-10-04, promptove/109): heating
          oil futures x 42 minus Brent, computed by sync-market-data. */
       _bfWorldCell(W.crack, { k: 'Diesel crack spread', more: [
-          ['What it is', 'The price of a barrel of heating oil (a close cousin of diesel) minus the price of a barrel of Brent crude.'],
+          ['What it is', 'The price of a barrel of heating oil (a close cousin of diesel) minus the price of a barrel of Brent crude (the Macedonian view shows it per tonne of diesel, about 7.45 barrels).'],
           ['Why it matters', 'Trucks, ships, farms and factories run on diesel. A high spread means diesel is short even when crude is not, and that reaches food and goods prices a few weeks later.']
         ],
         kind: 'usd', u: ' /bbl', usdpts: true, src: BF_SRC.nymex, sym: 'HO=F',
+        mk: { mul: 7.45, u: ' /t' },   /* barrels in a tonne of diesel (gasoil), as ICE converts it */
         d: 'What refiners earn turning a barrel of crude into diesel. When it is high, diesel is scarce and transport costs feed into prices.' }),
       _bfWorldCell(W.gas, { k: 'Natural gas', more: [
           ['What it is', 'The price of US natural gas at Henry Hub in Louisiana, per million BTU (the Macedonian view shows it per kilowatt-hour).'],
@@ -5093,6 +5101,31 @@ function closeTileDetail() {
   if (o) o.classList.remove('show');
   _tdCoin = null;
 }
+
+/* ── Deep link: ?donate opens the Support window ───────────────
+   The link Daniel hands to people who ask how to donate:
+   https://rotatortool-official.github.io/?donate
+   The first-visit tour waits for the next visit (initTutorial reads
+   _donateDeepLink), so it does not cover the window. */
+var _donateDeepLink = false;
+(function() {
+  try { _donateDeepLink = new URLSearchParams(window.location.search).has('donate'); } catch(e) {}
+})();
+
+function _handleDonateDeepLink() {
+  if (!_donateDeepLink) return;
+  try {
+    var params = new URLSearchParams(window.location.search);
+    params.delete('donate');
+    var remaining = params.toString();
+    window.history.replaceState({}, '', window.location.pathname + (remaining ? '?' + remaining : ''));
+    openModal('donate-modal');
+  } catch(e) { console.warn('Donate link error:', e); }
+}
+/* Open it as soon as the page is built, not after the market data
+   loads (that takes seconds, and the window needs none of it). */
+if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', _handleDonateDeepLink);
+else _handleDonateDeepLink();
 
 /* ── Deep link: open coin detail from ?coin= URL param ──────── */
 var _pendingDeepLinkCoin = null;

@@ -570,6 +570,8 @@ function initTutorial() {
   var isOn = (val === null || val === 'on');
   document.getElementById('tut-toggle').checked = isOn;
   if (!isOn) return;
+  /* Arrived on the ?donate link: show the Support window, not the tour. */
+  if (typeof _donateDeepLink !== 'undefined' && _donateDeepLink) return;
   /* First visit: the consent banner comes first, the tour after it is
      accepted (acceptConsent in ui.js), instead of both at once. */
   var consented = true;
