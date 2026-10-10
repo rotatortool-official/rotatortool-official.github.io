@@ -5921,3 +5921,33 @@ a.mob-more-item{text-decoration:none;color:inherit;}
   .ai-btns{flex-direction:column-reverse;}
   .ai-add,.ai-bot{width:100%;padding:13px;}
 }
+
+/* ── Coin window: Performance bars + Key facts list, light first ──────
+   (js/coin-reading.js _tdPerfHtml / _tdKeyFacts, 2026-10-11, from
+   BlockHorizon's chart card). Dark keeps the chips until Daniel approves. */
+.td-perf,.td-kv{display:none;}
+.td-perf-row[hidden]{display:none !important;}
+:root.light .td-facts{display:none;}
+:root.light .td-perf,:root.light .td-kv{display:block;}
+:root.light .td-card{margin-top:12px;padding:10px 14px 8px;border:1px solid rgba(0,0,0,.08);border-radius:10px;background:rgba(255,255,255,.72);}
+:root.light .td-card-h{font:700 13px/1.3 var(--font-ui);color:var(--text);margin-bottom:6px;letter-spacing:0;text-transform:none;}
+:root.light .td-perf-row{display:grid;grid-template-columns:34px minmax(0,1fr) 62px;gap:10px;align-items:center;padding:4px 0;}
+:root.light .td-perf-k{font:600 11.5px/1 var(--font-ui);color:var(--muted);}
+:root.light .td-perf-t{position:relative;height:10px;border-radius:2px;background:rgba(0,0,0,.05);}
+:root.light .td-perf-t::after{content:'';position:absolute;left:50%;top:-2px;bottom:-2px;width:1px;background:var(--bdr2);}
+:root.light .td-perf-t i{position:absolute;top:0;bottom:0;border-radius:2px;}
+:root.light .td-perf-t i.up{background:#15803d;}
+:root.light .td-perf-t i.dn{background:#b91c1c;}
+:root.light .td-perf-v{text-align:right;font:600 12.5px/1 var(--font-ui);font-variant-numeric:tabular-nums;}
+:root.light .td-perf-v.up{color:#15803d;}
+:root.light .td-perf-v.dn{color:#b91c1c;}
+:root.light .td-kv-row{all:unset;box-sizing:border-box;display:flex;justify-content:space-between;align-items:baseline;gap:12px;width:100%;
+  padding:7px 0;border-top:1px solid var(--bdr);font:13px/1.35 var(--font-ui);cursor:pointer;}
+:root.light .td-kv-row:first-of-type{border-top:0;}
+:root.light .td-kv-row[tabindex="-1"]{cursor:default;}
+:root.light .td-kv-k{color:var(--muted);}
+:root.light .td-kv-v{font-weight:700;color:var(--text);text-align:right;font-variant-numeric:tabular-nums;}
+:root.light .td-kv-v.up{color:#15803d;}
+:root.light .td-kv-v.dn{color:#b91c1c;}
+:root.light .td-kv-v.warn{color:#b45309;}
+:root.light .td-kv-v.muted{color:var(--muted);font-weight:600;}

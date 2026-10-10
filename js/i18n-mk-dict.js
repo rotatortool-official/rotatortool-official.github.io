@@ -1773,3 +1773,13 @@ Object.assign(MK_TEXT, {
   'Connect Telegram': 'Поврзете Telegram',
   'Get alerts on Telegram': 'Добивајте известувања на Telegram'
 });
+/* Coin window: Performance bars + Key facts list (2026-10-11). */
+Object.assign(MK_TEXT, {
+  'Performance': 'Движење на цената',
+  'Key facts': 'Клучни податоци',
+  'Daily RSI': 'Дневен RSI',
+  'Supply unlocked': 'Отклучена понуда',
+  'Next 30 days': 'Следните 30 дена',
+  'No unlock': 'Без отклучување'
+});
+MK_PATTERNS.push([/^Unlock ([\d.]+)%$/, function (m) { return 'Отклучување ' + m[1].replace('.', ',') + '%'; }]);

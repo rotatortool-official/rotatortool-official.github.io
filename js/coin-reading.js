@@ -323,28 +323,96 @@ function _tdOpenFold(secId) {
    how has it done, is it stretched or washed out, what is the trend,
    and is new supply coming. Each chip opens the section with the rest. */
 function _tdKeyFacts(c, tech) {
-  var chips = [];
-  var chip = function (txt, cls, sec, tip) {
+  var chips = [], kvs = [];
+  /* Each fact is written twice: a chip (dark, until Daniel approves) and
+     a row of the "Key facts" list (light, 2026-10-11, from BlockHorizon's
+     chart card). CSS shows one per theme. */
+  var chip = function (txt, cls, sec, tip, k, v) {
     chips.push('<button type="button" class="td-fact ' + (cls || '') + '"' + (sec ? ' onclick="_tdOpenFold(\'' + sec + '\')"' : ' tabindex="-1"')
       + (tip ? ' title="' + _esc(tip) + '"' : '') + '>' + txt + '</button>');
+    if (k) kvs.push('<button type="button" class="td-kv-row"' + (sec ? ' onclick="_tdOpenFold(\'' + sec + '\')"' : ' tabindex="-1"')
+      + (tip ? ' title="' + _esc(tip) + '"' : '') + '><span class="td-kv-k">' + k + '</span><span class="td-kv-v ' + (cls || '') + '">' + v + '</span></button>');
   };
   chip('7D ' + _tdPct(c.p7 || 0), (c.p7 || 0) >= 0 ? 'up' : 'dn');
   chip('30D ' + _tdPct(c.p30 || 0), (c.p30 || 0) >= 0 ? 'up' : 'dn');
   var rsi = tech && tech.rsiD != null ? tech.rsiD : null;
   if (rsi != null) {
     var rl = rsi <= 30 ? ' · oversold' : rsi >= 70 ? ' · overbought' : '';
-    chip('RSI ' + rsi.toFixed(0) + rl, rsi <= 30 ? 'dn' : rsi >= 70 ? 'warn' : '', 'td-rsi-sec', 'Daily RSI(14). 30 and below is called oversold, 70 and above overbought.');
+    chip('RSI ' + rsi.toFixed(0) + rl, rsi <= 30 ? 'dn' : rsi >= 70 ? 'warn' : '', 'td-rsi-sec', 'Daily RSI(14). 30 and below is called oversold, 70 and above overbought.',
+      'Daily RSI', rsi.toFixed(0) + (rsi <= 30 ? ' · oversold' : rsi >= 70 ? ' · overbought' : ''));
   }
   var circ = c.circulating_supply, basis = c.max_supply > 0 ? c.max_supply : (c.total_supply > 0 ? c.total_supply : null);
-  if (circ && basis) chip('Supply ' + Math.round((circ / basis) * 100) + '% unlocked', '', 'td-supply-sec', 'Circulating supply as a share of ' + (c.max_supply > 0 ? 'max' : 'total') + ' supply');
+  if (circ && basis) chip('Supply ' + Math.round((circ / basis) * 100) + '% unlocked', '', 'td-supply-sec', 'Circulating supply as a share of ' + (c.max_supply > 0 ? 'max' : 'total') + ' supply',
+    'Supply unlocked', Math.round((circ / basis) * 100) + '%');
   var u = (typeof _tokenUnlocks !== 'undefined' && c.id && _tokenUnlocks[c.id]) || null;
   var pct = u && u.unlock30d_pct != null ? Number(u.unlock30d_pct) : null;
   var line = (window.RotatorEngine && window.RotatorEngine.UNLOCK_PENDING_PCT != null) ? window.RotatorEngine.UNLOCK_PENDING_PCT : 5;
-  if (pct == null) chip('No unlock schedule', 'muted', 'td-supply-sec', 'No published vesting schedule. That is not the same as no unlock due.');
+  if (pct == null) chip('No unlock schedule', 'muted', 'td-supply-sec', 'No published vesting schedule. That is not the same as no unlock due.',
+    'Next 30 days', 'No unlock schedule');
   /* Amount and date free for everyone since 2026-10-10 (Daniel: Pro sells personal alerts, not data). */
-  else if (pct > 0) chip('Unlock ' + pct.toFixed(1) + '% in 30D' + (u.next_unlock_at ? ' · ' + String(u.next_unlock_at).slice(5, 10) : ''), pct > line ? 'dn' : 'warn', 'td-supply-sec');
-  else chip('No unlock in 30D', 'up', 'td-supply-sec');
-  return '<div class="td-facts">' + chips.join('') + '</div>';
+  else if (pct > 0) chip('Unlock ' + pct.toFixed(1) + '% in 30D' + (u.next_unlock_at ? ' · ' + String(u.next_unlock_at).slice(5, 10) : ''), pct > line ? 'dn' : 'warn', 'td-supply-sec', '',
+    'Next 30 days', 'Unlock ' + pct.toFixed(1) + '%' + (u.next_unlock_at ? ' · ' + String(u.next_unlock_at).slice(5, 10) : ''));
+  else chip('No unlock in 30D', 'up', 'td-supply-sec', '', 'Next 30 days', 'No unlock');
+  return '<div class="td-facts">' + chips.join('') + '</div>'
+    + _tdPerfHtml(c)
+    + (kvs.length ? '<div class="td-card td-kv"><div class="td-card-h">Key facts</div>' + kvs.join('') + '</div>' : '');
+}
+
+/* ── Performance bars (light first, 2026-10-11) ─────────────────────
+   BlockHorizon's chart card: one row per period, a bar growing left or
+   right from the middle, the change on the right. 24H / 7D / 30D come
+   from the coin; 3M and 6M from binance_daily_klines (it starts
+   2026-04-20, so 6M shows only once the table reaches back that far).
+   The bars share one scale, the largest move of the rows shown. */
+var _TD_PERF = [['24H', 'p24'], ['7D', 'p7'], ['30D', 'p30'], ['3M', 90], ['6M', 182]];
+function _tdPerfHtml(c) {
+  if (!c || c.isStable) return '';
+  var rows = _TD_PERF.map(function (r) {
+    var v = typeof r[1] === 'string' ? c[r[1]] : null;
+    return '<div class="td-perf-row" data-p="' + r[0] + '"' + (typeof r[1] === 'number' ? ' data-days="' + r[1] + '" hidden' : '')
+      + (v != null && isFinite(v) ? ' data-v="' + Number(v).toFixed(2) + '"' : (typeof r[1] === 'string' ? ' hidden' : '')) + '>'
+      + '<span class="td-perf-k">' + r[0] + '</span><span class="td-perf-t"><i></i></span><span class="td-perf-v"></span></div>';
+  }).join('');
+  return '<div class="td-card td-perf" id="td-perf" data-sym="' + _esc(c.sym) + '"><div class="td-card-h">Performance</div>' + rows + '</div>';
+}
+function _tdPerfDraw() {
+  var box = document.getElementById('td-perf');
+  if (!box) return;
+  var rows = [].slice.call(box.querySelectorAll('.td-perf-row[data-v]'));
+  var max = rows.reduce(function (m, r) { return Math.max(m, Math.abs(Number(r.getAttribute('data-v')))); }, 0) || 1;
+  rows.forEach(function (r) {
+    var v = Number(r.getAttribute('data-v')), w = Math.max(1.5, Math.abs(v) / max * 50);
+    var bar = r.querySelector('.td-perf-t i');
+    bar.className = v >= 0 ? 'up' : 'dn';
+    bar.style.width = w.toFixed(1) + '%';
+    bar.style.left = v >= 0 ? '50%' : (50 - w).toFixed(1) + '%';
+    var out = r.querySelector('.td-perf-v');
+    out.className = 'td-perf-v ' + (v >= 0 ? 'up' : 'dn');
+    out.textContent = _tdPct(v);
+    r.hidden = false;
+  });
+}
+function _tdLoadPerf(c) {
+  _tdPerfDraw();
+  if (!c || c.isStable || !c.price || typeof supaRest !== 'function') return;
+  var sym = c.sym;
+  supaRest('binance_daily_klines', 'GET', {
+    'base_asset': 'eq.' + sym, 'select': 'open_time,close', 'order': 'open_time.asc', 'limit': '400'
+  }).then(function (rows) {
+    var box = document.getElementById('td-perf');
+    if (!box || box.getAttribute('data-sym') !== sym || !Array.isArray(rows) || !rows.length) return;
+    var first = Date.parse(String(rows[0].open_time).slice(0, 10) + 'T00:00:00Z');
+    box.querySelectorAll('.td-perf-row[data-days]').forEach(function (r) {
+      var days = Number(r.getAttribute('data-days')), target = Date.now() - days * 864e5;
+      if (!(first <= target)) return;   /* the table does not reach back that far yet */
+      var base = null;
+      for (var i = rows.length - 1; i >= 0; i--) {
+        if (Date.parse(String(rows[i].open_time).slice(0, 10) + 'T00:00:00Z') <= target) { base = Number(rows[i].close); break; }
+      }
+      if (base > 0) r.setAttribute('data-v', ((c.price / base - 1) * 100).toFixed(2));
+    });
+    _tdPerfDraw();
+  }).catch(function () {});
 }
 
 /* The reading: a status and the conclusion the signs support. One
@@ -457,6 +525,7 @@ function renderCoinReading(c) {
     + (trust ? '<details class="td-reading-trust"><summary>How far to trust this</summary>' + _esc(trust) + '</details>' : '')
     + '</div>'
     + _tdKeyFacts(c, tech);
+  _tdLoadPerf(c);
 
   /* ── 3. The signs, grouped, with their records ── */
   /* Group names follow the status, so an up-sign on a coin that has
