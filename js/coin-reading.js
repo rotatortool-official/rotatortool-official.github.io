@@ -375,7 +375,9 @@ function _tdOverviewHtml(c) {
   var cap = c.isStock ? c.equityMcap : c.mcap;
   if (cap && typeof fmtMcap === 'function') row(c.isStock ? 'Company market cap' : 'Market cap', fmtMcap(cap), '', 'td-market-sec');
   var vol = c.volume24 || c.total_volume;
-  if (vol && typeof fmtVol === 'function') row('24h volume', fmtVol(vol), '', 'td-market-sec');
+  /* Binance's own pair volume when the coin trades there (loadCoins), so
+     it is labelled as such: BTC's whole-market volume is far larger. */
+  if (vol && typeof fmtVol === 'function') row(c.volume24 ? '24h volume on Binance' : '24h volume', fmtVol(vol), '', 'td-market-sec');
   if (!c.isStock && c.rank) row('Market cap rank', '#' + c.rank, '', 'td-market-sec');
   if (!c.isStable && c.score != null && isFinite(c.score) && typeof scoreColor === 'function')
     row('Score', c.score + '<span class="td-kv-of"> / ' + (c.isStock ? 70 : 100) + '</span>', 'color:' + scoreColor(c.score), 'td-breakdown-sec',

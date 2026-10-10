@@ -1789,6 +1789,7 @@ Object.assign(MK_TEXT, {
   'Market cap': 'Пазарна вредност',
   'Company market cap': 'Пазарна вредност на компанијата',
   '24h volume': 'Промет за 24 часа',
+  '24h volume on Binance': 'Промет за 24 часа на Binance',
   'Market cap rank': 'Место по пазарна вредност',
   'From all-time high': 'Од највисоката цена досега'
 });
