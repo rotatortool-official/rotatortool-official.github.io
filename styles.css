@@ -4271,8 +4271,7 @@ rect.etf-out.etf-prov{stroke:var(--red);}
 
 /* ── Upcoming token unlocks (2026-10-10) ──────────────────────────────
    One full-width tile in the ETF strip's rhythm; each row opens the coin.
-   Light theme only until Daniel approves it for dark. */
-:root:not(.light) #ul-strip{display:none !important;}
+   Both themes since 2026-10-10 (Daniel). */
 .ul-strip.ul-solo{grid-template-columns:minmax(0,1fr);}   /* no buybacks summary: unlocks take the row */
 .ul-strip .etf-tile-top{margin-bottom:4px;}
 .ul-tile{cursor:default;}

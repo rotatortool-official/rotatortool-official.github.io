@@ -3240,8 +3240,7 @@ function renderChainFlows() {
    personalised alerts with pro and let the data be visible"). What Pro
    sells is the Telegram briefing that names an unlock on a coin you
    hold, 3+ days ahead.
-   Light theme only for now (the experimental board); dark hides it in
-   styles.css until Daniel approves the look. */
+   Both themes since 2026-10-10 (Daniel approved the light-theme trial). */
 var _UL_ROWS = 8, _UL_MIN = 0.5, _UL_DAYS = 30, _ulTimer = null;
 var _UL_TXT = {
   en: {
@@ -3295,7 +3294,7 @@ var _HR_TXT = {
         note: 'Fees a project spent buying back or burning its own coin, or paid to its stakers. Biggest against the coin’s size first.',
         foot: 'Buybacks & burns: fees returned to holders; not scheduled burns like BNB’s quarterly one',
         up: 'more than the 30 days before', dn: 'less than the 30 days before' },
-  mk: { title: 'Откупи и согорувања', d30: 'последните 30 дена', yr: 'од капит. / год.',
+  mk: { title: 'Откупи и согорувања', d30: 'последните 30 дена', yr: 'од вредноста, годишно',
         note: 'Провизии што проектот ги потрошил да ја откупи или согори својата монета, или ги исплатил на стејкерите. Најголемите во однос на големината на монетата прво.',
         foot: 'Откупи и согорувања: провизии вратени на сопствениците; без закажани согорувања како квартално кај BNB',
         up: 'повеќе од претходните 30 дена', dn: 'помалку од претходните 30 дена' }
