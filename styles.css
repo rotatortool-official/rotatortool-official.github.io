@@ -5342,6 +5342,9 @@ details.td-reading-trust[open] > summary::before{content:'▾ ';}
 .pro-peek-list{margin:0;padding-left:16px;font-size:12px;line-height:1.7;color:var(--text);}
 .pro-peek-list li{margin-bottom:6px;}
 .pro-peek-list li::marker{color:var(--pro);}
+.pro-why{background:var(--bg3);border:1px solid var(--bdr2);border-radius:4px;padding:12px 14px;margin:0 0 14px;font-size:12px;line-height:1.6;color:var(--text);}
+.pro-why > div + div{margin-top:6px;}
+.pro-why .pro-why-hdr{font-size:11px;letter-spacing:.12em;color:var(--amber);font-weight:700;margin:0 0 6px;}
 .pro-peek-body > .pro-peek-list:only-child{grid-column:1 / -1;}   /* no picture since 2026-10-10: the list takes the width */
 @media(max-width:480px){
   .pro-peek-body{grid-template-columns:120px minmax(0,1fr);gap:10px;}

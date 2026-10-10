@@ -293,13 +293,18 @@ function openPro() {
     var _proRequested = false;
     try { _proRequested = localStorage.getItem('rot_pro_requested') === '1'; } catch (e) {}
     body.innerHTML = '<div class="modal-title">⚡ Pro — free, or with a contribution</div>'
-      + '<div class="modal-sub">Pro is optional. <strong>Rotator is free</strong> and runs on donations and the honor system.<br>Three ways to unlock the full features, all equal: <strong>invite 5 friends</strong> (free), <strong>redeem a Pro code</strong> (free), or a <strong>one-time contribution</strong>. No subscriptions.</div>'
+      + '<div class="modal-sub">Pro is optional. <strong>Rotator is free</strong> and runs on donations and the honor system.<br>Three ways to unlock the full features, all equal: <strong>invite 5 friends</strong> (free), <strong>redeem a Pro code</strong> (free), or a <strong>one-time contribution</strong>. One-time is the early-supporter price; later Pro becomes a subscription, so Rotator can keep running.</div>'
+      /* What Rotator is, and what Pro is worth (Daniel, 2026-10-10). Arithmetic, not a promise. */
+      + '<div class="pro-why"><div class="pro-why-hdr">NOT BUY AND SELL SIGNALS</div>'
+        + '<div>Rotator does not sell buy or sell signals. It presents data relevant to your holdings, on time, so you stay informed and make your own decisions.</div>'
+        + '<div>Pro sends that data to you personally, about the coins you hold. $20 is what a 2% drop costs on a $1,000 portfolio.</div>'
+        + '<div>See even one of those coming in time, and Pro has paid for itself.</div></div>'
 
       /* ── FREE vs PRO comparison ── */
       + '<div style="background:var(--bg3);border:1px solid rgba(167,139,250,.2);border-radius:4px;padding:12px 14px;margin-bottom:14px;">'
         + '<div style="display:flex;gap:12px;margin-bottom:10px;">'
           + '<div style="flex:1;font-size:12px;letter-spacing:.12em;color:var(--muted);text-transform:uppercase;">FREE</div>'
-          + '<div style="flex:1;font-size:12px;letter-spacing:.12em;color:var(--pro);text-transform:uppercase;text-align:right;">⚡ PRO<button type="button" class="info-i" aria-label="A one-time unlock, no subscription. Invite 5 friends or use a Pro code for free, or pay $20 once. A Support donation does not unlock it.">ⓘ</button></div>'
+          + '<div style="flex:1;font-size:12px;letter-spacing:.12em;color:var(--pro);text-transform:uppercase;text-align:right;">⚡ PRO<button type="button" class="info-i" aria-label="A one-time unlock for early supporters; later Pro becomes a subscription. Invite 5 friends or use a Pro code for free, or pay $20 once. A Support donation does not unlock it.">ⓘ</button></div>'
         + '</div>'
         + '<div style="font-size:12px;color:var(--text);line-height:2.4;">'
           /* What Pro actually changes, checked against the code 2026-09-26
@@ -314,7 +319,6 @@ function openPro() {
              all board tiles and all turn signs left this list that day. */
           + '<div style="display:flex;justify-content:space-between;gap:10px;"><span>Save swap pairs</span><span style="color:var(--pro);text-align:right;">⚡ Alert when a saved pair hits its zone or target</span></div>'
           + '<div style="display:flex;justify-content:space-between;gap:10px;"><span>Unlocks on the board</span><span style="color:var(--pro);text-align:right;">⚡ Telegram warning 3+ days before an unlock on your coins</span></div>'
-          + '<div style="display:flex;justify-content:space-between;gap:10px;"><span>Shared market data, every 15 min</span><span style="color:var(--pro);text-align:right;">⚡ Fresh-data priority</span></div>'
           + '<div style="display:flex;justify-content:space-between;gap:10px;"><span>Telegram market pulse channel</span><span style="color:var(--pro);text-align:right;">+ personal Telegram briefing, Mon and Thu</span></div>'
         + '</div>'
       + '</div>'

@@ -212,12 +212,10 @@ async function loadCoins(categoryOverride) {
      minutes, so one late cron run sent every visitor to CoinGecko through
      up to three routes (5+7+7s) before the same row was read again.
 
-     PRO PRIORITY: past UNIVERSE_TTL_MS, a Pro page also fetches CoinGecko
-     live in the background (_proFreshFetch) and re-renders when it lands.
-     Free pages wait for the next cron run (the 15-minute auto refresh). The
-     Pro window advertises this as "fresh-data priority". Only Pro tabs ever
-     call CoinGecko on this path, which is what keeps a late cron from
-     turning every open tab into an ingest path.
+     NO PRO FETCH since 2026-10-10. Pro pages used to fetch CoinGecko live
+     past UNIVERSE_TTL_MS ("fresh-data priority"). Daniel: with even 20 Pro
+     users that drives the free CoinGecko tier over its limit in days and
+     the site stops working. Everyone waits for the server's next run.
 
      Past STALE_OK_MS the cron is broken, not late: everyone fetches live,
      and the shared row at any age is the last resort. */
@@ -237,16 +235,6 @@ async function loadCoins(categoryOverride) {
       usedCache = true;
       _marketDataTime = Date.now() - shared.ageMs;
       prog(30, 'Loaded ' + rawData.length + ' coins from shared cache');
-      if (shared.ageMs > UNIVERSE_TTL_MS && isPro) {
-        /* A newer live copy from an earlier background fetch wins. */
-        if (_proFresh && _proFresh.ids === idsKey && _proFresh.time > _marketDataTime &&
-            Date.now() - _proFresh.time <= UNIVERSE_TTL_MS) {
-          rawData = _proFresh.data;
-          _marketDataTime = _proFresh.time;
-        } else {
-          _proFreshFetch(uniqueIds, idsKey);
-        }
-      }
     }
   }
 
@@ -1479,23 +1467,6 @@ async function _cgMarketsFetch(ids) {
   var out = [];
   results.forEach(function(r) { if (Array.isArray(r)) out = out.concat(r); });
   return out;
-}
-
-/* Pro fresh-data priority (see loadCoins). One background fetch at a time;
-   the result is kept in _proFresh and doRefresh() picks it up. A copy
-   apiFetch served from its own expired cache is not "fresh" and is dropped. */
-var _proFresh = null;      /* { data, time, ids } */
-var _proFreshBusy = false;
-function _proFreshFetch(ids, idsKey) {
-  if (_proFreshBusy) return;
-  _proFreshBusy = true;
-  var staleBefore = (window.__ROT_CACHE_STATS || {}).staleServed || 0;
-  _cgMarketsFetch(ids).then(function(data) {
-    var servedStale = ((window.__ROT_CACHE_STATS || {}).staleServed || 0) > staleBefore;
-    if (!data.length || servedStale) return;
-    _proFresh = { data: data, time: Date.now(), ids: idsKey };
-    if (!busy) doRefresh();
-  }).finally(function() { _proFreshBusy = false; });
 }
 
 function _renderLastUpdated() {

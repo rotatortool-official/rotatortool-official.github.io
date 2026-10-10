@@ -160,10 +160,9 @@ var TUT_STEPS = [
     "wide": true,
     "title": "⚡ Pro",
     "p": [
-      "**Pro** shows the **Insight Engine** live for the coins you hold or watch: the insight score, its readings, volume against the coin's usual, and golden and death cross timing.",
-      "It also unlocks 10 holdings instead of 2, every coin with a turn sign, personal Telegram alerts about your coins, and any swap pair."
+      "Rotator does not sell buy or sell signals. Everything on the site, including the **Insight Engine**, is free to read: it presents data relevant to your holdings, on time.",
+      "**Pro** sends it to you personally: a **Telegram briefing** every Monday and Thursday about your coins and swap pairs, a warning 3+ days before an unlock on a coin you hold, and alerts for saved swap pairs. It also unlocks 10 holdings instead of 2 and any swap pair."
     ],
-    "img": { "src": "img/pro-insight-{lang}.png", "alt": "The Insight Engine in a coin window, as a Pro member sees it", "cap": "Example: SOL on 4 Oct 2026, as a Pro member sees it, with its golden cross at the bottom. Click to enlarge." },
     "opts": [
       {
         "h": "Crypto",
@@ -604,38 +603,13 @@ var PRO_TUT_STEPS = [
     "pos": "center",
     "title": "⚡ Welcome to Pro",
     "p": [
-      "Thank you for supporting Rotator. Pro is a **one-time unlock**, with no subscription.",
+      "Thank you for supporting Rotator. As an early supporter you unlocked Pro **once**; later Pro becomes a subscription.",
       "This short tour shows what just unlocked, section by section."
     ]
   },
 
-  /* 2. The Insight Engine, live — the picture the Pro window shows too */
-  {
-    "target": ".topbar",
-    "pos": "center",
-    "wide": true,
-    "title": "⚡ The Insight Engine, live",
-    "p": [
-      "Open any coin you hold or watch. Its **Insight Engine** now updates with every 15-minute run, instead of showing yesterday's.",
-      "You see the insight score and the readings behind it, volume against the coin's usual, **golden and death cross** timing with its tested record, and the **amount, date and countdown** of a big unlock."
-    ],
-    "img": { "src": "img/pro-insight-{lang}.png", "alt": "The Insight Engine in a coin window, as a Pro member sees it", "cap": "Example: SOL on 4 Oct 2026, with its golden cross at the bottom. Click to enlarge." },
-    "note": "It describes how a coin is behaving. It is not a forecast."
-  },
-
-  /* 3. MOMENTUM: every turn sign, every tile */
-  {
-    "target": "#sec-rotation",
-    "goto": "sec-rotation",
-    "open": "hot",
-    "pos": "section",
-    "title": "Every turn sign, every tile",
-    "p": [
-      "**Turn signs across the market** now list every coin with a turn sign, not only the top 2 of each list.",
-      "**High Momentum** and **Worst 30d** show all 6 tiles each."
-    ],
-    "note": "A turn sign is a reading, not a forecast. Its tested record is in the coin window."
-  },
+  /* 2-3. The Insight Engine and every tile/turn sign left the Pro tour on
+     2026-10-10: they are free for everyone now (Daniel). */
 
   /* 4. YOURS: limits and the alerts panel */
   {
@@ -664,17 +638,7 @@ var PRO_TUT_STEPS = [
     "note": "Disconnect any time from the same panel. The market pulse channel stays free for everyone."
   },
 
-  /* 6. COINS: the cross lenses and badges (Pro only since 2026-10-04) */
-  {
-    "target": "#sec-coins",
-    "goto": "sec-coins",
-    "pos": "section",
-    "title": "Golden and death crosses in the table",
-    "p": [
-      "The **✨GC** and **☠DC** lenses beside the table sort coins by their most recent golden or death cross, and a coin with a recent cross carries a badge.",
-      "Pro also has **fresh-data priority**: when the shared market data is more than 15 minutes old, your browser fetches a fresh copy instead of waiting."
-    ]
-  },
+  /* 6. The cross lenses and badges are free since 2026-10-10. */
 
   /* 7. SWAP: any pair */
   {

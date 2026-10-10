@@ -1103,6 +1103,12 @@ Object.assign(MK_TEXT, {
   'The app keeps itself up to date: it always shows the same live data as the site.': 'Апликацијата сама се ажурира: секогаш ги прикажува истите податоци во живо како страницата.',
   'Open Rotator in its own window, from your desktop or home screen': 'Отворајте го Rotator во свој прозорец, од работната површина или почетниот екран',
   /* Pro window, 2026-10-10: Pro is the personal alerts. */
+  '. One-time is the early-supporter price; later Pro becomes a subscription, so Rotator can keep running.': '. Еднократно е цената за раните поддржувачи; подоцна Pro ќе биде претплата, за Rotator да може да продолжи да работи.',
+  'NOT BUY AND SELL SIGNALS': 'НЕ СЕ СИГНАЛИ ЗА КУПУВАЊЕ И ПРОДАЖБА',
+  'Rotator does not sell buy or sell signals. It presents data relevant to your holdings, on time, so you stay informed and make your own decisions.': 'Rotator не продава сигнали за купување или продажба. Ви прикажува податоци важни за монетите што ги држите, навреме, за да бидете информирани и сами да одлучувате.',
+  'Pro sends that data to you personally, about the coins you hold. $20 is what a 2% drop costs on a $1,000 portfolio.': 'Pro ви ги испраќа тие податоци лично, за монетите што ги држите. $20 е колку чини пад од 2% на портфолио од $1 000.',
+  'See even one of those coming in time, and Pro has paid for itself.': 'Ако навреме видите барем еден таков пад, Pro се исплатил.',
+  'A one-time unlock for early supporters; later Pro becomes a subscription. Invite 5 friends or use a Pro code for free, or pay $20 once. A Support donation does not unlock it.': 'Еднократно отклучување за раните поддржувачи; подоцна Pro ќе биде претплата. Поканете 5 пријатели или внесете Pro код бесплатно, или платете $20 еднаш. Донацијата за поддршка не го отклучува.',
   'WHAT PRO SENDS YOU': 'ШТО ВИ ИСПРАЌА PRO',
   'A Telegram briefing every Monday and Thursday: the market, your coins, your swap pairs': 'Telegram брифинг секој понеделник и четврток: пазарот, вашите монети, вашите парови за замена',
   'A warning 3+ days before an unlock on a coin you hold': 'Предупредување 3+ дена пред отклучување на монета што ја држите',
@@ -1191,8 +1197,8 @@ Object.assign(MK_TEXT, {
   'A donation of any amount, to say thank you. It pays for the servers and new work.':
     'Донација со кој било износ, како благодарност. Од неа се плаќаат серверите и новата работа.',
   'Unlocks nothing': 'Не отклучува ништо',
-  'A one-time unlock of extra features: invite 5 friends, a Pro code, or a $20 payment.':
-    'Еднократно отклучување на дополнителни функции: покани 5 пријатели, Pro код или плаќање од $20.',
+  'Personal alerts, unlocked once by early supporters: invite 5 friends, a Pro code, or a $20 payment.':
+    'Лични известувања, еднократно отклучени за раните поддржувачи: покани 5 пријатели, Pro код или плаќање од $20.',
   'See Pro →': 'Погледни Pro →',
   'Thank you!': 'Ви благодариме!',
   'Always double-check the network before sending.': 'Секогаш проверете ја мрежата пред да испратите.',
