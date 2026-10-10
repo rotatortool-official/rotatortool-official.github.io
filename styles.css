@@ -5979,3 +5979,9 @@ a.mob-more-item{text-decoration:none;color:inherit;}
   font:500 12px/1.2 var(--font-ui);cursor:pointer;}
 .fb-chip:hover{border-color:var(--muted);}
 .fb-chip.on{background:#f3ba2f;border-color:#f3ba2f;color:#111;}
+/* "Hard to understand" → the tour again (js/engage.js, 2026-10-11). */
+.fb-tour{font-size:13px;line-height:1.45;color:var(--muted);text-align:center;margin:-4px 0 12px;}
+.fb-tour-btns{display:flex;gap:8px;}
+.fb-tour-no,.fb-tour-go{flex:1;padding:10px;border-radius:8px;font:600 13px/1 var(--font-ui);cursor:pointer;}
+.fb-tour-no{background:var(--bg3);color:var(--text);border:1px solid var(--bdr2);}
+.fb-tour-go{background:#f3ba2f;color:#111;border:0;}

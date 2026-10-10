@@ -191,6 +191,22 @@
       }).then(function (r) { return r.json(); }).then(function (j) {
         if (!j || !j.ok) throw new Error('not ok');
         set('rot_fb_until', Date.now() + 180 * DAY);
+        /* "Hard to understand": offer the tour once more (Daniel,
+           2026-10-11). On a phone startTutorial() shows its own
+           "made for a computer" gate with "Start here anyway". */
+        if (reason === 'hard_to_understand' && typeof startTutorial === 'function') {
+          card.innerHTML = '<div class="fb-done">Thank you! Every answer is read.</div>'
+            + '<div class="fb-tour">Want to take the short tour again? It shows what each part of the page means.</div>'
+            + '<div class="fb-tour-btns"><button type="button" class="fb-tour-no">No thanks</button>'
+            + '<button type="button" class="fb-tour-go">Start the tour</button></div>';
+          card.querySelector('.fb-tour-no').onclick = close;
+          card.querySelector('.fb-tour-go').onclick = function () {
+            if (window.Analytics) Analytics.track('Feedback Tour Restart');
+            close();
+            setTimeout(function () { startTutorial(); }, 250);
+          };
+          return;
+        }
         card.innerHTML = '<div class="fb-done">Thank you! Every answer is read.</div>';
         setTimeout(close, 2600);
       }).catch(function () {

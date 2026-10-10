@@ -1805,5 +1805,8 @@ Object.assign(MK_TEXT, {
   'Leaderboard': 'Рангирање',
   'Swap tool': 'Алатката за замена',
   'Alerts': 'Известувања',
-  'Anything you would add? (optional)': 'Нешто што би додале? (не е задолжително)'
+  'Anything you would add? (optional)': 'Нешто што би додале? (не е задолжително)',
+  'Want to take the short tour again? It shows what each part of the page means.': 'Сакате ли повторно да ја поминете кратката тура? Покажува што значи секој дел од страницата.',
+  'No thanks': 'Не, благодарам',
+  'Start the tour': 'Започнете ја турата'
 });
