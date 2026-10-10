@@ -212,7 +212,7 @@
       <p>If you add your own YouTube channels, videos or playlists to the radio, you are responsible for the links you add and for following YouTube's terms. Rotator only plays them through YouTube's own player and does not check, host or endorse them.</p>
 
       <h4>4. Data & Privacy</h4>
-      <p>Rotator has no accounts. Your holdings, quantities, buy prices, watchlist and settings are stored in your browser. Some data does reach our server: anonymous usage counts, the names of held coins once a day without quantities, and the records needed for Pro, referrals, Telegram alerts and the Signal Assistant. See our <a onclick="closeModal('tos-modal');setTimeout(function(){openModal('privacy-modal')},200)" style="color:var(--bnb);cursor:pointer;text-decoration:underline;">Privacy Policy</a> for full details.</p>
+      <p>Rotator has no accounts. Your holdings, quantities, buy prices, watchlist and settings are stored in your browser. Some data does reach our server: anonymous usage counts, the names of held coins once a day without quantities, and the records needed for Pro, referrals, Telegram alerts and the AI Summary Assistant. See our <a onclick="closeModal('tos-modal');setTimeout(function(){openModal('privacy-modal')},200)" style="color:var(--bnb);cursor:pointer;text-decoration:underline;">Privacy Policy</a> for full details.</p>
 
       <h4>5. Intellectual Property</h4>
       <p>All source code, design, algorithms, scoring logic, and associated files are the exclusive property of the Author. All rights reserved. You may not copy, modify, distribute, or create derivative works without prior written permission.</p>
@@ -257,7 +257,7 @@
         <li><strong>Pro.</strong> Your browser ID and how Pro was granted: the Pro code used, the referrals counted, or for a crypto payment the transaction hash, network, amount and any contact you chose to type in the optional field.</li>
         <li><strong>Referrals.</strong> The random browser IDs of the person who shared the link and the person who opened it.</li>
         <li><strong>Telegram alerts (Pro, only if you connect them).</strong> Your Telegram chat ID, your browser ID, the names of the coins you hold and watch (marked held or watching, without quantities), your site language, and which alerts have already been sent to you.</li>
-        <li><strong>Signal Assistant (Pro, only when you use it).</strong> Your questions and browser ID go to our server, which sends the questions, together with the current signal data, to Anthropic's Claude API to write the answer.</li>
+        <li><strong>AI Summary Assistant (Pro, only when you use it; paused for now).</strong> When it runs, the coin or ratio you ask about and your browser ID go to our server, which sends it, together with Rotator's data for it, to Anthropic's Claude API to write the summary.</li>
         <li><strong>Radio links (only when you add one).</strong> A YouTube link you add to the radio is sent once to our server, which asks YouTube for the name and the id to play. The link is not stored or logged; your list of links stays in your browser.</li>
       </ul>
 
@@ -819,12 +819,13 @@
   </div>
 </div>
 
-<!-- SIGNAL ASSISTANT MODAL (Pro) — answers only from the live signal run, see js/signal-assistant.js -->
+<!-- AI SUMMARY ASSISTANT MODAL (Pro; renamed from Signal Assistant 2026-10-10, Daniel:
+     "we are not selling signals"). Paused: see js/signal-assistant.js -->
 <div class="overlay" id="signal-assistant-modal" onclick="if(event.target===this)closeModal('signal-assistant-modal')">
   <div class="modal" style="max-width:520px;max-height:85vh;display:flex;flex-direction:column;padding-bottom:16px;">
     <button class="modal-x" onclick="closeModal('signal-assistant-modal')" aria-label="Close">×</button>
-    <div class="modal-title" style="color:var(--bnb);">🤖 Signal Assistant</div>
-    <div class="modal-sub">Ask about the current scores. Answers come only from the latest run, never invented.</div>
+    <div class="modal-title" style="color:var(--bnb);">🤖 AI Summary Assistant</div>
+    <div class="modal-sub">A short summary, in plain words, of the coin or swap ratio you have open. Made from Rotator's own data. It describes, it never gives signals or advice.</div>
     <div id="sa-messages" style="flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;min-height:180px;max-height:44vh;margin:10px 0;padding-right:2px;"></div>
     <div id="sa-error" style="display:none;color:var(--red);font-size:12px;margin-bottom:8px;"></div>
     <form id="sa-form" onsubmit="sendSignalAssistantMessage(event)" style="display:flex;gap:8px;">
@@ -833,7 +834,7 @@
              style="flex:1;background:var(--bg3);border:1px solid var(--bdr2);border-radius:6px;padding:10px 12px;font-size:13px;color:var(--text);">
       <button type="submit" class="code-btn" style="padding:10px 16px;font-size:12px;letter-spacing:.06em;">ASK</button>
     </form>
-    <div style="font-size:10px;color:var(--muted);text-align:center;margin-top:10px;">Algorithmic rotation signal only · Not financial advice · DYOR</div>
+    <div style="font-size:10px;color:var(--muted);text-align:center;margin-top:10px;">Made from Rotator data · Not financial advice · DYOR</div>
   </div>
 </div>
 
@@ -998,9 +999,9 @@
       </div>
     </div>
 
-    <!-- Signal Assistant (Pro) — always visible, gates on click for non-Pro (same pattern as joinTelegram()) -->
+    <!-- AI Summary Assistant (Pro) — always visible, gates on click for non-Pro (same pattern as joinTelegram()) -->
     <div class="tb-dropdown-wrap">
-      <button class="tb-icon-btn" onclick="openSignalAssistant()" title="Signal Assistant" aria-label="Signal Assistant" data-pro-only="1">
+      <button class="tb-icon-btn" onclick="openSignalAssistant()" title="AI Summary Assistant" aria-label="AI Summary Assistant" data-pro-only="1">
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
       </button>
     </div>
@@ -1685,7 +1686,7 @@
     <span class="mmi-ico" aria-hidden="true">✈</span><span>Telegram channel</span>
   </a>
   <button type="button" class="mob-more-item" onclick="openSignalAssistant();closeMobMore();">
-    <span class="mmi-ico" aria-hidden="true">🤖</span><span>Signal Assistant</span>
+    <span class="mmi-ico" aria-hidden="true">🤖</span><span>AI Summary Assistant</span>
   </button>
   <button type="button" class="mob-more-item" onclick="openModal('donate-modal');closeMobMore();">
     <span class="mmi-ico" aria-hidden="true">☕</span><span>Support the Project</span>

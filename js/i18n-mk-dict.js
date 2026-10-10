@@ -44,7 +44,14 @@ Object.assign(MK_TEXT, {
   'Search': 'Пребарај', 'Settings': 'Поставки', 'Dismiss': 'Затвори', 'Close': 'Затвори',
   'Search coins': 'Пребарај монети', 'Search coins, forex, stocks…': 'Пребарај монети, форекс, акции…',
   'Download App': 'Преземи апликација', 'Mobile App': 'Мобилна апликација', 'Desktop App': 'Десктоп апликација',
-  'Alerts for your coins': 'Известувања за вашите монети', 'Signal Assistant': 'Асистент за сигнали',
+  'Paused for now': 'Паузирано засега',
+  "A short summary, in plain words, of the coin or swap ratio you have open. Made from Rotator's own data. It describes, it never gives signals or advice.":
+    'Кратко резиме, со едноставни зборови, за монетата или односот за замена што го имате отворено. Направено од податоците на Rotator. Опишува, никогаш не дава сигнали или совети.',
+  "When it is on, it will give a short summary, in plain words, of the coin or swap ratio you have open, made from Rotator's own data. It describes, it never gives signals or advice.":
+    'Кога ќе биде вклучен, ќе дава кратко резиме, со едноставни зборови, за монетата или односот за замена што го имате отворено, направено од податоците на Rotator. Опишува, никогаш не дава сигнали или совети.',
+  'Each summary is a paid AI call, and Rotator is run by one person on a small budget, so it stays paused until that cost makes sense. Everything else on the site works as normal.':
+    'Секое резиме е платен повик до AI, а Rotator го води еден човек со мал буџет, па останува паузирано додека тој трошок не се исплати. Сè друго на страницата работи нормално.',
+  'Alerts for your coins': 'Известувања за вашите монети', 'AI Summary Assistant': 'AI асистент за резиме',
   'Buy Me a Coffee': 'Купете ми кафе', 'About Rotator': 'За Rotator', 'Toggle light/dark theme': 'Светла/темна тема',
   'Macedonian Poetry': 'Македонска поезија',
   'LEARN MORE': 'ЕДУКАЦИЈА', 'Gemidzija videos': 'Гемиџија видеа',   /* ЕДУКАЦИЈА: their own word, and НАУЧИ ПОВЕЌЕ wrapped in the rail */
@@ -519,7 +526,7 @@ Object.assign(MK_TEXT, {
   'INVITE 5 FRIENDS → UNLOCK PRO FREE': 'ПОКАНЕТЕ 5 ПРИЈАТЕЛИ → ОТКЛУЧЕТЕ PRO БЕСПЛАТНО',
   'Ask about the current scores. Answers come only from the latest run, never invented.': 'Прашајте за тековните резултати. Одговорите доаѓаат само од последното пресметување, никогаш измислени.',
   'e.g. what looks weak right now?': 'пр. што изгледа слабо во моментов?',
-  'Algorithmic rotation signal only · Not financial advice · DYOR': 'Само алгоритамски сигнал за ротација · Не е финансиски совет · Истражете сами',
+  'Made from Rotator data · Not financial advice · DYOR': 'Направено од податоците на Rotator · Не е финансиски совет · Истражете сами',
 });
 
 /* ── Footer, loading, misc ──────────────────────────────────────── */

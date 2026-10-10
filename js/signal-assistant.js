@@ -7,7 +7,19 @@
    payments are verified on the server, so local changes unlock nothing. Security
    problems: report them (see /.well-known/security.txt), do not exploit them. */
 /* ══════════════════════════════════════════════════════════════════
-   signal-assistant.js  —  Pro "Signal Assistant" chat (roadmap Step D)
+   signal-assistant.js  —  Pro "AI Summary Assistant" (roadmap Step D)
+
+   RENAMED AND RE-AIMED (2026-10-10, Daniel): "AI Summary Assistant", not
+   "Signal Assistant", because Rotator does not sell signals. Its job, once
+   it is switched on, is a short plain-words summary of the coin window or
+   the swap ratio that is open, never a call or advice. Still PAUSED: the
+   token cost is not justified yet. Before switching it on, the
+   signal-assistant Edge Function (rotator-backend) must be rewritten from
+   free chat to that summary role, and the entry point moved into the coin
+   window and the swap ratio. The file, ids and the analytics event name
+   keep "signal" so past usage counts stay comparable.
+
+   History below (2026-09-05), kept as it was built:
 
    Talks to the signal-assistant Edge Function, which answers ONLY from
    the current signal_runs/signal_run_items row (the same server-
@@ -31,6 +43,22 @@
    nothing else needs to change. Until then this shows an honest "not
    live yet, here's why" notice instead of silently failing the fetch. */
 var SIGNAL_ASSISTANT_LIVE = false;
+
+/* While paused, no way in (2026-10-10, Daniel): the top-bar 🤖 button and
+   the phone MORE item opened the Pro window for everyone without Pro,
+   selling a feature that is switched off. Both are hidden until
+   SIGNAL_ASSISTANT_LIVE is true; then they show again by themselves. */
+(function () {
+  if (SIGNAL_ASSISTANT_LIVE) return;
+  function hide() {
+    document.querySelectorAll('[onclick*="openSignalAssistant"]').forEach(function (el) {
+      var wrap = el.closest('.tb-dropdown-wrap') || el;
+      wrap.style.display = 'none';
+    });
+  }
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', hide);
+  else hide();
+})();
 
 var _saMessages = [];   // {role:'user'|'assistant', content:string}[]
 var _saBusy = false;
@@ -68,12 +96,11 @@ function _saRender() {
     if (form) form.style.display = 'none';
     box.innerHTML = '<div style="text-align:center;padding:20px 14px;">'
       + '<div style="font-size:28px;margin-bottom:10px;">🚧</div>'
-      + '<div style="font-size:13px;color:var(--text);font-weight:600;margin-bottom:8px;">Not live yet</div>'
+      + '<div style="font-size:13px;color:var(--text);font-weight:600;margin-bottom:8px;">Paused for now</div>'
       + '<div style="font-size:12px;color:var(--muted);line-height:1.7;">'
-      + 'This feature is built but switched off for now. Answering questions calls a paid AI service — '
-      + 'and Rotator is built and run by one person on a very small budget, so it stays off until that cost '
-      + "makes sense to carry. Everything else on the site (scores, zones, score gaps) is unaffected — "
-      + "this only touches the chat."
+      + "When it is on, it will give a short summary, in plain words, of the coin or swap ratio you have open, made from Rotator's own data. It describes, it never gives signals or advice."
+      + '</div><div style="font-size:12px;color:var(--muted);line-height:1.7;margin-top:8px;">'
+      + 'Each summary is a paid AI call, and Rotator is run by one person on a small budget, so it stays paused until that cost makes sense. Everything else on the site works as normal.'
       + '</div></div>';
     return;
   }
