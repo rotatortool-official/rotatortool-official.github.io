@@ -875,15 +875,9 @@ function _tdUnlockCell(c) {
     ? 'Above the ' + LINE + '% line, so this coin is not published as a new entry until the unlock passes. It costs the coin no points — it is still scored, and still shown if you hold it.'
     : 'Share of the supply unlocked so far that vests again over the next 30 days.';
 
-  /* The amount and date are Pro (Daniel, 2026-10-04: "unlock event to
-     appear only inside in pro insight"). Free still learns that an
-     unlock is due, so the warning itself is never paywalled. */
-  if (!isPro && pct > 0) {
-    return '<div class="td-cell" style="cursor:pointer;" onclick="openPro()" title="The amount and date are in the Pro Insight Engine.">'
-      + '<div class="td-cell-l">UNLOCKS · 30D'
-      + (pending ? ' <span style="color:var(--red);">PENDING</span>' : '') + '</div>'
-      + '<div class="td-cell-v" style="color:' + col + ';">due · <span style="color:var(--pro);">details in Pro</span></div></div>';
-  }
+  /* Amount and date are free since 2026-10-10 (Daniel: "offer just
+     personalised alerts with pro and let the data be visible"); the TODAY
+     unlocks tile shows the same numbers to everyone. */
 
   return '<div class="td-cell"><div class="td-cell-l">UNLOCKS · 30D'
     + (pending ? ' <span style="color:var(--red);">PENDING</span>' : '') + '</div>'
@@ -3242,16 +3236,16 @@ function renderChainFlows() {
    missing here may simply have no published schedule, and the footer
    says so rather than implying the rest are clear.
 
-   The two biggest are free in full; below them the size and dollar
-   value are Pro (Daniel, 2026-10-10: "2 free and the rest in pro"). The
-   data is public; what Pro sells is the on-time Telegram alert for a
-   coin you hold, 3 days before its unlock.
+   Every row is free in full (Daniel, 2026-10-10: "offer just
+   personalised alerts with pro and let the data be visible"). What Pro
+   sells is the Telegram briefing that names an unlock on a coin you
+   hold, 3+ days ahead.
    Light theme only for now (the experimental board); dark hides it in
    styles.css until Daniel approves the look. */
-var _UL_ROWS = 8, _UL_FREE = 2, _UL_MIN = 0.5, _UL_DAYS = 30, _ulTimer = null;
+var _UL_ROWS = 8, _UL_MIN = 0.5, _UL_DAYS = 30, _ulTimer = null;
 var _UL_TXT = {
   en: {
-    group: 'Token supply', title: 'Upcoming unlocks', d30: 'next 30 days', supply: 'of supply', pro: 'size in Pro', open: 'Open the coin',
+    group: 'Token supply', title: 'Upcoming unlocks', d30: 'next 30 days', supply: 'of supply', open: 'Open the coin',
     none: 'No large unlocks due for our coins in the next 30 days.',
     note: 'New coins released to holders, biggest first. Extra supply often weighs on the price around the date.',
     foot: 'Unlocks: only coins with a published vesting schedule, about 1 in 3 of our list',
@@ -3259,7 +3253,7 @@ var _UL_TXT = {
     tg: '🔔 Pro: your Telegram briefing warns you 3+ days before an unlock on a coin you hold.'
   },
   mk: {
-    group: 'Понуда на токени', title: 'Претстојни отклучувања', d30: 'следните 30 дена', supply: 'од понудата', pro: 'износ во Pro', open: 'Отвори ја монетата',
+    group: 'Понуда на токени', title: 'Претстојни отклучувања', d30: 'следните 30 дена', supply: 'од понудата', open: 'Отвори ја монетата',
     none: 'Нема големи отклучувања за нашите монети во следните 30 дена.',
     note: 'Нови монети пуштени на сопствениците, најголемите прво. Дополнителната понуда често ја притиска цената околу датумот.',
     foot: 'Отклучувања: само монети со објавен распоред, околу 1 од 3 од нашата листа',
@@ -3359,10 +3353,9 @@ function renderTokenUnlocks() {
   if (!Object.keys(_tokenUnlocks).length) { host.style.display = 'none'; return; }
   rows.sort(function (a, b) { return b.pct - a.pct || a.at - b.at; });   /* biggest change on top */
   var list = rows.slice(0, _UL_ROWS).map(function (r, i) {
-    var c = r.c, day = new Date(r.at), size = (isPro || i < _UL_FREE)
-      ? '<span class="ul-pct">' + (r.pct >= 10 ? r.pct.toFixed(0) : r.pct.toFixed(1)) + '%</span>'
-        + '<span class="ul-usd">' + (r.usd != null ? '≈' + _cfUsd(r.usd) : '') + '</span>'
-      : '<span class="ul-pro" onclick="event.stopPropagation();openPro()">' + L.pro + '</span>';
+    var c = r.c, day = new Date(r.at),
+      size = '<span class="ul-pct">' + (r.pct >= 10 ? r.pct.toFixed(0) : r.pct.toFixed(1)) + '%</span>'
+        + '<span class="ul-usd">' + (r.usd != null ? '≈' + _cfUsd(r.usd) : '') + '</span>';
     return '<button type="button" class="ul-row" onclick="openTileDetail(\'' + c.id + '\',event)" title="' + L.open + '">'
       + '<span class="ul-coin">' + (c.image ? '<img src="' + c.image + '" alt="" width="16" height="16" loading="lazy" onerror="this.style.display=\'none\'">' : '')
       + '<b>' + _esc(c.sym) + '</b><em>' + day.getUTCDate() + ' ' + _cfL().months[day.getUTCMonth()] + '</em></span>'

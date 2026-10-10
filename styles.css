@@ -4287,7 +4287,6 @@ rect.etf-out.etf-prov{stroke:var(--red);}
 .ul-coin em{font-style:normal;font-size:11px;color:var(--muted);overflow:hidden;text-overflow:ellipsis;}
 .ul-pct{font-family:var(--font-mono);font-weight:700;color:var(--red);text-align:right;}
 .ul-usd{font-family:var(--font-mono);font-size:11px;color:var(--text);opacity:.78;text-align:right;}
-.ul-pro{grid-column:span 2;font-size:11px;color:var(--pro);text-align:right;text-decoration:underline;text-decoration-color:var(--prod);}
 .ul-left{font-family:var(--font-mono);font-variant-numeric:tabular-nums;text-align:right;color:var(--text);}
 .ul-left.soon{color:var(--amber);font-weight:700;}
 .hr-row{grid-template-columns:minmax(0,1fr) 4.6em 4em;}
