@@ -1325,7 +1325,7 @@ Object.assign(MK_TEXT, {
   'NYMEX via Yahoo Finance': 'NYMEX преку Yahoo Finance', 'COMEX via Yahoo Finance': 'COMEX преку Yahoo Finance',
   'ICE via Yahoo Finance': 'ICE преку Yahoo Finance',
   'What refiners earn turning a barrel of crude into diesel. When it is high, diesel is scarce and transport costs feed into prices.':
-    'Колку заработуваат рафинериите кога од барел сурова нафта прават дизел. Кога е висока, дизел нема доволно, а трошоците за превоз се прелеваат во цените.',
+    'Колку заработуваат рафинериите кога од сурова нафта прават дизел. Кога е висока, дизел нема доволно, а трошоците за превоз се прелеваат во цените.',
   'Shanghai crude futures (INE SC) via Sina Finance, in dollars at the day\'s yuan rate (CNY=X, Yahoo Finance)':
     'Шангајски фјучерси за сурова нафта (INE SC) преку Sina Finance, во долари по курсот на јуанот за тој ден (CNY=X, Yahoo Finance)'
 });
@@ -1456,8 +1456,8 @@ Object.assign(MK_TEXT, {
 Object.assign(MK_TEXT, {
   "What it is":
     "Што е тоа",
-  "The price of one troy ounce (31.1 grams) of gold on the New York futures market.":
-    "Цената на една унца (31,1 грам) злато на њујоршкиот пазар.",
+  "The price of one troy ounce (31.1 grams) of gold on the New York futures market (the Macedonian view shows it per gram).":
+    "Цената на златото на њујоршкиот пазар, тука прикажана по грам (на пазарот се продава по унца од 31,1 грам).",
   "Why it matters":
     "Зошто е важно",
   "People and central banks buy gold when they trust paper money or governments less. Central banks have been buying it in record amounts since 2022.":
@@ -1466,8 +1466,8 @@ Object.assign(MK_TEXT, {
     "Споредено со Bitcoin",
   "Bitcoin is often called \"digital gold\", and both can rise on fear of inflation. In a sudden panic gold usually holds up better, because Bitcoin still trades like a risky asset.":
     "Bitcoin често го нарекуваат „дигитално злато“, и двете можат да растат од страв од инфлација. Во ненадејна паника златото обично издржува подобро, бидејќи со Bitcoin сè уште се тргува како со ризично средство.",
-  "The price of one troy ounce (31.1 grams) of silver on the New York futures market.":
-    "Цената на една унца (31,1 грам) сребро на њујоршкиот пазар.",
+  "The price of one troy ounce (31.1 grams) of silver on the New York futures market (the Macedonian view shows it per kilogram).":
+    "Цената на среброто на њујоршкиот пазар, тука прикажана по килограм (на пазарот се продава по унца од 31,1 грам).",
   "Two jobs":
     "Две улоги",
   "Silver is partly a money metal, like gold, and partly an industrial one: solar panels, electronics and cars. About half of the demand comes from industry.":
@@ -1492,8 +1492,8 @@ Object.assign(MK_TEXT, {
     "Се прави со струја",
   "Making aluminum takes huge amounts of power, so its price also follows the cost of energy. China makes more than half of the world's aluminum.":
     "За да се направи алуминиум треба огромно количество струја, па неговата цена ја следи и цената на енергијата. Кина произведува повеќе од половина од алуминиумот во светот.",
-  "The price of a barrel (159 liters) of US crude oil, West Texas Intermediate, for next month's delivery. Brent, from the North Sea, is the price most of the world's oil is sold against.":
-    "Цената на барел (159 литри) американска сурова нафта WTI за испорака следниот месец. Брент, од Северното Море, е цената според која се продава поголемиот дел од нафтата во светот.",
+  "The price of a barrel (159 liters) of US crude oil, West Texas Intermediate, for next month's delivery (the Macedonian view shows it per tonne, about 7.33 barrels). Brent, from the North Sea, is the price most of the world's oil is sold against.":
+    "Цената на американската сурова нафта WTI за испорака следниот месец, тука прикажана по тон (околу 7,33 барели од по 159 литри). Брент, од Северното Море, е цената според која се продава поголемиот дел од нафтата во светот.",
   "Oil is in transport, food, plastics and heating. When it rises fast, prices in shops follow, central banks keep rates higher for longer, and that weighs on risky assets like crypto.":
     "Нафтата е во превозот, храната, пластиката и греењето. Кога брзо расте, цените во продавниците ја следат, централните банки ги држат каматите високи подолго, а тоа ги притиска ризичните средства како крипто.",
   "The China line":
@@ -1507,13 +1507,13 @@ Object.assign(MK_TEXT, {
   "Why it pays more in 2026":
     "Зошто во 2026 плаќа повеќе",
   "The US put its blockade of Iran's ports back on 13 July 2026, and the cheap Iranian barrels dried up. Refiners had to buy at full price and pay costly freight, while Middle East supply was already tight after the Strait of Hormuz was closed in spring and a Saudi pipeline was attacked in September. From April to August Shanghai crude mostly traded $3 to $9 under Brent; in September it was about $9 over.":
-    "САД повторно ја воведоа блокадата на иранските пристаништа на 13 јули 2026, и евтината иранска нафта пресуши. Рафинериите мораа да купуваат по полна цена и со скап превоз, а нафтата од Блискиот Исток веќе беше малку, по затворањето на Ормускиот теснец во пролетта и нападот на саудиски нафтовод во септември. Од април до август нафтата во Шангај главно беше 3 до 9 долари под Брент; во септември беше околу 9 долари над.",
+    "САД повторно ја воведоа блокадата на иранските пристаништа на 13 јули 2026, и евтината иранска нафта пресуши. Рафинериите мораа да купуваат по полна цена и со скап превоз, а нафтата од Блискиот Исток веќе беше малку, по затворањето на Ормускиот теснец во пролетта и нападот на саудиски нафтовод во септември. Од април до август нафтата во Шангај главно беше 20 до 65 долари по тон под Брент; во септември беше околу 65 долари по тон над.",
   "What to watch":
     "Што да се следи",
   "High prices make China buy less: at the end of September analysts cut their forecast for China's imports in the last three months of 2026. On 2 October the G7 agreed to release 100 million barrels of crude and diesel from emergency stocks over four months. A shrinking gap to Brent would be the sign that the pressure is easing; a growing one, that the scramble for barrels goes on.":
     "Високите цени ја тераат Кина да купува помалку: на крајот на септември аналитичарите ја намалија прогнозата за увозот на Кина во последните три месеци од 2026. На 2 октомври земјите од Г7 се договорија да пуштат 100 милиони барели нафта и дизел од резервите за итни случаи, во текот на четири месеци. Ако разликата до Брент се намалува, притисокот попушта; ако расте, борбата за нафта продолжува.",
-  "The price of a barrel of heating oil (a close cousin of diesel) minus the price of a barrel of Brent crude.":
-    "Цената на барел масло за греење (речиси исто што и дизелот) минус цената на барел сурова нафта Брент.",
+  "The price of a barrel of heating oil (a close cousin of diesel) minus the price of a barrel of Brent crude (the Macedonian view shows it per tonne of diesel, about 7.45 barrels).":
+    "Цената на масло за греење (речиси исто што и дизелот) минус цената на сурова нафта Брент, тука прикажана по тон дизел.",
   "Trucks, ships, farms and factories run on diesel. A high spread means diesel is short even when crude is not, and that reaches food and goods prices a few weeks later.":
     "Камионите, бродовите, фармите и фабриките работат на дизел. Висока маржа значи дека дизел нема доволно дури и кога сурова нафта има, а тоа по неколку недели стигнува до цените на храната и стоките.",
   "The price of US natural gas at Henry Hub in Louisiana, per million BTU (the Macedonian view shows it per kilowatt-hour).":

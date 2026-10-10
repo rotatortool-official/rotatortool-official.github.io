@@ -2023,7 +2023,8 @@ function _bfWorldCell(it, o) {
   }
   /* o.mk: the Macedonian page shows SI units (Daniel, 2026-10-04): copper
      per tonne, natural gas per kWh; oil and the diesel spread per tonne
-     too since 2026-10-10 (Daniel: no pounds or barrels). Only the price is converted; the
+     too since 2026-10-10 (Daniel: no pounds or barrels), gold per gram
+     and silver per kilogram the same day (no troy ounces). Only the price is converted; the
      changes are percentages, and a line keeps its shape when scaled.
      English keeps the units the markets quote. */
   var si = o.mk && typeof currentLang !== 'undefined' && currentLang === 'mk' ? o.mk : null;
@@ -2619,18 +2620,20 @@ function renderBriefing() {
     ] },
     { t: 'Metals', cells: [
       _bfWorldCell(it('gold', 'goldP7'), { k: 'Gold', more: [
-          ['What it is', 'The price of one troy ounce (31.1 grams) of gold on the New York futures market.'],
+          ['What it is', 'The price of one troy ounce (31.1 grams) of gold on the New York futures market (the Macedonian view shows it per gram).'],
           ['Why it matters', 'People and central banks buy gold when they trust paper money or governments less. Central banks have been buying it in record amounts since 2022.'],
           ['Next to Bitcoin', 'Bitcoin is often called "digital gold", and both can rise on fear of inflation. In a sudden panic gold usually holds up better, because Bitcoin still trades like a risky asset.']
         ],
         kind: 'usd', src: BF_SRC.comex, sym: 'GC=F',
+        mk: { mul: 1 / 31.1034768, u: ' /g' },   /* grams in a troy ounce; gold is bought by the gram here */
         d: 'The oldest store of value, as a benchmark' }),
       _bfWorldCell(it('silver', 'silverP7'), { k: 'Silver', more: [
-          ['What it is', 'The price of one troy ounce (31.1 grams) of silver on the New York futures market.'],
+          ['What it is', 'The price of one troy ounce (31.1 grams) of silver on the New York futures market (the Macedonian view shows it per kilogram).'],
           ['Two jobs', 'Silver is partly a money metal, like gold, and partly an industrial one: solar panels, electronics and cars. About half of the demand comes from industry.'],
           ['How it moves', 'It usually swings harder than gold, both up and down.']
         ],
         kind: 'usd', src: BF_SRC.comex, sym: 'SI=F',
+        mk: { mul: 1000 / 31.1034768, u: ' /kg' },   /* per gram would be ~$1.60, too small to read */
         d: 'Industrial demand as well as a metal' }),
       _bfWorldCell(W.copper, { k: 'Copper', more: [
           ['What it is', 'The price of a pound of copper on the New York futures market (the Macedonian view shows it per tonne).'],
