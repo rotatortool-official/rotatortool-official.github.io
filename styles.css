@@ -4296,7 +4296,7 @@ rect.etf-out.etf-prov{stroke:var(--red);}
 .hr-yr{font-family:var(--font-mono);font-weight:700;color:var(--green);text-align:right;}
 .ul-list{position:relative;}
 .ul-row{position:relative;z-index:1;}
-.ul-emb-bg{position:absolute;z-index:0;pointer-events:none;line-height:0;left:42%;top:50%;width:78px;height:78px;
+.ul-emb-bg{position:absolute;z-index:0;pointer-events:none;line-height:0;left:42%;top:50%;width:86px;height:86px;
   opacity:.13;transform:translate(-50%,-50%) rotate(-8deg);}
 .hr-tile .ul-emb-bg{left:46%;}
 :root:not(.light) .ul-emb-bg{opacity:.18;}
@@ -4304,7 +4304,7 @@ rect.etf-out.etf-prov{stroke:var(--red);}
 .ul-emb-badge{display:none;}
 @media(max-width:900px){
   .ul-emb-bg{display:none;}
-  .ul-emb-badge{display:inline-block;vertical-align:-2px;margin-left:6px;width:13px;height:13px;opacity:.65;line-height:0;}
+  .ul-emb-badge{display:inline-block;vertical-align:-2px;margin-left:6px;width:14.3px;height:14.3px;opacity:.65;line-height:0;}
 }
 .ul-tg{position:relative;z-index:1;}   /* the header stays unpositioned so the emblem sits on the tile */
 .ul-emb{left:42%;top:46%;right:auto;bottom:auto;width:78px;height:78px;opacity:.13;
