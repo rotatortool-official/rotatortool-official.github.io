@@ -5880,7 +5880,7 @@ a.mob-more-item{text-decoration:none;color:inherit;}
 .fb-n{border:0;border-left:1px solid var(--bdr2);background:var(--bg3);color:var(--text);font:600 14px/1 var(--font-ui);padding:11px 0;cursor:pointer;}
 .fb-n:first-child{border-left:0;}
 .fb-n:hover{background:var(--bg4);}
-.fb-n.on{background:var(--bnb,#f3ba2f);color:#111;}
+.fb-n.on{background:#f3ba2f;color:#111;}
 .fb-ends{display:flex;justify-content:space-between;font-size:11px;color:var(--muted);margin:4px 2px 10px;}
 .fb-c{display:none;width:100%;box-sizing:border-box;resize:vertical;margin-bottom:10px;padding:8px 10px;border-radius:8px;
   border:1px solid var(--bdr2);background:var(--bg3);color:var(--text);font:13px/1.4 var(--font-ui);}
@@ -5970,3 +5970,12 @@ a.mob-more-item{text-decoration:none;color:inherit;}
 :root.light .td-perf-v.up,:root.light .td-kv-v.up{color:#15803d;}
 :root.light .td-perf-v.dn,:root.light .td-kv-v.dn{color:#b91c1c;}
 :root.light .td-kv-v.warn{color:#b45309;}
+/* The one-tap "why" after the rating (2026-10-11). */
+.fb-why{display:none;margin:0 0 10px;}
+.fb-card.picked .fb-why{display:block;}
+.fb-why-q{font-size:12.5px;font-weight:600;margin-bottom:6px;}
+.fb-chips{display:flex;flex-wrap:wrap;gap:6px;}
+.fb-chip{border:1px solid var(--bdr2);background:var(--bg3);color:var(--text);border-radius:999px;padding:6px 11px;
+  font:500 12px/1.2 var(--font-ui);cursor:pointer;}
+.fb-chip:hover{border-color:var(--muted);}
+.fb-chip.on{background:#f3ba2f;border-color:#f3ba2f;color:#111;}

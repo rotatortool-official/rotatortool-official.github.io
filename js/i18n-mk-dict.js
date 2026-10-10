@@ -1793,3 +1793,17 @@ Object.assign(MK_TEXT, {
   'Market cap rank': 'Место по пазарна вредност',
   'From all-time high': 'Од највисоката цена досега'
 });
+/* The one-tap "why" after the feedback rating (2026-10-11). */
+Object.assign(MK_TEXT, {
+  'What got in the way?': 'Што ви пречеше?',
+  'Too much data': 'Премногу податоци',
+  'Hard to understand': 'Тешко за разбирање',
+  'Slow on my phone': 'Бавно на мојот телефон',
+  'A coin is missing': 'Недостасува монета',
+  'What do you use most?': 'Што користите најмногу?',
+  'TODAY board': 'Таблата ДЕНЕС',
+  'Leaderboard': 'Рангирање',
+  'Swap tool': 'Алатката за замена',
+  'Alerts': 'Известувања',
+  'Anything you would add? (optional)': 'Нешто што би додале? (не е задолжително)'
+});

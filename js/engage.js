@@ -132,19 +132,44 @@
       + '<div class="fb-s">Your answer helps us decide what to fix next.</div>'
       + '<div class="fb-row">' + nums + '</div>'
       + '<div class="fb-ends"><span>Bad</span><span>Good</span></div>'
+      + '<div class="fb-why"></div>'
       + '<textarea class="fb-c" maxlength="500" rows="2" placeholder="Anything we should fix? (optional)"></textarea>'
       + '<button type="button" class="fb-send" disabled>Send</button>'
       + '<div class="fb-foot">No name or account is sent with it.</div>';
     document.body.appendChild(card);
     requestAnimationFrame(function () { card.classList.add('in'); });
-    var rating = 0;
+    var rating = 0, reason = null;
     function close() { card.classList.remove('in'); setTimeout(function () { card.remove(); }, 200); }
     card.querySelector('.fb-x').onclick = close;
+    /* One tap on why, after the number (Daniel 2026-10-11: "1 to 5 is too
+       broad"). The values match site_feedback.reason's check. */
+    var WHY = {
+      low:  ['What got in the way?', [['too_much_data', 'Too much data'], ['hard_to_understand', 'Hard to understand'], ['slow_on_phone', 'Slow on my phone'], ['coin_missing', 'A coin is missing']]],
+      high: ['What do you use most?', [['today', 'TODAY board'], ['leaderboard', 'Leaderboard'], ['swap', 'Swap tool'], ['alerts', 'Alerts']]]
+    };
+    function drawWhy() {
+      var w = WHY[rating <= 3 ? 'low' : 'high'], box = card.querySelector('.fb-why');
+      box.innerHTML = '<div class="fb-why-q">' + esc(w[0]) + '</div><div class="fb-chips">'
+        + w[1].map(function (o) { return '<button type="button" class="fb-chip' + (o[0] === reason ? ' on' : '') + '" data-r="' + o[0] + '">' + esc(o[1]) + '</button>'; }).join('')
+        + '</div>';
+      box.querySelectorAll('.fb-chip').forEach(function (b) {
+        b.onclick = function () {
+          reason = reason === b.dataset.r ? null : b.dataset.r;
+          box.querySelectorAll('.fb-chip').forEach(function (x) { x.classList.toggle('on', x.dataset.r === reason); });
+        };
+      });
+    }
     card.querySelectorAll('.fb-n').forEach(function (b) {
       b.onclick = function () {
+        var wasLow = rating && rating <= 3;
         rating = Number(b.dataset.n);
+        if (wasLow !== (rating <= 3)) reason = null;   /* the other question: drop the old answer */
         card.querySelectorAll('.fb-n').forEach(function (x) { x.classList.toggle('on', x === b); });
         card.classList.add('picked');
+        drawWhy();
+        var ph = rating <= 3 ? 'Anything we should fix? (optional)' : 'Anything you would add? (optional)';
+        if (typeof currentLang !== 'undefined' && currentLang === 'mk' && window.mkTranslate) ph = mkTranslate(ph);
+        card.querySelector('.fb-c').placeholder = ph;
         card.querySelector('.fb-send').disabled = false;
       };
     });
@@ -157,6 +182,7 @@
         headers: { apikey: SUPA_KEY, Authorization: 'Bearer ' + SUPA_KEY, 'Content-Type': 'application/json' },
         body: JSON.stringify({
           rating: rating,
+          reason: reason,
           comment: card.querySelector('.fb-c').value,
           device: window.matchMedia('(max-width:700px)').matches ? 'phone' : 'desktop',
           theme: document.documentElement.classList.contains('light') ? 'light' : 'dark',
