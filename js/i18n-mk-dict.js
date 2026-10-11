@@ -40,11 +40,13 @@ Object.assign(MK_TEXT, {
   'CAPITAL ROTATION': 'ДВИЖЕЊЕ НА КАПИТАЛОТ',
   'CAPITAL': 'КАПИТАЛ',
   'where money moved': 'каде отидоа парите',
-  'where money moved this week: into and out of Bitcoin, between chains, and Bitcoin against the rest':
-    'каде се движеа парите оваа недела: во и надвор од Bitcoin, меѓу мрежите и Bitcoin наспроти другите монети',
+  'where money moved this week: into and out of Bitcoin, between chains, Bitcoin against the rest, and coin supply: unlocks, buybacks and burns':
+    'каде се движеа парите оваа недела: во и надвор од Bitcoin, меѓу мрежите, Bitcoin наспроти другите монети и понудата на монетите: отклучувања, откупи и согорувања',
   'Where money moved, not where it goes next.': 'Каде се движеа парите, не каде ќе одат.',
   'ROTATOR TOOL': 'ROTATOR АЛАТКА',
   'Rotator Tool': 'Rotator алатка',
+  'Rotator Tool Tutorial': 'Упатство за Rotator алатката',
+  'Learn how to compare two coins with the Rotator Tool': 'Научете како да споредите две монети со Rotator алатката',
   'compare any two coins: how many you would get, and where today sits in the range':
     'споредете кои било две монети: колку би добиле и каде е денес во опсегот',
   'Instagram is coming soon': 'Instagram доаѓа наскоро',

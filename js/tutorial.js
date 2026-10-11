@@ -64,16 +64,16 @@ var TUT_STEPS = [
     "note": "It describes the market. It does not forecast it."
   },
 
-  /* 3. TODAY — ETF flows */
+  /* 3. CAPITAL ROTATION (its own section since 2026-10-11) */
   {
-    "target": "#etf-strip",
-    "spot": ["#etf-strip"],
-    "goto": "etf-strip",
-    "title": "Today — ETF flows",
+    "target": "#sec-capital",
+    "spot": ["#cap-btc", "#sec-capital"],
+    "goto": "sec-capital",
+    "title": "Capital rotation — where money moved",
     "p": [
-      "Money into (green) or out of (red) the US Bitcoin and Ether ETFs, day by day. Tap a tile for the details."
+      "Bitcoin against the other coins, money into and out of the Bitcoin and Ether ETFs, stablecoins moving between chains, and coin supply: upcoming unlocks, buybacks and burns. Tap any part for the details."
     ],
-    "note": "What big money did, not what it will do next."
+    "note": "Where money moved, not where it goes next."
   },
 
   /* 4. MOMENTUM — turn signs (the section's top since promptove/70) */
@@ -125,9 +125,9 @@ var TUT_STEPS = [
     "spot": ["#cb-swap", "#sec-swap"],
     "goto": "sec-swap",
     "open": "swap",
-    "title": "Swap — one coin against another",
+    "title": "Rotator Tool — one coin against another",
     "p": [
-      "Pick what you hold and what you are thinking of. See how many you would get, and where today sits in the recent range."
+      "Compare any two coins: how many you would get for one, and where today sits in the recent range."
     ],
     "note": "Choosing your own pair is a Pro feature."
   },

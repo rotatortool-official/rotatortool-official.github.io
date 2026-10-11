@@ -711,26 +711,6 @@ function handleSearchSelect(coinId) {
   closeTableSearch();
 }
 
-/* ── CAPITAL ROTATION layout (2026-10-11, Daniel; light theme first) ──
-   In light theme the ETF and chain-flow strips move from TODAY into the
-   CAPITAL ROTATION section; in dark they stay in TODAY, where they were,
-   until Daniel approves the new section for dark too. Moving the nodes
-   keeps their ids, so renderEtfFlows / renderChainFlows still find them. */
-function _capitalLayout() {
-  var light = document.documentElement.classList.contains('light');
-  var host = document.getElementById('cap-host');
-  var today = document.getElementById('sec-today');
-  var anchor = document.getElementById('ul-strip');          /* the strips sit just before the unlocks */
-  var etf = document.getElementById('etf-strip'), cf = document.getElementById('cf-strip');
-  if (!host || !today || !etf || !cf) return;
-  if (light) {
-    if (etf.parentNode !== host) { host.appendChild(etf); host.appendChild(cf); }
-  } else if (etf.parentNode !== today && anchor && anchor.parentNode === today) {
-    today.insertBefore(etf, anchor); today.insertBefore(cf, anchor);
-  }
-}
-window._capitalLayout = _capitalLayout;
-
 /* ── Theme: patch after deferred scripts load ─── */
 document.addEventListener('DOMContentLoaded', function() {
   var _themeRAF = null;
@@ -739,7 +719,6 @@ document.addEventListener('DOMContentLoaded', function() {
     if (_themeRAF) cancelAnimationFrame(_themeRAF);
     _themeRAF = requestAnimationFrame(function() {
       document.documentElement.classList.toggle('light', isLight);
-      _capitalLayout();
       try { localStorage.setItem('rot_theme', isLight ? 'light' : 'dark'); } catch(e) {}
       var tog = document.getElementById('theme-toggle');
       var ico = document.getElementById('theme-icon');
@@ -762,7 +741,6 @@ document.addEventListener('DOMContentLoaded', function() {
     var saved = localStorage.getItem('rot_theme');
     if (saved) _applyTheme(saved === 'light');
   } catch(e) {}
-  _capitalLayout();
 });
 
 /* ── Consent banner — show on first visit until accepted ── */
