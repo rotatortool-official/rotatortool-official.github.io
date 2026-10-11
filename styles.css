@@ -6081,3 +6081,17 @@ a.mob-more-item{text-decoration:none;color:inherit;}
 @media (max-width:600px){ .cap-row{grid-template-columns:76px minmax(0,1fr);} .cap-lbl{white-space:nowrap;} .cap-row .cap-txt{grid-column:1 / -1;} }
 /* The phone's round button is ~78px wide: the longer light name is set a size smaller. */
 :root.light #mn-swap .nm-lt{font-size:9px;letter-spacing:.02em;}
+
+/* Loading: the pulse line is the progress bar (2026-10-11, Daniel). Centred
+   and big; the faint path is the whole length, the bright one draws along
+   it as prog() advances. Both themes (the loader looks the same in both). */
+.loader-ecg{width:340px;max-width:82vw;height:68px;margin:14px auto 6px;}
+.loader-ecg svg{display:block;width:100%;height:100%;overflow:visible;}
+/* no vector-effect: non-scaling-stroke breaks pathLength-based dashes (the fill lit both ends) */
+.loader-ecg path{fill:none;stroke-linejoin:round;stroke-linecap:round;}
+.loader-ecg .trk{stroke:rgba(46,232,138,.16);stroke-width:1.3;}
+.loader-ecg .fill{stroke:#2ee88a;stroke-width:1.7;stroke-dasharray:1;stroke-dashoffset:.96;transition:stroke-dashoffset .45s ease;filter:drop-shadow(0 0 6px rgba(46,232,138,.65));}
+.load-pulse{justify-content:center;}
+:root.light .loader-ecg .trk{stroke:rgba(14,159,110,.18);}
+:root.light .loader-ecg .fill{stroke:#0e9f6e;filter:drop-shadow(0 0 5px rgba(14,159,110,.45));}
+@media (prefers-reduced-motion: reduce){ .loader-ecg .fill{transition:none;} }

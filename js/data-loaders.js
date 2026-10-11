@@ -46,9 +46,11 @@ var _twTimer = null;
 function prog(p, m) {
   /* The bar follows the real steps (promptove/105); it was a fixed 2.5s
      animation that finished long before the data did. */
-  var bar = document.getElementById('load-bar-fill');
+  /* Since 2026-10-11 the bar is the pulse line: the bright path draws
+     along the faint one (stroke-dashoffset 1 = empty, 0 = full). */
+  var bar = document.getElementById('load-ecg-fill');
   if (bar && typeof p === 'number') {
-    bar.style.width = Math.max(4, Math.min(100, p)) + '%';
+    bar.style.strokeDashoffset = String(1 - Math.max(4, Math.min(100, p)) / 100);
     var pb = document.getElementById('load-bar');
     if (pb) pb.setAttribute('aria-valuenow', String(Math.round(p)));
   }
@@ -1650,8 +1652,8 @@ async function doLoad() {
   } catch(e) {
     var lmsg = document.getElementById('lmsg');
     if (lmsg) lmsg.textContent = 'ERROR: ' + e.message;
-    var lbf = document.getElementById('load-bar-fill');
-    if (lbf) lbf.style.background = 'var(--red)';
+    var lbf = document.getElementById('load-ecg-fill');
+    if (lbf) lbf.style.stroke = 'var(--red)';
     console.error('[doLoad]', e);
   }
   busy = false;
