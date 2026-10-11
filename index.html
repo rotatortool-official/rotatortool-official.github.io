@@ -932,7 +932,11 @@
   <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;" class="topbar-desktop-left">
     <canvas id="logo-c" width="110" height="32" style="display:block;cursor:pointer;" onclick="location.reload()" title="ROTATOR"></canvas>
     <span class="tier-badge free" id="tier-badge" style="display:none;">FREE</span>
-    <div class="btc-meta"><span id="btc-p">—</span><span style="margin-left:8px;" id="btc-ma"></span></div>
+    <!-- The section you are reading, beside the logo (Daniel, 2026-10-11). Was an
+         unused BTC-price placeholder that showed a lone "—". Filled by
+         initRail() in js/ui.js from the active rail item, so it follows the
+         rail's language and its live subtitle ("12 listed"). -->
+    <div class="btc-meta top-sec" id="top-sec"><span class="top-sec-lbl" id="top-sec-lbl"></span><span class="top-sec-sub" id="top-sec-sub"></span></div>
   </div>
   <!-- Bear market inline banner -->
   <div class="bear-banner" id="bear-banner">

@@ -75,6 +75,11 @@ body::before{content:'';position:fixed;inset:0;background:repeating-linear-gradi
 .pulse{width:5px;height:5px;border-radius:50%;background:currentColor;animation:pulse 2s infinite;flex-shrink:0;}
 @keyframes pulse{0%,100%{opacity:1}50%{opacity:.2}}
 .btc-meta{font-size:12px;color:var(--muted);display:flex;align-items:center;gap:6px;}
+/* Current section beside the logo (2026-10-11, initRail) */
+.top-sec{gap:10px;margin-left:6px;padding-left:14px;border-left:1px solid var(--bdr2);min-height:26px;}
+.top-sec:empty,.top-sec:not(:has(.top-sec-lbl:not(:empty))){visibility:hidden;}
+.top-sec-lbl{font-family:var(--font-ui);font-size:15px;font-weight:800;letter-spacing:.12em;text-transform:uppercase;color:var(--bnb);transition:opacity .2s;}
+.top-sec-sub{font-size:13px;color:var(--muted);white-space:nowrap;}
 .topbar-r{display:flex;align-items:center;gap:2px;justify-content:flex-end;flex-shrink:0;}
 /* ── Topbar search ── */
 .topbar-search-wrap{position:relative;display:flex;align-items:center;}
@@ -5053,6 +5058,17 @@ details.td-reading-trust[open] > summary::before{content:'▾ ';}
   .rsec + .rsec{margin-top:18px;}
   .rsec-hdr{padding:20px 12px 10px;}
   .rsec-label{font-size:16px;}
+}
+/* Since 2026-10-11 the top bar names the section you are reading, beside
+   the logo (#top-sec, js/ui.js initRail). Wherever that label shows, the
+   in-page heading only repeated it and cost a row on every section (Daniel:
+   "the white ДЕНЕС is obsolete"). Hidden for the eye only: screen readers
+   still hear each section's name and line. Phones held upright have no room
+   for the top-bar label, so they keep their headings. */
+@media (min-width:701px) and (min-height:501px), (min-width:701px) and (orientation:portrait){
+  .rsec-hdr{position:absolute !important;width:1px;height:1px;padding:0 !important;margin:-1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap;border:0;}
+  #sec-today{padding-top:12px;}
+  .rsec + .rsec{margin-top:18px;padding-top:14px;}
 }
 
 .lens-rail{

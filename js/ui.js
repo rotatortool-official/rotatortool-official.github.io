@@ -968,7 +968,26 @@ function railGo(secId) {
       if (on) b.setAttribute('aria-current', 'true'); else b.removeAttribute('aria-current');
     });
     if (mobMore) mobMore.classList.toggle('active', !hit && !!id);
+    /* The section's name beside the logo (2026-10-11): copied from the
+       rail so it is in the page's language and carries its live subtitle. */
+    var cur = items.filter(function(it) { return it.dataset.sec === id; })[0];
+    var tl = document.getElementById('top-sec-lbl'), ts = document.getElementById('top-sec-sub');
+    if (cur && tl) {
+      tl.textContent = (cur.querySelector('.rail-label') || {}).textContent || '';
+      if (ts) ts.textContent = (cur.querySelector('.rail-sub') || {}).textContent || '';
+    }
   }
+  setActive(items[0].dataset.sec);   /* TODAY from the first paint */
+  /* The rail's subtitles fill in after the data loads ("12 listed") and the
+     MK pass translates them later, so copy again whenever the rail changes. */
+  if ('MutationObserver' in window) new MutationObserver(function() {
+    var on = rail.querySelector('.rail-item.on');
+    var tl = document.getElementById('top-sec-lbl'), ts = document.getElementById('top-sec-sub');
+    if (!on || !tl) return;
+    var l = (on.querySelector('.rail-label') || {}).textContent || '', s = (on.querySelector('.rail-sub') || {}).textContent || '';
+    if (tl.textContent !== l) tl.textContent = l;
+    if (ts && ts.textContent !== s) ts.textContent = s;
+  }).observe(rail, { subtree: true, childList: true, characterData: true });
 
   /* RECORD is last and short (2026-09-29): it can never reach the top
      third of the screen, so at the foot of the page the last section is
