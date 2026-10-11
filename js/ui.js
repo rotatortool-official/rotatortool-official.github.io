@@ -933,6 +933,9 @@ function rotScrollToEl(el) {
 window.rotScrollToEl = rotScrollToEl;
 
 function railGo(secId) {
+  /* RECORD: open its "Test environment" card too, as mobGo() does (2026-10-11). */
+  var wip = secId === 'sec-record' && document.getElementById('rec-wip');
+  if (wip && !wip.open) { wip.open = true; setTimeout(function () { rotScrollToEl(document.getElementById(secId)); }, 350); return; }
   rotScrollToEl(document.getElementById(secId));
 }
 

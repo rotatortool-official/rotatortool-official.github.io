@@ -3561,6 +3561,12 @@ function mobGo(secId) {
   var body = fold && document.getElementById('cb-' + fold);
   var wasCollapsed = !!(body && body.classList.contains('collapsed'));
   if (wasCollapsed) toggleCollapse(fold);
+  /* RECORD opens CLOSED behind its "Test environment" card (2026-10-11).
+     Going there from the menu means "show me the record": open the card
+     too, or the tap lands on the notice alone and reads as a dead end
+     (Daniel, same day). The page itself still opens closed. */
+  var wip = secId === 'sec-record' && document.getElementById('rec-wip');
+  if (wip && !wip.open) { wip.open = true; wasCollapsed = true; }
   if (secId === 'sec-swap' && typeof RatioTracker !== 'undefined') RatioTracker.loadAll();
   setTimeout(function() { _mobScrollTo(sec); }, wasCollapsed ? 350 : 0);
   /* Content above keeps loading while the page scrolls (the Rotator Tool
