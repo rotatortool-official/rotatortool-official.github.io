@@ -29,8 +29,16 @@ Object.assign(MK_TEXT, {
   'learn more: how our readings have held up so far': 'дознајте повеќе: колку издржаа нашите читања досега',
   'what Rotator said before, and what happened next': 'што кажа Rotator порано, и што се случи потоа',
   'Experimental.': 'Експериментално.',
-  'This feature runs in the background while we test it until the end of 2026, so read the numbers below as a test in progress. How the old and the new engine are graded is explained on the':
-    'Оваа функција работи во позадина додека ја тестираме до крајот на 2026, па бројките подолу читајте ги како тест што сè уште трае. Како се оценуваат стариот и новиот начин на бодување е објаснето на',
+  /* RECORD as work in progress (2026-10-11) */
+  '🧪 Test environment': '🧪 Во тестирање',
+  'Work in progress: we learn from our mistakes': 'Работа во тек: учиме од грешките',
+  "Rotator's signals are tested live until March 2027. Things here change while we build. If the signals have not proven themselves by then, we stop them.":
+    'Сигналите на Rotator се тестираат во живо до март 2027. Додека градиме, работите тука се менуваат. Ако сигналите дотогаш не се докажат, ги запираме.',
+  'Not financial advice.': 'Не е финансиски совет.',
+  'Show the results so far': 'Прикажи ги резултатите досега',
+  'Hide the results': 'Скриј ги резултатите',
+  'This feature runs in the background while we test it until March 2027, so read the numbers below as a test in progress. How the old and the new engine are graded is explained on the':
+    'Оваа функција работи во позадина додека ја тестираме до март 2027, па бројките подолу читајте ги како тест што сè уште трае. Како се оценуваат стариот и новиот начин на бодување е објаснето на',
   'track record': 'евиденцијата',
   'Our old engine': 'Нашиот стар начин на бодување', '(April to September 2026) was confirmed on': '(април до септември 2026) беше потврден кај',
   '76.2% of 863 graded calls': '76,2% од 863 оценети повици',
@@ -804,7 +812,7 @@ Object.assign(MK_TEXT, {
   'Every call, tracked.': 'Секој повик, следен.',
   'Every call Rotator made, checked afterwards against the average coin. Good results and bad ones, nothing deleted.':
     'Секој повик на Rotator, проверен потоа наспроти просечната монета. Добрите и лошите резултати, ништо избришано.',
-  'This record runs in the background and is being tested until the end of 2026.': 'Оваа евиденција работи во позадина и се тестира до крајот на 2026.',
+  'This record runs in the background and is being tested until March 2027.': 'Оваа евиденција работи во позадина и се тестира до март 2027.',
   '1 · Current engine': '1 · Сегашно бодување', '2 · Telegram picks': '2 · Избори на Telegram',
   '3 · Channel posts': '3 · Објави на каналот', '4 · Old engine': '4 · Старо бодување',
   'Current engine, live since 11 Sep 2026': 'Сегашниот начин на бодување, во живо од 11 септ. 2026',

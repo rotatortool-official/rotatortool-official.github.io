@@ -1517,10 +1517,24 @@
   </section>
   <section class="rsec" id="sec-record">
     <div class="rsec-hdr"><span class="rsec-label">RECORD</span><span class="rsec-meta">what Rotator said before, and what happened next</span></div>
+    <!-- Work in progress (2026-10-11, Daniel): the section is CLOSED by
+         default and framed as a test environment until the signals have
+         real results; only a click shows the data built so far. Daniel's
+         rule: if the signals engine has not proven itself by March 2027,
+         it stops (routine rotator-signals-engine-march-2027-decision).
+         Opening it also opens the track record inside, so it is one click. -->
+    <details class="rec-wip" id="rec-wip" ontoggle="if(this.open){var b=document.getElementById('cb-trackrecord');if(b&&b.classList.contains('collapsed')&&typeof toggleCollapse==='function')toggleCollapse('trackrecord');}">
+      <summary>
+        <span class="rec-wip-tag">🧪 Test environment</span>
+        <span class="rec-wip-h">Work in progress: we learn from our mistakes</span>
+        <span class="rec-wip-p">Rotator's signals are tested live until March 2027. Things here change while we build. If the signals have not proven themselves by then, we stop them.</span>
+        <span class="rec-wip-nfa">Not financial advice.</span>
+        <span class="rec-wip-btn"><span class="rec-wip-show">Show the results so far</span><span class="rec-wip-hide">Hide the results</span></span>
+      </summary>
     <!-- Experimental notice (2026-10-10, Daniel). The old/new engine
          explanation that sat here moved to track-record.html. -->
     <div class="rec-intro">
-      <p><strong>Experimental.</strong> This feature runs in the background while we test it until the end of 2026, so read the numbers below as a test in progress. How the old and the new engine are graded is explained on the <a href="track-record.html">track record</a>.</p>
+      <p><strong>Experimental.</strong> This feature runs in the background while we test it until March 2027, so read the numbers below as a test in progress. How the old and the new engine are graded is explained on the <a href="track-record.html">track record</a>.</p>
     </div>
     <!-- SIGNAL TRACK RECORD — "Told You So" section -->
     <div class="str-section">
@@ -1538,6 +1552,7 @@
       </div>
       </div>
     </div>
+    </details>
   </section>
   </div>
 </div>
