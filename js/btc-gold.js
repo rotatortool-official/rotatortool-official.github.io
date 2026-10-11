@@ -69,6 +69,7 @@ function openBtcGold() {
   if (!body) return;
   body.innerHTML = '<div class="modal-title">' + L.title + '</div><div class="btcg-loading">' + L.loading + '</div>';
   openModal('btcg-modal');
+  if (typeof fcTopShare === 'function') fcTopShare('btcg-modal', null);   /* shown once the chart is drawn */
   var gold = (typeof _worldData !== 'undefined' && _worldData && _worldData.items) ? _worldData.items.gold : null;
   var btc = (typeof coins !== 'undefined') ? coins.find(function (c) { return c.sym === 'BTC' && !c.isStock; }) : null;
   if (!gold || !Array.isArray(gold.s) || !gold.date || !btc || !btc.price || typeof supaRest !== 'function') {
@@ -152,9 +153,9 @@ function _btcgRender() {
     + '<p class="btcg-read">' + L.read + '</p>'
     + '<div class="etf-m-sec"><div class="bf-k">' + L.tableHd + '</div>'
     + '<table class="btcg-table"><thead><tr><th>' + L.week + '</th><th>' + L.btc + '</th><th>' + L.gold + '</th><th>' + L.oz + '</th><th>' + L.chg + '</th></tr></thead><tbody>' + rowsHtml + '</tbody></table></div>'
-    + '<button type="button" class="btcg-share" onclick="shareBtcGold()">' + L.share + '</button>'
     + '<div class="etf-src">' + L.src + '</div>'
     + '</div>';
+  if (typeof fcTopShare === 'function') fcTopShare('btcg-modal', 'shareBtcGold');
 
   /* The logo, cut out and faint, behind the chart (same mark as the share cards). */
   if (typeof _shareWatermark === 'function') _shareWatermark(function (wm) {

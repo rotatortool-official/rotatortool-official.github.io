@@ -100,6 +100,20 @@ function fcHbarsHtml(rows, tone) {
       + '<span class="fc-hval ' + (tone || 'up') + '">' + r.label + '</span></button>';
   }).join('') + '</div>';
 }
+/* The share button sits beside the window's × (Daniel, 2026-10-11), so it
+   is found without scrolling past the chart. fn null hides it (nothing to share). */
+function fcTopShare(modalId, fn) {
+  var m = document.querySelector('#' + modalId + ' .modal');
+  if (!m) return;
+  var b = m.querySelector('.modal-share');
+  if (!fn) { if (b) b.hidden = true; return; }
+  if (!b) { b = document.createElement('button'); b.type = 'button'; b.className = 'modal-share'; m.insertBefore(b, m.firstChild); }
+  b.hidden = false;
+  b.setAttribute('onclick', fn + '()');
+  b.setAttribute('aria-label', _fcMk() ? 'Сподели како слика' : 'Share as image');
+  b.innerHTML = '<svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><path fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" d="M12 3v12M7 8l5-5 5 5M5 13v6a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-6"/></svg>'
+    + '<span>' + (_fcMk() ? 'Сподели' : 'Share') + '</span>';
+}
 /* The logo, faint, behind a chart (same mark as the share cards). */
 function fcWatermark(id) {
   if (typeof _shareWatermark !== 'function') return;
@@ -186,15 +200,17 @@ function _fcDraw(spec, wm) {
     endCol = spec.tone === 'amber' ? AMB : (last.v >= 0 ? UP : DN);
     endY = last.v >= 0 ? zero - Math.abs(last.v) * sc : zero + Math.abs(last.v) * sc;
   } else if (spec.kind === 'hbars') {
-    var rows = spec.rows, n = rows.length, rh = CH / n, nameW = 170, rhi = Math.max.apply(null, rows.map(function (r) { return Math.abs(r.v); })) || 1;
+    var rows = spec.rows, n = rows.length, rh = CH / n, rhi = Math.max.apply(null, rows.map(function (r) { return Math.abs(r.v); })) || 1;
     var fs = Math.min(22, rh * 0.55), col2 = spec.tone === 'amber' ? AMB : UP;
+    ctx.font = '700 ' + fs + 'px Inter, sans-serif';
+    var nameW = Math.max(170, Math.max.apply(null, rows.map(function (r) { return ctx.measureText(r.name).width; })) + 20);
     ctx.font = '800 ' + fs + 'px Inter, sans-serif';
     var labW = Math.max.apply(null, rows.map(function (r) { return ctx.measureText(r.label).width; })) + 16;
     rows.forEach(function (r, i) {
       var y = CY + i * rh + rh * 0.18, h = rh * 0.64, w = Math.max(3, Math.abs(r.v) / rhi * (CW - nameW - labW));
       ctx.textAlign = 'left'; ctx.fillStyle = '#e6ebf2'; ctx.font = '700 ' + fs + 'px Inter, sans-serif';
       ctx.fillText(r.name, CX, y + h / 2 + fs * 0.35);
-      ctx.fillStyle = col2;
+      ctx.fillStyle = spec.tone === 'flow' ? (r.v >= 0 ? UP : DN) : col2;
       if (ctx.roundRect) { ctx.beginPath(); ctx.roundRect(CX + nameW, y, w, h, 3); ctx.fill(); } else ctx.fillRect(CX + nameW, y, w, h);
       ctx.font = '800 ' + fs + 'px Inter, sans-serif'; ctx.fillText(r.label, CX + nameW + w + 10, y + h / 2 + fs * 0.35);
     });
@@ -295,8 +311,8 @@ function etfMountRanges(a) {
   host.innerHTML = '<div class="fc-ranges" role="tablist">' + _ETF_RANGES.map(function (x) {
     return '<button type="button" class="fc-range' + (x[0] === _etfRange ? ' on' : '') + '" onclick="etfSetRange(\'' + x[0] + '\')">' + (_fcMk() ? x[3] : x[2]) + '</button>';
   }).join('') + '</div><div class="fc-stage" id="etf-fc-stage"><div class="btcg-loading">' + M.loading + '</div></div>'
-    + '<div class="etf-axis" id="etf-fc-axis"></div><div class="fc-sum" id="etf-fc-sum"></div>'
-    + '<button type="button" class="btcg-share" onclick="shareEtfChart()">' + M.share + '</button>';
+    + '<div class="etf-axis" id="etf-fc-axis"></div><div class="fc-sum" id="etf-fc-sum"></div>';
+  fcTopShare('etf-modal', 'shareEtfChart');
   _etfLoadHist(a).then(function () { _etfDrawRange(a); });
   fcWatermark('etf-fc-stage');
 }
@@ -461,11 +477,11 @@ function openUnlocksModal() {
       + '<div class="etf-axis"><span>' + L.today + '</span><span>' + L.axis + '</span><span>' + L.in30 + '</span></div>'
       + '<p class="btcg-read">' + L.read + '</p>'
       + '<table class="btcg-table fc-table"><thead><tr><th>' + L.coin + '</th><th>' + L.date + '</th><th>' + L.sup + '</th><th>' + L.usd + '</th><th>' + L.left + '</th></tr></thead><tbody>' + table + '</tbody></table>'
-      + '<button type="button" class="btcg-share" onclick="shareUnlocksChart()">' + L.share + '</button>'
     ) : '<p class="btcg-none">' + L.none + '</p>')
     + '<div id="ul-fc-hist"></div>'
     + '<div class="etf-src">' + L.src + '</div></div>';
   openModal('ul-modal');
+  fcTopShare('ul-modal', rows.length ? 'shareUnlocksChart' : null);
   fcWatermark('ul-fc-stage');
   _supLoadHist().then(function () { var h = document.getElementById('ul-fc-hist'); if (h) { h.innerHTML = _supHistHtml('unlock_usd_30d', 'ul-fc-hstage'); fcWatermark('ul-fc-hstage'); } });
   if (typeof supaCountFeature === 'function') supaCountFeature('unlocks_window', true);
@@ -524,7 +540,7 @@ function openBurnsModal() {
   var body = document.getElementById('hr-modal-body'), L = _hrFcL();
   if (!body) return;
   var rows = _hrRows();
-  if (!rows.length) { body.innerHTML = '<div class="modal-title">' + L.title + '</div><p class="btcg-none">' + L.none + '</p>'; openModal('hr-modal'); return; }
+  if (!rows.length) { body.innerHTML = '<div class="modal-title">' + L.title + '</div><p class="btcg-none">' + L.none + '</p>'; openModal('hr-modal'); fcTopShare('hr-modal', null); return; }
   var s30 = rows.reduce(function (x, r) { return x + r.d30; }, 0);
   var sp = rows.reduce(function (x, r) { return x + (r.p30 || 0); }, 0);
   var s7 = rows.reduce(function (x, r) { return x + (r.d7 || 0); }, 0);
@@ -547,10 +563,10 @@ function openBurnsModal() {
       }), 'up') + '</div></div>'
     + '<p class="btcg-read">' + L.read + '</p>'
     + '<table class="btcg-table fc-table"><thead><tr><th>' + L.coin + '</th><th>' + L.usd30 + '</th><th>' + L.chg + '</th><th>' + L.yr + '</th></tr></thead><tbody>' + table + '</tbody></table>'
-    + '<button type="button" class="btcg-share" onclick="shareBurnsChart()">' + L.share + '</button>'
     + '<div id="hr-fc-hist"></div>'
     + '<div class="etf-src">' + L.src + '</div></div>';
   openModal('hr-modal');
+  fcTopShare('hr-modal', rows.length >= 3 ? 'shareBurnsChart' : null);
   fcWatermark('hr-fc-stage');
   _supLoadHist().then(function () { var h = document.getElementById('hr-fc-hist'); if (h) { h.innerHTML = _supHistHtml('returns_usd_30d', 'hr-fc-hstage'); fcWatermark('hr-fc-hstage'); } });
   if (typeof supaCountFeature === 'function') supaCountFeature('burns_window', true);
@@ -568,6 +584,44 @@ function shareBurnsChart() {
     note: 'Fees spent on buybacks, burns or staker payouts · all ' + rows.length + ' projects on Rotator · Source: DefiLlama',
     sym: 'BUYBACKS',
     text: head + ' through buybacks and burns. Biggest against its size: ' + top[0].c.sym + ', ' + _hrYr(top[0].yr) + ' of its value a year at this pace.\nAll ' + rows.length + ' projects, free on Rotator → ' + ROTATOR_SHARE.link
+  });
+}
+
+/* ══════════════════════════════════════════════════════════════════
+   STABLECOINS BY CHAIN — arriving and leaving as one chart card
+   (Daniel, 2026-10-11: "50m inflow in NEAR this week, does that affect
+   price? find out more at Rotator"). The three biggest 7-day % rises in
+   green over the three biggest falls in red, same order as the tiles.
+   The headline is a QUESTION on purpose: the flows are context, not a
+   signal, until the live test's verdict (chain-flows shadow, mid-2027).
+   Leads with the side the window was opened from (_cfShareDir).
+══════════════════════════════════════════════════════════════════ */
+function shareChainFlowsChart() {
+  if (typeof _cf === 'undefined' || !_cf || !Array.isArray(_cf.chains)) return;
+  var side = function (dir) {
+    return _cf.chains.filter(function (r) { return r.d7 != null && r.p7 != null && (dir > 0 ? r.d7 > 0 : r.d7 < 0); })
+      .sort(function (a, b) { return dir > 0 ? b.p7 - a.p7 : a.p7 - b.p7; });
+  };
+  var inn = side(1), out = side(-1);
+  if (inn.length + out.length < 2) return;
+  var lead = (typeof _cfShareDir !== 'undefined' && _cfShareDir < 0 && out.length) || !inn.length ? out : inn;
+  var star = lead.filter(function (r) { return r.sym; })[0] || lead[0];   /* a chain with its own coin, so the question has a price */
+  var arr = star.d7 > 0, coin = star.sym || star.chain;
+  var head = _cfUsd(Math.abs(star.d7)) + ' in stablecoins ' + (arr ? 'moved onto ' : 'left ') + star.chain + ' this week. Does that move ' + coin + '?';
+  var nm = function (r) { return r.chain + (r.sym && r.sym !== r.chain ? ' ' + r.sym : ''); };
+  var pick = inn.slice(0, 3).concat(out.slice(0, 3));
+  var t = _cf.total || {};
+  fcShareCard({
+    kind: 'hbars', tone: 'flow',
+    rows: pick.map(function (r) { return { name: nm(r), v: r.p7, label: _cfPct(r.p7) + '  ' + _cfUsd(r.d7, true) }; }),
+    kicker: 'Stablecoins by chain · biggest moves in 7 days', from: '', axis: '', to: '',
+    head: head,
+    stats: [[star.chain + ' 7 days', _cfPct(star.p7), arr ? 'up' : 'dn'],
+            ['All ' + _cf.chains.length + ' chains', _cfUsd(t.d7, true), _fcCls(t.d7)],
+            ['30 days', _cfUsd(t.d30, true), _fcCls(t.d30)]],
+    note: 'What 2.5 years of these flows say about the coin\'s price, on Rotator · amounts on ' + _fcDay(_cf.day, false, true) + ' · DefiLlama',
+    sym: 'STABLECOINS',
+    text: head + '\nWhat two and a half years of chain flows say about the price, free on Rotator → ' + ROTATOR_SHARE.link
   });
 }
 

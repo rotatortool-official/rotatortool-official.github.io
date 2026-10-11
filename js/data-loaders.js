@@ -3126,6 +3126,7 @@ var _CF_ROWS = 4;   /* chains listed per tile */
 /* The window's table sorts by any column (Daniel, 2026-10-05: "clicking on top will sort them by
    change of percentages?"). Biggest first; the same header again flips it. */
 var _cfSort = { key: 'p7', dir: -1 };   /* opens on the biggest 7-day % change */
+var _cfShareDir = 1;   /* the tile the window was opened from: the share card leads with that side */
 function cfSortBy(key) {
   _cfSort = { key: key, dir: _cfSort.key === key ? -_cfSort.dir : (key === 'chain' ? 1 : -1) };
   var sc = document.querySelector('#cf-modal .etf-scroll'), top = sc ? sc.scrollTop : 0;
@@ -3398,7 +3399,7 @@ function renderTokenUnlocks() {
 /* dir: 1 from Arriving (biggest gain on top), -1 from Leaving (biggest loss on top). Without it
    (a header click, a language switch) the current order stays. */
 function openChainFlowsModal(dir) {
-  if (dir === 1 || dir === -1) _cfSort = { key: 'p7', dir: -dir };
+  if (dir === 1 || dir === -1) { _cfSort = { key: 'p7', dir: -dir }; _cfShareDir = dir; }
   var body = document.getElementById('cf-modal-body');
   var L = _cfL();
   if (!body || !_cf || !Array.isArray(_cf.chains)) return;
@@ -3439,6 +3440,7 @@ function openChainFlowsModal(dir) {
     + (_cfAgeMs != null && L === _CF_TXT.en ? ' ' + L.reading + ' ' + _bfAge(_cfAgeMs) + '.' : '') + '</div>'
     + '</div>';
   openModal('cf-modal');
+  if (typeof fcTopShare === 'function') fcTopShare('cf-modal', 'shareChainFlowsChart');
   if (typeof supaCountFeature === 'function') supaCountFeature('chain_flows', true);
 }
 

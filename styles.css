@@ -6112,6 +6112,13 @@ a.mob-more-item{text-decoration:none;color:inherit;}
 .btcg-table td.up{color:var(--green);} .btcg-table td.dn{color:var(--red);}
 .btcg-share{all:unset;cursor:pointer;align-self:flex-start;margin-top:12px;font-size:13px;font-weight:700;color:#14110a;background:var(--bnb);border-radius:6px;padding:8px 14px;}
 .btcg-share:hover{filter:brightness(1.08);}
+/* Share beside the window's × (fcTopShare, 2026-10-11) */
+.modal-share{all:unset;box-sizing:border-box;position:absolute;top:12px;right:62px;z-index:10001;height:40px;padding:0 14px;display:flex;align-items:center;gap:7px;cursor:pointer;font-size:13px;font-weight:700;color:#14110a;background:var(--bnb);border-radius:20px;}
+.modal-share[hidden]{display:none;}
+.modal-share:hover{filter:brightness(1.08);}
+.modal-share:focus-visible{outline:2px solid var(--text);outline-offset:2px;}
+.modal:has(.modal-share:not([hidden])) .modal-title{padding-right:160px;}
+@media (max-width:420px){.modal-share{padding:0 12px;}.modal-share span{display:none;}.modal:has(.modal-share:not([hidden])) .modal-title{padding-right:100px;}}
 .btcg-loading,.btcg-none{font-size:13px;color:var(--muted);padding:20px 0;}
 :root.light .btcg-stats b.up,:root.light .btcg-table td.up{color:#0e9f6e;}
 :root.light .btcg-stats b.dn,:root.light .btcg-table td.dn{color:#c2410c;}
