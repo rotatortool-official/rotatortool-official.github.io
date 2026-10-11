@@ -1791,24 +1791,9 @@ td.qa-cell{text-align:center;width:28px;padding:0 4px !important;}
   .mob-inline-holdings .tiles-scroll{display:none;}
 
 
-  /* ── TUTORIAL CARD: centered overlay on mobile ── */
-  #tut-box{
-    position:fixed !important;
-    top:50% !important;
-    left:50% !important;
-    transform:translate(-50%,-50%) !important;
-    right:auto !important;
-    bottom:auto !important;
-    width:calc(100vw - 24px) !important;
-    max-width:none !important;
-    max-height:85vh !important;
-    overflow-y:auto !important;
-    margin:0 !important;
-    z-index:850 !important;
-  }
-  #tut-box::before{display:none !important;}
-  #tut-hole{display:none !important;}
-  #tut-backdrop.active{background:rgba(0,0,0,.65) !important;}
+  /* The tour's phone card used to be a centred overlay with no cut-out
+     (removed 2026-10-11: phones get the mini-card tour, see the end of
+     this file and tutPosition() in js/tutorial.js). */
 
   /* ── FOOTER: single horizontal line ── */
   .site-footer{
@@ -6016,3 +6001,30 @@ a.mob-more-item{text-decoration:none;color:inherit;}
   :root.light .tw-chip.down.tested{color:#b7791f;}
   :root .tw-more{padding:8px 2px;color:var(--text);}
 }
+
+/* ── Mini-card tour (2026-10-11, Daniel, after BlockHorizon's tour) ──
+   A small card beside ONE ringed spot, never on top of it, on phones
+   too. tutPosition() in js/tutorial.js picks the side and sets
+   --tut-ax / --tut-ay so the arrow points at the middle of the spot. */
+.tut-box{width:340px;max-width:calc(100vw - 24px);padding:14px 16px 12px;border-radius:10px;border:1px solid rgba(243,186,47,.35);box-shadow:0 10px 36px rgba(0,0,0,.55);box-sizing:border-box;}
+.tut-box .tut-step-label{font-size:11px;letter-spacing:.14em;margin-bottom:4px;}
+.tut-box .tut-title{font-size:16px;font-weight:700;margin-bottom:6px;padding-right:22px;font-family:var(--font-ui);}
+.tut-box .tut-desc{margin-bottom:10px;line-height:1.5;}
+.tut-text{font-size:13.5px;line-height:1.5;}
+.tut-text p{margin:0 0 6px;}
+.tut-text p:last-child{margin-bottom:0;}
+.tut-text .tut-note{font-size:12px;color:var(--muted);margin-top:8px;}
+.tut-warn{margin-top:8px;background:rgba(255,69,96,.07);border:1px solid rgba(255,69,96,.3);border-radius:6px;padding:8px 10px;font-size:12.5px;line-height:1.45;}
+.tut-box .tut-agree{margin-bottom:10px;}
+.tut-box .tut-agree-label{font-size:12.5px;line-height:1.45;}
+.tut-box .tut-footer{gap:6px;}
+.tut-box.arrow-top::before{left:var(--tut-ax,24px);}
+.tut-box.arrow-bottom::before{left:var(--tut-ax,24px);}
+.tut-box.arrow-left::before{top:var(--tut-ay,20px);}
+.tut-box.arrow-right::before{top:var(--tut-ay,20px);}
+.tut-hole{border-radius:10px;}
+/* Light: the title and text were white on the light card (the title was
+   never visible in light; found 2026-10-11). */
+:root.light #tut-box .tut-title,:root.light #tut-box .tut-desc,:root.light #tut-box .tut-text{color:var(--text);}
+:root.light #tut-box .tut-step-label{color:var(--muted);}
+:root.light #tut-box .tut-desc strong{color:#9a6b00;}

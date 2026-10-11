@@ -33,99 +33,88 @@ var tutStep_ = 0;
 var tutActive = false;
 
 /* ── Tutorial steps ──────────────────────────────────────────── */
+/* Mini-card tour (2026-10-11, Daniel, after BlockHorizon's tour): each
+   step points at ONE compact spot and says it in one or two short lines,
+   so the card fits beside what it describes. Same 11 steps in the same
+   order as before, because i18n.js fills the Macedonian text by index. */
 var TUT_STEPS = [
 
   /* 1. Welcome */
   {
     "target": ".topbar",
     "pos": "center",
-    "wide": true,
     "title": "Welcome to Rotator",
     "p": [
-      "**Rotator is an honest market pulse for Binance traders.** It scores 250 coins and tokenized stocks every 15 minutes, tracks your portfolio, and warns you about delistings and unlocks before they hit.",
-      "Every claim comes with its evidence and the bar it has to beat. When one of its own rules does no better than picking coins at random, it says so."
+      "Rotator scores 250 coins every 15 minutes, shows what the market is doing today, and warns you before delistings and unlocks.",
+      "Every claim comes with its evidence. When a rule does no better than a random pick, Rotator says so."
     ],
-    "note": "This tour follows the menu on the left: Today, Momentum, Yours, Coins, Swap and Record. About a minute."
+    "note": "A one-minute tour. Close it any time with ✕."
   },
 
-  /* 2. TODAY, in two steps (2026-10-02). The section is ~650px tall,
-     too tall to show whole with its card below on a laptop, and the ETF
-     strip ended up under the card. Fear & Greed lives in the top bar and
-     only shows once the scaling tip is dismissed, so on a first visit it
-     was never on screen: this step reveals it, rings it with the
-     readings, and drops its paragraph where the banner never shows. */
+  /* 2. TODAY — the market now */
   {
-    "target": "#briefing",
+    "target": "#mkt-now",
+    "spot": ["#mkt-now"],
     "goto": "sec-today",
-    "pos": "section",
-    "wide": true,
-    "deskOnly": 1,
-    "title": "Today — the market pulse",
+    "title": "Today — the market now",
     "p": [
-      "What the networks and the market are doing right now: gold, silver, oil, the dollar, Bitcoin's hash rate, active addresses, the money locked in DeFi and the stablecoin supply, each with its 7-day change.",
-      "**Fear & Greed**, in The market now at the top of this section, is how fearful or greedy the whole market feels today, from 0 to 100."
+      "Bitcoin's price, its trend against the 200-day average, and **Fear & Greed** from 0 to 100.",
+      "Under it, the board: rates, stocks, metals and on-chain readings. Tap a tile for the story behind it."
     ],
     "note": "It describes the market. It does not forecast it."
   },
 
-  /* 2b. TODAY — ETF flows and the ticker */
+  /* 3. TODAY — ETF flows */
   {
     "target": "#etf-strip",
+    "spot": ["#etf-strip"],
     "goto": "etf-strip",
-    "pos": "section",
-    "wide": true,
-    "also": "#market-ticker",
     "title": "Today — ETF flows",
     "p": [
-      "**ETF flows** show whether money went into or out of the US Bitcoin and Ether ETFs: the last trading day, then 5 and 20 days. Green bars are money in, red bars money out. Click a tile for the details.",
-      "The ticker starts with BTC against its 200-day average, then runs through the biggest movers of the day."
+      "Money into (green) or out of (red) the US Bitcoin and Ether ETFs, day by day. Tap a tile for the details."
     ],
-    "note": "Flows show what big money did, not what it will do next."
+    "note": "What big money did, not what it will do next."
   },
 
-  /* 3. MOMENTUM */
+  /* 4. MOMENTUM — turn signs (the section's top since promptove/70) */
   {
-    "target": "#sec-rotation",
+    "target": "#turn-scan",
+    "spot": ["#turn-scan"],
     "goto": "sec-rotation",
-    "open": "hot",
-    "pos": "section",
-    "title": "Momentum — strongest and weakest",
+    "title": "Momentum — turn signs",
     "p": [
-      "**High Momentum** lists the coins scoring highest across 7, 14 and 30 days. Strength over all three is steadier than one good week.",
-      "**Worst 30d** lists the weakest. Weakness can last or reverse, and the score does not know which."
+      "Coins that lagged and now show signs of turning up, and coins that ran ahead and now show signs of cooling. Tap a coin to see why."
     ],
-    "note": "Click any tile for the full breakdown."
+    "note": "Signs, not forecasts."
   },
 
   /* 5. YOURS */
   {
     "target": "#sec-yours",
+    "spot": ["#cb-holdings", "#sec-yours"],
     "goto": "sec-yours",
     "open": "holdings",
-    "pos": "section",
     "title": "Yours — what you hold",
     "p": [
-      "Add a coin with its quantity and average price. It is saved in this browser only, with **no account**.",
-      "Each tile shows your profit or loss and the coin's score, plus an **amber warning** if Binance has announced a delisting, the coin carries Binance's Monitoring tag, or a large unlock is due within 30 days.",
-      "**Score gaps** show how your coins score against the rest. They are information, not recommendations: across 771 days of history, moving from a high score into a low one did not beat a random pick."
+      "Add a coin with its amount and price. It stays in this browser, with **no account**.",
+      "You see your profit or loss, the coin's score, and an **amber warning** before a delisting or a big unlock."
     ],
-    "note": "Free: 2 holdings · Pro: 10."
+    "note": "Free: 2 coins · Pro: 10."
   },
 
   /* 6. COINS (the scores, and the agreement) */
   {
     "target": "#sec-coins",
+    "spot": ["#sec-coins"],
     "goto": "sec-coins",
-    "pos": "section",
     "agree": true,
     "title": "Coins — every tracked coin",
     "p": [
-      "All 250 coins, sortable by any column. Scores run from **−50 to 100** and combine three layers: **L1** momentum across timeframes, **L2** strength against BTC, gold and oil, and **L3** tokenomics.",
-      "The lenses beside the table turn it into a heatmap of open interest, funding, long/short and RSI. Click a row for the full breakdown."
+      "All 250 coins, scored from **−50 to 100** on momentum, strength against BTC, gold and oil, and tokenomics. Tap a row for the breakdown."
     ],
     "warn": {
       "title": "NOT FINANCIAL ADVICE",
-      "text": "Rotator describes past price and market data. Scores do not predict future performance. **Never risk money you cannot afford to lose.**"
+      "text": "Scores describe the past, not the future. **Never risk money you cannot afford to lose.**"
     },
     "agreeText": "I understand that Rotator is not financial advice and I am solely responsible for my own investment decisions."
   },
@@ -133,85 +122,64 @@ var TUT_STEPS = [
   /* 7. SWAP */
   {
     "target": "#sec-swap",
+    "spot": ["#cb-swap", "#sec-swap"],
     "goto": "sec-swap",
     "open": "swap",
-    "pos": "section",
-    "title": "Swap — one asset against another",
+    "title": "Swap — one coin against another",
     "p": [
-      "Pick what you hold and what you are considering. The ratio shows how many of one you get for the other, where today sits in its recent range, and what a swap would give you at current prices.",
-      "It shows where the ratio is, not where it goes next."
+      "Pick what you hold and what you are thinking of. See how many you would get, and where today sits in the recent range."
     ],
     "note": "Choosing your own pair is a Pro feature."
   },
 
-  /* 7b. RECORD — last, as "learn more" (2026-09-29) */
+  /* 8. RECORD */
   {
     "target": "#sec-record",
+    "spot": ["#sec-record"],
     "goto": "sec-record",
     "open": "trackrecord",
-    "pos": "section",
     "title": "Record — what held up",
     "p": [
-      "Every published observation is graded 30 days later against the median coin. Half of all coins beat the median, so **50% is the bar**. Above it is evidence of skill, below it is not.",
-      "Live tests show how many days they have graded and when they can first give a verdict. They are never judged early."
+      "Every call is checked 30 days later against the average coin. **50% is the bar**: above it is skill, below it is luck."
     ],
     "note": "The full record is on the track record page."
   },
 
-  /* 8. Pro — with a picture of what it shows (promptove/104). The old
-     copy sold the Telegram channel (free for everyone) and the AI
-     assistant (kept dormant), and its target matched no button, so the
-     card always fell back to the middle of the screen. */
+  /* 9. Pro — personal alerts (data is free since 2026-10-10) */
   {
     "target": "#pro-topbar-btn",
+    "spot": ["#pro-topbar-btn", ".mob-topbar-pro"],
     "pos": "below",
-    "wide": true,
-    "title": "⚡ Pro",
+    "title": "⚡ Pro — your own alerts",
     "p": [
-      "Rotator does not sell buy or sell signals. Everything on the site, including the **Insight Engine**, is free to read: it presents data relevant to your holdings, on time.",
-      "**Pro** sends it to you personally: a **Telegram briefing** every Monday and Thursday about your coins and swap pairs, a warning 3+ days before an unlock on a coin you hold, and alerts for saved swap pairs. It also unlocks 10 holdings instead of 2 and any swap pair."
+      "All the data is free. **Pro** sends it to you on Telegram: a briefing every Monday and Thursday about your coins, and a warning before an unlock on a coin you hold."
     ],
-    "opts": [
-      {
-        "h": "Crypto",
-        "t": "Send $20 or more in USDT, BNB or ETH, submit the transaction hash, and Pro activates in seconds."
-      },
-      {
-        "h": "Refer 5 friends",
-        "t": "Pro unlocks when five people join through your link."
-      },
-      {
-        "h": "Pro code",
-        "t": "From giveaways or promotions."
-      }
-    ]
+    "note": "From $20 in crypto, five friends who join, or a Pro code."
   },
 
-  /* 8b. Install as an app (promptove/104): an installed Rotator opens
-     from the desktop or home screen, which is what brings people back.
-     Desktop points at the download icon; phones at MORE. */
+  /* 10. Install as an app: desktop points at the download icon, phones at MORE */
   {
     "target": "#install-topbar-btn",
+    "spot": ["#install-topbar-btn", "#mn-more"],
     "pos": "below",
     "title": "Use Rotator as an app",
     "p": [
-      "**Install Rotator once and open it from your desktop or taskbar** like any other app, in its own window, with no browser tab or address bar. One click and the market pulse is there.",
-      "Click the **download icon** at the top right. It is free, with nothing to download from an app store.",
-      "**Add Rotator to your home screen** and it opens like an app, full screen, with no browser bar. Tap **MORE → Install App**."
+      "Click the **download icon** to install Rotator. It opens in its own window, like any app.",
+      "Tap **MORE → Install App** to put Rotator on your home screen."
     ],
-    "deskOnly": [0, 1],
-    "mobOnly": [2],
-    "note": "Works in Chrome, Edge and Safari. The app keeps itself up to date."
+    "deskOnly": [0],
+    "mobOnly": [1],
+    "note": "Free, no app store."
   },
 
-  /* 9. Done */
+  /* 11. Done */
   {
     "target": ".settings-btn",
-    "pos": "gear",
+    "spot": [".settings-btn", ".mob-topbar-gear"],
+    "pos": "below",
     "title": "You're all set",
     "p": [
-      "Data refreshes every 15 minutes on its own.",
-      "The **⚙ gear** changes the language and asset modes, and replays this tour."
+      "Data refreshes every 15 minutes. The **⚙ gear** changes the language and replays this tour."
     ],
     "note": "Questions: rotatortool@gmail.com"
   }
@@ -239,7 +207,7 @@ function _tutEsc(x) { return String(x).replace(/&/g, '&amp;').replace(/</g, '&lt
 function _tutMd(x)  { return _tutEsc(x).replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>'); }
 function _tutDesc(step) {
   if (step.desc && !step.p) return step.desc;
-  var h = '<div style="font-size:14px;line-height:1.8;">';
+  var h = '<div class="tut-text">';
   /* deskOnly: paragraphs about something phones never show (hidden on
      phones). mobOnly (promptove/104): paragraphs only phones show (hidden
      on desktops). Each takes one index or a list of them. */
@@ -247,7 +215,7 @@ function _tutDesc(step) {
   function _hit(v, i) { return Array.isArray(v) ? v.indexOf(i) >= 0 : v === i; }
   var paras = (step.p || []).filter(function(x, i) {
     return narrow ? !_hit(step.deskOnly, i) : !_hit(step.mobOnly, i);
-  }).map(_tutMd).join('<br><br>');
+  }).map(function (x) { return '<p>' + _tutMd(x) + '</p>'; }).join('');
   /* img (promptove/104): a picture beside the text, {lang} picked from
      the page language so the Macedonian tour shows the Macedonian one. */
   if (step.img) {
@@ -266,7 +234,7 @@ function _tutDesc(step) {
   }
   if (step.img) h += '</div></div>';   /* closes .tut-split-text and .tut-split */
   if (step.warn) {
-    h += '<div style="margin-top:12px;background:rgba(255,69,96,.07);border:1px solid rgba(255,69,96,.3);border-radius:4px;padding:10px 12px;">'
+    h += '<div class="tut-warn">'
       + '<strong style="color:#ff4560;">⚠ ' + _tutEsc(step.warn.title) + '</strong><br>' + _tutMd(step.warn.text) + '</div>';
   }
   if (step.note) {
@@ -276,138 +244,132 @@ function _tutDesc(step) {
       note = note.replace('follows the menu on the left', 'walks through the sections')
                  .replace('го следи менито од левата страна', 'поминува низ секциите');
     }
-    h += '<br><br><span style="font-size:12px;color:var(--muted);">' + _tutMd(note) + '</span>';
+    h += '<p class="tut-note">' + _tutMd(note) + '</p>';
   }
   return h + '</div>';
 }
 
-/* ── Positioning ─────────────────────────────────────────────── */
+/* ── Positioning ─────────────────────────────────────────────────
+   Rewritten 2026-10-11 after BlockHorizon's "Show me around" tour
+   (Daniel): the page goes dark, ONE compact spot is cut out and ringed,
+   and a mini card (≤340px) sits BESIDE the spot, never on it. Phones get
+   the same tour (the card goes above or below the spot) instead of a
+   near-full-screen card. A step names its spot as a list of selectors,
+   first visible wins, so desktop and phone can point at different
+   things (the top-bar Pro button vs the phone's Pro cell). */
+function _tutVisible(el) {
+  if (!el) return false;
+  var r = el.getBoundingClientRect();
+  return r.width > 0 && r.height > 0;
+}
+function _tutSpot(step) {
+  var list = step.spot || [step.target];
+  for (var i = 0; i < list.length; i++) {
+    var el = tutGetEl(list[i]);
+    if (_tutVisible(el)) return el;
+  }
+  return null;
+}
+function _tutTopSafe() { return (typeof rotTopbarH === 'function') ? rotTopbarH() : 0; }
+function _tutBottomSafe() {
+  var nav = document.getElementById('mob-nav');
+  if (!nav || !_tutVisible(nav)) return 0;
+  return Math.max(0, window.innerHeight - nav.getBoundingClientRect().top);
+}
+
 function _tutCenter(box, hole, wide, vw, vh) {
   hole.style.display = 'none';
-  var bw = wide ? Math.min(vw - 40, 600) : 380;
+  var bw = Math.min(vw - 24, wide ? 420 : 360);
   box.style.width = bw + 'px';
   box.style.left  = ((vw - bw) / 2) + 'px';
-  box.style.top   = Math.max(60, vh * 0.16) + 'px';
+  box.style.top   = Math.max(60, vh * 0.18) + 'px';
   box.className   = 'tut-box';
 }
 
 function tutPosition() {
   var step = TUT_STEPS[tutStep_];
   if (!step) return;
-  var el   = tutGetEl(step.target);
   var hole = document.getElementById('tut-hole');
   var box  = document.getElementById('tut-box');
   var vw   = window.innerWidth;
   var vh   = window.innerHeight;
-
-  /* Phones: always a centred card, no cut-out. The section has already
-     been scrolled into view behind it. */
-  if (vw < 700) {
-    hole.style.display = 'none';
-    var mg = 12;
-    box.style.left      = mg + 'px';
-    box.style.top       = Math.round(vh * 0.06) + 'px';
-    box.style.width     = (vw - mg * 2) + 'px';
-    box.style.maxHeight = (vh * 0.82) + 'px';
-    box.style.overflowY = 'auto';
-    box.className       = 'tut-box';
-    return;
-  }
+  var phone = vw < 700;
 
   box.style.maxHeight = '';
   box.style.overflowY = '';
 
   if (step.pos === 'center') { _tutCenter(box, hole, step.wide, vw, vh); return; }
 
-  /* A missing or hidden target never skips a step silently (the old
-     engine did, which is how a tour quietly lost its Pro step when
-     .pro-btn was removed). It shows the card centred instead. */
-  var r = el ? el.getBoundingClientRect() : null;
-  if (!r || (r.width === 0 && r.height === 0)) { _tutCenter(box, hole, step.wide, vw, vh); return; }
+  /* A missing or hidden spot never skips a step silently (the old engine
+     did, which is how a tour quietly lost its Pro step when .pro-btn was
+     removed). It shows the card centred instead. */
+  var el = _tutSpot(step);
+  if (!el) { _tutCenter(box, hole, step.wide, vw, vh); return; }
+  var r = el.getBoundingClientRect();
 
-  var pad = 6;
+  var pad = 6, gap = 14;
+  var inBar = !!(el.closest && el.closest('header, .topbar, #mob-nav'));
+  var topSafe = inBar ? 0 : _tutTopSafe();
+  var botSafe = inBar ? 0 : _tutBottomSafe();
 
-  /* ── section: highlight what of the section is on screen, card below
-     it (or above when there is no room). A section can be taller than
-     the viewport, so the cut-out is clipped to the top ~55% and the card
-     takes the rest. ── */
-  if (step.pos === 'section') {
-    /* The card is measured FIRST and the cut-out gets whatever height is
-       left below the section's top, so the two never overlap. A section
-       taller than the screen is shown from its top down; a short one is
-       shown whole. (The first version clipped the cut-out to a fixed 55%
-       of the screen, and on a 1133px screen the taller cards landed on
-       top of it for four of the six sections.) */
-    /* also: a second element (outside the section) inside the same
-       cut-out, when it is on screen. */
-    var a2 = step.also ? tutGetEl(step.also) : null;
-    var r2 = a2 ? a2.getBoundingClientRect() : null;
-    if (r2 && r2.width > 0 && r2.height > 0) {
-      var L = Math.min(r.left, r2.left), R = Math.max(r.right, r2.right);
-      r = { left: L, right: R, width: R - L, top: Math.min(r.top, r2.top), bottom: Math.max(r.bottom, r2.bottom) };
+  /* The cut-out: the spot, clipped to the screen and to a compact height
+     (a section's heading and first rows, not 2,500px of it). */
+  var cap = phone ? Math.round(vh * 0.50) : Math.min(380, vh - topSafe - 120);
+  var top = Math.max(r.top, topSafe + pad);
+  var bottom = Math.min(r.bottom, top + cap, vh - botSafe - pad);
+  if (bottom - top < 30) bottom = top + 30;
+  var H = { left: Math.max(4, r.left - pad), top: top - pad, right: Math.min(vw - 4, r.right + pad), bottom: bottom + pad };
+
+  var bw = Math.min(340, vw - 24);
+  box.style.width = bw + 'px';
+  box.className = 'tut-box';
+  var bh = box.offsetHeight || 220;   /* synchronous on purpose: rAF does not run in a background tab */
+  var minY = topSafe + 8, maxY = vh - botSafe - 8;
+  var clamp = function (v, lo, hi) { return Math.max(lo, Math.min(hi, v)); };
+
+  var tries = {
+    right: function () { var x = H.right + gap; return x + bw <= vw - 8 ? { x: x, y: clamp(H.top, minY, maxY - bh), side: 'arrow-left' } : null; },
+    left:  function () { var x = H.left - gap - bw; return x >= 8 ? { x: x, y: clamp(H.top, minY, maxY - bh), side: 'arrow-right' } : null; },
+    below: function () { var y = H.bottom + gap; return y + bh <= maxY ? { x: clamp(H.left, 8, vw - bw - 8), y: y, side: 'arrow-top' } : null; },
+    above: function () { var y = H.top - gap - bh; return y >= minY ? { x: clamp(H.left, 8, vw - bw - 8), y: y, side: 'arrow-bottom' } : null; }
+  };
+  var order = phone ? ['below', 'above'] : (step.pos === 'below' ? ['below', 'left', 'right', 'above'] : ['right', 'left', 'below', 'above']);
+  var spot = null;
+  for (var i = 0; i < order.length && !spot; i++) spot = tries[order[i]]();
+  if (!spot) {
+    /* No side has room: shorten the cut-out so the card fits under it.
+       Only if even that fails does the card scroll inside what is left. */
+    var want = maxY - bh - gap;
+    if (want - H.top >= 70) {
+      H.bottom = want;
+      spot = { x: clamp(H.left, 8, vw - bw - 8), y: want + gap, side: 'arrow-top' };
+    } else {
+      var y0 = H.bottom + gap;
+      spot = { x: clamp(H.left, 8, vw - bw - 8), y: Math.min(y0, maxY - 160), side: 'arrow-top' };
+      box.style.maxHeight = Math.max(160, maxY - spot.y) + 'px';
+      box.style.overflowY = 'auto';
     }
-    var bw = Math.min(step.wide ? 880 : 460, vw - 40);
-    var bx = Math.max(10, Math.min(r.left + (r.width - bw) / 2, vw - bw - 10));
-    box.style.width = bw + 'px';
-    box.className   = 'tut-box arrow-top';
-    hole.style.display = 'block';
-    /* Synchronous on purpose: offsetHeight forces the layout it needs,
-       and requestAnimationFrame does not run in a background tab. */
-    (function() {
-      var bh = box.offsetHeight || 260;
-      var gap = pad + 12;
-      var top = Math.max(r.top, 8);
-      var room = vh - 10 - bh - gap - top - pad;   /* cut-out height that still leaves the card room below */
-      var bottom = Math.min(r.bottom, top + Math.max(80, room));
-      hole.style.left   = (r.left - pad) + 'px';
-      hole.style.top    = (top - pad) + 'px';
-      hole.style.width  = (r.width + pad * 2) + 'px';
-      hole.style.height = Math.max(40, bottom - top + pad * 2) + 'px';
-      var by = bottom + gap;
-      if (by + bh > vh - 10) {
-        /* Not enough room for the whole card (the COINS step, with its
-           disclaimer, on a 720px laptop): let it scroll inside the space
-           that is left rather than cover what it is describing. Only if
-           even that is too small does it fall back to overlapping. */
-        var space = vh - 10 - by;
-        if (space >= 240) { box.style.maxHeight = space + 'px'; box.style.overflowY = 'auto'; }
-        else { by = Math.max(10, vh - bh - 10); box.className = 'tut-box'; }
-      }
-      box.style.left = bx + 'px';
-      box.style.top  = by + 'px';
-    })();
-    return;
   }
 
   hole.style.display = 'block';
-  hole.style.left   = (r.left - pad) + 'px';
-  hole.style.top    = (r.top  - pad) + 'px';
-  hole.style.width  = (r.width  + pad * 2) + 'px';
-  hole.style.height = (r.height + pad * 2) + 'px';
+  hole.style.left   = H.left + 'px';
+  hole.style.top    = H.top + 'px';
+  hole.style.width  = (H.right - H.left) + 'px';
+  hole.style.height = (H.bottom - H.top) + 'px';
 
-  /* ── gear: left of the settings button ── */
-  if (step.pos === 'gear') {
-    var gw = 320;
-    box.style.width = gw + 'px';
-    box.style.left  = Math.max(10, r.left - gw - 12) + 'px';
-    box.style.top   = Math.max(10, Math.min(r.bottom + 10, vh - 280)) + 'px';
-    box.className   = 'tut-box arrow-right';
-    return;
-  }
-
-  /* ── below: under a top-bar control ── */
-  var w = step.wide ? Math.min(vw - 40, 600) : 360;
-  box.style.width = w + 'px';
-  box.className   = 'tut-box arrow-top';
-  var bh = box.offsetHeight || 260;   /* synchronous, as in 'section' */
-  box.style.left = Math.max(10, Math.min(r.left + r.width / 2 - w + 40, vw - w - 10)) + 'px';
-  box.style.top  = Math.max(10, Math.min(r.bottom + pad + 12, vh - bh - 10)) + 'px';
+  box.style.left = spot.x + 'px';
+  box.style.top  = spot.y + 'px';
+  box.className  = 'tut-box ' + spot.side;
+  /* The little arrow points at the middle of the cut-out. */
+  var cx = (H.left + H.right) / 2, cy = (H.top + H.bottom) / 2;
+  box.style.setProperty('--tut-ax', clamp(cx - spot.x - 5, 14, bw - 24) + 'px');
+  box.style.setProperty('--tut-ay', clamp(cy - spot.y - 5, 14, Math.max(14, bh - 24)) + 'px');
 }
 
-/* Open a collapsed section, then scroll to it, then place the card.
-   The collapse animation runs ~320ms and the scroll is smooth, so the
-   card is placed after both; the scroll listener below keeps it in
-   place if the page settles later. */
+/* Open a collapsed section, bring the step's spot just under the top
+   bar, then place the card. The collapse animation runs ~320ms and the
+   scroll is animated, so the card is placed after both; the scroll
+   listener below keeps it in place if the page settles later. */
 function _tutPrepare(step, done) {
   var wait = 0;
   if (step.open) {
@@ -418,7 +380,12 @@ function _tutPrepare(step, done) {
     }
   }
   setTimeout(function() {
-    if (step.goto && typeof railGo === 'function') {
+    var el = _tutSpot(step);
+    var inBar = el && el.closest && el.closest('header, .topbar, #mob-nav');
+    if (el && !inBar && typeof rotScrollToEl === 'function') {
+      rotScrollToEl(el);
+      setTimeout(done, 450);
+    } else if (step.goto && typeof railGo === 'function') {
       railGo(step.goto);
       setTimeout(done, 450);
     } else {
@@ -541,7 +508,8 @@ function _tutShowGate(go) {
 }
 
 function startTutorial(force) {
-  if (force !== true && _tutIsPhone()) { _tutShowGate(function() { startTutorial(true); }); return; }
+  /* Phones used to get a "made for a computer" card first (2026-10-05);
+     since the mini-card tour (2026-10-11) they get the tour itself. */
   _tutGate = null;
   tutStep_ = 0; tutActive = true;
   document.getElementById('tut-hole').style.display     = 'block';
