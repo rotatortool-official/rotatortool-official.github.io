@@ -3551,6 +3551,17 @@ function mobGo(secId) {
   if (wasCollapsed) toggleCollapse(fold);
   if (secId === 'sec-swap' && typeof RatioTracker !== 'undefined') RatioTracker.loadAll();
   setTimeout(function() { _mobScrollTo(sec); }, wasCollapsed ? 350 : 0);
+  /* Content above keeps loading while the page scrolls (the Rotator Tool
+     landed 370px past its own start, on the ratio card, with the pair
+     picker out of sight: 2026-10-11). Look again once the scroll is done
+     and correct it, twice at most. */
+  [1100, 2200].forEach(function (ms) {
+    setTimeout(function () {
+      var top = sec.getBoundingClientRect().top;
+      var want = (typeof rotTopbarH === 'function') ? rotTopbarH() : 0;
+      if (Math.abs(top - want) > 30) _mobScrollTo(sec);
+    }, (wasCollapsed ? 350 : 0) + ms);
+  });
 }
 
 /* ── More menu ─────────────────────────────────────────────── */

@@ -6127,3 +6127,7 @@ a.mob-more-item{text-decoration:none;color:inherit;}
 .btcg-table td:first-child{text-align:left !important;}
 .btcg-table td:not(:first-child){text-align:right !important;}
 @media (max-width:600px){ .btcg-table th:nth-child(2),.btcg-table td:nth-child(2){display:none !important;} }
+
+/* Light: the Rotator Tool tour text was a fixed pale blue made for dark (2026-10-11). */
+:root.light .swap-tut-desc{color:var(--text);opacity:.85;}
+:root.light .swap-tut-step{color:#9a6b00;}
