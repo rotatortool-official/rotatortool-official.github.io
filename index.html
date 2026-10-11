@@ -1140,6 +1140,16 @@
          (promptove/106); only data the page already loads. -->
     <div class="mkt-now" id="mkt-now" style="display:none;"></div>
     <div class="briefing" id="briefing" style="display:none;"></div>
+  </section>
+  <!-- CAPITAL ROTATION (2026-10-11, Daniel; both themes the same day):
+       where money moved this week, data only, no picks. Bitcoin vs the rest
+       (#cap-btc, renderCapitalBtc() in js/signals.js), then the ETF, chain
+       flow and token unlock strips, which used to sit in TODAY. -->
+  <section class="rsec" id="sec-capital">
+    <div class="rsec-hdr"><span class="rsec-label">CAPITAL ROTATION</span><span class="rsec-meta">where money moved this week: into and out of Bitcoin, between chains, Bitcoin against the rest, and coin supply: unlocks, buybacks and burns</span></div>
+    <!-- The ticker moved here from the end of TODAY (Daniel, 2026-10-11):
+         same place on the page, but CAPITAL now opens with it on top
+         instead of scrolling just past it. -->
     <!-- MARKET TICKER — BTC anchor + infinite-loop global movers -->
     <div class="market-ticker" id="market-ticker">
       <div class="mt-anchor">
@@ -1154,13 +1164,6 @@
         </div>
       </div>
     </div>
-  </section>
-  <!-- CAPITAL ROTATION (2026-10-11, Daniel; both themes the same day):
-       where money moved this week, data only, no picks. Bitcoin vs the rest
-       (#cap-btc, renderCapitalBtc() in js/signals.js), then the ETF, chain
-       flow and token unlock strips, which used to sit in TODAY. -->
-  <section class="rsec" id="sec-capital">
-    <div class="rsec-hdr"><span class="rsec-label">CAPITAL ROTATION</span><span class="rsec-meta">where money moved this week: into and out of Bitcoin, between chains, Bitcoin against the rest, and coin supply: unlocks, buybacks and burns</span></div>
     <div class="cap-btc" id="cap-btc"></div>
     <!-- ETF FLOWS — US spot Bitcoin and Ether ETF net flows, interpreted
          server-side by sync-etf-flows into market_cache.etf_flows_summary
