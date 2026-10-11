@@ -75,7 +75,11 @@ var RatioTracker = (function() {
     'convex-finance':'CVX','frax-share':'FXS'
   };
 
-  function lbl(id){ return LABELS[id]||id.toUpperCase().slice(0,6); }
+  /* The symbol the rest of the page shows (coins[], from the market
+     data) comes first; LABELS covers the moments before coins[] loads.
+     Until 2026-10-11 LABELS came first and every coin missing from it
+     showed its id cut to 6 letters (ZCASH, QUANT-, PANCAK, ~40 coins). */
+  function lbl(id){ return _symOf(id)||LABELS[id]||id.toUpperCase().slice(0,6); }
   function $(id){ return document.getElementById(id); }
   function set(id,v){ var e=$(id); if(e) e.textContent=v; }
 
