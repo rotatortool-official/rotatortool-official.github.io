@@ -1337,14 +1337,16 @@
     <div class="rsec-hdr"><span class="rsec-label">ROTATOR TOOL</span><span class="rsec-meta" id="rsec-meta-swap">compare any two coins: how many you would get, and where today sits in the range</span></div>
   <div class="ad-panel">
     <!-- SWAP TOOL — collapsible on mobile -->
-    <div class="collapse-hdr swap" id="ch-swap" onclick="toggleCollapse('swap')">
+    <div class="collapse-hdr swap open" id="ch-swap" onclick="toggleCollapse('swap')">
       <div class="collapse-hdr-left">
         <span class="collapse-hdr-icon">⇄</span>
         <span class="collapse-hdr-title">Rotator Tool</span><button type="button" class="info-i" aria-label="The swap ratio: how many TO coins one FROM coin is worth. When it rises, FROM has gained on TO.">ⓘ</button>
       </div>
       <span class="collapse-chevron" id="chev-swap">▼</span>
     </div>
-    <div class="collapse-body collapsed" id="cb-swap">
+    <!-- Never folded (2026-10-11): on a zoomed or narrow landscape window the
+         fold header is hidden, so a folded tool showed as an empty section. -->
+    <div class="collapse-body" id="cb-swap">
     <!-- PRO GATE for Swap Tool -->
     <div class="swap-pro-gate" id="swap-pro-gate" style="display:none;">
       <div style="text-align:center;padding:20px 14px;">
