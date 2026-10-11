@@ -1549,12 +1549,17 @@ function startAutoRefresh() {
    Telegram click counts as substack_to_telegram (pro-system.js
    joinTelegram), and drop the parameter from the address bar, keeping
    any #more= deep link. */
+/* Since 2026-10-11 every network the social desk posts on is counted the
+   same way: ?utm_source=x | instagram | facebook | gemidzija | substack
+   gives from_<source> (count_feature allows exactly these). */
+var _ARRIVAL_SOURCES = ['substack', 'x', 'instagram', 'facebook', 'gemidzija'];
 function _countSubstackArrival() {
   try {
     var q = new URLSearchParams(location.search);
-    if ((q.get('utm_source') || '').toLowerCase() !== 'substack') return;
-    if (typeof supaCountFeature === 'function') supaCountFeature('from_substack', true);
-    try { sessionStorage.setItem('rot_from_substack', '1'); } catch (e) {}
+    var src = (q.get('utm_source') || '').toLowerCase();
+    if (_ARRIVAL_SOURCES.indexOf(src) < 0) return;
+    if (typeof supaCountFeature === 'function') supaCountFeature('from_' + src, true);
+    try { sessionStorage.setItem('rot_from_source', src); if (src === 'substack') sessionStorage.setItem('rot_from_substack', '1'); } catch (e) {}
     q.delete('utm_source'); q.delete('utm_medium'); q.delete('utm_campaign');
     var rest = q.toString();
     history.replaceState(null, '', location.pathname + (rest ? '?' + rest : '') + location.hash);

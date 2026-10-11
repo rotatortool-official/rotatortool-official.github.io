@@ -35,6 +35,8 @@ Object.assign(MK_TEXT, {
   "Rotator's signals are tested live until March 2027. Things here change while we build. If the signals have not proven themselves by then, we stop them.":
     'Сигналите на Rotator се тестираат во живо до март 2027. Додека градиме, работите тука се менуваат. Ако сигналите дотогаш не се докажат, ги запираме.',
   'Not financial advice.': 'Не е финансиски совет.',
+  'soon': 'наскоро',
+  'Instagram is coming soon': 'Instagram доаѓа наскоро',
   'Show the results so far': 'Прикажи ги резултатите досега',
   'Hide the results': 'Скриј ги резултатите',
   'This feature runs in the background while we test it until March 2027, so read the numbers below as a test in progress. How the old and the new engine are graded is explained on the':

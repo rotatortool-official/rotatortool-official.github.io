@@ -6050,3 +6050,6 @@ a.mob-more-item{text-decoration:none;color:inherit;}
 .rec-wip .rec-intro{margin:12px 16px;}
 .rec-wip .rec-intro p{font-size:14.5px;}
 .rec-wip .str-section{margin:0 0 6px;}
+
+/* A connection that is not live yet (Instagram, 2026-10-11): dimmed, not a link. */
+.tb-dd-soon{opacity:.5;cursor:default;pointer-events:none;}
