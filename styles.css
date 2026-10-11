@@ -966,12 +966,10 @@ body::before{content:'';position:fixed;inset:0;background:repeating-linear-gradi
 .mt-dn .mt-pct{color:var(--red);}
 .mt-empty{padding:0 14px;font-size:11px;color:var(--muted);letter-spacing:.04em;}
 @keyframes mt-scroll{from{transform:translateX(0);}to{transform:translateX(-50%);}}
+/* Phones (portrait): no ticker. It did not scroll reliably there, and the
+   top bar's first cell already shows the BTC trend (2026-10-11, Daniel). */
 @media(max-width:700px) and (orientation:portrait){
-  .market-ticker{height:28px;margin:6px 10px 0;}
-  .mt-anchor{padding:0 8px;}
-  .mt-anchor .btc-pill{font-size:10px;}
-  .mt-item{padding:0 10px;font-size:10px;}
-  .mt-track{animation-duration:45s;}
+  .market-ticker{display:none !important;}
 }
 table{width:100%;border-collapse:collapse;}
 thead tr{background:var(--bg4);position:sticky;top:0;z-index:10;box-shadow:0 1px 0 var(--bdr2);}
