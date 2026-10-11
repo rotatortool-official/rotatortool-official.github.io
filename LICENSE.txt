@@ -1,7 +1,7 @@
 Copyright (c) 2026 ROTATOR. All Rights Reserved.
 
 ROTATOR — Crypto, Forex & Stock Rotation Screener
-https://rotatortool-official.github.io
+https://rotatortool.com
 
 TERMS AND CONDITIONS
 

@@ -277,12 +277,12 @@ curl "https://wyvwycatgexpbugzkdfw.supabase.co/rest/v1/signal_runs?select=id,as_
       <b>Showing these on another site?</b> A ready-made panel exists: <a href="today-embed.html">today-embed.html</a> shows every index with its source, in English or Macedonian, light or dark, and can be placed on any page with one <code>&lt;iframe&gt;</code>. Please keep the visible link to Rotator and the source of each reading.
     </div>
     <div class="codebox">&lt;!-- Rotator · TODAY. Options: lang=mk|en, theme=dark|light (default: the viewer's setting), period=7|30|365 --&gt;
-&lt;iframe id="rotator-today" src="https://rotatortool-official.github.io/today-embed.html?lang=mk&amp;period=30"
+&lt;iframe id="rotator-today" src="https://rotatortool.com/today-embed.html?lang=mk&amp;period=30"
         style="width:100%;height:1400px;border:0;" loading="lazy" title="Rotator · TODAY"&gt;&lt;/iframe&gt;
 &lt;script&gt;
   // optional: size the frame to its content
   window.addEventListener('message', function (e) {
-    if (e.origin === 'https://rotatortool-official.github.io' &amp;&amp; e.data &amp;&amp; e.data.rotatorEmbedHeight)
+    if ((e.origin === 'https://rotatortool.com' || e.origin === 'https://rotatortool-official.github.io') &amp;&amp; e.data &amp;&amp; e.data.rotatorEmbedHeight)
       document.getElementById('rotator-today').style.height = e.data.rotatorEmbedHeight + 'px';
   });
 &lt;/script&gt;</div>
@@ -351,7 +351,7 @@ curl "https://wyvwycatgexpbugzkdfw.supabase.co/rest/v1/signal_runs?select=id,as_
 </main>
 
 <footer>
-  <div class="wrap">© 2026 ROTATOR · NOT FINANCIAL ADVICE · <a href="/">rotatortool-official.github.io</a> · <a href="openapi.json">openapi.json</a></div>
+  <div class="wrap">© 2026 ROTATOR · NOT FINANCIAL ADVICE · <a href="/">rotatortool.com</a> · <a href="openapi.json">openapi.json</a></div>
 </footer>
 
 </body>

@@ -5122,7 +5122,7 @@ function closeTileDetail() {
 
 /* ── Deep link: ?donate opens the Support window ───────────────
    The link Daniel hands to people who ask how to donate:
-   https://rotatortool-official.github.io/?donate
+   https://rotatortool.com/?donate
    The first-visit tour waits for the next visit (initTutorial reads
    _donateDeepLink), so it does not cover the window. */
 var _donateDeepLink = false;

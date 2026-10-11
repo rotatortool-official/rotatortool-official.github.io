@@ -4,7 +4,7 @@ Relative-strength research for crypto: which coins are running ahead of
 the market, which are lagging, and what happened after Rotator flagged
 them before.
 
-**Live:** https://rotatortool-official.github.io/
+**Live:** https://rotatortool.com/
 
 This repository holds the website that GitHub Pages serves (HTML, CSS,
 JavaScript, images). The data pipeline, scoring server and alerts are

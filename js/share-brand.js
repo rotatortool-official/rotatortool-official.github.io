@@ -21,7 +21,7 @@
    (ratio.js shareSwapCard), the called-it card (signal-history.js).
 ══════════════════════════════════════════════════════════════════ */
 var ROTATOR_SHARE = {
-  url: 'rotatortool-official.github.io',
+  url: 'rotatortool.com',
   /* The full link for share texts. The ONE place the address lives: when
      the site moves to its own domain, change url above and every card and
      share message follows (Daniel, 2026-10-11). */
