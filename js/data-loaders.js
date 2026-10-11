@@ -3786,12 +3786,12 @@ document.addEventListener('keydown', function(e) {
 doLoad().then(function() { initTutorial(); syncPanelAlignment(); _handleCoinDeepLink(); });
 
 /* ── Sync right-panel spacer height to neon-section height ──────
-   Makes the ad-panel content start level with the leaderboard
+   Makes the tool-panel content start level with the leaderboard
    header on desktop — called after load and on resize.
 ────────────────────────────────────────────────────────────────── */
 function syncPanelAlignment() {
   var neon      = document.querySelector('.neon-section');
-  var spacer    = document.getElementById('ad-panel-neon-spacer');
+  var spacer    = document.getElementById('tool-panel-neon-spacer');
   var sigBox    = document.querySelector('.sig-box');
   if (!neon) return;
   var isDesktop = window.innerWidth > 900;

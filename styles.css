@@ -1100,7 +1100,7 @@ td.qa-cell{text-align:center;width:28px;padding:0 4px !important;}
 }
 
 /* ── RIGHT PANEL ── */
-.ad-panel{background:linear-gradient(180deg,rgba(130,110,200,.055) 0%,rgba(130,110,200,.025) 50%,var(--bg2) 100%);border-left:2px solid rgba(130,110,200,.2);box-shadow:-4px 0 24px rgba(0,0,0,.3);display:flex;flex-direction:column;overflow-y:auto;overflow-x:hidden;height:100%;max-height:100%;}
+.tool-panel{background:linear-gradient(180deg,rgba(130,110,200,.055) 0%,rgba(130,110,200,.025) 50%,var(--bg2) 100%);border-left:2px solid rgba(130,110,200,.2);box-shadow:-4px 0 24px rgba(0,0,0,.3);display:flex;flex-direction:column;overflow-y:auto;overflow-x:hidden;height:100%;max-height:100%;}
 
 /* ══ PORTFOLIO SIGNAL: guaranteed flush below mode bar ══ */
 .sidebar > .sig-box {
@@ -1199,8 +1199,8 @@ td.qa-cell{text-align:center;width:28px;padding:0 4px !important;}
 .swap-tut-skip:hover{color:var(--text);}
 .swap-tut-highlight{outline:2px solid rgba(243,186,47,.6);outline-offset:3px;border-radius:3px;box-shadow:0 0 14px rgba(243,186,47,.18);transition:outline .2s;animation:tutPulseSwap 1.6s ease-in-out infinite;}   /* pulse: see .tut-hole */
 
-.ad-panel-spacer{flex-shrink:0;border-bottom:1px solid var(--bdr2);background:var(--bg3);display:flex;align-items:center;padding:0 14px;min-height:34px;}
-.ad-panel-spacer-label{font-size:12px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);font-family:var(--font-display);}
+.tool-panel-spacer{flex-shrink:0;border-bottom:1px solid var(--bdr2);background:var(--bg3);display:flex;align-items:center;padding:0 14px;min-height:34px;}
+.tool-panel-spacer-label{font-size:12px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);font-family:var(--font-display);}
 .ad-body{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;padding:16px 14px 12px;gap:14px;overflow-y:auto;}
 .ad-promo{width:100%;background:linear-gradient(135deg,rgba(167,139,250,.1),rgba(167,139,250,.04));border:1px solid rgba(167,139,250,.28);border-radius:6px;padding:14px 14px;text-align:center;}
 .ad-promo-icon{font-size:22px;margin-bottom:6px;}
@@ -1502,8 +1502,8 @@ td.qa-cell{text-align:center;width:28px;padding:0 4px !important;}
   .root{display:flex;flex-direction:column;height:auto;max-height:none;overflow-y:auto;}
   .sidebar{display:block !important;order:1;height:auto;max-height:none;overflow:visible;border-right:none;border-bottom:1px solid var(--bdr);}
   .main-col{order:2;padding-bottom:0;overflow:visible;height:auto;max-height:none;}
-  .ad-panel{display:flex !important;order:3;border-left:none;border-top:1px solid rgba(130,110,200,.2);padding:10px 12px 80px;height:auto;max-height:none;overflow:visible;width:100%;box-sizing:border-box;background:var(--bg2) !important;box-shadow:none !important;}
-  .ad-panel::before{display:none !important;}
+  .tool-panel{display:flex !important;order:3;border-left:none;border-top:1px solid rgba(130,110,200,.2);padding:10px 12px 80px;height:auto;max-height:none;overflow:visible;width:100%;box-sizing:border-box;background:var(--bg2) !important;box-shadow:none !important;}
+  .tool-panel::before{display:none !important;}
   .rt-calc-inputs{grid-template-columns:1fr;gap:8px;}
   .rt-ratio-bold{font-size:32px;}
   /* rt-picker-panel is now inline — no fixed positioning */
@@ -1655,12 +1655,12 @@ td.qa-cell{text-align:center;width:28px;padding:0 4px !important;}
   }
   .mob-nav-fab.active{border-top:none;}
   .mob-nav-fab-spacer{border-top:3px solid transparent;}
-  .ad-panel{display:flex !important;order:3;border-left:none;border-top:1px solid rgba(130,110,200,.2);padding:10px 12px 80px;height:auto;max-height:none;overflow:visible;width:100%;box-sizing:border-box;background:var(--bg) !important;box-shadow:none !important;}
+  .tool-panel{display:flex !important;order:3;border-left:none;border-top:1px solid rgba(130,110,200,.2);padding:10px 12px 80px;height:auto;max-height:none;overflow:visible;width:100%;box-sizing:border-box;background:var(--bg) !important;box-shadow:none !important;}
   /* Hide pro promo & donate from main mobile view — accessible via More menu */
   .ad-promo,.ad-body,.sidebar-donate{display:none !important;}
   .collapse-hdr.promo,.collapse-hdr.holdings[id="ch-support"]{display:none !important;}
   #cb-promo,#cb-support{display:none !important;}
-  .ad-panel::before{display:none !important;}
+  .tool-panel::before{display:none !important;}
   .ratio-section{background:transparent !important;}
   /* ── MOBILE SWAP LAYOUT — vertical stacking ── */
   .rt-pair-tiles{grid-template-columns:1fr 1fr;gap:6px;}
@@ -2184,8 +2184,8 @@ td.qa-cell{text-align:center;width:28px;padding:0 4px !important;}
 .holding-placeholder .ph-label{font-size:12px;letter-spacing:.1em;color:rgba(255,255,255,.18);text-transform:uppercase;}
 
 /* ── RIGHT PANEL SEPARATOR ── */
-.ad-panel{background:var(--bg2);border-left:2px solid rgba(255,255,255,.07);display:flex;flex-direction:column;overflow-y:auto;overflow-x:hidden;position:relative;}
-.ad-panel::before{content:'';position:absolute;top:0;left:-1px;width:1px;height:100%;background:linear-gradient(180deg,transparent,rgba(243,186,47,.15) 30%,rgba(167,139,250,.12) 70%,transparent);pointer-events:none;}
+.tool-panel{background:var(--bg2);border-left:2px solid rgba(255,255,255,.07);display:flex;flex-direction:column;overflow-y:auto;overflow-x:hidden;position:relative;}
+.tool-panel::before{content:'';position:absolute;top:0;left:-1px;width:1px;height:100%;background:linear-gradient(180deg,transparent,rgba(243,186,47,.15) 30%,rgba(167,139,250,.12) 70%,transparent);pointer-events:none;}
 
 /* ── SWAP TOOL TUTORIAL BADGE ── */
 .swap-tut-hint{display:flex;align-items:center;gap:6px;padding:6px 12px;background:rgba(0,189,142,.06);border:1px solid rgba(0,189,142,.15);border-radius:8px;font-size:12px;color:var(--green);cursor:pointer;transition:background .15s;margin-bottom:8px;letter-spacing:.04em;}
@@ -2637,7 +2637,7 @@ td.qa-cell{text-align:center;width:28px;padding:0 4px !important;}
 /* ── Light theme: sky blue bg, lollipop pink zebra, mint headers, watermelon right panel ── */
 :root.light .topbar{background:rgba(240,250,255,.92);border-bottom:2px solid rgba(80,190,155,.30);}
 :root.light .sidebar{background:linear-gradient(180deg,rgba(80,195,155,.18) 0%,rgba(80,195,155,.06) 50%,var(--bg2) 100%);border-right:2px solid rgba(80,190,155,.25);}
-:root.light .ad-panel{background:linear-gradient(180deg,rgba(230,70,85,.14) 0%,rgba(230,70,85,.06) 50%,var(--bg2) 100%);border-left:3px solid rgba(230,70,85,.35);box-shadow:-4px 0 20px rgba(230,70,85,.10);}
+:root.light .tool-panel{background:linear-gradient(180deg,rgba(230,70,85,.14) 0%,rgba(230,70,85,.06) 50%,var(--bg2) 100%);border-left:3px solid rgba(230,70,85,.35);box-shadow:-4px 0 20px rgba(230,70,85,.10);}
 :root.light thead tr{background:rgb(195,235,220);box-shadow:0 2px 4px rgba(0,0,0,.08);}
 :root.light thead th{color:rgba(10,60,45,.9);font-weight:800;}
 :root.light tbody tr:nth-child(odd){background:#ffffff;}
@@ -2753,7 +2753,7 @@ td.qa-cell{text-align:center;width:28px;padding:0 4px !important;}
 :root.light .sidebar{box-shadow:2px 0 12px rgba(0,0,0,.04);}
 :root.light .sort-hint{color:var(--muted);font-weight:600;}
 :root.light .rt-header-row{font-weight:700;}
-:root.light .ad-panel .rt-label{font-weight:600;color:var(--text);}
+:root.light .tool-panel .rt-label{font-weight:600;color:var(--text);}
 :root.light .keep-free-title{color:var(--text) !important;}
 /* ── Swap calculator: darker, bigger, more readable ── */
 :root.light .rt-calc{background:rgba(100,80,180,.06);border-color:rgba(100,80,180,.18);}
@@ -2765,8 +2765,8 @@ td.qa-cell{text-align:center;width:28px;padding:0 4px !important;}
 :root.light .rt-calc-ratios{border-top-color:rgba(100,80,180,.12);}
 :root.light .rt-calc-ratio-line{color:rgba(30,40,60,.65);font-weight:500;}
 :root.light .rt-card-val,.rt-card-val-lg{color:var(--text);}
-:root.light .ad-panel label{color:rgba(30,30,60,.65);font-weight:600;}
-:root.light .ad-panel .rt-card{color:var(--text);}
+:root.light .tool-panel label{color:rgba(30,30,60,.65);font-weight:600;}
+:root.light .tool-panel .rt-card{color:var(--text);}
 :root.light .rt-picker-price{color:rgba(30,40,60,.55);}
 /* ── Topbar: mint green to match the theme ── */
 :root.light .topbar{background:rgba(70,200,155,.14);border-bottom:2px solid rgba(70,190,150,.28);box-shadow:0 2px 10px rgba(70,200,155,.08);}
@@ -3206,7 +3206,7 @@ td.qa-cell{text-align:center;width:28px;padding:0 4px !important;}
 :root.light .rt-status           { color:var(--muted); }
 :root.light .modal               { background:var(--bg2); }
 :root.light .swap-tut-box        { background:var(--bg2); border-color:rgba(180,130,0,.4); }
-:root.light .ad-panel            { background:var(--bg2) !important; }
+:root.light .tool-panel            { background:var(--bg2) !important; }
 :root.light .topbar-search-dropdown { background:var(--bg2); border-color:var(--bdr2); }
 :root.light .topbar-search-input { background:var(--bg3); color:var(--text); }
 :root.light .topbar-search-result-item { border-color:var(--bdr); }
@@ -3248,7 +3248,7 @@ td.qa-cell{text-align:center;width:28px;padding:0 4px !important;}
   /* ── Sidebar & panels: constrain to viewport width ── */
   .sidebar,
   .main-col,
-  .ad-panel {
+  .tool-panel {
     width: 100% !important;
     max-width: 100% !important;
     overflow-x: hidden !important;
@@ -3265,7 +3265,7 @@ td.qa-cell{text-align:center;width:28px;padding:0 4px !important;}
   }
 
   /* ── Ad panel: reduce excessive bottom padding ── */
-  .ad-panel {
+  .tool-panel {
     padding: 8px 10px 20px !important;
     min-height: 0 !important;
   }
@@ -3537,7 +3537,7 @@ td.qa-cell{text-align:center;width:28px;padding:0 4px !important;}
      TODAY -> YOURS -> ROTATION -> COINS -> SWAP -> RECORD
 
    Nothing was rebuilt. Every block, every id and every handler is the
-   one that was already there; .sidebar and .ad-panel keep their class
+   one that was already there; .sidebar and .tool-panel keep their class
    names because a handful of selectors descend from them. What changed
    is the order they appear in and the boxes they used to be trapped in.
 
@@ -3565,7 +3565,7 @@ td.qa-cell{text-align:center;width:28px;padding:0 4px !important;}
   height:auto;max-height:none;overflow:visible;
   border-right:none;background:none;display:block;
 }
-.rsec .ad-panel{
+.rsec .tool-panel{
   height:auto;max-height:none;overflow:visible;
   border-left:none;box-shadow:none;background:none;display:block;
 }
