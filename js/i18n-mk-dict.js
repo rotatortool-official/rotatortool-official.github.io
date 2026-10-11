@@ -36,6 +36,17 @@ Object.assign(MK_TEXT, {
     'Сигналите на Rotator се тестираат во живо до март 2027. Додека градиме, работите тука се менуваат. Ако сигналите дотогаш не се докажат, ги запираме.',
   'Not financial advice.': 'Не е финансиски совет.',
   'soon': 'наскоро',
+  /* CAPITAL ROTATION + Rotator Tool (light theme first, 2026-10-11) */
+  'CAPITAL ROTATION': 'ДВИЖЕЊЕ НА КАПИТАЛОТ',
+  'CAPITAL': 'КАПИТАЛ',
+  'where money moved': 'каде отидоа парите',
+  'where money moved this week: into and out of Bitcoin, between chains, and Bitcoin against the rest':
+    'каде се движеа парите оваа недела: во и надвор од Bitcoin, меѓу мрежите и Bitcoin наспроти другите монети',
+  'Where money moved, not where it goes next.': 'Каде се движеа парите, не каде ќе одат.',
+  'ROTATOR TOOL': 'ROTATOR АЛАТКА',
+  'Rotator Tool': 'Rotator алатка',
+  'compare any two coins: how many you would get, and where today sits in the range':
+    'споредете кои било две монети: колку би добиле и каде е денес во опсегот',
   'Instagram is coming soon': 'Instagram доаѓа наскоро',
   'Show the results so far': 'Прикажи ги резултатите досега',
   'Hide the results': 'Скриј ги резултатите',

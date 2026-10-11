@@ -1051,6 +1051,11 @@
       <span class="rail-mark"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19V9"/><path d="M10 19V5"/><path d="M16 19v-7"/><path d="M22 19H2"/></svg></span>
       <span class="rail-text"><span class="rail-label">TODAY</span><span class="rail-sub" id="rail-sub-today">on-chain now</span></span>
     </button>
+    <!-- CAPITAL ROTATION (2026-10-11, Daniel): light theme first. -->
+    <button class="rail-item lt-only" id="rail-capital" data-sec="sec-capital" onclick="railGo('sec-capital')" title="CAPITAL ROTATION">
+      <span class="rail-mark"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="6" cy="12" r="3"/><circle cx="18" cy="12" r="3"/><path d="M9 9.5c1.8-1.4 4.2-1.4 6 0"/><path d="M15 14.5c-1.8 1.4-4.2 1.4-6 0"/><path d="m14 8 1 1.5-1.6.6"/><path d="m10 16-1-1.5 1.6-.6"/></svg></span>
+      <span class="rail-text"><span class="rail-label">CAPITAL</span><span class="rail-sub">where money moved</span></span>
+    </button>
     <button class="rail-item" id="rail-momentum" data-sec="sec-rotation" onclick="railGo('sec-rotation')" title="MOMENTUM">
       <span class="rail-mark"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M17 2.1 21 6l-4 3.9"/><path d="M3 12a9 9 0 0 1 9-9h9"/><path d="M7 21.9 3 18l4-3.9"/><path d="M21 12a9 9 0 0 1-9 9H3"/></svg></span>
       <span class="rail-text"><span class="rail-label">MOMENTUM</span><span class="rail-sub" id="rail-sub-momentum">best and worst</span></span>
@@ -1066,7 +1071,7 @@
 
     <button class="rail-item" id="rail-swap" data-sec="sec-swap" onclick="railGo('sec-swap')" title="SWAP">
       <span class="rail-mark"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M7 16V4m0 0L4 7m3-3 3 3"/><path d="M17 8v12m0 0 3-3m-3 3-3-3"/></svg></span>
-      <span class="rail-text"><span class="rail-label">SWAP</span><span class="rail-sub" id="rail-sub-swap">pair ratio</span></span>
+      <span class="rail-text"><span class="rail-label"><span class="nm-dk">SWAP</span><span class="nm-lt">ROTATOR TOOL</span></span><span class="rail-sub" id="rail-sub-swap">pair ratio</span></span>
     </button>
     <button class="rail-item rail-last" id="rail-record" data-sec="sec-record" onclick="railGo('sec-record')" title="RECORD">
       <span class="rail-mark"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M12 8v4l3 2"/><circle cx="12" cy="12" r="9"/></svg></span>
@@ -1136,6 +1141,17 @@
         </div>
       </div>
     </div>
+  </section>
+  <!-- CAPITAL ROTATION (2026-10-11, Daniel; light theme first): where money
+       moved this week, data only, no picks. In light theme
+       _capitalLayout() (js/ui.js) moves the ETF and chain-flow strips here
+       from TODAY; dark keeps them in TODAY until Daniel approves.
+       #cap-btc is drawn by renderCapitalBtc() in js/signals.js. -->
+  <section class="rsec lt-only" id="sec-capital">
+    <div class="rsec-hdr"><span class="rsec-label">CAPITAL ROTATION</span><span class="rsec-meta">where money moved this week: into and out of Bitcoin, between chains, and Bitcoin against the rest</span></div>
+    <div class="cap-btc" id="cap-btc"></div>
+    <div id="cap-host"></div>
+    <p class="cap-note">Where money moved, not where it goes next.</p>
   </section>
   <section class="rsec" id="sec-rotation">
     <div class="rsec-hdr"><span class="rsec-label">MOMENTUM</span><span class="rsec-meta" id="rsec-meta-momentum">what ran ahead, what lagged behind, and which coins are turning</span></div>
@@ -1308,13 +1324,13 @@
     <div class="mob-inline-holdings" id="mob-inline-holdings"></div>
   </section>
   <section class="rsec" id="sec-swap">
-    <div class="rsec-hdr"><span class="rsec-label">SWAP</span><span class="rsec-meta" id="rsec-meta-swap">turn part of a holding into BTC, or any coin you prefer, and see what the swap gives you</span></div>
+    <div class="rsec-hdr"><span class="rsec-label"><span class="nm-dk">SWAP</span><span class="nm-lt">ROTATOR TOOL</span></span><span class="rsec-meta" id="rsec-meta-swap"><span class="nm-dk">turn part of a holding into BTC, or any coin you prefer, and see what the swap gives you</span><span class="nm-lt">compare any two coins: how many you would get, and where today sits in the range</span></span></div>
   <div class="ad-panel">
     <!-- SWAP TOOL — collapsible on mobile -->
     <div class="collapse-hdr swap" id="ch-swap" onclick="toggleCollapse('swap')">
       <div class="collapse-hdr-left">
         <span class="collapse-hdr-icon">⇄</span>
-        <span class="collapse-hdr-title">Swap Calculator</span><button type="button" class="info-i" aria-label="The swap ratio: how many TO coins one FROM coin is worth. When it rises, FROM has gained on TO.">ⓘ</button>
+        <span class="collapse-hdr-title"><span class="nm-dk">Swap Calculator</span><span class="nm-lt">Rotator Tool</span></span><button type="button" class="info-i" aria-label="The swap ratio: how many TO coins one FROM coin is worth. When it rises, FROM has gained on TO.">ⓘ</button>
       </div>
       <span class="collapse-chevron" id="chev-swap">▼</span>
     </div>
@@ -1665,7 +1681,7 @@
   <div class="mob-nav-fab-spacer"></div>
   <button type="button" class="mob-nav-fab" id="mn-swap" data-sec="sec-swap" onclick="mobGo('sec-swap')" title="Swap Calculator">
     <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="17 1 21 5 17 9"/><path d="M3 11V9a4 4 0 0 1 4-4h14"/><polyline points="7 23 3 19 7 15"/><path d="M21 13v2a4 4 0 0 1-4 4H3"/></svg>
-    <span>SWAP</span>
+    <span><span class="nm-dk">SWAP</span><span class="nm-lt">ROTATOR</span></span>
   </button>
 
   <button type="button" class="mob-nav-btn" id="mn-yours" data-sec="sec-yours" onclick="mobGo('sec-yours')">

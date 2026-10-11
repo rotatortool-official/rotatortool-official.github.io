@@ -6053,3 +6053,31 @@ a.mob-more-item{text-decoration:none;color:inherit;}
 
 /* A connection that is not live yet (Instagram, 2026-10-11): dimmed, not a link. */
 .tb-dd-soon{opacity:.5;cursor:default;pointer-events:none;}
+
+/* ── CAPITAL ROTATION + "Rotator Tool" (2026-10-11, Daniel): LIGHT FIRST ──
+   .lt-only shows only in light theme; .nm-lt / .nm-dk hold the light and
+   dark names of the same label (SWAP vs ROTATOR TOOL). Port to dark after
+   Daniel approves: drop .lt-only, swap the names, and let _capitalLayout
+   move the strips in both themes. */
+.lt-only{display:none !important;}
+:root.light .lt-only{display:block !important;}
+:root.light .rail-item.lt-only{display:flex !important;}
+.nm-lt{display:none !important;}
+:root.light .nm-lt{display:inline !important;}
+:root.light .nm-dk{display:none !important;}
+#sec-capital .cap-btc{margin:0 16px 12px;padding:14px 16px;border:1px solid var(--bdr);border-radius:var(--card-radius,8px);background:var(--bg2);}
+#sec-capital .cap-btc:empty{display:none;}
+.cap-verdict{font-size:17px;font-weight:700;color:var(--text);margin:4px 0 10px;line-height:1.35;}
+.cap-verdict.cap-up{color:#0e9f6e;}
+.cap-verdict.cap-dn{color:#c2410c;}
+.cap-row{display:grid;grid-template-columns:64px 120px minmax(0,1fr);gap:10px;align-items:center;padding:6px 0;border-top:1px solid var(--bdr);font-size:13.5px;}
+.cap-lbl{font-weight:700;color:var(--text);}
+.cap-bar{height:8px;border-radius:4px;background:rgba(0,0,0,.08);overflow:hidden;position:relative;}
+.cap-bar::after{content:'';position:absolute;left:50%;top:-2px;bottom:-2px;width:1px;background:rgba(0,0,0,.35);}
+.cap-bar i{display:block;height:100%;background:#0e9f6e;border-radius:4px;}
+.cap-txt{color:var(--muted);line-height:1.4;}
+.cap-txt b.up{color:#0e9f6e;} .cap-txt b.dn{color:#c2410c;}
+#sec-capital .cap-note{margin:4px 18px 14px;font-size:12px;color:var(--muted);}
+@media (max-width:600px){ .cap-row{grid-template-columns:76px minmax(0,1fr);} .cap-lbl{white-space:nowrap;} .cap-row .cap-txt{grid-column:1 / -1;} }
+/* The phone's round button is ~78px wide: the longer light name is set a size smaller. */
+:root.light #mn-swap .nm-lt{font-size:9px;letter-spacing:.02em;}

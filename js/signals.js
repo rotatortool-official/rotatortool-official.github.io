@@ -195,6 +195,64 @@ function renderMarketNow() {
     + '<div class="mn-grid">' + html + '</div>';
   host.style.display = '';
   if (typeof _renderLastUpdated === 'function') _renderLastUpdated();
+  renderCapitalBtc();
+}
+
+/* ── Bitcoin vs the rest (CAPITAL ROTATION, 2026-10-11, light first) ──
+   Is money rotating out of Bitcoin into the other coins, or the other way?
+   The same listed coins as "Coins vs BTC" above (no stocks, no
+   stablecoins), over 7 and 30 days: how many did better than BTC, and how
+   the middle coin did against BTC. A description of what happened, not a
+   signal; the words only say which way the money moved. */
+function renderCapitalBtc() {
+  var host = document.getElementById('cap-btc');
+  if (!host || typeof coins === 'undefined') return;
+  var btc = coins.find(function (c) { return c.sym === 'BTC' && !c.isStock; });
+  if (!btc) { host.innerHTML = ''; return; }
+  var mk = (typeof currentLang !== 'undefined' && currentLang === 'mk');
+  var L = mk ? {
+    k: 'Bitcoin наспроти другите монети', d7: '7 дена', d30: '30 дена',
+    of: function (b, n) { return b + ' од ' + n + ' монети се подобри од BTC'; },
+    mid: 'просечната монета наспроти BTC',
+    out: 'Парите се префрлаат од Bitcoin во другите монети.',
+    in_: 'Bitcoin ги задржува парите подобро од другите монети.',
+    mixed: 'Нема јасно префрлање меѓу Bitcoin и другите монети.'
+  } : {
+    k: 'Bitcoin vs the rest', d7: '7 days', d30: '30 days',
+    of: function (b, n) { return b + ' of ' + n + ' coins did better than BTC'; },
+    mid: 'the middle coin against BTC',
+    out: 'Money is rotating out of Bitcoin into the other coins.',
+    in_: 'Bitcoin is holding money better than the other coins.',
+    mixed: 'No clear rotation between Bitcoin and the other coins.'
+  };
+  function row(key, label) {
+    var b = btc[key];
+    var alts = coins.filter(function (c) {
+      return !c.isStock && !c.isStable && c.sym !== 'BTC' && typeof c[key] === 'number' && !isNaN(c[key]);
+    });
+    if (!alts.length || typeof b !== 'number' || isNaN(b)) return null;
+    var beat = alts.filter(function (c) { return c[key] > b; }).length;
+    var s = alts.map(function (c) { return c[key]; }).sort(function (x, y) { return x - y; });
+    var med = s.length % 2 ? s[(s.length - 1) / 2] : (s[s.length / 2 - 1] + s[s.length / 2]) / 2;
+    var rel = ((1 + med / 100) / (1 + b / 100) - 1) * 100;
+    var share = beat / alts.length;
+    return { label: label, beat: beat, n: alts.length, share: share, rel: rel };
+  }
+  var r7 = row('p7', L.d7), r30 = row('p30', L.d30);
+  var rows = [r7, r30].filter(Boolean);
+  if (!rows.length) { host.innerHTML = ''; return; }
+  var sum = rows.reduce(function (a, r) { return a + r.share; }, 0) / rows.length;
+  var verdict = sum >= 0.6 ? L.out : sum <= 0.4 ? L.in_ : L.mixed;
+  var tone = sum >= 0.6 ? 'up' : sum <= 0.4 ? 'dn' : 'mid';
+  host.innerHTML = '<div class="bf-k">' + L.k + '</div>'
+    + '<div class="cap-verdict cap-' + tone + '">' + verdict + '</div>'
+    + rows.map(function (r) {
+        var pc = Math.round(r.share * 100);
+        return '<div class="cap-row"><span class="cap-lbl">' + r.label + '</span>'
+          + '<span class="cap-bar" aria-hidden="true"><i style="width:' + pc + '%"></i></span>'
+          + '<span class="cap-txt">' + L.of(r.beat, r.n) + ' · ' + L.mid + ' <b class="' + (r.rel >= 0 ? 'up' : 'dn') + '">'
+          + (r.rel >= 0 ? '+' : '−') + Math.abs(r.rel).toFixed(1) + '%</b></span></div>';
+      }).join('');
 }
 
 /* ══════════════════════════════════════════════════════════════
