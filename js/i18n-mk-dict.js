@@ -509,6 +509,7 @@ Object.assign(MK_TEXT, {
   'invite 5 friends': 'поканете 5 пријатели', '(free),': '(бесплатно),', 'redeem a Pro code': 'внесете Pro код',
   '(free), or a': '(бесплатно), или', 'one-time contribution': 'еднократен придонес', '. No subscriptions.': '. Без претплати.',
   'to choose your own coins (free with 5 invites)': 'за да ги изберете вашите монети (бесплатно со 5 покани)',
+  'for a personal alert when this pair reaches your target, on the bell and Telegram (free with 5 invites)': 'за лично известување кога овој пар ќе ја стигне вашата цел, на ѕвончето и на Telegram (бесплатно со 5 покани)',
   'Insight Engine is a Pro feature, free with 5 invites or a code': 'Insight Engine е Pro функција, бесплатно со 5 покани или код',
   'Unlock Pro, free with 5 invites': 'Отклучете Pro, бесплатно со 5 покани',
   'Unlock all signals with Pro, free with 5 invites': 'Отклучете ги сите сигнали со Pro, бесплатно со 5 покани',

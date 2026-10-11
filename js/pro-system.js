@@ -771,12 +771,13 @@ function _showProRequestPending(msg) {
 /* ── Pro feature gates ──────────────────────────────────────── */
 function updateProGates() {
   if (typeof renderTokenUnlocks === 'function') renderTokenUnlocks();   /* unlock sizes are Pro */
-  /* Swap tool — always visible; only coin picker is Pro-gated */
+  /* Swap tool — always visible, any pair free; Pro adds the personal
+     alert on saved pairs (2026-10-11), and this hint points to it */
   var swapGate = document.getElementById('swap-pro-gate');
   var swapBody = document.getElementById('ratio-section');
   if (swapGate) swapGate.style.display = 'none';   /* never show full gate */
   if (swapBody) swapBody.style.display = '';        /* always show tool */
-  /* Show/hide Pro hint for coin selection */
+  /* Show/hide the Pro hint about pair alerts */
   var swapHint = document.getElementById('swap-pro-hint');
   if (swapHint) swapHint.style.display = isPro ? 'none' : 'block';
   /* Show Pro tutorial button in settings only for Pro users */

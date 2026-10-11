@@ -951,11 +951,8 @@ var RatioTracker = (function() {
   var _pickerOpenTime = 0;
 
   function _openPicker(mode){
-    /* Pro gate: only Pro users can change coins */
-    if (typeof isPro !== 'undefined' && !isPro) {
-      if (typeof openPro === 'function') openPro();
-      return;
-    }
+    /* Any pair is free (2026-10-11, Daniel: data stays free). What Pro
+       adds here is the personal alert on a saved pair (_pairAlertRow). */
     _pickerMode = mode;
     var panel = $('rt-picker-panel'); if(!panel) return;
     var title = $('rt-picker-title'); if(title) title.textContent='Select '+mode.toUpperCase()+' asset';
