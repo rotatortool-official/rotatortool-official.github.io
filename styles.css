@@ -6131,3 +6131,42 @@ a.mob-more-item{text-decoration:none;color:inherit;}
 /* Light: the Rotator Tool tour text was a fixed pale blue made for dark (2026-10-11). */
 :root.light .swap-tut-desc{color:var(--text);opacity:.85;}
 :root.light .swap-tut-step{color:#9a6b00;}
+
+/* ── Chart windows: ETF ranges, unlocks, buybacks & burns (2026-10-11,
+   Daniel). js/flow-charts.js; same look as the Bitcoin vs gold window:
+   chart first with the faint logo behind it, words under it, share. ── */
+#ul-modal-body,#hr-modal-body{display:flex;flex-direction:column;min-height:0;}
+.fc-ranges{display:flex;gap:6px;flex-wrap:wrap;margin:2px 0 8px;}
+.fc-range{all:unset;cursor:pointer;font-size:11px;font-weight:600;letter-spacing:.04em;color:var(--muted);border:1px solid var(--bdr);border-radius:5px;padding:4px 9px;}
+.fc-range:hover{color:var(--text);}
+.fc-range.on{color:var(--text);border-color:var(--amber);background:var(--ad);}
+.fc-range:focus-visible{outline:2px solid var(--amber);}
+.fc-stage{margin:10px 0 4px;background-repeat:no-repeat;background-position:center;background-size:150px 150px;min-height:40px;}
+.fc-chart{display:block;width:100%;height:150px;}
+.fc-chart .fc-amb{fill:var(--amber);opacity:.9;}
+.fc-sum{font-size:12px;color:var(--muted);margin-top:6px;}
+.fc-sum b{font-family:var(--font-mono);color:var(--text);}
+.fc-sum b.up{color:var(--green);} .fc-sum b.dn{color:var(--red);}
+.fc-stats3{grid-template-columns:repeat(3,minmax(0,1fr));}
+.etf-stats b.amb{color:var(--amber);}
+.etf-stats em.up{color:var(--green);} .etf-stats em.dn{color:var(--red);}
+.fc-hbars{display:flex;flex-direction:column;gap:2px;}
+.fc-hrow{all:unset;box-sizing:border-box;cursor:pointer;display:grid;grid-template-columns:6.5em minmax(0,1fr) 3.6em;gap:8px;align-items:center;padding:3px 4px;border-radius:4px;font-size:12px;}
+.fc-hrow:hover{background:var(--bg3);}
+.fc-hname{display:flex;align-items:center;gap:6px;min-width:0;white-space:nowrap;overflow:hidden;}
+.fc-hname img{border-radius:50%;flex:none;}
+.fc-hname b{font-family:var(--font-mono);color:var(--text);}
+.fc-htrack{height:10px;background:var(--bg3);border-radius:3px;overflow:hidden;}
+.fc-htrack i{display:block;height:100%;border-radius:3px;background:var(--green);}
+.fc-htrack i.amb{background:var(--amber);}
+.fc-hval{font-family:var(--font-mono);font-weight:700;text-align:right;color:var(--green);}
+.fc-table tbody tr{cursor:pointer;}
+.fc-table tbody tr:hover td{background:var(--bg3);}
+.fc-wait{font-size:12px !important;color:var(--muted) !important;opacity:1 !important;}
+.fc-open{all:unset;cursor:pointer;font-size:10px;color:var(--amber);letter-spacing:.04em;white-space:nowrap;position:relative;z-index:2;}
+.fc-open:hover{text-decoration:underline;}
+.fc-open:focus-visible{outline:2px solid var(--amber);}
+:root.light .fc-hval,:root.light .etf-stats em.up{color:#0e9f6e;}
+:root.light .fc-htrack i{background:#0e9f6e;}
+:root.light .fc-open{color:#9a6b00;}
+:root.light .fc-chart .fc-amb{fill:#d97706;}

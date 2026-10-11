@@ -3087,9 +3087,12 @@ function openEtfModal(asset) {
     +   '<div><span class="bf-k">' + L.last20 + '</span><b class="' + (s.sum20 >= 0 ? 'up' : 'dn') + '">' + _etfM(s.sum20) + '</b><em>' + L.month + '</em></div>'
     +   '<div><span class="bf-k">' + L.run + '</span><b>' + streak + '</b><em>' + L.sameDir + '</em></div>'
     + '</div>'
-    + '<div class="etf-chart-wrap">' + _etfBars(bars, s.provisional, true)
+    /* Ranges 20 days to 1 year + share card (js/flow-charts.js, 2026-10-11);
+       the fixed 20-day chart stays if that file did not load. */
+    + (typeof etfMountRanges === 'function' ? '<div class="etf-chart-wrap" id="etf-fc"></div>'
+      : '<div class="etf-chart-wrap">' + _etfBars(bars, s.provisional, true)
     +   '<div class="etf-axis"><span>' + _etfDay((bars[0] || {}).day) + '</span><span>' + L.axis + '</span><span>'
-    +   _etfDay((s.provisional || bars[bars.length - 1] || {}).day) + '</span></div></div>'
+    +   _etfDay((s.provisional || bars[bars.length - 1] || {}).day) + '</span></div></div>')
     + (r.days ? '<div class="etf-m-sec"><div class="bf-k">' + L.bigHd + '</div><p>'
         + L.big(r.days, _etfM(r.p10, false), _etfM(r.p90, false), _etfM(r.p5, false), _etfM(r.p95, false)) + '</p></div>' : '')
     + '<div class="etf-m-sec"><div class="bf-k">' + L.canHd + '</div><p>'
@@ -3100,6 +3103,7 @@ function openEtfModal(asset) {
     + (_etfAgeMs != null && L === _ETF_TXT.en ? ' ' + L.reading + ' ' + _bfAge(_etfAgeMs) + '.' : '') + '</div>'
     + '</div>';
   openModal('etf-modal');
+  if (typeof etfMountRanges === 'function') etfMountRanges(a);
   if (typeof supaCountFeature === 'function') supaCountFeature('etf_flows', true);
 }
 
@@ -3341,7 +3345,10 @@ function _hrTile() {
       + '<span class="hr-yr">' + (r.yr >= 10 ? r.yr.toFixed(0) : r.yr.toFixed(1)) + '%</span></button>';
   }).join('');
   return '<div class="etf-tile ul-tile hr-tile">'
-    + '<div class="etf-tile-top"><span class="bf-k">' + L.title + _ulEmb('flame') + '</span><span class="etf-more">' + L.d30 + ' · ' + L.yr + '</span></div>'
+    + '<div class="etf-tile-top"><span class="bf-k">' + L.title + _ulEmb('flame') + '</span>'
+    + (typeof openBurnsModal === 'function'
+      ? '<button type="button" class="etf-more fc-open" onclick="openBurnsModal()">' + L.d30 + ' · ' + _ulFcL().open + '</button>'
+      : '<span class="etf-more">' + L.d30 + ' · ' + L.yr + '</span>') + '</div>'
     + '<div class="ul-list">' + _ulEmb('flame', true) + list + '</div><div class="etf-head">' + L.note + '</div></div>';
 }
 
@@ -3374,7 +3381,10 @@ function renderTokenUnlocks() {
   host.classList.toggle('ul-solo', !hr);
   host.innerHTML = '<div class="bf-group etf-group">' + L.group + '</div>'
     + '<div class="etf-tile ul-tile">'
-    + '<div class="etf-tile-top"><span class="bf-k">' + L.title + _ulEmb('lock') + '</span><span class="etf-more">' + L.d30 + '</span></div>'
+    + '<div class="etf-tile-top"><span class="bf-k">' + L.title + _ulEmb('lock') + '</span>'
+    + (typeof openUnlocksModal === 'function' && list
+      ? '<button type="button" class="etf-more fc-open" onclick="openUnlocksModal()">' + L.d30 + ' · ' + _ulFcL().open + '</button>'
+      : '<span class="etf-more">' + L.d30 + '</span>') + '</div>'
     + (list ? '<div class="ul-list">' + _ulEmb('lock', true) + list + '</div><div class="etf-head">' + L.note + '</div>'
             + (isPro ? '' : '<div class="ul-tg" onclick="openPro()">' + L.tg + '</div>')
             : '<div class="etf-head">' + L.none + '</div>')

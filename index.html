@@ -802,6 +802,20 @@
   </div>
 </div>
 <!-- ETF FLOWS MODAL — filled by openEtfModal() in js/data-loaders.js -->
+<!-- UPCOMING UNLOCKS and BUYBACKS & BURNS MODALS (2026-10-11) — filled by
+     openUnlocksModal() / openBurnsModal() in js/flow-charts.js -->
+<div class="overlay" id="ul-modal" onclick="if(event.target===this)closeModal('ul-modal')">
+  <div class="modal etf-modal btcg-modal">
+    <button class="modal-x" onclick="closeModal('ul-modal')" aria-label="Close">×</button>
+    <div id="ul-modal-body"></div>
+  </div>
+</div>
+<div class="overlay" id="hr-modal" onclick="if(event.target===this)closeModal('hr-modal')">
+  <div class="modal etf-modal btcg-modal">
+    <button class="modal-x" onclick="closeModal('hr-modal')" aria-label="Close">×</button>
+    <div id="hr-modal-body"></div>
+  </div>
+</div>
 <!-- BITCOIN VS GOLD MODAL (2026-10-11) — filled by openBtcGold() in js/btc-gold.js -->
 <div class="overlay" id="btcg-modal" onclick="if(event.target===this)closeModal('btcg-modal')">
   <div class="modal etf-modal btcg-modal">
@@ -1497,6 +1511,8 @@
             <button class="rt-tf-btn" id="rt-tf-1"  onclick="RatioTracker.setTF(1)">24h</button>
             <button class="rt-tf-btn active" id="rt-tf-7"  onclick="RatioTracker.setTF(7)">7d</button>
             <button class="rt-tf-btn" id="rt-tf-30" onclick="RatioTracker.setTF(30)">30d</button>
+            <button class="rt-tf-btn" id="rt-tf-90" onclick="RatioTracker.setTF(90)">3m</button>
+            <button class="rt-tf-btn" id="rt-tf-180" onclick="RatioTracker.setTF(180)">6m</button>
           </div>
         </div>
         <div class="rt-chart-wrap"><canvas id="rt-spark"></canvas></div>
@@ -1822,6 +1838,7 @@
   <script src="js/global-movers.js"></script>
   <script src="js/data-loaders.js"></script>
   <script src="js/btc-gold.js"></script>
+  <script src="js/flow-charts.js"></script>
   <script src="js/radio.js"></script>
   <script src="js/coin-reading.js"></script>
   <script src="js/turn-watch.js"></script>

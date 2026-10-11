@@ -865,11 +865,11 @@ var RatioTracker = (function() {
   /* ── Controls ────────────────────────────────────────────────── */
   function setTF(days){
     if(S.loading) return; S.days=days;
-    [1,7,30].forEach(function(d){var b=$('rt-tf-'+d);if(b)b.classList.toggle('active',d===days);});
+    [1,7,30,90,180].forEach(function(d){var b=$('rt-tf-'+d);if(b)b.classList.toggle('active',d===days);});
     loadHistory();
   }
   function setSpin(on){ var i=$('rt-spin-icon'),b=$('rt-refresh-btn'); if(i)i.className=on?'spinning':''; if(b)b.disabled=on; }
-  function setTfDisabled(v){ [1,7,30].forEach(function(d){var b=$('rt-tf-'+d);if(b)b.disabled=v;}); }
+  function setTfDisabled(v){ [1,7,30,90,180].forEach(function(d){var b=$('rt-tf-'+d);if(b)b.disabled=v;}); }
 
   /* ── FIX BUG 2: Swap FROM ↔ TO — instant visual flip before async reload ── */
   function swapPair(){
@@ -1103,7 +1103,7 @@ var RatioTracker = (function() {
     _openPicker:_openPicker, _closePicker:_closePicker, _pickerFilter:_pickerFilter, _pickerSelect:_pickerSelect,
     /* Redraw with the current theme's palette (ui.js, on a theme switch). */
     redraw:function(){ if(S.series&&S.series.length) renderChart(S.series); },
-    getState:function(){ return { from:S.from, to:S.to, fromPrice:S.fromPrice, toPrice:S.toPrice, series:S.series||[] }; },
+    getState:function(){ return { from:S.from, to:S.to, fromPrice:S.fromPrice, toPrice:S.toPrice, series:S.series||[], days:S.days, fromSym:_symOf(S.from), toSym:_symOf(S.to) }; },
     /* Saved pairs with their alert targets, for the bell and Telegram
        (js/turn-watch.js, promptove/111). A copy: callers cannot edit it. */
     getSaved:function(){ return S.saved.map(function(p){ var o={from:p.from,to:p.to}; if(p.target>0) o.target=p.target; return o; }); },
@@ -1183,6 +1183,11 @@ function shareRotation() {
 function shareSwapCard() {
   var st = RatioTracker.getState();
   if (!st.from || !st.to) return;
+  /* Since 2026-10-11 the swap card is a chart card: the pair's ratio over
+     6 months (js/flow-charts.js shareSwapChart). This square card stays
+     as the fallback when that file or the price history is missing. */
+  if (typeof shareSwapChart === 'function' && !shareSwapCard._classic) { shareSwapChart(st); return; }
+  shareSwapCard._classic = false;
   var fromSym = RatioTracker.lbl(st.from);
   var toSym   = RatioTracker.lbl(st.to);
   if (window.Analytics) Analytics.track('Share', { source: 'swap', pair: fromSym + '/' + toSym });
