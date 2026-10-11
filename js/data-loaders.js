@@ -5276,10 +5276,156 @@ function shareTo(platform) {
    ⚠ There is a SECOND share card for the Swap Calculator — see:
       js/ratio.js → shareSwapCard()
 ══════════════════════════════════════════════════════════════════ */
+/* ── Chart share card (2026-10-11, Daniel) ───────────────────────────
+   The chart is the picture and the words sit under it, like BlockHorizon's
+   image export: the coin's last 6 months of daily closes as a big line,
+   the price tagged at its end, the R-and-arrow logo as a faint watermark
+   behind the data, an "Updated" date, then a headline, one stats line and
+   Rotator's reading, then the gold bar (Rotator written once). People
+   share a clear chart with a date far more than a panel of numbers. Falls
+   back to the classic card when there is no price history (stocks). */
+var _shareWm = null;   /* the logo cut out once: bright pixels kept, dark square dropped */
+function _shareWatermark(cb) {
+  if (_shareWm) return cb(_shareWm);
+  var im = new Image();
+  im.onload = function () {
+    try {
+      var c = document.createElement('canvas'); c.width = c.height = 512;
+      var x = c.getContext('2d'), k = 0.12 * im.width;
+      x.drawImage(im, k, k, im.width - 2 * k, im.height - 2 * k, 0, 0, 512, 512);
+      var d = x.getImageData(0, 0, 512, 512), p = d.data;
+      for (var i = 0; i < p.length; i += 4) {
+        var l = 0.3 * p[i] + 0.59 * p[i + 1] + 0.11 * p[i + 2];
+        p[i] = p[i + 1] = p[i + 2] = 255; p[i + 3] = Math.round(Math.max(0, Math.min(1, (l - 70) / 90)) * 255);
+      }
+      x.putImageData(d, 0, 0);
+      _shareWm = { mark: c, icon: im };
+    } catch (e) { _shareWm = { mark: null, icon: im }; }
+    cb(_shareWm);
+  };
+  im.onerror = function () { cb({ mark: null, icon: null }); };
+  im.src = 'icon-512.png';
+}
+
 function shareAsImage() {
   if (!_tdCoin) return;
   var c = _tdCoin;
   if (window.Analytics) Analytics.track('Share', { source: 'coin-detail', coin: c.symbol || c.sym || '' });
+  if (c.isStable || !c.price || typeof supaRest !== 'function') return _shareClassic(c);
+  supaRest('binance_daily_klines', 'GET', {
+    'base_asset': 'eq.' + c.sym, 'select': 'open_time,close', 'order': 'open_time.desc', 'limit': '180'
+  }).then(function (rows) {
+    if (!Array.isArray(rows) || rows.length < 30) return _shareClassic(c);
+    rows.reverse();
+    /* Inter must be loaded before a canvas draws with it, or the card
+       falls back to Arial. */
+    var fonts = document.fonts && document.fonts.load
+      ? Promise.all(['500 19px Inter', '600 22px Inter', '700 18px Inter', '800 38px Inter'].map(function (f) { return document.fonts.load(f); }))
+      : Promise.resolve();
+    fonts.catch(function () {}).then(function () {
+      _shareWatermark(function (wm) {
+        try { _shareChartCard(c, rows, wm); } catch (e) { _shareClassic(c); }
+      });
+    });
+  }).catch(function () { _shareClassic(c); });
+}
+
+function _shareChartCard(c, rows, wm) {
+  var sym = c.sym || '', name = c.name || sym;
+  var line = rows.map(function (r) { return Number(r.close); }).filter(function (v) { return v > 0; });
+  line.push(c.price);
+  var W = 1200, H = 675, L = 60, UP = '#16c784', DN = '#ea3943';
+  var can = document.createElement('canvas'); can.width = W; can.height = H;
+  var ctx = can.getContext('2d');
+  ctx.fillStyle = '#0a0f17'; ctx.fillRect(0, 0, W, H);
+  var MON = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  var day = function (iso) { var t = new Date(String(iso).slice(0, 10) + 'T00:00:00Z'); return t.getUTCDate() + ' ' + MON[t.getUTCMonth()] + ' ' + String(t.getUTCFullYear()).slice(2); };
+  var pct = function (v) { return v == null || !isFinite(v) ? null : (v >= 0 ? '+' : '−') + Math.abs(v).toFixed(1) + '%'; };
+  var money = function (v) { return v >= 1000 ? '$' + Math.round(v).toLocaleString('en-US') : v >= 1 ? '$' + v.toFixed(2) : '$' + v.toPrecision(3); };
+  var months = Math.max(1, Math.round(rows.length / 30));
+  var pAll = (c.price / line[0] - 1) * 100;
+
+  /* Top: what the chart is, when, and the small logo */
+  ctx.textBaseline = 'alphabetic'; ctx.textAlign = 'left';
+  ctx.fillStyle = '#8a96a8';
+  var kick = ((name.toUpperCase() === sym.toUpperCase() ? sym : name + ' (' + sym + ')') + ' · price, last ' + months + ' months').toUpperCase();
+  shareFit(ctx, kick, 900, '700 {SIZE}px Inter, sans-serif', 18, 13);
+  if (ctx.letterSpacing !== undefined) ctx.letterSpacing = '2px';
+  ctx.fillText(kick, L, 50);
+  if (ctx.letterSpacing !== undefined) ctx.letterSpacing = '0px';
+  var now = new Date();
+  ctx.fillStyle = '#f3ba2f';
+  ctx.beginPath(); ctx.arc(L + 4, 71, 4, 0, Math.PI * 2); ctx.fill();
+  ctx.font = '600 15px Inter, sans-serif';
+  ctx.fillText('Updated ' + now.getUTCDate() + ' ' + MON[now.getUTCMonth()], L + 16, 76);
+  if (wm.icon) ctx.drawImage(wm.icon, W - L - 48, 26, 48, 48);
+
+  /* The chart: line, soft fill, quiet grid, watermark behind */
+  var CX = L, CY = 100, CW = W - 2 * L - 130, CH = 240;
+  var lo = Math.min.apply(null, line), hi = Math.max.apply(null, line), pad = (hi - lo) * 0.08 || 1;
+  var Y = function (v) { return CY + CH - ((v - lo + pad) / (hi - lo + 2 * pad)) * CH; };
+  var X = function (i) { return CX + (i / (line.length - 1)) * CW; };
+  var col = c.price >= line[0] ? UP : DN;
+  ctx.strokeStyle = '#1c2330'; ctx.lineWidth = 1;
+  for (var g = 1; g < 4; g++) { ctx.beginPath(); ctx.moveTo(CX, CY + CH * g / 4); ctx.lineTo(CX + CW, CY + CH * g / 4); ctx.stroke(); }
+  if (wm.mark) { ctx.globalAlpha = 0.08; ctx.drawImage(wm.mark, CX + CW / 2 + 65 - 130, CY + CH / 2 - 130, 260, 260); ctx.globalAlpha = 1; }
+  ctx.beginPath(); ctx.moveTo(X(0), CY + CH);
+  line.forEach(function (v, i) { ctx.lineTo(X(i), Y(v)); });
+  ctx.lineTo(X(line.length - 1), CY + CH); ctx.closePath();
+  ctx.globalAlpha = 0.10; ctx.fillStyle = col; ctx.fill(); ctx.globalAlpha = 1;
+  ctx.beginPath();
+  line.forEach(function (v, i) { if (i) ctx.lineTo(X(i), Y(v)); else ctx.moveTo(X(i), Y(v)); });
+  ctx.strokeStyle = col; ctx.lineWidth = 3; ctx.lineJoin = 'round'; ctx.stroke();
+  /* the price, tagged at the line's end */
+  var ty = Math.max(CY + 18, Math.min(CY + CH - 18, Y(c.price)));
+  ctx.fillStyle = col;
+  if (ctx.roundRect) { ctx.beginPath(); ctx.roundRect(CX + CW + 10, ty - 18, 120, 36, 6); ctx.fill(); } else ctx.fillRect(CX + CW + 10, ty - 18, 120, 36);
+  ctx.fillStyle = '#0a0f17'; ctx.textAlign = 'center';
+  shareFit(ctx, money(c.price), 110, '800 {SIZE}px Inter, sans-serif', 22, 14);
+  ctx.fillText(money(c.price), CX + CW + 70, ty + 8);
+  /* the dates under it */
+  ctx.fillStyle = '#6f7b8c'; ctx.font = '600 16px Inter, sans-serif';
+  ctx.textAlign = 'left'; ctx.fillText(day(rows[0].open_time), CX, CY + CH + 26);
+  ctx.textAlign = 'center'; ctx.fillText('daily close, USD', W / 2, CY + CH + 26);
+  ctx.textAlign = 'right'; ctx.fillText('today', W - L, CY + CH + 26);
+
+  /* Words: headline, one stats line, Rotator's reading */
+  ctx.textAlign = 'left'; ctx.fillStyle = '#ffffff';
+  var head = sym + (pAll >= 0 ? ' up ' : ' down ') + Math.abs(pAll).toFixed(0) + '% in ' + months + ' months';
+  shareFit(ctx, head, W - 2 * L, '800 {SIZE}px Inter, sans-serif', 38, 26);
+  ctx.fillText(head, L, 418);
+  var parts = [['7 days', pct(c.p7)], ['30 days', pct(c.p30)]];
+  var scoreEl = document.querySelector('#td-score-num .td-score-num-val');
+  var score = scoreEl ? scoreEl.textContent.trim().split('/')[0].trim() : (c.score != null ? String(c.score) : '');
+  var sx = L;
+  ctx.font = '600 22px Inter, sans-serif';
+  parts.forEach(function (p, i) {
+    if (!p[1]) return;
+    if (sx > L) { ctx.fillStyle = '#6f7b8c'; ctx.fillText('  ·  ', sx, 458); sx += ctx.measureText('  ·  ').width; }
+    ctx.fillStyle = '#c9d2de'; ctx.font = '600 22px Inter, sans-serif'; ctx.fillText(p[0] + ' ', sx, 458); sx += ctx.measureText(p[0] + ' ').width;
+    ctx.fillStyle = p[1].charAt(0) === '+' ? UP : DN; ctx.font = '800 22px Inter, sans-serif'; ctx.fillText(p[1], sx, 458); sx += ctx.measureText(p[1]).width;
+    ctx.font = '600 22px Inter, sans-serif';
+  });
+  if (score) {
+    ctx.fillStyle = '#6f7b8c'; ctx.fillText('  ·  ', sx, 458); sx += ctx.measureText('  ·  ').width;
+    ctx.fillStyle = '#c9d2de'; ctx.fillText('Score ', sx, 458); sx += ctx.measureText('Score ').width;
+    var scn = parseInt(score, 10);
+    ctx.fillStyle = scn >= 60 ? UP : scn >= 35 ? '#f3ba2f' : DN; ctx.font = '800 22px Inter, sans-serif'; ctx.fillText(score + '/100', sx, 458);
+  }
+  var R = (typeof coinReading === 'function') ? coinReading(c) : null;
+  if (R && R.head) {
+    ctx.fillStyle = '#8a96a8';
+    var note = 'Reading: ' + R.head;   /* Rotator is written once, in the gold bar */
+    shareFit(ctx, note, W - 2 * L, '500 {SIZE}px Inter, sans-serif', 19, 14);
+    ctx.fillText(note, L, 492);
+  }
+
+  shareBrandBar(ctx, W, H);
+  _openShareCard(can, sym);
+}
+
+/* The classic card (2026-10-06): numbers and the score ring, no chart. */
+function _shareClassic(c) {
 
   /* ── Gather visible data from the detail panel ── */
   var sym   = (document.getElementById('td-sym')  || {}).textContent || c.sym || '';
@@ -5390,8 +5536,11 @@ function shareAsImage() {
 
   /* The gold bar */
   shareBrandBar(ctx, W, H);
+  _openShareCard(can, sym);
+}
 
-  /* ── Show viral share preview modal instead of direct download ── */
+/* Show the card in the share preview window (both cards use it). */
+function _openShareCard(can, sym) {
   try {
     can.toBlob(function(blob) {
       if (!blob) { _fallbackDownload(can, sym); return; }
