@@ -1066,7 +1066,7 @@ td.pc{text-align:right;padding-left:2px;padding-right:2px;}
 .ti{width:20px;height:20px;border-radius:50%;overflow:hidden;background:var(--bg4);flex-shrink:0;}
 .ti img{width:100%;height:100%;}
 .tsym{font-size:13px;font-weight:500;}
-.tname{font-size:12px;color:var(--muted);max-width:100px;overflow:hidden;text-overflow:ellipsis;font-family:var(--font-ui);opacity:.7;}
+.tname{font-size:12px;color:var(--muted);max-width:100px;overflow:hidden;text-overflow:ellipsis;font-family:var(--font-ui);}
 .htag{font-size:12px;padding:1px 4px;border-radius:4px;background:var(--bnbd);color:var(--bnb);border:1px solid rgba(243,186,47,.2);margin-left:3px;letter-spacing:.04em;}
 /* Meme filler (HANDOVER.md Task 1): neutral, it labels what the coin is, not how it did. */
 .htag.meme-tag{background:transparent;color:var(--muted);border:1px solid var(--bdr);}
@@ -1897,7 +1897,7 @@ td.qa-cell{text-align:center;width:28px;padding:0 4px !important;}
     margin-bottom:4px;
   }
   .tsym{font-size:17px;font-weight:800;letter-spacing:.01em;}
-  .tname{font-size:11px;color:var(--muted);max-width:none;opacity:.7;}
+  .tname{font-size:11px;color:var(--muted);max-width:none;}
   .cc{gap:10px;}
   .ti{width:24px;height:24px;}
 
@@ -4018,8 +4018,8 @@ header{position:sticky;top:0;z-index:100;}
   position:relative;height:100%;
   display:grid;   /* both faces share one cell: the card is as tall as its taller side */
   transform-style:preserve-3d;
-  transition:transform .6s cubic-bezier(.3,.7,.3,1);
 }
+.bf-cell.bf-turning .bf-inner{transition:transform .6s cubic-bezier(.3,.7,.3,1);}
 .bf-cell.flipped .bf-inner{transform:rotateY(180deg);}
 /* A short glow when a tile lands on its new side (2026-10-03). Fired from
    the flip's transitionend, so with reduced motion (no transition) it
@@ -4972,7 +4972,7 @@ details.td-reading-trust[open] > summary::before{content:'▾ ';}
   #crypto-panel tbody td[data-label]::before{font-size:10px;margin-bottom:1px;}
   #crypto-panel tbody td{font-size:13px;}
   #crypto-panel .tsym{font-size:16px;}
-  #crypto-panel .tname{font-size:12px;opacity:.8;}
+  #crypto-panel .tname{font-size:12px;}
 
   /* Momentum / worst-30D cards: wide enough for the ticker, stats 2x2. */
   .sig-tile{width:168px;}
@@ -5628,6 +5628,19 @@ html.no-anim .mt-viewport::-webkit-scrollbar{display:none;}
 .bf-cell.flipped .bf-back{visibility:visible;}
 @media (prefers-reduced-motion: reduce){
   .bf-front,.bf-back{transition:none;}   /* the turn is instant, so the swap is too */
+}
+/* Crisp text at rest (2026-10-11). In 3D (perspective + preserve-3d +
+   the 1px lift) Chrome paints the faces as a scaled GPU layer, so the
+   rates, labels and dates came out soft next to "The market now". The
+   3D is only needed while the mouse tilts a card or while it turns
+   (bf-3d, set by _bfWireInfo's turn for ~.7s); the rest of the time
+   the card is flat and the visibility rules above pick the side. The
+   flip transition lives on bf-turning only, so a flipped card going 3D
+   on hover snaps to its turned state instead of spinning. */
+.bf-cell:not(.hovering):not(.bf-3d){perspective:none;}
+.bf-cell:not(.hovering):not(.bf-3d) :is(.bf-tilt,.bf-inner,.bf-front,.bf-back){
+  -webkit-transform:none;transform:none;
+  -webkit-transform-style:flat;transform-style:flat;
 }
 
 /* ── Swap: ratio history chart, LIGHT THEME (2026-10-05) ──────────────

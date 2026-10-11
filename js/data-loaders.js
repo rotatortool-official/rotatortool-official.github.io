@@ -2286,9 +2286,23 @@ function _bfWireInfo(host) {
   }
   if (host._bfInfoWired) return;
   host._bfInfoWired = true;
+  /* The card is flat at rest for crisp text (styles.css, 2026-10-11).
+     bf-3d puts it back in 3D at its current side first; the reflow lets
+     that land before bf-turning switches the transition on, then flipped
+     turns it. Both come off once the .6s turn is done. Phones (the row
+     layout, max-width 600px) open in place without a turn, so they skip it. */
   var turn = function (cell) {
+    var anim = false;
+    try { anim = !window.matchMedia('(max-width:600px)').matches; } catch (e) {}
+    if (anim) {
+      clearTimeout(cell._bfTurnT);
+      cell.classList.add('bf-3d');
+      void cell.offsetWidth;
+      cell.classList.add('bf-turning');
+    }
     var on = cell.classList.toggle('flipped');
     cell.setAttribute('aria-pressed', on ? 'true' : 'false');
+    if (anim) cell._bfTurnT = setTimeout(function () { cell.classList.remove('bf-turning', 'bf-3d'); }, 700);
   };
   host.addEventListener('click', function (e) {
     var rd = e.target.closest('.bf-read');
