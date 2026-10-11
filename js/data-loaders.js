@@ -1552,9 +1552,9 @@ function startAutoRefresh() {
    joinTelegram), and drop the parameter from the address bar, keeping
    any #more= deep link. */
 /* Since 2026-10-11 every network the social desk posts on is counted the
-   same way: ?utm_source=x | instagram | facebook | gemidzija | substack
+   same way: ?utm_source=x | instagram | facebook | gemidzija | substack | binance (Binance Square, 2026-10-11)
    gives from_<source> (count_feature allows exactly these). */
-var _ARRIVAL_SOURCES = ['substack', 'x', 'instagram', 'facebook', 'gemidzija'];
+var _ARRIVAL_SOURCES = ['substack', 'x', 'instagram', 'facebook', 'gemidzija', 'binance'];
 function _countSubstackArrival() {
   try {
     var q = new URLSearchParams(location.search);
