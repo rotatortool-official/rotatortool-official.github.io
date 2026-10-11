@@ -3046,10 +3046,13 @@ td.qa-cell{text-align:center;width:28px;padding:0 4px !important;}
 }
 .new-chart-header {
   display: flex;
+  flex-wrap: wrap;   /* a long title (MK) gets its own line above the 24h…6m buttons instead of a squeezed column (2026-10-11) */
   align-items: center;
   justify-content: space-between;
+  gap: 8px 12px;
   margin-bottom: 8px;
 }
+.new-chart-header .new-chart-title { flex: 1 1 auto; line-height: 1.35; }
 .new-chart-title {
   font-size: 12px;
   letter-spacing: .14em;
