@@ -417,7 +417,7 @@ document.addEventListener('DOMContentLoaded', function() {
    tool shows where the ratio is, not where it goes next. */
 var SWAP_TUT_STEPS = [
   {
-    title: "Swap Tool — the ratio between two assets",
+    title: "Rotator Tool — the ratio between two assets",
     desc: "This tool tracks the live price ratio between two assets over time, so you can see where today sits in its recent range. It shows where the ratio is, not where it goes next.",
     anchor: ".new-ratio-hook"
   },

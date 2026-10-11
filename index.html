@@ -802,6 +802,14 @@
   </div>
 </div>
 <!-- ETF FLOWS MODAL — filled by openEtfModal() in js/data-loaders.js -->
+<!-- BITCOIN VS GOLD MODAL (2026-10-11) — filled by openBtcGold() in js/btc-gold.js -->
+<div class="overlay" id="btcg-modal" onclick="if(event.target===this)closeModal('btcg-modal')">
+  <div class="modal etf-modal btcg-modal">
+    <button class="modal-x" onclick="closeModal('btcg-modal')" aria-label="Close">×</button>
+    <div id="btcg-modal-body"></div>
+  </div>
+</div>
+
 <div class="overlay" id="etf-modal" onclick="if(event.target===this)closeModal('etf-modal')">
   <div class="modal etf-modal">
     <button class="modal-x" onclick="closeModal('etf-modal')" aria-label="Close">×</button>
@@ -1811,6 +1819,7 @@
   <script src="js/signal-history.js"></script>
   <script src="js/global-movers.js"></script>
   <script src="js/data-loaders.js"></script>
+  <script src="js/btc-gold.js"></script>
   <script src="js/radio.js"></script>
   <script src="js/coin-reading.js"></script>
   <script src="js/turn-watch.js"></script>

@@ -6092,3 +6092,38 @@ a.mob-more-item{text-decoration:none;color:inherit;}
 :root.light .loader-ecg .trk{stroke:rgba(14,159,110,.18);}
 :root.light .loader-ecg .fill{stroke:#0e9f6e;filter:drop-shadow(0 0 5px rgba(14,159,110,.45));}
 @media (prefers-reduced-motion: reduce){ .loader-ecg .fill{transition:none;} }
+
+/* ── Bitcoin vs gold window (2026-10-11, Daniel): chart with the logo
+   watermark behind it, changes, a weekly table, share. js/btc-gold.js. */
+#btcg-modal-body{display:flex;flex-direction:column;min-height:0;}
+.btcg-big{font-family:var(--font-mono);font-size:30px;font-weight:800;color:var(--text);margin:2px 0 10px;}
+.btcg-big span{font-family:var(--font-ui);font-size:13px;font-weight:600;color:var(--muted);}
+.btcg-stats b.up{color:var(--green);} .btcg-stats b.dn{color:var(--red);}
+.btcg-stage{margin:14px 0 4px;background-repeat:no-repeat;background-position:center;background-size:150px 150px;}
+.btcg-chart{display:block;width:100%;height:160px;}
+.btcg-line{fill:none;stroke-width:2.2;stroke-linejoin:round;}
+.btcg-line.up{stroke:var(--green);} .btcg-line.dn{stroke:var(--red);}
+.btcg-fill{opacity:.12;} .btcg-fill.up{fill:var(--green);} .btcg-fill.dn{fill:var(--red);}
+.btcg-read{font-size:12px;color:var(--muted);line-height:1.5;margin:8px 0 0;}
+.btcg-table{width:100%;border-collapse:collapse;margin-top:6px;font-size:12px;}
+.btcg-table th{position:static;background:none;box-shadow:none;text-align:right;font-size:10px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);padding:5px 4px;border-bottom:1px solid var(--bdr);cursor:default;}
+.btcg-table td{text-align:right;padding:5px 4px;border-bottom:1px solid var(--bdr);color:var(--text);font-family:var(--font-mono);white-space:nowrap;}
+.btcg-table th:first-child,.btcg-table td:first-child{text-align:left;font-family:var(--font-ui);}
+.btcg-table td.up{color:var(--green);} .btcg-table td.dn{color:var(--red);}
+.btcg-share{all:unset;cursor:pointer;align-self:flex-start;margin-top:12px;font-size:13px;font-weight:700;color:#14110a;background:var(--bnb);border-radius:6px;padding:8px 14px;}
+.btcg-share:hover{filter:brightness(1.08);}
+.btcg-loading,.btcg-none{font-size:13px;color:var(--muted);padding:20px 0;}
+:root.light .btcg-stats b.up,:root.light .btcg-table td.up{color:#0e9f6e;}
+:root.light .btcg-stats b.dn,:root.light .btcg-table td.dn{color:#c2410c;}
+:root.light .btcg-line.up{stroke:#0e9f6e;} :root.light .btcg-fill.up{fill:#0e9f6e;}
+/* The phone stylesheet turns every table into stacked coin cards (the
+   leaderboard layout); the weekly table keeps a plain table everywhere. */
+.btcg-table{display:table !important;border-collapse:collapse !important;}
+.btcg-table thead{display:table-header-group !important;position:static !important;}
+.btcg-table tbody{display:table-row-group !important;padding:0 !important;gap:0 !important;}
+.btcg-table tr{display:table-row !important;background:none !important;border:0 !important;border-radius:0 !important;padding:0 !important;}
+.btcg-table td,.btcg-table th{display:table-cell !important;}
+.btcg-table td{white-space:nowrap !important;padding:5px 4px !important;font-size:12px !important;border-bottom:1px solid var(--bdr) !important;}
+.btcg-table td:first-child{text-align:left !important;}
+.btcg-table td:not(:first-child){text-align:right !important;}
+@media (max-width:600px){ .btcg-table th:nth-child(2),.btcg-table td:nth-child(2){display:none !important;} }

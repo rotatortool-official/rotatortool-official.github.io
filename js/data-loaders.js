@@ -2771,6 +2771,9 @@ function renderBriefing() {
   _bfMore = {};
   groups.forEach(function (g) { g.cells.forEach(function (c) { if (c.more) _bfMore[c.k] = c; }); });
   groups = groups.filter(function (g) { return g.cells.length; });
+  /* The market card's "Bitcoin vs gold" reads the board's gold, which can
+     land after the card first drew (2026-10-11). */
+  if (typeof renderMarketNow === 'function' && typeof coins !== 'undefined' && coins.length) { try { renderMarketNow(); } catch (e) {} }
   if (!groups.length) { host.style.display = 'none'; return; }
 
   var face = function (c, days) {
@@ -5547,7 +5550,11 @@ function _shareClassic(c) {
 }
 
 /* Show the card in the share preview window (both cards use it). */
-function _openShareCard(can, sym) {
+/* A card that is not a coin (Bitcoin vs gold, 2026-10-11) brings its own
+   share message; the coin templates speak of a coin's score. */
+var _viralCustomText = null;
+function _openShareCard(can, sym, text) {
+  _viralCustomText = text || null;
   try {
     can.toBlob(function(blob) {
       if (!blob) { _fallbackDownload(can, sym); return; }
@@ -5634,6 +5641,7 @@ function _getViralCopyData() {
 }
 
 function _updateViralCopy() {
+  if (_viralCustomText) { var ce = document.getElementById('viral-copy-text'); if (ce) ce.textContent = _viralCustomText; return; }
   var d = _getViralCopyData();
   var tpl = _viralCopyTemplates[_viralCopyIdx % _viralCopyTemplates.length];
   var text = tpl(d.sym, d.score, d.chg, d.link);
@@ -5653,7 +5661,8 @@ function closeViralShare() {
 function viralShareTo(platform) {
   var d = _getViralCopyData();
   var tpl = _viralCopyTemplates[_viralCopyIdx % _viralCopyTemplates.length];
-  var text = tpl(d.sym, d.score, d.chg, d.link);
+  var text = _viralCustomText || tpl(d.sym, d.score, d.chg, d.link);
+  if (_viralCustomText) { d.sym = _viralSym; d.link = ROTATOR_SHARE.link; }
   var enc = encodeURIComponent(text);
   var encUrl = encodeURIComponent(d.link);
   var btn = event && event.currentTarget;
@@ -5711,7 +5720,8 @@ function viralNativeShare() {
   if (!_viralBlob) return;
   var d = _getViralCopyData();
   var tpl = _viralCopyTemplates[_viralCopyIdx % _viralCopyTemplates.length];
-  var text = tpl(d.sym, d.score, d.chg, d.link);
+  var text = _viralCustomText || tpl(d.sym, d.score, d.chg, d.link);
+  if (_viralCustomText) d.sym = _viralSym;
   var file = new File([_viralBlob], 'rotator-' + _viralSym.toLowerCase() + '.png', { type: 'image/png' });
   /* Try native share with image, fall back to download */
   if (navigator.share && navigator.canShare && navigator.canShare({ files: [file] })) {

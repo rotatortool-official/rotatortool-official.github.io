@@ -173,17 +173,31 @@ function renderMarketNow() {
     html += cell('Fear & Greed', none, 'alternative.me did not answer. It is not shown as 50.');
   }
 
-  /* Listed coins only: no tokenized stocks, no stablecoins, not BTC. */
-  var alts = coins.filter(function (c) {
-    return !c.isStock && !c.isStable && c.sym !== 'BTC' && typeof c.p7 === 'number' && !isNaN(c.p7);
-  });
-  if (alts.length && typeof btc.p7 === 'number') {
-    var beat = alts.filter(function (c) { return c.p7 > btc.p7; }).length;
-    var s = alts.map(function (c) { return c.p7; }).sort(function (a, b) { return a - b; });
-    var med = s.length % 2 ? s[(s.length - 1) / 2] : (s[s.length / 2 - 1] + s[s.length / 2]) / 2;
-    html += cell('Coins vs BTC, 7 days', beat + ' <span class="mn-lbl">of ' + alts.length + '</span>',
-      'did better than BTC · the middle coin ' + pct(med),
-      'Listed coins only: no tokenized stocks and no stablecoins.');
+  /* Bitcoin vs gold (2026-10-11, Daniel): replaced "Coins vs BTC, 7 days",
+     which the CAPITAL ROTATION section now shows in full (and whose "middle
+     coin" there means something else, which read as a contradiction).
+     Digital gold against real gold: ounces of gold one BTC buys, and how
+     BTC did against gold over 7 days. Gold is the TODAY board's own reading
+     (world_data, last close); nothing new is fetched. */
+  var gold = (typeof _worldData !== 'undefined' && _worldData && _worldData.items) ? _worldData.items.gold : null;
+  var mkG = (typeof currentLang !== 'undefined' && currentLang === 'mk');
+  if (gold && gold.v > 0 && btc.price > 0) {
+    var oz = btc.price / gold.v;
+    var rel = (typeof btc.p7 === 'number' && typeof gold.c7 === 'number')
+      ? ((1 + btc.p7 / 100) / (1 + gold.c7 / 100) - 1) * 100 : null;
+    var relTxt = rel == null ? '' : '<span class="bf-d ' + (rel >= 0 ? 'up' : 'dn') + '">' + (rel >= 0 ? '+' : '−') + Math.abs(rel).toFixed(1) + '%</span>';
+    var sub = rel == null ? '' : (mkG
+      ? 'Bitcoin ' + relTxt + ' наспроти златото за 7 дена'
+      : 'Bitcoin ' + relTxt + ' against gold in 7 days');
+    sub += (sub ? ' · ' : '') + (mkG ? 'злато ' : 'gold ') + '$' + Math.round(gold.v).toLocaleString('en-US')
+      + '<br><button type="button" class="mn-why" onclick="openBtcGold()">' + (mkG ? 'Графикон и табела ›' : 'Chart and table ›') + '</button>';
+    html += cell(mkG ? 'Bitcoin наспроти златото' : 'Bitcoin vs gold',
+      oz.toFixed(1) + ' <span class="mn-lbl">' + (mkG ? 'унци злато за 1 BTC' : 'oz of gold per BTC') + '</span>',
+      sub,
+      mkG ? 'Колку унци злато купува еден Bitcoin. Цената на златото е од таблата ДЕНЕС (последно затворање).'
+          : 'How many ounces of gold one Bitcoin buys. The gold price is the TODAY board’s own reading (last close).');
+  } else {
+    html += cell(mkG ? 'Bitcoin наспроти златото' : 'Bitcoin vs gold', none, mkG ? 'Цената на златото не е вчитана.' : 'The gold price has not loaded.');
   }
 
   /* Freshness on the title row (promptove/107): filled and ticked by
