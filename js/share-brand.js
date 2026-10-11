@@ -22,6 +22,10 @@
 ══════════════════════════════════════════════════════════════════ */
 var ROTATOR_SHARE = {
   url: 'rotatortool-official.github.io',
+  /* The full link for share texts. The ONE place the address lives: when
+     the site moves to its own domain, change url above and every card and
+     share message follows (Daniel, 2026-10-11). */
+  get link() { return 'https://' + this.url; },
   /* Daniel's lines; a card shows one at random. "with Rotator" is left off
      the second here because the call beside it already names Rotator. */
   hooks: ['Money moves. Be there first.', 'Stay ahead of the crowd.'],

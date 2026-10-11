@@ -5191,7 +5191,7 @@ function _shareText() {
   var R = (typeof coinReading === 'function' && _tdCoin) ? coinReading(_tdCoin) : null;
   var signals = R ? [R.head] : [];
   var arrow = chg.indexOf('+') === 0 ? '▲' : chg.indexOf('-') === 0 || chg.indexOf('−') === 0 ? '▼' : '◆';
-  var coinUrl = 'https://rotatortool-official.github.io?coin=' + encodeURIComponent(sym);
+  var coinUrl = ROTATOR_SHARE.link + '/?coin=' + encodeURIComponent(sym);
   var text = '━━━━━━━━━━━━━━━━\n'
     + '📊  ' + sym + '  ·  ' + prc + '\n'
     + arrow + ' ' + chg + '  ';
@@ -5622,7 +5622,7 @@ function _getViralCopyData() {
      had gone dead. Pointed at where the number actually is. */
   var scoreEl = document.querySelector('#td-score-num .td-score-num-val');
   var score = scoreEl ? scoreEl.textContent.trim().split('/')[0].trim() : (_tdCoin ? _tdCoin.score : '?');
-  var link  = (typeof getMyReferralLink === 'function') ? getMyReferralLink() : 'https://rotatortool-official.github.io';
+  var link  = (typeof getMyReferralLink === 'function') ? getMyReferralLink() : ROTATOR_SHARE.link;
   return { sym: sym, score: score, chg: chg, link: link };
 }
 

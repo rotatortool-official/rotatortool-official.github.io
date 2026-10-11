@@ -573,6 +573,9 @@ window.addEventListener('scroll', _tutReflow, { passive: true });
 
 var PRO_TUT_KEY = 'rot_pro_tutorial_done';
 
+/* Mini-card Pro tour (2026-10-11, Daniel): same engine and look as the
+   main tour, one spot per step, one or two short lines. Same 6 steps in
+   the same order, because i18n.js fills the Macedonian pro_tut by index. */
 var PRO_TUT_STEPS = [
 
   /* 1. Welcome */
@@ -581,78 +584,70 @@ var PRO_TUT_STEPS = [
     "pos": "center",
     "title": "⚡ Welcome to Pro",
     "p": [
-      "Thank you for supporting Rotator. As an early supporter you unlocked Pro **once**; later Pro becomes a subscription.",
-      "This short tour shows what just unlocked, section by section."
-    ]
+      "Thank you for supporting Rotator. Pro sends what matters for your coins to you personally, on Telegram."
+    ],
+    "note": "A short tour of what just unlocked."
   },
 
-  /* 2-3. The Insight Engine and every tile/turn sign left the Pro tour on
-     2026-10-10: they are free for everyone now (Daniel). */
-
-  /* 4. YOURS: limits and the alerts panel */
+  /* 2. YOURS: limits and the alerts panel */
   {
     "target": "#sec-yours",
+    "spot": ["#cb-holdings", "#sec-yours"],
     "goto": "sec-yours",
     "open": "holdings",
-    "pos": "section",
-    "title": "10 holdings and fuller alerts",
+    "title": "10 coins and fuller alerts",
     "p": [
-      "You can now track **10 holdings** instead of 2, and keep up to 20 paper trades.",
-      "**Alerts for your coins** now add new turn signs and sharp moves in Bitcoin and Ether ETF flows to the free exchange and unlock warnings. You can also turn on browser notifications, which fire while Rotator is open in a tab."
+      "Track **10 coins** instead of 2, and up to 20 paper trades. Your alerts now add new turn signs and sharp ETF moves."
     ]
   },
 
-  /* 5. Telegram DMs — the main thing Pro gives (site-is-a-telegram-pro-funnel) */
+  /* 3. Telegram DMs, the main thing Pro gives */
   {
     "target": "#coin-alerts",
+    "spot": ["#coin-alerts", "#sec-yours"],
     "goto": "coin-alerts",
     "open": "holdings",
-    "pos": "section",
     "title": "📨 Your alerts on Telegram",
     "p": [
-      "At the bottom of **Alerts for your coins**, click **Get these on Telegram**. Telegram opens; tap **Start** and you are linked.",
-      "From then on you get a short briefing every Monday and Thursday: the market, your coins and your saved swap pairs, and a warning 3+ days before an unlock on a coin you hold, in the language this site is set to. A Binance delisting or a pair alert comes right away."
+      "Click **Get these on Telegram**, then tap **Start** in Telegram. You get a briefing every Monday and Thursday, and delistings right away."
     ],
-    "note": "Disconnect any time from the same panel. The market pulse channel stays free for everyone."
+    "note": "Disconnect any time from the same panel."
   },
 
-  /* 6. The cross lenses and badges are free since 2026-10-10. */
-
-  /* 7. SWAP: any pair */
+  /* 4. SWAP: any pair */
   {
     "target": "#sec-swap",
+    "spot": ["#cb-swap", "#sec-swap"],
     "goto": "sec-swap",
     "open": "swap",
-    "pos": "section",
     "title": "Your own swap pairs",
     "p": [
-      "Choose any two assets and see how their ratio has moved, where today sits in its recent range, and what a swap would give you at current prices."
+      "Choose any two coins and see where their ratio sits in its recent range, and what a swap would give you today."
     ],
-    "note": "It shows where the ratio is, not where it goes next."
+    "note": "Where the ratio is, not where it goes next."
   },
 
-  /* 7b. Saved-pair alerts (promptove/111, Daniel 2026-10-05) */
+  /* 5. Saved-pair alerts */
   {
     "target": "#rt-saved-wrap",
+    "spot": ["#rt-saved-wrap", "#cb-swap", "#sec-swap"],
     "goto": "rt-saved-wrap",
     "open": "swap",
-    "pos": "section",
     "title": "🔔 Alerts for saved pairs",
     "p": [
-      "Tap **☆** to save a pair. Rotator then tells you when it enters its **good swap zone**: the top quarter of its 30-day range, the green dashed line on the chart.",
-      "Type a number under the saved pairs to set your own **target**, for example 1 BNB ≥ 6.70 SOL. Alerts show on the bell, and on Telegram once it is linked."
-    ],
-    "note": "It shows where the ratio is, not a forecast."
+      "Tap **☆** to save a pair. Rotator tells you when it reaches its good swap zone, or a target you set yourself."
+    ]
   },
 
-  /* 8. Recovery key — it is a bearer token (promptove/108), so say so */
+  /* 6. Recovery key: it is a bearer token (promptove/108), so say so */
   {
     "target": "#pro-topbar-btn",
+    "spot": ["#pro-topbar-btn", ".mob-topbar-pro"],
     "pos": "below",
     "title": "🔑 Keep your recovery key safe",
     "p": [
-      "To use Pro on another device or browser: **1.** Click **⚡** at the top and copy your **recovery key**. **2.** On the new device, click **⚡** and paste it under **Already have Pro on another device?**",
-      "**Treat it like a password.** Anyone who has it can use your Pro and change your Telegram alerts. Never post it or send it in a chat."
+      "Tap **⚡** and copy your **recovery key** to use Pro on another device.",
+      "**Treat it like a password.** Never post it or send it in a chat."
     ],
     "note": "Replay this tour any time from the ⚙ gear."
   }
@@ -668,13 +663,8 @@ function startProTutorial(force) {
   if (force !== true) {
     /* Don't show if already completed */
     try { if (localStorage.getItem(PRO_TUT_KEY) === 'done') return; } catch(e) {}
-    /* Phones: the computer suggestion first (see _tutShowGate). It counts
-       as seen, so it does not come back; the ⚙ gear replays the tour. */
-    if (_tutIsPhone()) {
-      try { localStorage.setItem(PRO_TUT_KEY, 'done'); } catch(e) {}
-      _tutShowGate(function() { startProTutorial(true); });
-      return;
-    }
+    /* Phones get the mini-card tour itself since 2026-10-11 (it used to
+       open with a "made for a computer" card). */
   }
   _tutGate = null;
 

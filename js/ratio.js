@@ -1117,7 +1117,7 @@ document.addEventListener('DOMContentLoaded',function(){
 
 /* ── Share Rotator ── */
 function shareRotation() {
-  var url   = 'https://rotatortool-official.github.io';
+  var url   = ROTATOR_SHARE.link;
   var title = 'Rotator — an honest market pulse for Binance traders';
   var text  = 'I use Rotator to time my crypto rotations — real-time signals and momentum scores for 200+ coins, completely free.\n\nStop guessing when to swap. Let the data decide.';
 
@@ -1472,9 +1472,9 @@ function shareSwapCard() {
       /* Set swap-specific viral copy templates temporarily */
       var origTemplates = _viralCopyTemplates;
       _viralCopyTemplates = [
-        function() { return 'I timed my ' + fromSym + ' \u2192 ' + toSym + ' rotation at ' + peakR + ' peak ratio using Rotator \u2014 the free crypto rotation screener.\n\nStop guessing when to swap. Let the data decide.\n\nhttps://rotatortool-official.github.io'; },
-        function() { return fromSym + ' \u2192 ' + toSym + ' swap: ' + amount + ' ' + fromSym + ' = ' + output + '\nCurrent ratio: ' + nowR + ' | Peak: ' + peakR + '\n\nTimed with Rotator \u2014 free rotation signals\nhttps://rotatortool-official.github.io'; },
-        function() { return '\u26A1 Swapped ' + fromSym + ' to ' + toSym + ' at the right time using Rotator.\n\nPeak ratio: ' + peakR + ' | Now: ' + nowR + '\n\nFree tool, no signup \u2192 https://rotatortool-official.github.io'; }
+        function() { return 'I timed my ' + fromSym + ' \u2192 ' + toSym + ' rotation at ' + peakR + ' peak ratio using Rotator \u2014 the free crypto rotation screener.\n\nStop guessing when to swap. Let the data decide.\n\n' + ROTATOR_SHARE.link; },
+        function() { return fromSym + ' \u2192 ' + toSym + ' swap: ' + amount + ' ' + fromSym + ' = ' + output + '\nCurrent ratio: ' + nowR + ' | Peak: ' + peakR + '\n\nTimed with Rotator \u2014 free rotation signals\n' + ROTATOR_SHARE.link; },
+        function() { return '\u26A1 Swapped ' + fromSym + ' to ' + toSym + ' at the right time using Rotator.\n\nPeak ratio: ' + peakR + ' | Now: ' + nowR + '\n\nFree tool, no signup \u2192 ' + ROTATOR_SHARE.link; }
       ];
       _viralCopyIdx = 0;
 
@@ -1488,7 +1488,7 @@ function shareSwapCard() {
       /* Override _getViralCopyData for swap context */
       var origGetData = _getViralCopyData;
       _getViralCopyData = function() {
-        return { sym: fromSym + '/' + toSym, score: nowR, chg: peakR, link: 'https://rotatortool-official.github.io' };
+        return { sym: fromSym + '/' + toSym, score: nowR, chg: peakR, link: ROTATOR_SHARE.link };
       };
 
       /* Always show share-with-image button */

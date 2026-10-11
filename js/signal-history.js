@@ -1141,7 +1141,7 @@ var SignalHistory = (function() {
         /* Custom "told you so" message */
         var copyEl = document.getElementById('viral-copy-text');
         if (copyEl) {
-          var ref = (typeof getMyReferralLink === 'function') ? getMyReferralLink() : 'https://rotatortool-official.github.io/';
+          var ref = (typeof getMyReferralLink === 'function') ? getMyReferralLink() : ROTATOR_SHARE.link + '/';
           copyEl.textContent = 'Rotator flagged ' + p.sym + ' as ' + p.signal + ' ' + p.daysAgo + ' days ago at ' + fmtP(p.priceThen) + '. It\'s now ' + fmtP(p.priceNow) + ' (' + changeStr + '). Free signals:\n\n' + ref;
         }
 
