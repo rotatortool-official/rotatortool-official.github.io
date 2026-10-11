@@ -866,6 +866,14 @@ body::before{content:'';position:fixed;inset:0;background:repeating-linear-gradi
 /* Share buttons */
 .td-share-wrap{margin-top:10px;padding-top:10px;border-top:1px solid var(--bdr);}
 .td-share-label{font-size:12px;letter-spacing:.12em;color:var(--muted);text-transform:uppercase;margin-bottom:7px;font-family:var(--font-display);}
+/* Binance referral, labelled (2026-10-11, _tdBinance) */
+.td-bnb{margin-top:10px;padding-top:10px;border-top:1px solid var(--bdr);display:flex;flex-direction:column;gap:6px;}
+.td-bnb:empty{display:none;}
+.td-bnb a{font-size:13px;font-weight:600;color:var(--bnb);text-decoration:none;}
+.td-bnb a:hover{text-decoration:underline;}
+.td-bnb .td-bnb-join{color:var(--text);font-weight:500;}
+.td-bnb-note{font-size:11px;color:var(--muted);line-height:1.4;}
+.rt-bnb a{color:var(--muted);text-decoration:underline;}
 /* Hero share-card button */
 .td-share-card-btn{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;padding:10px 0;margin-bottom:8px;background:linear-gradient(135deg,rgba(243,186,47,.15),rgba(243,186,47,.06));border:1px solid rgba(243,186,47,.35);border-radius:6px;color:var(--bnb);font-size:12px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;cursor:pointer;font-family:var(--font-display);transition:all .18s;}
 .td-share-card-btn:hover{background:linear-gradient(135deg,rgba(243,186,47,.25),rgba(243,186,47,.12));border-color:rgba(243,186,47,.55);box-shadow:0 0 14px rgba(243,186,47,.15);}

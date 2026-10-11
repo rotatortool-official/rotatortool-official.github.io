@@ -3456,6 +3456,25 @@ var _CF_TD = {
   mk: { k: function (ch) { return 'Стејблкоини на ' + ch; }, week: 'оваа недела', m30: 'за 30 дена',
         note: function (s) { return 'Долари што пристигнуваат на или заминуваат од мрежата на ' + s + '. Само контекст: не влегува во оценката.'; } }
 };
+/* Binance referral (Daniel, 2026-10-11: a labelled referral link instead of
+   ads). SUF8XOG6 is the code Binance stamps on links from his account. A
+   referral only counts for NEW accounts, so the sign-up line says so; people
+   who already trade there get a plain link to the coin. Always labelled. */
+var BINANCE_REF = 'SUF8XOG6';
+var BINANCE_JOIN = 'https://www.binance.com/join?ref=' + BINANCE_REF;
+function binanceRefClick() { if (typeof supaCountFeature === 'function') supaCountFeature('binance_referral_click'); }
+function _tdBinance(c) {
+  var host = document.getElementById('td-bnb');
+  if (!host) return;
+  var mk = typeof currentLang !== 'undefined' && currentLang === 'mk', sym = _esc(c.sym);
+  var trade = c.isStock ? '' : '<a class="td-bnb-trade" href="https://www.binance.com/en/trade/' + encodeURIComponent(c.sym) + '_USDT?type=spot&ref=' + BINANCE_REF
+    + '" target="_blank" rel="noopener sponsored">' + (mk ? 'Тргувајте со ' + sym + ' на Binance' : 'Trade ' + sym + ' on Binance') + ' ↗</a>';
+  host.innerHTML = trade
+    + '<a class="td-bnb-join" href="' + BINANCE_JOIN + '" target="_blank" rel="noopener sponsored" onclick="binanceRefClick()">'
+    + (mk ? 'Нови сте на Binance? Регистрирајте се со нашиот линк за препорака' : 'New to Binance? Sign up with our referral link') + ' ↗</a>'
+    + '<div class="td-bnb-note">' + (mk ? 'Линк за препорака: Rotator може да добие дел од провизиите на Binance. Вас не ве чини ништо повеќе.'
+      : 'Referral link: Rotator may earn a share of Binance\'s fees. It costs you nothing extra.') + '</div>';
+}
 function _tdChainFlow(c) {
   var el = document.getElementById('td-chainflow');
   if (!el) return;
@@ -4239,6 +4258,7 @@ function openTileDetail(coinId, evt) {
   _tdCoin = c;
   _tdAbout(c);
   _tdChainFlow(c);
+  _tdBinance(c);
   _tdBiz(c);
   var panel = document.getElementById('td-panel');
   var icoEl = document.getElementById('td-ico');

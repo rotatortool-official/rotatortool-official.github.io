@@ -298,6 +298,7 @@ Object.assign(MK_TEXT, {
   'Ratio history': 'Историја на односот на цената помеѓу избраниот пар', 'Low:': 'Ниско:', 'Peak:': 'Врв:', 'Now:': 'Сега:',
   'of monthly server costs': 'од месечните трошоци за сервер',
   'Live data via CoinGecko · Not financial advice · Always verify before swapping': 'Податоци во живо преку CoinGecko · Не е финансиски совет · Секогаш проверете пред замена',
+  'New to Binance? Sign up with our referral link ↗': 'Нови сте на Binance? Регистрирајте се со нашиот линк за препорака ↗',
   'Select coin': 'Изберете монета', 'Select a coin': 'Изберете монета', 'ADVANCED': 'НАПРЕДНО',
 });
 
