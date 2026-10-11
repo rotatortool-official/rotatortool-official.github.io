@@ -98,8 +98,8 @@ function _twRow(r, dir) {
        coin can be "lagged" with a strong month behind it (KAVA on
        2026-09-26: 30D +50%, 7D -2%, 7-day rank 229). One number alone
        made the label look wrong. */
-    + '<span class="tw-chg"><span class="' + ((c.p7 || 0) >= 0 ? 'up' : 'dn') + '">7D ' + _twPct(c.p7) + '</span> '
-    + '<span class="' + ((c.p30 || 0) >= 0 ? 'up' : 'dn') + '">30D ' + _twPct(c.p30) + '</span></span>'
+    + '<span class="tw-chg"><span class="tw-p7 ' + ((c.p7 || 0) >= 0 ? 'up' : 'dn') + '">7D ' + _twPct(c.p7) + '</span> '
+    + '<span class="tw-p30 ' + ((c.p30 || 0) >= 0 ? 'up' : 'dn') + '">30D ' + _twPct(c.p30) + '</span></span>'
     + '<span class="tw-chips">' + chips + '</span>'
     + '</button>';
 }
@@ -131,8 +131,10 @@ function renderTurnScan() {
   host.innerHTML = '<div class="tw-hd"><span class="tw-title">Turn signs across the market'
     + '<button type="button" class="info-i" aria-label="Early signs that a trend may be changing: a coin that ran ahead cooling off, or a lagging coin turning up. Open a coin to see the tested record behind its sign.">ⓘ</button></span>'
     + '</div>'
-    + '<div class="tw-sub">Coins that have lagged and now show turn-up signs, and coins that have run ahead and now show cooling signs. '
-    + 'The same reading as each coin\'s window; tap a coin to open it.</div>'
+    + '<div class="tw-sub"><span class="tw-sub-long">Coins that have lagged and now show turn-up signs, and coins that have run ahead and now show cooling signs. '
+    + 'The same reading as each coin\'s window; tap a coin to open it.</span>'
+    /* Phones (light, 2026-10-11): one short line instead of three. */
+    + '<span class="tw-sub-short">Coins whose trend may be changing. Tap one to open it.</span></div>'
     + '<div class="tw-cols">'
     + _twCol('up', R.up, 'up', '▲ Lagged, turn-up signs', 'No lagging coin shows a turn-up sign right now.')
     + _twCol('down', R.down, 'down', '▼ Ran ahead, cooling signs', 'No leading coin shows a cooling sign right now.')

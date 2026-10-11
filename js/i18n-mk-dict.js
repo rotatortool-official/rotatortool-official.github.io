@@ -104,6 +104,7 @@ Object.assign(MK_TEXT, {
   'Turn signs across the market': 'Знаци за свртување низ пазарот',
   "Coins that have lagged and now show turn-up signs, and coins that have run ahead and now show cooling signs. The same reading as each coin's window; tap a coin to open it.":
     'Монети што заостанале, а сега покажуваат знаци за свртување нагоре, и монети што истрчале напред, а сега покажуваат знаци на смирување. Истото читање како во прозорецот на секоја монета; допрете монета за да ја отворите.',
+  'Coins whose trend may be changing. Tap one to open it.': 'Монети чиј тренд можеби се менува. Допрете една за да ја отворите.',
   'Lagged, turn-up signs': 'Заостанати, знаци за свртување нагоре',
   'Ran ahead, cooling signs': 'Истрчани напред, знаци на смирување',
   'No lagging coin shows a turn-up sign right now.': 'Во моментов ниту една заостаната монета не покажува знак за свртување нагоре.',
