@@ -126,7 +126,7 @@ a{color:inherit;text-decoration:none}
 .call-row{display:grid;grid-template-columns:84px 76px 70px 1fr 74px 74px 84px;gap:8px;padding:6px 0;border-top:1px solid rgba(255,255,255,.06);font-family:var(--font-mono);font-size:12px;align-items:baseline;}
 .call-row.head{color:var(--muted);font-size:10px;letter-spacing:.08em;border-top:0;}
 .call-row .up{color:var(--green);} .call-row .dn{color:var(--red);} .call-row .na{color:var(--muted);}
-.calls-cols .call-row{grid-template-columns:84px 64px 1fr 74px;}
+.calls-cols .call-row{grid-template-columns:84px 64px 1fr 100px;}
 @media (max-width:600px){.call-row{grid-template-columns:72px 46px 1fr 58px 62px;}.call-row .c7,.call-row>span:nth-child(4){display:none;}
   .calls-cols .call-row{grid-template-columns:76px 52px 1fr 70px;}.calls-cols .call-row>span:nth-child(4){display:inline;}
   .calls-cols .call-row.now{grid-template-columns:76px 1fr 66px 66px;}.calls-cols .call-row.now>span:nth-child(3){display:none;}}
@@ -134,6 +134,48 @@ a{color:inherit;text-decoration:none}
 .calls-tab.on{color:var(--text);border-color:var(--bnb);background:rgba(243,186,47,.10);}
 .calls-cols .call-row.now{grid-template-columns:84px 64px 1fr 78px 78px;}
 .calls-more{margin-top:12px;background:none;border:1px solid var(--bdr2);color:var(--text);border-radius:5px;padding:6px 14px;cursor:pointer;font-size:12px;}
+
+/* Telegram picks first (2026-10-13): proof strip in the hero, steps A-D,
+   the money test as bars, best/worst as two tinted cards. */
+.proof{display:block;max-width:760px;margin:0 auto 22px;padding:18px 20px 14px;background:var(--bg2);border:1px solid rgba(243,186,47,.35);border-radius:10px;text-align:center;transition:border-color .15s,transform .15s;}
+.proof:hover{border-color:var(--bnb);transform:translateY(-1px);}
+.proof-k{display:block;font-family:var(--font-mono);font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--bnb);margin-bottom:12px;}
+.proof-row{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;}
+.proof-cell{display:flex;flex-direction:column;align-items:center;gap:6px;padding:6px 4px;}
+.proof-cell+.proof-cell{border-left:1px solid var(--bdr2);}
+.proof-big{font-family:var(--font-mono);font-size:clamp(24px,5vw,40px);font-weight:800;line-height:1;color:var(--text);}
+.proof-big.up{color:var(--green);} .proof-big.dn{color:var(--red);}
+.proof-lbl{font-size:12px;color:var(--muted);line-height:1.35;max-width:190px;}
+.proof-go{display:inline-block;margin-top:14px;font-size:13px;font-weight:600;color:var(--bnb);}
+@media (max-width:600px){.proof{padding:14px 8px 12px;}.proof-row{gap:4px;}.proof-lbl{font-size:11px;}.proof-cell{padding:4px 2px;}}
+.step{display:flex;align-items:center;gap:10px;margin:30px 0 12px;}
+.step-n{font-family:var(--font-mono);font-size:12px;font-weight:800;width:24px;height:24px;border-radius:5px;display:inline-flex;align-items:center;justify-content:center;border:1px solid var(--bnb);color:var(--bnb);flex:none;}
+.step-t{font-family:var(--font-mono);font-size:14px;font-weight:700;letter-spacing:.04em;color:var(--text);}
+.tg-tabs{margin:0 0 4px;}
+.grp .botrec-100{margin:0;padding:18px 20px;border-radius:10px;}
+.grp .b100-main{font-size:16px;}
+.b100-bars{margin:16px 0 12px;display:grid;gap:10px;}
+.b100-bar{display:grid;grid-template-columns:150px 1fr 70px;gap:12px;align-items:center;font-size:13px;}
+.b100-bar .lbl{color:var(--muted);}
+.b100-bar .trk{height:12px;background:var(--bg3);border-radius:6px;overflow:hidden;}
+.b100-bar .fill{display:block;height:100%;border-radius:6px;}
+.b100-bar .fill.up{background:var(--green);} .b100-bar .fill.dn{background:var(--red);}
+.b100-bar .val{font-family:var(--font-mono);font-weight:800;text-align:right;}
+.b100-bar .val.up{color:var(--green);} .b100-bar .val.dn{color:var(--red);}
+.b100-bar.ours .lbl{color:var(--text);font-weight:600;}
+@media (max-width:600px){.b100-bar{grid-template-columns:104px 1fr 58px;gap:8px;font-size:12px;}}
+.calls-card{background:var(--bg2);border:1px solid var(--bdr);border-top:3px solid var(--bdr2);border-radius:10px;padding:14px 16px 8px;min-width:0;}
+.calls-card.best{border-top-color:var(--green);} .calls-card.worst{border-top-color:var(--red);}
+.calls-card .calls-h{font-weight:700;margin-bottom:8px;}
+.calls-card.best .calls-h{color:var(--green);} .calls-card.worst .calls-h{color:var(--red);}
+.calls-card .call-row{padding:7px 0;}
+.calls-card .call-row:not(.head)>span:nth-child(2){color:var(--bnb);font-weight:700;}
+.calls-card .call-row>span:last-child{text-align:right;}
+.calls-card .res{position:relative;display:block;text-align:right;font-weight:700;padding-bottom:3px;}
+.calls-card .res i{position:absolute;right:0;bottom:0;height:2px;border-radius:1px;opacity:.6;}
+.calls-card .res i.up{background:var(--green);} .calls-card .res i.dn{background:var(--red);}
+.grp #botrec{max-width:none;margin:0;}
+#calls-all-section{padding-top:0;}
 
 /* ── Section ───────────────────────────────────────────── */
 .section{padding:40px 0;}
@@ -253,19 +295,30 @@ a{color:inherit;text-decoration:none}
   </div>
 </header>
 
-<!-- Layout (2026-10-10, Daniel): a short top, jump buttons, then four
-     numbered parts, newest first: 1 the current engine, 2 the Telegram
-     picks of April-August, 3 the channel posts, 4 the retired v2 engine.
-     Every block below keeps its ids, so the scripts are unchanged. -->
+<!-- Layout (2026-10-13, Daniel): Telegram's Track Record button lands
+     here, so the top answers "did the picks work?" first: a proof strip
+     with the $10 result, then part 1 = the Telegram picks (money test,
+     best/worst 20, the strict grade, every pick), 2 the current engine,
+     3 the channel posts, 4 the retired v2 engine. Every id the scripts
+     read is kept. -->
 <section class="hero">
   <div class="wrap">
     <div class="hero-kicker">◆ SIGNAL TRACK RECORD</div>
     <h1>Every call, tracked.</h1>
     <p class="hero-sub">Every call Rotator made, checked afterwards against the average coin. Good results and bad ones, nothing deleted.</p>
+    <a class="proof" href="#part-telegram" id="proof" hidden>
+      <span class="proof-k">Telegram picks, 28 Apr – 31 Aug 2026</span>
+      <span class="proof-row">
+        <span class="proof-cell"><span class="proof-big" id="proof-ret">—</span><span class="proof-lbl">$10 in every pick, sold 30 days later</span></span>
+        <span class="proof-cell"><span class="proof-big" id="proof-med">—</span><span class="proof-lbl">The average coin, same days</span></span>
+        <span class="proof-cell"><span class="proof-big" id="proof-beat">—</span><span class="proof-lbl">Beat the average coin (chance: 50%)</span></span>
+      </span>
+      <span class="proof-go">See the best and the worst picks ↓</span>
+    </a>
     <div class="exp-note"><strong>Experimental.</strong> This record runs in the background and is being tested until March 2027.</div>
     <nav class="jump">
-      <a href="#part-current">1 · Current engine</a>
-      <a href="#part-telegram">2 · Telegram picks</a>
+      <a href="#part-telegram">1 · Telegram picks</a>
+      <a href="#part-current">2 · Current engine</a>
       <a href="#part-channel">3 · Channel posts</a>
       <a href="#part-old">4 · Old engine</a>
     </nav>
@@ -274,9 +327,73 @@ a{color:inherit;text-decoration:none}
 
 <main class="wrap">
 
-  <!-- 1 · CURRENT ENGINE -->
+  <!-- 1 · TELEGRAM PICKS, APRIL-AUGUST. Frozen: data/bot-calls-2026-04-28-
+       to-08-31.json is written once by the workbench's grade-bot-snapshots.js
+       from the picks the bot SAVED AT THE TIME (market_cache bot_snapshot_*),
+       and every number here is read from that file, never typed. -->
+  <div class="grp" id="part-telegram">
+    <div class="grp-hdr"><span class="grp-num">1</span><span class="grp-title">Telegram picks, 28 Apr – 31 Aug 2026</span><span class="section-count" id="calls-count"></span></div>
+    <p class="grp-lead">Every day the Telegram bot saved 5 coins to rotate into and 5 to rotate out of, with that day's price. Each pick is checked on the close 30 days later.</p>
+
+    <div class="calls-tools tg-tabs">
+      <button type="button" class="calls-tab on" data-h="30">30 days</button>
+      <button type="button" class="calls-tab" data-h="now" id="calls-tab-now">To the latest close</button>
+    </div>
+
+    <!-- A · the money test: "$10 in every pick" (2026-10-10, Daniel), every
+         graded rotate-in pick, winners and losers. Follows the tab. -->
+    <div class="step"><span class="step-n">A</span><span class="step-t">The money test</span></div>
+    <div class="botrec-100" id="botrec-100" hidden>
+      <div class="b100-main" id="b100-main"></div>
+      <div class="b100-bars" id="b100-bars"></div>
+      <div class="b100-sub" id="b100-sub"></div>
+    </div>
+
+    <!-- B · best and worst 20, side by side -->
+    <div class="step"><span class="step-n">B</span><span class="step-t">The best 20 and the worst 20</span></div>
+    <section class="calls-cols" id="calls-section">
+      <div class="calls-card best"><div class="calls-h" id="calls-best-h">BEST 20 ROTATE-IN PICKS, 30 DAYS</div><div id="calls-best"></div></div>
+      <div class="calls-card worst"><div class="calls-h" id="calls-worst-h">WORST 20 ROTATE-IN PICKS, 30 DAYS</div><div id="calls-worst"></div></div>
+    </section>
+
+    <!-- C · the strict grade, and the fairer benchmark -->
+    <div class="step"><span class="step-n">C</span><span class="step-t">How often they beat the average coin</span></div>
+    <div class="legacy bot" id="botrec">
+      <div class="legacy-hdr">
+        <span class="legacy-title">📬 Telegram picks — graded strictly</span>
+        <span class="legacy-retired">Saved daily at the time</span>
+      </div>
+      <div class="legacy-body">
+        <div class="legacy-pct" id="botrec-pct">—</div>
+        <div class="legacy-meta" id="botrec-meta">Loading…</div>
+      </div>
+      <div class="legacy-months" id="botrec-months"></div>
+      <div class="legacy-note">
+        Every day the bot saved its 5 rotate-in and 5 rotate-out picks with the price
+        of the day. Here each one is graded on the close 30 days later against the
+        median coin, where chance is 50%. Stricter than the 76.2% of the old engine (part 4), and it
+        depends on the month: June, bought near the bottom, carries most of it. The
+        bot picked from the biggest coins, which did better than small ones in these
+        months, so the comparison with the 100 largest is the fairer one.
+      </div>
+    </div>
+
+    <!-- D · every pick -->
+    <div class="step"><span class="step-n">D</span><span class="step-t">Every pick</span></div>
+    <section class="section sub" id="calls-all-section">
+      <div class="mev-sub">The picks the bot saved each day, graded on the close 7 and 30 days later against the median coin. The best 20 and the worst 20 rotate-in picks are shown together, one per coin, then every pick. Coins with no Binance history cannot be graded and say so.</div>
+      <div class="calls-tools">
+        <input type="search" id="calls-q" placeholder="Coin symbol…" autocomplete="off">
+        <select id="calls-side"><option value="">Rotate in and out</option><option value="in">Rotate in</option><option value="out">Rotate out</option></select>
+      </div>
+      <div id="calls-all"></div>
+      <button type="button" class="calls-more" id="calls-more" hidden>Show more</button>
+    </section>
+  </div>
+
+  <!-- 2 · CURRENT ENGINE -->
   <div class="grp" id="part-current">
-    <div class="grp-hdr"><span class="grp-num">1</span><span class="grp-title">Current engine, live since 11 Sep 2026</span></div>
+    <div class="grp-hdr"><span class="grp-num">2</span><span class="grp-title">Current engine, live since 11 Sep 2026</span></div>
     <p class="grp-lead">
       Rotator snapshots its top bullish, rotate-out and underperforming signals every day. After 30 days, we compare the call against <b>the median coin over the same 30 days</b> — beating the market is the whole test, and half of all coins beat it by definition. The result is published here: the calls that beat it, the ones that moved our way but trailed it, and the ones that went the wrong way outright. The counter below restarted on <span id="copy-reset-date"></span> with scoring engine <span id="copy-engine-hero"></span>; the retired v2 engine's final record is in part 4. <a href="engine-changelog.html" style="color:#f3ba2f;text-decoration:underline;text-underline-offset:2px;">Every model change is logged here.</a>
     </p>
@@ -331,64 +448,6 @@ a{color:inherit;text-decoration:none}
     <div id="rot-grid" class="grid"></div>
     <div id="rot-empty"></div>
     <div id="shadow-block"></div>
-  </section>
-  </div>
-
-  <!-- 2 · TELEGRAM PICKS, APRIL-AUGUST -->
-  <div class="grp" id="part-telegram">
-    <div class="grp-hdr"><span class="grp-num">2</span><span class="grp-title">Telegram picks, 28 Apr – 31 Aug 2026</span><span class="section-count" id="calls-count"></span></div>
-    <!-- The same months, the Telegram bot's own daily picks, graded the
-         strict way. Frozen: data/bot-calls-2026-04-28-to-08-31.json is
-         written once by the workbench's grade-bot-snapshots.js from the
-         picks the bot SAVED AT THE TIME (market_cache bot_snapshot_*),
-         and the numbers here are read from that file, never typed. -->
-    <div class="legacy bot" id="botrec">
-      <div class="legacy-hdr">
-        <span class="legacy-title">📬 Telegram picks — graded strictly</span>
-        <span class="legacy-retired">Saved daily at the time</span>
-      </div>
-      <div class="legacy-body">
-        <div class="legacy-pct" id="botrec-pct">—</div>
-        <div class="legacy-meta" id="botrec-meta">Loading…</div>
-      </div>
-      <div class="legacy-months" id="botrec-months"></div>
-      <div class="legacy-note">
-        Every day the bot saved its 5 rotate-in and 5 rotate-out picks with the price
-        of the day. Here each one is graded on the close 30 days later against the
-        median coin, where chance is 50%. Stricter than the 76.2% of the old engine (part 4), and it
-        depends on the month: June, bought near the bottom, carries most of it. The
-        bot picked from the biggest coins, which did better than small ones in these
-        months, so the comparison with the 100 largest is the fairer one.
-        <br><a class="legacy-link" href="#calls-section">The best 20, the worst 20 and every pick are just below ↓</a>
-      </div>
-    </div>
-
-  <!-- The Telegram picks of April to August, in full. Filled from
-       data/bot-calls-2026-04-28-to-08-31.json by the script at the end. -->
-  <section class="section sub" id="calls-section">
-    <div class="mev-sub">The picks the bot saved each day, graded on the close 7 and 30 days later against the median coin. The best 20 and the worst 20 rotate-in picks are shown together, one per coin, then every pick. Coins with no Binance history cannot be graded and say so.</div>
-    <div class="calls-tools">
-      <button type="button" class="calls-tab on" data-h="30">30 days</button>
-      <button type="button" class="calls-tab" data-h="now" id="calls-tab-now">To the latest close</button>
-    </div>
-    <div class="calls-cols">
-      <div><div class="calls-h" id="calls-best-h">BEST 20 ROTATE-IN PICKS, 30 DAYS</div><div id="calls-best"></div></div>
-      <div><div class="calls-h" id="calls-worst-h">WORST 20 ROTATE-IN PICKS, 30 DAYS</div><div id="calls-worst"></div></div>
-    </div>
-    <!-- "$10 in every pick" (2026-10-10, Daniel; $100 at first, $10 keeps it realistic): every graded rotate-in
-         pick, winners and losers, not only the 40 above. Follows the tab:
-         30 days, or held to the latest close. Computed from the same file,
-         never typed; plain strings so the MK patterns can translate them. -->
-    <div class="botrec-100" id="botrec-100" hidden>
-      <div class="b100-main" id="b100-main"></div>
-      <div class="b100-sub" id="b100-sub"></div>
-    </div>
-    <div class="calls-tools">
-      <input type="search" id="calls-q" placeholder="Coin symbol…" autocomplete="off">
-      <select id="calls-side"><option value="">Rotate in and out</option><option value="in">Rotate in</option><option value="out">Rotate out</option></select>
-    </div>
-    <div id="calls-all"></div>
-    <button type="button" class="calls-more" id="calls-more" hidden>Show more</button>
   </section>
   </div>
 
@@ -1847,15 +1906,26 @@ a{color:inherit;text-decoration:none}
       /* ── the section ── */
       document.getElementById('calls-count').textContent = d.picks.length + ' picks · ' + (i30.n + o30.n) + ' graded';
       var asOfTxt = esc(S.asOf);
+      /* The result with a thin bar under it, scaled to the biggest move in
+         both lists of the same tab, so best and worst read on one scale. */
+      var barMax = 1;
+      function res(v) {
+        if (v == null) return pct(v);
+        var w = Math.min(100, Math.abs(v) / barMax * 100).toFixed(0);
+        return '<span class="res">' + pct(v) + '<i class="' + (v >= 0 ? 'up' : 'dn') + '" style="width:' + w + '%"></i></span>';
+      }
+      function scale(a, b, i) {
+        barMax = Math.max.apply(null, a.concat(b).map(function (r) { return Math.abs(r[i] || 0); }).concat([1]));
+      }
       function small(rows) {
         return '<div class="call-row head"><span>DAY</span><span>COIN</span><span>PRICE THEN</span><span>VS MEDIAN, 30D</span></div>'
-          + rows.map(function (r) { return '<div class="call-row"><span>' + esc(r[0]) + '</span><span>' + esc(r[2]) + '</span><span>' + price(r[4]) + '</span>' + pct(r[8]) + '</div>'; }).join('');
+          + rows.map(function (r) { return '<div class="call-row"><span>' + esc(r[0]) + '</span><span>' + esc(r[2]) + '</span><span>' + price(r[4]) + '</span>' + res(r[8]) + '</div>'; }).join('');
       }
       /* To the latest close: the price change since the pick, and the same
          against the median coin. Only picks at least 30 days old. */
       function smallNow(rows) {
         return '<div class="call-row now head"><span>DAY</span><span>COIN</span><span>PRICE THEN</span><span>SINCE THE PICK</span><span>VS MEDIAN</span></div>'
-          + rows.map(function (r) { return '<div class="call-row now"><span>' + esc(r[0]) + '</span><span>' + esc(r[2]) + '</span><span>' + price(r[4]) + '</span>' + pct(r[9]) + pct(r[10]) + '</div>'; }).join('');
+          + rows.map(function (r) { return '<div class="call-row now"><span>' + esc(r[0]) + '</span><span>' + esc(r[2]) + '</span><span>' + price(r[4]) + '</span>' + pct(r[9]) + res(r[10]) + '</div>'; }).join('');
       }
       var tabNow = document.getElementById('calls-tab-now');
       if (tabNow) tabNow.textContent = 'To ' + S.asOf;
@@ -1877,14 +1947,31 @@ a{color:inherit;text-decoration:none}
         function sg(v) { return (v >= 0 ? '+' : '-') + Math.abs(v).toFixed(1) + '%'; }
         document.getElementById('b100-main').textContent = '$10 in each of the ' + g.length + ' rotate-in picks, '
           + (now ? 'held to ' + S.asOf : 'sold 30 days later') + ': ' + usd(put) + ' in, ' + usd(back) + ' back (' + sg((back / put - 1) * 100) + ').';
-        document.getElementById('b100-sub').textContent = up + ' picks went up and ' + (g.length - up) + ' went down. All of them are counted, not only the 40 above. '
+        document.getElementById('b100-sub').textContent = up + ' picks went up and ' + (g.length - up) + ' went down. All of them are counted, not only the best and worst 40. '
           + (now ? 'Each pick is held from its own day, so ' + lo + ' to ' + hi + ' days. ' : '')
           + 'The same money in the average coin on the same days: ' + sg((med / put - 1) * 100) + '. Before trading fees.';
+        /* The same two numbers as bars: Rotator's picks, the average coin. */
+        var ours = (back / put - 1) * 100, avg = (med / put - 1) * 100, mx = Math.max(Math.abs(ours), Math.abs(avg), 1);
+        function bar(cls, lbl, v) {
+          var c = v >= 0 ? 'up' : 'dn';
+          return '<div class="b100-bar ' + cls + '"><span class="lbl">' + lbl + '</span><span class="trk"><span class="fill ' + c + '" style="width:'
+            + Math.max(2, Math.abs(v) / mx * 100).toFixed(0) + '%"></span></span><span class="val ' + c + '">' + sg(v) + '</span></div>';
+        }
+        document.getElementById('b100-bars').innerHTML = bar('ours', 'Rotator picks', ours) + bar('', 'The average coin', avg);
         document.getElementById('botrec-100').hidden = false;
+        /* The hero's proof strip always shows the 30-day test, whatever the tab. */
+        if (!now) {
+          var pr = document.getElementById('proof-ret'), pm = document.getElementById('proof-med'), pb = document.getElementById('proof-beat');
+          pr.textContent = sg(ours); pr.className = 'proof-big ' + (ours >= 0 ? 'up' : 'dn');
+          pm.textContent = sg(avg); pm.className = 'proof-big ' + (avg >= 0 ? 'up' : 'dn');
+          pb.textContent = i30.pct.toFixed(1) + '%';
+          document.getElementById('proof').hidden = false;
+        }
       }
       function drawTop(h) {
         var now = h === 'now';
         draw100(now);
+        if (now) scale(d.bestNow, d.worstNow, 10); else scale(d.best, d.worst, 8);
         document.getElementById('calls-best').innerHTML = now ? smallNow(d.bestNow) : small(d.best);
         document.getElementById('calls-worst').innerHTML = now ? smallNow(d.worstNow) : small(d.worst);
         document.getElementById('calls-best-h').textContent = now ? 'BEST 20 ROTATE-IN PICKS, TO ' + S.asOf : 'BEST 20 ROTATE-IN PICKS, 30 DAYS';

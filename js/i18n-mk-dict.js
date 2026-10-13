@@ -739,8 +739,8 @@ Object.assign(MK_TEXT, {
   P(/^\$10 in each of the (\d+) rotate-in picks, (sold 30 days later|held to (\d{4}-\d\d-\d\d)): (\$[\d,]+) in, (\$[\d,]+) back \(([+-][\d.]+%)\)\.$/, function (m) {
     return '$10 во секој од ' + m[1] + '-те избори за влез, ' + (m[3] ? 'задржани до ' + m[3] : 'продадени по 30 дена') + ': вложени ' + m[4] + ', назад ' + m[5] + ' (' + m[6].replace('.', ',') + ').';
   });
-  P(/^(\d+) picks went up and (\d+) went down\. All of them are counted, not only the 40 above\. (Each pick is held from its own day, so (\d+) to (\d+) days\. )?The same money in the average coin on the same days: ([+-][\d.]+%)\. Before trading fees\.$/, function (m) {
-    return m[1] + ' избори пораснаа, а ' + m[2] + ' паднаа. Сите се бројат, не само 40-те погоре. '
+  P(/^(\d+) picks went up and (\d+) went down\. All of them are counted, not only the best and worst 40\. (Each pick is held from its own day, so (\d+) to (\d+) days\. )?The same money in the average coin on the same days: ([+-][\d.]+%)\. Before trading fees\.$/, function (m) {
+    return m[1] + ' избори пораснаа, а ' + m[2] + ' паднаа. Сите се бројат, не само најдобрите и најлошите 40. '
       + (m[3] ? 'Секој избор се држи од својот ден, значи од ' + m[4] + ' до ' + m[5] + ' дена. ' : '')
       + 'Истите пари во просечната монета во истите денови: ' + m[6].replace('.', ',') + '. Пред провизиите за тргување.';
   });
@@ -830,7 +830,17 @@ Object.assign(MK_TEXT, {
   'Every call Rotator made, checked afterwards against the average coin. Good results and bad ones, nothing deleted.':
     'Секој повик на Rotator, проверен потоа наспроти просечната монета. Добрите и лошите резултати, ништо избришано.',
   'This record runs in the background and is being tested until March 2027.': 'Оваа евиденција работи во позадина и се тестира до март 2027.',
-  '1 · Current engine': '1 · Сегашно бодување', '2 · Telegram picks': '2 · Избори на Telegram',
+  '1 · Telegram picks': '1 · Избори на Telegram', '2 · Current engine': '2 · Сегашно бодување',
+  /* Telegram picks first (2026-10-13): proof strip, steps A-D, money bars */
+  '$10 in every pick, sold 30 days later': '$10 во секој избор, продаден по 30 дена',
+  'The average coin, same days': 'Просечната монета, истите денови',
+  'Beat the average coin (chance: 50%)': 'Ја победија просечната монета (случајно: 50%)',
+  'See the best and the worst picks ↓': 'Видете ги најдобрите и најлошите избори ↓',
+  "Every day the Telegram bot saved 5 coins to rotate into and 5 to rotate out of, with that day's price. Each pick is checked on the close 30 days later.":
+    'Секој ден ботот на Telegram зачувуваше 5 монети за влез и 5 за излез, со цената од тој ден. Секој избор се проверува според затворањето 30 дена подоцна.',
+  'The money test': 'Тестот со пари', 'The best 20 and the worst 20': 'Најдобрите 20 и најлошите 20',
+  'How often they beat the average coin': 'Колку често ја победија просечната монета', 'Every pick': 'Секој избор',
+  'Rotator picks': 'Изборите на Rotator', 'The average coin': 'Просечната монета',
   '3 · Channel posts': '3 · Објави на каналот', '4 · Old engine': '4 · Старо бодување',
   'Current engine, live since 11 Sep 2026': 'Сегашниот начин на бодување, во живо од 11 септ. 2026',
   'Telegram picks, 28 Apr – 31 Aug 2026': 'Изборите на Telegram, 28 апр. – 31 авг. 2026',
