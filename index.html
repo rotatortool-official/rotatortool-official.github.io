@@ -1582,19 +1582,21 @@
          rule: if the signals engine has not proven itself by March 2027,
          it stops (routine rotator-signals-engine-march-2027-decision).
          Opening it also opens the track record inside, so it is one click. -->
-    <details class="rec-wip" id="rec-wip" ontoggle="if(this.open){var b=document.getElementById('cb-trackrecord');if(b&&b.classList.contains('collapsed')&&typeof toggleCollapse==='function')toggleCollapse('trackrecord');}">
+    <details class="rec-wip" id="rec-wip" ontoggle="if(this.open){var b=document.getElementById('cb-trackrecord');if(b&&b.classList.contains('collapsed')&&typeof toggleCollapse==='function')toggleCollapse('trackrecord');if(window.SignalHistory)SignalHistory.render();}">
       <summary>
         <span class="rec-wip-tag">🧪 Test environment</span>
         <span class="rec-wip-h">Work in progress: we learn from our mistakes</span>
-        <span class="rec-wip-p">Rotator's signals are tested live until March 2027. Things here change while we build. If the signals have not proven themselves by then, we stop them.</span>
+        <span class="rec-wip-p">We test Rotator's signals for one full year, until March 2027, using best practices: every call is saved on its day, graded the same way against the average coin, and nothing is deleted.</span>
+        <!-- The test plan (2026-10-13, Daniel): frozen until New Year, a few
+             tweaks January-March, one full year in March 2027. -->
+        <span class="rec-tl">
+          <span class="rec-tl-step"><span class="rec-tl-when">Now – New Year</span><span class="rec-tl-what">This version runs as it is. No changes in the middle of the test.</span></span>
+          <span class="rec-tl-step"><span class="rec-tl-when">January – March 2027</span><span class="rec-tl-what">We may change or tweak a few things, based on what the results show.</span></span>
+          <span class="rec-tl-step"><span class="rec-tl-when">March 2027</span><span class="rec-tl-what">One full year of testing. We keep the signals, improve them, or stop them.</span></span>
+        </span>
         <span class="rec-wip-nfa">Not financial advice.</span>
         <span class="rec-wip-btn"><span class="rec-wip-show">Show the results so far</span><span class="rec-wip-hide">Hide the results</span></span>
       </summary>
-    <!-- Experimental notice (2026-10-10, Daniel). The old/new engine
-         explanation that sat here moved to track-record.html. -->
-    <div class="rec-intro">
-      <p><strong>Experimental.</strong> This feature runs in the background while we test it until March 2027, so read the numbers below as a test in progress. How the old and the new engine are graded is explained on the <a href="track-record.html">track record</a>.</p>
-    </div>
     <!-- SIGNAL TRACK RECORD — "Told You So" section -->
     <div class="str-section">
       <div class="collapse-hdr" id="ch-trackrecord" onclick="toggleCollapse('trackrecord')">

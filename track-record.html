@@ -42,7 +42,7 @@ a{color:inherit;text-decoration:none}
 .back-btn:hover{background:var(--bg3);color:var(--text);border-color:rgba(243,186,47,.4);}
 
 /* Layout parts (2026-10-10) */
-.exp-note{display:inline-block;margin:0 auto 22px;padding:8px 14px;font-size:13px;color:var(--muted);border:1px solid rgba(243,186,47,.35);border-radius:6px;background:rgba(243,186,47,.06);}
+.exp-note{display:inline-block;max-width:760px;line-height:1.5;margin:0 auto 22px;padding:8px 14px;font-size:13px;color:var(--muted);border:1px solid rgba(243,186,47,.35);border-radius:6px;background:rgba(243,186,47,.06);}
 .exp-note strong{color:var(--bnb);}
 .jump{display:flex;gap:8px;justify-content:center;flex-wrap:wrap;}
 .jump a{font-family:var(--font-mono);font-size:12px;letter-spacing:.06em;padding:7px 12px;border:1px solid var(--bdr2);border-radius:5px;color:var(--text);background:var(--bg2);}
@@ -315,7 +315,8 @@ a{color:inherit;text-decoration:none}
       </span>
       <span class="proof-go">See the best and the worst picks ↓</span>
     </a>
-    <div class="exp-note"><strong>Experimental.</strong> This record runs in the background and is being tested until March 2027.</div>
+    <!-- The test plan (2026-10-13, Daniel), same three steps as the app's RECORD card. -->
+    <div class="exp-note"><strong>Experimental.</strong> This version runs unchanged until New Year. From January to March 2027 we may change or tweak a few things, so the test covers one full year. Best practices: every call is saved on its day, graded the same way, and nothing is deleted.</div>
     <nav class="jump">
       <a href="#part-telegram">1 · Telegram picks</a>
       <a href="#part-current">2 · Current engine</a>

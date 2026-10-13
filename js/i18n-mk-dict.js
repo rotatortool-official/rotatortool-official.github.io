@@ -35,6 +35,22 @@ Object.assign(MK_TEXT, {
   "Rotator's signals are tested live until March 2027. Things here change while we build. If the signals have not proven themselves by then, we stop them.":
     'Сигналите на Rotator се тестираат во живо до март 2027. Додека градиме, работите тука се менуваат. Ако сигналите дотогаш не се докажат, ги запираме.',
   'Not financial advice.': 'Не е финансиски совет.',
+  /* RECORD: the test plan and the rows layout (2026-10-13) */
+  "We test Rotator's signals for one full year, until March 2027, using best practices: every call is saved on its day, graded the same way against the average coin, and nothing is deleted.":
+    'Сигналите на Rotator ги тестираме цела година, до март 2027, според добрата практика: секој повик се зачувува на својот ден, се оценува на ист начин наспроти просечната монета и ништо не се брише.',
+  'Now – New Year': 'Сега – Нова година', 'January – March 2027': 'Јануари – март 2027', 'March 2027': 'Март 2027',
+  'This version runs as it is. No changes in the middle of the test.': 'Оваа верзија работи каква што е. Без промени среде тестот.',
+  'We may change or tweak a few things, based on what the results show.': 'Можеби ќе смениме или дотераме неколку работи, според тоа што ќе покажат резултатите.',
+  'One full year of testing. We keep the signals, improve them, or stop them.': 'Цела година тестирање. Сигналите ги задржуваме, ги подобруваме или ги запираме.',
+  'This version runs unchanged until New Year. From January to March 2027 we may change or tweak a few things, so the test covers one full year. Best practices: every call is saved on its day, graded the same way, and nothing is deleted.':
+    'Оваа верзија работи без промени до Нова година. Од јануари до март 2027 можеби ќе смениме или дотераме неколку работи, па тестот трае цела година. Добра практика: секој повик се зачувува на својот ден, се оценува на ист начин и ништо не се брише.',
+  'See the best and the worst picks →': 'Видете ги најдобрите и најлошите избори →',
+  'beat the average coin (chance: 50%)': 'ја победија просечната монета (случајно: 50%)',
+  'calls graded after 30 days': 'повици оценети по 30 дена', 'rotation calls where the new coin did better': 'повици за ротација каде новата монета помина подобро',
+  'Calls that held up': 'Повици што се потврдија', 'Rotation Calls': 'Повици за ротација',
+  'CALL': 'ПОВИК', 'PRICE THEN → 30D': 'ЦЕНА ТОГАШ → 30Д', 'MOVE': 'ДВИЖЕЊЕ', 'VS AVERAGE': 'НАСПРОТИ ПРОСЕЧНАТА',
+  'FROM → TO': 'ОД → ДО', 'RESULT': 'РЕЗУЛТАТ', 'SPREAD': 'РАЗЛИКА',
+  'BIG WIN': 'ГОЛЕМ ДОБИТОК', 'WIN': 'ДОБИТОК', 'AVOIDED LOSS': 'ИЗБЕГНАТА ЗАГУБА', 'MISS': 'ПРОМАШУВАЊЕ',
   'soon': 'наскоро',
   /* CAPITAL ROTATION + Rotator Tool (light theme first, 2026-10-11) */
   'CAPITAL ROTATION': 'ДВИЖЕЊЕ НА КАПИТАЛОТ',
@@ -745,6 +761,8 @@ Object.assign(MK_TEXT, {
       + 'Истите пари во просечната монета во истите денови: ' + m[6].replace('.', ',') + '. Пред провизиите за тргување.';
   });
   P(/^To (\d{4}-\d\d-\d\d)$/, function (m) { return 'До ' + m[1]; });
+  P(/^(\d+)% accuracy$/, function (m) { return m[1] + '% точност'; });
+  P(/^Current engine, since (\d{4}-\d\d-\d\d)$/, function (m) { return 'Сегашно бодување, од ' + m[1]; });
   P(/^(BEST|WORST) 20 ROTATE-IN PICKS, TO (\d{4}-\d\d-\d\d)$/, function (m) { return (m[1] === 'BEST' ? 'НАЈДОБРИ' : 'НАЈЛОШИ') + ' 20 ИЗБОРИ ЗА ВЛЕЗ, ДО ' + m[2]; });
   /* RECORD: channel posts (HANDOVER.md Task 2) */
   P(/^Leadership: (BTC|large caps|small caps) took the lead from (BTC|large caps|small caps)$/, function (m) {

@@ -858,6 +858,43 @@ var SignalHistory = (function() {
     return '$' + p.toPrecision(4);
   }
 
+  /* ── The Telegram picks of April to August (2026-10-13) ──────────
+     The same frozen file and the same arithmetic as track-record.html
+     part 1: $10 in every graded rotate-in pick, sold on the close 30
+     days later, against the median coin on the same days. Fetched only
+     once the visitor opens RECORD (95 KB). Rows are [day, side, symbol,
+     score, price, ret7, ex7, ret30, ex30, ...]. */
+  var _bot = null, _botAsked = false;
+  function _warmBot() {
+    if (_botAsked) return;
+    var w = document.getElementById('rec-wip');
+    if (w && !w.open) return;
+    _botAsked = true;
+    fetch('data/bot-calls-2026-04-28-to-08-31.json')
+      .then(function(r) { if (!r.ok) throw new Error(r.status); return r.json(); })
+      .then(function(d) {
+        var g = d.picks.filter(function(r) { return r[1] === 'in' && r[7] != null && r[8] != null; });
+        if (!g.length) return;
+        var put = g.length * 10, back = 0, med = 0;
+        g.forEach(function(r) { back += 10 * (1 + r[7] / 100); med += 10 * (1 + (r[7] - r[8]) / 100); });
+        _bot = { ours: Math.round((back / put - 1) * 1000) / 10, avg: Math.round((med / put - 1) * 1000) / 10, beat: d.summary.in30.pct, n: g.length };
+        try { render(); } catch (e) {}
+      })
+      .catch(function() {});
+  }
+  function _botBlock() {
+    _warmBot();
+    if (!_bot) return '';
+    function sg(v) { return (v >= 0 ? '+' : '') + v.toFixed(1) + '%'; }
+    return '<div class="rec-h">Telegram picks, 28 Apr – 31 Aug 2026</div>'
+      + '<div class="rec-strip">'
+      + '<div class="rec-cell"><span class="rec-big ' + (_bot.ours >= 0 ? 'up' : 'dn') + '">' + sg(_bot.ours) + '</span><span class="rec-lbl">$10 in every pick, sold 30 days later</span></div>'
+      + '<div class="rec-cell"><span class="rec-big ' + (_bot.avg >= 0 ? 'up' : 'dn') + '">' + sg(_bot.avg) + '</span><span class="rec-lbl">The average coin, same days</span></div>'
+      + '<div class="rec-cell"><span class="rec-big">' + _bot.beat.toFixed(1) + '%</span><span class="rec-lbl">Beat the average coin (chance: 50%)</span></div>'
+      + '</div>'
+      + '<a class="rec-more" href="track-record.html#part-telegram">See the best and the worst picks →</a>';
+  }
+
   /* ── Render the track record UI ── */
   function render() {
     var container = document.getElementById('signal-track-record');
@@ -899,7 +936,7 @@ var SignalHistory = (function() {
 
     /* Not enough data yet */
     if (!hist.length || qualifyingSnaps < 2) {
-      container.innerHTML = resetBadge
+      container.innerHTML = _botBlock() + resetBadge
         + '<div class="str-empty">'
         + '<div style="font-size:16px;margin-bottom:6px;">📊</div>'
         + '<div style="font-size:12px;color:var(--muted);line-height:1.7;">'
@@ -913,7 +950,7 @@ var SignalHistory = (function() {
     }
 
     if (qualifyingSnaps >= 2 && !proven.length && !stats) {
-      container.innerHTML = resetBadge
+      container.innerHTML = _botBlock() + resetBadge
         + '<div class="str-empty">'
         + '<div style="font-size:16px;margin-bottom:6px;">⏳</div>'
         + '<div style="font-size:12px;color:var(--muted);line-height:1.7;">'
@@ -925,92 +962,74 @@ var SignalHistory = (function() {
       return;
     }
 
-    var html = resetBadge;
+    /* Layout (2026-10-13, Daniel): the same visual language as the rest of
+       the site, small headed blocks and table rows like COINS and
+       MOMENTUM, instead of big numbers and a card per call. Order: the
+       Telegram picks (the longest record), the current engine's strip,
+       its calls that held up, then the rotation calls. */
+    var html = _botBlock();
 
-    /* ── Accuracy header ── */
+    function sg(v) { return (v >= 0 ? '+' : '') + v + '%'; }
+    function cls(v) { return v >= 0 ? 'up' : 'dn'; }
+
+    /* ── Current engine: one strip ── */
+    html += '<div class="rec-h">Current engine, since ' + STATS_FROM_DATE + '</div>';
     if (stats) {
-      var accColor = stats.accuracy >= 65 ? 'var(--green)' : stats.accuracy >= 50 ? 'var(--bnb)' : 'var(--red)';
-      html += '<div class="str-stats">'
-        + '<div class="str-stats-num" style="color:' + accColor + ';">' + stats.accuracy + '%</div>'
-        + '<div class="str-stats-lbl">Signal Accuracy</div>'
-        + '<div class="str-stats-detail">'
-        + '<span>' + stats.correct + '/' + stats.total + ' signals confirmed</span>'
-        + '<span style="color:var(--muted);"> · </span>'
-        + '<span style="color:var(--green);">Bullish ' + stats.bullCorrect + '/' + stats.bullTotal + '</span>'
-        + '<span style="color:var(--muted);"> · </span>'
-        + '<span style="color:var(--red);">Lagging ' + stats.lagCorrect + '/' + stats.lagTotal + '</span>'
-        + '</div></div>';
+      var accCls = stats.accuracy >= 50 ? 'up' : 'dn';
+      html += '<div class="rec-strip">'
+        + '<div class="rec-cell"><span class="rec-big ' + accCls + '">' + stats.accuracy + '%</span><span class="rec-lbl">beat the average coin (chance: 50%)</span></div>'
+        + '<div class="rec-cell"><span class="rec-big">' + stats.correct + '/' + stats.total + '</span><span class="rec-lbl">calls graded after 30 days</span></div>'
+        + (rotStats ? '<div class="rec-cell"><span class="rec-big ' + (rotStats.accuracy >= 50 ? 'up' : 'dn') + '">' + rotStats.correct + '/' + rotStats.total + '</span><span class="rec-lbl">rotation calls where the new coin did better</span></div>' : '')
+        + '</div>';
     }
+    html += resetBadge;
 
-    /* ── Proven signals list ── */
+    /* ── Calls that held up: table rows ── */
     if (proven.length) {
-      html += '<div class="str-list">';
+      html += '<div class="rec-sub">Calls that held up</div>'
+        + '<div class="rec-tbl rec-calls">'
+        + '<div class="rec-row rec-head"><span>COIN</span><span>CALL</span><span class="rec-r rec-hide">PRICE THEN → 30D</span><span class="rec-r">MOVE</span><span class="rec-r">VS AVERAGE</span><span></span></div>';
       proven.forEach(function(p) {
         var isBull = p.type === 'bullish';
-        var icon = isBull ? '🟢' : '🔴';
-        var changeStr = (p.change >= 0 ? '+' : '') + p.change + '%';
-        var changeColor = p.change >= 0 ? 'var(--green)' : 'var(--red)';
         var signalBadge = p.signal;
         if (p.extras && p.extras.length) signalBadge = p.extras[0];
-
+        var ex = Math.round(p.excess * 10) / 10;
         /* Escaped (promptove/108): these fields come from snapshot rows
            that browsers write; an id goes into an onclick, so it is
            reduced to the characters a coin id uses. */
         var pid = String(p.id || '').replace(/[^a-z0-9._-]/gi, '');
-        html += '<div class="str-item" onclick="SignalHistory.openDetail(\'' + pid + '\')">'
-          + '<div class="str-item-top">'
-          + '<span class="str-item-icon">' + icon + '</span>'
-          + '<span class="str-item-sym">' + _shEsc(p.sym) + '</span>'
-          + '<span class="str-item-signal ' + (isBull ? 'bull' : 'bear') + '">' + _shEsc(signalBadge) + '</span>'
-          + '<span class="str-item-ago">' + p.daysAgo + 'd ago</span>'
-          + '</div>'
-          + '<div class="str-item-bot">'
-          + '<span class="str-item-price">' + fmtP(p.priceThen) + ' → ' + fmtP(p.priceNow) + '</span>'
-          + '<span class="str-item-change" style="color:' + changeColor + ';">' + changeStr + '</span>'
-          + '</div>'
-          + '<div class="str-item-proof">'
-          + (isBull
-            ? 'Flagged as <strong style="color:var(--green);">' + _shEsc(p.signal) + '</strong> (score ' + p.scoreThen + ') — confirmed ✓'
-            : 'Flagged as <strong style="color:var(--red);">' + _shEsc(p.signal) + '</strong> (score ' + p.scoreThen + ') — confirmed ✓')
-          + '</div>'
-          + '<div class="str-item-share">'
-          + '<button class="str-share-btn" onclick="event.stopPropagation();SignalHistory.shareProven(\'' + pid + '\')" title="Share this signal">Share this win</button>'
-          + '</div>'
+        html += '<div class="rec-row" onclick="SignalHistory.openDetail(\'' + pid + '\')">'
+          + '<span class="rec-sym">' + _shEsc(p.sym) + '<small>' + p.daysAgo + 'd ago</small></span>'
+          + '<span><span class="str-item-signal ' + (isBull ? 'bull' : 'bear') + '">' + _shEsc(signalBadge) + '</span></span>'
+          + '<span class="rec-r rec-hide rec-muted">' + fmtP(p.priceThen) + ' → ' + fmtP(p.priceNow) + '</span>'
+          + '<span class="rec-r ' + cls(p.change) + '">' + sg(p.change) + '</span>'
+          + '<span class="rec-r rec-b ' + cls(ex) + '">' + sg(ex) + '</span>'
+          + '<span class="rec-r"><button class="rec-share" onclick="event.stopPropagation();SignalHistory.shareProven(\'' + pid + '\')" title="Share this signal" aria-label="Share this signal">↗</button></span>'
           + '</div>';
       });
       html += '</div>';
     }
 
-    /* ── Rotation pair wins ── */
+    /* ── Rotation calls: table rows ── */
     if (rotProven.length || rotStats) {
-      html += '<div class="str-rot-block">'
-        + '<div class="str-rot-title">Rotation Calls'
-        + (rotStats ? ' <span class="str-rot-pct">' + rotStats.accuracy + '% — ' + rotStats.correct + '/' + rotStats.total + '</span>' : '')
+      html += '<div class="rec-sub">Rotation Calls'
+        + (rotStats ? ' <span class="rec-subn">' + rotStats.accuracy + '% — ' + rotStats.correct + '/' + rotStats.total + '</span>' : '')
         + '</div>';
       if (rotProven.length) {
-        html += '<div class="str-rot-list">';
+        html += '<div class="rec-tbl rec-rots">'
+          + '<div class="rec-row rec-head"><span>FROM → TO</span><span>RESULT</span><span class="rec-r rec-hide">FROM</span><span class="rec-r rec-hide">TO</span><span class="rec-r">SPREAD</span></div>';
         rotProven.forEach(function(r) {
-          var spreadColor = r.spread >= 0 ? 'var(--green)' : 'var(--red)';
-          var spreadStr = (r.spread >= 0 ? '+' : '') + r.spread + '%';
-          var outcomeColor = r.correct
-            ? (r.outcome === 'BIG WIN' ? 'var(--green)' : r.outcome === 'AVOIDED LOSS' ? 'var(--bnb)' : 'var(--green)')
-            : 'var(--red)';
-          html += '<div class="str-rot-item">'
-            + '<div class="str-rot-row">'
-            + '<span class="str-rot-pair"><strong>' + r.fromSym + '</strong> → <strong>' + r.toSym + '</strong></span>'
-            + '<span class="str-rot-outcome" style="color:' + outcomeColor + ';">' + r.outcome + '</span>'
-            + '<span class="str-rot-ago">' + r.daysAgo + 'd</span>'
-            + '</div>'
-            + '<div class="str-rot-row str-rot-detail">'
-            + '<span>' + r.fromSym + ' ' + (r.fromChange >= 0 ? '+' : '') + r.fromChange + '%</span>'
-            + '<span style="color:var(--muted);">vs</span>'
-            + '<span>' + r.toSym + ' ' + (r.toChange >= 0 ? '+' : '') + r.toChange + '%</span>'
-            + '<span style="color:' + spreadColor + ';">spread ' + spreadStr + '</span>'
-            + '</div></div>';
+          var oc = !r.correct ? 'dn' : r.outcome === 'AVOIDED LOSS' ? 'mid' : 'up';
+          html += '<div class="rec-row">'
+            + '<span class="rec-sym">' + _shEsc(r.fromSym) + ' → ' + _shEsc(r.toSym) + '<small>' + r.daysAgo + 'd ago</small></span>'
+            + '<span><span class="rec-tag ' + oc + '">' + r.outcome + '</span></span>'
+            + '<span class="rec-r rec-hide ' + cls(r.fromChange) + '">' + sg(r.fromChange) + '</span>'
+            + '<span class="rec-r rec-hide ' + cls(r.toChange) + '">' + sg(r.toChange) + '</span>'
+            + '<span class="rec-r rec-b ' + cls(r.spread) + '">' + sg(r.spread) + '</span>'
+            + '</div>';
         });
         html += '</div>';
       }
-      html += '</div>';
     }
 
     html += publicLink + attribution;
