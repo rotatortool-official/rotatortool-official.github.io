@@ -2642,9 +2642,9 @@ function renderBriefing() {
         d: 'The whole US stock market measured against a year of US output. Higher means stocks are expensive next to the economy.',
         more: [
           ['What it is', 'The value of all US shares divided by what the US economy produces in a year (GDP). Warren Buffett once called it probably the best single measure of how expensive stocks are.'],
-          ['How to read it', 'Around 100% means stocks are worth about one year of output. On our data it peaked near 143% in the dot-com bubble of 2000, fell to about 56% in 2009, and reached about 200% in 2021.'],
+          ['How to read it', 'Around 100% means stocks are worth about one year of output. On our data it peaked near 143% in the dot-com bubble of 2000, fell to about 56% in 2009, reached about 200% in 2021, and went higher still in 2026.'],
           ['Not a timing signal', 'It has said "expensive" almost every year since 2013 while stocks kept rising. It shows how high the bar is, not when anything will happen. Crypto is not part of it.'],
-          ['How it is measured here', 'The market value comes from the Wilshire 5000 index, whose points stand for about a billion dollars each. That has drifted over the years, so the level is approximate; the comparison with past readings under the number is not affected. GDP comes from the OECD and changes once a quarter, so the line steps a little when a new quarter is published.']
+          ['How it is measured here', 'The market value comes from the Wilshire 5000 index, whose points stand for about a billion dollars each. That has drifted over the years, so the level is approximate; the comparison with past readings under the number is not affected. GDP comes from official US figures (the OECD, or the US Bureau of Economic Analysis when the OECD is not answering) and changes once a quarter, so the line steps a little when a new quarter is published.']
         ] })
     ] },
     { t: 'Metals', cells: [
