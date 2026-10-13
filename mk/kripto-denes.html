@@ -66,9 +66,10 @@
   <p>Златен крст е кога просечната цена на монетата за 60 дена ќе се искачи над просекот за 125 дена. Го тестиравме: сам по себе, не беше подобар од фрлање паричка.</p>
   <p id="gc">…</p>
 
+  <div class="note"><strong>Rotator Pro: лични известувања на Telegram.</strong> Двапати неделно Pro ви праќа лично известување за вашите монети: отклучувања, златни крстови и други настани. Ако Binance отстрани ваша монета од листата, ви јавува веднаш. <a href="https://t.me/rotatortool" rel="noopener">Започнете на Telegram ›</a></div>
   <div class="cta">
-    <a class="btn board mk-board" href="../">Отвори ја таблата на македонски ›</a>
-    <a class="btn tg" href="https://t.me/rotatortool" rel="noopener">Настани на пазарот на Telegram</a>
+    <a class="btn tg" href="https://t.me/rotatortool" rel="noopener">Добивај известувања на Telegram ›</a>
+    <a class="btn board mk-board" href="../">Отвори ја таблата на македонски</a>
   </div>
 
   <div class="note">Сакате да научите повеќе? Бесплатни видео лекции на македонски кај нашите партнери <a href="https://cryptogemidzija.mk/academy.html" rel="noopener">Crypto Gemidzija</a>.</div>
@@ -141,7 +142,7 @@
 
   T.get('coin_events', { event_type: 'eq.golden_cross', event_date: 'gte.' + T.isoDay(-7), select: 'base_asset', limit: '300' }).then(function (rows) {
     if (!Array.isArray(rows)) { T.set('gc', ''); return; }
-    T.set('gc', 'Во последните 7 дена, <strong>' + rows.length + '</strong> монети добија златен крст. <a href="../golden-cross.html">Погледнете ги и како поминале досега (англиски) ›</a>');
+    T.set('gc', 'Во последните 7 дена, <strong>' + rows.length + '</strong> монети добија златен крст. Дали некоја од вашите монети добила крст, Rotator Pro ви кажува на Telegram. <a href="../golden-cross.html">Како поминале досега (англиски) ›</a>');
   });
 })();
 </script>
