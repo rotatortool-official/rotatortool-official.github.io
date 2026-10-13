@@ -217,12 +217,56 @@ function renderMarketNow() {
    The same listed coins as "Coins vs BTC" above (no stocks, no
    stablecoins), over 7 and 30 days: how many did better than BTC, and how
    the middle coin did against BTC. A description of what happened, not a
-   signal; the words only say which way the money moved. */
+   signal; the words only say which way the money moved.
+
+   2026-10-13 (Daniel): a share button, a chart behind the card and one
+   plain "altseason" sentence picked from the 7- and 30-day readings. The
+   chart is market_daily (sql/market_events.sql, one row a day since
+   1 Apr 2026): the 30-day return of the top-20 coins (ranks 2-20, median)
+   and of the small coins (ranks 101-250, median), each against BTC's.
+   The sentence describes what happened; "might" is as far as it goes. */
+var _capHist = null, _capHistAsked = false, _capLast = null;
+function _capLoadHist() {
+  if (_capHistAsked || typeof supaRest !== 'function') return;
+  _capHistAsked = true;
+  supaRest('market_daily', 'GET', {
+    select: 'day,ret30_btc,ret30_large,ret30_small', day: 'gte.2026-04-01', order: 'day.asc', limit: '400'
+  }).then(function (rows) {
+    function rel(a, b) { return ((1 + a / 100) / (1 + b / 100) - 1) * 100; }
+    var out = (rows || []).filter(function (r) { return r.ret30_btc != null && r.ret30_large != null && r.ret30_small != null; })
+      .map(function (r) { return { day: r.day, big: rel(+r.ret30_large, +r.ret30_btc), small: rel(+r.ret30_small, +r.ret30_btc) }; });
+    if (out.length > 10) { _capHist = out; renderCapitalBtc(); }
+  }).catch(function () {});
+}
+/* The two lines as a faint SVG behind the card, with the zero line. */
+function _capChartSvg(h) {
+  var W = 600, H = 160, vals = [];
+  h.forEach(function (r) { vals.push(r.big, r.small); });
+  var lo = Math.min(0, Math.min.apply(null, vals)), hi = Math.max(0, Math.max.apply(null, vals)), sp = (hi - lo) || 1;
+  function X(i) { return (i / (h.length - 1)) * W; }
+  function Y(v) { return 8 + (1 - (v - lo) / sp) * (H - 16); }
+  function path(k) { return h.map(function (r, i) { return (i ? 'L' : 'M') + X(i).toFixed(1) + ' ' + Y(r[k]).toFixed(1); }).join(''); }
+  return '<svg class="cap-chart" viewBox="0 0 ' + W + ' ' + H + '" preserveAspectRatio="none" aria-hidden="true">'
+    + '<line x1="0" x2="' + W + '" y1="' + Y(0).toFixed(1) + '" y2="' + Y(0).toFixed(1) + '" class="cap-chart-zero"/>'
+    + '<path d="' + path('small') + '" class="cap-chart-small"/>'
+    + '<path d="' + path('big') + '" class="cap-chart-big"/></svg>';
+}
+/* Which of five plain readings fits: the week and the month together. */
+function _capStory(r7, r30) {
+  var s7 = r7 ? r7.share : null, s30 = r30 ? r30.share : null;
+  if (s7 == null || s30 == null) return 'mixed';
+  if (s7 >= 0.6 && s30 >= 0.6) return 'alts';
+  if (s7 <= 0.4 && s30 <= 0.4) return 'btc';
+  if (s30 >= 0.5 && s7 < 0.5) return 'fading';
+  if (s30 < 0.5 && s7 >= 0.5) return 'catching';
+  return 'mixed';
+}
 function renderCapitalBtc() {
   var host = document.getElementById('cap-btc');
   if (!host || typeof coins === 'undefined') return;
   var btc = coins.find(function (c) { return c.sym === 'BTC' && !c.isStock; });
   if (!btc) { host.innerHTML = ''; return; }
+  _capLoadHist();
   var mk = (typeof currentLang !== 'undefined' && currentLang === 'mk');
   var L = mk ? {
     k: 'Bitcoin наспроти другите монети', d7: '7 дена', d30: '30 дена',
@@ -230,14 +274,34 @@ function renderCapitalBtc() {
     mid: 'просечната монета наспроти BTC',
     out: 'Парите се префрлаат од Bitcoin во другите монети.',
     in_: 'Bitcoin ги задржува парите подобро од другите монети.',
-    mixed: 'Нема јасно префрлање меѓу Bitcoin и другите монети.'
+    mixed: 'Нема јасно префрлање меѓу Bitcoin и другите монети.',
+    share: 'Сподели', shareL: 'Сподели како слика',
+    story: {
+      alts: 'Повеќето монети се подобри од Bitcoin и во неделата и во месецот. Ако ова се задржи, ова може да е почетокот на долгоочекуваната алт-сезона.',
+      btc: 'Bitcoin е подобар од повеќето монети и во неделата и во месецот. Алт-сезоната изгледа одложена уште еднаш.',
+      fading: 'Другите монети водеа во месецот, но оваа недела Bitcoin го врати водството. Алт-сезоната не е откажана, но губи сила.',
+      catching: 'Другите монети стигнуваат оваа недела, по послаб месец. Прерано е за алт-сезона, но вреди да се следи.',
+      mixed: 'Ниту една страна не победува. Алт-сезоната што сите ја чекаат сè уште ја нема.'
+    },
+    nf: 'Опис на она што се случи, не прогноза.',
+    legend: 'Графикот позади: 20-те најголеми монети (златно) и малите монети (сино) наспроти BTC, 30-дневен принос, од 1 април.'
   } : {
     k: 'Bitcoin vs the rest', d7: '7 days', d30: '30 days',
     of: function (b, n) { return b + ' of ' + n + ' coins did better than BTC'; },
     mid: 'the middle coin against BTC',
     out: 'Money is rotating out of Bitcoin into the other coins.',
     in_: 'Bitcoin is holding money better than the other coins.',
-    mixed: 'No clear rotation between Bitcoin and the other coins.'
+    mixed: 'No clear rotation between Bitcoin and the other coins.',
+    share: 'Share', shareL: 'Share as image',
+    story: {
+      alts: 'Most coins are beating Bitcoin over both the week and the month. If it holds, this might be the start of the altseason people have waited for.',
+      btc: 'Bitcoin is beating most coins over both the week and the month. Altseason looks postponed yet again.',
+      fading: 'The other coins led over the month, but Bitcoin took the lead back this week. Altseason is not cancelled yet, but it is losing steam.',
+      catching: 'The other coins are catching up this week after a weaker month. Too early to call it altseason, but worth watching.',
+      mixed: 'Neither side is winning. The altseason everyone waits for is still not here.'
+    },
+    nf: 'A description of what happened, not a forecast.',
+    legend: 'Chart behind: the top 20 coins (gold) and the small coins (blue) against BTC, 30-day return, since 1 Apr.'
   };
   function row(key, label) {
     var b = btc[key];
@@ -258,15 +322,57 @@ function renderCapitalBtc() {
   var sum = rows.reduce(function (a, r) { return a + r.share; }, 0) / rows.length;
   var verdict = sum >= 0.6 ? L.out : sum <= 0.4 ? L.in_ : L.mixed;
   var tone = sum >= 0.6 ? 'up' : sum <= 0.4 ? 'dn' : 'mid';
-  host.innerHTML = '<div class="bf-k">' + L.k + '</div>'
+  var story = _capStory(r7, r30);
+  _capLast = { r7: r7, r30: r30, story: story };
+  host.innerHTML = (_capHist ? _capChartSvg(_capHist) : '')
+    + '<button type="button" class="cap-share" onclick="shareCapitalBtc()" aria-label="' + L.shareL + '">'
+    + '<svg viewBox="0 0 24 24" width="14" height="14" aria-hidden="true"><path fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" d="M12 3v12M7 8l5-5 5 5M5 13v6a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-6"/></svg>'
+    + '<span>' + L.share + '</span></button>'
+    + '<div class="bf-k">' + L.k + '</div>'
     + '<div class="cap-verdict cap-' + tone + '">' + verdict + '</div>'
+    + '<div class="cap-story">' + L.story[story] + ' <span class="cap-nf">' + L.nf + '</span></div>'
     + rows.map(function (r) {
         var pc = Math.round(r.share * 100);
         return '<div class="cap-row"><span class="cap-lbl">' + r.label + '</span>'
           + '<span class="cap-bar" aria-hidden="true"><i style="width:' + pc + '%"></i></span>'
           + '<span class="cap-txt">' + L.of(r.beat, r.n) + ' · ' + L.mid + ' <b class="' + (r.rel >= 0 ? 'up' : 'dn') + '">'
           + (r.rel >= 0 ? '+' : '−') + Math.abs(r.rel).toFixed(1) + '%</b></span></div>';
-      }).join('');
+      }).join('')
+    + (_capHist ? '<div class="cap-legend">' + L.legend + '</div>' : '');
+}
+/* The share card: the top-20 line against BTC since April, the week and
+   the month as stats, the plain sentence as the headline. English, like
+   every other chart card. */
+function shareCapitalBtc() {
+  if (!_capLast || typeof fcShareCard !== 'function') return;
+  var r7 = _capLast.r7, r30 = _capLast.r30;
+  var HEAD = {
+    alts: 'Most coins are beating Bitcoin. Is the long-awaited altseason starting?',
+    btc: 'Bitcoin leads again. Altseason postponed yet again?',
+    fading: 'Altcoins won the month, Bitcoin took back the week. Is altseason losing steam?',
+    catching: 'Altcoins are catching up this week. Too early to call altseason?',
+    mixed: 'Neither Bitcoin nor the altcoins are winning. Altseason is still waiting.'
+  };
+  function pct(v) { return (v >= 0 ? '+' : '−') + Math.abs(v).toFixed(1) + '%'; }
+  var head = HEAD[_capLast.story];
+  var h = _capHist || [];
+  var line = h.map(function (r) { return r.big; });
+  var stats = [];
+  if (r7) stats.push(['7 days', r7.beat + ' of ' + r7.n + ' beat BTC', r7.share >= 0.5 ? 'up' : 'dn']);
+  if (r30) stats.push(['30 days', r30.beat + ' of ' + r30.n + ' beat BTC', r30.share >= 0.5 ? 'up' : 'dn']);
+  fcShareCard({
+    kind: line.length > 10 ? 'line' : 'bars',
+    line: line,
+    bars: [r7, r30].filter(Boolean).map(function (r) { return { v: r.rel }; }),
+    tag: line.length ? pct(line[line.length - 1]) : '',
+    kicker: 'Top 20 coins against Bitcoin · 30-day return' + (h.length ? ' · since ' + _FC_MON[+h[0].day.slice(5, 7) - 1] + ' ' + (+h[0].day.slice(8, 10)) : ''),
+    from: h.length ? h[0].day : '', axis: '', to: 'now',
+    head: head,
+    stats: stats,
+    note: 'The middle coin against BTC: ' + (r7 ? '7 days ' + pct(r7.rel) : '') + (r7 && r30 ? ' · ' : '') + (r30 ? '30 days ' + pct(r30.rel) : '') + ' · what happened, not a forecast · Binance',
+    sym: 'ALTSEASON',
+    text: head + '\nBitcoin vs the rest, live and free on Rotator → ' + ROTATOR_SHARE.link
+  });
 }
 
 /* ══════════════════════════════════════════════════════════════
