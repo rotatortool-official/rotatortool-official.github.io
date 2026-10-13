@@ -6275,10 +6275,10 @@ a.mob-more-item{text-decoration:none;color:inherit;}
    on phones, so they never overlap. Gold = top 20 coins vs BTC, blue =
    small coins vs BTC, dashed = level with BTC. */
 #sec-capital .cap-btc{position:relative;}
-#sec-capital .cap-btc.has-chart{display:grid;grid-template-columns:minmax(0,1fr) minmax(220px,34%);gap:22px;align-items:start;}
+#sec-capital .cap-btc.has-chart{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:22px;align-items:start;}
 .cap-main{min-width:0;}
 .cap-side{margin-top:40px;min-width:0;}
-.cap-chart{display:block;width:100%;height:130px;}
+.cap-chart{display:block;width:100%;height:160px;}
 .cap-chart path{fill:none;stroke-width:2;vector-effect:non-scaling-stroke;stroke-linejoin:round;}
 .cap-chart-big{stroke:var(--bnb,#f3ba2f);}
 .cap-chart-small{stroke:#5b9dff;}
@@ -6289,7 +6289,7 @@ a.mob-more-item{text-decoration:none;color:inherit;}
 .cap-legend{font-size:11px;color:var(--muted);margin-top:8px;}
 .cap-share{position:absolute;top:12px;right:12px;display:inline-flex;align-items:center;gap:5px;padding:5px 10px;border-radius:6px;border:1px solid var(--bdr2);background:var(--bg3);color:var(--text);font:600 12px/1 var(--font-ui);cursor:pointer;z-index:2;}
 .cap-share:hover{border-color:var(--bnb);color:var(--bnb);}
-.cap-main .bf-k,.cap-main .cap-verdict{padding-right:84px;}
+@media (max-width:760px){.cap-main .bf-k,.cap-main .cap-verdict{padding-right:84px;}}
 @media (max-width:760px){
   #sec-capital .cap-btc.has-chart{display:block;}
   .cap-side{margin-top:12px;}
