@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Bitcoin ETF Flows Today — daily inflows and outflows by fund | Rotator</title>
+<meta name="description" content="Bitcoin and Ethereum ETF flows today: the last trading day's inflows and outflows, fund by fund (IBIT, FBTC and the rest), the last 20 days and the current streak. Free, from Rotator.">
+<meta name="robots" content="index, follow">
+<link rel="canonical" href="https://rotatortool.com/bitcoin-etf-flows.html">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Rotator">
+<meta property="og:title" content="Bitcoin ETF flows today — inflows and outflows by fund">
+<meta property="og:description" content="The last trading day's Bitcoin and Ethereum ETF flows, fund by fund, plus 20 days of history and the current streak.">
+<meta property="og:url" content="https://rotatortool.com/bitcoin-etf-flows.html">
+<meta property="og:image" content="https://rotatortool.com/og-card.png?v=20261011">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="icon-192.png" type="image/png">
+<link rel="stylesheet" href="topic.css">
+<script defer src="https://cloud.umami.is/script.js" data-website-id="77a817bc-ca03-4680-83b2-c914f8efaa6e"></script>
+<script type="application/ld+json">
+{"@context":"https://schema.org","@graph":[
+ {"@type":"WebPage","@id":"https://rotatortool.com/bitcoin-etf-flows.html","url":"https://rotatortool.com/bitcoin-etf-flows.html","name":"Bitcoin ETF flows today","inLanguage":"en","isPartOf":{"@id":"https://rotatortool.com/#site"},"publisher":{"@id":"https://rotatortool.com/#org"},
+  "description":"Daily net inflows and outflows of the US spot Bitcoin and Ethereum ETFs, fund by fund, with 20 days of history and the current streak."},
+ {"@type":"Dataset","name":"US spot Bitcoin and Ethereum ETF daily flows","description":"Net daily flows in US dollars for each US spot Bitcoin and Ethereum ETF, history since January 2024.","url":"https://rotatortool.com/bitcoin-etf-flows.html","creator":{"@id":"https://rotatortool.com/#org"},"isAccessibleForFree":true,"temporalCoverage":"2024-01-11/..","variableMeasured":["net flow in US dollars","fund"]},
+ {"@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"Rotator","item":"https://rotatortool.com/"},{"@type":"ListItem","position":2,"name":"Bitcoin ETF flows today","item":"https://rotatortool.com/bitcoin-etf-flows.html"}]}
+]}
+</script>
+</head>
+<body>
+<header class="top"><div class="wrap">
+  <a class="logo" href="./">⬡ ROTATOR</a>
+  <nav aria-label="Topics">
+    <a href="./">Board</a>
+    <a href="golden-cross.html">Golden crosses</a>
+    <a href="bitcoin-etf-flows.html" aria-current="page">ETF flows</a>
+    <a href="token-unlocks.html">Unlocks</a>
+    <a href="mk/kripto-denes.html" lang="mk">МК</a>
+  </nav>
+</div></header>
+
+<main><div class="wrap">
+  <h1>Bitcoin ETF flows today</h1>
+  <p class="lead">A spot Bitcoin ETF is a fund on the US stock market that holds real Bitcoin. When more money goes into these funds than comes out, the funds have to buy Bitcoin (an inflow). When more comes out, they sell (an outflow). Here is the latest trading day, fund by fund.</p>
+
+  <div class="stats">
+    <div class="stat"><div class="k" id="b-k">Bitcoin ETFs, last day</div><div class="v" id="b-last">…</div><div class="s" id="b-head">&nbsp;</div></div>
+    <div class="stat"><div class="k">Last 5 trading days</div><div class="v" id="b-5">…</div><div class="s" id="b-20">&nbsp;</div></div>
+    <div class="stat"><div class="k">Streak</div><div class="v" id="b-streak">…</div><div class="s" id="b-streak-s">&nbsp;</div></div>
+  </div>
+  <p id="b-detail" class="muted"></p>
+
+  <h2 id="b-funds-h">Bitcoin ETFs by fund</h2>
+  <div class="tbl-wrap"><table>
+    <thead><tr><th>Fund</th><th class="num">Net flow</th></tr></thead>
+    <tbody id="b-funds"><tr><td colspan="2" class="empty">Loading…</td></tr></tbody>
+  </table></div>
+
+  <h2>The last 20 trading days</h2>
+  <div class="bars" id="b-bars" aria-label="Daily Bitcoin ETF flows, last 20 trading days"></div>
+  <div class="bars-axis"><span id="b-bars-from"></span><span>green = in, red = out</span><span id="b-bars-to"></span></div>
+  <div class="tbl-wrap" style="margin-top:14px"><table>
+    <thead><tr><th>Day</th><th class="num">Bitcoin ETFs</th><th class="num">Ethereum ETFs</th></tr></thead>
+    <tbody id="days"><tr><td colspan="3" class="empty">Loading…</td></tr></tbody>
+  </table></div>
+
+  <h2>Ethereum ETF flows</h2>
+  <div class="stats">
+    <div class="stat"><div class="k" id="e-k">Ethereum ETFs, last day</div><div class="v" id="e-last">…</div><div class="s" id="e-head">&nbsp;</div></div>
+    <div class="stat"><div class="k">Last 5 trading days</div><div class="v" id="e-5">…</div><div class="s" id="e-20">&nbsp;</div></div>
+    <div class="stat"><div class="k">Streak</div><div class="v" id="e-streak">…</div><div class="s" id="e-streak-s">&nbsp;</div></div>
+  </div>
+  <div class="tbl-wrap"><table>
+    <thead><tr><th>Fund</th><th class="num">Net flow</th></tr></thead>
+    <tbody id="e-funds"><tr><td colspan="2" class="empty">Loading…</td></tr></tbody>
+  </table></div>
+  <p class="updated" id="upd">US trading days only: no flows on weekends or US holidays. Updated each morning (UTC) after the US close.</p>
+
+  <h2>How to read ETF flows</h2>
+  <p>Big inflows mean more people are buying Bitcoin through the stock market, and big outflows mean they are leaving. A single day says little: a run of days in one direction says more, which is why the streak is shown. These are past flows, not a forecast of the price. The board keeps the full history back to January 2024 with a 6-month and 1-year chart.</p>
+
+  <div class="cta">
+    <a class="btn board" href="./">See the full ETF chart on the board ›</a>
+    <a class="btn tg" href="https://t.me/rotatortool" rel="noopener">Big flow days on Telegram</a>
+  </div>
+</div></main>
+
+<footer><div class="wrap">
+  <p>Part of <a href="./">Rotator</a>, the free crypto board for Binance coins. <span id="src">Flow data from public daily ETF flow tables.</span></p>
+  <p>This page shows data. It does not tell you what to buy or sell, and past results don't promise future ones.</p>
+</div></footer>
+
+<script src="js/topic.js"></script>
+<script>
+(function () {
+  var T = TOPIC;
+  function cls(v) { return v > 0 ? 'up' : v < 0 ? 'down' : ''; }
+  function streakText(s) {
+    if (!s || !s.len || !s.dir) return ['—', ''];
+    return [s.len + ' day' + (s.len === 1 ? '' : 's'), s.dir > 0 ? 'of inflows in a row' : 'of outflows in a row'];
+  }
+  function fill(p, a, label) {
+    if (!a) return;
+    var last = a.last || {};
+    T.set(p + '-k', label + ', ' + T.day(last.day));
+    T.set(p + '-last', '<span class="' + cls(last.total) + '">' + T.usdM(last.total, { plus: true }) + '</span>');
+    T.set(p + '-head', T.esc(a.headline || ''));
+    T.set(p + '-5', '<span class="' + cls(a.sum5) + '">' + T.usdM(a.sum5, { plus: true }) + '</span>');
+    T.set(p + '-20', '20 days: ' + T.usdM(a.sum20, { plus: true }));
+    var st = streakText(a.streak);
+    T.set(p + '-streak', '<span class="' + cls(a.streak && a.streak.dir) + '">' + st[0] + '</span>');
+    T.set(p + '-streak-s', st[1]);
+  }
+  function funds(id, row) {
+    if (!row || !row.funds) { T.set(id, '<tr><td colspan="2" class="empty">No fund breakdown for this day.</td></tr>'); return; }
+    var f = Object.keys(row.funds).map(function (k) { return [k, Number(row.funds[k])]; })
+      .sort(function (a, b) { return Math.abs(b[1]) - Math.abs(a[1]); });
+    var moved = f.filter(function (x) { return x[1] !== 0; }), quiet = f.length - moved.length;
+    var html = moved.map(function (x) {
+      return '<tr><td><strong>' + T.esc(x[0]) + '</strong></td><td class="num ' + cls(x[1]) + '">' + T.usdM(x[1], { plus: true }) + '</td></tr>';
+    }).join('');
+    if (quiet) html += '<tr><td class="muted">' + quiet + ' other fund' + (quiet === 1 ? '' : 's') + '</td><td class="num muted">$0</td></tr>';
+    html += '<tr><td><strong>Total</strong></td><td class="num ' + cls(row.total) + '"><strong>' + T.usdM(row.total, { plus: true }) + '</strong></td></tr>';
+    T.set(id, html);
+  }
+
+  Promise.all([
+    T.cache('etf_flows_summary'),
+    T.get('etf_flows', { asset: 'eq.BTC', select: 'day,total,funds,complete', order: 'day.desc', limit: '1' }),
+    T.get('etf_flows', { asset: 'eq.ETH', select: 'day,total,funds,complete', order: 'day.desc', limit: '1' })
+  ]).then(function (res) {
+    var s = res[0] && res[0].data, btc = s && s.BTC, eth = s && s.ETH;
+    if (!btc) {
+      T.set('b-funds', '<tr><td colspan="2" class="empty">Could not load the flows right now. Try again in a minute.</td></tr>');
+      return;
+    }
+    fill('b', btc, 'Bitcoin ETFs');
+    fill('e', eth, 'Ethereum ETFs');
+    T.set('b-detail', T.esc(btc.detail || ''));
+    var b0 = res[1] && res[1][0], e0 = res[2] && res[2][0];
+    if (b0) T.set('b-funds-h', 'Bitcoin ETFs by fund, ' + T.day(b0.day));
+    funds('b-funds', b0);
+    funds('e-funds', e0);
+
+    var bars = btc.bars || [], max = 0;
+    bars.forEach(function (b) { max = Math.max(max, Math.abs(b.total || 0)); });
+    T.set('b-bars', bars.map(function (b) {
+      var h = max ? Math.max(3, Math.round(Math.abs(b.total) / max * 100)) : 3;
+      /* Inflows rise from the middle line, outflows hang below it. */
+      var bar = '<b style="height:' + h + '%;background:' + (b.total >= 0 ? 'var(--green)' : 'var(--red)') + '"></b>';
+      return '<span class="d" title="' + T.day(b.day) + ': ' + T.usdM(b.total, { plus: true }) + '">'
+        + '<i>' + (b.total >= 0 ? bar : '') + '</i><i>' + (b.total < 0 ? bar : '') + '</i></span>';
+    }).join(''));
+    if (bars.length) { T.set('b-bars-from', T.day(bars[0].day)); T.set('b-bars-to', T.day(bars[bars.length - 1].day)); }
+
+    var ethBy = {};
+    ((eth && eth.bars) || []).forEach(function (b) { ethBy[b.day] = b.total; });
+    T.set('days', bars.slice().reverse().map(function (b) {
+      var e = ethBy[b.day];
+      return '<tr><td>' + T.day(b.day) + '</td><td class="num ' + cls(b.total) + '">' + T.usdM(b.total, { plus: true }) + '</td>'
+        + '<td class="num ' + cls(e) + '">' + (e == null ? '—' : T.usdM(e, { plus: true })) + '</td></tr>';
+    }).join(''));
+
+    if (s.source) T.set('src', 'Flow data: ' + (s.sourceUrl ? '<a href="' + T.esc(s.sourceUrl) + '" rel="noopener nofollow">' + T.esc(s.source) + '</a>' : T.esc(s.source)) + '.');
+  });
+})();
+</script>
+</body>
+</html>

@@ -18,6 +18,7 @@
 /* ── Top bar, rail, section headers ─────────────────────────────── */
 Object.assign(MK_TEXT, {
   '⬡ ROTATOR — Market Pulse for Binance': '⬡ ROTATOR — Пазарен пулс за Binance',
+  'Rotator Crypto — Free Market Pulse for Binance Coins': 'Rotator Crypto — бесплатен пазарен пулс за монетите на Binance',
   'Section navigation': 'Навигација по секции',
   'SORT': 'РЕД',
   'every coin we score, ranked; open one to see its score and relative strength': 'секоја монета што ја оценуваме, рангирана; отворете ја за да ги видите оценката и релативната сила',

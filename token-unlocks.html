@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Token Unlocks This Week — upcoming crypto unlocks on Binance coins | Rotator</title>
+<meta name="description" content="Upcoming token unlocks for Binance coins: what unlocks this week and in the next 30 days, as a share of supply and in dollars, biggest first. Free, updated several times a day by Rotator.">
+<meta name="robots" content="index, follow">
+<link rel="canonical" href="https://rotatortool.com/token-unlocks.html">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Rotator">
+<meta property="og:title" content="Token unlocks this week — Binance coins">
+<meta property="og:description" content="What unlocks this week and in the next 30 days, as a share of supply and in dollars.">
+<meta property="og:url" content="https://rotatortool.com/token-unlocks.html">
+<meta property="og:image" content="https://rotatortool.com/og-card.png?v=20261011">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="icon-192.png" type="image/png">
+<link rel="stylesheet" href="topic.css">
+<script defer src="https://cloud.umami.is/script.js" data-website-id="77a817bc-ca03-4680-83b2-c914f8efaa6e"></script>
+<script type="application/ld+json">
+{"@context":"https://schema.org","@graph":[
+ {"@type":"WebPage","@id":"https://rotatortool.com/token-unlocks.html","url":"https://rotatortool.com/token-unlocks.html","name":"Token unlocks this week","inLanguage":"en","isPartOf":{"@id":"https://rotatortool.com/#site"},"publisher":{"@id":"https://rotatortool.com/#org"},
+  "description":"Upcoming token unlocks for Binance-listed coins over the next 7 and 30 days, as a share of supply and in US dollars."},
+ {"@type":"Dataset","name":"Upcoming token unlocks, Binance coins","description":"Published vesting schedules for Binance-listed coins: next unlock date, share of supply, and the 30-day total.","url":"https://rotatortool.com/token-unlocks.html","creator":{"@id":"https://rotatortool.com/#org"},"isAccessibleForFree":true,"variableMeasured":["next unlock date","share of supply","US dollar value"]},
+ {"@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"Rotator","item":"https://rotatortool.com/"},{"@type":"ListItem","position":2,"name":"Token unlocks this week","item":"https://rotatortool.com/token-unlocks.html"}]}
+]}
+</script>
+</head>
+<body>
+<header class="top"><div class="wrap">
+  <a class="logo" href="./">⬡ ROTATOR</a>
+  <nav aria-label="Topics">
+    <a href="./">Board</a>
+    <a href="golden-cross.html">Golden crosses</a>
+    <a href="bitcoin-etf-flows.html">ETF flows</a>
+    <a href="token-unlocks.html" aria-current="page">Unlocks</a>
+    <a href="mk/kripto-denes.html" lang="mk">МК</a>
+  </nav>
+</div></header>
+
+<main><div class="wrap">
+  <h1>Token unlocks this week</h1>
+  <p class="lead">Many coins don't release all their tokens at once. Early investors and the team get theirs on a schedule, and each date is an unlock: new coins that can be sold. Extra supply often weighs on the price around the date. Here is what unlocks soon for coins on Binance.</p>
+
+  <div class="stats">
+    <div class="stat"><div class="k">Unlocking in 7 days</div><div class="v" id="s7">…</div><div class="s" id="s7n">&nbsp;</div></div>
+    <div class="stat"><div class="k">Unlocking in 30 days</div><div class="v" id="s30">…</div><div class="s" id="s30n">&nbsp;</div></div>
+    <div class="stat"><div class="k">Biggest this month</div><div class="v" id="sbig">…</div><div class="s" id="sbign">&nbsp;</div></div>
+  </div>
+
+  <h2>Next 7 days</h2>
+  <div class="tbl-wrap"><table>
+    <thead><tr><th>Date</th><th>Coin</th><th class="num">Of supply</th><th class="num">≈ Value</th></tr></thead>
+    <tbody id="w7"><tr><td colspan="4" class="empty">Loading the unlock schedule…</td></tr></tbody>
+  </table></div>
+
+  <h2>Biggest unlocks in the next 30 days</h2>
+  <div class="tbl-wrap"><table>
+    <thead><tr><th>Coin</th><th>Next date</th><th class="num">Of supply, 30 days</th><th class="num">≈ Value</th></tr></thead>
+    <tbody id="m30"><tr><td colspan="4" class="empty">Loading…</td></tr></tbody>
+  </table></div>
+  <p class="updated" id="upd">Only unlocks of at least 0.5% of a coin's supply are listed, the same line the board uses, so mining and small daily releases are left out. Schedules are refreshed several times a day. Dollar values use today's price, so they move with it.</p>
+
+  <h2>How to read this</h2>
+  <p>A large unlock, measured as a share of the coins already out there, matters more than a large dollar figure on a big coin. Not every unlocked token gets sold. About a third of the coins on the board publish a schedule. A coin missing from this page may simply have no published schedule, which is not the same as having no unlock. This is a schedule, not a forecast.</p>
+
+  <div class="cta">
+    <a class="btn board" href="./">Check a coin's unlocks on the board ›</a>
+    <a class="btn tg" href="https://t.me/rotatortool" rel="noopener">Market events on Telegram</a>
+  </div>
+</div></main>
+
+<footer><div class="wrap">
+  <p>Part of <a href="./">Rotator</a>, the free crypto board for Binance coins. Unlock schedules from public vesting data, prices from CoinGecko.</p>
+  <p>This page shows data. It does not tell you what to buy or sell, and past results don't promise future ones.</p>
+</div></footer>
+
+<script src="js/topic.js"></script>
+<script>
+(function () {
+  /* Same floor as the board's unlock tile (_UL_MIN in data-loaders.js):
+     at least 0.5% of supply, which leaves out mining and tiny daily
+     releases (Bitcoin's new coins are not an unlock). */
+  var T = TOPIC, now = Date.now(), DAY = 86400000, MIN = 0.5;
+  Promise.all([
+    T.get('token_unlocks', { select: 'coin_id,unlock30d_pct,next_unlock_at,next_unlock_pct', limit: '1000' }),
+    T.coins()
+  ]).then(function (res) {
+    var rows = res[0], cs = res[1];
+    if (!Array.isArray(rows) || !cs.list.length) {
+      T.set('w7', '<tr><td colspan="4" class="empty">Could not load the schedule right now. Try again in a minute.</td></tr>');
+      T.set('m30', '');
+      return;
+    }
+    var all = rows.map(function (u) {
+      var c = cs.byId[u.coin_id];
+      if (!c || c.stable) return null;
+      var at = u.next_unlock_at ? Date.parse(u.next_unlock_at) : NaN;
+      var p = u.next_unlock_pct != null ? Number(u.next_unlock_pct) : null;
+      var p30 = u.unlock30d_pct != null ? Number(u.unlock30d_pct) : null;
+      var mc = c.market_cap || 0;
+      return { c: c, sym: c.symbol.toUpperCase(), at: at, p: p, p30: p30,
+               usd: mc && p != null ? mc * p / 100 : null, usd30: mc && p30 != null ? mc * p30 / 100 : null };
+    }).filter(Boolean);
+
+    function coinCell(r) {
+      return '<a href="' + T.boardLink(r.sym) + '">' + T.esc(r.sym) + '</a><span class="nm">' + T.esc(r.c.name) + '</span>';
+    }
+    function pc(v) { return v == null ? '—' : (v < 0.01 ? '<0.01' : v.toFixed(v < 1 ? 2 : 1)) + '%'; }
+
+    /* Next 7 days: each coin's next unlock, date order. The table only
+       knows the NEXT date per coin, so this is the honest 7-day list. */
+    var w7 = all.filter(function (r) { return !isNaN(r.at) && r.at >= now - 3600000 && r.at <= now + 7 * DAY && r.p >= MIN; })
+      .sort(function (a, b) { return a.at - b.at || (b.usd || 0) - (a.usd || 0); });
+    var sum7 = w7.reduce(function (s, r) { return s + (r.usd || 0); }, 0);
+    T.set('s7', T.usd(sum7));
+    T.set('s7n', w7.length + ' coin' + (w7.length === 1 ? '' : 's'));
+    T.set('w7', w7.length ? w7.map(function (r) {
+      return '<tr><td>' + T.day(r.at) + '</td><td>' + coinCell(r) + '</td><td class="num">' + pc(r.p) + '</td><td class="num">' + T.usd(r.usd) + '</td></tr>';
+    }).join('') : '<tr><td colspan="4" class="empty">No unlocks due for these coins in the next 7 days.</td></tr>');
+
+    var m30 = all.filter(function (r) { return r.p30 >= MIN; })
+      .sort(function (a, b) { return (b.usd30 || 0) - (a.usd30 || 0); });
+    var sum30 = m30.reduce(function (s, r) { return s + (r.usd30 || 0); }, 0);
+    T.set('s30', T.usd(sum30));
+    T.set('s30n', m30.length + ' coin' + (m30.length === 1 ? '' : 's'));
+    if (m30[0]) { T.set('sbig', T.esc(m30[0].sym)); T.set('sbign', T.usd(m30[0].usd30) + ', ' + pc(m30[0].p30) + ' of supply'); }
+    else { T.set('sbig', '—'); }
+    T.set('m30', m30.length ? m30.slice(0, 25).map(function (r) {
+      return '<tr><td>' + coinCell(r) + '</td><td>' + (isNaN(r.at) ? '—' : T.day(r.at)) + '</td><td class="num">' + pc(r.p30) + '</td><td class="num">' + T.usd(r.usd30) + '</td></tr>';
+    }).join('') : '<tr><td colspan="4" class="empty">No unlocks due for these coins in the next 30 days.</td></tr>');
+  });
+})();
+</script>
+</body>
+</html>
