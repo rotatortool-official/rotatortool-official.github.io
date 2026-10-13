@@ -6270,20 +6270,29 @@ a.mob-more-item{text-decoration:none;color:inherit;}
   .rec-big{font-size:16px;} .rec-cell{padding:8px;} .rec-lbl{font-size:10px;}
 }
 
-/* Bitcoin vs the rest: chart behind, the altseason sentence, Share
-   (2026-10-13, Daniel). The chart is faint and sits under the text; gold
-   = top 20 coins vs BTC, blue = small coins vs BTC, the line = level with BTC. */
-#sec-capital .cap-btc{position:relative;overflow:hidden;}
-#sec-capital .cap-btc > :not(.cap-chart){position:relative;z-index:1;}
-.cap-chart{position:absolute;left:0;right:0;bottom:0;width:100%;height:78%;z-index:0;pointer-events:none;opacity:.18;}
+/* Bitcoin vs the rest: chart, the altseason sentence, Share
+   (2026-10-13, Daniel). Text left, chart right on wide screens and below
+   on phones, so they never overlap. Gold = top 20 coins vs BTC, blue =
+   small coins vs BTC, dashed = level with BTC. */
+#sec-capital .cap-btc{position:relative;}
+#sec-capital .cap-btc.has-chart{display:grid;grid-template-columns:minmax(0,1fr) minmax(220px,34%);gap:22px;align-items:start;}
+.cap-main{min-width:0;}
+.cap-side{margin-top:40px;min-width:0;}
+.cap-chart{display:block;width:100%;height:130px;}
 .cap-chart path{fill:none;stroke-width:2;vector-effect:non-scaling-stroke;stroke-linejoin:round;}
 .cap-chart-big{stroke:var(--bnb,#f3ba2f);}
 .cap-chart-small{stroke:#5b9dff;}
 .cap-chart-zero{stroke:var(--muted);stroke-width:1;stroke-dasharray:4 4;vector-effect:non-scaling-stroke;}
-:root.light .cap-chart{opacity:.25;}
+.cap-axis{display:flex;justify-content:space-between;font-size:11px;color:var(--muted);margin-top:4px;}
 .cap-story{font-size:14px;line-height:1.5;color:var(--text);margin:-4px 0 10px;max-width:760px;}
 .cap-nf{color:var(--muted);font-size:12px;}
 .cap-legend{font-size:11px;color:var(--muted);margin-top:8px;}
-.cap-share{position:absolute !important;top:12px;right:12px;display:inline-flex;align-items:center;gap:5px;padding:5px 10px;border-radius:6px;border:1px solid var(--bdr2);background:var(--bg3);color:var(--text);font:600 12px/1 var(--font-ui);cursor:pointer;z-index:2 !important;}
+.cap-share{position:absolute;top:12px;right:12px;display:inline-flex;align-items:center;gap:5px;padding:5px 10px;border-radius:6px;border:1px solid var(--bdr2);background:var(--bg3);color:var(--text);font:600 12px/1 var(--font-ui);cursor:pointer;z-index:2;}
 .cap-share:hover{border-color:var(--bnb);color:var(--bnb);}
-@media (max-width:600px){.cap-share span{display:none;}.cap-share{padding:6px;}}
+.cap-main .bf-k,.cap-main .cap-verdict{padding-right:84px;}
+@media (max-width:760px){
+  #sec-capital .cap-btc.has-chart{display:block;}
+  .cap-side{margin-top:12px;}
+  .cap-chart{height:100px;}
+}
+@media (max-width:600px){.cap-share span{display:none;}.cap-share{padding:6px;}.cap-main .bf-k,.cap-main .cap-verdict{padding-right:36px;}}

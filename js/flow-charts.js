@@ -167,10 +167,23 @@ function _fcDraw(spec, wm) {
   var endY = CY + CH / 2, endCol = UP;
 
   if (spec.kind === 'line') {
-    var line = spec.line, lo = Math.min.apply(null, line), hi = Math.max.apply(null, line), pad = (hi - lo) * 0.08 || Math.abs(hi) * 0.05 || 1;
+    /* line2 (optional): a second series drawn in blue under the first,
+       which then turns gold; zero: a dashed line at 0 (Bitcoin vs the
+       rest, 2026-10-13). */
+    var line = spec.line, both = line.concat(spec.line2 || []).concat(spec.zero ? [0] : []);
+    var lo = Math.min.apply(null, both), hi = Math.max.apply(null, both), pad = (hi - lo) * 0.08 || Math.abs(hi) * 0.05 || 1;
     var Y = function (v) { return CY + CH - ((v - lo + pad) / (hi - lo + 2 * pad)) * CH; };
     var X = function (i) { return CX + (i / (line.length - 1)) * CW; };
-    endCol = line[line.length - 1] >= line[0] ? UP : DN;
+    endCol = spec.line2 ? '#f3ba2f' : (line[line.length - 1] >= line[0] ? UP : DN);
+    if (spec.zero) {
+      ctx.save(); ctx.setLineDash([8, 8]); ctx.strokeStyle = '#6f7b8c'; ctx.lineWidth = 2;
+      ctx.beginPath(); ctx.moveTo(CX, Y(0)); ctx.lineTo(CX + CW, Y(0)); ctx.stroke(); ctx.restore();
+    }
+    if (spec.line2 && spec.line2.length > 1) {
+      var X2 = function (i) { return CX + (i / (spec.line2.length - 1)) * CW; };
+      ctx.beginPath(); spec.line2.forEach(function (v, i) { if (i) ctx.lineTo(X2(i), Y(v)); else ctx.moveTo(X2(i), Y(v)); });
+      ctx.strokeStyle = '#5b9dff'; ctx.lineWidth = 3; ctx.lineJoin = 'round'; ctx.stroke();
+    }
     ctx.beginPath(); ctx.moveTo(X(0), CY + CH);
     line.forEach(function (v, i) { ctx.lineTo(X(i), Y(v)); });
     ctx.lineTo(X(line.length - 1), CY + CH); ctx.closePath();

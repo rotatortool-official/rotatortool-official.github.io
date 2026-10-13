@@ -284,7 +284,7 @@ function renderCapitalBtc() {
       mixed: 'Ниту една страна не победува. Алт-сезоната што сите ја чекаат сè уште ја нема.'
     },
     nf: 'Опис на она што се случи, не прогноза.',
-    legend: 'Графикот позади: 20-те најголеми монети (златно) и малите монети (сино) наспроти BTC, 30-дневен принос, од 1 април.'
+    legend: 'Графикот: 20-те најголеми монети (златно) и малите монети (сино) наспроти BTC, 30-дневен принос, од 1 април.'
   } : {
     k: 'Bitcoin vs the rest', d7: '7 days', d30: '30 days',
     of: function (b, n) { return b + ' of ' + n + ' coins did better than BTC'; },
@@ -301,7 +301,7 @@ function renderCapitalBtc() {
       mixed: 'Neither side is winning. The altseason everyone waits for is still not here.'
     },
     nf: 'A description of what happened, not a forecast.',
-    legend: 'Chart behind: the top 20 coins (gold) and the small coins (blue) against BTC, 30-day return, since 1 Apr.'
+    legend: 'Chart: the top 20 coins (gold) and the small coins (blue) against BTC, 30-day return, since 1 Apr.'
   };
   function row(key, label) {
     var b = btc[key];
@@ -324,11 +324,13 @@ function renderCapitalBtc() {
   var tone = sum >= 0.6 ? 'up' : sum <= 0.4 ? 'dn' : 'mid';
   var story = _capStory(r7, r30);
   _capLast = { r7: r7, r30: r30, story: story };
-  host.innerHTML = (_capHist ? _capChartSvg(_capHist) : '')
-    + '<button type="button" class="cap-share" onclick="shareCapitalBtc()" aria-label="' + L.shareL + '">'
+  /* Text on the left, the chart on the right (below on phones), so the
+     two never overlap (Daniel, 2026-10-13). */
+  host.classList.toggle('has-chart', !!_capHist);
+  host.innerHTML = '<button type="button" class="cap-share" onclick="shareCapitalBtc()" aria-label="' + L.shareL + '">'
     + '<svg viewBox="0 0 24 24" width="14" height="14" aria-hidden="true"><path fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" d="M12 3v12M7 8l5-5 5 5M5 13v6a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-6"/></svg>'
     + '<span>' + L.share + '</span></button>'
-    + '<div class="bf-k">' + L.k + '</div>'
+    + '<div class="cap-main"><div class="bf-k">' + L.k + '</div>'
     + '<div class="cap-verdict cap-' + tone + '">' + verdict + '</div>'
     + '<div class="cap-story">' + L.story[story] + ' <span class="cap-nf">' + L.nf + '</span></div>'
     + rows.map(function (r) {
@@ -338,7 +340,13 @@ function renderCapitalBtc() {
           + '<span class="cap-txt">' + L.of(r.beat, r.n) + ' · ' + L.mid + ' <b class="' + (r.rel >= 0 ? 'up' : 'dn') + '">'
           + (r.rel >= 0 ? '+' : '−') + Math.abs(r.rel).toFixed(1) + '%</b></span></div>';
       }).join('')
-    + (_capHist ? '<div class="cap-legend">' + L.legend + '</div>' : '');
+    + (_capHist ? '<div class="cap-legend">' + L.legend + '</div>' : '') + '</div>'
+    + (_capHist ? '<div class="cap-side">' + _capChartSvg(_capHist)
+        + '<div class="cap-axis"><span>' + _capDay(_capHist[0].day, mk) + '</span><span>' + (mk ? 'денес' : 'today') + '</span></div></div>' : '');
+}
+function _capDay(d, mk) {
+  var mon = mk ? ['јан.','фев.','мар.','апр.','мај','јун.','јул.','авг.','сеп.','окт.','ноем.','дек.'] : ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  return (+d.slice(8, 10)) + ' ' + mon[+d.slice(5, 7) - 1];
 }
 /* The share card: the top-20 line against BTC since April, the week and
    the month as stats, the plain sentence as the headline. English, like
@@ -363,9 +371,11 @@ function shareCapitalBtc() {
   fcShareCard({
     kind: line.length > 10 ? 'line' : 'bars',
     line: line,
+    line2: h.map(function (r) { return r.small; }),   /* small coins, blue, like the card */
+    zero: true,
     bars: [r7, r30].filter(Boolean).map(function (r) { return { v: r.rel }; }),
     tag: line.length ? pct(line[line.length - 1]) : '',
-    kicker: 'Top 20 coins against Bitcoin · 30-day return' + (h.length ? ' · since ' + _FC_MON[+h[0].day.slice(5, 7) - 1] + ' ' + (+h[0].day.slice(8, 10)) : ''),
+    kicker: 'Top 20 coins (gold) and small coins (blue) against Bitcoin · 30-day return' + (h.length ? ' · since ' + _FC_MON[+h[0].day.slice(5, 7) - 1] + ' ' + (+h[0].day.slice(8, 10)) : ''),
     from: h.length ? h[0].day : '', axis: '', to: 'now',
     head: head,
     stats: stats,
