@@ -2636,7 +2636,7 @@ function renderBriefing() {
         },
         srcHtml: function (x) {
           return '<div class="bf-src"><span>Source</span> <a href="https://finance.yahoo.com/quote/%5EW5000" target="_blank" rel="noopener">Wilshire 5000 via Yahoo Finance</a>'
-            + ' · <a href="https://data-explorer.oecd.org/" target="_blank" rel="noopener">OECD (GDP)</a>'
+            + ' · <a href="https://data-explorer.oecd.org/" target="_blank" rel="noopener">OECD / BEA (GDP)</a>'
             + (x.date ? ' · <span>' + _bfDay(x.date) + '</span>' : '') + '</div>';
         },
         d: 'The whole US stock market measured against a year of US output. Higher means stocks are expensive next to the economy.',

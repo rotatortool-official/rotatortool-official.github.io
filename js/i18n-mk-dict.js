@@ -1629,7 +1629,7 @@ Object.assign(MK_TEXT, {
   "Cboe via Yahoo Finance": "Cboe преку Yahoo Finance",
   "FTSE Russell via Yahoo Finance": "FTSE Russell преку Yahoo Finance",
   "Wilshire 5000 via Yahoo Finance": "Wilshire 5000 преку Yahoo Finance",
-  "OECD (GDP)": "ОЕЦД (БДП)",
+  "OECD / BEA (GDP)": "ОЕЦД / БЕА (БДП)",
   "In points": "Во поени",
   "Next to crypto": "Покрај криптото",
   "What they are": "Што се тие",
