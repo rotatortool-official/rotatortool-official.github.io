@@ -29,7 +29,13 @@ var ROTATOR_SHARE = {
   /* Daniel's lines; a card shows one at random. "with Rotator" is left off
      the second here because the call beside it already names Rotator. */
   hooks: ['Money moves. Be there first.', 'Stay ahead of the crowd.'],
-  cta: 'Find out more on Rotator →',
+  cta: 'Find out more on',
+  /* "tool" in a colour of its own so the address sticks (Daniel, 2026-10-14:
+     "lets make tool word different color so people can memorise it better
+     just like we did in the reels ... random colours, avoid yellow on yellow
+     background"). [tool, .com or null = ink], flag colours dark enough to
+     read on the gold bar, one picked at random per card. */
+  palettes: [['#0057b7', null], ['#b22234', '#3c3b6e'], ['#009c3b', '#002776'], ['#d20000', null]],
   gold: '#f3ba2f',
   ink: '#14110a'
 };
@@ -52,13 +58,22 @@ function shareBrandBar(ctx, W, H, hook) {
   ctx.fillStyle = ROTATOR_SHARE.ink;
   ctx.textBaseline = 'alphabetic';
 
-  // Right block first, so the hook gets whatever room is left.
+  // Right block first, so the hook gets whatever room is left: a small
+  // "Find out more on" over the address, its "tool" in a random colour.
+  var pal = ROTATOR_SHARE.palettes[Math.floor(Math.random() * ROTATOR_SHARE.palettes.length)];
+  var m = /^rotator(tool)(.*)$/.exec(ROTATOR_SHARE.url);
+  var parts = m ? [['rotator', ROTATOR_SHARE.ink], ['tool', pal[0]], [m[2], pal[1] || ROTATOR_SHARE.ink], [' →', ROTATOR_SHARE.ink]]
+                : [[ROTATOR_SHARE.url + ' →', ROTATOR_SHARE.ink]];
+  var font = '900 {SIZE}px Inter, sans-serif', full = parts.map(function (p) { return p[0]; }).join('');
+  var size = shareFit(ctx, full, W * 0.5, font, H >= 900 ? 50 : 44, 26);
+  var mainW = ctx.measureText(full).width, x = W - pad - mainW, base = top + barH / 2 + size * 0.72;
+  ctx.textAlign = 'left';
+  parts.forEach(function (p) { ctx.fillStyle = p[1]; ctx.fillText(p[0], x, base); x += ctx.measureText(p[0]).width; });
+  ctx.fillStyle = ROTATOR_SHARE.ink;
   ctx.textAlign = 'right';
-  var ctaSize = shareFit(ctx, ROTATOR_SHARE.cta, W * 0.48, '800 {SIZE}px Inter, sans-serif', H >= 900 ? 46 : 40, 26);
-  ctx.fillText(ROTATOR_SHARE.cta, W - pad, top + barH / 2 + 2);
-  var ctaW = ctx.measureText(ROTATOR_SHARE.cta).width;
-  ctx.font = '700 ' + (H >= 900 ? 30 : 26) + 'px Inter, sans-serif';
-  ctx.fillText(ROTATOR_SHARE.url, W - pad, top + barH / 2 + ctaSize * 0.95);
+  ctx.font = '700 ' + (H >= 900 ? 28 : 24) + 'px Inter, sans-serif';
+  ctx.fillText(ROTATOR_SHARE.cta, W - pad, base - size * 1.02);
+  var ctaW = Math.max(mainW, ctx.measureText(ROTATOR_SHARE.cta).width);
 
   ctx.textAlign = 'left';
   var hookText = hook || ROTATOR_SHARE.hooks[Math.floor(Math.random() * ROTATOR_SHARE.hooks.length)];
