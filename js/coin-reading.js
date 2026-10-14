@@ -488,6 +488,143 @@ function readingLineHtml(c) {
   return '<div class="tile-reading ' + R.tone + '" title="' + _esc(R.sub) + '">' + _esc(R.head) + '</div>';
 }
 
+/* ── In short: the coin's story in plain words (2026-10-14, Daniel) ──
+   "When users click on the modal they are probably confused": the window
+   showed "Ran ahead this week" right under "−16% (24H)" and left the reader
+   to join the numbers up. This writes them as 2-4 short sentences a
+   newcomer can follow, and they can be shared as a card. Only facts the
+   window already holds (coins[], coinTechnicals, _tokenUnlocks); a fact
+   that is missing is left out, never guessed. It says what happened, not
+   what comes next; the per-signal records stay under Turn signals. */
+var _tdStoryLast = null;
+function coinStory(c) {
+  if (!c || c.isStable || typeof c.p7 !== 'number') return null;
+  var mk = typeof currentLang !== 'undefined' && currentLang === 'mk';
+  var nm = c.isStock ? (c.name || c.sym) : c.sym;
+  var ab = function (v) { return Math.abs(v) >= 10 ? Math.abs(v).toFixed(0) : Math.abs(v).toFixed(1); };
+  var sg = function (v) { return (v >= 0 ? '+' : '−') + ab(v) + '%'; };
+  var out = [];
+
+  /* 1. The move that matters most: the month when it is big, else the week.
+     With its place among our coins when it is in the top or bottom 10. */
+  var pool = coins.filter(function (x) { return !x.isStock && !x.isStable && typeof x.p7 === 'number'; });
+  var rk = c.isStock ? 0 : pool.filter(function (x) { return x.p7 > c.p7; }).length + 1;
+  var rkTxt = (rk && rk <= 10)
+    ? (mk ? ', ' + (rk === 1 ? 'најдобра' : rk + '. место') + ' од ' + pool.length + ' монети оваа недела'
+          : ', ' + (rk === 1 ? 'the best' : 'number ' + rk) + ' of the ' + pool.length + ' coins we score this week')
+    : (rk && rk >= pool.length - 9) ? (mk ? ', меѓу 10-те најслаби оваа недела' : ', one of the 10 weakest this week') : '';
+  if (typeof c.p30 === 'number' && Math.abs(c.p30) >= 25) {
+    var m30 = c.p30 >= 100 ? (mk ? 'се зголеми повеќе од двојно' : 'more than doubled')
+            : c.p30 > 0 ? (mk ? 'порасна ' + ab(c.p30) + '%' : 'rose ' + ab(c.p30) + '%')
+            : (mk ? 'падна ' + ab(c.p30) + '%' : 'fell ' + ab(c.p30) + '%');
+    if ((c.p30 > 0) !== (c.p7 > 0) && Math.abs(c.p7) >= 3) {
+      out.push(mk ? nm + ' ' + m30 + ' за еден месец, но оваа недела ' + (c.p7 >= 0 ? 'порасна ' : 'падна ') + ab(c.p7) + '%' + rkTxt + '.'
+                  : 'In the last month ' + nm + ' ' + m30 + ', but this week it ' + (c.p7 >= 0 ? 'rose ' : 'fell ') + ab(c.p7) + '%' + rkTxt + '.');
+    } else {
+      out.push(mk ? nm + ' ' + m30 + ' за еден месец, ' + sg(c.p7) + ' оваа недела' + rkTxt + '.'
+                  : 'In the last month ' + nm + ' ' + m30 + ', ' + sg(c.p7) + ' this week' + rkTxt + '.');
+    }
+  } else if (Math.abs(c.p7) < 0.5) {
+    out.push(mk ? nm + ' речиси не се помрдна оваа недела' + (typeof c.p30 === 'number' ? ' (' + sg(c.p30) + ' за 30 дена).' : '.')
+                : nm + ' barely moved this week' + (typeof c.p30 === 'number' ? ' (' + sg(c.p30) + ' over 30 days).' : '.'));
+  } else {
+    out.push(mk ? nm + ' ' + (c.p7 >= 0 ? 'порасна ' : 'падна ') + ab(c.p7) + '% оваа недела' + rkTxt + (typeof c.p30 === 'number' ? ' (' + sg(c.p30) + ' за 30 дена).' : '.')
+                : nm + ' ' + (c.p7 >= 0 ? 'rose ' : 'fell ') + ab(c.p7) + '% this week' + rkTxt + (typeof c.p30 === 'number' ? ' (' + sg(c.p30) + ' over 30 days).' : '.'));
+  }
+
+  /* 2. Today, when it is a big day: with the trend or against it. */
+  if (typeof c.p24 === 'number' && Math.abs(c.p24) >= 7) {
+    var against = (c.p24 > 0) !== (c.p7 > 0);
+    out.push(mk ? (against ? (c.p24 < 0 ? 'Денес врати ' : 'Денес се врати нагоре ') : (c.p24 > 0 ? 'Само денес порасна ' : 'Само денес падна ')) + ab(c.p24) + '%.'
+                : (against ? (c.p24 < 0 ? 'Today it gave back ' : 'Today it bounced ') : (c.p24 > 0 ? 'Today alone it rose ' : 'Today alone it fell ')) + ab(c.p24) + '%.');
+  }
+
+  /* A quiet coin still gets its place against the market (the score's
+     own status, the same words as the reading under it). */
+  if (out.length < 2 && !c.isStock && c.score != null) {
+    var st = _tdStatus(c);
+    out.push(mk ? (st === 'ahead' ? 'Тоа е подобро од повеќето монети оваа недела.' : st === 'lagging' ? 'Тоа е послабо од повеќето монети оваа недела.' : 'Тоа е во средината на пазарот оваа недела.')
+                : (st === 'ahead' ? 'That is better than most coins this week.' : st === 'lagging' ? 'That is weaker than most coins this week.' : 'That puts it in the middle of the market this week.'));
+  }
+
+  /* 3. What stands out on the chart: RSI, a fresh cross, a volume spike. */
+  var t = (typeof coinTechnicals !== 'undefined' && coinTechnicals[c.sym]) || {};
+  var bits = [];
+  if (t.rsiD != null && t.rsiD >= 70) bits.push(mk ? 'дневниот RSI е ' + t.rsiD.toFixed(0) + ', зона што трејдерите ја викаат прекупено' : 'its daily RSI is ' + t.rsiD.toFixed(0) + ', the zone traders call overbought');
+  else if (t.rsiD != null && t.rsiD <= 30) bits.push(mk ? 'дневниот RSI е ' + t.rsiD.toFixed(0) + ', зона што трејдерите ја викаат препродадено' : 'its daily RSI is ' + t.rsiD.toFixed(0) + ', the zone traders call oversold');
+  if ((t.cross === 'golden' || t.cross === 'death') && t.crossDays != null && t.crossDays <= 14) {
+    var cd = t.crossDays === 0 ? (mk ? 'денес' : 'today') : t.crossDays === 1 ? (mk ? 'вчера' : 'yesterday') : (mk ? 'пред ' + t.crossDays + ' дена' : t.crossDays + ' days ago');
+    bits.push(t.cross === 'golden'
+      ? (mk ? 'направи golden cross ' + cd + ' (60-дневниот просек мина над 125-дневниот)' : 'it made a golden cross ' + cd + ' (its 60-day average moved above the 125-day)')
+      : (mk ? 'направи death cross ' + cd + ' (60-дневниот просек падна под 125-дневниот)' : 'it made a death cross ' + cd + ' (its 60-day average fell below the 125-day)'));
+  }
+  if (t.volRatio != null && t.volRatio >= 3 && t.volDay) {
+    var vd = new Date(t.volDay + 'T00:00:00Z'), MON = 'Jan Feb Mar Apr May Jun Jul Aug Sep Oct Nov Dec'.split(' ');
+    var vx = t.volRatio >= 10 ? Math.round(t.volRatio) : t.volRatio.toFixed(1);
+    bits.push(mk ? 'на ' + vd.getUTCDate() + '.' + (vd.getUTCMonth() + 1) + '. се тргуваше околу ' + vx + '× повеќе од вообичаено'
+                 : 'on ' + vd.getUTCDate() + ' ' + MON[vd.getUTCMonth()] + ' it traded about ' + vx + '× its usual volume');
+  }
+  if (bits.length) {
+    var j = bits.length > 1 ? bits.slice(0, -1).join(', ') + (mk ? ' и ' : ' and ') + bits[bits.length - 1] : bits[0];
+    out.push(j.charAt(0).toUpperCase() + j.slice(1) + '.');
+  }
+
+  /* 4. Context a holder should know: a coming unlock, or how far below its top. */
+  var u = (typeof _tokenUnlocks !== 'undefined' && c.id && _tokenUnlocks[c.id]) || null;
+  var up = u && u.unlock30d_pct != null ? Number(u.unlock30d_pct) : null;
+  if (up != null && up >= 1) {
+    var nx = u.next_unlock_at ? String(u.next_unlock_at).slice(0, 10) : '';
+    out.push(mk ? 'Во следните 30 дена ќе се отклучат ' + up.toFixed(1) + '% од понудата' + (nx ? ' (следно: ' + nx.slice(8, 10) + '.' + nx.slice(5, 7) + '.)' : '') + '.'
+                : up.toFixed(1) + '% of its supply unlocks in the next 30 days' + (nx ? ' (next on ' + nx + ')' : '') + '.');
+  } else if (!c.isStock && c.ath_change_pct != null && Number(c.ath_change_pct) <= -70) {
+    var ath = Math.abs(Number(c.ath_change_pct)).toFixed(0);
+    out.push(mk ? (c.p30 > 0 ? 'И покрај тоа, сè уште е ' : 'Сè уште е ') + ath + '% под својот највисок врв.'
+                : (c.p30 > 0 ? 'Even so, it is still ' : 'It is still ') + ath + '% below its all-time high.');
+  }
+  /* The share card needs a headline that fits one line and a few facts
+     (the paragraph is too long for a card). English, like every card. */
+  var head = c.sym + ': ' + (typeof c.p30 === 'number' && Math.abs(c.p30) >= 25
+    ? (c.p30 >= 100 ? 'more than doubled in a month' : (c.p30 > 0 ? 'up ' : 'down ') + ab(c.p30) + '% in a month')
+    : Math.abs(c.p7) < 0.5 ? 'flat this week' : (c.p7 > 0 ? 'up ' : 'down ') + ab(c.p7) + '% this week')
+    + (rk === 1 ? ', the best of ' + pool.length + ' coins this week' : (rk && rk <= 10) ? ', #' + rk + ' of ' + pool.length + ' this week' : '');
+  var facts = [];
+  if (typeof c.p24 === 'number' && Math.abs(c.p24) >= 7) facts.push(['Today', sg(c.p24), c.p24 >= 0 ? 'up' : 'dn']);
+  if (t.rsiD != null && (t.rsiD >= 70 || t.rsiD <= 30)) facts.push(['RSI', t.rsiD.toFixed(0) + (t.rsiD >= 70 ? ' overbought' : ' oversold'), 'amb']);
+  if ((t.cross === 'golden' || t.cross === 'death') && t.crossDays != null && t.crossDays <= 14)
+    facts.push([t.cross === 'golden' ? 'Golden cross' : 'Death cross', t.crossDays === 0 ? 'today' : t.crossDays + 'd ago', t.cross === 'golden' ? 'up' : 'dn']);
+  if (t.volRatio != null && t.volRatio >= 3) facts.push(['Volume', (t.volRatio >= 10 ? Math.round(t.volRatio) : t.volRatio.toFixed(1)) + '× usual', 'amb']);
+  if (up != null && up >= 1) facts.push(['Unlock', up.toFixed(1) + '% in 30d', 'dn']);
+  return { mk: mk, lines: out.slice(0, 4), head: head, facts: facts.slice(0, 3) };
+}
+function _tdStoryHtml(c) {
+  var S = coinStory(c);
+  _tdStoryLast = S ? { c: c, S: S } : null;
+  if (!S || !S.lines.length) return '';
+  return '<div class="td-story"><div class="td-story-hd"><span class="td-story-t">' + (S.mk ? 'Накратко' : 'In short') + '</span>'
+    + '<button type="button" class="td-story-share" onclick="shareCoinStory()">'
+    + '<svg viewBox="0 0 24 24" width="13" height="13" aria-hidden="true"><path fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" d="M12 3v12M7 8l5-5 5 5M5 13v6a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-6"/></svg>'
+    + '<span>' + (S.mk ? 'Сподели' : 'Share') + '</span></button></div>'
+    + '<p class="td-story-p" translate="no">' + S.lines.map(_esc).join(' ') + '</p></div>';
+}
+/* The share card: the coin's 24H / 7D / 30D bars, a one-line headline
+   and up to three facts; the whole story goes in the share text. */
+function shareCoinStory() {
+  if (!_tdStoryLast || typeof fcShareCard !== 'function') return;
+  var c = _tdStoryLast.c, L = _tdStoryLast.S.lines;
+  var bars = [['24H', c.p24], ['7D', c.p7], ['30D', c.p30]].filter(function (b) { return typeof b[1] === 'number'; })
+    .map(function (b) { return { v: b[1], lab: b[0] + ' ' + (b[1] >= 0 ? '+' : '−') + Math.abs(b[1]).toFixed(1) + '%' }; });
+  fcShareCard({
+    kind: 'bars', bars: bars,
+    tag: typeof fmtP === 'function' ? fmtP(c.price) : '',
+    kicker: (c.name || c.sym) + ' (' + c.sym + ') · 24 hours, 7 days and 30 days',
+    head: _tdStoryLast.S.head,
+    stats: _tdStoryLast.S.facts,
+    note: 'What happened, not a forecast · Binance prices',
+    sym: c.sym + '-STORY',
+    text: L.join(' ') + '\nWhat happened, not a forecast. ' + c.sym + ' on Rotator → ' + ROTATOR_SHARE.link + '/?coin=' + encodeURIComponent(c.sym)
+  });
+}
+
 /* Fill #td-warn, #td-reading, #td-turns and #td-score-extra. */
 function renderCoinReading(c) {
   var warnEl = document.getElementById('td-warn');
@@ -518,7 +655,7 @@ function renderCoinReading(c) {
 
   if (c.isStock || c.isStable) {
     readEl.innerHTML = c.isStock
-      ? '<div class="td-reading"><div class="td-reading-hd">Tokenized stock</div>'
+      ? _tdStoryHtml(c) + '<div class="td-reading"><div class="td-reading-hd">Tokenized stock</div>'
         + '<div class="td-reading-sub">Turn signals are measured on crypto only. The score for a stock is partial (out of 70) and not comparable with crypto.</div></div>'
         + (typeof paperFormHtml === 'function' ? paperFormHtml(c) : '')
       : '<div class="td-reading"><div class="td-reading-hd">Stablecoin</div>'
@@ -547,7 +684,7 @@ function renderCoinReading(c) {
 
   /* The signs are listed ONCE, under Turn signals (Daniel, 2026-10-04).
      The reading names how many; the list below names which. */
-  readEl.innerHTML = '<div class="td-reading ' + tone + '">'
+  readEl.innerHTML = _tdStoryHtml(c) + '<div class="td-reading ' + tone + '">'
     + '<div class="td-reading-hd">' + _esc(head) + '</div>'
     + '<div class="td-reading-sub">' + _esc(sub) + '</div>'
     + (trust ? '<details class="td-reading-trust"><summary>How far to trust this</summary>' + _esc(trust) + '</details>' : '')

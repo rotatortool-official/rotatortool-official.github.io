@@ -6440,3 +6440,13 @@ a.mob-more-item{text-decoration:none;color:inherit;}
 @media(min-width:901px){
   #sec-yours .coin-alerts{grid-column:1 / -1;}   /* takes the hidden Score gaps' place */
 }
+
+/* ── Coin window "In short" (2026-10-14, Daniel): the coin's story in
+   2-4 plain sentences above the reading, with Share. Both themes. */
+.td-story{margin:0 0 12px;padding:12px 14px;border:1px solid var(--bdr2);border-left:3px solid var(--amber,#f0b90b);border-radius:8px;background:var(--bg2);}
+.td-story-hd{display:flex;align-items:center;gap:10px;margin-bottom:6px;}
+.td-story-t{font-size:11px;font-weight:800;letter-spacing:.14em;text-transform:uppercase;color:var(--amber,#f0b90b);}
+.td-story-share{margin-left:auto;display:inline-flex;align-items:center;gap:5px;cursor:pointer;font:700 11px/1 inherit;letter-spacing:.06em;text-transform:uppercase;color:var(--text);background:transparent;border:1px solid var(--bdr2);border-radius:999px;padding:5px 10px;}
+.td-story-share:hover{border-color:var(--amber,#f0b90b);color:var(--amber,#f0b90b);}
+.td-story-p{margin:0;font-size:15px;line-height:1.55;color:var(--text);}
+@media (max-width:760px){ .td-story-p{font-size:14px;} }
