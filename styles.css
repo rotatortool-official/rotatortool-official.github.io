@@ -4854,10 +4854,17 @@ details.td-reading-trust[open] > summary::before{content:'▾ ';}
 /* ── Macedonian side banners (promptove/72) ─────────────────────────
    Decoration only. They live in the empty side margins and never take
    width from the page: they appear only where the screen is wider than
-   the 1600px page plus room for them, capped at 140px, click-through,
-   and faded toward the content so there is no hard edge.
+   the 1600px page plus room for them, capped at 140px, and faded
+   toward the content so there is no hard edge.
 
-   Left: the embroidery; right: the sun (swapped, Daniel 2026-09-26).
+   Both are cell-by-cell redraws of woven aprons from Kriva Palanka
+   and the villages around it, taken from Daniel's family photo
+   (generator: weekly-shots/mk-motifs/kriva-palanka.js in the workbench):
+   left - red apron with medallions; right - green hexagon band apron.
+   They replaced AI images on 2026-10-14 after visitors said the sun
+   flag was drawn wrong. Keep both sides to real folk patterns with a
+   known source, no flag. Hovering lifts the fade and shows the source
+   (.mk-src), so the banners take the mouse; they sit in empty margin.
    Switching to Macedonian fades them in, switching away fades them out.
    The images are attached only once Macedonian has been chosen in this
    visit (html.mk-seen, set in setLang), so English visitors never
@@ -4880,8 +4887,16 @@ details.td-reading-trust[open] > summary::before{content:'▾ ';}
     -webkit-mask-image:linear-gradient(to left,#000 35%,transparent),linear-gradient(to bottom,transparent,#000 12%,#000 88%,transparent);
     -webkit-mask-composite:source-in;mask-composite:intersect;
     mask-image:linear-gradient(to left,#000 35%,transparent),linear-gradient(to bottom,transparent,#000 12%,#000 88%,transparent);}
-  html.mk-seen .mk-banner-l{background-image:url('img/mk-banner-right.jpg');background-position:left center;}
-  html.mk-seen .mk-banner-r{background-image:url('img/mk-banner-left.jpg');background-position:left center;}
+  html.mk-seen .mk-banner{background-size:144px auto;background-repeat:repeat-y;}
+  html.mk-seen .mk-banner-l{background-image:url('img/mk-motif-palanka-medallions.svg');background-position:right top;}
+  html.mk-seen .mk-banner-r{background-image:url('img/mk-motif-palanka-bands.svg');background-position:left top;}
+  html.lang-mk .mk-banner{pointer-events:auto;}
+  html.lang-mk .mk-banner:hover{opacity:1;-webkit-mask-image:none;mask-image:none;}
+  .mk-src{position:absolute;left:6px;right:6px;top:64px;padding:8px;border-radius:6px;
+    background:rgba(8,10,16,.92);color:#e6dcc6;font:11px/1.4 var(--font-ui);
+    opacity:0;transition:opacity .25s ease;}
+  .mk-banner:hover .mk-src{opacity:1;}
+  .mk-src a{color:#e8b64a;}
 }
 @media(prefers-reduced-motion:reduce){ .mk-banner{transition:none !important;} }
 
