@@ -23,21 +23,31 @@
 var _btcg = null;   /* the last series built: { pts:[{d,btc,gold,r}], now:{btc,gold,r} } */
 
 function _btcgMk() { return typeof currentLang !== 'undefined' && currentLang === 'mk'; }
+/* Grams by default, troy ounces when Settings asks for imperial units
+   (unitsMetric in data-loaders.js, Daniel 2026-10-14). The ratio is kept
+   in ounces; f turns it into grams, and a gold price per ounce into one
+   per gram by dividing. */
+function _btcgU() {
+  var metric = typeof unitsMetric !== 'function' || unitsMetric();
+  return metric ? { f: 31.1034768, n: function (v) { return Math.round(v).toLocaleString('en-US'); }, u: 'g', word: 'grams' }
+    : { f: 1, n: function (v) { return v.toFixed(1); }, u: 'oz', word: 'ounces' };
+}
 function _btcgL() {
+  var g = _btcgU().u === 'g';
   return _btcgMk() ? {
-    title: 'Bitcoin наспроти златото', unit: 'унци злато за 1 BTC',
-    head: function (oz) { return 'Еден Bitcoin купува ' + oz + ' унци злато'; },
+    title: 'Bitcoin наспроти златото', unit: g ? 'грама злато за 1 BTC' : 'унци злато за 1 BTC',
+    head: function (oz) { return 'Еден Bitcoin купува ' + oz + (g ? ' грама злато' : ' унци злато'); },
     d7: '7 дена', d30: '30 дена', d6m: '6 месеци', now: 'сега',
-    axis: 'унци злато за 1 BTC, дневно', week: 'Недела до', btc: 'Bitcoin', gold: 'Злато', oz: 'Унци', chg: 'Промена',
+    axis: g ? 'грама злато за 1 BTC, дневно' : 'унци злато за 1 BTC, дневно', week: 'Недела до', btc: 'Bitcoin', gold: 'Злато', oz: g ? 'Грама' : 'Унци', chg: 'Промена',
     tableHd: 'Секоја недела', loading: 'Се вчитува…', none: 'Цените уште не се вчитани.',
     read: 'Кога бројот расте, Bitcoin добива наспроти златото; кога паѓа, златото добива. Ова е опис на изминатото, не прогноза.',
     src: 'Bitcoin: дневно затворање на Binance · Злато: последно затворање од таблата ДЕНЕС. Деновите за златото се бројат наназад во работни денови, па празник може да помести еден ред за ден.',
     share: 'Сподели како слика'
   } : {
-    title: 'Bitcoin vs gold', unit: 'oz of gold per BTC',
-    head: function (oz) { return 'One Bitcoin buys ' + oz + ' ounces of gold'; },
+    title: 'Bitcoin vs gold', unit: g ? 'grams of gold per BTC' : 'oz of gold per BTC',
+    head: function (oz) { return 'One Bitcoin buys ' + oz + (g ? ' grams of gold' : ' ounces of gold'); },
     d7: '7 days', d30: '30 days', d6m: '6 months', now: 'now',
-    axis: 'ounces of gold per BTC, daily', week: 'Week to', btc: 'Bitcoin', gold: 'Gold', oz: 'Ounces', chg: 'Change',
+    axis: g ? 'grams of gold per BTC, daily' : 'ounces of gold per BTC, daily', week: 'Week to', btc: 'Bitcoin', gold: 'Gold', oz: g ? 'Grams' : 'Ounces', chg: 'Change',
     tableHd: 'Week by week', loading: 'Loading…', none: 'The prices have not loaded yet.',
     read: 'When the number rises, Bitcoin is gaining on gold; when it falls, gold is gaining on Bitcoin. A description of what happened, not a forecast.',
     src: 'Bitcoin: Binance daily close · Gold: last close from the TODAY board. Gold days are counted back in trading days, so a market holiday can shift one row by a day.',
@@ -109,7 +119,7 @@ function _btcgChange(n) {
 }
 
 function _btcgRender() {
-  var body = document.getElementById('btcg-modal-body'), L = _btcgL();
+  var body = document.getElementById('btcg-modal-body'), L = _btcgL(), U = _btcgU();
   if (!body || !_btcg) return;
   var p = _btcg.pts, now = _btcg.now;
   var c7 = _btcgChange(5), c30 = _btcgChange(21), c6 = _btcgPct(now.r, p[0].r);
@@ -134,19 +144,19 @@ function _btcgRender() {
   }
   var rowsHtml = weeks.slice(0, 10).map(function (w, k) {
     var prev = weeks[k + 1], ch = prev ? _btcgPct(w.r, prev.r) : null;
-    return '<tr><td>' + _btcgDay(w.d) + '</td><td>' + _btcgUsd(w.btc) + '</td><td>' + _btcgUsd(w.gold) + '</td><td><b>' + w.r.toFixed(2) + '</b></td>'
+    return '<tr><td>' + _btcgDay(w.d) + '</td><td>' + _btcgUsd(w.btc) + '</td><td>' + _btcgUsd(w.gold / U.f) + '</td><td><b>' + (U.f === 1 ? w.r.toFixed(2) : U.n(w.r * U.f)) + '</b></td>'
       + '<td class="' + cls(ch) + '">' + _btcgFmtPct(ch) + '</td></tr>';
   }).join('');
 
   body.innerHTML =
       '<div class="modal-title">' + L.title + '</div>'
     + '<div class="etf-scroll">'
-    + '<div class="btcg-big">' + now.r.toFixed(1) + ' <span>' + L.unit + '</span></div>'
+    + '<div class="btcg-big">' + U.n(now.r * U.f) + ' <span>' + L.unit + '</span></div>'
     + '<div class="etf-stats btcg-stats">'
     +   '<div><span class="bf-k">' + L.d7 + '</span><b class="' + cls(c7) + '">' + _btcgFmtPct(c7) + '</b></div>'
     +   '<div><span class="bf-k">' + L.d30 + '</span><b class="' + cls(c30) + '">' + _btcgFmtPct(c30) + '</b></div>'
     +   '<div><span class="bf-k">' + L.d6m + '</span><b class="' + cls(c6) + '">' + _btcgFmtPct(c6) + '</b></div>'
-    +   '<div><span class="bf-k">BTC · ' + L.gold + '</span><b>' + _btcgUsd(now.btc) + '</b><em>' + _btcgUsd(now.gold) + ' / oz</em></div>'
+    +   '<div><span class="bf-k">BTC · ' + L.gold + '</span><b>' + _btcgUsd(now.btc) + '</b><em>' + _btcgUsd(now.gold / U.f) + ' / ' + U.u + '</em></div>'
     + '</div>'
     + '<div class="btcg-stage" id="btcg-stage">' + svg + '</div>'
     + '<div class="etf-axis"><span>' + _btcgDay(p[0].d) + '</span><span>' + L.axis + '</span><span>' + L.now + '</span></div>'
@@ -179,7 +189,7 @@ function shareBtcGold() {
 }
 
 function _btcgCard(wm) {
-  var p = _btcg.pts, now = _btcg.now;
+  var p = _btcg.pts, now = _btcg.now, U = _btcgU(), amt = U.n(now.r * U.f);
   var line = p.map(function (x) { return x.r; }).concat([now.r]);
   var W = 1200, H = 675, L0 = 60, UP = '#16c784', DN = '#ea3943';
   var can = document.createElement('canvas'); can.width = W; can.height = H;
@@ -189,7 +199,7 @@ function _btcgCard(wm) {
   var day = function (iso) { var t = new Date(iso + 'T00:00:00Z'); return t.getUTCDate() + ' ' + MON[t.getUTCMonth()] + ' ' + String(t.getUTCFullYear()).slice(2); };
   var months = Math.max(1, Math.round(p.length / 21));
   ctx.textBaseline = 'alphabetic'; ctx.textAlign = 'left'; ctx.fillStyle = '#8a96a8';
-  var kick = ('Bitcoin vs gold · ounces of gold per BTC, last ' + months + ' months').toUpperCase();
+  var kick = ('Bitcoin vs gold · ' + U.word + ' of gold per BTC, last ' + months + ' months').toUpperCase();
   shareFit(ctx, kick, 900, '700 {SIZE}px Inter, sans-serif', 18, 13);
   if (ctx.letterSpacing !== undefined) ctx.letterSpacing = '2px';
   ctx.fillText(kick, L0, 50);
@@ -213,17 +223,17 @@ function _btcgCard(wm) {
   ctx.globalAlpha = 0.10; ctx.fillStyle = col; ctx.fill(); ctx.globalAlpha = 1;
   ctx.beginPath(); line.forEach(function (v, i) { if (i) ctx.lineTo(X(i), Y(v)); else ctx.moveTo(X(i), Y(v)); });
   ctx.strokeStyle = col; ctx.lineWidth = 3; ctx.lineJoin = 'round'; ctx.stroke();
-  var tag = now.r.toFixed(1) + ' oz', ty = Math.max(CY + 18, Math.min(CY + CH - 18, Y(now.r)));
+  var tag = amt + ' ' + U.u, ty = Math.max(CY + 18, Math.min(CY + CH - 18, Y(now.r)));
   ctx.fillStyle = col;
   if (ctx.roundRect) { ctx.beginPath(); ctx.roundRect(CX + CW + 10, ty - 18, 120, 36, 6); ctx.fill(); } else ctx.fillRect(CX + CW + 10, ty - 18, 120, 36);
   ctx.fillStyle = '#0a0f17'; ctx.textAlign = 'center'; ctx.font = '800 22px Inter, sans-serif'; ctx.fillText(tag, CX + CW + 70, ty + 8);
   ctx.fillStyle = '#6f7b8c'; ctx.font = '600 16px Inter, sans-serif';
   ctx.textAlign = 'left'; ctx.fillText(day(p[0].d), CX, CY + CH + 26);
-  ctx.textAlign = 'center'; ctx.fillText('ounces of gold per BTC, daily', W / 2, CY + CH + 26);
+  ctx.textAlign = 'center'; ctx.fillText(U.word + ' of gold per BTC, daily', W / 2, CY + CH + 26);
   ctx.textAlign = 'right'; ctx.fillText('today', W - L0, CY + CH + 26);
 
   ctx.textAlign = 'left'; ctx.fillStyle = '#ffffff';
-  var head = 'One Bitcoin buys ' + now.r.toFixed(1) + ' ounces of gold';
+  var head = 'One Bitcoin buys ' + amt + ' ' + U.word + ' of gold';
   shareFit(ctx, head, W - 2 * L0, '800 {SIZE}px Inter, sans-serif', 38, 26); ctx.fillText(head, L0, 418);
   var parts = [['7 days', _btcgChange(5)], ['30 days', _btcgChange(21)], [months + ' months', _btcgPct(now.r, p[0].r)]];
   var sx = L0;
@@ -239,7 +249,7 @@ function _btcgCard(wm) {
   ctx.fillText('Rising: Bitcoin gaining on gold. Falling: gold gaining on Bitcoin.', L0, 492);
   shareBrandBar(ctx, W, H);
   var c7 = _btcgChange(5);
-  var text = 'One Bitcoin buys ' + now.r.toFixed(1) + ' ounces of gold'
+  var text = 'One Bitcoin buys ' + amt + ' ' + U.word + ' of gold'
     + (c7 != null ? ' (' + _btcgFmtPct(c7) + ' in 7 days)' : '') + '.\nDigital gold vs real gold, live on Rotator → ' + ROTATOR_SHARE.link;
   if (typeof _openShareCard === 'function') _openShareCard(can, 'BTC-GOLD', text);
 }

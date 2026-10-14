@@ -1969,7 +1969,7 @@ function _bfStep(last) {
    China, so Brent is the like-for-like comparison. */
 var BF_CN_TIP = 'Shanghai crude futures (INE SC) via Sina Finance, in dollars at the day\'s yuan rate (CNY=X, Yahoo Finance)';
 /* Right of the WTI price, in blue like its line (Daniel, 2026-10-04). */
-/* si: the Macedonian per-tonne units of the oil tile, or null. The China
+/* si: the metric (per-tonne) units of the oil tile, or null. The China
    price and its gaps scale with WTI so the three stay comparable. */
 function _bfChinaRight(cn, si) {
   return '<div class="bf-cn-big" title="' + BF_CN_TIP + '">'
@@ -2036,13 +2036,14 @@ function _bfWorldCell(it, o) {
     if (s.length >= 7) w[182] = { c: it.c182, s: s.slice(-7), l: '6m' };
     if (Array.isArray(it.s3) && it.s3.length > 2) w[1095] = { c: it.c1095, s: it.s3, l: '3y' };
   }
-  /* o.mk: the Macedonian page shows SI units (Daniel, 2026-10-04): copper
-     per tonne, natural gas per kWh; oil and the diesel spread per tonne
-     too since 2026-10-10 (Daniel: no pounds or barrels), gold per gram
-     and silver per kilogram the same day (no troy ounces). Only the price is converted; the
-     changes are percentages, and a line keeps its shape when scaled.
-     English keeps the units the markets quote. */
-  var si = o.mk && typeof currentLang !== 'undefined' && currentLang === 'mk' ? o.mk : null;
+  /* o.metric: metric units (Daniel): copper per tonne, natural gas per
+     kWh (2026-10-04), oil and the diesel spread per tonne, gold per gram,
+     silver per kilogram (2026-10-10, first on the Macedonian page only).
+     Since 2026-10-14 metric is the default in every language, the
+     international standard; Settings can switch back to the units the
+     markets quote (unitsMetric). Only the price is converted; the
+     changes are percentages, and a line keeps its shape when scaled. */
+  var si = o.metric && unitsMetric() ? o.metric : null;
   /* A change in dollars (the diesel spread), not a percentage, scales too. */
   if (si && o.usdpts) Object.keys(w).forEach(function (d) { if (w[d] && w[d].c != null) w[d].c *= si.mul; });
   /* Two companies at different prices: both lines start at the same
@@ -2649,28 +2650,28 @@ function renderBriefing() {
     ] },
     { t: 'Metals', cells: [
       _bfWorldCell(it('gold', 'goldP7'), { k: 'Gold', more: [
-          ['What it is', 'The price of one troy ounce (31.1 grams) of gold on the New York futures market (the Macedonian view shows it per gram).'],
+          ['What it is', 'The price of gold on the New York futures market, shown per gram. The market quotes it per troy ounce (31.1 grams); Settings can switch to those units.'],
           ['Why it matters', 'People and central banks buy gold when they trust paper money or governments less. Central banks have been buying it in record amounts since 2022.'],
           ['Next to Bitcoin', 'Bitcoin is often called "digital gold", and both can rise on fear of inflation. In a sudden panic gold usually holds up better, because Bitcoin still trades like a risky asset.']
         ],
-        kind: 'usd', src: BF_SRC.comex, sym: 'GC=F',
-        mk: { mul: 1 / 31.1034768, u: ' /g' },   /* grams in a troy ounce; gold is bought by the gram here */
+        kind: 'usd', u: ' /oz', src: BF_SRC.comex, sym: 'GC=F',
+        metric: { mul: 1 / 31.1034768, u: ' /g' },   /* grams in a troy ounce; gold is bought by the gram here */
         d: 'The oldest store of value, as a benchmark' }),
       _bfWorldCell(it('silver', 'silverP7'), { k: 'Silver', more: [
-          ['What it is', 'The price of one troy ounce (31.1 grams) of silver on the New York futures market (the Macedonian view shows it per kilogram).'],
+          ['What it is', 'The price of silver on the New York futures market, shown per kilogram. The market quotes it per troy ounce (31.1 grams); Settings can switch to those units.'],
           ['Two jobs', 'Silver is partly a money metal, like gold, and partly an industrial one: solar panels, electronics and cars. About half of the demand comes from industry.'],
           ['How it moves', 'It usually swings harder than gold, both up and down.']
         ],
-        kind: 'usd', src: BF_SRC.comex, sym: 'SI=F',
-        mk: { mul: 1000 / 31.1034768, u: ' /kg' },   /* per gram would be ~$1.60, too small to read */
+        kind: 'usd', u: ' /oz', src: BF_SRC.comex, sym: 'SI=F',
+        metric: { mul: 1000 / 31.1034768, u: ' /kg' },   /* per gram would be ~$1.60, too small to read */
         d: 'Industrial demand as well as a metal' }),
       _bfWorldCell(W.copper, { k: 'Copper', more: [
-          ['What it is', 'The price of a pound of copper on the New York futures market (the Macedonian view shows it per tonne).'],
+          ['What it is', 'The price of copper on the New York futures market, shown per tonne. The market quotes it per pound; Settings can switch to those units.'],
           ['"Dr. Copper"', 'Copper goes into buildings, cars, power grids and factories, so traders read its price as a check-up on the world economy. China uses about half of the world\'s copper.'],
           ['The new demand', 'Power grids, electric cars and AI data centers all need a lot of copper, and a new mine takes ten years or more to open.']
         ],
         kind: 'usd', u: ' /lb', src: BF_SRC.comex, sym: 'HG=F',
-        mk: { mul: 2204.62262, u: ' /t' },   /* pounds in a metric tonne */
+        metric: { mul: 2204.62262, u: ' /t' },   /* pounds in a metric tonne */
         d: 'Copper is in almost everything electric: appliances, data centers and the tiny parts that make AI possible.' }),
       _bfWorldCell(W.aluminum, { k: 'Aluminum', more: [
           ['What it is', 'The price of a tonne of aluminum.'],
@@ -2681,31 +2682,31 @@ function renderBriefing() {
     ] },
     { t: 'Energy cost', cells: [
       _bfWorldCell(it('oil', 'oilP7'), { k: 'Oil · WTI', more: [
-          ['What it is', 'The price of a barrel (159 liters) of US crude oil, West Texas Intermediate, for next month\'s delivery (the Macedonian view shows it per tonne, about 7.33 barrels). Brent, from the North Sea, is the price most of the world\'s oil is sold against.'],
+          ['What it is', 'The price of US crude oil, West Texas Intermediate, for next month\'s delivery, shown per tonne (about 7.33 barrels of 159 liters). The market quotes it per barrel; Settings can switch to those units. Brent, from the North Sea, is the price most of the world\'s oil is sold against.'],
           ['Why it matters', 'Oil is in transport, food, plastics and heating. When it rises fast, prices in shops follow, central banks keep rates higher for longer, and that weighs on risky assets like crypto.'],
           ['The China line', 'The blue number is crude oil traded in Shanghai, turned into dollars. It is Middle East oil delivered to China, so the fair comparison is Brent. The gap under the price shows how hard China is competing for barrels.'],
           ['Why China paid less for years', 'China\'s independent refiners bought oil from Iran and Russia, which sanctions made cheap. China took most of Iran\'s exports, about 1.4 million barrels a day in 2025, usually below world prices.'],
-          ['Why it pays more in 2026', 'The US put its blockade of Iran\'s ports back on 13 July 2026, and the cheap Iranian barrels dried up. Refiners had to buy at full price and pay costly freight, while Middle East supply was already tight after the Strait of Hormuz was closed in spring and a Saudi pipeline was attacked in September. From April to August Shanghai crude mostly traded $3 to $9 under Brent; in September it was about $9 over.'],
+          ['Why it pays more in 2026', 'The US put its blockade of Iran\'s ports back on 13 July 2026, and the cheap Iranian barrels dried up. Refiners had to buy at full price and pay costly freight, while Middle East supply was already tight after the Strait of Hormuz was closed in spring and a Saudi pipeline was attacked in September. From April to August Shanghai crude mostly traded $20 to $65 a tonne ($3 to $9 a barrel) under Brent; in September it was about $65 a tonne over.'],
           ['What to watch', 'High prices make China buy less: at the end of September analysts cut their forecast for China\'s imports in the last three months of 2026. On 2 October the G7 agreed to release 100 million barrels of crude and diesel from emergency stocks over four months. A shrinking gap to Brent would be the sign that the pressure is easing; a growing one, that the scramble for barrels goes on.']
         ],
-        kind: 'usd', src: BF_SRC.nymex, sym: 'CL=F', china: true,
-        mk: { mul: 7.33, u: ' /t' },   /* barrels in a tonne of crude, the usual average; light WTI is nearer 7.6 */
+        kind: 'usd', u: ' /bbl', src: BF_SRC.nymex, sym: 'CL=F', china: true,
+        metric: { mul: 7.33, u: ' /t' },   /* barrels in a tonne of crude, the usual average; light WTI is nearer 7.6 */
         d: 'WTI crude — input cost for the real economy' }),
       /* Diesel crack spread (Daniel, 2026-10-04, promptove/109): heating
          oil futures x 42 minus Brent, computed by sync-market-data. */
       _bfWorldCell(W.crack, { k: 'Diesel crack spread', more: [
-          ['What it is', 'The price of a barrel of heating oil (a close cousin of diesel) minus the price of a barrel of Brent crude (the Macedonian view shows it per tonne of diesel, about 7.45 barrels).'],
+          ['What it is', 'The price of heating oil (a close cousin of diesel) minus the price of Brent crude, shown per tonne of diesel (about 7.45 barrels). The market quotes it per barrel; Settings can switch to those units.'],
           ['Why it matters', 'Trucks, ships, farms and factories run on diesel. A high spread means diesel is short even when crude is not, and that reaches food and goods prices a few weeks later.']
         ],
         kind: 'usd', u: ' /bbl', usdpts: true, src: BF_SRC.nymex, sym: 'HO=F',
-        mk: { mul: 7.45, u: ' /t' },   /* barrels in a tonne of diesel (gasoil), as ICE converts it */
-        d: 'What refiners earn turning a barrel of crude into diesel. When it is high, diesel is scarce and transport costs feed into prices.' }),
+        metric: { mul: 7.45, u: ' /t' },   /* barrels in a tonne of diesel (gasoil), as ICE converts it */
+        d: 'What refiners earn turning crude into diesel. When it is high, diesel is scarce and transport costs feed into prices.' }),
       _bfWorldCell(W.gas, { k: 'Natural gas', more: [
-          ['What it is', 'The price of US natural gas at Henry Hub in Louisiana, per million BTU (the Macedonian view shows it per kilowatt-hour).'],
+          ['What it is', 'The price of US natural gas at Henry Hub in Louisiana, shown per kilowatt-hour. The market quotes it per million BTU; Settings can switch to those units.'],
           ['Why it matters', 'Gas burns in power plants and heats homes, so prices jump in cold winters and hot summers. Cheap US gas keeps power cheap for data centers and Bitcoin miners.']
         ],
         kind: 'usd', u: ' /MMBtu', src: BF_SRC.nymex, sym: 'NG=F',
-        mk: { mul: 1 / 293.07107, kind: 'cents', u: ' /kWh' },   /* 1 MMBtu = 293.07 kWh; cents, like Electricity */
+        metric: { mul: 1 / 293.07107, kind: 'cents', u: ' /kWh' },   /* 1 MMBtu = 293.07 kWh; cents, like Electricity */
         d: 'The fuel behind much of US electricity, so its price feeds into what power costs.' }),
       _bfWorldCell(W.power, { k: 'Electricity', more: [
           ['What it is', 'The average price US households paid for a kilowatt-hour, published once a month by the Bureau of Labor Statistics.'],
@@ -3728,7 +3729,6 @@ function setLang(lang) {
   if (typeof renderEtfFlows === 'function') renderEtfFlows();
   if (typeof renderChainFlows === 'function') renderChainFlows();
   if (typeof renderTokenUnlocks === 'function') renderTokenUnlocks();
-  /* TODAY: copper and gas show SI units in Macedonian (_bfWorldCell o.mk). */
   if (typeof renderBriefing === 'function') renderBriefing();
   if (typeof _twTgSync === 'function') _twTgSync(false);   /* Telegram alerts follow the site language */
   var etfM = document.getElementById('etf-modal');
@@ -3738,6 +3738,25 @@ function setLang(lang) {
   if (typeof _tdCoin !== 'undefined' && _tdCoin && typeof _tdChainFlow === 'function') _tdChainFlow(_tdCoin);
 }
 (function() { try { var l = localStorage.getItem('rot_lang'); if (l) setTimeout(function() { setLang(l); }, 50); } catch(e) {} })();
+
+/* ── Units (Daniel, 2026-10-14): metric by default, the international
+   standard; Settings can switch to the units the markets quote
+   (ounces, pounds, barrels, MMBtu). rot_units = 'imperial' or unset. */
+function unitsMetric() {
+  try { return localStorage.getItem('rot_units') !== 'imperial'; } catch (e) { return true; }
+}
+function setUnitsImperial(on) {
+  try { if (on) localStorage.setItem('rot_units', 'imperial'); else localStorage.removeItem('rot_units'); } catch (e) {}
+  var tog = document.getElementById('units-toggle');
+  if (tog) tog.checked = !!on;
+  if (typeof renderBriefing === 'function') renderBriefing();
+  var bg = document.getElementById('btcg-modal');
+  if (bg && bg.classList.contains('show') && typeof openBtcGold === 'function') openBtcGold();
+}
+document.addEventListener('DOMContentLoaded', function () {
+  var tog = document.getElementById('units-toggle');
+  if (tog) tog.checked = !unitsMetric();
+});
 
 /* ── Theme toggle (dark/light) ──────────────────────────────── */
 function toggleTheme(isLight) {
