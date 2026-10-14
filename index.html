@@ -835,6 +835,13 @@
     <div id="hr-modal-body"></div>
   </div>
 </div>
+<!-- LIQUIDATIONS: one coin (2026-10-14), filled by openLiqCoin() in js/liquidations.js -->
+<div class="overlay" id="liq-modal" onclick="if(event.target===this)closeModal('liq-modal')">
+  <div class="modal etf-modal btcg-modal">
+    <button class="modal-x" onclick="closeModal('liq-modal')" aria-label="Close">×</button>
+    <div id="liq-modal-body"></div>
+  </div>
+</div>
 <!-- BITCOIN VS GOLD MODAL (2026-10-11) — filled by openBtcGold() in js/btc-gold.js -->
 <div class="overlay" id="btcg-modal" onclick="if(event.target===this)closeModal('btcg-modal')">
   <div class="modal etf-modal btcg-modal">
@@ -1120,6 +1127,10 @@
       <span class="rail-mark"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M17 2.1 21 6l-4 3.9"/><path d="M3 12a9 9 0 0 1 9-9h9"/><path d="M7 21.9 3 18l4-3.9"/><path d="M21 12a9 9 0 0 1-9 9H3"/></svg></span>
       <span class="rail-text"><span class="rail-label">MOMENTUM</span><span class="rail-sub" id="rail-sub-momentum">best and worst</span></span>
     </button>
+    <button class="rail-item" id="rail-liq" data-sec="sec-liq" onclick="railGo('sec-liq')" title="LIQUIDATIONS">
+      <span class="rail-mark"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2 4 14h7l-1 8 9-12h-7l1-8z"/></svg></span>
+      <span class="rail-text"><span class="rail-label">LIQUIDATIONS</span><span class="rail-sub">who got forced out</span></span>
+    </button>
     <button class="rail-item" id="rail-yours" data-sec="sec-yours" onclick="railGo('sec-yours')" title="YOURS">
       <span class="rail-mark"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M20 7h-9"/><path d="M14 17H5"/><circle cx="17" cy="17" r="3"/><circle cx="7" cy="7" r="3"/></svg></span>
       <span class="rail-text"><span class="rail-label">YOURS</span><span class="rail-sub" id="rail-sub-yours">holdings and warnings</span></span>
@@ -1243,6 +1254,14 @@
       </div>
     </div>
     </div>
+  </section>
+  <!-- LIQUIDATIONS (2026-10-14): Binance futures positions force-closed,
+       from liquidations_hourly (edge function sync-liquidations, every
+       minute). Drawn by renderLiquidations() in js/liquidations.js; each
+       coin box opens #liq-modal; the section and the window share cards. -->
+  <section class="rsec" id="sec-liq">
+    <div class="rsec-hdr"><span class="rsec-label">LIQUIDATIONS</span><span class="rsec-meta">Binance futures positions the exchange force-closed: longs when the price fell, shorts when it rose</span></div>
+    <div class="liq-body" id="liq-body"></div>
   </section>
   <section class="rsec" id="sec-yours">
     <div class="rsec-hdr"><span class="rsec-label">YOURS</span><span class="rsec-meta" id="rsec-meta-yours">track what you hold and watch; warnings and notifications follow your coins</span></div>
@@ -1771,6 +1790,9 @@
     <span class="mmi-ico mmi-logo" aria-hidden="true"><img src="img/gemidzija-64.jpg" width="26" height="26" alt="" decoding="async"></span><span class="mmi-text"><span class="mmi-lbl">LEARN MORE</span><span class="mmi-sub">Crypto Gemidzija videos</span></span>
   </a>
   <div class="mob-more-divider"></div>
+  <button type="button" class="mob-more-item mob-more-sec" data-sec="sec-liq" onclick="mobGo('sec-liq')">
+    <span class="mmi-ico" aria-hidden="true">ϟ</span><span class="mmi-text"><span class="mmi-lbl">LIQUIDATIONS</span><span class="mmi-sub">who got forced out</span></span>
+  </button>
   <button type="button" class="mob-more-item mob-more-sec" data-sec="sec-coins" onclick="mobGo('sec-coins')">
     <span class="mmi-ico" aria-hidden="true">≡</span><span class="mmi-text"><span class="mmi-lbl">COINS</span><span class="mmi-sub">every tracked coin</span></span>
   </button>
@@ -1888,6 +1910,7 @@
   <script src="js/data-loaders.js"></script>
   <script src="js/btc-gold.js"></script>
   <script src="js/flow-charts.js"></script>
+  <script src="js/liquidations.js"></script>
   <script src="js/radio.js"></script>
   <script src="js/coin-reading.js"></script>
   <script src="js/turn-watch.js"></script>

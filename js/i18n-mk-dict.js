@@ -947,6 +947,10 @@ Object.assign(MK_TEXT, {
 Object.assign(MK_TEXT, {
   'Binance prices loaded — fetching historical data…': 'Цените од Binance се вчитани — се вчитуваат историските податоци…',
   'Reading market data…': 'Се читаат пазарните податоци…',
+  /* Liquidations section (2026-10-14) */
+  'LIQUIDATIONS': 'ЛИКВИДАЦИИ', 'who got forced out': 'кого го исфрли берзата',
+  'Binance futures positions the exchange force-closed: longs when the price fell, shorts when it rose':
+    'Позиции на Binance фјучерси што берзата насилно ги затвори: лонг кога цената падна, шорт кога порасна',
   'best and worst': 'најдобри и најлоши', 'every tracked coin': 'секоја следена монета', 'pair ratio': 'однос на пар',
   'BTC: LOADING': 'BTC: СЕ ВЧИТУВА',
   'No saved pairs yet — pick a pair and click ☆ Save pair': 'Сè уште нема зачувани парови — изберете пар и кликнете ☆ Зачувај пар',

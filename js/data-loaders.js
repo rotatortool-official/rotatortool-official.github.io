@@ -3729,6 +3729,9 @@ function setLang(lang) {
   if (typeof renderEtfFlows === 'function') renderEtfFlows();
   if (typeof renderChainFlows === 'function') renderChainFlows();
   if (typeof renderTokenUnlocks === 'function') renderTokenUnlocks();
+  if (typeof renderLiquidations === 'function') renderLiquidations();
+  var lqM = document.getElementById('liq-modal');
+  if (lqM && lqM.classList.contains('show') && typeof _liqRenderCoin === 'function' && _liq.coinRows) _liqRenderCoin();
   if (typeof _unitsButtons === 'function') _unitsButtons();   /* the Macedonian page defaults to metric */
   if (typeof renderBriefing === 'function') renderBriefing();
   if (typeof _twTgSync === 'function') _twTgSync(false);   /* Telegram alerts follow the site language */

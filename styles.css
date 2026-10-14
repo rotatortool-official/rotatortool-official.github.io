@@ -3882,7 +3882,7 @@ td.qa-cell{text-align:center;width:28px;padding:0 4px !important;}
   .rsec-hdr{padding:14px 12px 8px;}
   /* Below 900px the collapse headers come back and name the sections
      themselves — two labels would be one too many. */
-  #sec-yours .rsec-hdr,#sec-rotation .rsec-hdr,#sec-swap .rsec-hdr,#sec-record .rsec-hdr,#sec-coins .rsec-hdr{display:none;}
+  #sec-liq .rsec-hdr,#sec-yours .rsec-hdr,#sec-rotation .rsec-hdr,#sec-swap .rsec-hdr,#sec-record .rsec-hdr,#sec-coins .rsec-hdr{display:none;}
 }
 
 /* ── The document scrolls, not the body ────────────────────────────
@@ -6313,3 +6313,50 @@ a.mob-more-item{text-decoration:none;color:inherit;}
   .cap-chart{height:100px;}
 }
 @media (max-width:600px){.cap-share span{display:none;}.cap-share{padding:6px;}.cap-main .bf-k,.cap-main .cap-verdict{padding-right:36px;}}
+
+/* ── LIQUIDATIONS section (2026-10-14, js/liquidations.js) ───────── */
+.liq-body{padding:4px 16px 18px;}
+.liq-tabs{display:inline-flex;gap:2px;padding:3px;background:var(--bg3);border:1px solid var(--bdr);border-radius:7px;margin-bottom:10px;}
+.liq-tab{background:none;border:0;color:var(--muted);font:600 12px var(--font-ui);padding:6px 12px;border-radius:5px;cursor:pointer;min-height:32px;}
+.liq-tab:hover{color:var(--text);}
+.liq-tab.on{background:var(--bg4);color:var(--text);box-shadow:inset 0 0 0 1px var(--bdr2);}
+.liq-grid{display:grid;grid-template-columns:minmax(0,1fr) 260px;gap:12px;align-items:start;}
+.liq-map{position:relative;width:100%;aspect-ratio:16/10;border-radius:8px;overflow:hidden;background:var(--bg3);}
+.liq-cell{position:absolute;box-sizing:border-box;border:2px solid var(--bg);border-radius:6px;color:#fff;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;padding:2px;overflow:hidden;cursor:pointer;font-family:var(--font-ui);text-shadow:0 1px 2px rgba(0,0,0,.35);transition:filter .12s;}
+.liq-cell:hover{filter:brightness(1.12);}
+.liq-cell:focus-visible{outline:2px solid var(--bnb);outline-offset:-2px;}
+.liq-cell[disabled]{cursor:default;filter:saturate(.75);}
+.liq-cell b{font-size:11px;font-weight:800;line-height:1.1;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.liq-cell span{font-size:11px;font-weight:700;opacity:.95;}
+.liq-cell em{font-style:normal;font-size:11px;opacity:.85;}
+.liq-cell.mid b{font-size:14px;}
+.liq-cell.big b{font-size:clamp(16px,2.6vw,30px);}
+.liq-cell.big span{font-size:clamp(13px,1.6vw,20px);}
+.liq-legend{display:flex;flex-wrap:wrap;gap:6px 14px;margin-top:7px;font-size:11px;color:var(--muted);}
+.liq-legend i{display:inline-block;width:10px;height:10px;border-radius:2px;margin-right:5px;vertical-align:-1px;}
+.liq-legend i.l{background:#ea3943;}
+.liq-legend i.s{background:#16c784;}
+.liq-since{margin-left:auto;}
+.liq-side{display:flex;flex-direction:column;gap:8px;}
+.liq-total,.liq-split > div,.liq-big{background:var(--bg3);border:1px solid var(--bdr);border-radius:7px;padding:9px 11px;}
+.liq-total b{display:block;font:800 26px var(--font-mono);color:var(--text);margin:2px 0;}
+.liq-total em,.liq-big em{font-style:normal;font-size:11px;color:var(--muted);}
+.liq-split{display:grid;grid-template-columns:1fr 1fr;gap:8px;}
+.liq-split b{display:block;font:800 16px var(--font-mono);}
+.liq-split b.dn,.liq-bar-lbl .dn,.etf-axis b.dn,.btcg-table td.dn{color:var(--red);}
+.liq-split b.up,.liq-bar-lbl .up,.etf-axis b.up,.btcg-table td.up{color:var(--green);}
+.liq-bar{height:8px;border-radius:4px;background:var(--green);overflow:hidden;}
+.liq-bar i{display:block;height:100%;background:var(--red);}
+.liq-bar-lbl{display:flex;justify-content:space-between;font:700 11px var(--font-mono);margin-top:-4px;}
+.liq-big{text-align:left;cursor:pointer;color:inherit;font:inherit;}
+.liq-big:hover{border-color:var(--bdr2);}
+.liq-big b{display:block;font:800 18px var(--font-mono);color:var(--text);}
+.liq-share,.liq-open{display:inline-flex;align-items:center;justify-content:center;gap:6px;background:var(--bnbd);border:1px solid rgba(243,186,47,.45);color:var(--bnb);border-radius:7px;padding:9px 12px;font:700 13px var(--font-ui);cursor:pointer;min-height:40px;}
+.liq-share:hover,.liq-open:hover{background:rgba(243,186,47,.16);}
+.liq-open{margin:12px 0 4px;width:100%;}
+.liq-read{font-size:12px;color:var(--muted);line-height:1.5;margin:12px 0 4px;}
+.liq-empty{color:var(--muted);font-size:13px;padding:24px 0;}
+@media (max-width:760px){
+  .liq-body{padding:4px 12px 16px;}
+  .liq-grid{grid-template-columns:1fr;}
+}
