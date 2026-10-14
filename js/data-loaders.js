@@ -1554,7 +1554,7 @@ function startAutoRefresh() {
 /* Since 2026-10-11 every network the social desk posts on is counted the
    same way: ?utm_source=x | instagram | facebook | gemidzija | substack | binance (Binance Square, 2026-10-11)
    gives from_<source> (count_feature allows exactly these). */
-var _ARRIVAL_SOURCES = ['substack', 'x', 'instagram', 'facebook', 'gemidzija', 'binance'];
+var _ARRIVAL_SOURCES = ['substack', 'x', 'instagram', 'facebook', 'gemidzija', 'binance', 'threads', 'youtube', 'tiktok', 'share'];   /* + threads, youtube, tiktok, share (s.rotatortool.com links), 2026-10-14 */
 function _countSubstackArrival() {
   try {
     var q = new URLSearchParams(location.search);
