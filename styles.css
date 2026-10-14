@@ -4890,7 +4890,7 @@ details.td-reading-trust[open] > summary::before{content:'▾ ';}
     -webkit-mask-composite:source-in;mask-composite:intersect;
     mask-image:linear-gradient(to left,#000 35%,transparent),linear-gradient(to bottom,transparent,#000 12%,#000 88%,transparent);}
   html.mk-seen .mk-banner{background-size:144px auto;background-repeat:repeat-y;}
-  html.mk-seen .mk-banner-l{background-image:url('img/mk-motif-palanka-medallions.svg');background-position:right top;background-size:96px auto;background-repeat:repeat;}
+  html.mk-seen .mk-banner-l{background-image:url('img/mk-motif-palanka-medallions.svg');background-position:right top;background-size:82px auto;background-repeat:repeat;}
   html.mk-seen .mk-banner-r{background-image:url('img/mk-motif-mariovo.svg');background-position:left top;}
   html.lang-mk .mk-banner{pointer-events:auto;}
   html.lang-mk .mk-banner:hover{opacity:1;-webkit-mask-image:none;mask-image:none;}
