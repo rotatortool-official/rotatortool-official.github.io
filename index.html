@@ -1184,6 +1184,10 @@
     <!-- THE MARKET NOW: BTC, its 200-day trend, Fear & Greed and how
          many coins beat BTC this week. renderMarketNow() in js/signals.js
          (promptove/106); only data the page already loads. -->
+    <!-- TODAY IN ONE LOOK (2026-10-14, Daniel; both themes): three plain
+         lines a visitor can read and share before any tile. Filled by
+         renderDayBrief() in js/signals.js from data the page already has. -->
+    <div class="day-brief" id="day-brief" style="display:none;"></div>
     <div class="mkt-now" id="mkt-now" style="display:none;"></div>
     <div class="briefing" id="briefing" style="display:none;"></div>
   </section>
@@ -1745,6 +1749,9 @@
     <a class="footer-link" href="#" role="button" onclick="event.preventDefault();openModal('donate-modal');return false;">SUPPORT US</a>
   </div>
   <div class="footer-copy">© 2026 ROTATOR · NOT FINANCIAL ADVICE · <span style="color:var(--red);">DYOR</span></div>
+  <!-- Said once here instead of under every card (2026-10-14); the
+       per-card notes it replaces are hidden. -->
+  <div class="foot-nf">Everything on Rotator describes what already happened, not what comes next.</div>
   <div class="footer-disclaimer" style="display:flex;flex-direction:column;align-items:center;gap:8px;">
     <a href="https://www.coingecko.com/en/api" target="_blank" rel="noopener" style="display:inline-flex;align-items:center;gap:8px;text-decoration:none;opacity:.6;transition:opacity .2s;" onmouseenter="this.style.opacity='1'" onmouseleave="this.style.opacity='.6'">
       <span style="font-size:12px;color:#8899aa;font-family:'DM Sans',sans-serif;">Data powered by</span>

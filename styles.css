@@ -6381,3 +6381,62 @@ a.mob-more-item{text-decoration:none;color:inherit;}
 /* Phones (Daniel, 2026-10-14): TODAY is the logo and COINS is the search
    button, so neither is in MORE; the search label says what it finds. */
 .mob-topbar-search .mob-search-lbl{font-size:8px;letter-spacing:.04em;}
+
+/* ── TODAY, crypto first (2026-10-14, Daniel; light first, both themes
+   the same day): a three-line headline with Share at the top, news tiles
+   first, the macro tiles folded behind one button, the per-card "not a
+   forecast" notes said once in the footer, Score gaps and the stock
+   ticker off the main page. */
+.day-brief{
+  margin:0 16px 14px;padding:12px 16px 12px;border:1px solid var(--bdr2);
+  border-left:3px solid var(--amber,#f0b90b);border-radius:8px;background:var(--bg2);
+}
+.db-hd{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:6px;}
+.db-title{font-size:11px;font-weight:800;letter-spacing:.14em;text-transform:uppercase;color:var(--amber,#f0b90b);}
+.db-day{font-size:12px;color:var(--muted);}
+.db-share{
+  margin-left:auto;display:inline-flex;align-items:center;gap:5px;cursor:pointer;
+  font:700 11px/1 inherit;letter-spacing:.06em;text-transform:uppercase;
+  color:var(--text);background:transparent;border:1px solid var(--bdr2);border-radius:999px;padding:6px 11px;
+}
+.db-share:hover{border-color:var(--amber,#f0b90b);color:var(--amber,#f0b90b);}
+.db-lines{list-style:none;margin:0;padding:0;}
+.db-lines li{font-size:15px;line-height:1.5;color:var(--text);padding:2px 0;}
+.db-lines li + li{border-top:1px dashed var(--bdr2);}
+.db-up{color:var(--green);} .db-dn{color:var(--red);}
+.db-coin{font:inherit;font-weight:700;color:var(--text);background:none;border:0;padding:0;cursor:pointer;text-decoration:underline;text-decoration-color:var(--bdr2);text-underline-offset:3px;}
+.db-coin:hover{color:var(--amber,#f0b90b);}
+@media (max-width:760px){
+  .day-brief{margin:0 12px 12px;padding:10px 12px;}
+  .db-lines li{font-size:14px;}
+  .db-day{display:none;}   /* keeps Share on the title row */
+}
+/* Macro fold: the light order (news, On-chain, button, macro) is built
+   in renderBriefing; CSS only hides the macro groups while folded. The
+   button reads as a plain "show more" control: theme colours, no glow. */
+.briefing:not(.bf-macro-open) > .bf-macro{display:none;}
+.bf-macro-tog{
+  grid-column:1 / -1;display:flex;align-items:center;gap:10px;flex-wrap:wrap;cursor:pointer;text-align:left;
+  background:var(--bg2);border:0;border-top:1px solid var(--bdr2);padding:12px 16px;
+  font:600 13px/1.3 inherit;color:var(--text);
+}
+.bf-macro-tog:hover{background:var(--bg3);}
+.bf-macro-show,.bf-macro-hide{font-weight:700;text-decoration:underline;text-decoration-color:var(--bdr2);text-underline-offset:3px;}
+.bf-macro-hide{display:none;}
+.briefing.bf-macro-open .bf-macro-show{display:none;}
+.briefing.bf-macro-open .bf-macro-hide{display:inline;}
+.bf-macro-t{font-weight:500;color:var(--muted);}
+.briefing.bf-macro-open .bf-macro-t{display:none;}
+.bf-macro-c{margin-left:auto;color:var(--muted);transition:transform .2s;}
+.briefing.bf-macro-open .bf-macro-c{transform:rotate(180deg);}
+/* Said once in the footer instead. */
+#sec-capital .cap-note,
+.cap-nf{display:none;}
+/* Score gaps (it says itself that it did not beat a random pick) and the
+   stock ticker in a crypto section: off the main page on light. */
+#sec-yours .rot-beside{display:none;}
+#sec-capital .market-ticker{display:none;}
+.foot-nf{font-size:12px;color:var(--muted);text-align:center;margin:6px 16px 0;}
+@media(min-width:901px){
+  #sec-yours .coin-alerts{grid-column:1 / -1;}   /* takes the hidden Score gaps' place */
+}

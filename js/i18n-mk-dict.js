@@ -60,6 +60,7 @@ Object.assign(MK_TEXT, {
   'where money moved this week: into and out of Bitcoin, between chains, Bitcoin against the rest, and coin supply: unlocks, buybacks and burns':
     'каде се движеа парите оваа недела: во и надвор од Bitcoin, меѓу мрежите, Bitcoin наспроти другите монети и понудата на монетите: отклучувања, откупи и согорувања',
   'Where money moved, not where it goes next.': 'Каде се движеа парите, не каде ќе одат.',
+  'Everything on Rotator describes what already happened, not what comes next.': 'Сè на Rotator покажува што веќе се случило, не што ќе се случи.',
   'ROTATOR TOOL': 'ROTATOR АЛАТКА',
   'Rotator Tool': 'Rotator алатка',
   'Rotator Tool Tutorial': 'Упатство за Rotator алатката',

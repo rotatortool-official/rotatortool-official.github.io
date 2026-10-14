@@ -94,7 +94,10 @@ function loadLiquidations(hours) {
     _liq.rows = Array.isArray(rows) ? rows : [];
     _liq.at = Date.now();
   }).catch(function () { if (!_liq.rows) _liq.rows = []; })
-    .then(function () { _liq.loading = false; renderLiquidations(); });
+    .then(function () {
+      _liq.loading = false; renderLiquidations();
+      if (typeof renderDayBrief === 'function') renderDayBrief();   /* TODAY's headline reads the 24h rows */
+    });
 }
 
 function _liqTotals(rows) {
@@ -448,6 +451,9 @@ function shareLiqCoin() {
     var sec = document.getElementById('sec-liq');
     if (!sec) return;
     var go = function () { if (!_liq.rows || Date.now() - _liq.at > 110e3) loadLiquidations(); };
+    /* TODAY's headline at the top of the page quotes the 24h total
+       (2026-10-14), so the first load no longer waits for the scroll. */
+    go();
     if ('IntersectionObserver' in window) {
       new IntersectionObserver(function (es, ob) { if (es[0].isIntersecting) { go(); ob.disconnect(); } }, { rootMargin: '600px' }).observe(sec);
     } else go();

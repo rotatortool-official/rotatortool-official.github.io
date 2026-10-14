@@ -2341,6 +2341,39 @@ function _bfNews(k) {
   if (!e || !e.until || e.until < new Date().toISOString().slice(0, 10)) return null;
   return e;
 }
+/* Read news (Daniel, 2026-10-14): opening a tile's "More" marks that
+   story read in this browser. A read tile loses its amber mark, leaves
+   "In the news" for its own group and stops turning by itself, so a
+   visitor who has read everything gets the compact board. A new story
+   on the same tile (another date) shows up again. */
+var _BF_READ = 'rot_news_read', _bfReadDirty = false;
+function _bfNewsReadMap() {
+  try { return JSON.parse(localStorage.getItem(_BF_READ) || '{}') || {}; } catch (e) { return {}; }
+}
+function _bfNewsUnread(k) {
+  var e = _bfNews(k);
+  if (!e) return null;
+  return _bfNewsReadMap()[_BF_NEWS_KEY[k]] === (e.date || e.until) ? null : e;
+}
+function _bfMarkRead(k) {
+  var e = _bfNews(k);
+  if (!e || !_bfNewsUnread(k)) return;
+  var m = _bfNewsReadMap();
+  m[_BF_NEWS_KEY[k]] = e.date || e.until;
+  try { localStorage.setItem(_BF_READ, JSON.stringify(m)); } catch (x) {}
+  _bfReadDirty = true;
+}
+/* Re-sort the board once the window closes, however it is closed. */
+(function () {
+  function watch() {
+    var m = document.getElementById('bf-more-modal');
+    if (!m || !window.MutationObserver) return;
+    new MutationObserver(function () {
+      if (!m.classList.contains('show') && _bfReadDirty) { _bfReadDirty = false; renderBriefing(); }
+    }).observe(m, { attributes: true, attributeFilter: ['class'] });
+  }
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', watch); else watch();
+})();
 /* The "In the news" block: why the tile lit up, then the headlines as
    published, linked out. Built in the page's language here, not through
    MK_TEXT, because it carries numbers and dates. */
@@ -2456,6 +2489,7 @@ function bfOpenMore(k, from) {
   if (!c || !body) return;
   document.getElementById('bf-more-title').textContent = c.k;
   var news = _bfNews(c.k);
+  if (news) _bfMarkRead(c.k);
   body.innerHTML = (news ? _bfNewsHtml(c.k, news) : '') + _bfLiveHtml(c.k) + c.more.map(function (p) {
     return '<div class="bf-more-h">' + p[0] + '</div><p class="bf-more-p">' + p[1] + '</p>';
   }).join('') + (news ? '' : _bfWeeklyHtml(c.k)) + '<div class="bf-more-note">General background, not advice.</div>';
@@ -2792,7 +2826,7 @@ function renderBriefing() {
   if (!groups.length) { host.style.display = 'none'; return; }
 
   var face = function (c, days) {
-    var win = c.w[days], hasNews = !!(c.more && _bfNews(c.k));
+    var win = c.w[days], hasNews = !!(c.more && _bfNewsUnread(c.k));
     return '<div class="bf-face bf-front">'
       + _bfEmb(c.k)
       + '<div class="bf-k">' + c.k + '</div>'
@@ -2829,13 +2863,51 @@ function renderBriefing() {
     + '<button type="button" class="bf-seg-b" data-days="365" onclick="bfSetAll(365)">1Y</button>'
     + '<button type="button" class="bf-seg-b" data-days="1095" onclick="bfSetAll(1095)">3Y</button>'
     + '</div></div>';
-  groups.forEach(function (g) {
-    var lab = g.lab ? ' bf-lab' : '';
+  /* Crypto first (2026-10-14, Daniel; light first, both themes the same
+     day). Tiles with unread news open the board under "In the news", then
+     On-chain, then one clear button that unfolds the macro groups (rates,
+     stocks, metals, energy). */
+  var mk = typeof currentLang !== 'undefined' && currentLang === 'mk';
+  var mOpen = false;
+  try { mOpen = localStorage.getItem('rot_bf_macro') === '1'; } catch (e) {}
+  host.classList.toggle('bf-macro-open', mOpen);
+  var today = new Date(), freshFrom = new Date(today.getTime() - 2 * 864e5).toISOString().slice(0, 10);
+  var order;
+  {
+    var news = [];
+    groups.forEach(function (g) {
+      g.macro = g.t !== 'On-chain';
+      g.cells = g.cells.filter(function (c) {
+        var e = c.more && _bfNewsUnread(c.k);
+        if (!e) return true;
+        c.fresh = !!(e.date && e.date >= freshFrom);
+        news.push(c); return false;
+      });
+    });
+    news.sort(function (x, y) { return (y.fresh ? 1 : 0) - (x.fresh ? 1 : 0); });
+    var chain = groups.filter(function (g) { return !g.macro && g.cells.length; });
+    var macro = groups.filter(function (g) { return g.macro && g.cells.length; });
+    order = (news.length ? [{ t: mk ? 'Во вестите' : 'In the news', cells: news, news: true }] : []).concat(chain);
+    var nMacro = macro.reduce(function (n, g) { return n + g.cells.length; }, 0);
+    order.push({ tog: nMacro });
+    order = order.concat(macro);
+  }
+  order.forEach(function (g) {
+    if (g.tog != null) {
+      if (!g.tog) return;
+      html += '<button type="button" class="bf-macro-tog" onclick="bfToggleMacro()" aria-expanded="' + mOpen + '">'
+        + '<span class="bf-macro-show">' + (mk ? 'Прикажи уште ' + g.tog + ' плочки' : 'Show ' + g.tog + ' more tiles') + '</span>'
+        + '<span class="bf-macro-hide">' + (mk ? 'Скриј ги макро плочките' : 'Hide the macro tiles') + '</span>'
+        + '<span class="bf-macro-t">' + (mk ? 'каматни стапки, акции, метали, енергија' : 'rates, stocks, metals, energy') + '</span>'
+        + '<span class="bf-macro-c" aria-hidden="true">▾</span></button>';
+      return;
+    }
+    var lab = (g.lab ? ' bf-lab' : '') + (g.macro ? ' bf-macro' : '') + (g.news ? ' bf-newsg' : '');
     html += '<div class="bf-group' + lab + '">' + g.t + '</div>';
     g.cells.forEach(function (c) {
       var pl = (c.pts || c.usd) ? null : c.w[_bfLong].c;
       var hbl = hbBeatSeconds(pl, 0.25);
-      html += '<div class="bf-cell' + lab + '" data-k="' + c.k + '"'
+      html += '<div class="bf-cell' + lab + (g.news && c.fresh ? ' bf-fresh' : '') + '" data-k="' + c.k + '"'
         + (hbl != null ? ' style="--hb-dur:' + hbl.toFixed(3) + 's"' : '') + '>'
         + '<div class="bf-tilt"><div class="bf-inner">' + face(c, _bfLong) + '</div></div>'
         + '</div>';
@@ -2852,7 +2924,50 @@ function renderBriefing() {
   _bfWireTilt(host);
   _bfWireFlash(host);
   _bfWireInfo(host);
+  _bfIdleTurn(host);
   _bfDeepLink();
+}
+/* Fresh news turns (2026-10-14, Daniel): after 10 seconds with no
+   scroll, key or pointer, one tile with fresh news (the last 2 days)
+   that is on screen turns to its back, where "More ›" opens the news,
+   holds 5 seconds and turns back. One at a time, in turn. No colour or
+   flash; skipped for reduced motion, a hidden tab, phones (no turn
+   there) and any tile the visitor turned themselves. */
+var _bfIdle = { t: null, i: 0, wired: false };
+function _bfIdleTurn(host) {
+  if (_bfIdle.wired) return;
+  _bfIdle.wired = true;
+  var arm = function () {
+    clearTimeout(_bfIdle.t);
+    _bfIdle.t = setTimeout(fire, 10000);
+  };
+  var fire = function () {
+    arm();
+    if (document.hidden || _bfReduced()) return;
+    try { if (window.matchMedia('(max-width:600px)').matches) return; } catch (e) {}
+    var vh = window.innerHeight || 800;
+    var list = [].filter.call(host.querySelectorAll('.bf-cell.bf-fresh'), function (c) {
+      var r = c.getBoundingClientRect();
+      return r.height && r.top >= 0 && r.bottom <= vh && !c.classList.contains('flipped');
+    });
+    if (!list.length) return;
+    var cell = list[_bfIdle.i++ % list.length];
+    cell.click();
+    cell._bfAuto = setTimeout(function () { if (cell.classList.contains('flipped')) cell.click(); }, 5000);
+  };
+  ['scroll', 'keydown', 'pointerdown', 'pointermove', 'touchstart', 'wheel'].forEach(function (ev) {
+    window.addEventListener(ev, arm, { passive: true });
+  });
+  arm();
+}
+function bfToggleMacro() {
+  var host = document.getElementById('briefing');
+  if (!host) return;
+  var on = !host.classList.contains('bf-macro-open');
+  host.classList.toggle('bf-macro-open', on);
+  var b = host.querySelector('.bf-macro-tog');
+  if (b) b.setAttribute('aria-expanded', on);
+  try { localStorage.setItem('rot_bf_macro', on ? '1' : '0'); } catch (e) {}
 }
 /* A short glow on every tile when the period changes, in a quick
    left-to-right ripple (it used to fire when a tile finished flipping). */

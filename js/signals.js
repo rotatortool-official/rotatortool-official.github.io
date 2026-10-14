@@ -210,6 +210,102 @@ function renderMarketNow() {
   host.style.display = '';
   if (typeof _renderLastUpdated === 'function') _renderLastUpdated();
   renderCapitalBtc();
+  renderDayBrief();
+}
+
+/* ── Today in one look (2026-10-14, Daniel; light first, both themes the same day)
+   "What happened in crypto today" in three plain lines, above every tile,
+   with a Share button. Nothing new is fetched: BTC and the movers are
+   coins[], Fear & Greed is window.fearGreed, the turn signs are the TURN
+   SIGNS scan (_twScan) and liquidations are the LIQUIDATIONS section's
+   24-hour rows once they have loaded (loadLiquidations calls back here).
+   A line with no data is left out, never guessed. */
+var _dbLast = null;
+function _dbMovers() {
+  var list = coins.filter(function (c) {
+    return !c.isStock && !c.isStable && typeof c.p24 === 'number' && !isNaN(c.p24);
+  }).slice().sort(function (a, b) { return b.p24 - a.p24; });
+  return { up: list.slice(0, 3), dn: list.slice(-3).reverse() };
+}
+function renderDayBrief() {
+  var host = document.getElementById('day-brief');
+  if (!host || typeof coins === 'undefined') return;
+  var btc = coins.find(function (c) { return c.sym === 'BTC' && !c.isStock; });
+  if (!btc || typeof btc.p24 !== 'number') { host.style.display = 'none'; return; }
+  var mk = (typeof currentLang !== 'undefined' && currentLang === 'mk');
+  function pc(v) { return (v >= 0 ? '+' : '−') + Math.abs(v).toFixed(1) + '%'; }
+  function tone(v) { return '<b class="' + (v >= 0 ? 'db-up' : 'db-dn') + '">' + pc(v) + '</b>'; }
+  function usd(v) { return v >= 1e9 ? '$' + (v / 1e9).toFixed(1) + 'B' : v >= 1e6 ? '$' + (v / 1e6).toFixed(0) + 'M' : '$' + Math.round(v / 1e3) + 'K'; }
+
+  var lines = [], plain = [];
+  /* 1. Bitcoin and the mood */
+  var fg = window.fearGreed, fgTxt = '';
+  if (fg && typeof fg.value === 'number') fgTxt = (mk ? ' · Страв и алчност ' : ' · Fear & Greed ') + fg.value + (fg.label ? ' (' + fg.label + ')' : '');
+  lines.push((mk ? 'Bitcoin ' : 'Bitcoin ') + tone(btc.p24) + (mk ? ' за 24 часа, на ' : ' in 24 hours, at ') + fmtP(btc.price) + fgTxt);
+  plain.push('Bitcoin ' + pc(btc.p24) + ' in 24h at ' + fmtP(btc.price) + (fg && typeof fg.value === 'number' ? ' · Fear & Greed ' + fg.value : ''));
+
+  /* 2. The biggest moves among our coins */
+  var M = _dbMovers();
+  if (M.up.length && M.dn.length) {
+    var mv = function (c) { return '<button type="button" class="db-coin" onclick="openTileDetail(\'' + c.id + '\',event)">' + c.sym + '</button> ' + tone(c.p24); };
+    lines.push((mk ? 'Најголеми движења: ' : 'Biggest moves: ') + M.up.slice(0, 2).map(mv).join(', ') + (mk ? ' · најслаби: ' : ' · weakest: ') + M.dn.slice(0, 2).map(mv).join(', '));
+    plain.push('Biggest moves: ' + M.up.slice(0, 2).map(function (c) { return c.sym + ' ' + pc(c.p24); }).join(', ')
+      + ' · weakest: ' + M.dn.slice(0, 2).map(function (c) { return c.sym + ' ' + pc(c.p24); }).join(', '));
+  }
+
+  /* 3. Turn signs and liquidations */
+  var bits = [], pbits = [];
+  if (typeof _twScan === 'function') {
+    try {
+      var R = _twScan();
+      if (R && R.up && R.down) {
+        bits.push(mk
+          ? R.up.length + ' монети што заостануваа покажуваат знаци на пораст, ' + R.down.length + ' што трчаа напред се ладат'
+          : R.up.length + ' lagging coins show turn-up signs, ' + R.down.length + ' that ran ahead are cooling');
+        pbits.push(R.up.length + ' coins turning up, ' + R.down.length + ' cooling');
+      }
+    } catch (e) {}
+  }
+  if (typeof _liq !== 'undefined' && _liq.hours === 24 && _liq.rows && _liq.rows.length && typeof _liqTotals === 'function') {
+    var t = _liqTotals(_liq.rows), all = t.long + t.short;
+    if (all > 0) {
+      var lp = Math.round(t.long / all * 100);
+      bits.push(mk
+        ? 'Најмалку ' + usd(all) + ' принудно затворени на Binance фјучерси за 24 часа (' + lp + '% лонг)'
+        : 'At least ' + usd(all) + ' forced out on Binance futures in 24 hours (' + lp + '% longs)');
+      pbits.push('At least ' + usd(all) + ' liquidated on Binance futures in 24h');
+    }
+  }
+  if (bits.length) { lines.push(bits.join(' · ')); plain.push(pbits.join(' · ')); }
+
+  _dbLast = { btc: btc, movers: M, plain: plain };
+  var d = new Date();
+  var day = d.toLocaleDateString(mk ? 'mk-MK' : 'en-GB', { weekday: 'long', day: 'numeric', month: 'long' });
+  host.innerHTML = '<div class="db-hd"><span class="db-title">' + (mk ? 'Денес накратко' : 'Today in one look') + '</span>'
+    + '<span class="db-day">' + day + '</span>'
+    + '<button type="button" class="db-share" onclick="shareDayBrief()" aria-label="' + (mk ? 'Сподели' : 'Share') + '">'
+    + '<svg viewBox="0 0 24 24" width="14" height="14" aria-hidden="true"><path fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" d="M12 3v12M7 8l5-5 5 5M5 13v6a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-6"/></svg>'
+    + '<span>' + (mk ? 'Сподели' : 'Share') + '</span></button></div>'
+    + '<ul class="db-lines">' + lines.map(function (l) { return '<li>' + l + '</li>'; }).join('') + '</ul>';
+  host.style.display = '';
+}
+/* The share card: the day's top three and bottom three as bars. */
+function shareDayBrief() {
+  if (!_dbLast || typeof fcShareCard !== 'function') return;
+  var M = _dbLast.movers, b = _dbLast.btc;
+  var rows = M.up.concat(M.dn).map(function (c) {
+    return { name: c.sym, v: c.p24, label: (c.p24 >= 0 ? '+' : '−') + Math.abs(c.p24).toFixed(1) + '%' };
+  });
+  var head = 'Bitcoin ' + (b.p24 >= 0 ? '+' : '−') + Math.abs(b.p24).toFixed(1) + '% today. Who moved the most?';
+  fcShareCard({
+    kind: 'hbars', rows: rows, tone: 'amber',
+    kicker: 'Biggest 24-hour moves among the coins Rotator scores',
+    head: head,
+    stats: _dbLast.plain.slice(2).map(function (p) { return ['Today', p, 'up']; }),
+    note: 'What happened today, not a forecast · Binance',
+    sym: 'TODAY',
+    text: head + '\n' + _dbLast.plain.join('\n') + '\nThe whole day, free on Rotator → ' + ROTATOR_SHARE.link
+  });
 }
 
 /* ── Bitcoin vs the rest (CAPITAL ROTATION, 2026-10-11, light first) ──
