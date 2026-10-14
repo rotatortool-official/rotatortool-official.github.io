@@ -4857,10 +4857,12 @@ details.td-reading-trust[open] > summary::before{content:'▾ ';}
    the 1600px page plus room for them, capped at 140px, and faded
    toward the content so there is no hard edge.
 
-   Both are cell-by-cell redraws of woven aprons from Kriva Palanka
-   and the villages around it, taken from Daniel's family photo
-   (generator: weekly-shots/mk-motifs/kriva-palanka.js in the workbench):
-   left - red apron with medallions; right - green hexagon band apron.
+   Both are cell-by-cell redraws of real folk textiles (generators in
+   the workbench, weekly-shots/mk-motifs/):
+   left - red woven apron, Kriva Palanka and nearby villages, from
+   Daniel's family photo (kriva-palanka.js);
+   right - embroidered shirt hem, Dunje, Mariovo, from a public-domain
+   museum photo on Wikimedia Commons (mariovo.js).
    They replaced AI images on 2026-10-14 after visitors said the sun
    flag was drawn wrong. Keep both sides to real folk patterns with a
    known source, no flag. Hovering lifts the fade and shows the source
@@ -4889,7 +4891,7 @@ details.td-reading-trust[open] > summary::before{content:'▾ ';}
     mask-image:linear-gradient(to left,#000 35%,transparent),linear-gradient(to bottom,transparent,#000 12%,#000 88%,transparent);}
   html.mk-seen .mk-banner{background-size:144px auto;background-repeat:repeat-y;}
   html.mk-seen .mk-banner-l{background-image:url('img/mk-motif-palanka-medallions.svg');background-position:right top;}
-  html.mk-seen .mk-banner-r{background-image:url('img/mk-motif-palanka-bands.svg');background-position:left top;}
+  html.mk-seen .mk-banner-r{background-image:url('img/mk-motif-mariovo.svg');background-position:left top;}
   html.lang-mk .mk-banner{pointer-events:auto;}
   html.lang-mk .mk-banner:hover{opacity:1;-webkit-mask-image:none;mask-image:none;}
   .mk-src{position:absolute;left:6px;right:6px;top:64px;padding:8px;border-radius:6px;
