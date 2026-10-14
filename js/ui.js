@@ -980,9 +980,9 @@ function railGo(secId) {
       b.classList.toggle('active', on);
       if (on) b.setAttribute('aria-current', 'true'); else b.removeAttribute('aria-current');
     });
-    /* TODAY has no bottom button since 2026-10-14 (the logo goes there), so
-       the top of the page lights nothing rather than MORE. */
-    if (mobMore) mobMore.classList.toggle('active', !hit && !!id && id !== 'sec-today');
+    /* TODAY (the logo) and COINS (the search button) have no bottom button
+       and are not in MORE since 2026-10-14, so reading them lights nothing. */
+    if (mobMore) mobMore.classList.toggle('active', !hit && !!id && id !== 'sec-today' && id !== 'sec-coins');
     /* The section's name beside the logo (2026-10-11): copied from the
        rail so it is in the page's language and carries its live subtitle. */
     var cur = items.filter(function(it) { return it.dataset.sec === id; })[0];

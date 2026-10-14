@@ -1151,7 +1151,7 @@ MK_PATTERNS.push([/^crossed (\d+) days? ago$/, function (m) { return 'се вк�
 Object.assign(MK_TEXT, {
   'How it works': 'Како работи', 'HOW IT WORKS': 'КАКО РАБОТИ', 'FAQ': 'Прашања',
   'MORE': 'ПОВЕЌЕ',
-  'SEARCH': 'ПРЕБАРАЈ', 'SETTINGS': 'ПОСТАВКИ', 'ROTATOR — reload': 'ROTATOR — освежи',
+  'SEARCH': 'ПРЕБАРАЈ', 'SEARCH COINS': 'БАРАЈ МОНЕТИ', 'SETTINGS': 'ПОСТАВКИ', 'ROTATOR — reload': 'ROTATOR — освежи',
   'Dark Mode': 'Темен режим',
   'ABOUT US': 'ЗА НАС', 'TERMS': 'УСЛОВИ', 'PRIVACY': 'ПРИВАТНОСТ', 'CONTACT': 'КОНТАКТ', 'SUPPORT US': 'ПОДДРЖЕТЕ НЕ',
   '◈ How Rotator works': '◈ Како работи Rotator',

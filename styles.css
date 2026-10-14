@@ -6369,3 +6369,6 @@ a.mob-more-item{text-decoration:none;color:inherit;}
 @media (max-width:760px){
   #mob-search-panel{position:fixed;left:0;right:0;top:52px;z-index:101;background:var(--bg2);border-bottom:1px solid var(--bdr2);box-shadow:0 10px 24px var(--b05);padding-bottom:4px;max-height:60vh;overflow-y:auto;}
 }
+/* Phones (Daniel, 2026-10-14): TODAY is the logo and COINS is the search
+   button, so neither is in MORE; the search label says what it finds. */
+.mob-topbar-search .mob-search-lbl{font-size:8px;letter-spacing:.04em;}
