@@ -160,7 +160,7 @@ function _fcDraw(spec, wm) {
   var hasTag = spec.kind !== 'hbars' && spec.tag;
   ctx.font = '800 22px Inter, sans-serif';
   var TW = hasTag ? Math.max(120, ctx.measureText(spec.tag).width + 28) : 0;
-  var CX = L0, CY = 100, CW = W - 2 * L0 - (hasTag ? TW + 10 : 0), CH = 240;
+  var CX = L0, CY = 100, CW = W - 2 * L0 - (hasTag ? TW + 10 : 0), CH = 250;
   ctx.strokeStyle = '#1c2330'; ctx.lineWidth = 1;
   if (spec.kind !== 'hbars') for (var g = 1; g < 4; g++) { ctx.beginPath(); ctx.moveTo(CX, CY + CH * g / 4); ctx.lineTo(CX + CW, CY + CH * g / 4); ctx.stroke(); }
   if (wm.mark) { ctx.globalAlpha = 0.08; ctx.drawImage(wm.mark, CX + CW / 2 - 130, CY + CH / 2 - 130, 260, 260); ctx.globalAlpha = 1; }
@@ -240,19 +240,31 @@ function _fcDraw(spec, wm) {
   ctx.textAlign = 'right'; ctx.fillText(spec.to || '', W - L0, CY + CH + 26);
 
   ctx.textAlign = 'left'; ctx.fillStyle = '#ffffff';
-  shareFit(ctx, spec.head, W - 2 * L0, '800 {SIZE}px Inter, sans-serif', 38, 24); ctx.fillText(spec.head, L0, 418);
+  /* The thinner gold bar (2026-10-14) gave the text 24px: the headline
+     44px (was 38), the stats 26px (was 22, now shrunk to fit one line),
+     the note 21px (was 19). */
+  shareFit(ctx, spec.head, W - 2 * L0, '800 {SIZE}px Inter, sans-serif', 44, 26); ctx.fillText(spec.head, L0, 434);
+  var st = (spec.stats || []).filter(function (pp) { return pp[1] != null; });
+  var sf = 26, stW = function (f) {
+    var w = 0;
+    st.forEach(function (pp, i) {
+      ctx.font = '600 ' + f + 'px Inter, sans-serif'; w += ctx.measureText((i ? '  ·  ' : '') + pp[0] + ' ').width;
+      ctx.font = '800 ' + f + 'px Inter, sans-serif'; w += ctx.measureText(pp[1]).width;
+    });
+    return w;
+  };
+  while (sf > 16 && stW(sf) > W - 2 * L0) sf -= 1;
   var sx = L0;
-  (spec.stats || []).forEach(function (pp) {
-    if (pp[1] == null) return;
-    if (sx > L0) { ctx.fillStyle = '#6f7b8c'; ctx.font = '600 22px Inter, sans-serif'; ctx.fillText('  ·  ', sx, 458); sx += ctx.measureText('  ·  ').width; }
-    ctx.fillStyle = '#c9d2de'; ctx.font = '600 22px Inter, sans-serif'; ctx.fillText(pp[0] + ' ', sx, 458); sx += ctx.measureText(pp[0] + ' ').width;
+  st.forEach(function (pp) {
+    if (sx > L0) { ctx.fillStyle = '#6f7b8c'; ctx.font = '600 ' + sf + 'px Inter, sans-serif'; ctx.fillText('  ·  ', sx, 480); sx += ctx.measureText('  ·  ').width; }
+    ctx.fillStyle = '#c9d2de'; ctx.font = '600 ' + sf + 'px Inter, sans-serif'; ctx.fillText(pp[0] + ' ', sx, 480); sx += ctx.measureText(pp[0] + ' ').width;
     ctx.fillStyle = pp[2] === 'up' ? UP : pp[2] === 'dn' ? DN : pp[2] === 'amb' ? AMB : '#ffffff';
-    ctx.font = '800 22px Inter, sans-serif'; ctx.fillText(pp[1], sx, 458); sx += ctx.measureText(pp[1]).width;
+    ctx.font = '800 ' + sf + 'px Inter, sans-serif'; ctx.fillText(pp[1], sx, 480); sx += ctx.measureText(pp[1]).width;
   });
   if (spec.note) {
     ctx.fillStyle = '#8a96a8';
-    shareFit(ctx, spec.note, W - 2 * L0, '500 {SIZE}px Inter, sans-serif', 19, 14);
-    ctx.fillText(spec.note, L0, 492);
+    shareFit(ctx, spec.note, W - 2 * L0, '500 {SIZE}px Inter, sans-serif', 21, 15);
+    ctx.fillText(spec.note, L0, 520);
   }
   shareBrandBar(ctx, W, H);
   if (typeof _openShareCard === 'function') _openShareCard(can, spec.sym || 'CHART', spec.text);

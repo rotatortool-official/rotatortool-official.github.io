@@ -50,9 +50,11 @@ function shareFit(ctx, text, maxW, font, size, min) {
 
 /* The gold bar across the bottom: hook on the left, the call and the
    address on the right. Returns the bar's top, so a card keeps its
-   content above it. */
+   content above it. Thinner since 2026-10-14 (Daniel: "a bit thinner,
+   more space for the text above"): 124 -> 100px (150 -> 122 on tall
+   cards), its text a step smaller but the address still ~40px. */
 function shareBrandBar(ctx, W, H, hook) {
-  var barH = H >= 900 ? 150 : 124, top = H - barH, pad = W >= 1100 ? 60 : 50;
+  var barH = H >= 900 ? 122 : 100, top = H - barH, pad = W >= 1100 ? 60 : 50;
   ctx.fillStyle = ROTATOR_SHARE.gold;
   ctx.fillRect(0, top, W, barH);
   ctx.fillStyle = ROTATOR_SHARE.ink;
@@ -65,20 +67,20 @@ function shareBrandBar(ctx, W, H, hook) {
   var parts = m ? [['rotator', ROTATOR_SHARE.ink], ['tool', pal[0]], [m[2], pal[1] || ROTATOR_SHARE.ink], [' →', ROTATOR_SHARE.ink]]
                 : [[ROTATOR_SHARE.url + ' →', ROTATOR_SHARE.ink]];
   var font = '900 {SIZE}px Inter, sans-serif', full = parts.map(function (p) { return p[0]; }).join('');
-  var size = shareFit(ctx, full, W * 0.5, font, H >= 900 ? 50 : 44, 26);
+  var size = shareFit(ctx, full, W * 0.5, font, H >= 900 ? 46 : 40, 26);
   var mainW = ctx.measureText(full).width, x = W - pad - mainW, base = top + barH / 2 + size * 0.72;
   ctx.textAlign = 'left';
   parts.forEach(function (p) { ctx.fillStyle = p[1]; ctx.fillText(p[0], x, base); x += ctx.measureText(p[0]).width; });
   ctx.fillStyle = ROTATOR_SHARE.ink;
   ctx.textAlign = 'right';
-  ctx.font = '700 ' + (H >= 900 ? 28 : 24) + 'px Inter, sans-serif';
+  ctx.font = '700 ' + (H >= 900 ? 24 : 21) + 'px Inter, sans-serif';
   ctx.fillText(ROTATOR_SHARE.cta, W - pad, base - size * 1.02);
   var ctaW = Math.max(mainW, ctx.measureText(ROTATOR_SHARE.cta).width);
 
   ctx.textAlign = 'left';
   var hookText = hook || ROTATOR_SHARE.hooks[Math.floor(Math.random() * ROTATOR_SHARE.hooks.length)];
-  shareFit(ctx, hookText, W - pad * 2 - Math.max(ctaW, 360) - 40, '800 {SIZE}px Inter, sans-serif', H >= 900 ? 44 : 38, 24);
-  ctx.fillText(hookText, pad, top + barH / 2 + 14);
+  shareFit(ctx, hookText, W - pad * 2 - Math.max(ctaW, 360) - 40, '800 {SIZE}px Inter, sans-serif', H >= 900 ? 40 : 35, 24);
+  ctx.fillText(hookText, pad, top + barH / 2 + 12);
   return top;
 }
 
