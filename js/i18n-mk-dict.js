@@ -494,9 +494,9 @@ Object.assign(MK_TEXT, {
 Object.assign(MK_TEXT, {
   'Customize your Rotator experience.': 'Прилагодете го Rotator по ваш вкус.',
   'Language': 'Јазик', 'Choose your preferred language': 'Изберете го посакуваниот јазик',
-  'Imperial units': 'Американски мерки',
-  'Ounces, pounds, barrels and MMBtu, as the markets quote them. Off: grams, tonnes and kWh':
-    'Унци, фунти, барели и MMBtu, како што ги даваат пазарите. Исклучено: грамови, тонови и kWh',
+  'Units': 'Мерки', 'Metric': 'Метрички', 'Imperial': 'Американски',
+  'Metric: grams, tonnes and kWh. Imperial: ounces, pounds, barrels and MMBtu':
+    'Метрички: грамови, тонови и kWh. Американски: унци, фунти, барели и MMBtu',
   'Light Theme': 'Светла тема', 'Switch between dark and light mode': 'Префрлете меѓу темен и светол режим',
   'Show Tutorial': 'Прикажи тура', 'Step-by-step guide for first-time users': 'Водич чекор по чекор за нови корисници',
   'Replay Tutorial Now': 'Повтори ја турата сега', 'Walk through the guide again': 'Поминете го водичот уште еднаш',

@@ -3729,6 +3729,7 @@ function setLang(lang) {
   if (typeof renderEtfFlows === 'function') renderEtfFlows();
   if (typeof renderChainFlows === 'function') renderChainFlows();
   if (typeof renderTokenUnlocks === 'function') renderTokenUnlocks();
+  if (typeof _unitsButtons === 'function') _unitsButtons();   /* the Macedonian page defaults to metric */
   if (typeof renderBriefing === 'function') renderBriefing();
   if (typeof _twTgSync === 'function') _twTgSync(false);   /* Telegram alerts follow the site language */
   var etfM = document.getElementById('etf-modal');
@@ -3739,24 +3740,40 @@ function setLang(lang) {
 }
 (function() { try { var l = localStorage.getItem('rot_lang'); if (l) setTimeout(function() { setLang(l); }, 50); } catch(e) {} })();
 
-/* ── Units (Daniel, 2026-10-14): metric by default, the international
-   standard; Settings can switch to the units the markets quote
-   (ounces, pounds, barrels, MMBtu). rot_units = 'imperial' or unset. */
-function unitsMetric() {
-  try { return localStorage.getItem('rot_units') !== 'imperial'; } catch (e) { return true; }
+/* ── Units (Daniel, 2026-10-14): metric, the international standard,
+   or imperial (ounces, pounds, barrels, MMBtu), chosen in Settings.
+   rot_units = 'metric' | 'imperial'. With no choice saved, visitors in a
+   US time zone get imperial (about half the viewers are in the US) and
+   everyone else metric; the Macedonian page is always metric unless
+   chosen. The time zone, not the browser language: many Europeans run
+   en-US browsers. */
+var _US_TZ = /^(America\/(New_York|Chicago|Denver|Los_Angeles|Phoenix|Anchorage|Juneau|Sitka|Nome|Yakutat|Metlakatla|Adak|Boise|Detroit|Menominee|Indiana\/.*|Kentucky\/.*|North_Dakota\/.*)|Pacific\/Honolulu)$/;
+function _unitsDefault() {
+  if (typeof currentLang !== 'undefined' && currentLang === 'mk') return 'metric';
+  try { if (_US_TZ.test(Intl.DateTimeFormat().resolvedOptions().timeZone || '')) return 'imperial'; } catch (e) {}
+  return 'metric';
 }
-function setUnitsImperial(on) {
-  try { if (on) localStorage.setItem('rot_units', 'imperial'); else localStorage.removeItem('rot_units'); } catch (e) {}
-  var tog = document.getElementById('units-toggle');
-  if (tog) tog.checked = !!on;
+function unitsMode() {
+  var v = null;
+  try { v = localStorage.getItem('rot_units'); } catch (e) {}
+  return v === 'imperial' || v === 'metric' ? v : _unitsDefault();
+}
+function unitsMetric() { return unitsMode() === 'metric'; }
+function _unitsButtons() {
+  var m = unitsMode();
+  ['metric', 'imperial'].forEach(function (u) {
+    var b = document.getElementById('ubtn-' + u);
+    if (b) b.classList.toggle('active', u === m);
+  });
+}
+function setUnits(mode) {
+  try { localStorage.setItem('rot_units', mode); } catch (e) {}
+  _unitsButtons();
   if (typeof renderBriefing === 'function') renderBriefing();
   var bg = document.getElementById('btcg-modal');
   if (bg && bg.classList.contains('show') && typeof openBtcGold === 'function') openBtcGold();
 }
-document.addEventListener('DOMContentLoaded', function () {
-  var tog = document.getElementById('units-toggle');
-  if (tog) tog.checked = !unitsMetric();
-});
+document.addEventListener('DOMContentLoaded', _unitsButtons);
 
 /* ── Theme toggle (dark/light) ──────────────────────────────── */
 function toggleTheme(isLight) {

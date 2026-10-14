@@ -338,8 +338,11 @@
     <label class="toggle"><input type="checkbox" id="theme-toggle" onchange="toggleTheme(this.checked)"><span class="toggle-slider"></span></label>
   </div>
   <div class="setting-row">
-    <div><div class="setting-label">Imperial units</div><div class="setting-sub">Ounces, pounds, barrels and MMBtu, as the markets quote them. Off: grams, tonnes and kWh</div></div>
-    <label class="toggle"><input type="checkbox" id="units-toggle" onchange="setUnitsImperial(this.checked)" aria-label="Imperial units"><span class="toggle-slider"></span></label>
+    <div><div class="setting-label">Units</div><div class="setting-sub">Metric: grams, tonnes and kWh. Imperial: ounces, pounds, barrels and MMBtu</div></div>
+    <div class="lang-sel-modal" role="group" aria-label="Units">
+      <button class="lang-btn-modal" id="ubtn-metric" onclick="setUnits('metric')">Metric</button>
+      <button class="lang-btn-modal" id="ubtn-imperial" onclick="setUnits('imperial')">Imperial</button>
+    </div>
   </div>
   <div class="setting-row">
     <div><div class="setting-label">Heartbeat sound</div><div class="setting-sub">A soft heartbeat when you rest the mouse on a tile</div></div>
