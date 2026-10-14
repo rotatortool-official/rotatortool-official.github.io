@@ -324,55 +324,83 @@ function _liqCardHead(ctx, W, kicker, wm) {
   ctx.fillText('Updated ' + nd.getUTCDate() + ' ' + MON[nd.getUTCMonth()] + ', ' + ('0' + nd.getUTCHours()).slice(-2) + ':' + ('0' + nd.getUTCMinutes()).slice(-2) + ' UTC', 76, 76);
   if (wm.icon) ctx.drawImage(wm.icon, W - 108, 26, 48, 48);
 }
+/* The heatmap card at any size (2026-10-14): 1200x675 for the site's Share
+   and X, 1080x1350 for Instagram; the social desk's shoot.js calls this on
+   the live site (target chart-liq). opts.square: Binance Square's version,
+   whose rules forbid addresses, so its gold bar carries the hook and the
+   name Rotator only. Returns { can, head, text }. */
+function liqMapCanvas(rows, hours, W, H, wm, opts) {
+  opts = opts || {};
+  var t = _liqTotals(rows), lsh = t.all ? t.long / t.all * 100 : 50, tall = H > W;
+  var can = document.createElement('canvas'); can.width = W; can.height = H;
+  var ctx = can.getContext('2d');
+  ctx.fillStyle = '#0a0f17'; ctx.fillRect(0, 0, W, H);
+  _liqCardHead(ctx, W, 'Binance futures liquidations · last ' + hours + 'h · ' + t.coins + ' coins', wm || {});
+  /* Landscape: heatmap left, totals right. Portrait: heatmap on top, totals under it. */
+  var MX = 60, MY = tall ? 104 : 96, MW = tall ? W - 120 : 700, MH = tall ? 740 : 400;
+  _liqTreemap(_liqBoxes(rows, tall ? 18 : 16), MX, MY, MW, MH).forEach(function (c) {
+    var it = c.item;
+    ctx.fillStyle = _liqCol(it.ls, 1);
+    if (ctx.roundRect) { ctx.beginPath(); ctx.roundRect(c.x + 2, c.y + 2, c.w - 4, c.h - 4, 6); ctx.fill(); } else ctx.fillRect(c.x + 2, c.y + 2, c.w - 4, c.h - 4);
+    /* Text only where it fits inside the box, with 8 px of margin. */
+    var room = c.w - 16, fs = Math.min(44, c.h / 2.6);
+    ctx.font = '800 ' + fs + 'px Inter, sans-serif';
+    while (fs > 13 && ctx.measureText(it.name).width > room) { fs -= 1; ctx.font = '800 ' + fs + 'px Inter, sans-serif'; }
+    if (fs > 13 && ctx.measureText(it.name).width <= room && c.h > fs + 12) {
+      var vs = Math.round(fs * 0.62), val = _liqUsd(it.v);
+      ctx.font = '700 ' + vs + 'px Inter, sans-serif';
+      var two = vs >= 11 && ctx.measureText(val).width <= room && c.h > fs + vs + 22;
+      ctx.fillStyle = '#ffffff'; ctx.textAlign = 'center';
+      ctx.font = '800 ' + fs + 'px Inter, sans-serif';
+      ctx.fillText(it.name, c.x + c.w / 2, c.y + c.h / 2 + (two ? -fs * 0.1 : fs * 0.35));
+      if (two) { ctx.font = '700 ' + vs + 'px Inter, sans-serif'; ctx.fillText(val, c.x + c.w / 2, c.y + c.h / 2 + fs * 0.75); }
+    }
+  });
+  /* Totals. RX/RY: where the block starts; BW: the split bar's width. */
+  var RX = tall ? 60 : 800, RY = tall ? MY + MH + 64 : 128, BW = tall ? 440 : 340;
+  ctx.textAlign = 'left'; ctx.fillStyle = '#8a96a8'; ctx.font = '700 18px Inter, sans-serif'; ctx.fillText('LIQUIDATED, AT LEAST', RX, RY);
+  ctx.fillStyle = '#ffffff'; shareFit(ctx, _liqUsd(t.all), BW, '800 {SIZE}px Inter, sans-serif', 64, 36); ctx.fillText(_liqUsd(t.all), RX, RY + 68);
+  ctx.font = '700 24px Inter, sans-serif';
+  ctx.fillStyle = '#ea3943'; ctx.fillText('Longs  ' + _liqUsd(t.long) + '  ' + lsh.toFixed(0) + '%', RX, RY + 124);
+  ctx.fillStyle = '#16c784'; ctx.fillText('Shorts ' + _liqUsd(t.short) + '  ' + (100 - lsh).toFixed(0) + '%', RX, RY + 162);
+  ctx.fillStyle = '#16c784'; ctx.fillRect(RX, RY + 184, BW, 12);
+  ctx.fillStyle = '#ea3943'; ctx.fillRect(RX, RY + 184, BW * lsh / 100, 12);
+  if (t.big) {
+    var BX = tall ? 560 : RX, BY = tall ? RY : RY + 244;
+    ctx.fillStyle = '#8a96a8'; ctx.font = '700 18px Inter, sans-serif'; ctx.fillText('BIGGEST ORDER', BX, BY);
+    ctx.fillStyle = '#ffffff'; ctx.font = '800 34px Inter, sans-serif'; ctx.fillText(_liqUsd(t.big.max_usd) + ' ' + _liqSym(t.big.symbol), BX, BY + 42);
+    ctx.fillStyle = '#c9d2de'; ctx.font = '600 20px Inter, sans-serif';
+    ctx.fillText((t.big.max_side === 'long' ? 'Long' : 'Short') + ' closed at $' + _liqPrice(t.big.max_price), BX, BY + 74);
+  }
+  ctx.fillStyle = '#8a96a8'; ctx.font = '500 16px Inter, sans-serif';
+  var legend = 'Red: mostly longs wiped out · Green: mostly shorts · Binance stream, a lower bound';
+  shareFit(ctx, legend, W - 120, '500 {SIZE}px Inter, sans-serif', 16, 12);
+  ctx.fillText(legend, MX, tall ? RY + 236 : 528);
+  if (opts.square) {
+    /* Square: the gold bar without "Find out more" or the address. */
+    var barH = H >= 900 ? 150 : 124, top = H - barH;
+    ctx.fillStyle = ROTATOR_SHARE.gold; ctx.fillRect(0, top, W, barH);
+    ctx.fillStyle = ROTATOR_SHARE.ink; ctx.textBaseline = 'alphabetic';
+    ctx.textAlign = 'right'; ctx.font = '800 ' + (H >= 900 ? 46 : 40) + 'px Inter, sans-serif'; ctx.fillText('Rotator', W - 60, top + barH / 2 + 15);
+    ctx.textAlign = 'left';
+    var hook = ROTATOR_SHARE.hooks[Math.floor(Math.random() * ROTATOR_SHARE.hooks.length)];
+    shareFit(ctx, hook, W - 400, '800 {SIZE}px Inter, sans-serif', H >= 900 ? 44 : 38, 24); ctx.fillText(hook, 60, top + barH / 2 + 14);
+  } else shareBrandBar(ctx, W, H);
+  var head = 'At least ' + _liqUsd(t.all) + ' of Binance futures positions liquidated in ' + hours + 'h, ' + lsh.toFixed(0) + '% of it longs';
+  var text = 'At least ' + _liqUsd(t.all) + ' of Binance futures positions were liquidated in the last ' + hours + 'h: '
+    + lsh.toFixed(0) + '% longs, ' + (100 - lsh).toFixed(0) + '% shorts.'
+    + (t.big ? ' Biggest single order: ' + _liqUsd(t.big.max_usd) + ' on ' + _liqSym(t.big.symbol) + '.' : '')
+    + '\nLive liquidation heatmap, free on Rotator → ' + ROTATOR_SHARE.link;
+  return { can: can, head: head, text: text, totals: { all: t.all, long: t.long, short: t.short, coins: t.coins,
+    big: t.big ? { sym: _liqSym(t.big.symbol), usd: +t.big.max_usd, side: t.big.max_side, price: +t.big.max_price } : null,
+    top: _liqBoxes(rows, 5).filter(function (b) { return b.sym; }).map(function (b) { return { sym: b.name, usd: Math.round(b.v), longShare: +b.ls.toFixed(2) }; }) } };
+}
 function shareLiqMap() {
   var rows = _liq.rows; if (!rows || !rows.length) return;
-  var t = _liqTotals(rows), h = _liq.hours, lsh = t.all ? t.long / t.all * 100 : 50;
+  var h = _liq.hours;
   _liqCard(function (wm) {
-    var W = 1200, H = 675, can = document.createElement('canvas'); can.width = W; can.height = H;
-    var ctx = can.getContext('2d');
-    _liqCardHead(ctx, W, 'Binance futures liquidations · last ' + h + 'h · ' + t.coins + ' coins', wm);
-    /* The heatmap on the left, totals on the right. */
-    var MX = 60, MY = 96, MW = 700, MH = 400;
-    _liqTreemap(_liqBoxes(rows, 16), MX, MY, MW, MH).forEach(function (c) {
-      var it = c.item;
-      ctx.fillStyle = _liqCol(it.ls, 1);
-      if (ctx.roundRect) { ctx.beginPath(); ctx.roundRect(c.x + 2, c.y + 2, c.w - 4, c.h - 4, 6); ctx.fill(); } else ctx.fillRect(c.x + 2, c.y + 2, c.w - 4, c.h - 4);
-      /* Text only where it fits inside the box, with 8 px of margin. */
-      var room = c.w - 16, fs = Math.min(44, c.h / 2.6);
-      ctx.font = '800 ' + fs + 'px Inter, sans-serif';
-      while (fs > 13 && ctx.measureText(it.name).width > room) { fs -= 1; ctx.font = '800 ' + fs + 'px Inter, sans-serif'; }
-      if (fs > 13 && ctx.measureText(it.name).width <= room && c.h > fs + 12) {
-        var vs = Math.round(fs * 0.62), val = _liqUsd(it.v);
-        ctx.font = '700 ' + vs + 'px Inter, sans-serif';
-        var two = vs >= 11 && ctx.measureText(val).width <= room && c.h > fs + vs + 22;
-        ctx.fillStyle = '#ffffff'; ctx.textAlign = 'center';
-        ctx.font = '800 ' + fs + 'px Inter, sans-serif';
-        ctx.fillText(it.name, c.x + c.w / 2, c.y + c.h / 2 + (two ? -fs * 0.1 : fs * 0.35));
-        if (two) { ctx.font = '700 ' + vs + 'px Inter, sans-serif'; ctx.fillText(val, c.x + c.w / 2, c.y + c.h / 2 + fs * 0.75); }
-      }
-    });
-    var RX = 800;
-    ctx.textAlign = 'left'; ctx.fillStyle = '#8a96a8'; ctx.font = '700 18px Inter, sans-serif'; ctx.fillText('LIQUIDATED, AT LEAST', RX, 128);
-    ctx.fillStyle = '#ffffff'; shareFit(ctx, _liqUsd(t.all), 340, '800 {SIZE}px Inter, sans-serif', 64, 36); ctx.fillText(_liqUsd(t.all), RX, 196);
-    ctx.font = '700 24px Inter, sans-serif';
-    ctx.fillStyle = '#ea3943'; ctx.fillText('Longs  ' + _liqUsd(t.long) + '  ' + lsh.toFixed(0) + '%', RX, 252);
-    ctx.fillStyle = '#16c784'; ctx.fillText('Shorts ' + _liqUsd(t.short) + '  ' + (100 - lsh).toFixed(0) + '%', RX, 290);
-    ctx.fillStyle = '#16c784'; ctx.fillRect(RX, 312, 340, 12);
-    ctx.fillStyle = '#ea3943'; ctx.fillRect(RX, 312, 340 * lsh / 100, 12);
-    if (t.big) {
-      ctx.fillStyle = '#8a96a8'; ctx.font = '700 18px Inter, sans-serif'; ctx.fillText('BIGGEST ORDER', RX, 372);
-      ctx.fillStyle = '#ffffff'; ctx.font = '800 34px Inter, sans-serif'; ctx.fillText(_liqUsd(t.big.max_usd) + ' ' + _liqSym(t.big.symbol), RX, 414);
-      ctx.fillStyle = '#c9d2de'; ctx.font = '600 20px Inter, sans-serif';
-      ctx.fillText((t.big.max_side === 'long' ? 'Long' : 'Short') + ' closed at $' + _liqPrice(t.big.max_price), RX, 446);
-    }
-    ctx.fillStyle = '#8a96a8'; ctx.font = '500 16px Inter, sans-serif';
-    ctx.fillText('Red: mostly longs wiped out · Green: mostly shorts · Binance stream, a lower bound', MX, 528);
-    shareBrandBar(ctx, W, H);
-    var text = 'At least ' + _liqUsd(t.all) + ' of Binance futures positions were liquidated in the last ' + h + 'h: '
-      + lsh.toFixed(0) + '% longs, ' + (100 - lsh).toFixed(0) + '% shorts.'
-      + (t.big ? ' Biggest single order: ' + _liqUsd(t.big.max_usd) + ' on ' + _liqSym(t.big.symbol) + '.' : '')
-      + '\nLive liquidation heatmap, free on Rotator → ' + ROTATOR_SHARE.link;
-    if (typeof _openShareCard === 'function') _openShareCard(can, 'LIQUIDATIONS', text);
+    var c = liqMapCanvas(rows, h, 1200, 675, wm);
+    if (typeof _openShareCard === 'function') _openShareCard(c.can, 'LIQUIDATIONS', c.text);
   });
 }
 function shareLiqCoin() {
