@@ -1240,8 +1240,17 @@ td.qa-cell{text-align:center;width:28px;padding:0 4px !important;}
 .tb-icon-btn .tb-icon-label{display:none;}
 /* Dropdown on hover */
 .tb-dropdown-wrap{position:relative;}
-.tb-dropdown{position:absolute;top:calc(100% + 6px);right:0;min-width:180px;background:var(--bg2);border:1px solid var(--bdr2);border-radius:10px;box-shadow:0 8px 32px rgba(0,0,0,.45);z-index:200;padding:6px;opacity:0;visibility:hidden;transform:translateY(-4px);transition:opacity .15s,transform .15s,visibility .15s;pointer-events:none;}
-.tb-dropdown-wrap:hover .tb-dropdown,.tb-dropdown-wrap:focus-within .tb-dropdown{opacity:1;visibility:visible;transform:translateY(0);pointer-events:auto;}
+/* Hover menus (Daniel, 2026-10-14: "the modal is opening too soon ... on
+   the edge of the modal mouse sometimes is not registered"). It opens after
+   a short pause (the mouse only passing by does not open it) and closes
+   0.3 s after the mouse leaves, so a crooked path into it or a brush past
+   its edge keeps it open. visibility, not pointer-events, hides it: a
+   still-visible menu must keep receiving the mouse while it waits to
+   close. ::before bridges the 6 px gap under the button. */
+.tb-dropdown{position:absolute;top:calc(100% + 6px);right:0;min-width:180px;background:var(--bg2);border:1px solid var(--bdr2);border-radius:10px;box-shadow:0 8px 32px rgba(0,0,0,.45);z-index:200;padding:6px;opacity:0;visibility:hidden;transform:translateY(-4px);transition:opacity .15s .3s,transform .15s .3s,visibility 0s .45s;}
+.tb-dropdown::before{content:'';position:absolute;left:-16px;right:-16px;top:-14px;height:14px;}
+.tb-dropdown::after{content:'';position:absolute;inset:-12px;z-index:-1;}
+.tb-dropdown-wrap:hover .tb-dropdown,.tb-dropdown-wrap:focus-within .tb-dropdown{opacity:1;visibility:visible;transform:translateY(0);transition:opacity .15s .12s,transform .15s .12s,visibility 0s .12s;}
 .tb-dropdown-item{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:8px;font-size:12px;color:var(--text);cursor:pointer;transition:background .12s;font-family:var(--font-ui);white-space:nowrap;text-decoration:none;}
 .tb-dropdown-item:hover{background:var(--bg4);}
 .tb-dropdown-item svg,.tb-dropdown-item .tb-dd-ico{width:18px;height:18px;color:var(--muted);flex-shrink:0;}
