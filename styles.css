@@ -6355,6 +6355,7 @@ a.mob-more-item{text-decoration:none;color:inherit;}
 .liq-share:hover,.liq-open:hover{background:rgba(243,186,47,.16);}
 .liq-open{margin:12px 0 4px;width:100%;}
 .liq-read{font-size:12px;color:var(--muted);line-height:1.5;margin:12px 0 4px;}
+.liq-young{font-size:12px;line-height:1.45;color:var(--amber);background:var(--ad);border:1px solid rgba(240,160,48,.3);border-radius:7px;padding:7px 10px;margin:0 0 10px;}
 .liq-empty{color:var(--muted);font-size:13px;padding:24px 0;}
 @media (max-width:760px){
   .liq-body{padding:4px 12px 16px;}

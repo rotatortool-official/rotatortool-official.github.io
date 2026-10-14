@@ -21,6 +21,11 @@
 ══════════════════════════════════════════════════════════════════ */
 var _liq = { hours: 24, rows: null, at: 0, loading: false, coin: null, coinRows: null };
 var _LIQ_WINDOWS = [1, 4, 12, 24];
+/* Collection started 14 Oct 2026, 17:43 UTC. Until 72 hours of data exist
+   the section and the coin window say so (Daniel, 2026-10-14: "add those
+   line first 72hours"); after that the notes disappear by themselves. */
+var _LIQ_START = Date.UTC(2026, 9, 14, 17, 43);
+function _liqYoung() { return Date.now() < _LIQ_START + 72 * 36e5; }
 
 function _liqMk() { return typeof currentLang !== 'undefined' && currentLang === 'mk'; }
 function _liqL() {
@@ -33,7 +38,9 @@ function _liqL() {
     read: 'Ликвидација е кога берзата насилно затвора позиција со позајмени пари, затоа што цената тргнала против неа. Црвено: најмногу биле избришани лонг позиции (цената паднала). Зелено: шорт позиции (цената пораснала).',
     src: 'Извор: јавниот тек на ликвидации на Binance фјучерси. Само Binance, и најмалку толку: тековот праќа најмногу една ликвидација по монета во секунда.',
     coinTitle: function (s) { return s + ': ликвидации'; }, h72: 'Последните 72 часа, по час', open: 'Отвори ја монетата',
-    up: 'шорт избришани', dn: 'лонг избришани', at: 'по', hour: 'Час', share: 'Сподели'
+    up: 'шорт избришани', dn: 'лонг избришани', at: 'по', hour: 'Час', share: 'Сподели',
+    young: 'Собираме од 14 октомври, 17:43 UTC. Секој час се додава во бројките; приказот за 24ч е полн од 15 октомври, 18:00 UTC.',
+    youngCoin: 'Собираме од 14 октомври, 17:43 UTC: нова колона секој час, сите 72 часа од 17 октомври, 18:00 UTC.'
   } : {
     title: 'Liquidations', win: function (h) { return h + 'h'; },
     total: 'Liquidated', longs: 'Longs', shorts: 'Shorts', coins: function (n) { return n + ' coins'; },
@@ -43,7 +50,9 @@ function _liqL() {
     read: 'A liquidation is when the exchange force-closes a borrowed position because the price moved against it. Red: mostly longs were wiped out (the price fell). Green: mostly shorts (the price rose).',
     src: 'Source: Binance futures public liquidation stream. Binance only, and a lower bound: the stream sends at most one liquidation per coin per second.',
     coinTitle: function (s) { return s + ' liquidations'; }, h72: 'Last 72 hours, by hour', open: 'Open the coin',
-    up: 'shorts wiped', dn: 'longs wiped', at: 'at', hour: 'Hour', share: 'Share'
+    up: 'shorts wiped', dn: 'longs wiped', at: 'at', hour: 'Hour', share: 'Share',
+    young: 'Collecting since 14 Oct, 17:43 UTC. Every hour adds to the numbers; the 24h view is complete from 15 Oct, 18:00 UTC.',
+    youngCoin: 'Collecting since 14 Oct, 17:43 UTC: a new bar every hour, all 72 hours from 17 Oct, 18:00 UTC.'
   };
 }
 
@@ -167,6 +176,7 @@ function renderLiquidations() {
   }).join('');
   var big = t.big, bigC = big ? _liqSym(big.symbol) : '';
   box.innerHTML = tabs
+    + (_liqYoung() ? '<p class="liq-young">' + L.young + '</p>' : '')
     + '<div class="liq-grid">'
     +   '<div class="liq-map-wrap"><div class="liq-map" aria-label="' + L.title + '">' + cells + '</div>'
     +   '<div class="liq-legend"><span><i class="l"></i>' + L.legendL + '</span><span><i class="s"></i>' + L.legendS + '</span><span class="liq-since">' + since + '</span></div></div>'
@@ -181,7 +191,47 @@ function renderLiquidations() {
     +   '</div>'
     + '</div>'
     + '<p class="liq-read">' + L.read + '</p><div class="etf-src">' + L.src + '</div>';
+  /* Measure after layout, and again once the font is in: text measured in
+     the fallback font came out narrower and then spilled. */
+  requestAnimationFrame(_liqFitCells);
+  if (document.fonts && document.fonts.ready) document.fonts.ready.then(_liqFitCells);
 }
+
+/* Text never spills out of a box (Daniel, 2026-10-14: "some text is out
+   of the square"). Each box is measured as drawn; while its text does not
+   fit, it drops the percentage, then the dollar line, then shrinks the
+   name, and as a last step shows no text (the tooltip keeps the name). */
+/* Measured from the visible lines themselves: a centred box hides text
+   that spills over its top, which scrollHeight does not count. */
+function _liqFits(el) {
+  var kids = Array.prototype.filter.call(el.children, function (k) { return k.style.display !== 'none'; });
+  if (!kids.length) return true;
+  var h = 6 + 2 * (kids.length - 1), maxW = el.clientWidth - 6;
+  for (var i = 0; i < kids.length; i++) {
+    h += kids[i].offsetHeight;
+    if (kids[i].scrollWidth > maxW || kids[i].scrollWidth > kids[i].clientWidth + 1) return false;
+  }
+  return h <= el.clientHeight;
+}
+function _liqFitCells() {
+  var cells = document.querySelectorAll('#liq-body .liq-cell');
+  Array.prototype.forEach.call(cells, function (el) {
+    var b = el.querySelector('b'), sp = el.querySelector('span'), em = el.querySelector('em');
+    [b, sp, em].forEach(function (x) { if (x) { x.style.display = ''; x.style.fontSize = ''; } });
+    if (_liqFits(el)) return;
+    if (em) { em.style.display = 'none'; if (_liqFits(el)) return; }
+    if (sp) { sp.style.display = 'none'; if (_liqFits(el)) return; }
+    if (b) {
+      for (var fs = parseFloat(getComputedStyle(b).fontSize) - 1; fs >= 8; fs--) {
+        b.style.fontSize = fs + 'px';
+        if (_liqFits(el)) return;
+      }
+      b.style.display = 'none';
+    }
+  });
+}
+var _liqFitT = null;
+window.addEventListener('resize', function () { clearTimeout(_liqFitT); _liqFitT = setTimeout(_liqFitCells, 150); });
 
 /* ── One coin's window ─────────────────────────────────────────── */
 function openLiqCoin(symbol) {
@@ -242,6 +292,7 @@ function _liqRenderCoin() {
       + '</div>'
       + '<div class="fc-stage" id="liq-fc-stage">' + _liqBarsSvg(slots) + '</div>'
       + '<div class="etf-axis"><span>-72h</span><span>' + L.h72 + ' · <b class="up">▲ ' + L.up + '</b> <b class="dn">▼ ' + L.dn + '</b></span><span>' + _liqHm(slots[slots.length - 1].hour) + '</span></div>'
+      + (_liqYoung() ? '<p class="liq-young">' + L.youngCoin + '</p>' : '')
       + '<table class="btcg-table"><thead><tr><th>' + L.hour + ' (UTC)</th><th>' + L.longs + '</th><th>' + L.shorts + '</th></tr></thead><tbody>' + rowsHtml + '</tbody></table>'
     ) : '<p class="btcg-none">' + L.none + '</p>')
     + (c ? '<button type="button" class="liq-open" onclick="closeModal(\'liq-modal\');openTileDetail(\'' + c.id + '\')">' + L.open + ' ' + _esc(c.sym) + ' →</button>' : '')
@@ -286,11 +337,18 @@ function shareLiqMap() {
       var it = c.item;
       ctx.fillStyle = _liqCol(it.ls, 1);
       if (ctx.roundRect) { ctx.beginPath(); ctx.roundRect(c.x + 2, c.y + 2, c.w - 4, c.h - 4, 6); ctx.fill(); } else ctx.fillRect(c.x + 2, c.y + 2, c.w - 4, c.h - 4);
-      if (c.w > 60 && c.h > 40) {
-        var fs = Math.max(14, Math.min(44, Math.min(c.w / 4.2, c.h / 2.6)));
+      /* Text only where it fits inside the box, with 8 px of margin. */
+      var room = c.w - 16, fs = Math.min(44, c.h / 2.6);
+      ctx.font = '800 ' + fs + 'px Inter, sans-serif';
+      while (fs > 13 && ctx.measureText(it.name).width > room) { fs -= 1; ctx.font = '800 ' + fs + 'px Inter, sans-serif'; }
+      if (fs > 13 && ctx.measureText(it.name).width <= room && c.h > fs + 12) {
+        var vs = Math.round(fs * 0.62), val = _liqUsd(it.v);
+        ctx.font = '700 ' + vs + 'px Inter, sans-serif';
+        var two = vs >= 11 && ctx.measureText(val).width <= room && c.h > fs + vs + 22;
         ctx.fillStyle = '#ffffff'; ctx.textAlign = 'center';
-        ctx.font = '800 ' + fs + 'px Inter, sans-serif'; ctx.fillText(it.name, c.x + c.w / 2, c.y + c.h / 2 - (c.h > 70 ? fs * 0.1 : -fs * 0.35));
-        if (c.h > 70) { ctx.font = '700 ' + Math.round(fs * 0.62) + 'px Inter, sans-serif'; ctx.fillText(_liqUsd(it.v), c.x + c.w / 2, c.y + c.h / 2 + fs * 0.75); }
+        ctx.font = '800 ' + fs + 'px Inter, sans-serif';
+        ctx.fillText(it.name, c.x + c.w / 2, c.y + c.h / 2 + (two ? -fs * 0.1 : fs * 0.35));
+        if (two) { ctx.font = '700 ' + vs + 'px Inter, sans-serif'; ctx.fillText(val, c.x + c.w / 2, c.y + c.h / 2 + fs * 0.75); }
       }
     });
     var RX = 800;
