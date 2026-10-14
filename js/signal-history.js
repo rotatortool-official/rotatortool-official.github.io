@@ -1167,7 +1167,8 @@ var SignalHistory = (function() {
         var nativeBtn = document.getElementById('viral-native-btn');
         if (nativeBtn) nativeBtn.style.display = 'flex';
 
-        openModal('viral-share-modal');
+        if (typeof _viralPrepShort === 'function') _viralPrepShort();
+      openModal('viral-share-modal');
       }, 'image/png');
     } catch(e) {}
   }

@@ -1501,6 +1501,7 @@ function shareSwapCard() {
       var nativeBtn = document.getElementById('viral-native-btn');
       if (nativeBtn) nativeBtn.style.display = 'flex';
 
+      if (typeof _viralPrepShort === 'function') _viralPrepShort();
       openModal('viral-share-modal');
 
       /* Restore originals when modal closes */

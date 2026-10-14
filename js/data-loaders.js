@@ -5635,6 +5635,7 @@ function _openShareCard(can, sym, text) {
 
       /* Set share message */
       _updateViralCopy();
+      _viralPrepShort();
 
       /* Always show share-with-image button */
       var nativeBtn = document.getElementById('viral-native-btn');
@@ -5645,6 +5646,43 @@ function _openShareCard(can, sym, text) {
   } catch(e) {
     _fallbackDownload(can, sym);
   }
+}
+
+/* Short share links (2026-10-13, Daniel: "when users share a photo, it needs
+   to be attached to the link itself so users won't have to download it").
+   As soon as the share window opens, the card goes to the Supabase function
+   share-card, which stores it and answers https://s.rotatortool.com/<id>. That
+   link replaces the long rotatortool.com link in the message; X, Telegram,
+   WhatsApp, Messenger, Discord... then show the card as the link's preview
+   (the Cloudflare Worker on s.rotatortool.com serves it), so nothing is
+   downloaded. The short link keeps the sharer's ?ref=. If the upload fails,
+   the buttons fall back to the old way: download the picture, attach it. */
+var _viralShort = null, _viralShortP = null;
+var _SHARE_URL_RE = /https?:\/\/(?:www\.)?rotatortool\.com[^\s]*/;
+function _viralPrepShort() {
+  var can = _viralCanvas, el = document.getElementById('viral-copy-text');
+  var text = (el && el.textContent) || _viralCustomText || '';
+  var m = text.match(_SHARE_URL_RE), long = m ? m[0] : ROTATOR_SHARE.link;
+  _viralShort = null; _viralShortP = null;
+  if (!can || typeof SUPA_URL === 'undefined' || typeof fetch !== 'function') return;
+  var img;
+  try { img = can.toDataURL('image/jpeg', 0.86); if (img.length > 520000) img = can.toDataURL('image/jpeg', 0.7); } catch (e) { return; }
+  var first = text.replace(_SHARE_URL_RE, '').split('\n').map(function (l) { return l.replace(/[→\s]+$/, '').trim(); }).filter(Boolean)[0] || 'Rotator';
+  _viralShortP = fetch(SUPA_URL + '/functions/v1/share-card', {
+    method: 'POST',
+    headers: { apikey: SUPA_KEY, Authorization: 'Bearer ' + SUPA_KEY, 'Content-Type': 'application/json' },
+    body: JSON.stringify({ image: img, title: first.slice(0, 110), link: long, w: can.width, h: can.height,
+      desc: 'Free crypto board: 250 coins in plain charts, and every flag with its record.' })
+  }).then(function (r) { return r.json(); }).then(function (j) {
+    if (!j || !j.url || can !== _viralCanvas) return null;
+    _viralShort = { can: can, long: long, short: j.url };
+    var e2 = document.getElementById('viral-copy-text');
+    if (e2) e2.textContent = _viralWithShort(e2.textContent);
+    return _viralShort;
+  }).catch(function () { return null; });
+}
+function _viralWithShort(text) {
+  return _viralShort && _viralShort.can === _viralCanvas ? String(text).split(_viralShort.long).join(_viralShort.short) : text;
 }
 
 /* ══════════════════════════════
@@ -5709,7 +5747,7 @@ function _updateViralCopy() {
   var tpl = _viralCopyTemplates[_viralCopyIdx % _viralCopyTemplates.length];
   var text = tpl(d.sym, d.score, d.chg, d.link);
   var el = document.getElementById('viral-copy-text');
-  if (el) el.textContent = text;
+  if (el) el.textContent = _viralWithShort(text);
 }
 
 function cycleViralCopy() {
@@ -5726,45 +5764,50 @@ function viralShareTo(platform) {
   var tpl = _viralCopyTemplates[_viralCopyIdx % _viralCopyTemplates.length];
   var text = _viralCustomText || tpl(d.sym, d.score, d.chg, d.link);
   if (_viralCustomText) { d.sym = _viralSym; d.link = ROTATOR_SHARE.link; }
-  var enc = encodeURIComponent(text);
-  var encUrl = encodeURIComponent(d.link);
   var btn = event && event.currentTarget;
+  var needsImage = ['x','telegram','whatsapp','messenger','reddit','threads','discord'].indexOf(platform) >= 0;
 
-  /* Auto-download image before opening platform (so user can attach it) */
-  var needsImage = ['x','telegram','whatsapp','messenger','reddit','threads'].indexOf(platform) >= 0;
+  if (platform === 'copy') { _copyToClip(_viralWithShort(text), btn); return; }
+  /* The card travels as the short link's preview: nothing to download */
+  if (needsImage && _viralShort && _viralShort.can === _viralCanvas) { _viralGo(platform, _viralWithShort(text), _viralShort.short, btn); return; }
+  if (needsImage && _viralShortP) {
+    /* Still uploading: open the window now (pop-up blockers allow it only
+       inside the click), point it there when the link is ready. */
+    var win = platform === 'discord' ? null : window.open('', '_blank', 'width=550,height=420');
+    var can = _viralCanvas;
+    _viralShortP.then(function (s) {
+      if (s && s.can === can) { _viralGo(platform, _viralWithShort(text), s.short, btn, win); return; }
+      if (_viralCanvas) { _fallbackDownload(_viralCanvas, _viralSym); _showShareToast('Image saved — attach it to your post!'); }
+      _viralGo(platform, text, d.link, btn, win);
+    });
+    return;
+  }
+  /* No short link (upload failed or unavailable): the old way */
   if (needsImage && _viralCanvas) {
     _fallbackDownload(_viralCanvas, _viralSym);
-    _showShareToast('Image saved — attach it to your post!');
+    _showShareToast(platform === 'discord' ? 'Text copied + image saved!' : 'Image saved — attach it to your post!');
   }
+  _viralGo(platform, text, d.link, btn);
+}
 
+/* Open the platform's share page with the message (and link). */
+function _viralGo(platform, text, link, btn, win) {
+  var enc = encodeURIComponent(text), encUrl = encodeURIComponent(link), url = null;
   switch (platform) {
-    case 'copy':
-      _copyToClip(text, btn);
-      return;
-    case 'x':
-      window.open('https://x.com/intent/tweet?text=' + enc, '_blank', 'width=550,height=420');
-      break;
-    case 'telegram':
-      window.open('https://t.me/share/url?url=' + encUrl + '&text=' + enc, '_blank', 'width=550,height=420');
-      break;
-    case 'whatsapp':
-      window.open('https://wa.me/?text=' + enc, '_blank', 'width=550,height=420');
-      break;
+    case 'x': url = 'https://x.com/intent/tweet?text=' + enc; break;
+    case 'telegram': url = 'https://t.me/share/url?url=' + encUrl + '&text=' + encodeURIComponent(text.split(link).join('').trim()); break;
+    case 'whatsapp': url = 'https://wa.me/?text=' + enc; break;
+    case 'messenger': url = 'https://www.facebook.com/dialog/send?link=' + encUrl + '&app_id=966242223397117&redirect_uri=' + encUrl; break;
+    case 'reddit': url = 'https://www.reddit.com/submit?title=' + encodeURIComponent('\uD83D\uDCCA ' + _viralSym + ' — Rotator') + '&url=' + encUrl; break;
+    case 'threads': url = 'https://www.threads.net/intent/post?text=' + enc; break;
     case 'discord':
       _copyToClip(text, btn);
-      if (_viralCanvas) _fallbackDownload(_viralCanvas, _viralSym);
-      _showShareToast('Text copied + image saved!');
+      _showShareToast(_viralShort ? 'Copied! Paste it in Discord, the card shows up' : 'Text copied!');
       return;
-    case 'messenger':
-      window.open('https://www.facebook.com/dialog/send?link=' + encUrl + '&app_id=966242223397117&redirect_uri=' + encUrl, '_blank', 'width=550,height=420');
-      break;
-    case 'reddit':
-      window.open('https://www.reddit.com/submit?title=' + encodeURIComponent('\uD83D\uDCCA ' + d.sym + ' — Rotator Signal') + '&url=' + encUrl, '_blank', 'width=800,height=600');
-      break;
-    case 'threads':
-      window.open('https://www.threads.net/intent/post?text=' + enc, '_blank', 'width=550,height=420');
-      break;
   }
+  if (!url) return;
+  if (win && !win.closed) { try { win.location = url; return; } catch (e) {} }
+  window.open(url, '_blank', platform === 'reddit' ? 'width=800,height=600' : 'width=550,height=420');
 }
 
 /* Brief toast notification for share actions */
@@ -5783,7 +5826,7 @@ function viralNativeShare() {
   if (!_viralBlob) return;
   var d = _getViralCopyData();
   var tpl = _viralCopyTemplates[_viralCopyIdx % _viralCopyTemplates.length];
-  var text = _viralCustomText || tpl(d.sym, d.score, d.chg, d.link);
+  var text = _viralWithShort(_viralCustomText || tpl(d.sym, d.score, d.chg, d.link));
   if (_viralCustomText) d.sym = _viralSym;
   var file = new File([_viralBlob], 'rotator-' + _viralSym.toLowerCase() + '.png', { type: 'image/png' });
   /* Try native share with image, fall back to download */
