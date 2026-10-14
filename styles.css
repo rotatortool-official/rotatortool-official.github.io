@@ -6361,3 +6361,11 @@ a.mob-more-item{text-decoration:none;color:inherit;}
   .liq-body{padding:4px 12px 16px;}
   .liq-grid{grid-template-columns:1fr;}
 }
+/* "LIQUIDATIONS" is the bar's longest label (2026-10-14): a touch smaller so it fits a fifth of a phone. */
+#mn-liq span{font-size:9px;letter-spacing:-.3px;white-space:nowrap;}
+/* The phone search panel sits at the top of the page; since the search
+   button also scrolls to COINS (2026-10-14) it is pinned under the sticky
+   top bar (52px) so it opens where the user is. */
+@media (max-width:760px){
+  #mob-search-panel{position:fixed;left:0;right:0;top:52px;z-index:101;background:var(--bg2);border-bottom:1px solid var(--bdr2);box-shadow:0 10px 24px var(--b05);padding-bottom:4px;max-height:60vh;overflow-y:auto;}
+}

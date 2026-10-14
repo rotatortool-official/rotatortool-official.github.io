@@ -7,6 +7,10 @@
    payments are verified on the server, so local changes unlock nothing. Security
    problems: report them (see /.well-known/security.txt), do not exploit them. */
 /* coins watcher — makes window.coins available to inline search */
+/* The page always opens at the top, TODAY (Daniel, 2026-10-14: "when users
+   click on rotator page to load at top by default"), instead of the browser
+   jumping back to where the last visit stopped. */
+try { if ('scrollRestoration' in history) history.scrollRestoration = 'manual'; } catch (e) {}
 window.coins = window.coins || [];
 var _coinsProxy = {
   _arr: window.coins,
@@ -601,6 +605,15 @@ function toggleTopbarSearch(force) {
   if (_tsOpen && inp) { inp.value=''; inp.focus(); renderTopbarResults([]); }
 }
 var _mobSrchOpen = false;
+/* Phone search button (Daniel, 2026-10-14: "search should bring user to
+   coin leader board"): the page goes to COINS and the search panel opens
+   over it. The leaderboard's own search box sits in the table header,
+   which phones hide, so the panel is the phone's search box. It opens
+   inside the tap itself, because iPhone shows the keyboard only then. */
+function mobSearchCoins() {
+  if (typeof mobGo === 'function') mobGo('sec-coins');
+  toggleMobSearch(true);
+}
 function toggleMobSearch(force) {
   _mobSrchOpen = (force !== undefined) ? force : !_mobSrchOpen;
   var panel = document.getElementById('mob-search-panel');
@@ -967,7 +980,9 @@ function railGo(secId) {
       b.classList.toggle('active', on);
       if (on) b.setAttribute('aria-current', 'true'); else b.removeAttribute('aria-current');
     });
-    if (mobMore) mobMore.classList.toggle('active', !hit && !!id);
+    /* TODAY has no bottom button since 2026-10-14 (the logo goes there), so
+       the top of the page lights nothing rather than MORE. */
+    if (mobMore) mobMore.classList.toggle('active', !hit && !!id && id !== 'sec-today');
     /* The section's name beside the logo (2026-10-11): copied from the
        rail so it is in the page's language and carries its live subtitle. */
     var cur = items.filter(function(it) { return it.dataset.sec === id; })[0];
