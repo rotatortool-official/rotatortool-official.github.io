@@ -136,9 +136,13 @@ function renderMarketNow() {
     if (v == null || isNaN(v)) return '';
     return '<span class="bf-d ' + (v >= 0 ? 'up' : 'dn') + '">' + (v >= 0 ? '+' : '') + v.toFixed(1) + '%</span>';
   }
+  /* The tip was a title="" until 2026-10-15, and phones never show those:
+     the market-direction rule, the one the whole site leans on, was
+     unreadable on a phone. It is the same tappable ⓘ as the Score header
+     now (ui.js draws the popup; i18n-mk translates its aria-label). */
   function cell(k, v, sub, tip) {
-    return '<div class="mn-cell"' + (tip ? ' title="' + tip + '"' : '') + '>'
-      + '<div class="bf-k">' + k + '</div><div class="mn-v">' + v + '</div>'
+    return '<div class="mn-cell">'
+      + '<div class="bf-k">' + k + (tip ? '<button type="button" class="info-i" aria-label="' + tip.replace(/"/g, '&quot;') + '">ⓘ</button>' : '') + '</div><div class="mn-v">' + v + '</div>'
       + '<div class="mn-sub">' + sub + '</div></div>';
   }
   var none = '<span class="mn-none">No reading yet</span>';
@@ -153,7 +157,7 @@ function renderMarketNow() {
     html += cell('BTC trend',
       '<span class="' + (above ? 'mn-up' : 'mn-dn') + '">' + (above ? '▲ Above' : '▼ Below') + ' its 200-day average</span>',
       pct(gap) + ' from the average, ' + fmtP(btcMA200),
-      'The market direction we use everywhere: BTC above or below its 200-day average.');
+      'The market direction Rotator uses everywhere, on the site and on Telegram: Bitcoin above its 200-day average means the market is rising, below it means falling.');
   } else {
     html += cell('BTC trend', none, 'The 200-day average has not loaded.');
   }

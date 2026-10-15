@@ -479,6 +479,8 @@ Object.assign(MK_TEXT, {
   'Search for a coin, enter your quantity and average buy price.': 'Пребарајте монета, внесете ја количината и просечната набавна цена.',
   'Search and select a coin, then enter quantity and average buy price.': 'Пребарајте и изберете монета, а потоа внесете количина и просечна набавна цена.',
   'Search coin name or symbol…': 'Пребарајте име или симбол на монета…',
+  "Saved only in this browser. Your quantity and price never reach Rotator's server.":
+    'Се чува само во овој прелистувач. Количината и цената никогаш не стигнуваат до серверот на Rotator.',
   'Avg Buy Price ($)': 'Просечна набавна цена ($)', 'Avg buy price ($)': 'Просечна набавна цена ($)',
   'amount': 'количина', 'Amount': 'Количина', 'avg buy price': 'просечна набавна цена', 'Average buy price': 'Просечна набавна цена',
   'Close tutorial': 'Затвори ја турата',
@@ -1266,8 +1268,8 @@ Object.assign(MK_TEXT, {
   'No reading yet': 'Сè уште нема читање',
   'The 200-day average has not loaded.': '200-дневниот просек не се вчита.',
   'alternative.me did not answer. It is not shown as 50.': 'alternative.me не одговори. Не се прикажува како 50.',
-  'The market direction we use everywhere: BTC above or below its 200-day average.':
-    'Насоката на пазарот што ја користиме насекаде: BTC над или под својот 200-дневен просек.',
+  'The market direction Rotator uses everywhere, on the site and on Telegram: Bitcoin above its 200-day average means the market is rising, below it means falling.':
+    'Насоката на пазарот што Rotator ја користи насекаде, на сајтот и на Telegram: кога Bitcoin е над својот 200-дневен просек, пазарот е во пораст; кога е под него, е во опаѓање.',
   'Crypto Fear & Greed Index: the mood of the whole market, not a forecast.':
     'Крипто индекс на страв и алчност: расположението на целиот пазар, не прогноза.',
   'Listed coins only: no tokenized stocks and no stablecoins.': 'Само монети од листата: без токенизирани акции и без стејблкоини.',

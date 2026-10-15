@@ -4623,6 +4623,12 @@ header{background:var(--bg2);}
   font-family:var(--font-mono);font-size:13px;padding:0 10px;
 }
 .ahm-field input:focus{outline:none;border-color:var(--bnb);}
+/* Privacy line under the two fields (2026-10-15). */
+.ahm-privacy{
+  grid-column:1 / -1;display:flex;align-items:flex-start;gap:6px;
+  font-size:11px;line-height:1.45;color:var(--muted);
+}
+.ahm-privacy svg{width:12px;height:12px;flex-shrink:0;margin-top:2px;color:var(--green);}
 
 /* ── The preview ──────────────────────────────────────────────────
    Money figures come from holdingPL() in js/holdings.js, the function
@@ -5467,6 +5473,10 @@ details.td-reading-trust[open] > summary::before{content:'▾ ';}
 }
 .info-i::after{content:'';position:absolute;inset:-10px -6px;}  /* bigger tap area, same look */
 .info-i:hover,.info-i:focus-visible{color:var(--text);}
+/* In a Market Now label (2026-10-15) the ⓘ must not make that label taller
+   than "Bitcoin"'s, or the four values stop lining up. The ::after above
+   keeps the tap area. */
+.mn-cell .bf-k .info-i{min-height:0;height:1em;line-height:1;vertical-align:top;font-size:11px;}
 .info-i:focus-visible{outline:2px solid var(--bnb);outline-offset:1px;border-radius:50%;}
 .info-pop{
   position:fixed;z-index:100000;display:none;max-width:260px;

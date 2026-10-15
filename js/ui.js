@@ -77,8 +77,13 @@ function newToggleAdvanced() {
        header or body is missing, so leaving it here would have been
        harmless and also a lie about what the page contains. */
     var ids = ['hot', 'swap', 'promo', 'holdings', 'trackrecord'];
+    /* A new visitor with nothing added saw YOURS folded shut on a phone,
+       with its "Add your first coin" card hidden inside (2026-10-15). Open it
+       for them, without saving, until they fold it themselves. */
+    var emptyYours = (typeof holdings === 'undefined' || !holdings.length)
+      && (typeof watchlist === 'undefined' || !watchlist.length);
     ids.forEach(function(id) {
-      if (state[id] === 'open') {
+      if (state[id] === 'open' || (id === 'holdings' && emptyYours && state[id] !== 'closed')) {
         var hdr  = document.getElementById('ch-' + id);
         var body = document.getElementById('cb-' + id);
         if (hdr && body) {
