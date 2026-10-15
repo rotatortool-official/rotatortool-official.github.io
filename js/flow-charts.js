@@ -148,13 +148,25 @@ function _fcDraw(spec, wm) {
   ctx.fillStyle = '#0a0f17'; ctx.fillRect(0, 0, W, H);
   ctx.textBaseline = 'alphabetic'; ctx.textAlign = 'left'; ctx.fillStyle = '#8a96a8';
   var kick = String(spec.kicker || '').toUpperCase();
-  shareFit(ctx, kick, 900, '700 {SIZE}px Inter, sans-serif', 18, 13);
+  /* The spacing is set before measuring, and the room stops short of the
+     logo: measured without it, a long kicker ran under the logo (2026-10-15). */
   if (ctx.letterSpacing !== undefined) ctx.letterSpacing = '2px';
+  shareFit(ctx, kick, W - 2 * L0 - 72, '700 {SIZE}px Inter, sans-serif', 18, 12);
   ctx.fillText(kick, L0, 50);
   if (ctx.letterSpacing !== undefined) ctx.letterSpacing = '0px';
   var nd = new Date();
   ctx.fillStyle = '#f3ba2f'; ctx.beginPath(); ctx.arc(L0 + 4, 71, 4, 0, Math.PI * 2); ctx.fill();
   ctx.font = '600 15px Inter, sans-serif'; ctx.fillText('Updated ' + nd.getUTCDate() + ' ' + _FC_MON[nd.getUTCMonth()], L0 + 16, 76);
+  /* legend: [[label, colour]], a dot per series on the "Updated" line. */
+  if (spec.legend) {
+    var lx = L0 + 16 + ctx.measureText('Updated 00 Mon').width + 28;
+    ctx.font = '700 16px Inter, sans-serif';
+    spec.legend.forEach(function (lg) {
+      ctx.fillStyle = lg[1]; ctx.beginPath(); ctx.arc(lx + 6, 71, 6, 0, Math.PI * 2); ctx.fill();
+      ctx.fillStyle = '#e6ebf2'; ctx.fillText(lg[0], lx + 18, 77);
+      lx += 18 + ctx.measureText(lg[0]).width + 28;
+    });
+  }
   if (wm.icon) ctx.drawImage(wm.icon, W - L0 - 48, 26, 48, 48);
 
   var hasTag = spec.kind !== 'hbars' && spec.tag;
@@ -192,24 +204,36 @@ function _fcDraw(spec, wm) {
     ctx.strokeStyle = endCol; ctx.lineWidth = 3; ctx.lineJoin = 'round'; ctx.stroke();
     endY = Y(line[line.length - 1]);
   } else if (spec.kind === 'bars') {
-    var b = spec.bars, bhi = Math.max.apply(null, b.map(function (p) { return Math.abs(p.v) || 0; })) || 1;
-    var allPos = b.every(function (p) { return p.v >= 0; });
-    var zero = allPos ? CY + CH - 2 : CY + CH / 2, sc = (allPos ? CH - 30 : CH / 2 - 26) / bhi, bw = CW / b.length;
-    ctx.strokeStyle = '#3a4352'; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(CX, zero); ctx.lineTo(CX + CW, zero); ctx.stroke();
+    /* One scale for both sides, the zero line placed by how far each side
+       reaches: a −3.7% next to +145% no longer leaves the bottom half empty
+       (2026-10-15). A small bar keeps at least 6px so it reads as a bar. */
+    var b = spec.bars, bw = CW / b.length;
+    var pmax = Math.max.apply(null, b.map(function (p) { return p.v > 0 ? p.v : 0; }));
+    var nmax = Math.max.apply(null, b.map(function (p) { return p.v < 0 ? -p.v : 0; }));
+    var botPad = nmax > 0 ? 24 : 2, sc = (CH - 28 - botPad) / ((pmax + nmax) || 1);
+    var zero = CY + 28 + pmax * sc;
+    ctx.strokeStyle = '#4a5466'; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(CX, zero); ctx.lineTo(CX + CW, zero); ctx.stroke();
     b.forEach(function (p, i) {
-      var h = p.v ? Math.max(2, Math.abs(p.v) * sc) : 0, y = p.v >= 0 ? zero - h : zero;
+      var h = p.v ? Math.max(6, Math.abs(p.v) * sc) : 0, y = p.v >= 0 ? zero - h : zero;
       var col = spec.tone === 'amber' ? AMB : (p.v >= 0 ? UP : DN);
+      var bx = CX + i * bw + bw * 0.16, bwi = bw * 0.68;
       ctx.globalAlpha = i === b.length - 1 || p.lab ? 1 : 0.82;
-      ctx.fillStyle = col;
-      if (ctx.roundRect) { ctx.beginPath(); ctx.roundRect(CX + i * bw + bw * 0.16, y, bw * 0.68, h, 3); ctx.fill(); }
-      else ctx.fillRect(CX + i * bw + bw * 0.16, y, bw * 0.68, h);
+      if (p.prov) {   /* a day still being reported: hollow, like the window */
+        ctx.strokeStyle = col; ctx.lineWidth = 2; ctx.setLineDash([4, 3]);
+        ctx.strokeRect(bx + 1, y + 1, bwi - 2, Math.max(0, h - 2)); ctx.setLineDash([]);
+      } else {
+        ctx.fillStyle = col;
+        if (ctx.roundRect) { ctx.beginPath(); ctx.roundRect(bx, y, bwi, h, 3); ctx.fill(); }
+        else ctx.fillRect(bx, y, bwi, h);
+      }
       ctx.globalAlpha = 1;
       if (p.lab) {   /* a coin's ticker above its bar (unlocks) */
         ctx.font = '800 17px Inter, sans-serif'; ctx.textAlign = 'center'; ctx.fillStyle = '#e6ebf2';
         ctx.fillText(p.lab, CX + i * bw + bw / 2, y - 8);
       }
     });
-    var last = b[b.length - 1];
+    /* The tag belongs to the latest finished bar, not a hollow one. */
+    var done = b.filter(function (p) { return !p.prov; }), last = done[done.length - 1] || b[b.length - 1];
     endCol = spec.tone === 'amber' ? AMB : (last.v >= 0 ? UP : DN);
     endY = last.v >= 0 ? zero - Math.abs(last.v) * sc : zero + Math.abs(last.v) * sc;
   } else if (spec.kind === 'hbars') {
@@ -234,7 +258,7 @@ function _fcDraw(spec, wm) {
     if (ctx.roundRect) { ctx.beginPath(); ctx.roundRect(CX + CW + 10, ty - 18, TW, 36, 6); ctx.fill(); } else ctx.fillRect(CX + CW + 10, ty - 18, TW, 36);
     ctx.fillStyle = '#0a0f17'; ctx.textAlign = 'center'; ctx.font = '800 22px Inter, sans-serif'; ctx.fillText(spec.tag, CX + CW + 10 + TW / 2, ty + 8);
   }
-  ctx.fillStyle = '#6f7b8c'; ctx.font = '600 16px Inter, sans-serif';
+  ctx.fillStyle = '#9aa5b5'; ctx.font = '600 16px Inter, sans-serif';
   ctx.textAlign = 'left'; ctx.fillText(spec.from || '', CX, CY + CH + 26);
   ctx.textAlign = 'center'; ctx.fillText(spec.axis || '', W / 2, CY + CH + 26);
   ctx.textAlign = 'right'; ctx.fillText(spec.to || '', W - L0, CY + CH + 26);
@@ -262,7 +286,7 @@ function _fcDraw(spec, wm) {
     ctx.font = '800 ' + sf + 'px Inter, sans-serif'; ctx.fillText(pp[1], sx, 480); sx += ctx.measureText(pp[1]).width;
   });
   if (spec.note) {
-    ctx.fillStyle = '#8a96a8';
+    ctx.fillStyle = '#a3adbb';
     shareFit(ctx, spec.note, W - 2 * L0, '500 {SIZE}px Inter, sans-serif', 21, 15);
     ctx.fillText(spec.note, L0, 520);
   }
@@ -368,8 +392,14 @@ function shareEtfChart() {
     var name = a === 'BTC' ? 'Bitcoin' : 'Ether';
     var R = _etfRangeSeries(a, _etfRange);
     var useHist = R.days.length >= 5;
-    var bars = useHist ? R.pts.map(function (p) { return { v: p.v }; })
+    /* A day still being reported is hollow and left out of the tag, so the
+       tag and "Latest day" (the summary's latest finished day) agree;
+       on 15 Oct the card tagged 14 Oct's partial −$151M beside +$176M. */
+    var bars = useHist ? R.pts.map(function (p) { return { v: p.v, prov: !R.weekly && p.complete === false }; })
       : ((s && s.bars) || []).map(function (b) { return { v: b.total }; });
+    var provBar = useHist && !R.weekly ? R.pts[R.pts.length - 1] : null;
+    if (provBar && provBar.complete !== false) provBar = null;
+    var doneBars = bars.filter(function (p) { return !p.prov; });
     if (bars.length < 2) return;
     var days = useHist ? R.days : (s.bars || []).map(function (b) { return { day: b.day, v: b.total }; });
     var net = days.reduce(function (x, d) { return x + d.v; }, 0);
@@ -389,14 +419,14 @@ function shareEtfChart() {
     }
     var last = s && s.last;
     fcShareCard({
-      kind: 'bars', bars: bars, tone: 'flow', tag: _etfM(bars[bars.length - 1].v),
+      kind: 'bars', bars: bars, tone: 'flow', tag: _etfM((doneBars[doneBars.length - 1] || bars[bars.length - 1]).v),
       kicker: name + ' spot ETFs · ' + (useHist && R.weekly ? 'weekly net flows, last ' + span : 'daily net flows, last ' + span),
       from: _fcDay(useHist ? R.pts[0].day : s.bars[0].day, true, true), axis: useHist && R.weekly ? 'net flow per week' : 'net flow per trading day', to: _fcDay(days[days.length - 1].day, false, true),
       head: head,
       stats: [['Latest day', last ? _etfM(last.total) : null, last && last.total >= 0 ? 'up' : 'dn'],
               ['5 days', s ? _etfM(s.sum5) : null, s && s.sum5 >= 0 ? 'up' : 'dn'],
               [useHist ? span : '20 days', _etfM(net), net >= 0 ? 'up' : 'dn']],
-      note: note + ' · Farside Investors',
+      note: (provBar ? 'Hollow bar: ' + _fcDay(provBar.day, false, true) + ', still being reported (' + _etfM(provBar.v) + ' so far) · ' + note.replace(' · full day-by-day breakdown on Rotator', '').replace(' · full breakdown on Rotator', '') : note) + ' · Farside Investors',
       sym: name.toUpperCase() + '-ETF',
       text: head + '.' + (st && st.n >= 3 && st.since ? ' The longest run that way since ' + _fcDay(st.since, true, true) + '.' : '')
         + '\nThe full day-by-day breakdown, free on Rotator → ' + ROTATOR_SHARE.link
