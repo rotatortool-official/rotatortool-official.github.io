@@ -1107,6 +1107,9 @@ var RatioTracker = (function() {
     /* Saved pairs with their alert targets, for the bell and Telegram
        (js/turn-watch.js, promptove/111). A copy: callers cannot edit it. */
     getSaved:function(){ return S.saved.map(function(p){ var o={from:p.from,to:p.to}; if(p.target>0) o.target=p.target; return o; }); },
+    /* Another tab changed the saved pairs (ui.js storage listener,
+       2026-10-15): read them back so this tab does not save over them. */
+    reloadSaved:function(){ loadSaved(); renderSavedPairs(); updateStarBtn(); try{ document.dispatchEvent(new Event('rot:pairs')); }catch(e){} },
     lbl:lbl
   };
 

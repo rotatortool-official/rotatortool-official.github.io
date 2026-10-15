@@ -331,6 +331,12 @@ function _twTgSync(force) {
   if (!force && sig === _twTg.sig) return;
   _twTg.sig = sig;
   _twRpc('alert_set_coins', { p_uid: getMyId(), p_coins: list, p_lang: lang }).then(function (linked) {
+    /* _twRpc answers null when the call failed (2026-10-15). That is not
+       "not linked": keep what we knew, and forget the signature so the
+       next render or focus sends the list again. Before, one network blip
+       left the server on the old coins until the list changed, and the
+       card told a linked member to link Telegram. */
+    if (linked === null) { if (_twTg.sig === sig) _twTg.sig = ''; return; }
     var was = _twTg.linked;
     _twTg.linked = linked === true;
     if (_twTg.linked) _twRpc('alert_set_pairs', { p_uid: getMyId(), p_pairs: pairs });

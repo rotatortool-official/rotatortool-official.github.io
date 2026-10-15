@@ -1512,6 +1512,7 @@ setInterval(_renderLastUpdated, 60000);
 
 var _autoRefreshTimer = null;
 var _tabHidden = false;
+var _todayLoadedAt = 0;   /* when the TODAY feeds were last read (doLoad / doRefresh) */
 
 /* Tab Visibility API — pause refresh when tab is hidden */
 document.addEventListener('visibilitychange', function() {
@@ -1627,6 +1628,7 @@ async function doLoad() {
     await Promise.all([loadFuturesMetrics(), loadMacroData(), loadFearGreed(), loadTokenUnlocks()]);
     prog(88, 'Fetching sentiment data…');
     await _early;          /* network, world, ETF flows, turn-sign results: usually done by now */
+    _todayLoadedAt = Date.now();   /* doRefresh() reads TODAY again an hour after this */
     renderBriefing();
     renderEtfFlows();
     renderChainFlows();
@@ -1675,6 +1677,26 @@ async function doRefresh() {
 
     /* Refresh bStocks unless NYSE is closed — no point re-reading a stale close */
     if (!isStockMarketClosed()) await loadBstocks();
+
+    /* TODAY was loaded once by doLoad() and never again (2026-10-15): in a
+       tab left open overnight the coin table moved on while the board,
+       Fear & Greed, ETF and chain flows, unlocks and the derivatives kept
+       the readings from when the page opened. Their sources change daily
+       or hourly, so once an hour is enough. Same order as doLoad(): after
+       the coins, so this run scored with what it saw. Every loader keeps
+       its old data when a read fails; the futures one returns {} instead,
+       so the old map is put back rather than emptied. */
+    if (Date.now() - _todayLoadedAt > 55 * 60 * 1000) {
+      var _fut = _futuresBySym;
+      await Promise.all([loadNetworkData(), loadWorldData(), loadEtfFlows(), loadChainFlows(), loadHolderReturns(),
+        loadFuturesMetrics(), loadMacroData(), loadFearGreed(), loadTokenUnlocks(),
+        (typeof loadSignSince === 'function' ? loadSignSince() : null)].map(function(p) {
+          return Promise.resolve(p).catch(function(e) { console.warn('[doRefresh] TODAY read failed:', e && e.message); });
+        }));
+      if (_fut && Object.keys(_fut).length && (!_futuresBySym || !Object.keys(_futuresBySym).length)) _futuresBySym = _fut;
+      _todayLoadedAt = Date.now();
+      renderBriefing(); renderEtfFlows(); renderChainFlows(); renderTokenUnlocks(); renderFearGreed();
+    }
 
     renderAll();
     _setLastUpdated();

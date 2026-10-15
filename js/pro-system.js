@@ -412,7 +412,7 @@ function openPro() {
           + '</div>'
           + '<input type="text" id="pr-txhash" class="code-input" placeholder="TX hash (from your wallet or block explorer)" style="font-size:12px;text-transform:none;letter-spacing:normal;width:100%;margin-bottom:6px;">'
           + '<input type="text" id="pr-contact" class="code-input" placeholder="Contact (optional — Telegram/Discord/Email)" style="font-size:12px;text-transform:none;letter-spacing:normal;width:100%;margin-bottom:8px;">'
-          + '<button class="code-btn" onclick="submitProRequest()" style="width:100%;padding:9px;font-size:12px;letter-spacing:.08em;background:linear-gradient(135deg,rgba(0,200,150,.2),rgba(0,200,150,.08));border-color:rgba(0,200,150,.4);color:var(--green);">VERIFY TX & ACTIVATE PRO</button>'
+          + '<button class="code-btn" onclick="submitProRequest(this)" style="width:100%;padding:9px;font-size:12px;letter-spacing:.08em;background:linear-gradient(135deg,rgba(0,200,150,.2),rgba(0,200,150,.08));border-color:rgba(0,200,150,.4);color:var(--green);">VERIFY TX & ACTIVATE PRO</button>'
           + '<div id="pr-status" style="font-size:12px;margin-top:6px;min-height:14px;text-align:center;"></div>'
         + '</div>'
         + '<div id="pro-request-pending" style="' + (_proRequested ? '' : 'display:none;') + 'text-align:center;">'
@@ -671,7 +671,15 @@ function restoreProFromKey() {
 }
 
 /* ── Submit Pro request after crypto donation (auto-verified) ── */
-function submitProRequest() {
+function submitProRequest(btn) {
+  /* One check at a time (2026-10-15). A second click sent the same hash
+     again; the server's replay guard refused it, and whichever answer came
+     back last won the status line, so a buyer could get Pro and then read
+     "already used". The button stays locked until a failure frees it; on
+     success the form is replaced. */
+  if (btn && btn.disabled) return;
+  function lock()   { if (btn) btn.disabled = true; }
+  function unlock() { if (btn) btn.disabled = false; }
   var network = document.getElementById('pr-network');
   var amount  = document.getElementById('pr-amount');
   var txhash  = document.getElementById('pr-txhash');
@@ -692,8 +700,10 @@ function submitProRequest() {
   if (net === 'Binance Pay') {
     if (!cont) { status.style.color = 'var(--red)'; status.textContent = 'Binance Pay requires contact info for manual review.'; return; }
     status.style.color = 'var(--muted)'; status.textContent = 'Submitting for manual review...';
+    lock();
     supaSubmitProRequest({ amount: amt, network: net, tx_hash: hash, contact: cont, status: 'pending' })
       .then(function(ok) {
+        if (!ok) unlock();
         if (ok) {
           _showProRequestPending('Your Binance Pay request has been submitted. Manual review may take up to 24 hours. Pro will activate automatically once approved.');
         } else {
@@ -715,8 +725,10 @@ function submitProRequest() {
 
   status.style.color = 'var(--bnb)'; status.textContent = '⏳ Verifying transaction on ' + net + '...';
 
+  lock();
   verifyAndActivateTx(hash, net, getMyId(), cont).then(function(res) {
     if (!res.ok) {
+      unlock();
       status.style.color = 'var(--red)';
       if (res.reason === 'tx_used') {
         status.textContent = '❌ This TX hash has already been used to activate Pro.';

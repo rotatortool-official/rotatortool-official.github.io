@@ -182,6 +182,34 @@ function switchHoldingsView() {
 var watchlist = [];
 try { watchlist = JSON.parse(localStorage.getItem('rot_watchlist') || '[]'); } catch(e) {}
 function saveWatchlist() { try { localStorage.setItem('rot_watchlist', JSON.stringify(watchlist)); } catch(e) {} }
+
+/* ── Two tabs, one list (2026-10-15) ─────────────────────────────
+   Each tab keeps its own copy of holdings, watchlist and saved pairs and
+   writes the whole list back on every change. With two tabs open, a coin
+   added in one vanished the next time the other saved. The browser tells
+   every OTHER tab when storage changes; read the list back then, so the
+   next save starts from what is really stored. Paper trades already read
+   storage each time, so they only need a redraw. */
+window.addEventListener('storage', function(e) {
+  if (e.storageArea && e.storageArea !== localStorage) return;
+  var k = e.key;   /* null = storage was cleared */
+  if (k === null || k === 'rot_h5' || k === 'rot_watchlist') {
+    if (typeof loadH === 'function') {
+      var next = loadH();
+      /* Stop the sparkle on a tile whose coin the other tab removed. */
+      if (typeof sparkStop !== 'undefined') Object.keys(sparkStop).forEach(function(sym) {
+        if (!next.some(function(h) { return h.sym === sym; })) { try { sparkStop[sym](); } catch(x) {} delete sparkStop[sym]; }
+      });
+      holdings = next;
+    }
+    try { watchlist = JSON.parse(localStorage.getItem('rot_watchlist') || '[]'); } catch(x) { watchlist = []; }
+    /* While the page is still loading, doLoad() draws with these anyway. */
+    if (!busy && typeof coins !== 'undefined' && coins.length && typeof renderAll === 'function') renderAll();
+  }
+  if ((k === null || k === 'rot_ratio_saved') && typeof RatioTracker !== 'undefined' && RatioTracker.reloadSaved) RatioTracker.reloadSaved();
+  if ((k === null || (typeof PAPER_KEY !== 'undefined' && k === PAPER_KEY)) && typeof renderPaperTrades === 'function'
+      && typeof coins !== 'undefined' && coins.length) renderPaperTrades();
+});
 /* Held coins and watched coins share ONE grid now, and renderTiles() in
    js/holdings.js draws it. This stays because three call sites ask for it
    by name — toggleWatch(), removeFromWatchlist() and renderAll() — and
