@@ -6308,7 +6308,7 @@ a.mob-more-item{text-decoration:none;color:inherit;}
 
 /* Bitcoin vs the rest: chart, the altseason sentence, Share
    (2026-10-13, Daniel). Text left, chart right on wide screens and below
-   on phones, so they never overlap. Gold = top 20 coins vs BTC, blue =
+   on phones, so they never overlap. Gold = top 5 coins vs BTC, blue =
    small coins vs BTC, dashed = level with BTC. */
 #sec-capital .cap-btc{position:relative;}
 #sec-capital .cap-btc.has-chart{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:22px;align-items:start;}
@@ -6322,7 +6322,12 @@ a.mob-more-item{text-decoration:none;color:inherit;}
 .cap-axis{display:flex;justify-content:space-between;font-size:11px;color:var(--muted);margin-top:4px;}
 .cap-story{font-size:14px;line-height:1.5;color:var(--text);margin:-4px 0 10px;max-width:760px;}
 .cap-nf{color:var(--muted);font-size:12px;}
-.cap-legend{font-size:11px;color:var(--muted);margin-top:8px;}
+.cap-legend{font-size:12px;line-height:1.45;color:var(--muted);margin-top:10px;}
+.cap-legend div{display:flex;align-items:baseline;gap:7px;margin-bottom:3px;color:var(--text);}
+.cap-legend p{margin:6px 0 0;}
+.cap-sw{flex:none;display:inline-block;width:14px;height:3px;border-radius:2px;transform:translateY(-3px);}
+.cap-sw-big{background:var(--bnb,#f3ba2f);}
+.cap-sw-small{background:#5b9dff;}
 .cap-share{position:absolute;top:12px;right:12px;display:inline-flex;align-items:center;gap:5px;padding:5px 10px;border-radius:6px;border:1px solid var(--bdr2);background:var(--bg3);color:var(--text);font:600 12px/1 var(--font-ui);cursor:pointer;z-index:2;}
 .cap-share:hover{border-color:var(--bnb);color:var(--bnb);}
 @media (max-width:760px){.cap-main .bf-k,.cap-main .cap-verdict{padding-right:84px;}}

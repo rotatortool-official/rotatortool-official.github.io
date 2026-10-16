@@ -324,17 +324,24 @@ function shareDayBrief() {
    chart is market_daily (sql/market_events.sql, one row a day since
    1 Apr 2026): the 30-day return of the top-20 coins (ranks 2-20, median)
    and of the small coins (ranks 101-250, median), each against BTC's.
-   The sentence describes what happened; "might" is as far as it goes. */
+   The sentence describes what happened; "might" is as far as it goes.
+
+   2026-10-16 (Daniel): "top 20 is a bit too much and makes the trend
+   blurrier, keep only top 5". The gold line is now ret30_top5 (ranks 2-6,
+   median), its own column, so ret30_large still feeds the Telegram
+   leadership rule unchanged. Over Apr-Oct the average gap to the blue
+   line grew from 5.5 to 8.9 points. Under the chart, one line per colour
+   says what it is and how to read it. */
 var _capHist = null, _capHistAsked = false, _capLast = null;
 function _capLoadHist() {
   if (_capHistAsked || typeof supaRest !== 'function') return;
   _capHistAsked = true;
   supaRest('market_daily', 'GET', {
-    select: 'day,ret30_btc,ret30_large,ret30_small', day: 'gte.2026-04-01', order: 'day.asc', limit: '400'
+    select: 'day,ret30_btc,ret30_top5,ret30_small', day: 'gte.2026-04-01', order: 'day.asc', limit: '400'
   }).then(function (rows) {
     function rel(a, b) { return ((1 + a / 100) / (1 + b / 100) - 1) * 100; }
-    var out = (rows || []).filter(function (r) { return r.ret30_btc != null && r.ret30_large != null && r.ret30_small != null; })
-      .map(function (r) { return { day: r.day, big: rel(+r.ret30_large, +r.ret30_btc), small: rel(+r.ret30_small, +r.ret30_btc) }; });
+    var out = (rows || []).filter(function (r) { return r.ret30_btc != null && r.ret30_top5 != null && r.ret30_small != null; })
+      .map(function (r) { return { day: r.day, big: rel(+r.ret30_top5, +r.ret30_btc), small: rel(+r.ret30_small, +r.ret30_btc) }; });
     if (out.length > 10) { _capHist = out; renderCapitalBtc(); }
   }).catch(function () {});
 }
@@ -384,7 +391,11 @@ function renderCapitalBtc() {
       mixed: 'Ниту една страна не победува. Алт-сезоната што сите ја чекаат сè уште ја нема.'
     },
     nf: 'Опис на она што се случи, не прогноза.',
-    legend: 'Графикот: 20-те најголеми монети (златно) и малите монети (сино) наспроти BTC, 30-дневен принос, од 1 април.'
+    legend: [
+      'Златна линија: петте најголеми монети по Bitcoin, како што се ETH и XRP.',
+      'Сина линија: малите монети, места од 101 до 250 по големина.',
+      'Секоја линија покажува како се однесуваа монетите во однос на Bitcoin во последните 30 дена, од 1 април. Над прекинатата линија тие се однесуваа подобро од Bitcoin, под неа полошо. Кога сината е над златната, парите стигнуваат до малите монети. Кога златната е над сината, парите остануваат кај големите монети.'
+    ]
   } : {
     k: 'Bitcoin vs the rest', d7: '7 days', d30: '30 days',
     of: function (b, n) { return b + ' of ' + n + ' coins did better than BTC'; },
@@ -401,7 +412,11 @@ function renderCapitalBtc() {
       mixed: 'Neither side is winning. The altseason everyone waits for is still not here.'
     },
     nf: 'A description of what happened, not a forecast.',
-    legend: 'Chart: the top 20 coins (gold) and the small coins (blue) against BTC, 30-day return, since 1 Apr.'
+    legend: [
+      'Gold line: the 5 biggest coins after Bitcoin, such as ETH and XRP.',
+      'Blue line: the small coins, places 101 to 250 by size.',
+      'Each line shows how the coins did against Bitcoin over the last 30 days, since 1 April. Above the dashed line they did better than Bitcoin, below it they did worse. When blue is above gold, money is reaching the small coins. When gold is above blue, money stays with the big coins.'
+    ]
   };
   function row(key, label) {
     var b = btc[key];
@@ -440,15 +455,18 @@ function renderCapitalBtc() {
           + '<span class="cap-txt">' + L.of(r.beat, r.n) + ' · ' + L.mid + ' <b class="' + (r.rel >= 0 ? 'up' : 'dn') + '">'
           + (r.rel >= 0 ? '+' : '−') + Math.abs(r.rel).toFixed(1) + '%</b></span></div>';
       }).join('')
-    + (_capHist ? '<div class="cap-legend">' + L.legend + '</div>' : '') + '</div>'
+    + '</div>'
     + (_capHist ? '<div class="cap-side">' + _capChartSvg(_capHist)
-        + '<div class="cap-axis"><span>' + _capDay(_capHist[0].day, mk) + '</span><span>' + (mk ? 'денес' : 'today') + '</span></div></div>' : '');
+        + '<div class="cap-axis"><span>' + _capDay(_capHist[0].day, mk) + '</span><span>' + (mk ? 'денес' : 'today') + '</span></div>'
+        + '<div class="cap-legend"><div><i class="cap-sw cap-sw-big"></i>' + L.legend[0] + '</div>'
+        + '<div><i class="cap-sw cap-sw-small"></i>' + L.legend[1] + '</div>'
+        + '<p>' + L.legend[2] + '</p></div></div>' : '');
 }
 function _capDay(d, mk) {
   var mon = mk ? ['јан.','фев.','мар.','апр.','мај','јун.','јул.','авг.','сеп.','окт.','ноем.','дек.'] : ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
   return (+d.slice(8, 10)) + ' ' + mon[+d.slice(5, 7) - 1];
 }
-/* The share card: the top-20 line against BTC since April, the week and
+/* The share card: the top-5 line against BTC since April, the week and
    the month as stats, the plain sentence as the headline. English, like
    every other chart card. */
 function shareCapitalBtc() {
@@ -476,7 +494,7 @@ function shareCapitalBtc() {
     bars: [r7, r30].filter(Boolean).map(function (r) { return { v: r.rel }; }),
     tag: line.length ? pct(line[line.length - 1]) : '',
     kicker: 'Coins against Bitcoin · 30-day return' + (h.length ? ' · since ' + _FC_MON[+h[0].day.slice(5, 7) - 1] + ' ' + (+h[0].day.slice(8, 10)) : ''),
-    legend: line.length > 10 ? [['Top 20 coins', '#f3ba2f'], ['Small coins', '#5b9dff']] : null,
+    legend: line.length > 10 ? [['Top 5 coins after BTC', '#f3ba2f'], ['Small coins (101-250)', '#5b9dff']] : null,
     from: h.length ? h[0].day : '', axis: '', to: 'now',
     head: head,
     stats: stats,
