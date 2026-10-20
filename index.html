@@ -243,7 +243,11 @@ h2{font-size:clamp(32px,4.4vw,56px);}
 .face.back{transform:rotateY(180deg);}
 .face::before{content:'';position:absolute;inset:0;pointer-events:none;background:linear-gradient(160deg,rgba(255,255,255,.07),transparent 40%);}
 .fk{font:700 10.5px/1.2 var(--mono);letter-spacing:.12em;text-transform:uppercase;color:var(--muted);}
-.fv{font:800 clamp(28px,3vw,40px)/1.05 var(--mono);letter-spacing:-.03em;margin-top:auto;}
+.fpic{position:relative;flex:1 1 auto;min-height:56px;margin:12px -4px 10px;display:flex;align-items:center;justify-content:center;}
+.fpic svg{width:100%;height:100%;max-height:120px;overflow:visible;}
+.fpic svg.fg-g{max-height:110px;}
+.fpic-cap{position:absolute;right:4px;top:-2px;font:700 9px/1 var(--mono);letter-spacing:.1em;text-transform:uppercase;color:var(--dim);font-style:normal;}
+.fv{font:800 clamp(28px,3vw,40px)/1.05 var(--mono);letter-spacing:-.03em;}
 .fc{align-self:flex-start;margin-top:10px;font:700 11.5px/1 var(--mono);padding:5px 8px;border-radius:999px;background:rgba(127,140,160,.14);}
 .fc.up{background:rgba(22,199,154,.14);} .fc.dn{background:rgba(255,77,99,.13);}
 .fs{font:500 11px/1.3 var(--ui);color:var(--dim);margin-top:6px;}
@@ -414,7 +418,7 @@ h2{font-size:clamp(32px,4.4vw,56px);}
           <p class="step" data-at=".6">When something moves more than usual, <strong>the headline behind it shows up on the card.</strong> Your daily news, at hand.</p>
         </div>
         <div class="chips"><span class="chip">Macro &amp; on-chain</span><span class="chip">Fear &amp; Greed</span><span class="chip">News on unusual moves</span></div>
-        <div class="cta-row"><a class="btn btn-ghost" href="board.html#sec-today">Open Today ›</a></div>
+        <div class="cta-row"><a class="btn btn-gold" href="board.html#sec-today">Open Today ›</a></div>
       </div>
       <div class="vis"><div class="panel" id="today-vis">
         <div class="tag live" style="right:18px;top:16px">Live today</div>
@@ -437,7 +441,7 @@ h2{font-size:clamp(32px,4.4vw,56px);}
           <p class="step" data-at=".8">Where money moved, <strong>not where it goes next.</strong> Context for the coins, never a call.</p>
         </div>
         <div class="chips"><span class="chip">Bitcoin &amp; Ether ETFs</span><span class="chip">Stablecoins per chain</span><span class="chip">Token unlocks</span></div>
-        <div class="cta-row"><a class="btn btn-ghost" href="board.html#sec-capital">Open Capital ›</a></div>
+        <div class="cta-row"><a class="btn btn-gold" href="board.html#sec-capital">Open Capital ›</a></div>
       </div>
       <div class="vis"><div class="panel" id="cap-vis">
         <div class="tag" style="left:26px;top:20px">US spot Bitcoin ETFs · daily net flow</div>
@@ -459,7 +463,7 @@ h2{font-size:clamp(32px,4.4vw,56px);}
           <p class="step" data-at=".5">Then Rotator looks for the turn: <strong>a leader cooling off, a laggard turning up.</strong> On the board, every turn sign carries how often it held up in the past.</p>
         </div>
         <div class="chips"><span class="chip">Turn signs</span><span class="chip">Tested record on every sign</span><span class="chip">Tap a coin to open it</span></div>
-        <div class="cta-row"><a class="btn btn-ghost" href="board.html#sec-rotation">Open Momentum ›</a></div>
+        <div class="cta-row"><a class="btn btn-gold" href="board.html#sec-rotation">Open Momentum ›</a></div>
       </div>
       <div class="vis"><div class="panel" id="mom-vis">
         <div class="tag live" style="right:18px;top:16px">Live coins</div>
@@ -482,7 +486,7 @@ h2{font-size:clamp(32px,4.4vw,56px);}
           <p class="step" data-at=".62">It shows where the crowd was leaning, <strong>and what it cost them</strong>, over the last 24 hours.</p>
         </div>
         <div class="chips"><span class="chip">Live from the Binance stream</span><span class="chip">Every coin, every hour</span></div>
-        <div class="cta-row"><a class="btn btn-ghost" href="board.html#sec-liq">Open Liquidations ›</a></div>
+        <div class="cta-row"><a class="btn btn-gold" href="board.html#sec-liq">Open Liquidations ›</a></div>
       </div>
       <div class="vis"><div class="panel" id="liq-vis">
         <div class="tag live" style="right:18px;top:16px">Last 24 hours</div>
@@ -506,7 +510,7 @@ h2{font-size:clamp(32px,4.4vw,56px);}
           <p class="step" data-at=".74">Warnings follow your coins: <strong>delistings, big unlocks and turn signs</strong>, on the board and in Telegram with Pro.</p>
         </div>
         <div class="chips"><span class="chip">Holdings &amp; watchlist</span><span class="chip">Unlock and delisting warnings</span><span class="chip">Telegram with Pro</span></div>
-        <div class="cta-row"><a class="btn btn-ghost" href="board.html#sec-yours">Add your coins ›</a></div>
+        <div class="cta-row"><a class="btn btn-gold" href="board.html#sec-yours">Add your coins ›</a></div>
       </div>
       <div class="vis"><div class="panel" id="yours-vis">
         <div class="tag" style="right:18px;top:16px">Example holdings · live prices</div>
@@ -530,7 +534,7 @@ h2{font-size:clamp(32px,4.4vw,56px);}
           <p class="step" data-at=".8">If B keeps lagging, the swap loses. <strong>The tool shows the history; the decision is yours.</strong></p>
         </div>
         <div class="chips"><span class="chip">Any two coins</span><span class="chip">Where today sits in the range</span><span class="chip">How many you would get</span></div>
-        <div class="cta-row"><a class="btn btn-ghost" href="board.html#sec-swap">Open the Rotator Tool ›</a></div>
+        <div class="cta-row"><a class="btn btn-gold" href="board.html#sec-swap">Open the Rotator Tool ›</a></div>
       </div>
       <div class="vis"><div class="panel" id="tool-vis">
         <div class="tag" style="left:26px;top:20px">Example · not real prices</div>
@@ -553,7 +557,7 @@ h2{font-size:clamp(32px,4.4vw,56px);}
           <p class="step" data-at=".62">The engine stays frozen until January. <strong>In March 2027, one year of results decides: keep it, improve it or stop it.</strong></p>
         </div>
         <div class="chips"><span class="chip">Graded against the median coin</span><span class="chip">Nothing enters the score untested</span></div>
-        <div class="cta-row"><a class="btn btn-ghost" href="track-record.html">See the full record ›</a></div>
+        <div class="cta-row"><a class="btn btn-gold" href="track-record.html">See the full record ›</a></div>
       </div>
       <div class="vis"><div class="panel" id="rec-vis">
         <div class="tag" style="left:28px;top:20px">Beat the market, 7 days after the sign</div>
@@ -949,6 +953,45 @@ h2{font-size:clamp(32px,4.4vw,56px);}
     Promise.all([TOPIC.cache('world_data'), TOPIC.cache('fear_greed'), TOPIC.cache('etf_flows_summary'), TOPIC.cache('tile_news')]).then(function (res) {
       var wd = res[0] && res[0].data && res[0].data.items || {}, fg = res[1] && res[1].data, etf = res[2] && res[2].data, news = res[3] && res[3].data && res[3].data.items || {};
       var money = function (v, d) { return '$' + Number(v).toLocaleString('en-US', { minimumFractionDigits: d || 0, maximumFractionDigits: d || 0 }); };
+      /* Card pictures (Daniel, 2026-10-20: the cards looked empty).
+         A 3-month line from the tile's own daily history, the ETF's last
+         20 trading days as bars, and a gauge for Fear & Greed. */
+      function cardPic(c) {
+        if (c.fg != null) {
+          var segs = [['#ff4d63', 0, 25], ['#ff8f4d', 25, 45], ['#f3ba2f', 45, 55], ['#8fd36a', 55, 75], ['#16c79a', 75, 100]];
+          var arc = function (a0, a1) {
+            var p = function (v) { var t = Math.PI * (1 - v / 100); return (60 + 46 * Math.cos(t)).toFixed(2) + ' ' + (58 - 46 * Math.sin(t)).toFixed(2); };
+            return 'M' + p(a0 + 0.8) + ' A46 46 0 0 1 ' + p(a1 - 0.8);
+          };
+          return '<div class="fpic"><svg class="fg-g" viewBox="0 0 120 66">'
+            + segs.map(function (g) { return '<path d="' + arc(g[1], g[2]) + '" stroke="' + g[0] + '" stroke-width="10" fill="none" stroke-linecap="butt"/>'; }).join('')
+            + '<g class="fg-needle" style="transform-origin:60px 58px"><line x1="60" y1="58" x2="60" y2="20" stroke="var(--text)" stroke-width="3" stroke-linecap="round"/></g>'
+            + '<circle cx="60" cy="58" r="5" fill="var(--text)"/>'
+            + '<text x="10" y="66" font-size="7" fill="var(--dim)" font-family="ui-monospace,monospace">FEAR</text>'
+            + '<text x="110" y="66" font-size="7" fill="var(--dim)" text-anchor="end" font-family="ui-monospace,monospace">GREED</text></svg></div>';
+        }
+        if (c.bars) {
+          var mx = Math.max.apply(null, c.bars.map(Math.abs)) || 1, n = c.bars.length;
+          return '<div class="fpic"><svg viewBox="0 0 100 50" preserveAspectRatio="none">'
+            + '<line x1="0" x2="100" y1="25" y2="25" stroke="var(--panel-b)" stroke-width=".6"/>'
+            + c.bars.map(function (v, i) {
+                var h = Math.abs(v) / mx * 23, x = i / n * 100 + 0.8;
+                return '<rect class="mb" x="' + x.toFixed(2) + '" y="' + (v >= 0 ? 25 - h : 25).toFixed(2) + '" width="' + (100 / n - 1.6).toFixed(2) + '" height="' + h.toFixed(2)
+                  + '" fill="' + (v >= 0 ? '#16c79a' : '#ff4d63') + '" style="transform-origin:' + x.toFixed(2) + 'px 25px"/>';
+              }).join('') + '</svg><i class="fpic-cap">20 days</i></div>';
+        }
+        if (c.ser) {
+          var a = c.ser, lo = Math.min.apply(null, a), hi = Math.max.apply(null, a), rg = hi - lo || 1, up = a[a.length - 1] >= a[0];
+          var col = c.k === 'fed' ? '#8d98ab' : up ? '#16c79a' : '#ff4d63', id = 'spg' + c.k;
+          var pts = a.map(function (v, i) { return (i / (a.length - 1) * 100).toFixed(2) + ' ' + (46 - (v - lo) / rg * 40).toFixed(2); });
+          return '<div class="fpic"><svg viewBox="0 0 100 50" preserveAspectRatio="none">'
+            + '<defs><linearGradient id="' + id + '" x1="0" x2="0" y1="0" y2="1"><stop offset="0" stop-color="' + col + '" stop-opacity=".32"/><stop offset="1" stop-color="' + col + '" stop-opacity="0"/></linearGradient></defs>'
+            + '<path d="M' + pts.join(' L') + ' L100 50 L0 50 Z" fill="url(#' + id + ')"/>'
+            + '<path class="spk-l" d="M' + pts.join(' L') + '" fill="none" stroke="' + col + '" stroke-width="1.6" vector-effect="non-scaling-stroke" pathLength="1" stroke-dasharray="1" stroke-dashoffset="1"/>'
+            + '</svg><i class="fpic-cap">3 months</i></div>';
+        }
+        return '';
+      }
       var cards = [];
       TODAY_TILES.forEach(function (t) {
         var k = t[0], w = wd[k], val, chg = null, sub = '7 days';
@@ -966,7 +1009,10 @@ h2{font-size:clamp(32px,4.4vw,56px);}
           }
         }
         var n = news[k] && news[k].news && news[k].news[0];
-        cards.push({ k: k, title: t[1], what: t[2], val: val, chg: chg, sub: sub, news: n || null, move: news[k] && news[k].move });
+        var ser = w && Array.isArray(w.s) ? w.s.slice(-90).filter(function (x) { return typeof x === 'number'; }) : null;
+        var bars = k === 'etf' && etf && etf.BTC && etf.BTC.bars ? etf.BTC.bars.slice(-20).map(function (b) { return b.total; }) : null;
+        cards.push({ k: k, title: t[1], what: t[2], val: val, chg: chg, sub: sub, news: n || null, move: news[k] && news[k].move,
+          ser: ser && ser.length > 5 ? ser : null, bars: bars, fg: k === 'fg' && fg ? fg.value : null });
       });
       if (!cards.length) return;
       /* The card the ring stops on: one with a headline, else the first. */
@@ -975,13 +1021,14 @@ h2{font-size:clamp(32px,4.4vw,56px);}
       var ring = document.createElement('div'); ring.className = 'ring'; wrap.appendChild(ring); vis.appendChild(wrap);
       cards.forEach(function (c, i) {
         var el = document.createElement('div'); el.className = 'c3';
-        var front = '<div class="fk">' + esc(c.title) + '</div><div class="fv">' + esc(c.val) + '</div>'
+        var front = '<div class="fk">' + esc(c.title) + '</div>' + cardPic(c) + '<div class="fv">' + esc(c.val) + '</div>'
           + (c.chg ? '<div class="fc ' + (c.chg.up == null ? '' : c.chg.up ? 'up' : 'dn') + '"><span class="' + (c.chg.up == null ? '' : c.chg.up ? 'up' : 'dn') + '">' + esc(c.chg.t) + '</span></div>' : '')
           + '<div class="fs">' + esc(c.sub) + '</div>';
         var back = '<div class="fk">What it is</div><div class="fb">' + esc(c.what) + '</div>'
           + (c.news ? '<div class="fnews"><b>IN THE NEWS · ' + (c.move != null ? esc(TOPIC.pct(c.move)) + ' TODAY' : 'UNUSUAL MOVE') + '</b><span>' + esc(c.news.t) + '</span><em>' + esc(c.news.src || '') + '</em></div>' : '');
         el.innerHTML = '<div class="flip"><div class="face front">' + front + '</div><div class="face back">' + back + '</div></div>';
         ring.appendChild(el); c.el = el; c.flip = el.firstChild;
+        c.faces = el.querySelectorAll('.face'); c.line = el.querySelector('.spk-l'); c.needle = el.querySelector('.fg-needle'); c.bs = el.querySelectorAll('.mb');
       });
       var N = cards.length, step = 360 / N, Rr = 0, cw, chh;
       function resize() {
@@ -1002,7 +1049,13 @@ h2{font-size:clamp(32px,4.4vw,56px);}
         var feat = ease(seg(p, 0.6, 0.72));
         cards.forEach(function (c, i) {
           var ang = ((i * step + a) % 360 + 360) % 360, cos = Math.cos(ang * Math.PI / 180);
-          c.el.style.opacity = String(0.2 + 0.8 * Math.max(0, cos));
+          var op = String(0.2 + 0.8 * Math.max(0, cos));
+          c.faces[0].style.opacity = op; c.faces[1].style.opacity = op;
+          /* The pictures draw in as the ring turns. */
+          var d = ease(seg(p, 0.02, 0.5));
+          if (c.line) c.line.setAttribute('stroke-dashoffset', (1 - d).toFixed(3));
+          if (c.needle) c.needle.style.transform = 'rotate(' + ((-90 + 180 * c.fg / 100 * d)).toFixed(1) + 'deg)';
+          for (var b = 0; b < c.bs.length; b++) c.bs[b].style.transform = 'scaleY(' + ease(seg(d * 1.4 - b * 0.02, 0, 1)).toFixed(3) + ')';
           var fl = i === f ? Math.max(all, feat) : all;
           c.flip.style.transform = 'rotateY(' + (180 * fl).toFixed(1) + 'deg)';
         });
