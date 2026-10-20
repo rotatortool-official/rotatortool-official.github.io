@@ -30,7 +30,7 @@
 (function () {
   try {
     var q = new URLSearchParams(location.search), h = location.hash;
-    var own = /^#(hero|today|capital|momentum|liq|yours|tool|record|plans)?$/.test(h);
+    var own = /^#(hero|today|capital|momentum|liq|yours|coins|tool|record|plans)?$/.test(h);
     if (q.has('coin') || q.has('donate') || (h && !own)) { location.replace('board.html' + location.search + h); return; }
     var carry = new URLSearchParams();
     ['ref', 'utm_source', 'utm_medium', 'utm_campaign'].forEach(function (k) { if (q.get(k)) carry.set(k, q.get(k)); });
@@ -348,6 +348,25 @@ h2{font-size:clamp(32px,4.4vw,56px);}
 .yc-lbl{position:absolute;font:700 10px/1 var(--mono);letter-spacing:.1em;color:var(--dim);text-transform:uppercase;opacity:0;}
 .yc-val{position:absolute;left:0;top:0;font:800 12px/1 var(--mono);padding:5px 8px;border-radius:999px;background:var(--card);border:1px solid var(--panel-b);white-space:nowrap;opacity:0;will-change:transform,opacity;}
 
+/* ── Coins: score list ── */
+.sc-row{position:absolute;left:26px;right:26px;display:grid;grid-template-columns:30px 70px minmax(0,1fr) 46px;align-items:center;gap:12px;opacity:0;will-change:transform,opacity;}
+.sc-row img{width:30px;height:30px;border-radius:50%;}
+.sc-sym{font:700 13px/1 var(--mono);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.sc-trk{position:relative;height:10px;border-radius:999px;background:rgba(127,140,160,.12);}
+.sc-bar{position:absolute;left:0;top:0;bottom:0;border-radius:inherit;width:0;background:var(--dim);}
+.sc-num{font:800 16px/1 var(--mono);text-align:right;}
+.sc-parts{position:absolute;left:26px;right:26px;padding:14px 16px;border-radius:16px;background:var(--bg2);border:1px solid var(--panel-b);box-shadow:var(--shadow);opacity:0;will-change:transform,opacity;}
+.sc-parts small{display:block;font:700 10px/1 var(--mono);letter-spacing:.12em;text-transform:uppercase;color:var(--dim);margin-bottom:10px;}
+.sc-part{display:grid;grid-template-columns:96px minmax(0,1fr) 72px;align-items:center;gap:10px;height:26px;font:600 12.5px/1.2 var(--ui);color:var(--muted);}
+.sc-part b{font:800 13px/1 var(--mono);color:var(--text);text-align:right;white-space:nowrap;}
+.sc-part .sc-trk{height:8px;}
+.sc-part .sc-bar{background:var(--gold);}
+.sc-sum{display:flex;justify-content:space-between;margin-top:8px;padding-top:8px;border-top:1px solid var(--panel-b);font:700 12.5px/1.2 var(--ui);}
+.sc-sum b{font:800 15px/1 var(--mono);}
+@media (max-width:860px){ .sc-row{left:14px;right:14px;grid-template-columns:24px 52px minmax(0,1fr) 36px;gap:8px;} .sc-row img{width:24px;height:24px;} .sc-sym{font-size:11px;} .sc-num{font-size:13px;}
+  .sc-parts{left:14px;right:14px;padding:10px 12px;} .sc-part{grid-template-columns:70px minmax(0,1fr) 56px;height:22px;font-size:11px;} .sc-part b{font-size:11.5px;} }
+@media (min-width:861px){ .sc-sym{font-size:14.5px;} .sc-num{font-size:18px;} .sc-part{font-size:14px;height:29px;} .sc-part b{font-size:14.5px;} .sc-sum{font-size:14px;} .sc-sum b{font-size:17px;} }
+
 /* ── Free and Pro ── */
 .plans{position:relative;z-index:1;padding:110px 24px 0;}
 .plans-in{max-width:1000px;margin:0 auto;text-align:center;}
@@ -442,7 +461,7 @@ h2{font-size:clamp(32px,4.4vw,56px);}
   <a href="#momentum" data-for="momentum"><i></i>MOMENTUM</a>
   <a href="#liq" data-for="liq"><i></i>LIQUIDATIONS</a>
   <a href="#yours" data-for="yours"><i></i>YOURS</a>
-  <a href="how-the-score-works.html"><i></i>COINS</a>
+  <a href="#coins" data-for="coins"><i></i>COINS</a>
   <a href="#tool" data-for="tool"><i></i>ROTATOR TOOL</a>
   <a href="#record" data-for="record"><i></i>RECORD</a>
 </nav>
@@ -582,13 +601,37 @@ h2{font-size:clamp(32px,4.4vw,56px);}
   </div>
 </section>
 
-<!-- 06 ROTATOR TOOL -->
+<!-- 06 COINS (Daniel, 2026-10-20: COINS on the wheel opened the score
+     page; it gets its own scene like the other chapters). Real scores from
+     the newest signal run, the same rows the board reads. -->
+<section class="scene" id="coins" style="height:260vh">
+  <div class="stage">
+    <div class="glow" style="--gx:62%;--gy:45%"></div>
+    <div class="grid2">
+      <div class="copy">
+        <div class="eyebrow"><b>06</b>Coins</div>
+        <h2>One score for every coin.</h2>
+        <div class="steps" data-scene="coins">
+          <p class="step" data-at="0">Every coin on the board gets <strong>one number, from −50 to 100</strong>, worked out again every 15 minutes and ranked.</p>
+          <p class="step" data-at=".36">Three parts add up: <strong>momentum against every other coin, strength against Bitcoin, gold and the dollar, and supply</strong>: unlocks, burns and new coins.</p>
+          <p class="step" data-at=".68"><strong>65 and up is green, 40 to 64 amber, below 40 red.</strong> It says how a coin has done, not where it goes next.</p>
+        </div>
+        <div class="cta-row"><a class="btn btn-gold" href="board.html#sec-coins">Open Coins ›</a><a class="btn btn-ghost" href="how-the-score-works.html">How the score works</a></div>
+      </div>
+      <div class="vis"><div class="panel" id="coins-vis">
+        <div class="tag live" style="right:18px;top:16px">Live scores</div>
+      </div></div>
+    </div>
+  </div>
+</section>
+
+<!-- 07 ROTATOR TOOL -->
 <section class="scene" id="tool" style="height:300vh">
   <div class="stage">
     <div class="glow" style="--gx:55%;--gy:45%"></div>
     <div class="grid2">
       <div class="copy">
-        <div class="eyebrow"><b>06</b>Rotator Tool</div>
+        <div class="eyebrow"><b>07</b>Rotator Tool</div>
         <h2>See what a swap really does.</h2>
         <div class="steps" data-scene="tool">
           <p class="step" data-at="0"><strong>Coin A runs ahead of coin B.</strong> Each A now buys more B than it did before.</p>
@@ -605,13 +648,13 @@ h2{font-size:clamp(32px,4.4vw,56px);}
   </div>
 </section>
 
-<!-- 07 RECORD -->
+<!-- 08 RECORD -->
 <section class="scene" id="record" style="height:250vh">
   <div class="stage">
     <div class="glow" style="--gx:70%;--gy:55%"></div>
     <div class="grid2">
       <div class="copy">
-        <div class="eyebrow"><b>07</b>Record</div>
+        <div class="eyebrow"><b>08</b>Record</div>
         <h2>Every result shown, good or bad.</h2>
         <div class="steps" data-scene="record">
           <p class="step" data-at="0">Rotator grades its own signs against the coin in the middle of the market. <strong>A coin flip would win half the time.</strong></p>
@@ -711,9 +754,7 @@ h2{font-size:clamp(32px,4.4vw,56px);}
      word to word, in step with the page (Daniel, 2026-10-20: "they have to
      be in sync"; before, the wheel finished turning while the next screen
      was only half in). Between two words sit three ticks, short, long,
-     short, at a quarter, half and three quarters of that slide. COINS has
-     no scene here (it links to the score page), so the wheel rolls past it
-     between YOURS and ROTATOR TOOL. */
+     short, at a quarter, half and three quarters of that slide. */
   var railEl = $('rail'), RI = Array.prototype.slice.call(railEl.querySelectorAll('a'));
   var RH = 56, seps = [];
   RI.forEach(function (a, i) {
@@ -897,6 +938,7 @@ h2{font-size:clamp(32px,4.4vw,56px);}
     capital();
     liquidations();
     swapTool();
+    coinScores(C);
   });
 
   /* ── HERO ─────────────────────────────────────────────── */
@@ -1457,7 +1499,76 @@ h2{font-size:clamp(32px,4.4vw,56px);}
     });
   }
 
-  /* ── 06 ROTATOR TOOL ──────────────────────────────────── */
+  /* ── 06 COINS ─────────────────────────────────────────── */
+  /* Seven real coins from the newest scored run, spread from the top of
+     the ranking to the bottom (top-150 coins only, so the names are known),
+     so all three colour bands show. The top one splits into its three
+     parts: layer1 momentum (40), layer2 macro (30), layer3 supply (30). */
+  function band(v) { return v >= 65 ? 'var(--green)' : v >= 40 ? 'var(--gold)' : 'var(--red)'; }
+  function coinScores(C) {
+    var vis = $('coins-vis');
+    TOPIC.get('signal_run_items', { select: 'run_id', order: 'run_id.desc', limit: '1' }).then(function (r) {
+      var id = r && r[0] && r[0].run_id; if (id == null) return null;
+      return TOPIC.get('signal_run_items', { run_id: 'eq.' + id, select: 'coin_id,score,breakdown' });
+    }).then(function (items) {
+      if (!Array.isArray(items) || !items.length) return;
+      var big = items.filter(function (it) { var c = C.byId[it.coin_id]; return c && c.image && !c.stable && c.market_cap_rank && c.market_cap_rank <= 150 && it.score != null; })
+        .map(function (it) { return { c: C.byId[it.coin_id], v: Number(it.score), b: it.breakdown || {} }; })
+        .sort(function (a, b) { return b.v - a.v; });
+      if (big.length < 7) return;
+      var pick = [];
+      for (var k = 0; k < 7; k++) pick.push(big[Math.round(k / 6 * (big.length - 1))]);
+      var rows = pick.map(function (o) {
+        var d = document.createElement('div'); d.className = 'sc-row';
+        d.innerHTML = '<img src="' + esc(o.c.image) + '" alt="" loading="lazy"><span class="sc-sym">' + esc(o.c.symbol.toUpperCase()) + '</span>'
+          + '<div class="sc-trk"><div class="sc-bar"></div></div><span class="sc-num">0</span>';
+        vis.appendChild(d);
+        return { el: d, bar: d.querySelector('.sc-bar'), num: d.querySelector('.sc-num'), o: o };
+      });
+      var top = pick[0], bd = top.b;
+      var parts = [['Momentum', Number(bd.layer1) || 0, 40], ['Macro', Number(bd.layer2) || 0, 30], ['Supply', Number(bd.layer3) || 0, 30]];
+      var sum = parts[0][1] + parts[1][1] + parts[2][1];
+      var pc = document.createElement('div'); pc.className = 'sc-parts';
+      pc.innerHTML = '<small>How ' + esc(top.c.symbol.toUpperCase()) + ' gets its score</small>'
+        + parts.map(function (q, i) { return '<div class="sc-part"><span>' + q[0] + '</span><div class="sc-trk"><div class="sc-bar" id="scp' + i + '"></div></div><b id="scv' + i + '">0 / ' + q[2] + '</b></div>'; }).join('')
+        + '<div class="sc-sum"><span>' + (top.v !== sum ? 'Score, after a size adjustment' : 'Score') + '</span><b id="scs">' + top.v + '</b></div>';
+      vis.appendChild(pc);
+      var W, H, phone, rh, y0;
+      function resize() {
+        W = vis.clientWidth; H = vis.clientHeight; phone = W < 520;
+        rh = phone ? 30 : 44; y0 = phone ? 46 : 60;
+        rows.forEach(function (r, i) { r.el.style.top = (y0 + i * rh) + 'px'; r.el.style.height = rh + 'px'; });
+        pc.style.top = (y0 + 7 * rh + (phone ? 10 : 22)) + 'px';
+      }
+      function render(p) {
+        steps('coins', p);
+        var col = ease(seg(p, 0.66, 0.78)), pt = ease(seg(p, 0.36, 0.5));
+        rows.forEach(function (r, i) {
+          var g = ease(seg(p, 0.02 + i * 0.03, 0.22 + i * 0.03));
+          r.el.style.opacity = String(g * (i === 0 ? 1 : 1 - 0.45 * pt * (1 - col)));
+          r.el.style.transform = 'translate3d(' + ((1 - g) * 40).toFixed(1) + 'px,0,0)';
+          var v = r.o.v * g;
+          r.bar.style.width = (Math.max(0, (v + 50) / 150) * 100).toFixed(2) + '%';
+          r.bar.style.background = col > 0.5 ? band(r.o.v) : 'var(--dim)';
+          r.bar.style.opacity = String(0.6 + 0.4 * col);
+          r.num.textContent = String(Math.round(v));
+          r.num.style.color = col > 0.5 ? band(r.o.v) : 'var(--text)';
+        });
+        pc.style.opacity = String(pt);
+        pc.style.transform = 'translate3d(0,' + ((1 - pt) * 18).toFixed(1) + 'px,0)';
+        parts.forEach(function (q, i) {
+          var g = ease(seg(p, 0.4 + i * 0.05, 0.56 + i * 0.05));
+          $('scp' + i).style.width = (Math.max(0, q[1]) / q[2] * 100 * g).toFixed(2) + '%';
+          $('scv' + i).textContent = Math.round(q[1] * g) + ' / ' + q[2];
+        });
+        $('scs').style.color = col > 0.5 ? band(top.v) : 'var(--text)';
+      }
+      resize();
+      S.add($('coins'), { render: render, resize: resize });
+    });
+  }
+
+  /* ── 07 ROTATOR TOOL ──────────────────────────────────── */
   function swapTool() {
     var vis = $('tool-vis');
     /* Example paths (not real prices): A runs first, then B catches up; the
