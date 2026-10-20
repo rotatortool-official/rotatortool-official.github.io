@@ -82,9 +82,19 @@ function ensureRefCode() {
   }).catch(function () {});
 }
 function getMyReferralLink() {
-  return window.location.origin + window.location.pathname + '?ref=' + (getMyRefCode() || getMyId());
+  return window.location.origin + '/?ref=' + (getMyRefCode() || getMyId());
 }
 setTimeout(ensureRefCode, 4000);
+
+/* rotatortool.com/#pro opens the Pro window once the board is up: the
+   tour page's "Get Pro" lands here (2026-10-20). */
+window.addEventListener('load', function () {
+  if (location.hash !== '#pro') return;
+  setTimeout(function () {
+    if (typeof openPro === 'function') openPro();
+    history.replaceState(null, '', location.pathname + location.search);
+  }, 800);
+});
 
 function getRefData()    { try { return JSON.parse(localStorage.getItem('rot_refs') || '{"refs":[],"pro":false}'); } catch(e) { return {refs:[], pro:false}; } }
 function saveRefData(d)  { try { localStorage.setItem('rot_refs', JSON.stringify(d)); } catch(e) {} }

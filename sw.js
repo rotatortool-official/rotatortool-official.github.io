@@ -14,10 +14,10 @@
    app shell for offline-capable, instant-load experience.
 ══════════════════════════════════════════════════════════════ */
 
-var CACHE_NAME = 'rotator-v1';
+var CACHE_NAME = 'rotator-v2';
 var SHELL_ASSETS = [
   '/',
-  '/index.html',
+  '/board.html',
   '/styles.css',
   '/js/ui.js',
   '/js/signals.js',

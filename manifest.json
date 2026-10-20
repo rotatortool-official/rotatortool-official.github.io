@@ -2,7 +2,7 @@
   "name": "Rotator — Market Pulse for Binance",
   "short_name": "Rotator",
   "description": "An honest market pulse for Binance traders: coin scores, your holdings and their warnings, and a swap calculator. Free to use.",
-  "start_url": "/",
+  "start_url": "/board.html",
   "display": "standalone",
   "orientation": "any",
   "background_color": "#0b0e13",

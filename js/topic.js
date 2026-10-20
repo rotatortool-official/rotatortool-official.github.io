@@ -99,7 +99,7 @@ var TOPIC = (function () {
     return new Date(Date.now() + (offsetDays || 0) * 86400000).toISOString().slice(0, 10);
   }
 
-  function boardLink(sym, root) { return (root || '') + './?coin=' + encodeURIComponent(sym); }
+  function boardLink(sym, root) { return (root || '') + 'board.html?coin=' + encodeURIComponent(sym); }
 
   function set(id, html) { var el = document.getElementById(id); if (el) el.innerHTML = html; }
 
