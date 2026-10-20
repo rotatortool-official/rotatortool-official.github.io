@@ -567,7 +567,7 @@ function renderTiles() {
    band (green ran ahead, amber middle, red lagged), so the picture also
    says how much of the money sits where. Descriptive only, no
    rebalancing advice. Holdings without an amount are named under the
-   chart, not guessed. Drawn always, shown only under :root.light. */
+   chart, not guessed. Both themes. */
 function _hpMoney(n) {
   if (n >= 1e6) return '$' + (n / 1e6).toFixed(2) + 'M';
   if (n >= 1e4) return '$' + Math.round(n / 1e3) + 'K';

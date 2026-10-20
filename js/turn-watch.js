@@ -126,8 +126,7 @@ function _twCol(key, list, dir, title, empty) {
    is the 7-day change, so a cooling leader drifts left and a lagging coin
    turning up drifts right. Bubble size = how many signs; a solid bubble has
    a tested sign. Same coins as the lists, nothing new is computed.
-   Drawn always, shown only under :root.light (light-theme-is-the-
-   experimental-board), so the dark board is unchanged. */
+   Both themes (light first, dark since the same day at Daniel's word). */
 var _twBubW = 0;
 function _twBubbles(R) {
   var pts = R.down.slice(0, 20).map(function (r) { return { r: r, top: true }; })
@@ -223,7 +222,7 @@ window.addEventListener('resize', function () {
   clearTimeout(_twBubbles._t);
   _twBubbles._t = setTimeout(function () {
     var host = document.getElementById('turn-scan');
-    if (host && _twBubW && Math.abs((host.clientWidth - 28) - _twBubW) > 40 && document.documentElement.classList.contains('light')) renderTurnScan();
+    if (host && _twBubW && Math.abs((host.clientWidth - 28) - _twBubW) > 40) renderTurnScan();
   }, 250);
 });
 
