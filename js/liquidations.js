@@ -331,7 +331,8 @@ function _liqCardHead(ctx, W, kicker, wm) {
    and X, 1080x1350 for Instagram; the social desk's shoot.js calls this on
    the live site (target chart-liq). opts.square: Binance Square's version,
    whose rules forbid addresses, so its gold bar carries the hook and the
-   name Rotator only. Returns { can, head, text }. */
+   name "Rotator Tool" ("Tool" in a flag colour, Daniel 2026-10-20), never
+   the address. Returns { can, head, text }. */
 function liqMapCanvas(rows, hours, W, H, wm, opts) {
   opts = opts || {};
   var t = _liqTotals(rows), lsh = t.all ? t.long / t.all * 100 : 50, tall = H > W;
@@ -384,10 +385,13 @@ function liqMapCanvas(rows, hours, W, H, wm, opts) {
     var barH = H >= 900 ? 150 : 124, top = H - barH;
     ctx.fillStyle = ROTATOR_SHARE.gold; ctx.fillRect(0, top, W, barH);
     ctx.fillStyle = ROTATOR_SHARE.ink; ctx.textBaseline = 'alphabetic';
-    ctx.textAlign = 'right'; ctx.font = '800 ' + (H >= 900 ? 46 : 40) + 'px Inter, sans-serif'; ctx.fillText('Rotator', W - 60, top + barH / 2 + 15);
+    ctx.textAlign = 'right'; ctx.font = '800 ' + (H >= 900 ? 46 : 40) + 'px Inter, sans-serif';
+    var pal = ROTATOR_SHARE.palettes[Math.floor(Math.random() * ROTATOR_SHARE.palettes.length)], ny = top + barH / 2 + 15;
+    ctx.fillStyle = pal[0]; ctx.fillText('Tool', W - 60, ny);
+    ctx.fillStyle = ROTATOR_SHARE.ink; ctx.fillText('Rotator ', W - 60 - ctx.measureText('Tool').width, ny);
     ctx.textAlign = 'left';
     var hook = ROTATOR_SHARE.hooks[Math.floor(Math.random() * ROTATOR_SHARE.hooks.length)];
-    shareFit(ctx, hook, W - 400, '800 {SIZE}px Inter, sans-serif', H >= 900 ? 44 : 38, 24); ctx.fillText(hook, 60, top + barH / 2 + 14);
+    shareFit(ctx, hook, W - 460, '800 {SIZE}px Inter, sans-serif', H >= 900 ? 44 : 38, 24); ctx.fillText(hook, 60, top + barH / 2 + 14);
   } else shareBrandBar(ctx, W, H);
   var head = 'At least ' + _liqUsd(t.all) + ' of Binance futures positions liquidated in ' + hours + 'h, ' + lsh.toFixed(0) + '% of it longs';
   var text = 'At least ' + _liqUsd(t.all) + ' of Binance futures positions were liquidated in the last ' + hours + 'h: '
