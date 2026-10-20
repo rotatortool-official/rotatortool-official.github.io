@@ -226,6 +226,9 @@ h2{font-size:clamp(32px,4.4vw,56px);}
 .bub.hl .ball{box-shadow:0 0 0 3px var(--ring),0 0 0 9px color-mix(in srgb,var(--ring) 22%,transparent),0 10px 30px rgba(0,0,0,.35);}
 .callout{position:absolute;left:0;top:0;z-index:5;opacity:0;font:600 12px/1.35 var(--ui);color:var(--text);background:var(--bg2);border:1px solid var(--panel-b);border-radius:12px;padding:8px 11px;box-shadow:var(--shadow);white-space:nowrap;will-change:transform,opacity;}
 .callout b{display:block;font:800 10px/1 var(--mono);letter-spacing:.1em;text-transform:uppercase;margin-bottom:4px;}
+.heat-key{left:18px;bottom:14px;display:flex;align-items:center;gap:7px;}
+.heat-key i{display:inline-block;width:64px;height:6px;border-radius:3px;background:linear-gradient(90deg,#c0262d,#ff7a45 30%,#f3ba2f 50%,#7bd36a 70%,#0e9f6e);}
+@media (max-width:520px){ .heat-key{display:none;} }
 .mid-line{position:absolute;left:18px;right:18px;height:1px;background:repeating-linear-gradient(90deg,var(--panel-b) 0 6px,transparent 6px 12px);}
 
 /* ── Yours ── */
@@ -939,6 +942,19 @@ h2{font-size:clamp(32px,4.4vw,56px);}
     if (!S.reduce) (function loop() { if (scene.cur < 0.7) render(scene.cur); requestAnimationFrame(loop); })();
   }
 
+  /* Heat colour for a 7-day move (Daniel, 2026-10-20: "heatmap instead of
+     green and red"): big fall dark red, orange, flat yellow, light green, big
+     rise dark green. Capped at +/-15%. */
+  function heat(v) {
+    var S = [[-15, [192, 38, 45]], [-6, [255, 122, 69]], [0, [243, 186, 47]], [6, [123, 211, 106]], [15, [14, 159, 110]]];
+    v = Math.max(-15, Math.min(15, Number(v) || 0));
+    for (var i = 1; i < S.length; i++) if (v <= S[i][0]) {
+      var a = S[i - 1], b = S[i], t = (v - a[0]) / (b[0] - a[0]);
+      return 'rgb(' + a[1].map(function (x, k) { return Math.round(x + (b[1][k] - x) * t); }).join(',') + ')';
+    }
+    return 'rgb(14,159,110)';
+  }
+
   /* ── 01 MOMENTUM ──────────────────────────────────────── */
   function momentum(pool) {
     var vis = $('mom-vis');
@@ -957,11 +973,12 @@ h2{font-size:clamp(32px,4.4vw,56px);}
     var lb = document.createElement('div'); lb.className = 'tag'; lb.textContent = 'Lagged this month'; vis.appendChild(lb);
     var lx = document.createElement('div'); lx.className = 'tag'; lx.textContent = '← fell this week · rose this week →'; vis.appendChild(lx);
     var cap = document.createElement('div'); cap.className = 'tag'; cap.style.cssText = 'left:18px;top:16px;'; cap.textContent = 'Placed by 30-day and 7-day moves'; vis.appendChild(cap);
+    var hk = document.createElement('div'); hk.className = 'tag heat-key'; hk.innerHTML = 'Ring: this week <i></i>'; vis.appendChild(hk);
     var B = [];
     function mk(c, isTop) {
       var d = document.createElement('div');
       d.className = 'bub';
-      d.style.setProperty('--ring', isTop ? 'var(--green)' : 'var(--red)');
+      d.style.setProperty('--ring', heat(c.price_change_percentage_7d_in_currency));
       d.innerHTML = '<div class="ball"><img src="' + esc(c.image) + '" alt="" loading="lazy"></div><span class="nm">' + esc(c.symbol.toUpperCase()) + '</span>';
       vis.appendChild(d);
       return { el: d, c: c, top: isTop, hl: c === cool ? 'cool' : c === turn ? 'turn' : null, j: rnd() };

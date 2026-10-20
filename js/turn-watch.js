@@ -127,6 +127,18 @@ function _twCol(key, list, dir, title, empty) {
    turning up drifts right. Bubble size = how many signs; a solid bubble has
    a tested sign. Same coins as the lists, nothing new is computed.
    Both themes (light first, dark since the same day at Daniel's word). */
+/* Heat colour for a 7-day move (Daniel, 2026-10-20: "heatmap instead of
+   green and red"): big fall dark red, orange, flat yellow, light green, big
+   rise dark green. Capped at +/-15%. */
+function _twHeat(v) {
+  var S = [[-15, [192, 38, 45]], [-6, [255, 122, 69]], [0, [243, 186, 47]], [6, [123, 211, 106]], [15, [14, 159, 110]]];
+  v = Math.max(-15, Math.min(15, Number(v) || 0));
+  for (var i = 1; i < S.length; i++) if (v <= S[i][0]) {
+    var a = S[i - 1], b = S[i], t = (v - a[0]) / (b[0] - a[0]);
+    return 'rgb(' + a[1].map(function (x, k) { return Math.round(x + (b[1][k] - x) * t); }).join(',') + ')';
+  }
+  return 'rgb(14,159,110)';
+}
 var _twBubW = 0;
 function _twBubbles(R) {
   var pts = R.down.slice(0, 20).map(function (r) { return { r: r, top: true }; })
@@ -203,7 +215,7 @@ function _twBubbles(R) {
     var c = p.r.c, held = (typeof isHeldCoin === 'function') && isHeldCoin(c);
     var x = p.x.toFixed(1), y = p.y.toFixed(1), tw = c.sym.length * fs * 0.64 + 8;
     var tip = c.sym + ': score ' + Math.round(c.score) + ', 7D ' + _twPct(c.p7) + ' · ' + p.r.signs.map(function (s) { return s.title; }).join(', ');
-    svg += '<g class="tw-bub ' + (p.top ? 'ahead' : 'lag') + (p.r.tested ? ' tested' : '') + (held ? ' held' : '') + '" tabindex="0" role="button"'
+    svg += '<g class="tw-bub ' + (p.top ? 'ahead' : 'lag') + (p.r.tested ? ' tested' : '') + (held ? ' held' : '') + '" style="--heat:' + _twHeat(c.p7) + '" tabindex="0" role="button"'
       + ' onclick="openTileDetail(\'' + c.id + '\', event)" onkeydown="if(event.key===\'Enter\')openTileDetail(\'' + c.id + '\', event)">'
       + '<title>' + _esc(tip) + '</title>'
       /* Lava-lamp drift (Daniel, 2026-10-20, as on the home page): each
@@ -219,6 +231,7 @@ function _twBubbles(R) {
   svg += '</svg>';
   return '<div class="tw-bub-wrap">' + svg
     + '<div class="tw-bub-key">'
+    + '<span class="k-heat-row"><i class="k-heat"></i>Ring colour = this week&rsquo;s move, fall to rise</span>'
     + '<span><i class="k-tested"></i>Thick ring = has a tested sign</span><span>Bigger = stronger: more signs, a tested sign counts double</span></div></div>';
 }
 window.addEventListener('resize', function () {

@@ -4868,6 +4868,15 @@ header{background:var(--bg2);}
 .tw-bub-key i{display:inline-block;width:9px;height:9px;border-radius:50%;margin-right:5px;vertical-align:-1px;}
 .tw-bub-key .k-ahead{border:1.5px solid #059669;background:rgba(5,150,105,.16);}
 .tw-bub-key .k-lag{border:1.5px solid #dc2626;background:rgba(220,38,38,.13);}
+/* Heat rings (Daniel, 2026-10-20): ring and name tag follow the 7-day
+   move (--heat, set per bubble by _twHeat). Light theme first; the plain
+   green/red stays on dark until he approves the look. Held coins keep
+   their gold ring. */
+:root.light .tw-bub:not(.held) .tw-bub-ring{stroke:var(--heat);}
+:root.light .tw-bub .tw-bub-tag{stroke:var(--heat);}
+.tw-bub-key .k-heat-row{display:none;}
+:root.light .tw-bub-key .k-heat-row{display:inline;}
+.tw-bub-key .k-heat{width:40px;height:7px;border-radius:4px;background:linear-gradient(90deg,#c0262d,#ff7a45 30%,#f3ba2f 50%,#7bd36a 70%,#0e9f6e);}
 .tw-bub-key .k-tested{border:3px solid var(--muted);box-sizing:border-box;}
 @media(max-width:700px){ .tw-cols{grid-template-columns:minmax(0,1fr);} .tw-row{grid-template-columns:auto 1fr;} .tw-chips{grid-column:1 / -1;justify-content:flex-start;} .tw-chg{text-align:right;} }
 
