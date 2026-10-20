@@ -135,6 +135,9 @@ body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:0;opa
   font:700 10px/1 var(--mono);letter-spacing:.14em;color:var(--dim);}
 .rail-snd:hover{color:var(--gold);}
 @media (min-width:1280px){ .rail{display:block;} .rail-snd{display:block;} }
+/* The "01 TODAY" labels repeat the wheel (Daniel, 2026-10-20), so they go
+   where the wheel shows; narrower screens have no wheel and keep them. */
+@media (min-width:1280px){ .copy .eyebrow{display:none;} .copy h2{margin-top:0;} }
 
 /* ── Scenes ───────────────────────────────────────────── */
 .scene{position:relative;z-index:1;}
@@ -793,8 +796,33 @@ h2{font-size:clamp(32px,4.4vw,56px);}
     if (ix !== snd.idx) { snd.idx = ix; click(); }
     wRaf = wPos === wGoal ? 0 : requestAnimationFrame(wheelTick);
   }
-  var drag = null;
-  function wheel() { if (drag) return; wGoal = wheelTarget(); if (!wRaf) wRaf = requestAnimationFrame(wheelTick); }
+  var drag = null, jump = null;
+  function wheel() { if (drag || jump) return; wGoal = wheelTarget(); if (!wRaf) wRaf = requestAnimationFrame(wheelTick); }
+
+  /* A jump from the wheel (Daniel, 2026-10-20: "scroll the navbar ... it
+     feels a bit off"). Before, the browser's own smooth scroll ran through
+     every scene in between, and its scroll events kept pulling the wheel
+     back, so the wheel wobbled, stalled and lost quick notches. Now the
+     wheel goes straight to the chosen chapter and ignores the page until
+     the page arrives; the page glides there in a fixed, eased time; a
+     wheel, touch or key from the visitor cancels it. */
+  function glide(y) {
+    if (jump && jump.raf) cancelAnimationFrame(jump.raf);
+    var y0 = scrollY, dist = y - y0;
+    if (S.reduce || Math.abs(dist) < 2) { jump = null; window.scrollTo(0, y); wheel(); return; }
+    var dur = clamp(420 + Math.abs(dist) / innerHeight * 70, 480, 950), t0 = performance.now();
+    jump = { y: y };
+    (function stepJ(now) {
+      if (!jump) return;
+      var k = clamp((now - t0) / dur, 0, 1), e = k < 0.5 ? 4 * k * k * k : 1 - Math.pow(-2 * k + 2, 3) / 2;
+      window.scrollTo(0, y0 + dist * e);
+      if (k < 1) jump.raf = requestAnimationFrame(stepJ);
+      else { jump = null; wheel(); }
+    })(t0);
+  }
+  function stopGlide() { if (jump) { cancelAnimationFrame(jump.raf); jump = null; wheel(); } }
+  window.addEventListener('wheel', function (e) { if (!railEl.contains(e.target)) stopGlide(); }, { passive: true });
+  ['touchstart', 'keydown'].forEach(function (ev) { window.addEventListener(ev, stopGlide, { passive: true }); });
 
   /* Spin the wheel to skip chapters (Daniel, 2026-10-20): drag it, use the
      mouse wheel over it, or click a chapter. It snaps to the nearest
@@ -808,8 +836,8 @@ h2{font-size:clamp(32px,4.4vw,56px);}
       st = dir < 0 ? c[c.length - 1] : c[0];
       if (!st) st = stops[dir < 0 ? 0 : stops.length - 1];
     }
+    glide(st.el.offsetTop + (st.i === 0 ? 0 : 2));
     wGoal = st.i; if (!wRaf) wRaf = requestAnimationFrame(wheelTick);
-    window.scrollTo({ top: st.el.offsetTop + (st.i === 0 ? 0 : 2), behavior: S.reduce ? 'auto' : 'smooth' });
   }
   railEl.addEventListener('pointerdown', function (e) {
     drag = { y: e.clientY, from: wPos, moved: false, id: e.pointerId };
