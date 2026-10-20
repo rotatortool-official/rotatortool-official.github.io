@@ -1540,28 +1540,37 @@ h2{font-size:clamp(32px,4.4vw,56px);}
         rows.forEach(function (r, i) { r.el.style.top = (y0 + i * rh) + 'px'; r.el.style.height = rh + 'px'; });
         pc.style.top = (y0 + 7 * rh + (phone ? 10 : 22)) + 'px';
       }
+      /* One thing at a time, like the other scenes (Daniel, 2026-10-20):
+         the rows arrive in turn, then the card, then each part, then the
+         total, then the colours row by row from the top. */
+      var pEls = pc.querySelectorAll('.sc-part'), sumEl = pc.querySelector('.sc-sum');
       function render(p) {
         steps('coins', p);
-        var col = ease(seg(p, 0.66, 0.78)), pt = ease(seg(p, 0.36, 0.5));
+        var pt = ease(seg(p, 0.36, 0.42)), done = seg(p, 0.66, 0.92);
         rows.forEach(function (r, i) {
-          var g = ease(seg(p, 0.02 + i * 0.03, 0.22 + i * 0.03));
-          r.el.style.opacity = String(g * (i === 0 ? 1 : 1 - 0.45 * pt * (1 - col)));
+          var g = ease(seg(p, 0.02 + i * 0.045, 0.1 + i * 0.045));
+          var c = seg(p, 0.68 + i * 0.03, 0.72 + i * 0.03);
+          r.el.style.opacity = String(g * (i === 0 ? 1 : 1 - 0.45 * pt * (1 - done)));
           r.el.style.transform = 'translate3d(' + ((1 - g) * 40).toFixed(1) + 'px,0,0)';
           var v = r.o.v * g;
           r.bar.style.width = (Math.max(0, (v + 50) / 150) * 100).toFixed(2) + '%';
-          r.bar.style.background = col > 0.5 ? band(r.o.v) : 'var(--dim)';
-          r.bar.style.opacity = String(0.6 + 0.4 * col);
+          r.bar.style.background = c > 0.5 ? band(r.o.v) : 'var(--dim)';
+          r.bar.style.opacity = String(0.6 + 0.4 * c);
           r.num.textContent = String(Math.round(v));
-          r.num.style.color = col > 0.5 ? band(r.o.v) : 'var(--text)';
+          r.num.style.color = c > 0.5 ? band(r.o.v) : 'var(--text)';
         });
         pc.style.opacity = String(pt);
         pc.style.transform = 'translate3d(0,' + ((1 - pt) * 18).toFixed(1) + 'px,0)';
         parts.forEach(function (q, i) {
-          var g = ease(seg(p, 0.4 + i * 0.05, 0.56 + i * 0.05));
+          var a = ease(seg(p, 0.42 + i * 0.065, 0.45 + i * 0.065)), g = ease(seg(p, 0.43 + i * 0.065, 0.49 + i * 0.065));
+          pEls[i].style.opacity = String(a);
           $('scp' + i).style.width = (Math.max(0, q[1]) / q[2] * 100 * g).toFixed(2) + '%';
           $('scv' + i).textContent = Math.round(q[1] * g) + ' / ' + q[2];
         });
-        $('scs').style.color = col > 0.5 ? band(top.v) : 'var(--text)';
+        var sg = ease(seg(p, 0.62, 0.66));
+        sumEl.style.opacity = String(sg);
+        sumEl.style.transform = 'translateY(' + ((1 - sg) * 6).toFixed(1) + 'px)';
+        $('scs').style.color = seg(p, 0.68, 0.72) > 0.5 ? band(top.v) : 'var(--text)';
       }
       resize();
       S.add($('coins'), { render: render, resize: resize });
