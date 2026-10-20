@@ -121,7 +121,10 @@ body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:0;opa
 .rail{position:fixed;left:24px;top:50%;height:360px;margin-top:-180px;width:220px;z-index:15;display:none;perspective:520px;
   -webkit-mask-image:linear-gradient(transparent,#000 24%,#000 76%,transparent);mask-image:linear-gradient(transparent,#000 24%,#000 76%,transparent);}
 .rail a,.rail .sep{position:absolute;left:0;top:50%;will-change:transform,opacity;transform-origin:left center;}
-.rail a{height:44px;margin-top:-22px;display:flex;align-items:center;text-decoration:none;color:var(--muted);font:700 15px/1 var(--mono);letter-spacing:.1em;white-space:nowrap;transition:color .25s ease;}
+.rail{cursor:grab;touch-action:none;user-select:none;}
+.rail.dragging{cursor:grabbing;}
+.rail.dragging a{transition:none;}
+.rail a{height:44px;margin-top:-22px;-webkit-user-drag:none;display:flex;align-items:center;text-decoration:none;color:var(--muted);font:700 15px/1 var(--mono);letter-spacing:.1em;white-space:nowrap;transition:color .25s ease;}
 .rail a i{display:none;}
 .rail a.on{color:var(--gold);}
 .rail .sep{width:34px;height:1.5px;margin-top:-.75px;border-radius:2px;background:var(--muted);}
@@ -724,7 +727,65 @@ h2{font-size:clamp(32px,4.4vw,56px);}
     if (ix !== snd.idx) { snd.idx = ix; click(); }
     wRaf = wPos === wGoal ? 0 : requestAnimationFrame(wheelTick);
   }
-  function wheel() { wGoal = wheelTarget(); if (!wRaf) wRaf = requestAnimationFrame(wheelTick); }
+  var drag = null;
+  function wheel() { if (drag) return; wGoal = wheelTarget(); if (!wRaf) wRaf = requestAnimationFrame(wheelTick); }
+
+  /* Spin the wheel to skip chapters (Daniel, 2026-10-20): drag it, use the
+     mouse wheel over it, or click a chapter. It snaps to the nearest
+     chapter with a scene and the page glides there. COINS has no scene
+     here, so a spin that lands on it moves on to the next one. */
+  function goTo(i, dir) {
+    var st = null;
+    for (var k = 0; k < stops.length; k++) if (stops[k].i === i) st = stops[k];
+    if (!st) {
+      var c = stops.filter(function (x) { return dir < 0 ? x.i < i : x.i > i; });
+      st = dir < 0 ? c[c.length - 1] : c[0];
+      if (!st) st = stops[dir < 0 ? 0 : stops.length - 1];
+    }
+    wGoal = st.i; if (!wRaf) wRaf = requestAnimationFrame(wheelTick);
+    window.scrollTo({ top: st.el.offsetTop + (st.i === 0 ? 0 : 2), behavior: S.reduce ? 'auto' : 'smooth' });
+  }
+  railEl.addEventListener('pointerdown', function (e) {
+    drag = { y: e.clientY, from: wPos, moved: false, id: e.pointerId };
+  });
+  window.addEventListener('pointermove', function (e) {
+    if (!drag || e.pointerId !== drag.id) return;
+    var dy = e.clientY - drag.y;
+    if (Math.abs(dy) > 5 && !drag.moved) { drag.moved = true; try { railEl.setPointerCapture(e.pointerId); } catch (x) {} railEl.classList.add('dragging'); }
+    if (!drag.moved) return;
+    wGoal = clamp(drag.from - dy / RH, 0, RI.length - 1);
+    if (!wRaf) wRaf = requestAnimationFrame(wheelTick);
+  });
+  function endDrag(e) {
+    if (!drag || (e && e.pointerId !== drag.id)) return;
+    var d = drag; drag = null; railEl.classList.remove('dragging');
+    if (d.moved) {
+      var i = Math.round(wGoal); goTo(i, i >= d.from ? 1 : -1);
+      /* Eat only the click that ends this drag, if the browser sends one. */
+      railEl._swallow = true; setTimeout(function () { railEl._swallow = false; }, 60);
+    }
+  }
+  window.addEventListener('pointerup', endDrag);
+  window.addEventListener('pointercancel', endDrag);
+  RI.forEach(function (a, i) {
+    a.setAttribute('draggable', 'false');
+    a.addEventListener('click', function (e) {
+      if (railEl._swallow) { railEl._swallow = false; e.preventDefault(); return; }
+      if (!a.getAttribute('data-for')) return;          /* COINS opens the score page */
+      e.preventDefault(); goTo(i, 1);
+    });
+  });
+  var wAcc = 0, wLast = 0;
+  railEl.addEventListener('wheel', function (e) {
+    e.preventDefault();
+    wAcc += e.deltaY;
+    var now = performance.now();
+    if (Math.abs(wAcc) < 40 || now - wLast < 260) return;
+    wLast = now;
+    var dir = wAcc > 0 ? 1 : -1; wAcc = 0;
+    var cur = Math.round(wGoal), nx = clamp(cur + dir, 0, RI.length - 1);
+    goTo(nx, dir);
+  }, { passive: false });
   window.addEventListener('scroll', wheel, { passive: true });
   window.addEventListener('resize', wheel);
   wheelDraw();
