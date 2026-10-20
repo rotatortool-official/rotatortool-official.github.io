@@ -948,13 +948,22 @@ h2{font-size:clamp(32px,4.4vw,56px);}
       lb.style.cssText = 'left:18px;top:' + (mid + 12) + 'px';
       lx.style.cssText = 'right:18px;bottom:14px';
     }
+    /* Lava-lamp drift (Daniel, 2026-10-20): every bubble floats on its own
+       slow path and breathes a little. Calm while the page scrolls, fuller
+       once the visitor stops on this screen. */
+    B.forEach(function (o) { o.p1 = rnd() * 6.283; o.p2 = rnd() * 6.283; o.p3 = rnd() * 6.283; o.sp = 0.65 + rnd() * 0.7; });
+    var lava = { amp: 0.35, lastScroll: 0 };
+    window.addEventListener('scroll', function () { lava.lastScroll = performance.now(); }, { passive: true });
     function render(p) {
       steps('momentum', p);
       var e = ease(seg(p, 0.03, 0.48)), h = ease(seg(p, 0.52, 0.8));
+      var tt = performance.now() / 1000, A = S.reduce ? 0 : lava.amp;
       B.forEach(function (o, i) {
         var stag = ease(seg(e * 1.25 - (i % 11) * 0.025, 0, 1));
-        var x = o.fx, y = mid + (o.fy - mid) * stag;
-        var sc = 0.7 + 0.3 * stag;
+        o.ox = Math.sin(tt * 0.33 * o.sp + o.p1) * 8 * A * stag;
+        o.oy = Math.sin(tt * 0.21 * o.sp + o.p2) * 15 * A * stag;
+        var x = o.fx + o.ox, y = mid + (o.fy - mid) * stag + o.oy;
+        var sc = (0.7 + 0.3 * stag) * (1 + 0.07 * A * Math.sin(tt * 0.5 * o.sp + o.p3));
         if (o.hl) sc *= 1 + 0.35 * h;
         o.el.style.transform = 'translate3d(' + (x - D / 2).toFixed(1) + 'px,' + (y - D / 2).toFixed(1) + 'px,0) scale(' + sc.toFixed(3) + ')';
         o.el.style.opacity = String((0.35 + 0.65 * stag) * (o.hl ? 1 : 1 - 0.55 * h));
@@ -964,19 +973,28 @@ h2{font-size:clamp(32px,4.4vw,56px);}
       [[cA, cool], [cB, turn]].forEach(function (pair) {
         var el = pair[0], c = pair[1]; if (!el || !c) return;
         var o = B.find(function (b) { return b.c === c; });
-        var w = el.offsetWidth, hh = el.offsetHeight;
-        /* Beside its bubble, on whichever side has room. */
+        if (!el._w) { el._w = el.offsetWidth; el._h = el.offsetHeight; }
+        var w = el._w, hh = el._h, bx = o.fx + (o.ox || 0), by = o.fy + (o.oy || 0);
+        /* Beside its bubble, on whichever side has room; floats with it. */
         var r = D * 0.5 * 1.35 + 10;
-        var x = o.fx + r + w + 10 < W ? o.fx + r : o.fx - r - w;
+        var x = bx + r + w + 10 < W ? bx + r : bx - r - w;
         x = clamp(x, 10, W - w - 10);
-        var y = clamp(o.fy - hh / 2, 10, H - hh - 10);
+        var y = clamp(by - hh / 2, 10, H - hh - 10);
         el.style.opacity = String(h);
         el.style.transform = 'translate3d(' + x.toFixed(1) + 'px,' + (y + (1 - h) * 8).toFixed(1) + 'px,0)';
       });
       document.querySelectorAll('#mom-vis .tag:not(.live)').forEach(function (t) { t.style.opacity = String(0.3 + 0.7 * e); });
     }
-    resize();
-    S.add($('momentum'), { render: render, resize: resize });
+    var momSc = (resize(), S.add($('momentum'), { render: render, resize: function () { resize(); B.forEach(function (o) { o.el._w = 0; }); [cA, cB].forEach(function (el) { if (el) el._w = 0; }); } }));
+    if (!S.reduce) (function loop() {
+      var r = $('momentum').getBoundingClientRect();
+      if (r.bottom > 0 && r.top < innerHeight) {
+        var idle = performance.now() - lava.lastScroll > 1200;
+        lava.amp += ((idle ? 1 : 0.35) - lava.amp) * 0.02;
+        render(momSc.cur);
+      }
+      requestAnimationFrame(loop);
+    })();
   }
 
   /* ── 05 YOURS ─────────────────────────────────────────── */
