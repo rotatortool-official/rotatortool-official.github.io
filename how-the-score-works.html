@@ -16,9 +16,9 @@
 <meta name="twitter:card" content="summary_large_image">
 <link rel="icon" href="icon-192.png" type="image/png">
 <!-- Score explainer (2026-10-20). Follows the board's saved theme
-     (rot_theme): light = the scroll-driven exploding coin, dark = the
-     same coin shown already apart, still, until the motion is approved for
-     dark (light-theme-is-the-experimental-board). Layered SVG discs, no
+     (rot_theme) for colours; the coin comes apart on scroll in both themes
+     (Daniel approved it for dark on 2026-10-20). Reduced motion keeps the
+     scroll link but drops the easing. Layered SVG discs, no
      video or images. Started as lab-score-coin.html. -->
 <script>try{if(localStorage.getItem('rot_theme')==='light')document.documentElement.className='light';}catch(e){}</script>
 <script defer src="https://cloud.umami.is/script.js" data-website-id="77a817bc-ca03-4680-83b2-c914f8efaa6e"></script>
@@ -57,11 +57,6 @@ a{color:var(--bnb)}
 .top nav a{font:600 12px/1 var(--mono);letter-spacing:.04em;color:var(--muted);text-decoration:none;padding:7px 9px;border:1px solid var(--bdr2);border-radius:5px;white-space:nowrap;}
 .top nav a:hover,.top nav a[aria-current]{color:var(--bnb);border-color:var(--bnb);}
 /* Dark: no scroll track, the coin is shown already apart. */
-.still .track{height:auto;}
-.still .stage{position:relative;height:900px;}
-@media (max-width:600px){.still .stage{height:780px;}}
-.still .hint,.still .anim-only{display:none;}
-html:not(.still) .still-only{display:none;}
 :root:not(.light) .shadow{background:radial-gradient(closest-side,rgba(0,0,0,.6),rgba(0,0,0,0));}
 
 .intro{padding:40px 0 8px;}
@@ -123,7 +118,7 @@ h1{font-size:clamp(26px,5.4vw,40px);line-height:1.15;margin:0 0 12px;letter-spac
 
 <section class="intro"><div class="wrap">
   <h1>How the Rotator score works</h1>
-  <p class="lead">Every 15 minutes, about 250 Binance coins and tokenized stocks each get one number, from −50 to 100. <span class="anim-only">Scroll, and the coin comes apart into the pieces that make it.</span><span class="still-only">Here is the coin taken apart into the pieces that make it.</span></p>
+  <p class="lead">Every 15 minutes, about 250 Binance coins and tokenized stocks each get one number, from −50 to 100. Scroll, and the coin comes apart into the pieces that make it.</p>
   <div class="hint"><i></i>Scroll</div>
 </div></section>
 
@@ -327,21 +322,15 @@ h1{font-size:clamp(26px,5.4vw,40px);line-height:1.15;margin:0 0 12px;letter-spac
   /* Scroll → target progress; the drawn progress chases it each frame so
      the motion settles softly instead of snapping with the wheel. */
   var reduce = window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches;
-  /* Dark theme (the default) shows the coin already apart and still. */
-  if (!document.documentElement.classList.contains('light')) {
-    reduce = true;
-    document.documentElement.classList.add('still');
-  }
   var target = 0, cur = 0, raf = 0;
   function readScroll(){
     var r = track.getBoundingClientRect();
     var span = r.height - window.innerHeight;
     target = span > 0 ? clamp(-r.top / span, 0, 1) : 1;
-    if (reduce) target = 1;
   }
   function tick(){
     var d = target - cur;
-    cur = Math.abs(d) < 0.0005 ? target : cur + d * 0.14;
+    cur = reduce || Math.abs(d) < 0.0005 ? target : cur + d * 0.14;
     render(cur);
     raf = cur === target ? 0 : requestAnimationFrame(tick);
   }
