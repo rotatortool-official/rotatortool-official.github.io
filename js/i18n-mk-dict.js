@@ -322,7 +322,7 @@ Object.assign(MK_TEXT, {
 
 /* ── Coin window ────────────────────────────────────────────────── */
 Object.assign(MK_TEXT, {
-  'Turn signals': 'Знаци за свртување', 'Score': 'Резултат', 'What the score is made of': 'Од што е составен резултатот',
+  'Turn signals': 'Знаци за свртување', 'Score': 'Резултат', 'What the score is made of': 'Од што е составен резултатот', 'How the score works': 'Како функционира резултатот',
   'Details': 'Детали', 'Expand for more details': 'Отворете за повеќе детали', 'Technical events': 'Технички настани', 'Derivatives': 'Деривати', 'Market data': 'Пазарни податоци',
   'Supply and unlocks': 'Понуда и отклучувања', 'Market cycle': 'Пазарен циклус', 'Liquidity': 'Ликвидност', 'Badges': 'Ознаки',
   'Insight Engine': 'Insight Engine', 'Momentum · RSI(14)': 'Моментум · RSI(14)',

@@ -1415,6 +1415,10 @@ td.qa-cell{text-align:center;width:28px;padding:0 4px !important;}
 /* ── FOOTER & MODALS — gold + white only ── */
 .faq-q{font-size:14px;font-weight:600;color:var(--bnb);margin-bottom:6px;letter-spacing:.04em;font-family:var(--font-mono);}
 .faq-a{font-size:13px;color:var(--text);line-height:1.9;font-family:var(--font-mono);}
+/* Link to the score explainer page (how-the-score-works.html, 2026-10-20). */
+.score-how{color:var(--bnb);font-weight:600;text-decoration:none;}
+.score-how:hover{text-decoration:underline;}
+.td-score-how{font-size:12px;color:var(--bnb);padding:8px 0 4px;}
 
 /* ── FOOTER ── */
 .site-footer{background:var(--bg2);border-top:1px solid var(--bdr);padding:14px 20px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;flex-shrink:0;}
@@ -4786,6 +4790,40 @@ header{background:var(--bg2);}
 .tw-trust > summary::before{content:'▸ ';}
 .tw-trust[open] > summary::before{content:'▾ ';}
 .tw-trust p{margin:4px 0 0;line-height:1.5;}
+/* Turn-sign bubble map (turn-watch.js _twBubbles, 2026-10-20): light
+   theme only for now; dark never shows it. */
+.tw-bub-wrap{display:none;}
+:root.light .tw-bub-wrap{display:block;margin:0 0 12px;}
+.tw-bub-svg{display:block;width:100%;height:auto;font-family:var(--font-mono);}
+.tw-bub-top{fill:rgba(5,150,105,.06);}
+.tw-bub-bot{fill:rgba(220,38,38,.05);}
+.tw-bub-ax{stroke:rgba(0,0,0,.14);stroke-width:1;stroke-dasharray:3 4;}
+.tw-bub-q{font-size:10px;font-weight:600;letter-spacing:.04em;fill:var(--muted);text-transform:uppercase;}
+.tw-bub{cursor:pointer;outline:none;transform-box:fill-box;transform-origin:center;transition:transform .18s cubic-bezier(.23,1,.32,1);}
+.tw-bub:hover,.tw-bub:focus-visible{transform:scale(1.1);}
+@media (prefers-reduced-motion: reduce){ .tw-bub{transition:none;} .tw-bub:hover,.tw-bub:focus-visible{transform:none;} }
+.tw-bub-bg{fill:#fff;}
+.tw-bub.ahead .tw-bub-bg{fill:rgba(5,150,105,.16);}
+.tw-bub.lag .tw-bub-bg{fill:rgba(220,38,38,.13);}
+.tw-bub-ring{fill:none;stroke-width:2;}
+.tw-bub.tested .tw-bub-ring{stroke-width:3.5;}
+.tw-bub.ahead .tw-bub-ring{stroke:#059669;}
+.tw-bub.lag .tw-bub-ring{stroke:#dc2626;}
+.tw-bub.held .tw-bub-ring{stroke:var(--bnb);}
+.tw-bub-tag{stroke-width:1;}
+.tw-bub.ahead .tw-bub-tag{fill:#fff;stroke:#059669;}
+.tw-bub.lag .tw-bub-tag{fill:#fff;stroke:#dc2626;}
+.tw-bub.ahead.tested .tw-bub-tag{fill:#059669;}
+.tw-bub.lag.tested .tw-bub-tag{fill:#dc2626;}
+.tw-bub text{font-weight:700;pointer-events:none;}
+.tw-bub.ahead text{fill:#04533c;}
+.tw-bub.lag text{fill:#8a1717;}
+.tw-bub.tested text{fill:#fff;}
+.tw-bub-key{display:flex;flex-wrap:wrap;gap:4px 14px;font-size:11px;color:var(--muted);margin-top:6px;}
+.tw-bub-key i{display:inline-block;width:9px;height:9px;border-radius:50%;margin-right:5px;vertical-align:-1px;}
+.tw-bub-key .k-ahead{border:1.5px solid #059669;background:rgba(5,150,105,.16);}
+.tw-bub-key .k-lag{border:1.5px solid #dc2626;background:rgba(220,38,38,.13);}
+.tw-bub-key .k-tested{border:3px solid var(--muted);box-sizing:border-box;}
 @media(max-width:700px){ .tw-cols{grid-template-columns:minmax(0,1fr);} .tw-row{grid-template-columns:auto 1fr;} .tw-chips{grid-column:1 / -1;justify-content:flex-start;} .tw-chg{text-align:right;} }
 
 .coin-alerts{background:var(--bg2);border:1px solid var(--bdr);border-radius:var(--card-radius,8px);padding:10px 12px;margin:0 0 10px;font-family:var(--font-ui);}

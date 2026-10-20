@@ -119,6 +119,114 @@ function _twCol(key, list, dir, title, empty) {
   return html + '</div>';
 }
 
+/* ── Bubble map of the same coins (2026-10-20, light theme only) ──
+   The two lists above as one picture, after Uptick's RADAR quadrants.
+   Up/down is the score: coins that ran ahead (score 55+) sit on top in
+   green, coins that lagged (35 and under) at the bottom in red. Left/right
+   is the 7-day change, so a cooling leader drifts left and a lagging coin
+   turning up drifts right. Bubble size = how many signs; a solid bubble has
+   a tested sign. Same coins as the lists, nothing new is computed.
+   Drawn always, shown only under :root.light (light-theme-is-the-
+   experimental-board), so the dark board is unchanged. */
+var _twBubW = 0;
+function _twBubbles(R) {
+  var pts = R.down.slice(0, 20).map(function (r) { return { r: r, top: true }; })
+    .concat(R.up.slice(0, 20).map(function (r) { return { r: r, top: false }; }));
+  if (!pts.length) return '';
+  var host = document.getElementById('turn-scan');
+  var W = Math.max(300, Math.min(900, (host && host.clientWidth - 28) || 600));
+  _twBubW = W;
+  var phone = W < 520, padX = phone ? 10 : 24, lab = 22;
+  /* The coin logo IS the bubble (Daniel, 2026-10-20); the symbol rides on a
+     small tag across the bubble's bottom edge, which overhangs by tag px. */
+  var ph = phone ? 12 : 13, tag = ph / 2 + 1;
+  /* Size = signal strength (Daniel, 2026-10-20: stronger bigger, weakest
+     stay at the old size so they remain readable). Strength = number of
+     signs, a tested sign counting double, 0..4 steps above the base. */
+  pts.forEach(function (p) {
+    p.str = Math.max(0, Math.min(4, p.r.signs.length - 1 + (p.r.tested ? 2 : 0)));
+    p.rad = (phone ? 13 : 15) + p.str * (phone ? 3.5 : 5);
+  });
+  /* Each half is only as tall as its bubbles need (Daniel, 2026-10-20:
+     cut the empty space, most of all on phones). */
+  function band(list) {
+    if (!list.length) return 28;
+    var area = list.reduce(function (s, p) { return s + Math.pow(2 * p.rad + 8, 2); }, 0) * 1.6;
+    var maxR = Math.max.apply(null, list.map(function (p) { return p.rad; }));
+    return Math.round(Math.max(2 * maxR + 10 + tag, phone ? 0 : 110, Math.min(phone ? 280 : 220, area / (W - 2 * padX))));
+  }
+  var top = pts.filter(function (p) { return p.top; }), bot = pts.filter(function (p) { return !p.top; });
+  var bT = band(top), bB = band(bot);
+  var mid = lab + bT + 6, H = mid + 6 + bB + lab;
+  var lim = { top: [lab, lab + bT], bot: [mid + 6, mid + 6 + bB] };
+  /* Even spread, order kept: left to right by 7-day change, up and down
+     by score (higher on top = further ahead; lower at the bottom = further
+     behind), mixed with an even stagger so a half never collapses into a
+     line. Ranks, not values, so one outlier cannot squeeze the rest. */
+  [top, bot].forEach(function (list) {
+    var n = list.length, y0 = list === top ? lim.top : lim.bot;
+    var byX = list.slice().sort(function (a, b) { return (Number(a.r.c.p7) || 0) - (Number(b.r.c.p7) || 0); });
+    var byS = list.slice().sort(function (a, b) { return b.r.c.score - a.r.c.score; });
+    byX.forEach(function (p, i) { p.x = padX + (i + 0.5) / n * (W - 2 * padX); p.ix = i; });
+    byS.forEach(function (p, i) {
+      var t = n > 1 ? i / (n - 1) : 0.5, s = (p.ix * 0.618034) % 1;
+      p.y = y0[0] + p.rad + (0.5 * t + 0.5 * s) * (y0[1] - y0[0] - 2 * p.rad);
+    });
+  });
+  /* Nudge overlapping bubbles apart, staying in their own half. */
+  for (var it = 0; it < 80; it++) {
+    for (var i = 0; i < pts.length; i++) for (var j = i + 1; j < pts.length; j++) {
+      var a = pts[i], b = pts[j], dx = b.x - a.x, dy = b.y - a.y, d = Math.sqrt(dx * dx + dy * dy) || 0.01, need = a.rad + b.rad + (phone ? 6 : 4) + (Math.abs(dy) > Math.abs(dx) ? tag : 0);
+      if (d < need) { var k = (need - d) / d / 2; a.x -= dx * k; a.y -= dy * k; b.x += dx * k; b.y += dy * k; }
+    }
+    pts.forEach(function (p) {
+      var l = p.top ? lim.top : lim.bot;
+      p.x = Math.max(p.rad + 2, Math.min(W - p.rad - 2, p.x));
+      p.y = Math.max(l[0] + p.rad, Math.min(l[1] - p.rad - tag, p.y));
+    });
+  }
+  var fs = phone ? 9 : 10;
+  var q = function (x, y, anchor, t) { return '<text class="tw-bub-q" x="' + x + '" y="' + y + '" text-anchor="' + anchor + '">' + t + '</text>'; };
+  var svg = '<svg class="tw-bub-svg" viewBox="0 0 ' + W + ' ' + H + '" width="' + W + '" height="' + H + '" role="img" aria-label="Turn signs as bubbles: coins that ran ahead on top, coins that lagged at the bottom, 7-day change left to right.">'
+    + '<defs><clipPath id="tw-ico-clip" clipPathUnits="objectBoundingBox"><circle cx=".5" cy=".5" r=".5"/></clipPath></defs>'
+    + '<rect class="tw-bub-top" x="0" y="0" width="' + W + '" height="' + mid + '" rx="8"/>'
+    + '<rect class="tw-bub-bot" x="0" y="' + mid + '" width="' + W + '" height="' + (H - mid) + '" rx="8"/>'
+    + '<line class="tw-bub-ax" x1="4" y1="' + mid + '" x2="' + (W - 4) + '" y2="' + mid + '"/>'
+    /* Two halves, not four corners (Daniel, 2026-10-20: corners were often empty).
+       Left/right still places each coin by its 7-day change. */
+    + q(8, 15, 'start', 'Ran ahead · cooling signs')
+    + q(8, H - 8, 'start', 'Lagged · turn-up signs')
+    + q(W - 8, H - 8, 'end', phone ? '← 7D →' : '← fell this week · rose this week →')
+    + (top.length ? '' : q(W / 2, lab + 18, 'middle', 'None right now'))
+    + (bot.length ? '' : q(W / 2, mid + 24, 'middle', 'None right now'));
+  /* Bottom bubbles first, so each name tag paints over the bubble under it. */
+  pts.slice().sort(function (a, b) { return b.y - a.y; }).forEach(function (p) {
+    var c = p.r.c, held = (typeof isHeldCoin === 'function') && isHeldCoin(c);
+    var x = p.x.toFixed(1), y = p.y.toFixed(1), tw = c.sym.length * fs * 0.64 + 8;
+    var tip = c.sym + ': score ' + Math.round(c.score) + ', 7D ' + _twPct(c.p7) + ' · ' + p.r.signs.map(function (s) { return s.title; }).join(', ');
+    svg += '<g class="tw-bub ' + (p.top ? 'ahead' : 'lag') + (p.r.tested ? ' tested' : '') + (held ? ' held' : '') + '" tabindex="0" role="button"'
+      + ' onclick="openTileDetail(\'' + c.id + '\', event)" onkeydown="if(event.key===\'Enter\')openTileDetail(\'' + c.id + '\', event)">'
+      + '<title>' + _esc(tip) + '</title>'
+      + '<circle class="tw-bub-bg" cx="' + x + '" cy="' + y + '" r="' + p.rad + '"/>'
+      + (c.image ? '<image href="' + _esc(c.image) + '" x="' + (p.x - p.rad).toFixed(1) + '" y="' + (p.y - p.rad).toFixed(1) + '" width="' + 2 * p.rad + '" height="' + 2 * p.rad
+        + '" clip-path="url(#tw-ico-clip)" preserveAspectRatio="xMidYMid slice" onerror="this.remove()"/>' : '')
+      + '<circle class="tw-bub-ring" cx="' + x + '" cy="' + y + '" r="' + p.rad + '"/>'
+      + '<rect class="tw-bub-tag" x="' + (p.x - tw / 2).toFixed(1) + '" y="' + (p.y + p.rad - ph / 2).toFixed(1) + '" width="' + tw.toFixed(1) + '" height="' + ph + '" rx="' + ph / 2 + '"/>'
+      + '<text x="' + x + '" y="' + (p.y + p.rad + fs * 0.34).toFixed(1) + '" text-anchor="middle" font-size="' + fs + '">' + _esc(c.sym) + '</text></g>';
+  });
+  svg += '</svg>';
+  return '<div class="tw-bub-wrap">' + svg
+    + '<div class="tw-bub-key">'
+    + '<span><i class="k-tested"></i>Thick ring = has a tested sign</span><span>Bigger = stronger: more signs, a tested sign counts double</span></div></div>';
+}
+window.addEventListener('resize', function () {
+  clearTimeout(_twBubbles._t);
+  _twBubbles._t = setTimeout(function () {
+    var host = document.getElementById('turn-scan');
+    if (host && _twBubW && Math.abs((host.clientWidth - 28) - _twBubW) > 40 && document.documentElement.classList.contains('light')) renderTurnScan();
+  }, 250);
+});
+
 function renderTurnScan() {
   var host = document.getElementById('turn-scan');
   if (!host) return;
@@ -135,6 +243,7 @@ function renderTurnScan() {
     + 'The same reading as each coin\'s window; tap a coin to open it.</span>'
     /* Phones (light, 2026-10-11): one short line instead of three. */
     + '<span class="tw-sub-short">Coins whose trend may be changing. Tap one to open it.</span></div>'
+    + _twBubbles(R)
     + '<div class="tw-cols">'
     + _twCol('up', R.up, 'up', '▲ Lagged, turn-up signs', 'No lagging coin shows a turn-up sign right now.')
     + _twCol('down', R.down, 'down', '▼ Ran ahead, cooling signs', 'No leading coin shows a cooling sign right now.')

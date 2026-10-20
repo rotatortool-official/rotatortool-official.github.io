@@ -1,0 +1,357 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>How the Rotator Score Works — momentum, markets, supply | Rotator</title>
+<meta name="description" content="What is inside the Rotator crypto score: momentum rank over 7, 14 and 30 days, strength against Bitcoin, gold, silver and oil, and supply and unlocks. From −50 to 100, for about 250 Binance coins.">
+<meta name="robots" content="index, follow">
+<link rel="canonical" href="https://rotatortool.com/how-the-score-works.html">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Rotator">
+<meta property="og:title" content="What's inside a Rotator score">
+<meta property="og:description" content="One number from −50 to 100, built from momentum, the big markets and supply. Scroll and the coin comes apart.">
+<meta property="og:url" content="https://rotatortool.com/how-the-score-works.html">
+<meta property="og:image" content="https://rotatortool.com/og-card.png?v=20261011">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="icon-192.png" type="image/png">
+<!-- Score explainer (2026-10-20). Follows the board's saved theme
+     (rot_theme): light = the scroll-driven exploding coin, dark = the
+     same coin shown already apart, still, until the motion is approved for
+     dark (light-theme-is-the-experimental-board). Layered SVG discs, no
+     video or images. Started as lab-score-coin.html. -->
+<script>try{if(localStorage.getItem('rot_theme')==='light')document.documentElement.className='light';}catch(e){}</script>
+<script defer src="https://cloud.umami.is/script.js" data-website-id="77a817bc-ca03-4680-83b2-c914f8efaa6e"></script>
+<script type="application/ld+json">
+{"@context":"https://schema.org","@graph":[
+ {"@type":"WebPage","@id":"https://rotatortool.com/how-the-score-works.html","url":"https://rotatortool.com/how-the-score-works.html","name":"How the Rotator score works","inLanguage":"en","isPartOf":{"@id":"https://rotatortool.com/#site"},"publisher":{"@id":"https://rotatortool.com/#org"},
+  "description":"The Rotator score runs from −50 to 100 and is built from a momentum rank, strength against Bitcoin, gold, silver and oil, supply and unlocks, and a small size adjustment."},
+ {"@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"Rotator","item":"https://rotatortool.com/"},{"@type":"ListItem","position":2,"name":"How the score works","item":"https://rotatortool.com/how-the-score-works.html"}]}
+]}
+</script>
+<style>
+:root{
+  --bg:#05080c;--bg2:#0a0f17;--bg3:#0f1620;--bgz:#0d131c;
+  --bdr:rgba(255,255,255,.07);--bdr2:rgba(255,255,255,.14);
+  --text:#e6eaf0;--muted:#8a95a8;--bnb:#f3ba2f;--tg:#2aabee;--tglink:#4cc0f5;
+  --shadow:0 2px 10px rgba(0,0,0,.35);
+  --mono:'IBM Plex Mono',ui-monospace,Menlo,monospace;
+  --ui:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;
+}
+:root.light{
+  --bg:#ddeaf6;--bg2:#d4e2f0;--bg3:#eef5fc;--bgz:#f8fafc;
+  --bdr:rgba(0,0,0,0.09);--bdr2:rgba(0,0,0,0.15);
+  --text:#111824;--muted:#3d5468;
+  --green:#059669;--red:#dc2626;--amber:#b87818;--bnb:#8a6610;--blue:#1f6fd1;--slate:#5b6b7f;
+  --tg:#2aabee;--tglink:#0f7fb8;
+  --shadow:0 2px 8px rgba(0,0,0,.06),0 6px 20px rgba(0,0,0,.04);
+}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--bg);color:var(--text);font:16px/1.6 var(--ui);-webkit-font-smoothing:antialiased;}
+a{color:var(--bnb)}
+.wrap{max-width:900px;margin:0 auto;padding:0 16px;}
+.top{border-bottom:1px solid var(--bdr);background:var(--bg2);}
+.top .wrap{display:flex;align-items:center;justify-content:space-between;gap:12px;padding-top:12px;padding-bottom:12px;}
+.logo{font:800 18px/1 var(--mono);letter-spacing:.06em;color:var(--bnb);text-decoration:none;}
+.top nav{display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end;}
+.top nav a{font:600 12px/1 var(--mono);letter-spacing:.04em;color:var(--muted);text-decoration:none;padding:7px 9px;border:1px solid var(--bdr2);border-radius:5px;white-space:nowrap;}
+.top nav a:hover,.top nav a[aria-current]{color:var(--bnb);border-color:var(--bnb);}
+/* Dark: no scroll track, the coin is shown already apart. */
+.still .track{height:auto;}
+.still .stage{position:relative;height:900px;}
+@media (max-width:600px){.still .stage{height:780px;}}
+.still .hint,.still .anim-only{display:none;}
+html:not(.still) .still-only{display:none;}
+:root:not(.light) .shadow{background:radial-gradient(closest-side,rgba(0,0,0,.6),rgba(0,0,0,0));}
+
+.intro{padding:40px 0 8px;}
+h1{font-size:clamp(26px,5.4vw,40px);line-height:1.15;margin:0 0 12px;letter-spacing:-.01em;}
+.lead{color:var(--muted);font-size:17px;margin:0;max-width:640px;}
+.hint{display:flex;align-items:center;gap:8px;margin-top:18px;font:600 12px/1 var(--mono);letter-spacing:.08em;text-transform:uppercase;color:var(--muted);}
+.hint i{display:block;width:1px;height:26px;background:linear-gradient(var(--muted),transparent);animation:drip 1.6s cubic-bezier(.23,1,.32,1) infinite;}
+@keyframes drip{0%{transform:scaleY(0);transform-origin:top}50%{transform:scaleY(1);transform-origin:top}51%{transform-origin:bottom}100%{transform:scaleY(0);transform-origin:bottom}}
+
+/* The scroll track: tall section, sticky stage inside it. */
+.track{position:relative;height:340vh;}
+.stage{position:sticky;top:0;height:100vh;height:100svh;overflow:hidden;}
+.stage-in{position:relative;height:100%;max-width:900px;margin:0 auto;}
+.disc{position:absolute;left:0;top:0;will-change:transform;}
+.disc svg{display:block;overflow:visible;}
+.shadow{position:absolute;left:0;top:0;border-radius:50%;background:radial-gradient(closest-side,rgba(17,24,36,.22),rgba(17,24,36,0));will-change:transform,opacity;}
+
+.lbl{position:absolute;left:0;top:0;will-change:transform,opacity;opacity:0;}
+.lbl .line{position:absolute;right:100%;top:50%;height:1px;background:var(--bdr2);transform-origin:right center;}
+.lbl .dot{position:absolute;top:50%;width:7px;height:7px;margin:-3.5px 0 0 -3.5px;border-radius:50%;}
+.lbl .card{background:var(--bgz);border:1px solid var(--bdr);border-radius:10px;padding:9px 12px;box-shadow:var(--shadow);}
+.lbl .head{display:flex;align-items:baseline;justify-content:space-between;gap:10px;}
+.lbl .name{font:700 13px/1.25 var(--ui);}
+.lbl .pts{font:800 17px/1 var(--mono);font-variant-numeric:tabular-nums;white-space:nowrap;}
+.lbl .range{font:600 10px/1.3 var(--mono);letter-spacing:.06em;text-transform:uppercase;color:var(--muted);margin-top:2px;}
+.lbl .txt{font-size:13px;line-height:1.45;color:var(--muted);margin-top:5px;}
+
+.compact .lbl .txt{display:none;}
+.sum{position:absolute;z-index:2;left:0;right:0;bottom:22px;text-align:center;font:700 13px/1.4 var(--mono);color:var(--muted);opacity:0;will-change:opacity;}
+.sum b{color:var(--text);font-size:15px;}
+
+.after{padding:24px 0 60px;}
+.after h2{font-size:21px;line-height:1.3;margin:0 0 10px;}
+.after p{margin:0 0 12px;max-width:640px;}
+.note{background:var(--bgz);border:1px solid var(--bdr);border-left:3px solid var(--tg);border-radius:10px;padding:14px 16px;margin:20px 0 0;max-width:640px;}
+.note a{color:var(--tglink);font-weight:700;}
+
+/* Phones: smaller coin, labels a little tighter. */
+@media (max-width:600px){
+  .lbl .card{padding:7px 9px;}
+  .lbl .name{font-size:12px;}
+  .lbl .pts{font-size:15px;}
+  .lbl .txt{font-size:11.5px;line-height:1.4;}
+}
+@media (prefers-reduced-motion:reduce){ .hint i{animation:none;} }
+</style>
+</head>
+<body>
+<header class="top"><div class="wrap">
+  <a class="logo" href="./">⬡ ROTATOR</a>
+  <nav aria-label="Topics">
+    <a href="./">Board</a>
+    <a href="how-the-score-works.html" aria-current="page">Score</a>
+    <a href="golden-cross.html">Golden crosses</a>
+    <a href="bitcoin-etf-flows.html">ETF flows</a>
+    <a href="token-unlocks.html">Unlocks</a>
+  </nav>
+</div></header>
+
+<section class="intro"><div class="wrap">
+  <h1>How the Rotator score works</h1>
+  <p class="lead">Every 15 minutes, about 250 Binance coins and tokenized stocks each get one number, from −50 to 100. <span class="anim-only">Scroll, and the coin comes apart into the pieces that make it.</span><span class="still-only">Here is the coin taken apart into the pieces that make it.</span></p>
+  <div class="hint"><i></i>Scroll</div>
+</div></section>
+
+<section class="track" id="track">
+  <div class="stage"><div class="stage-in" id="stage">
+    <div class="shadow" id="shadow"></div>
+    <div class="sum" id="sum">22 + 18 − 6 + 0 = <b>34</b> &nbsp;·&nbsp; example coin</div>
+  </div></div>
+</section>
+
+<section class="after"><div class="wrap">
+  <h2>One number, four parts</h2>
+  <p>Momentum and the comparison with the big markets say how the coin has moved. Supply says what could weigh on it: big unlocks and high inflation pull the score down, and they are the reason a score can go below zero. The size nudge is a small, fixed step by market cap.</p>
+  <p>A high score means the coin has been stronger than the rest. A low score means it has been weaker.</p>
+  <h2>What the score is not</h2>
+  <p>It describes what already happened. It is not a forecast. Across 771 days of history, moving from a high-scoring coin into a low one did not beat picking two coins at random, so Rotator shows the score as information, not as a call. The <a href="track-record.html">track record</a> shows every result, good or bad.</p>
+  <p class="small" style="color:var(--muted);font-size:13px">The numbers on the coin are an example, not a live coin. Live scores are on the <a href="./">board</a>.</p>
+  <div class="note"><strong>Rotator Pro: personal Telegram alerts.</strong> Scores are free for everyone. Pro adds a personal Telegram briefing twice a week about your own coins, and an alert right away if Binance delists one of them. <a href="https://t.me/rotatortool" rel="noopener">Start on Telegram ›</a></div>
+</div></section>
+
+<script>
+(function(){
+  /* Top to bottom as the coin stacks. Points are an example coin; the
+     ranges are the engine's (rotator-engine/engine.js computeScores). */
+  var LAYERS = [
+    {key:'cap',  name:'Rotator score',            pts:'34',  range:'−50 to 100', col:['#f6d26b','#d9a62a','#8a6610'],
+     txt:'The number on the board: the three parts below plus a small size nudge.'},
+    {key:'mom',  name:'Momentum rank',            pts:'+22', range:'0 to 40',    col:['#5fd3a8','#0e9f72','#04664a'], ink:'#059669',
+     txt:'Where the coin ranks against every other coin over 7, 14 and 30 days. The 30 days weigh most.'},
+    {key:'mac',  name:'Against the big markets',  pts:'+18', range:'0 to 30',    col:['#8ab8f2','#2f7ad8','#174a8c'], ink:'#1f6fd1',
+     txt:'This week against Bitcoin, gold, silver and oil, with the dollar and the altcoin market as wind.'},
+    {key:'tok',  name:'Supply and unlocks',       pts:'−6',  range:'−50 to +30', col:['#f0c27a','#c98a26','#7d5310'], ink:'#b87818',
+     txt:'How much supply is already out, burns, and the risk of new coins unlocking. The only part that can go below zero.'},
+    {key:'size', name:'Size nudge',               pts:'0',   range:'−4 to +2',   col:['#c3cdd9','#8695a8','#4d5b6d'], ink:'#5b6b7f',
+     txt:'A small plus or minus by market cap: −4 under $100M, +2 over $50B.'}
+  ];
+  LAYERS[0].ink = '#8a6610';
+
+  var stage = document.getElementById('stage');
+  var track = document.getElementById('track');
+  var shadow = document.getElementById('shadow');
+  var sum = document.getElementById('sum');
+  var N = LAYERS.length;
+
+  /* Disc geometry in SVG units: face ellipse RX x RY, side band TH tall.
+     Face glyphs are drawn flat in a circle of radius R and squashed by
+     RY/RX, so they read as lying on the coin. */
+  var RX = 120, RY = 46, TH = 16, VW = 244, VH = RY*2 + TH + 4, CX = 122, CY = RY + 2;
+  var SQ = RY / RX;
+
+  function glyph(key, ink){
+    var g = '';
+    if (key === 'cap'){
+      g += '<circle r="104" fill="none" stroke="rgba(255,255,255,.55)" stroke-width="3"/>';
+      g += '<circle r="92" fill="none" stroke="rgba(90,60,0,.25)" stroke-width="1.5" stroke-dasharray="3 6"/>';
+      g += '<text y="30" text-anchor="middle" font-family="IBM Plex Mono,ui-monospace,monospace" font-weight="800" font-size="92" fill="#4a3606">34</text>';
+      g += '<text y="-50" text-anchor="middle" font-family="IBM Plex Mono,ui-monospace,monospace" font-weight="700" font-size="22" letter-spacing="6" fill="rgba(74,54,6,.75)">⬡ SCORE</text>';
+    } else if (key === 'mom'){
+      g += '<rect x="-66" y="10" width="34" height="40" rx="4" fill="rgba(255,255,255,.75)"/>';
+      g += '<rect x="-17" y="-20" width="34" height="70" rx="4" fill="rgba(255,255,255,.85)"/>';
+      g += '<rect x="32" y="-58" width="34" height="108" rx="4" fill="#fff"/>';
+      g += '<path d="M-80 30 L-30 -8 L10 -30 L74 -82" fill="none" stroke="#04533c" stroke-width="5" stroke-linecap="round"/>';
+      g += '<text y="88" text-anchor="middle" font-family="IBM Plex Mono,monospace" font-weight="700" font-size="20" fill="rgba(4,64,46,.8)">7D · 14D · 30D</text>';
+    } else if (key === 'mac'){
+      var pts = [['BTC',-58,-46],['GOLD',58,-46],['SILV',-58,48],['OIL',58,48]];
+      pts.forEach(function(p){
+        g += '<circle cx="'+p[1]+'" cy="'+p[2]+'" r="30" fill="rgba(255,255,255,.85)"/>';
+        g += '<text x="'+p[1]+'" y="'+(p[2]+7)+'" text-anchor="middle" font-family="IBM Plex Mono,monospace" font-weight="800" font-size="17" fill="#174a8c">'+p[0]+'</text>';
+      });
+      g += '<circle r="16" fill="#fff"/><text y="6" text-anchor="middle" font-family="IBM Plex Mono,monospace" font-weight="800" font-size="15" fill="#174a8c">vs</text>';
+    } else if (key === 'tok'){
+      /* 78% unlocked: pie slice. */
+      var a = 0.78 * Math.PI * 2, r = 70;
+      var x = Math.sin(a) * r, y = -Math.cos(a) * r;
+      g += '<circle r="'+r+'" fill="rgba(255,255,255,.35)"/>';
+      g += '<path d="M0 0 L0 '+(-r)+' A'+r+' '+r+' 0 1 1 '+x.toFixed(1)+' '+y.toFixed(1)+' Z" fill="rgba(255,255,255,.9)"/>';
+      g += '<text y="8" text-anchor="middle" font-family="IBM Plex Mono,monospace" font-weight="800" font-size="24" fill="#5c3c08">78%</text>';
+      g += '<text y="100" text-anchor="middle" font-family="IBM Plex Mono,monospace" font-weight="700" font-size="18" fill="rgba(92,60,8,.8)">UNLOCKED</text>';
+    } else {
+      g += '<circle r="96" fill="none" stroke="rgba(255,255,255,.7)" stroke-width="4"/>';
+      g += '<circle r="64" fill="none" stroke="rgba(255,255,255,.55)" stroke-width="4"/>';
+      g += '<circle r="32" fill="none" stroke="rgba(255,255,255,.45)" stroke-width="4"/>';
+      g += '<text y="7" text-anchor="middle" font-family="IBM Plex Mono,monospace" font-weight="800" font-size="18" fill="#2c3644">SIZE</text>';
+    }
+    return '<g transform="translate('+CX+' '+CY+') scale(1 '+SQ.toFixed(3)+')">'+g+'</g>';
+  }
+
+  function discSVG(L, i){
+    var c = L.col, id = 'd' + i;
+    var side = 'M'+(CX-RX)+' '+CY+' L'+(CX-RX)+' '+(CY+TH)+
+               ' A'+RX+' '+RY+' 0 0 0 '+(CX+RX)+' '+(CY+TH)+
+               ' L'+(CX+RX)+' '+CY+
+               ' A'+RX+' '+RY+' 0 0 1 '+(CX-RX)+' '+CY+' Z';
+    return '<svg viewBox="0 0 '+VW+' '+VH+'" aria-hidden="true">'+
+      '<defs>'+
+        '<linearGradient id="'+id+'s" x1="0" x2="1">'+
+          '<stop offset="0" stop-color="'+c[2]+'"/><stop offset=".35" stop-color="'+c[1]+'"/>'+
+          '<stop offset=".6" stop-color="'+c[0]+'"/><stop offset="1" stop-color="'+c[2]+'"/></linearGradient>'+
+        '<radialGradient id="'+id+'f" cx=".38" cy=".3" r=".9">'+
+          '<stop offset="0" stop-color="'+c[0]+'"/><stop offset=".7" stop-color="'+c[1]+'"/>'+
+          '<stop offset="1" stop-color="'+c[2]+'"/></radialGradient>'+
+      '</defs>'+
+      '<path d="'+side+'" fill="url(#'+id+'s)"/>'+
+      /* Ridges on the edge, like a coin's milled rim. */
+      '<path d="'+side+'" fill="none" stroke="rgba(0,0,0,.18)" stroke-width="1"/>'+
+      '<ellipse cx="'+CX+'" cy="'+CY+'" rx="'+RX+'" ry="'+RY+'" fill="url(#'+id+'f)"/>'+
+      '<ellipse cx="'+CX+'" cy="'+CY+'" rx="'+(RX-1)+'" ry="'+(RY-1)+'" fill="none" stroke="rgba(255,255,255,.55)" stroke-width="1.5"/>'+
+      glyph(L.key, L.ink)+
+    '</svg>';
+  }
+
+  /* Build: discs bottom-first so the top cap paints last. */
+  var discs = [], labels = [];
+  for (var i = N - 1; i >= 0; i--){
+    var d = document.createElement('div');
+    d.className = 'disc';
+    d.innerHTML = discSVG(LAYERS[i], i);
+    stage.appendChild(d);
+    discs[i] = d;
+  }
+  LAYERS.forEach(function(L, i){
+    var l = document.createElement('div');
+    l.className = 'lbl';
+    l.innerHTML = '<span class="line"></span><span class="dot" style="background:'+L.ink+'"></span>'+
+      '<div class="card"><div class="head"><span class="name">'+L.name+'</span>'+
+      '<span class="pts" style="color:'+L.ink+'">'+L.pts+'</span></div>'+
+      '<div class="range">'+L.range+'</div><div class="txt">'+L.txt+'</div></div>';
+    stage.appendChild(l);
+    labels[i] = l;
+  });
+
+  /* Layout, recomputed on resize. */
+  var G = {};
+  function layout(){
+    var W = stage.clientWidth, H = stage.clientHeight;
+    var phone = W < 600;
+    var coinW = phone ? Math.min(W * 0.42, 190) : Math.min(W * 0.36, 300);
+    var s = coinW / VW;
+    G.s = s; G.coinW = coinW; G.discH = VH * s; G.th = TH * s;
+    G.faceY = CY * s;
+    /* Exploded spread fills most of the stage height. */
+    var usable = H * (phone ? 0.70 : 0.74);
+    G.gap = Math.max(G.th, (usable - G.discH) / (N - 1));
+    G.top0 = (H - (G.gap * (N - 1) + G.discH)) / 2 - (phone ? 10 : 0);
+    var stackH = G.th * (N - 1) + G.discH;
+    G.topAsm = (H - stackH) / 2;
+    /* Diagonal explode axis, like a watch exploded view. */
+    G.dx = phone ? 4 : 16;
+    G.x0 = phone ? 6 : Math.max(16, W * 0.08);
+    G.lblX = G.x0 + coinW + (phone ? 18 : 48);
+    G.lblW = Math.min(W - G.lblX - (N - 1) * G.dx - 12, phone ? 999 : 340);
+    /* Short stage: the long sentence would make cards overlap, so keep
+       name, points and range only. */
+    stage.classList.toggle('compact', G.gap < 118);
+    discs.forEach(function(d){ d.firstChild.setAttribute('width', coinW); d.firstChild.setAttribute('height', G.discH); });
+    labels.forEach(function(l){ l.style.width = G.lblW + 'px'; });
+    shadow.style.width = coinW * 1.1 + 'px';
+    shadow.style.height = coinW * 0.32 + 'px';
+    render(cur, true);
+  }
+
+  /* Ease-out with a soft landing (Kowalski-style: fast start, gentle stop). */
+  function easeOut(t){ return 1 - Math.pow(1 - t, 3); }
+  function clamp(v, a, b){ return v < a ? a : v > b ? b : v; }
+
+  function render(p){
+    /* Phases: 0–.10 assembled, .10–.72 explode (staggered), .72–1 hold. */
+    var e = clamp((p - 0.10) / 0.62, 0, 1);
+    var lastFaceY = 0;
+    for (var i = 0; i < N; i++){
+      /* Each layer starts a little later than the one above it. */
+      var start = i * 0.07, li = easeOut(clamp((e - start) / (1 - 0.07 * (N - 1)), 0, 1));
+      var yA = G.topAsm + i * G.th;
+      var yE = G.top0 + i * G.gap;
+      var y = yA + (yE - yA) * li;
+      var x = G.x0 + i * G.dx * li;
+      discs[i].style.transform = 'translate3d(' + x.toFixed(1) + 'px,' + y.toFixed(1) + 'px,0)';
+      var faceY = y + G.faceY;
+      if (i === N - 1) lastFaceY = y + G.discH;
+      /* Labels follow their disc; they appear once the layer has lifted. */
+      var lo = clamp((li - 0.55) / 0.45, 0, 1);
+      var l = labels[i];
+      var lh = l.offsetHeight;
+      var lx = G.lblX + i * G.dx * li + (1 - lo) * 14;
+      l.style.transform = 'translate3d(' + lx.toFixed(1) + 'px,' + (faceY - lh / 2).toFixed(1) + 'px,0)';
+      l.style.opacity = lo.toFixed(3);
+      var line = l.firstChild, dot = l.children[1];
+      var lineW = (G.lblX - (x + G.coinW * 0.5 + RX * G.s * 0.6)) + (1 - lo) * 14;
+      line.style.width = Math.max(0, lineW).toFixed(1) + 'px';
+      line.style.transform = 'scaleX(' + lo.toFixed(3) + ')';
+      dot.style.left = (-Math.max(0, lineW)).toFixed(1) + 'px';
+      dot.style.opacity = lo.toFixed(3);
+    }
+    var sh = G.topAsm + G.th * (N - 1) + G.discH;
+    var shY = sh + (lastFaceY + 10 - sh) * e;
+    shadow.style.transform = 'translate3d(' + (G.x0 - G.coinW * 0.05 + (N - 1) * G.dx * e).toFixed(1) + 'px,' + (shY - G.coinW * 0.16).toFixed(1) + 'px,0)';
+    shadow.style.opacity = (1 - e * 0.45).toFixed(3);
+    sum.style.opacity = clamp((p - 0.80) / 0.12, 0, 1).toFixed(3);
+  }
+
+  /* Scroll → target progress; the drawn progress chases it each frame so
+     the motion settles softly instead of snapping with the wheel. */
+  var reduce = window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches;
+  /* Dark theme (the default) shows the coin already apart and still. */
+  if (!document.documentElement.classList.contains('light')) {
+    reduce = true;
+    document.documentElement.classList.add('still');
+  }
+  var target = 0, cur = 0, raf = 0;
+  function readScroll(){
+    var r = track.getBoundingClientRect();
+    var span = r.height - window.innerHeight;
+    target = span > 0 ? clamp(-r.top / span, 0, 1) : 1;
+    if (reduce) target = 1;
+  }
+  function tick(){
+    var d = target - cur;
+    cur = Math.abs(d) < 0.0005 ? target : cur + d * 0.14;
+    render(cur);
+    raf = cur === target ? 0 : requestAnimationFrame(tick);
+  }
+  function onScroll(){ readScroll(); if (!raf) raf = requestAnimationFrame(tick); }
+
+  window.addEventListener('scroll', onScroll, {passive:true});
+  window.addEventListener('resize', function(){ layout(); onScroll(); });
+  readScroll(); cur = target;
+  layout();
+})();
+</script>
+</body>
+</html>
