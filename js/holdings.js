@@ -561,6 +561,77 @@ function renderTiles() {
 }
 
 
+/* ── Holdings mix donut (2026-10-20, light theme only) ───────────
+   After Uptick's portfolio card: what share of the money each holding
+   is, by amount × live price. Slices are coloured by the coin's score
+   band (green ran ahead, amber middle, red lagged), so the picture also
+   says how much of the money sits where. Descriptive only, no
+   rebalancing advice. Holdings without an amount are named under the
+   chart, not guessed. Drawn always, shown only under :root.light. */
+function _hpMoney(n) {
+  if (n >= 1e6) return '$' + (n / 1e6).toFixed(2) + 'M';
+  if (n >= 1e4) return '$' + Math.round(n / 1e3) + 'K';
+  return '$' + n.toLocaleString(undefined, { maximumFractionDigits: n >= 100 ? 0 : 2 });
+}
+function _holdingsPie() {
+  var rows = [], noAmt = [];
+  holdings.forEach(function(h) {
+    var c = coinOfHolding(h);
+    if (!c || c._retired) return;
+    if (h.qty > 0 && c.price > 0) rows.push({ c: c, v: h.qty * c.price });
+    else noAmt.push(c.sym);
+  });
+  if (!rows.length) {
+    return holdings.length ? '<div class="hp-wrap hp-hint">Add the amount you hold to a coin to see your mix as a chart.</div>' : '';
+  }
+  rows.sort(function(a, b) { return b.v - a.v; });
+  var total = rows.reduce(function(s, r) { return s + r.v; }, 0);
+  /* Band colours, two shades each so neighbours in the same band differ. */
+  var COL = { hi: ['#059669', '#34c39a'], md: ['#b87818', '#e0a743'], lo: ['#dc2626', '#f06b6b'] };
+  var seen = { hi: 0, md: 0, lo: 0 }, byBand = { hi: 0, md: 0, lo: 0 };
+  var R = 46, r = 30, cx = 54, cy = 54, a0 = -Math.PI / 2, paths = '';
+  rows.forEach(function(row) {
+    var band = scoreBand(row.c.score);
+    row.col = COL[band][seen[band]++ % 2];
+    row.pct = row.v / total * 100;
+    byBand[band] += row.pct;
+    var a1 = a0 + row.v / total * Math.PI * 2;
+    var tip = row.c.sym + ': ' + row.pct.toFixed(1) + '% · ' + _hpMoney(row.v) + ' · score ' + Math.round(row.c.score);
+    if (rows.length === 1) {
+      paths += '<circle cx="' + cx + '" cy="' + cy + '" r="' + (R + r) / 2 + '" fill="none" stroke="' + row.col + '" stroke-width="' + (R - r) + '"><title>' + _hpEsc(tip) + '</title></circle>';
+    } else {
+      var big = a1 - a0 > Math.PI ? 1 : 0;
+      var p = function(rad, a) { return (cx + rad * Math.cos(a)).toFixed(2) + ' ' + (cy + rad * Math.sin(a)).toFixed(2); };
+      paths += '<path class="hp-slice" d="M' + p(R, a0) + ' A' + R + ' ' + R + ' 0 ' + big + ' 1 ' + p(R, a1)
+        + ' L' + p(r, a1) + ' A' + r + ' ' + r + ' 0 ' + big + ' 0 ' + p(r, a0) + ' Z" fill="' + row.col + '"'
+        + ' onclick="openTileDetail(\'' + row.c.id + '\', event)"><title>' + _hpEsc(tip) + '</title></path>';
+    }
+    a0 = a1;
+  });
+  var svg = '<svg class="hp-svg" viewBox="0 0 108 108" width="108" height="108" role="img" aria-label="Your holdings by value">'
+    + paths
+    + '<text x="54" y="52" text-anchor="middle" class="hp-total">' + _hpMoney(total) + '</text>'
+    + '<text x="54" y="65" text-anchor="middle" class="hp-sub">' + rows.length + (rows.length === 1 ? ' coin' : ' coins') + '</text></svg>';
+  var legend = rows.slice(0, 6).map(function(row) {
+    return '<button type="button" class="hp-row" onclick="openTileDetail(\'' + row.c.id + '\', event)">'
+      + '<i style="background:' + row.col + '"></i>'
+      + (row.c.image ? '<img src="' + row.c.image + '" alt="" width="14" height="14" loading="lazy" onerror="this.remove()">' : '')
+      + '<span class="hp-sym">' + row.c.sym + '</span>'
+      + '<span class="hp-pct">' + row.pct.toFixed(row.pct < 10 ? 1 : 0) + '%</span>'
+      + '<span class="hp-val">' + _hpMoney(row.v) + '</span></button>';
+  }).join('');
+  if (rows.length > 6) legend += '<div class="hp-more">+' + (rows.length - 6) + ' more</div>';
+  var mixParts = [];
+  if (byBand.hi >= 0.5) mixParts.push('<b class="hp-hi">' + Math.round(byBand.hi) + '%</b> in coins that ran ahead');
+  if (byBand.md >= 0.5) mixParts.push('<b class="hp-md">' + Math.round(byBand.md) + '%</b> in the middle');
+  if (byBand.lo >= 0.5) mixParts.push('<b class="hp-lo">' + Math.round(byBand.lo) + '%</b> in coins that lagged');
+  return '<div class="hp-wrap"><div class="hp-top">' + svg + '<div class="hp-legend">' + legend + '</div></div>'
+    + '<div class="hp-mix">Your money: ' + mixParts.join(', ') + '.</div>'
+    + (noAmt.length ? '<div class="hp-note">No amount set: ' + noAmt.join(', ') + '. Add one to include it.</div>' : '')
+    + '</div>';
+}
+function _hpEsc(s) { return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;'); }
+
 /* ── Crypto portfolio signal ─────────────────────────────────── */
 function renderSignal(hc) {
   var el = document.getElementById('sig-content');
@@ -589,7 +660,8 @@ function renderSignal(hc) {
   var h = '<div class="sig-avg" style="color:' + avgColor + ';">'
         + avg.toFixed(0)
         + '<span class="sig-avg-lbl">/ 100 avg score</span></div>'
-        + '<div class="sig-row-head" style="color:' + statusCol + ';">' + statusTxt + '</div>';
+        + '<div class="sig-row-head" style="color:' + statusCol + ';">' + statusTxt + '</div>'
+        + _holdingsPie();
 
   /* Show EVERY holding with its individual status */
   hc.forEach(function(coin) {

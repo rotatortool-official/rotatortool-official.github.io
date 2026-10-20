@@ -4790,6 +4790,29 @@ header{background:var(--bg2);}
 .tw-trust > summary::before{content:'▸ ';}
 .tw-trust[open] > summary::before{content:'▾ ';}
 .tw-trust p{margin:4px 0 0;line-height:1.5;}
+/* Holdings mix donut (holdings.js _holdingsPie, 2026-10-20): light theme only. */
+.hp-wrap{display:none;}
+:root.light .hp-wrap{display:block;margin:8px 0 6px;font-family:var(--font-ui);}
+.hp-hint{font-size:12px;color:var(--muted);}
+.hp-top{display:flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:8px 12px;}
+.hp-svg{flex:0 0 auto;display:block;}
+.hp-slice{cursor:pointer;stroke:#fff;stroke-width:1;transition:opacity .15s ease-out;}
+.hp-svg:hover .hp-slice{opacity:.55;}
+.hp-svg .hp-slice:hover{opacity:1;}
+.hp-total{font:800 13px var(--font-mono);fill:var(--text);}
+.hp-sub{font:600 9px var(--font-ui);fill:var(--muted);letter-spacing:.04em;}
+.hp-legend{flex:1 1 160px;min-width:0;display:flex;flex-direction:column;gap:1px;}
+.hp-row{all:unset;box-sizing:border-box;cursor:pointer;display:grid;grid-template-columns:8px 14px 1fr auto auto;align-items:center;gap:6px;padding:3px 4px;border-radius:4px;font-size:12px;}
+.hp-row:hover{background:rgba(0,0,0,.05);}
+.hp-row i{width:8px;height:8px;border-radius:2px;}
+.hp-row img{border-radius:50%;}
+.hp-sym{font:700 12px var(--font-mono);color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.hp-pct{font:700 12px var(--font-mono);color:var(--text);text-align:right;}
+.hp-val{font:500 11px var(--font-mono);color:var(--muted);text-align:right;min-width:44px;}
+.hp-more,.hp-note{font-size:11px;color:var(--muted);padding:2px 4px;}
+.hp-mix{font-size:12px;color:var(--muted);margin-top:6px;line-height:1.45;}
+.hp-mix b{font-family:var(--font-mono);}
+.hp-hi{color:var(--green);} .hp-md{color:var(--amber);} .hp-lo{color:var(--red);}
 /* Turn-sign bubble map (turn-watch.js _twBubbles, 2026-10-20): light
    theme only for now; dark never shows it. */
 .tw-bub-wrap{display:none;}
