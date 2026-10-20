@@ -4458,6 +4458,9 @@ header{background:var(--bg2);}
 .rail-support:hover .rail-sub{color:var(--text);}
 .rail-support:hover .rail-support-icon{border-color:var(--bnb);}
 .rail-support:focus-visible{outline:2px solid var(--bnb);outline-offset:-2px;}
+/* HOME sat flush on TODAY (Daniel, 2026-10-20: "too close"): room and a
+   rule under it, since it leaves the board rather than moving on it. */
+.rail-home{padding-bottom:12px;margin-bottom:14px;border-bottom:1px solid var(--bdr);}
 
 /* ── Focus you can see (promptove/103) ───────────────────────────────
    Keyboard focus on every navigation control; mouse clicks stay clean
@@ -4825,6 +4828,16 @@ header{background:var(--bg2);}
 .tw-bub{cursor:pointer;outline:none;transform-box:fill-box;transform-origin:center;transition:transform .18s cubic-bezier(.23,1,.32,1);}
 .tw-bub:hover,.tw-bub:focus-visible{transform:scale(1.1);}
 @media (prefers-reduced-motion: reduce){ .tw-bub{transition:none;} .tw-bub:hover,.tw-bub:focus-visible{transform:none;} }
+/* Lava-lamp drift (Daniel, 2026-10-20): a slow float and a little breath,
+   on an inner group so the hover zoom on .tw-bub still works. */
+.tw-bub-f{transform-box:fill-box;transform-origin:center;animation:twLava 14s ease-in-out infinite;}
+@keyframes twLava{
+  0%,100%{transform:translate(0,0) scale(1);}
+  25%{transform:translate(3px,-5px) scale(1.04);}
+  50%{transform:translate(-2px,-8px) scale(.98);}
+  75%{transform:translate(-4px,-2px) scale(1.03);}
+}
+@media (prefers-reduced-motion: reduce){ .tw-bub-f{animation:none;} }
 .tw-bub-bg{fill:#fff;}
 .tw-bub.ahead .tw-bub-bg{fill:rgba(5,150,105,.16);}
 .tw-bub.lag .tw-bub-bg{fill:rgba(220,38,38,.13);}

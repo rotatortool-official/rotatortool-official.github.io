@@ -199,19 +199,22 @@ function _twBubbles(R) {
     + (top.length ? '' : q(W / 2, lab + 18, 'middle', 'None right now'))
     + (bot.length ? '' : q(W / 2, mid + 24, 'middle', 'None right now'));
   /* Bottom bubbles first, so each name tag paints over the bubble under it. */
-  pts.slice().sort(function (a, b) { return b.y - a.y; }).forEach(function (p) {
+  pts.slice().sort(function (a, b) { return b.y - a.y; }).forEach(function (p, k) {
     var c = p.r.c, held = (typeof isHeldCoin === 'function') && isHeldCoin(c);
     var x = p.x.toFixed(1), y = p.y.toFixed(1), tw = c.sym.length * fs * 0.64 + 8;
     var tip = c.sym + ': score ' + Math.round(c.score) + ', 7D ' + _twPct(c.p7) + ' · ' + p.r.signs.map(function (s) { return s.title; }).join(', ');
     svg += '<g class="tw-bub ' + (p.top ? 'ahead' : 'lag') + (p.r.tested ? ' tested' : '') + (held ? ' held' : '') + '" tabindex="0" role="button"'
       + ' onclick="openTileDetail(\'' + c.id + '\', event)" onkeydown="if(event.key===\'Enter\')openTileDetail(\'' + c.id + '\', event)">'
       + '<title>' + _esc(tip) + '</title>'
+      /* Lava-lamp drift (Daniel, 2026-10-20, as on the home page): each
+         bubble floats on its own slow loop; CSS keyframes twLava. */
+      + '<g class="tw-bub-f" style="animation-duration:' + (11 + (k * 7.3) % 9).toFixed(1) + 's;animation-delay:-' + ((k * 3.7) % 11).toFixed(1) + 's' + (k % 2 ? ';animation-direction:reverse' : '') + '">'
       + '<circle class="tw-bub-bg" cx="' + x + '" cy="' + y + '" r="' + p.rad + '"/>'
       + (c.image ? '<image href="' + _esc(c.image) + '" x="' + (p.x - p.rad).toFixed(1) + '" y="' + (p.y - p.rad).toFixed(1) + '" width="' + 2 * p.rad + '" height="' + 2 * p.rad
         + '" clip-path="url(#tw-ico-clip)" preserveAspectRatio="xMidYMid slice" onerror="this.remove()"/>' : '')
       + '<circle class="tw-bub-ring" cx="' + x + '" cy="' + y + '" r="' + p.rad + '"/>'
       + '<rect class="tw-bub-tag" x="' + (p.x - tw / 2).toFixed(1) + '" y="' + (p.y + p.rad - ph / 2).toFixed(1) + '" width="' + tw.toFixed(1) + '" height="' + ph + '" rx="' + ph / 2 + '"/>'
-      + '<text x="' + x + '" y="' + (p.y + p.rad + fs * 0.34).toFixed(1) + '" text-anchor="middle" font-size="' + fs + '">' + _esc(c.sym) + '</text></g>';
+      + '<text x="' + x + '" y="' + (p.y + p.rad + fs * 0.34).toFixed(1) + '" text-anchor="middle" font-size="' + fs + '">' + _esc(c.sym) + '</text></g></g>';
   });
   svg += '</svg>';
   return '<div class="tw-bub-wrap">' + svg
