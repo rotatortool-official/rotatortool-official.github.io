@@ -158,8 +158,6 @@ h2{font-size:clamp(32px,4.4vw,56px);}
   transition:opacity .45s ease,transform .45s cubic-bezier(.23,1,.32,1);}
 .step.on{opacity:1;transform:none;}
 .step strong{color:var(--text);font-weight:600;}
-.chips{display:flex;flex-wrap:wrap;gap:8px;margin-top:6px;}
-.chip{font:600 12px/1 var(--ui);color:var(--muted);border:1px solid var(--panel-b);background:var(--panel);border-radius:999px;padding:7px 11px;}
 .cta-row{display:flex;flex-wrap:wrap;gap:10px;margin-top:22px;}
 .vis{position:relative;height:min(620px,78vh);}
 .panel{position:absolute;inset:0;will-change:transform;border-radius:24px;border:1px solid var(--panel-b);background:var(--panel);box-shadow:var(--shadow);backdrop-filter:blur(14px);overflow:hidden;}
@@ -177,7 +175,7 @@ h2{font-size:clamp(32px,4.4vw,56px);}
   .steps{min-height:5.4em;margin-top:12px;}
   .step{font-size:15px;}
   h2{font-size:30px;margin-top:10px;}
-  .chips,.cta-row{display:none;}
+  .cta-row{display:none;}
   .vis{height:auto;min-height:0;}
   .callout{white-space:normal;max-width:58%;font-size:11px;}
   .fly{gap:5px;padding:4px 9px 4px 4px;font-size:11px;}
@@ -403,7 +401,6 @@ h2{font-size:clamp(32px,4.4vw,56px);}
   .hero-sub{font-size:clamp(19px,2.2vw,23.5px);max-width:670px;} .hero-copy{max-width:850px;}
   .hero-stats{font-size:14.5px;} .hero-stats b{font-size:29px;}
   .step{font-size:20px;} .steps{min-height:7.8em;}
-  .chip{font-size:13.5px;padding:8px 12px;}
   .btn{font-size:15.5px;padding:13px 22px;} .btn-sm{font-size:14px;padding:10px 16px;}
   .tag{font-size:11px;}
   .coin img{width:34px;height:34px;} .coin .meta{font-size:12.5px;}
@@ -488,7 +485,6 @@ h2{font-size:clamp(32px,4.4vw,56px);}
           <p class="step" data-at=".3">Every card turns over to say <strong>what it is and why it matters for crypto</strong>, in plain words.</p>
           <p class="step" data-at=".64">When something moves more than usual, <strong>the headline behind it shows up on the card.</strong> Your daily news, at hand.</p>
         </div>
-        <div class="chips"><span class="chip">Macro &amp; on-chain</span><span class="chip">Fear &amp; Greed</span><span class="chip">News on unusual moves</span></div>
         <div class="cta-row"><a class="btn btn-gold" href="board.html#sec-today">Open Today ›</a></div>
       </div>
       <div class="vis"><div class="panel" id="today-vis">
@@ -511,7 +507,6 @@ h2{font-size:clamp(32px,4.4vw,56px);}
           <p class="step" data-at=".4">Then <strong>dollars moving between blockchains.</strong> Stablecoins arriving on a chain are money getting ready to buy.</p>
           <p class="step" data-at=".8">Where money moved, <strong>not where it goes next.</strong> Context for the coins, never a call.</p>
         </div>
-        <div class="chips"><span class="chip">Bitcoin &amp; Ether ETFs</span><span class="chip">Stablecoins per chain</span><span class="chip">Token unlocks</span></div>
         <div class="cta-row"><a class="btn btn-gold" href="board.html#sec-capital">Open Capital ›</a></div>
       </div>
       <div class="vis"><div class="panel" id="cap-vis">
@@ -533,7 +528,6 @@ h2{font-size:clamp(32px,4.4vw,56px);}
           <p class="step" data-at="0">Every coin finds its place. <strong>Coins that ran ahead float up, coins that lagged sink</strong>, and left to right is this week's move.</p>
           <p class="step" data-at=".5">Then Rotator looks for the turn: <strong>a leader cooling off, a laggard turning up.</strong> On the board, every turn sign carries how often it held up in the past.</p>
         </div>
-        <div class="chips"><span class="chip">Turn signs</span><span class="chip">Tested record on every sign</span><span class="chip">Tap a coin to open it</span></div>
         <div class="cta-row"><a class="btn btn-gold" href="board.html#sec-rotation">Open Momentum ›</a></div>
       </div>
       <div class="vis"><div class="panel" id="mom-vis">
@@ -556,7 +550,6 @@ h2{font-size:clamp(32px,4.4vw,56px);}
           <p class="step" data-at=".36"><strong>Red: longs wiped out as the price fell. Green: shorts squeezed as it rose.</strong> Bigger block, more money.</p>
           <p class="step" data-at=".62">It shows where the crowd was leaning, <strong>and what it cost them</strong>, over the last 24 hours.</p>
         </div>
-        <div class="chips"><span class="chip">Live from the Binance stream</span><span class="chip">Every coin, every hour</span></div>
         <div class="cta-row"><a class="btn btn-gold" href="board.html#sec-liq">Open Liquidations ›</a></div>
       </div>
       <div class="vis"><div class="panel" id="liq-vis">
@@ -580,7 +573,6 @@ h2{font-size:clamp(32px,4.4vw,56px);}
           <p class="step" data-at=".5">And what it did: <strong>your mix's value over the last 7 days</strong>, hour by hour.</p>
           <p class="step" data-at=".74">Warnings follow your coins: <strong>delistings, big unlocks and turn signs</strong>, on the board and in Telegram with Pro.</p>
         </div>
-        <div class="chips"><span class="chip">Holdings &amp; watchlist</span><span class="chip">Unlock and delisting warnings</span><span class="chip">Telegram with Pro</span></div>
         <div class="cta-row"><a class="btn btn-gold" href="board.html#sec-yours">Add your coins ›</a></div>
       </div>
       <div class="vis"><div class="panel" id="yours-vis">
@@ -604,7 +596,6 @@ h2{font-size:clamp(32px,4.4vw,56px);}
           <p class="step" data-at=".56">If B catches up, <strong>your B ends up worth more than the A you gave.</strong></p>
           <p class="step" data-at=".8">If B keeps lagging, the swap loses. <strong>The tool shows the history; the decision is yours.</strong></p>
         </div>
-        <div class="chips"><span class="chip">Any two coins</span><span class="chip">Where today sits in the range</span><span class="chip">How many you would get</span></div>
         <div class="cta-row"><a class="btn btn-gold" href="board.html#sec-swap">Open the Rotator Tool ›</a></div>
       </div>
       <div class="vis"><div class="panel" id="tool-vis">
@@ -627,7 +618,6 @@ h2{font-size:clamp(32px,4.4vw,56px);}
           <p class="step" data-at=".33" id="rec-best">The best sign so far beat the market a little more often than that. <strong>A small edge, not a promise.</strong></p>
           <p class="step" data-at=".62">The engine stays frozen until January. <strong>In March 2027, one year of results decides: keep it, improve it or stop it.</strong></p>
         </div>
-        <div class="chips"><span class="chip">Graded against the median coin</span><span class="chip">Nothing enters the score untested</span></div>
         <div class="cta-row"><a class="btn btn-gold" href="track-record.html">See the full record ›</a></div>
       </div>
       <div class="vis"><div class="panel" id="rec-vis">
@@ -824,8 +814,8 @@ h2{font-size:clamp(32px,4.4vw,56px);}
   window.addEventListener('wheel', function (e) { if (!railEl.contains(e.target)) stopGlide(); }, { passive: true });
   ['touchstart', 'keydown'].forEach(function (ev) { window.addEventListener(ev, stopGlide, { passive: true }); });
 
-  /* Spin the wheel to skip chapters (Daniel, 2026-10-20): drag it, use the
-     mouse wheel over it, or click a chapter. It snaps to the nearest
+  /* Spin the wheel to skip chapters (Daniel, 2026-10-20): drag it or click
+     a chapter. It snaps to the nearest
      chapter with a scene and the page glides there. COINS has no scene
      here, so a spin that lands on it moves on to the next one. */
   function goTo(i, dir) {
@@ -869,17 +859,9 @@ h2{font-size:clamp(32px,4.4vw,56px);}
       e.preventDefault(); goTo(i, 1);
     });
   });
-  var wAcc = 0, wLast = 0;
-  railEl.addEventListener('wheel', function (e) {
-    e.preventDefault();
-    wAcc += e.deltaY;
-    var now = performance.now();
-    if (Math.abs(wAcc) < 40 || now - wLast < 260) return;
-    wLast = now;
-    var dir = wAcc > 0 ? 1 : -1; wAcc = 0;
-    var cur = Math.round(wGoal), nx = clamp(cur + dir, 0, RI.length - 1);
-    goTo(nx, dir);
-  }, { passive: false });
+  /* Scrolling over the wheel scrolls the page like anywhere else (Daniel,
+     2026-10-20: a notch on the wheel jumped a whole chapter and skipped its
+     animation). Clicking a word or dragging the wheel still jumps. */
 
   /* Floating scroll button: next chapter on click; hides near the end. */
   var cue = $('cue'), plansEl = $('plans');
