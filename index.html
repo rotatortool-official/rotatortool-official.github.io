@@ -125,7 +125,10 @@ body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:0;opa
 .rail a i{display:none;}
 .rail a.on{color:var(--gold);}
 .rail .sep{width:34px;height:1.5px;margin-top:-.75px;border-radius:2px;background:var(--muted);}
-@media (min-width:1280px){ .rail{display:block;} }
+.rail-snd{display:none;position:fixed;left:24px;top:calc(50% + 196px);z-index:15;background:none;border:0;padding:4px 0;cursor:pointer;
+  font:700 10px/1 var(--mono);letter-spacing:.14em;color:var(--dim);}
+.rail-snd:hover{color:var(--gold);}
+@media (min-width:1280px){ .rail{display:block;} .rail-snd{display:block;} }
 
 /* ── Scenes ───────────────────────────────────────────── */
 .scene{position:relative;z-index:1;}
@@ -686,10 +689,39 @@ h2{font-size:clamp(32px,4.4vw,56px);}
       sp.style.opacity = (Math.max(0, 0.9 - 0.22 * ad)).toFixed(3);
     });
   }
+  /* A soft click each time the wheel passes a chapter (Daniel, 2026-10-20),
+     like the iPhone picker. Browsers only allow sound after the visitor's
+     first click, tap or key, so it starts then. Wide screens only (the
+     wheel is hidden on phones); the switch under the wheel turns it off. */
+  var snd = { ctx: null, on: true, last: 0, idx: Math.round(wPos) };
+  try { snd.on = localStorage.getItem('rot_tour_sound') !== 'off'; } catch (e) {}
+  function sndUnlock() {
+    if (snd.ctx) return;
+    try { var AC = window.AudioContext || window.webkitAudioContext; if (AC) snd.ctx = new AC(); } catch (e) {}
+  }
+  ['pointerdown', 'keydown', 'touchstart'].forEach(function (ev) { window.addEventListener(ev, sndUnlock, { once: true, passive: true }); });
+  function click() {
+    var c = snd.ctx, now = performance.now();
+    if (!snd.on || !c || now - snd.last < 45 || getComputedStyle(railEl).display === 'none') return;
+    snd.last = now;
+    if (c.state === 'suspended') c.resume();
+    var t = c.currentTime, o = c.createOscillator(), g = c.createGain();
+    o.type = 'triangle';
+    o.frequency.setValueAtTime(2300, t); o.frequency.exponentialRampToValueAtTime(900, t + 0.025);
+    g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(0.06, t + 0.003); g.gain.exponentialRampToValueAtTime(0.0001, t + 0.04);
+    o.connect(g); g.connect(c.destination); o.start(t); o.stop(t + 0.05);
+  }
+  var sb = document.createElement('button');
+  sb.type = 'button'; sb.className = 'rail-snd';
+  function sbLabel() { sb.textContent = snd.on ? '♪ SOUND ON' : '♪ SOUND OFF'; sb.setAttribute('aria-pressed', snd.on ? 'true' : 'false'); }
+  sb.addEventListener('click', function () { snd.on = !snd.on; try { localStorage.setItem('rot_tour_sound', snd.on ? 'on' : 'off'); } catch (e) {} sbLabel(); });
+  sbLabel(); document.body.appendChild(sb);
   function wheelTick() {
     var d = wGoal - wPos;
     wPos = S.reduce || Math.abs(d) < 0.002 ? wGoal : wPos + d * 0.16;
     wheelDraw();
+    var ix = Math.round(wPos);
+    if (ix !== snd.idx) { snd.idx = ix; click(); }
     wRaf = wPos === wGoal ? 0 : requestAnimationFrame(wheelTick);
   }
   function wheel() { wGoal = wheelTarget(); if (!wRaf) wRaf = requestAnimationFrame(wheelTick); }
