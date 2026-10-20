@@ -23,7 +23,7 @@
      page for everyone and move the board to its own address"). The board
      lives at board.html. Links that were meant for the board keep working:
      ?coin= and any #anchor that is not one of this page's own sections go
-     straight on to board.html; ?ref= and utm_* stay here (so a referred or
+     straight on to board.html, as does ?donate (opens Support); ?ref= and utm_* stay here (so a referred or
      social visitor sees the landing page) and ride along on every link
      into the board, where the referral and arrival counts happen. -->
 <script>
@@ -31,7 +31,7 @@
   try {
     var q = new URLSearchParams(location.search), h = location.hash;
     var own = /^#(hero|today|capital|momentum|liq|yours|tool|record|plans)?$/.test(h);
-    if (q.has('coin') || (h && !own)) { location.replace('board.html' + location.search + h); return; }
+    if (q.has('coin') || q.has('donate') || (h && !own)) { location.replace('board.html' + location.search + h); return; }
     var carry = new URLSearchParams();
     ['ref', 'utm_source', 'utm_medium', 'utm_campaign'].forEach(function (k) { if (q.get(k)) carry.set(k, q.get(k)); });
     var extra = carry.toString();
@@ -62,12 +62,12 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-<!-- Tour (2026-10-20): one animated scene per board section, after the
-     score page's exploding coin and Uptick's product page. Live coins and
-     prices (TOPIC.coins, the board's own CoinGecko list); tested numbers
-     from config.js. Anything that is not live is labelled "example".
-     Built first: hero, MOMENTUM, YOURS, RECORD. Scroll engine:
-     js/scroll-scene.js. Follows the board's theme (rot_theme). -->
+<!-- Landing page: one scroll scene per board section (Today, Capital,
+     Momentum, Liquidations, Yours, Rotator Tool, Record), then Free & Pro.
+     Live coins and prices from the board's own CoinGecko list (TOPIC.coins)
+     and market_cache rows; tested numbers from config.js; anything that is
+     not live says "example". Scroll engine: js/scroll-scene.js. Follows the
+     board's theme (rot_theme). -->
 <script>try{if(localStorage.getItem('rot_theme')==='light')document.documentElement.className='light';}catch(e){}</script>
 <script defer src="https://cloud.umami.is/script.js" data-website-id="77a817bc-ca03-4680-83b2-c914f8efaa6e"></script>
 <style>
@@ -224,7 +224,6 @@ h2{font-size:clamp(32px,4.4vw,56px);}
 .callout{position:absolute;left:0;top:0;z-index:5;opacity:0;font:600 12px/1.35 var(--ui);color:var(--text);background:var(--bg2);border:1px solid var(--panel-b);border-radius:12px;padding:8px 11px;box-shadow:var(--shadow);white-space:nowrap;will-change:transform,opacity;}
 .callout b{display:block;font:800 10px/1 var(--mono);letter-spacing:.1em;text-transform:uppercase;margin-bottom:4px;}
 .mid-line{position:absolute;left:18px;right:18px;height:1px;background:repeating-linear-gradient(90deg,var(--panel-b) 0 6px,transparent 6px 12px);}
-.half{position:absolute;left:0;right:0;transition:opacity .4s ease;}
 
 /* ── Yours ── */
 .donut-wrap{position:absolute;left:50%;top:46%;transform:translate(-50%,-50%);}
@@ -408,7 +407,7 @@ h2{font-size:clamp(32px,4.4vw,56px);}
 <!-- HERO: a wall of live coins that settles into a board as you scroll. -->
 <section class="scene" id="hero" style="height:170vh">
   <div class="stage">
-    <div class="glow" id="hero-glow"></div>
+    <div class="glow"></div>
     <div class="wall" id="wall"></div>
     <div class="grid2">
       <div class="hero-copy" id="hero-copy">
@@ -713,7 +712,7 @@ h2{font-size:clamp(32px,4.4vw,56px);}
      first click, tap or key, so it starts then. Wide screens only (the
      wheel is hidden on phones); the switch under the wheel turns it off. */
   var snd = { ctx: null, on: true, last: 0, idx: Math.round(wPos) };
-  try { snd.on = localStorage.getItem('rot_tour_sound') !== 'off'; } catch (e) {}
+  try { snd.on = localStorage.getItem('rot_home_sound') !== 'off'; } catch (e) {}
   function sndUnlock() {
     if (snd.ctx) return;
     try { var AC = window.AudioContext || window.webkitAudioContext; if (AC) snd.ctx = new AC(); } catch (e) {}
@@ -733,7 +732,7 @@ h2{font-size:clamp(32px,4.4vw,56px);}
   var sb = document.createElement('button');
   sb.type = 'button'; sb.className = 'rail-snd';
   function sbLabel() { sb.textContent = snd.on ? '♪ SOUND ON' : '♪ SOUND OFF'; sb.setAttribute('aria-pressed', snd.on ? 'true' : 'false'); }
-  sb.addEventListener('click', function () { snd.on = !snd.on; try { localStorage.setItem('rot_tour_sound', snd.on ? 'on' : 'off'); } catch (e) {} sbLabel(); });
+  sb.addEventListener('click', function () { snd.on = !snd.on; try { localStorage.setItem('rot_home_sound', snd.on ? 'on' : 'off'); } catch (e) {} sbLabel(); });
   sbLabel(); document.body.appendChild(sb);
   function wheelTick() {
     var d = wGoal - wPos;
