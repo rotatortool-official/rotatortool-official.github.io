@@ -114,13 +114,18 @@ body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:0;opa
 .btn-tg{color:#fff;background:linear-gradient(180deg,#43b9f2,#1f95d4);box-shadow:0 8px 28px rgba(42,171,238,.32);}
 
 /* Chapter rail on the left, like the board's sidebar. */
-.rail{position:fixed;left:22px;top:50%;transform:translateY(-50%);z-index:15;display:none;flex-direction:column;gap:6px;}
-.rail a{display:flex;align-items:center;gap:10px;text-decoration:none;color:var(--dim);font:600 11px/1 var(--mono);letter-spacing:.1em;padding:6px 0;transition:color .2s ease;}
-.rail a i{width:22px;height:2px;border-radius:2px;background:currentColor;transition:width .25s cubic-bezier(.23,1,.32,1);}
+/* Chapter rail as a picker wheel, like the iPhone date/time wheel
+   (Daniel, 2026-10-20): the current chapter sits big and gold in the
+   middle, the ones before and after shrink, fade and tilt away, with thin
+   lines between the words. Drawn by wheel() below. */
+.rail{position:fixed;left:24px;top:50%;height:360px;margin-top:-180px;width:220px;z-index:15;display:none;perspective:520px;
+  -webkit-mask-image:linear-gradient(transparent,#000 24%,#000 76%,transparent);mask-image:linear-gradient(transparent,#000 24%,#000 76%,transparent);}
+.rail a,.rail .sep{position:absolute;left:0;top:50%;will-change:transform,opacity;transform-origin:left center;}
+.rail a{height:44px;margin-top:-22px;display:flex;align-items:center;text-decoration:none;color:var(--muted);font:700 15px/1 var(--mono);letter-spacing:.1em;white-space:nowrap;transition:color .25s ease;}
+.rail a i{display:none;}
 .rail a.on{color:var(--gold);}
-.rail a.on i{width:36px;}
-.rail a.soon{opacity:.45;pointer-events:none;}
-@media (min-width:1280px){ .rail{display:flex;} }
+.rail .sep{width:34px;height:1.5px;margin-top:-.75px;border-radius:2px;background:var(--muted);}
+@media (min-width:1280px){ .rail{display:block;} }
 
 /* ── Scenes ───────────────────────────────────────────── */
 .scene{position:relative;z-index:1;}
@@ -643,18 +648,54 @@ h2{font-size:clamp(32px,4.4vw,56px);}
     list.forEach(function (el, i) { el.classList.toggle('on', i === on); });
   }
 
-  /* Chapter rail follows the scene in the middle of the screen. */
-  var railLinks = document.querySelectorAll('#rail a[data-for]');
-  function rail() {
-    var mid = innerHeight / 2, cur = 'hero';
-    railLinks.forEach(function (a) {
-      var el = $(a.getAttribute('data-for')), r = el.getBoundingClientRect();
-      if (r.top <= mid && r.bottom > mid) cur = a.getAttribute('data-for');
-    });
-    railLinks.forEach(function (a) { a.classList.toggle('on', a.getAttribute('data-for') === cur); });
+  /* Chapter wheel. pos is a fractional index into the rail: it holds on a
+     chapter for most of its scene, then rolls to the next one over the
+     scene's last stretch, so the wheel turns with the scroll. COINS has no
+     scene here (it links to the score page), so the wheel rolls past it
+     between YOURS and ROTATOR TOOL. */
+  var railEl = $('rail'), RI = Array.prototype.slice.call(railEl.querySelectorAll('a'));
+  var RH = 44, seps = [];
+  RI.forEach(function (a, i) {
+    if (i === RI.length - 1) return;
+    var sp = document.createElement('i'); sp.className = 'sep'; railEl.appendChild(sp); seps.push(sp);
+  });
+  var stops = [];
+  RI.forEach(function (a, i) { var id = a.getAttribute('data-for'); if (id && $(id)) stops.push({ i: i, el: $(id) }); });
+  function wheelTarget() {
+    var mid = scrollY + innerHeight / 2, pos = stops[0].i;
+    for (var k = 0; k < stops.length; k++) {
+      var st = stops[k], top = st.el.offsetTop, h = st.el.offsetHeight;
+      if (mid < top) break;
+      var t = clamp((mid - top) / h, 0, 1), nx = stops[k + 1];
+      pos = st.i + (nx ? (nx.i - st.i) * ease(clamp((t - 0.72) / 0.28, 0, 1)) : 0);
+    }
+    return pos;
   }
-  window.addEventListener('scroll', rail, { passive: true });
-  rail();
+  var wPos = wheelTarget(), wGoal = wPos, wRaf = 0;
+  function wheelDraw() {
+    RI.forEach(function (a, i) {
+      var d = i - wPos, ad = Math.abs(d);
+      var sc = Math.max(0.62, 1.18 - 0.16 * ad), op = Math.max(0, 1 - 0.3 * ad);
+      a.style.transform = 'translate3d(0,' + (d * RH).toFixed(1) + 'px,0) rotateX(' + clamp(-d * 22, -80, 80).toFixed(1) + 'deg) scale(' + sc.toFixed(3) + ')';
+      a.style.opacity = op.toFixed(3);
+      a.classList.toggle('on', ad < 0.5);
+    });
+    seps.forEach(function (sp, i) {
+      var d = i + 0.5 - wPos, ad = Math.abs(d);
+      sp.style.transform = 'translate3d(0,' + (d * RH).toFixed(1) + 'px,0) rotateX(' + clamp(-d * 22, -80, 80).toFixed(1) + 'deg) scaleX(' + Math.max(0.5, 1 - 0.14 * ad).toFixed(3) + ')';
+      sp.style.opacity = (Math.max(0, 0.9 - 0.22 * ad)).toFixed(3);
+    });
+  }
+  function wheelTick() {
+    var d = wGoal - wPos;
+    wPos = S.reduce || Math.abs(d) < 0.002 ? wGoal : wPos + d * 0.16;
+    wheelDraw();
+    wRaf = wPos === wGoal ? 0 : requestAnimationFrame(wheelTick);
+  }
+  function wheel() { wGoal = wheelTarget(); if (!wRaf) wRaf = requestAnimationFrame(wheelTick); }
+  window.addEventListener('scroll', wheel, { passive: true });
+  window.addEventListener('resize', wheel);
+  wheelDraw();
 
   /* Seeded random, so the hero wall is the same on every visit. */
   var seed = 7;
