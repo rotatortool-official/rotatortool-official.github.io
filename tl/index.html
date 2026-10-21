@@ -357,6 +357,7 @@ html:is([lang="ar"],[lang="ur"]) .cc-hilo{right:auto;left:0;}
 .te-row{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
 .te-opt{display:flex;flex-direction:column;align-items:flex-start;gap:6px;text-align:left;text-decoration:none;color:var(--text);padding:16px;border-radius:16px;border:1px solid var(--panel-b);background:var(--panel);transition:transform .2s ease,border-color .2s ease;}
 .te-opt:hover{transform:translateY(-2px);border-color:var(--gold);}
+.te-opt:focus-visible{border-radius:16px;outline-offset:2px;}   /* the global focus ring is a pill; these are cards */
 .te-opt .te-k{font:700 12px/1 var(--mono);letter-spacing:.16em;text-transform:uppercase;color:var(--gold-ink);}
 .te-opt .te-v{font-size:22px;font-weight:800;}
 .te-opt .te-d{font-style:normal;color:var(--muted);font-size:14px;line-height:1.35;}
