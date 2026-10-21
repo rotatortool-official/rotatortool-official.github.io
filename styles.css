@@ -6758,6 +6758,10 @@ a.mob-more-item{text-decoration:none;color:inherit;}
   .tdx-box-b > * + *{margin-top:8px;}
   .tdx-box .td-section{margin:0;padding:0;border:none;}
   .tdx-box .td-card{margin:0;}
+  /* Momentum: key facts and the bars fit without scrolling (RSI went to a tab). */
+  .tdx-mom{padding-top:9px;padding-bottom:8px;}
+  .tdx-mom > .tdx-card-h{margin-bottom:6px;}
+  .tdx-mom .td-card{padding:8px 12px 6px;}
 
   /* The coin header sits on top of the Price box (js/coin-expand.js), so the
      window keeps only the close and Smaller buttons above the boxes. */

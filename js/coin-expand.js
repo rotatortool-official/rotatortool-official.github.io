@@ -19,7 +19,7 @@
 
    The page itself does not scroll; a box with more than fits scrolls
    inside itself. Everything else the small window has sits in the
-   Details tabs (position, market, supply, derivatives, signals, score,
+   Details tabs (position, market, RSI, supply, derivatives, signals, score,
    about), so nothing is lost from this view.
 
    Nothing is re-rendered: the existing elements are MOVED into the
@@ -35,6 +35,8 @@ var TD_X_MIN_W = 1024;
 var TD_X_TABS = [
   ['Position',    ['td-edit-hold-sec']],
   ['Market',      ['@ov', 'td-market-sec', 'td-liquidity-sec', 'td-cycle-sec']],
+  /* RSI was in the Momentum box, which then scrolled (Daniel, 2026-10-21). */
+  ['RSI',         ['td-rsi-sec']],
   ['Supply',      ['td-supply-sec']],
   ['Derivatives', ['td-deriv-sec']],
   ['Signals',     ['td-insight-sec', 'td-events-sec', 'td-signals-sec', 'td-biz-sec']],
@@ -102,8 +104,6 @@ function _tdxExpand() {
     });
     var warn = document.getElementById('td-warn');
     if (warn) _tdxSlot('sum').appendChild(warn);
-    var rsi = document.getElementById('td-rsi-sec');
-    if (rsi) _tdxSlot('mom').appendChild(rsi);
     /* The coin's name and price head the Price box, so the window needs no
        header row (Daniel, 2026-10-21). Collapse puts it back with the rest. */
     var head = panel.querySelector('.tdh'), cbox = document.querySelector('#tdx-dash .tdx-chart');
@@ -147,7 +147,7 @@ function _tdxPlace() {
     el.setAttribute('data-tdx-kind', kind);
     where.insertBefore(el, where.firstChild);
   };
-  /* Momentum: key facts, then the bars, then RSI (already in the box). */
+  /* Momentum: key facts, then the bars (RSI has its own Details tab). */
   put('perf', fresh.perf, mom);
   put('kv', fresh.kv, mom);
   put('story', fresh.story, sum);
