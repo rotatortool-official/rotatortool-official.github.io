@@ -524,7 +524,7 @@ h2{font-size:clamp(32px,4.4vw,56px);}
 </section>
 
 <!-- 01 TODAY -->
-<section class="scene" id="today" style="height:384vh">
+<section class="scene" id="today" style="height:250vh">
   <div class="stage">
     <div class="glow" style="--gx:60%;--gy:50%"></div>
     <div class="grid2">
@@ -1388,9 +1388,13 @@ h2{font-size:clamp(32px,4.4vw,56px);}
            today"): the scene was 480vh (was 280) with the turn over the
            first 70%. 2026-10-21, Daniel: "I like the scrolling pace but
            make it 20% shorter": 384vh, the turn over the first 78% (about
-           11% quicker), the quiet tail after it does most of the cut. */
+           11% quicker), the quiet tail after it does most of the cut.
+           2026-10-21 later, Daniel: "too many scrolls to pass": 250vh, and
+           the ring turns at most one lap (the short way round to the news
+           card, never under half a lap) instead of 1-2 laps, so the pace
+           per screen stays about the same. */
         var r = seg(p, 0, 0.78);
-        var a = -(360 + f * step) * r;
+        var a = (f * step >= 180 ? -f * step : 360 - f * step) * r;
         /* Starts tilted, levels out, and at the end moves in on the card with the news. */
         var z = ease(seg(p, 0.8, 0.97)), tilt = 9 * (1 - ease(seg(p, 0, 0.5)));
         ring.style.transform = 'translateZ(' + (-Rr + z * Rr * 0.22).toFixed(1) + 'px) rotateX(' + tilt.toFixed(2) + 'deg) rotateY(' + a.toFixed(2) + 'deg)';
