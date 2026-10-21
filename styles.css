@@ -6747,8 +6747,10 @@ a.mob-more-item{text-decoration:none;color:inherit;}
 
   .td-expanded .tdx-dash{clear:both;display:grid;height:calc(100% - 80px);gap:12px;
     grid-template-columns:repeat(4,minmax(0,1fr));
-    grid-template-rows:minmax(0,1.25fr) minmax(0,1fr) minmax(0,.95fr);
-    grid-template-areas:"mom chart chart chart" "up down det det" "sum sum sum share";}
+    grid-template-rows:minmax(0,1.25fr) minmax(0,1fr) minmax(0,1.05fr) auto;
+    /* Details runs down two rows so its tabs fit without scrolling; share is a
+       slim strip along the bottom (Daniel, 2026-10-21). */
+    grid-template-areas:"mom chart chart chart" "up down det det" "sum sum det det" "share share share share";}
   .tdx-box{display:flex;flex-direction:column;min-height:0;min-width:0;background:var(--bg3);border:1px solid var(--bdr);border-radius:10px;padding:12px 14px;}
   .tdx-box-b{flex:1;min-height:0;overflow:auto;scrollbar-width:thin;overscroll-behavior:contain;}
   .tdx-mom{grid-area:mom;} .tdx-chart{grid-area:chart;} .tdx-up{grid-area:up;border-top:3px solid var(--green);}
@@ -6770,27 +6772,44 @@ a.mob-more-item{text-decoration:none;color:inherit;}
 
   /* Details: tabs on top, the open tab scrolls. */
   .tdx-det > .tdx-box-b{display:flex;flex-direction:column;overflow:hidden;}
-  .tdx-tabs{display:flex;gap:4px;flex-wrap:wrap;flex-shrink:0;padding-bottom:8px;border-bottom:1px solid var(--bdr);}
-  .tdx-tab{font:700 11.5px/1 var(--font-ui);padding:7px 10px;border-radius:6px;border:1px solid transparent;background:transparent;color:var(--muted);cursor:pointer;}
-  .tdx-tab:hover{color:var(--text);}
-  .tdx-tab.on{color:var(--text);background:var(--bg2);border-color:var(--amber);}
+  /* Tabs read as buttons, easy to spot (Daniel, 2026-10-21): filled, bordered,
+     the open one solid gold. */
+  .tdx-tabs{display:flex;gap:6px;flex-wrap:wrap;flex-shrink:0;padding-bottom:10px;border-bottom:1px solid var(--bdr);}
+  .tdx-tab{font:700 13px/1 var(--font-ui);padding:10px 15px;border-radius:8px;border:1px solid var(--bdr);background:var(--bg2);color:var(--text);cursor:pointer;
+    transition:background .15s,border-color .15s;}
+  .tdx-tab:hover{border-color:var(--amber);background:rgba(243,186,47,.12);}
+  .tdx-tab.on{color:#000;background:var(--amber);border-color:var(--amber);}
   .tdx-tab[hidden],.tdx-pane[hidden]{display:none;}
   .tdx-pane{flex:1;min-height:0;overflow:auto;scrollbar-width:thin;padding-top:10px;margin-top:0 !important;}
   .tdx-pane > * + *{margin-top:14px;}
+  /* The tab already names the first section; its title only took room. */
+  .tdx-pane > .td-section:first-child > details.td-fold > summary{display:none;}
 
   /* Summary: the story and warnings left, the evaluation right. */
   .tdx-sum > .tdx-box-b{display:grid;grid-template-columns:minmax(0,1.1fr) minmax(0,1fr);gap:8px 18px;align-content:start;}
   .tdx-sum > .tdx-box-b > *{grid-column:1;margin:0 !important;}
   .tdx-sum > .tdx-box-b > .tdx-eval{grid-column:2;grid-row:1 / span 4;}
   .tdx-sum .td-story{margin:0;}
+  .tdx-sum{padding-top:10px;padding-bottom:6px;}
   .tdx-eval-score{font-size:34px !important;}
   /* Evaluation, tightened to fit its box without scrolling. */
   .tdx-sum .tdx-eval-top{margin-bottom:4px;}
   .tdx-sum .tdx-eval-sub{margin-bottom:8px;}
   .tdx-sum .tdx-verdict{margin-top:8px;}
-  .tdx-sum .tdx-note{margin-top:6px;padding-top:6px;}
-  .tdx-share > .tdx-box-b{display:flex;flex-direction:column;gap:8px;}
-  .tdx-share .td-share-wrap,.tdx-share .td-bnb{margin:0;}
+  .tdx-sum .tdx-note{margin-top:4px;padding-top:4px;}
+  /* Share: one row, the button left, the Binance links after it. */
+  .tdx-share{padding:8px 14px;}
+  .tdx-share > .tdx-box-b{display:flex;flex-direction:row;align-items:center;gap:18px;overflow:visible;}
+  .tdx-share > .tdx-box-b > * + *{margin-top:0;}
+  .tdx-share .td-share-wrap,.tdx-share .td-bnb{margin:0;padding:0;border:none;}
+  .tdx-share .td-share-wrap{display:flex;align-items:center;gap:12px;flex-shrink:0;}
+  .tdx-share .td-share-label{margin:0;}
+  .tdx-share .td-share-card-btn{width:auto;margin:0;padding:9px 18px;}
+  .tdx-share .td-bnb{display:flex;flex-direction:row;align-items:baseline;justify-content:flex-start;text-align:left;gap:4px 22px;flex-wrap:wrap;min-width:0;flex:1;}
+  .tdx-share .td-bnb > *{margin:0;}
+  .tdx-share .td-bnb-note{flex-basis:100%;}
+  :root.light .tdx-share .td-share-wrap{border-top:none;}
+  :root.light .tdx-tab.on{color:#fff;background:#b87818;border-color:#b87818;}
 
   :root.light .tdx-box{background:rgba(255,255,255,.7);}
 }
