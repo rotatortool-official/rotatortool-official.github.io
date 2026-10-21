@@ -272,13 +272,54 @@ h2{font-size:clamp(32px,4.4vw,56px);}
    top where the page has empty space"). Fixed at the bottom centre; a click
    glides to the next chapter. Hidden once Free & Pro is in view, and on
    phones after the opening screen (the scene pictures fill the bottom). */
-.scroll-cue{position:fixed;left:50%;bottom:26px;z-index:16;transform:translate(-50%,0);display:flex;align-items:center;gap:10px;cursor:pointer;
+/* The bar holds SCROLL and the PLAY tour button side by side (Daniel,
+   2026-10-21: "one play button ... place the play button next to scroll"). */
+.cue-bar{position:fixed;left:50%;bottom:26px;z-index:16;transform:translate(-50%,0);display:flex;align-items:center;gap:10px;
+  transition:opacity .35s ease,transform .35s cubic-bezier(.23,1,.32,1),bottom .35s ease;}
+.cue-bar.off{opacity:0;transform:translate(-50%,14px);pointer-events:none;}
+.scroll-cue{position:relative;display:flex;align-items:center;gap:10px;cursor:pointer;
   padding:11px 18px 11px 14px;border-radius:999px;border:1px solid rgba(243,186,47,.55);background:rgba(10,15,23,.72);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);
   color:var(--gold);font:800 12px/1 var(--mono);letter-spacing:.18em;box-shadow:0 10px 34px rgba(0,0,0,.45),0 0 0 0 rgba(243,186,47,.4);
   animation:cueGlow 2.6s ease-in-out infinite;transition:opacity .35s ease,transform .35s cubic-bezier(.23,1,.32,1),border-color .2s ease;}
 :root.light .scroll-cue{background:rgba(255,255,255,.82);color:var(--gold-ink);border-color:rgba(184,134,11,.55);box-shadow:0 10px 30px rgba(17,24,36,.14);}
-.scroll-cue:hover{border-color:var(--gold);transform:translate(-50%,-2px);}
-.scroll-cue.off{opacity:0;transform:translate(-50%,14px);pointer-events:none;}
+.scroll-cue:hover{border-color:var(--gold);transform:translateY(-2px);}
+.scroll-cue.off{display:none;}
+/* PLAY: the page scrolls itself to Free & Pro; PAUSE stops it, PLAY again
+   carries on from there. Same pill as SCROLL, without the glow. */
+.play-cue{display:flex;align-items:center;gap:9px;cursor:pointer;padding:11px 18px 11px 13px;border-radius:999px;border:1px solid rgba(243,186,47,.55);
+  background:rgba(10,15,23,.72);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);color:var(--gold);font:800 12px/1 var(--mono);letter-spacing:.18em;
+  box-shadow:0 10px 34px rgba(0,0,0,.45);transition:transform .35s cubic-bezier(.23,1,.32,1),border-color .2s ease,background .2s ease;}
+:root.light .play-cue{background:rgba(255,255,255,.82);color:var(--gold-ink);border-color:rgba(184,134,11,.55);box-shadow:0 10px 30px rgba(17,24,36,.14);}
+.play-cue:hover{border-color:var(--gold);transform:translateY(-2px);}
+.play-cue svg{width:14px;height:14px;flex:0 0 auto;}
+.play-cue b{font:inherit;}
+.play-cue .pl-pause,.play-cue.playing .pl-play{display:none;}
+.play-cue.playing .pl-pause{display:inline;}
+.play-cue.playing,:root.light .play-cue.playing{background:linear-gradient(180deg,var(--gold2),var(--gold));color:#1a1203;border-color:var(--gold);}
+/* The end of the tour: Free (the board) or Pro. */
+.tour-end{position:fixed;inset:0;z-index:40;display:flex;align-items:center;justify-content:center;padding:16px;background:rgba(4,6,10,.62);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);animation:teIn .3s ease;}
+.tour-end[hidden]{display:none;}
+:root.light .tour-end{background:rgba(240,243,248,.6);}
+.te-card{position:relative;width:min(560px,100%);background:var(--bg2);border:1px solid var(--panel-b);border-radius:22px;padding:28px 24px 22px;text-align:center;box-shadow:var(--shadow);animation:teUp .4s cubic-bezier(.23,1,.32,1);}
+.te-card h3{font-size:clamp(22px,3vw,30px);font-weight:800;letter-spacing:-.02em;line-height:1.15;margin:12px 0 20px;}
+.te-row{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+.te-opt{display:flex;flex-direction:column;align-items:flex-start;gap:6px;text-align:left;text-decoration:none;color:var(--text);padding:16px;border-radius:16px;border:1px solid var(--panel-b);background:var(--panel);transition:transform .2s ease,border-color .2s ease;}
+.te-opt:hover{transform:translateY(-2px);border-color:var(--gold);}
+.te-opt span{font:700 12px/1 var(--mono);letter-spacing:.16em;text-transform:uppercase;color:var(--gold-ink);}
+.te-opt b{font-size:22px;font-weight:800;}
+.te-opt em{font-style:normal;color:var(--muted);font-size:14px;line-height:1.35;}
+.te-opt i{margin-top:auto;padding-top:6px;font:700 14px/1 var(--ui);font-style:normal;color:var(--gold-ink);}
+.te-opt.pro{border-color:rgba(42,171,238,.45);}
+.te-opt.pro:hover{border-color:var(--tg);}
+.te-opt.pro span,.te-opt.pro i{color:var(--tg-ink);}
+.te-x{position:absolute;top:10px;right:12px;width:34px;height:34px;border:0;border-radius:50%;background:transparent;color:var(--muted);font-size:24px;line-height:1;cursor:pointer;}
+.te-x:hover{color:var(--text);}
+.te-again{margin-top:16px;border:0;background:transparent;color:var(--muted);font:700 12px/1 var(--mono);letter-spacing:.12em;text-transform:uppercase;cursor:pointer;padding:8px;}
+.te-again:hover{color:var(--gold-ink);}
+@keyframes teIn{from{opacity:0}to{opacity:1}}
+@keyframes teUp{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:none}}
+@media (max-width:520px){ .te-row{grid-template-columns:1fr;} }
+@media (max-width:860px){ .cue-bar.lift{bottom:calc(max(12px,env(safe-area-inset-bottom)) + 66px);} }
 .scroll-cue i{position:relative;width:18px;height:26px;border:2px solid currentColor;border-radius:10px;flex:0 0 auto;}
 .scroll-cue i::after{content:'';position:absolute;left:50%;top:5px;width:3px;height:6px;margin-left:-1.5px;border-radius:2px;background:currentColor;animation:cueDot 1.6s cubic-bezier(.23,1,.32,1) infinite;}
 .scroll-cue b{font:inherit;}
@@ -287,7 +328,7 @@ h2{font-size:clamp(32px,4.4vw,56px);}
 @keyframes cueArrow{0%,100%{transform:translateY(-1px)}50%{transform:translateY(3px)}}
 @keyframes cueGlow{0%,100%{box-shadow:0 10px 34px rgba(0,0,0,.45),0 0 0 0 rgba(243,186,47,.35)}50%{box-shadow:0 10px 34px rgba(0,0,0,.45),0 0 0 8px rgba(243,186,47,0)}}
 @keyframes cue{0%{transform:scaleY(0)}60%{transform:scaleY(1);opacity:1}100%{transform:scaleY(1);opacity:0}}
-@media (prefers-reduced-motion:reduce){ .scroll-cue,.scroll-cue i::after,.scroll-cue svg,.live::before{animation:none;} }
+@media (prefers-reduced-motion:reduce){ .scroll-cue,.scroll-cue i::after,.scroll-cue svg,.live::before,.tour-end,.te-card{animation:none;} }
 
 /* ── Momentum ── */
 .bub{position:absolute;left:0;top:0;will-change:transform,opacity;}
@@ -844,7 +885,22 @@ document.addEventListener('click', function (e) {
 </footer>
 <nav class="mbar off" id="mbar" aria-label="Mulailah"><a class="btn btn-ghost btn-sm" href="#plans">Gratis &amp; Pro</a><a class="btn btn-gold btn-sm" href="../board.html">Buka dasbor</a></nav>
 
+<div class="cue-bar" id="cueBar">
 <button type="button" class="scroll-cue" id="cue" aria-label="Gulir ke bab berikutnya"><i aria-hidden="true"></i><b>GULIR</b><svg viewBox="0 0 12 12" aria-hidden="true"><path d="M2 4l4 4 4-4" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+<button type="button" class="play-cue" id="play" aria-label="Ikuti tur" aria-pressed="false"><svg class="pl-play" viewBox="0 0 14 14" aria-hidden="true"><path d="M3 1.8v10.4L12 7z" fill="currentColor"/></svg><b class="pl-play">PLAY</b><svg class="pl-pause" viewBox="0 0 14 14" aria-hidden="true"><rect x="2.5" y="2" width="3.2" height="10" rx="1" fill="currentColor"/><rect x="8.3" y="2" width="3.2" height="10" rx="1" fill="currentColor"/></svg><b class="pl-pause">PAUSE</b></button>
+</div>
+<div class="tour-end" id="tourEnd" role="dialog" aria-modal="true" aria-labelledby="tourEndH" hidden>
+  <div class="te-card">
+    <button type="button" class="te-x" id="tourX" aria-label="Tutup">×</button>
+    <div class="eyebrow" style="justify-content:center">Akhir tur</div>
+    <h3 id="tourEndH">Bagaimana Anda ingin menggunakan Rotator?</h3>
+    <div class="te-row">
+      <a class="te-opt" href="../board.html"><b>Gratis $0</b><em>.</em> <b>Semua</b><em> skor dan ubin di situs ini. Tanpa perlu akun.</em> <i>Masuk ke papan →</i></a>
+      <a class="te-opt pro" href="../board.html#pro"><span>Pro</span><b> $20 sekali</b> <em>bayar. Pemberitahuan pribadi mengenai koin Anda, dikirimkan ke Telegram.</em> <i>Dapatkan Pro →</i></a>
+    </div>
+    <button type="button" class="te-again" id="tourAgain">Tonton kembali turnya</button>
+  </div>
+</div>
 <script src="../js/config.js"></script>
 <script src="../js/topic.js"></script>
 <script src="../js/scroll-scene.js"></script>
@@ -1025,17 +1081,88 @@ document.addEventListener('click', function (e) {
      animation). Clicking a word or dragging the wheel still jumps. */
 
   /* Floating scroll button: next chapter on click; hides near the end. */
-  var cue = $('cue'), plansEl = $('plans'), mbar = $('mbar');
+  var cue = $('cue'), cueBar = $('cueBar'), plansEl = $('plans'), mbar = $('mbar');
   cue.addEventListener('click', function () {
     var cur = Math.round(wheelTarget()), nx = stops.filter(function (x) { return x.i > cur; })[0];
     if (nx) goTo(nx.i, 1); else plansEl.scrollIntoView({ behavior: S.reduce ? 'auto' : 'smooth' });
   });
   function cueVis() {
     var phone = innerWidth <= 860, heroEnd = $('hero').offsetHeight - innerHeight * 0.9;
-    var hide = scrollY + innerHeight > plansEl.offsetTop + 80 || (phone && scrollY > heroEnd);
-    cue.classList.toggle('off', hide);
-    mbar.classList.toggle('off', !phone || scrollY <= heroEnd || scrollY + innerHeight > plansEl.offsetTop + 80);
+    var atEnd = scrollY + innerHeight > plansEl.offsetTop + 80, past = phone && scrollY > heroEnd;
+    /* On phones SCROLL goes after the opening screen; PLAY/PAUSE stays once
+       the tour has started, lifted above the bottom bar. */
+    cue.classList.toggle('off', past);
+    cueBar.classList.toggle('off', (atEnd && !tour.on) || (past && !tour.started));
+    cueBar.classList.toggle('lift', past);
+    mbar.classList.toggle('off', !phone || scrollY <= heroEnd || atEnd);
   }
+
+  /* Tour (Daniel, 2026-10-21: "one play button and entire thing scrolls
+     automatically ... the tour ends with free or pro choice"). PLAY scrolls
+     the page at a steady pace through every scene to Free & Pro, then offers
+     the choice; Free opens the board. PAUSE stops where it is and PLAY goes
+     on from there. A wheel, touch or key from the visitor pauses it too.
+     Daniel, 2026-10-21 later: between sections it jumps, as if SCROLL had
+     been pressed: each scene plays at the steady pace, and the screen where
+     the next one slides in is a quick glide. */
+  var playEl = $('play'), endEl = $('tourEnd');
+  var TOUR_SPEED = 0.3;                    /* screens per second */
+  var tour = { on: false, started: false, gliding: false, raf: 0, y: 0, t: 0 };
+  /* The next section top if y sits in the slide-in screen before it. */
+  function tourHop(y) {
+    var vh = innerHeight, ends = stops.map(function (x) { return x.el.offsetTop; }).concat(plansEl.offsetTop);
+    for (var k = 1; k < ends.length; k++) {
+      var to = Math.min(ends[k] + 2, tourStopY());
+      if (y >= ends[k] - vh - 0.5 && y < to - 2) return to;
+    }
+    return -1;
+  }
+  function tourStopY() { return Math.min(plansEl.offsetTop - 24, document.documentElement.scrollHeight - innerHeight); }
+  function tourUi() {
+    playEl.classList.toggle('playing', tour.on);
+    playEl.setAttribute('aria-pressed', tour.on ? 'true' : 'false');
+    cueVis();
+  }
+  function tourStep(now) {
+    if (!tour.on) return;
+    if (tour.gliding) {
+      if (jump) { tour.raf = requestAnimationFrame(tourStep); return; }
+      tour.gliding = false; tour.y = scrollY; tour.t = now;
+    }
+    /* The visitor dragged the scrollbar: let them have the page. */
+    if (Math.abs(scrollY - tour.y) > 60) { tourPause(); return; }
+    var hop = tourHop(tour.y);
+    if (hop >= 0) { tour.gliding = true; glide(hop); tour.raf = requestAnimationFrame(tourStep); return; }
+    var dt = Math.min(200, now - tour.t), end = tourStopY();
+    tour.t = now;
+    tour.y = Math.min(end, tour.y + innerHeight * TOUR_SPEED * dt / 1000);
+    window.scrollTo(0, tour.y);
+    if (tour.y >= end - 0.5) { tour.started = false; tourPause(); tourShowEnd(); return; }
+    tour.raf = requestAnimationFrame(tourStep);
+  }
+  function tourPlay() {
+    stopGlide();
+    if (scrollY >= tourStopY() - 2) window.scrollTo(0, 0);
+    tour.on = true; tour.started = true; tour.y = scrollY; tour.t = performance.now();
+    tourUi();
+    tour.raf = requestAnimationFrame(tourStep);
+  }
+  function tourPause() {
+    if (!tour.on) return;
+    tour.on = false; cancelAnimationFrame(tour.raf);
+    if (tour.gliding) { tour.gliding = false; stopGlide(); }
+    tourUi();
+  }
+  function tourShowEnd() { endEl.hidden = false; endEl.querySelector('.te-opt').focus(); }
+  function tourHideEnd() { endEl.hidden = true; }
+  playEl.addEventListener('click', function () { if (tour.on) tourPause(); else tourPlay(); });
+  ['wheel', 'touchstart', 'keydown'].forEach(function (ev) {
+    window.addEventListener(ev, function (e) { if (tour.on && !cueBar.contains(e.target)) tourPause(); }, { passive: true });
+  });
+  $('tourX').addEventListener('click', tourHideEnd);
+  endEl.addEventListener('click', function (e) { if (e.target === endEl) tourHideEnd(); });
+  window.addEventListener('keydown', function (e) { if (e.key === 'Escape' && !endEl.hidden) tourHideEnd(); });
+  $('tourAgain').addEventListener('click', function () { tourHideEnd(); window.scrollTo(0, 0); tourPlay(); });
   window.addEventListener('scroll', cueVis, { passive: true });
   window.addEventListener('resize', cueVis);
   cueVis();
