@@ -344,8 +344,18 @@ h2{font-size:clamp(32px,4.4vw,56px);}
 .wallet span{display:block;font:600 12px/1.4 var(--ui);color:var(--muted);margin-top:3px;}
 .wallet .alt{color:var(--red);}
 .flytok{position:absolute;left:0;top:0;width:28px;height:28px;border-radius:50%;opacity:0;background:radial-gradient(circle at 35% 30%,#ffe08a,#f3ba2f 55%,#b8860b);will-change:transform,opacity;}
+.flytok.b{background:radial-gradient(circle at 35% 30%,#a9c8ff,#4c8dff 55%,#1d4fb8);}
 .swap-svg{position:absolute;overflow:visible;}
 .swap-svg path{fill:none;stroke-width:3;stroke-linecap:round;stroke-linejoin:round;}
+.sw-ax{font:700 10px var(--mono);letter-spacing:.1em;fill:var(--dim);}
+.sw-leg{position:absolute;display:flex;flex-wrap:wrap;gap:4px 14px;font:700 11.5px/1.2 var(--ui);color:var(--muted);}
+.sw-leg span{display:inline-flex;align-items:center;gap:6px;white-space:nowrap;}
+.sw-leg i{width:8px;height:8px;border-radius:50%;}
+.sw-pill{position:absolute;left:0;top:0;z-index:3;font:800 13px/1 var(--mono);padding:6px 9px;border-radius:7px;background:var(--gold);color:#1a1203;white-space:nowrap;will-change:transform;}
+.sw-pill.b{background:var(--blue);color:#fff;}
+.sw-best{position:absolute;z-index:3;opacity:0;font:800 10.5px/1 var(--mono);letter-spacing:.1em;text-transform:uppercase;color:var(--gold-ink);background:var(--card);border:1px solid var(--gold);border-radius:999px;padding:6px 10px;white-space:nowrap;box-shadow:var(--shadow);}
+@media (max-width:860px){ .sw-leg{font-size:10px;gap:3px 10px;} .sw-pill{font-size:11px;padding:4px 7px;} .sw-best{font-size:9px;padding:5px 8px;} }
+@media (min-width:861px){ .sw-leg{font-size:13px;} .sw-pill{font-size:14.5px;} .sw-best{font-size:11.5px;} .sw-ax{font-size:11px;} }
 
 /* ── Yours: 7-day value line ── */
 .yc{position:absolute;overflow:visible;opacity:0;will-change:opacity;}
@@ -425,7 +435,7 @@ h2{font-size:clamp(32px,4.4vw,56px);}
   .cf-name{font-size:10.5px;} .cf-name em{display:none;} .cf-val{font-size:10.5px;}
   .etf{left:14px;right:14px;top:78px;height:32%;} .cf{left:14px;right:14px;bottom:16px;} .etf-sum{right:14px;top:40px;}
   .wallet{left:14px;bottom:14px;min-width:0;padding:10px 12px;} .wallet b{font-size:15px;}
-  .tok{font-size:20px;}
+  .tok{font-size:20px;} .ratio{font-size:12px;padding:7px 10px;}
   .lq{font-size:11px;padding:6px 7px;} .lq-tot{left:14px;}
   .face{padding:12px 12px 11px;} .fb{font-size:12px;margin-top:6px;} .fnews span{font-size:11.5px;}
 }
@@ -514,7 +524,7 @@ h2{font-size:clamp(32px,4.4vw,56px);}
 </section>
 
 <!-- 01 TODAY -->
-<section class="scene" id="today" style="height:480vh">
+<section class="scene" id="today" style="height:384vh">
   <div class="stage">
     <div class="glow" style="--gx:60%;--gy:50%"></div>
     <div class="grid2">
@@ -523,8 +533,8 @@ h2{font-size:clamp(32px,4.4vw,56px);}
         <h2>Your daily market briefing, at hand.</h2>
         <div class="steps" data-scene="today">
           <p class="step" data-at="0">Start your day here: <strong>rates, gold, oil, the dollar, stocks and on-chain money</strong>, one card each, updated every day.</p>
-          <p class="step" data-at=".3">Every card turns over to say <strong>what it is and why it matters for crypto</strong>, in plain words.</p>
-          <p class="step" data-at=".64">When something moves more than usual, <strong>the headline behind it shows up on the card.</strong> Your daily news, at hand.</p>
+          <p class="step" data-at=".34">Every card turns over to say <strong>what it is and why it matters for crypto</strong>, in plain words.</p>
+          <p class="step" data-at=".72">When something moves more than usual, <strong>the headline behind it shows up on the card.</strong> Your daily news, at hand.</p>
         </div>
         <div class="cta-row"><a class="btn btn-gold" href="board.html#sec-today">Open Today ›</a></div>
       </div>
@@ -654,14 +664,14 @@ h2{font-size:clamp(32px,4.4vw,56px);}
     <div class="grid2">
       <div class="copy">
         <div class="eyebrow"><b>07</b>Rotator Tool</div>
-        <h2>See what a swap really does.</h2>
+        <h2>Find the best time to swap.</h2>
         <div class="steps" data-scene="tool">
-          <p class="step" data-at="0"><strong>Coin A runs ahead of coin B.</strong> Each A now buys more B than it did before.</p>
-          <p class="step" data-at=".36">The Rotator Tool shows that ratio and where today sits in its range. <strong>Swap near the top, and one A becomes more B.</strong></p>
-          <p class="step" data-at=".56">If B catches up, <strong>your B ends up worth more than the A you gave.</strong></p>
-          <p class="step" data-at=".8">If B keeps lagging, the swap loses. <strong>The tool shows the history; the decision is yours.</strong></p>
+          <p class="step" data-at="0"><strong>Coin B is weakening while coin A is on the rise.</strong> Every week one B buys less A.</p>
+          <p class="step" data-at=".36">The Rotator Tool shows that ratio and when it turns. <strong>When the stronger coin takes over, it is the best time to swap the weaker one for it.</strong></p>
+          <p class="step" data-at=".56">Your money now rides the coin on the rise. <strong>Red is what holding on to B left you with.</strong></p>
+          <p class="step" data-at=".8">If A turns back down, the swap loses (the grey line). <strong>The tool shows the history; the decision is yours.</strong></p>
         </div>
-        <div class="cta-row"><a class="btn btn-gold" href="board.html#sec-swap">Open the Rotator Tool ›</a></div>
+        <div class="cta-row"><a class="btn btn-gold" href="board.html#sec-swap">Find your best swap ›</a></div>
       </div>
       <div class="vis"><div class="panel" id="tool-vis">
         <div class="tag" style="left:26px;top:20px">Example · not real prices</div>
@@ -1375,22 +1385,23 @@ h2{font-size:clamp(32px,4.4vw,56px);}
       function render(p) {
         steps('today', p);
         /* Slow ring (Daniel, 2026-10-20: "scroll happens too fast on
-           today"): the scene is 480vh (was 280) and the turn is linear
-           over the first 70%, so one notch of the mouse wheel moves the
-           ring about a third as far as before. */
-        var r = seg(p, 0, 0.7);
+           today"): the scene was 480vh (was 280) with the turn over the
+           first 70%. 2026-10-21, Daniel: "I like the scrolling pace but
+           make it 20% shorter": 384vh, the turn over the first 78% (about
+           11% quicker), the quiet tail after it does most of the cut. */
+        var r = seg(p, 0, 0.78);
         var a = -(360 + f * step) * r;
         /* Starts tilted, levels out, and at the end moves in on the card with the news. */
-        var z = ease(seg(p, 0.74, 0.96)), tilt = 9 * (1 - ease(seg(p, 0, 0.5)));
+        var z = ease(seg(p, 0.8, 0.97)), tilt = 9 * (1 - ease(seg(p, 0, 0.5)));
         ring.style.transform = 'translateZ(' + (-Rr + z * Rr * 0.22).toFixed(1) + 'px) rotateX(' + tilt.toFixed(2) + 'deg) rotateY(' + a.toFixed(2) + 'deg)';
-        var all = ease(seg(p, 0.3, 0.4)) - ease(seg(p, 0.47, 0.56));
-        var feat = ease(seg(p, 0.66, 0.78));
+        var all = ease(seg(p, 0.34, 0.45)) - ease(seg(p, 0.52, 0.62));
+        var feat = ease(seg(p, 0.7, 0.8));
         cards.forEach(function (c, i) {
           var ang = ((i * step + a) % 360 + 360) % 360, cos = Math.cos(ang * Math.PI / 180);
           var op = String(0.2 + 0.8 * Math.max(0, cos));
           c.faces[0].style.opacity = op; c.faces[1].style.opacity = op;
           /* The pictures draw in as the ring turns. */
-          var d = ease(seg(p, 0.02, 0.5));
+          var d = ease(seg(p, 0.02, 0.55));
           if (c.line) c.line.setAttribute('stroke-dashoffset', (1 - d).toFixed(3));
           if (c.needle) c.needle.style.transform = 'rotate(' + ((-90 + 180 * c.fg / 100 * d)).toFixed(1) + 'deg)';
           for (var b = 0; b < c.bs.length; b++) c.bs[b].style.transform = 'scaleY(' + ease(seg(d * 1.4 - b * 0.02, 0, 1)).toFixed(3) + ')';
@@ -1614,71 +1625,108 @@ h2{font-size:clamp(32px,4.4vw,56px);}
   }
 
   /* ── 07 ROTATOR TOOL ──────────────────────────────────── */
+  /* Drawn like the "coins against Bitcoin" share card (Daniel, 2026-10-21):
+     jagged lines, a soft area under them, faint grid, a dashed start level,
+     a value pill riding the tip. The story (Daniel, same day): swap the
+     weakening coin for the one on the rise. Coin B (blue) starts on top and
+     falls the whole way; coin A (gold) rises and the two cross at the swap.
+     Lines are the dollar value of 1 B, and of the 2 A that 1 B buys at the
+     swap, so your money is blue until the cross and gold after it. Red is
+     what keeping B left you with; the grey dashed line is the honest other
+     case, A turning back down. Example paths, not real prices. */
   function swapTool() {
     var vis = $('tool-vis');
-    /* Example paths (not real prices): A runs first, then B catches up; the
-       dashed line is B failing to catch up. */
-    function A(t) { return t < 0.5 ? 100 + 30 * ease(t / 0.5) : 130 - 2 * ((t - 0.5) / 0.5); }
-    function Bp(t) { return t < 0.5 ? 100 - 2 * (t / 0.5) : 98 + 27 * ease((t - 0.5) / 0.5); }
-    function Balt(t) { return t < 0.5 ? Bp(t) : 98 - 13 * ((t - 0.5) / 0.5); }
-    var QB = A(0.5) / Bp(0.5);
+    function jag(t, k) {
+      /* Seeded wiggle, zero at the start and pinned at the swap so the two
+         lines meet exactly there. */
+      var n = 1.7 * Math.sin(t * 61 + k) + 1.1 * Math.sin(t * 113 + 2.1 * k) + 0.7 * Math.sin(t * 197 + 3.7 * k);
+      return n * Math.min(1, t * 10) * (1 - Math.exp(-Math.pow((t - 0.5) / 0.05, 2)));
+    }
+    var TS = 0.5, KA = 2;                 /* swap point; 1 B buys 2 A there */
+    function Bv(t) { return 150 - 58 * t + jag(t, 4); }                      /* weakening */
+    function Av(t) { return 96 + 38 * t + 24 * t * t + jag(t, 1); }          /* on the rise */
+    function Aalt(t) { var u = (t - TS) / (1 - TS); return t < TS ? Av(t) : 121 + 10 * u - 34 * u * u + jag(t, 7); }
+    function mine(t) { return t < TS ? Bv(t) : Av(t); }
     var ta = document.createElement('div'); ta.className = 'tok a'; ta.innerHTML = 'A<small>Coin A</small>'; vis.appendChild(ta);
     var tb = document.createElement('div'); tb.className = 'tok b'; tb.innerHTML = 'B<small>Coin B</small>'; vis.appendChild(tb);
-    var ft = document.createElement('div'); ft.className = 'flytok'; vis.appendChild(ft);
+    var ft = document.createElement('div'); ft.className = 'flytok b'; vis.appendChild(ft);
     var ratio = document.createElement('div'); ratio.className = 'ratio'; vis.appendChild(ratio);
     var wal = document.createElement('div'); wal.className = 'wallet'; vis.appendChild(wal);
+    var leg = document.createElement('div'); leg.className = 'sw-leg';
+    leg.innerHTML = '<span><i style="background:var(--blue)"></i>Coin B, weakening</span><span><i style="background:var(--gold)"></i>Coin A, on the rise</span><span><i style="background:var(--red)"></i>Didn\'t swap</span>';
+    vis.appendChild(leg);
+    var pill = document.createElement('div'); pill.className = 'sw-pill'; vis.appendChild(pill);
+    var best = document.createElement('div'); best.className = 'sw-best'; best.textContent = 'Best time to swap'; vis.appendChild(best);
     var svgNS = 'http://www.w3.org/2000/svg', sv = document.createElementNS(svgNS, 'svg'); sv.setAttribute('class', 'swap-svg'); vis.appendChild(sv);
-    var W, H, phone, ch, base, posA, posB;
+    var W, H, phone, ch, base, posA, posB, LO = 84, HI = 166;
+    function X(t) { return ch.x + t * ch.w; }
+    function Y(v) { return ch.y + ch.h - (v - LO) / (HI - LO) * ch.h; }
     function path(fn, t0, t1) {
-      var d = '';
-      for (var i = 0; i <= 60; i++) {
-        var t = t0 + (t1 - t0) * i / 60, v = fn(t);
-        d += (i ? ' L' : 'M') + (ch.x + t * ch.w).toFixed(1) + ' ' + (ch.y + ch.h - (v - 80) / 55 * ch.h).toFixed(1);
-      }
+      var d = '', n = Math.round(180 * (t1 - t0));
+      for (var i = 0; i <= n; i++) { var t = t0 + (t1 - t0) * i / n; d += (i ? ' L' : 'M') + X(t).toFixed(1) + ' ' + Y(fn(t)).toFixed(1); }
       return d;
     }
     function resize() {
       W = vis.clientWidth; H = vis.clientHeight; phone = W < 520;
-      ch = { x: phone ? 16 : 30, y: H * (phone ? 0.38 : 0.4), w: W - (phone ? 32 : 60), h: H * (phone ? 0.27 : 0.3) };
+      ch = { x: phone ? 16 : 30, y: H * (phone ? 0.4 : 0.42), w: W - (phone ? 32 : 60), h: H * (phone ? 0.27 : 0.3) };
       base = phone ? 50 : 66;
-      posA = [W * 0.27, H * (phone ? 0.2 : 0.2)]; posB = [W * 0.73, H * (phone ? 0.2 : 0.2)];
+      posA = [W * (phone ? 0.15 : 0.27), H * 0.19]; posB = [W * (phone ? 0.85 : 0.73), H * 0.19];
+      leg.style.left = ch.x + 'px'; leg.style.top = (ch.y - (phone ? 30 : 36)) + 'px';
       sv.setAttribute('width', W); sv.setAttribute('height', H); sv.style.left = '0'; sv.style.top = '0';
-      sv.innerHTML = '<line x1="' + ch.x + '" x2="' + (ch.x + ch.w) + '" y1="' + (ch.y + ch.h) + '" y2="' + (ch.y + ch.h) + '" stroke="var(--panel-b)"/>'
-        + '<path id="pa" d="' + path(A, 0, 1) + '" stroke="#f3ba2f" pathLength="1" stroke-dasharray="1" stroke-dashoffset="1"/>'
-        + '<path id="pb" d="' + path(Bp, 0, 1) + '" stroke="#4c8dff" pathLength="1" stroke-dasharray="1" stroke-dashoffset="1"/>'
-        + '<path id="pbalt" d="' + path(Balt, 0.5, 1) + '" stroke="#ff4d63" pathLength="1" stroke-dasharray="0.02 0.02" style="opacity:0"/>'
-        + '<circle id="swapdot" r="6" fill="#fff" stroke="#f3ba2f" stroke-width="3" cx="' + (ch.x + 0.5 * ch.w) + '" cy="' + (ch.y + ch.h - (A(0.5) - 80) / 55 * ch.h) + '" style="opacity:0"/>'
-        + '<text id="swaplbl" x="' + (ch.x + 0.5 * ch.w) + '" y="' + (ch.y + ch.h - (A(0.5) - 80) / 55 * ch.h - 14) + '" text-anchor="middle" fill="var(--text)" font-size="11" font-weight="800" font-family="ui-monospace,monospace" style="opacity:0">SWAP</text>';
+      var grid = '';
+      [0, 1, 2, 3].forEach(function (k) { var y = (ch.y + ch.h * k / 3).toFixed(1); grid += '<line x1="' + ch.x + '" x2="' + (ch.x + ch.w) + '" y1="' + y + '" y2="' + y + '" stroke="var(--panel-b)"/>'; });
+      var ys = Y(Bv(TS)).toFixed(1), bot = (ch.y + ch.h).toFixed(1);
+      sv.innerHTML = '<defs><linearGradient id="swfill" x1="0" y1="0" x2="0" y2="1"><stop offset="0" style="stop-color:var(--gold);stop-opacity:.22"/><stop offset="1" style="stop-color:var(--gold);stop-opacity:0"/></linearGradient>'
+        + '<clipPath id="swclip"><rect id="swrect" x="0" y="0" width="0" height="' + H + '"/></clipPath></defs>'
+        + grid
+        + '<line x1="' + ch.x + '" x2="' + (ch.x + ch.w) + '" y1="' + ys + '" y2="' + ys + '" stroke="var(--muted)" stroke-dasharray="5 5" opacity=".5"/>'
+        + '<text x="' + ch.x + '" y="' + (ch.y + ch.h + 18).toFixed(1) + '" class="sw-ax">DAY 1</text>'
+        + '<text x="' + (ch.x + ch.w) + '" y="' + (ch.y + ch.h + 18).toFixed(1) + '" class="sw-ax" text-anchor="end">NOW</text>'
+        + '<g clip-path="url(#swclip)">'
+        + '<path d="' + path(mine, 0, 1) + ' L' + X(1).toFixed(1) + ' ' + bot + ' L' + X(0).toFixed(1) + ' ' + bot + ' Z" fill="url(#swfill)" stroke="none"/>'
+        + '<path id="palt" d="' + path(Aalt, TS, 1) + '" stroke="var(--muted)" stroke-width="2" stroke-dasharray="6 6" style="opacity:0"/>'
+        + '<path d="' + path(Av, 0, TS) + '" stroke="var(--gold)" stroke-width="2" opacity=".55"/>'
+        + '<path d="' + path(Bv, 0, TS) + '" stroke="var(--blue)"/>'
+        + '<path id="pkeep" d="' + path(Bv, TS, 1) + '" stroke="var(--blue)" stroke-width="2"/>'
+        + '<path d="' + path(Av, TS, 1) + '" stroke="var(--gold)"/>'
+        + '</g>'
+        + '<circle id="swapdot" r="6" style="fill:var(--card);opacity:0" stroke="var(--gold)" stroke-width="3" cx="' + X(TS).toFixed(1) + '" cy="' + ys + '"/>';
+      best.style.left = X(TS) + 'px'; best.style.top = (Y(Bv(TS)) - 40) + 'px';
     }
     function render(p) {
       steps('tool', p);
-      var t = p < 0.5 ? seg(p, 0.04, 0.34) * 0.5 : 0.5 + seg(p, 0.5, 0.78) * 0.5;
-      var sw = ease(seg(p, 0.36, 0.5)), alt = ease(seg(p, 0.8, 0.92));
-      document.getElementById('pa').setAttribute('stroke-dashoffset', (1 - t).toFixed(4));
-      document.getElementById('pb').setAttribute('stroke-dashoffset', (1 - t).toFixed(4));
-      var pal = document.getElementById('pbalt'); pal.style.opacity = String(alt);
+      var t = p < 0.5 ? seg(p, 0.04, 0.34) * TS : TS + seg(p, 0.5, 0.78) * (1 - TS);
+      var sw = ease(seg(p, 0.36, 0.5)), alt = ease(seg(p, 0.8, 0.92)), kept = ease(seg(p, 0.6, 0.72));
+      document.getElementById('swrect').setAttribute('width', (X(t) + 3).toFixed(1));
+      document.getElementById('palt').style.opacity = String(alt);
+      /* After the swap B is only "what keeping it would be": red once named. */
+      document.getElementById('pkeep').style.stroke = kept > 0.5 ? 'var(--red)' : 'var(--blue)';
       document.getElementById('swapdot').style.opacity = String(sw);
-      document.getElementById('swaplbl').style.opacity = String(sw);
-      var sa = base * (A(t) / 100), sb = base * (Bp(t) / 100);
+      best.style.opacity = String(sw);
+      best.style.transform = 'translate(-50%,' + (8 * (1 - sw)).toFixed(1) + 'px)';
+      var sa = base * Math.min(1.35, Av(t) / 121), sb = base * Math.min(1.35, Bv(t) / 121);
       ta.style.width = ta.style.height = sa.toFixed(1) + 'px';
       tb.style.width = tb.style.height = sb.toFixed(1) + 'px';
       ta.style.transform = 'translate3d(' + (posA[0] - sa / 2).toFixed(1) + 'px,' + (posA[1] - sa / 2).toFixed(1) + 'px,0)';
       tb.style.transform = 'translate3d(' + (posB[0] - sb / 2).toFixed(1) + 'px,' + (posB[1] - sb / 2).toFixed(1) + 'px,0)';
-      ta.style.opacity = String(1 - 0.55 * sw);
-      /* The swap: a coin hops from A to B along an arc. */
-      var fx = posA[0] + (posB[0] - posA[0]) * sw - 14, fy = posA[1] - Math.sin(Math.PI * sw) * 60 - 14;
+      tb.style.opacity = String(1 - 0.55 * sw);
+      /* The swap: a coin hops from B to A along an arc. */
+      var fx = posB[0] + (posA[0] - posB[0]) * sw - 14, fy = posB[1] - Math.sin(Math.PI * sw) * 60 - 14;
       ft.style.opacity = sw > 0.02 && sw < 0.98 ? '1' : '0';
       ft.style.transform = 'translate3d(' + fx.toFixed(1) + 'px,' + fy.toFixed(1) + 'px,0)';
-      var rv = A(t) / Bp(t);
-      ratio.innerHTML = '<em>RATIO</em>1 A = ' + rv.toFixed(2) + ' B';
-      ratio.style.top = (phone ? ch.y + ch.h + 14 : posA[1] - 16) + 'px';
-      var held, worth, extra = '';
-      if (sw < 0.5) { held = '1 A'; worth = A(t); }
-      else { held = QB.toFixed(2) + ' B'; worth = QB * Bp(t); }
-      if (alt > 0.05) {
-        extra = '<span>Had you kept A: $' + Math.round(A(1)) + '</span><span class="alt">If B had kept lagging: $' + Math.round(QB * Balt(1)) + '</span>';
-      }
-      wal.innerHTML = '<small>You hold</small><b>' + held + ' · $' + Math.round(worth) + '</b>' + extra;
+      ratio.innerHTML = '<em>RATIO</em>1 B = ' + (KA * Bv(t) / Av(t)).toFixed(2) + ' A';
+      ratio.style.top = (posA[1] - 16) + 'px';
+      /* Value pill on the tip of your money, flipped left near the edge. */
+      var v = sw < 0.5 ? Bv(t) : mine(t), hx = X(t), hy = Y(v);
+      pill.textContent = '$' + Math.round(v);
+      pill.className = 'sw-pill' + (sw < 0.5 ? ' b' : '');
+      pill.style.opacity = t > 0.01 ? '1' : '0';
+      var left = hx + 10 + pill.offsetWidth > W - 6;
+      pill.style.transform = 'translate3d(' + (left ? hx - 10 - pill.offsetWidth : hx + 10).toFixed(1) + 'px,' + (hy - pill.offsetHeight / 2).toFixed(1) + 'px,0)';
+      var held = sw < 0.5 ? '1 B' : KA.toFixed(2) + ' A', extra = '';
+      if (kept > 0.05) extra += '<span class="alt">Didn\'t swap: $' + Math.round(Bv(t)) + '</span>';
+      if (alt > 0.05) extra += '<span>If A had turned back down: $' + Math.round(Aalt(1)) + '</span>';
+      wal.innerHTML = '<small>You hold</small><b>' + held + ' · $' + Math.round(v) + '</b>' + extra;
     }
     resize();
     S.add($('tool'), { render: render, resize: resize });
