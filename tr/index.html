@@ -462,6 +462,24 @@ html:is([lang="ar"],[lang="ur"]) .cc-hilo{right:auto;left:0;}
 
 /* ── Today: rotating ring of briefing cards ── */
 .ring-wrap{position:absolute;inset:0;perspective:1100px;display:grid;place-items:center;}
+/* Big category word under the card in front (Daniel, 2026-10-21: "big
+   text below each card in their category"). */
+.today-cat{position:absolute;left:0;right:0;bottom:6%;z-index:3;text-align:center;font:800 clamp(26px,3.6vw,46px)/1 var(--mono);letter-spacing:.08em;text-transform:uppercase;color:var(--gold-ink);pointer-events:none;transition:opacity .25s ease,transform .25s ease;}
+.today-cat.swap{opacity:0;transform:translateY(8px);}
+/* Pictures beside the word (Daniel, 2026-10-21: "the oil barrel, the
+   ingots, the currency symbols euro, yen, dollar, yuan"): they pop in one
+   by one when their card comes to the front. */
+.today-cat{display:flex;align-items:center;justify-content:center;gap:16px;}
+.tc-ic{display:flex;align-items:flex-end;gap:4px;height:1.5em;}
+.tc-ic>*{opacity:0;animation:tcPop .5s cubic-bezier(.34,1.56,.64,1) forwards;}
+.tc-ic svg{display:block;height:100%;width:auto;}
+.tc-cur{display:grid;place-items:center;width:1.05em;height:1.05em;border-radius:50%;font:800 .6em/1 var(--ui);letter-spacing:0;color:#1a1203;background:linear-gradient(180deg,var(--gold2),var(--gold));box-shadow:0 4px 12px rgba(0,0,0,.3);}
+.tc-cur:nth-child(odd){margin-bottom:.35em;}
+@keyframes tcPop{0%{opacity:0;transform:translateY(10px) scale(.4)}100%{opacity:1;transform:none}}
+@media (prefers-reduced-motion:reduce){ .tc-ic>*{animation:none;opacity:1;} }
+html:is([lang="ar"],[lang="ur"]) .today-cat{letter-spacing:0;font-family:var(--ui);}
+#today-vis .tag{z-index:4;}
+@media (max-width:860px){ .today-cat{font-size:20px;bottom:auto;top:14px;gap:10px;} #today-vis .tag{display:none;} #today-vis .ring-wrap{top:40px;bottom:26px;} }
 .ring{position:relative;width:var(--cw);height:var(--chh);transform-style:preserve-3d;will-change:transform;}
 .c3{position:absolute;inset:0;transform-style:preserve-3d;}
 .flip{position:absolute;inset:0;transform-style:preserve-3d;}
@@ -1237,7 +1255,12 @@ document.addEventListener('click', function (e) {
   /* Seconds added to a scene's steady part (Daniel, 2026-10-21: Today "2
      second slower"). The scene keeps its height, so scrolling by hand is
      unchanged. */
-  var TOUR_EXTRA = { today: 2 };
+  var TOUR_EXTRA = {};
+  /* Points where the tour rests for a second (Daniel, 2026-10-21: "pause
+     for a second when each card is presented" on Today). A scene sets
+     TOUR_PAUSES[id] = fn returning page y values. These replace Today's
+     earlier 2 extra seconds. */
+  var TOUR_PAUSES = {}, TOUR_PAUSE_S = 1;
   /* Seconds the tour waits on a scene's last picture before it jumps on
      (Daniel, 2026-10-21: the bell "needs to stay one more second"). */
   var TOUR_HOLD = { hero: 1, momentum: 1, yours: 1, tool: 1 };
@@ -1258,7 +1281,7 @@ document.addEventListener('click', function (e) {
     }
     return TOUR_SPEED;
   }
-  var tour = { on: false, started: false, gliding: false, raf: 0, y: 0, t: 0, held: null, holdUntil: 0, shown: null, showing: null, showT: 0 };
+  var tour = { on: false, started: false, gliding: false, raf: 0, y: 0, t: 0, held: null, holdUntil: 0, shown: null, showing: null, showT: 0, pauseUntil: 0 };
   /* The next section top if y sits in the slide-in screen before it. */
   function tourHop(y) {
     var vh = innerHeight, ends = stops.map(function (x) { return x.el.offsetTop; }).concat(plansEl.offsetTop);
@@ -1295,9 +1318,14 @@ document.addEventListener('click', function (e) {
       }
       tour.gliding = true; glide(hop); tour.raf = requestAnimationFrame(tourStep); return;
     }
+    if (now < tour.pauseUntil) { tour.t = now; tour.raf = requestAnimationFrame(tourStep); return; }
     var dt = Math.min(200, now - tour.t), end = tourStopY();
     tour.t = now;
-    tour.y = Math.min(end, tour.y + innerHeight * tourSpeed(tour.y) * dt / 1000);
+    var ny = Math.min(end, tour.y + innerHeight * tourSpeed(tour.y) * dt / 1000);
+    for (var pk in TOUR_PAUSES) TOUR_PAUSES[pk]().forEach(function (py) {
+      if (py > tour.y && py <= ny) { ny = py; tour.pauseUntil = now + TOUR_PAUSE_S * 1000; }
+    });
+    tour.y = ny;
     window.scrollTo(0, tour.y);
     if (tour.y >= end - 0.5) { tour.started = false; tourPause(); tourShowEnd(); return; }
     tour.raf = requestAnimationFrame(tourStep);
@@ -1844,6 +1872,25 @@ document.addEventListener('click', function (e) {
     ['hash', 'Hash oranı', 'Bitcoin\'i güvence altına alan hesaplama gücü.'],
     ['crack', 'Dizel crack spread', 'Rafineriler ham petrolü dizele dönüştürerek ne kadar kazanıyor? Enerji fiyatları için bir basınç göstergesi.']
   ];
+  var TODAY_CAT = { fg: 'Korku ve açgözlülük', fed: 'Banka faiz oranları', dxy: 'Dolar', gold: 'Metaller', oil: 'Petrol', ndx: 'Hisse senetleri', vix: 'Hisse senetleri',
+    etf: 'Bitcoin ETF\'leri', stable: 'Stablecoinler', tvl: 'DeFi', hash: 'Madencilik', crack: 'Enerji' };
+  /* Barrel: dark drum, gold hoops, a drop of oil. Ingots: three gold
+     bars, two below and one on top. Currencies: four gold coins. */
+  var TC_BAR = '<svg viewBox="0 0 40 52"><defs><linearGradient id="tcb" x1="0" x2="1"><stop offset="0" stop-color="#1c2633"/><stop offset=".45" stop-color="#3a4a5e"/><stop offset="1" stop-color="#121a24"/></linearGradient></defs>'
+    + '<path d="M6 6 Q4 26 6 46 Q20 50 34 46 Q36 26 34 6 Q20 2 6 6Z" fill="url(#tcb)"/>'
+    + '<ellipse cx="20" cy="6" rx="14" ry="3.2" fill="#2b3746" stroke="#f3ba2f" stroke-width="1.6"/>'
+    + '<path d="M5 18 Q20 22 35 18 M5 34 Q20 38 35 34" stroke="#f3ba2f" stroke-width="2.4" fill="none"/>'
+    + '<path d="M20 22 C17 27 16 29 16 31 a4 4 0 0 0 8 0 C24 29 23 27 20 22Z" fill="#0b0f14" stroke="#f3ba2f" stroke-width=".8"/></svg>';
+  function tcIngot() {
+    return '<svg viewBox="0 0 44 24"><defs><linearGradient id="tci" x1="0" x2="0" y1="0" y2="1"><stop offset="0" stop-color="#ffe08a"/><stop offset=".55" stop-color="#e7a91f"/><stop offset="1" stop-color="#9c6d07"/></linearGradient></defs>'
+      + '<path d="M8 2 H36 L43 22 H1Z" fill="url(#tci)"/><path d="M8 2 H36 L38 7 H6Z" fill="#fff3c4" opacity=".55"/></svg>';
+  }
+  var TODAY_ICON = {
+    oil: TC_BAR,
+    crack: TC_BAR,
+    gold: '<span style="display:flex;flex-direction:column;align-items:center;gap:1px;height:100%;justify-content:flex-end"><span style="height:45%;display:block">' + tcIngot() + '</span><span style="height:45%;display:flex;gap:2px">' + tcIngot() + tcIngot() + '</span></span>',
+    dxy: ['$', '€', '¥', '元'].map(function (c) { return '<span class="tc-cur">' + c + '</span>'; }).join('')
+  };
   function today() {
     var vis = $('today-vis');
     Promise.all([TOPIC.cache('world_data'), TOPIC.cache('fear_greed'), TOPIC.cache('etf_flows_summary'), TOPIC.cache('tile_news')]).then(function (res) {
@@ -1925,9 +1972,21 @@ document.addEventListener('click', function (e) {
         c.faces = el.querySelectorAll('.face'); c.line = el.querySelector('.spk-l'); c.needle = el.querySelector('.fg-needle'); c.bs = el.querySelectorAll('.mb');
       });
       var N = cards.length, step = 360 / N, Rr = 0, cw, chh;
+      var cat = document.createElement('div'); cat.className = 'today-cat'; vis.appendChild(cat);
+      var catOn = -1, catT = 0;
+      function showCat(i) {
+        if (i === catOn) return;
+        catOn = i; cat.classList.add('swap'); clearTimeout(catT);
+        catT = setTimeout(function () {
+          var k = cards[i].k, ic = TODAY_ICON[k];
+          cat.innerHTML = (ic ? '<span class="tc-ic">' + ic + '</span>' : '') + '<span>' + esc(TODAY_CAT[k] || cards[i].title) + '</span>';
+          Array.prototype.forEach.call(cat.querySelectorAll('.tc-ic>*'), function (el, j) { el.style.animationDelay = (0.15 + j * 0.14) + 's'; });
+          cat.classList.remove('swap');
+        }, 180);
+      }
       function resize() {
         var W = vis.clientWidth, phone = W < 520;
-        cw = phone ? 168 : 240; chh = phone ? 280 : 370;
+        cw = phone ? 160 : 240; chh = phone ? 262 : 370;
         Rr = (cw + (phone ? 14 : 20)) * N / (2 * Math.PI);
         ring.style.setProperty('--cw', cw + 'px'); ring.style.setProperty('--chh', chh + 'px');
         cards.forEach(function (c, i) { c.el.style.transform = 'rotateY(' + (i * step) + 'deg) translateZ(' + Rr.toFixed(1) + 'px)'; });
@@ -1948,10 +2007,20 @@ document.addEventListener('click', function (e) {
         var pos = seg(p, 0, 0.92) * N, k = Math.min(N, Math.floor(pos)), fr = pos - k;
         var a = -step * (k + ease(seg(fr, 0.3, 1)));
         var tilt = 9 * (1 - ease(seg(p, 0, 0.4)));
-        ring.style.transform = 'translateZ(' + (-Rr).toFixed(1) + 'px) rotateX(' + tilt.toFixed(2) + 'deg) rotateY(' + a.toFixed(2) + 'deg)';
+        /* Each card gets its own perspective and stacking order instead of
+           one shared 3D ring (2026-10-21: Safari flattened the shared ring,
+           so edge-on cards drew over the front one with mirrored text). */
+        ring.style.transform = 'none';
+        showCat((k + (ease(seg(fr, 0.3, 1)) > 0.5 ? 1 : 0)) % N);
         cards.forEach(function (c, i) {
-          var ang = ((i * step + a) % 360 + 360) % 360, cos = Math.cos(ang * Math.PI / 180);
+          var ang = ((i * step + a) % 360 + 360) % 360, rad = ang * Math.PI / 180, cos = Math.cos(rad);
+          c.el.style.transform = 'perspective(1100px) rotateX(' + tilt.toFixed(2) + 'deg) translate3d(' + (Rr * Math.sin(rad)).toFixed(1) + 'px,0,' + (Rr * cos - Rr).toFixed(1) + 'px) rotateY(' + (ang > 180 ? ang - 360 : ang).toFixed(2) + 'deg)';
+          c.el.style.zIndex = String(Math.round(100 + cos * 100));
           c.faces[0].style.opacity = String(0.2 + 0.8 * Math.max(0, cos));
+          /* Safari drew the backs of the far cards mirrored (backface-
+             visibility is not honoured there with these opacities), so a
+             card facing away is simply not drawn. */
+          c.el.style.visibility = cos < -0.02 ? 'hidden' : '';
           /* The pictures draw in as the ring turns. */
           var d = ease(seg(p, 0.02, 0.5));
           if (c.line) c.line.setAttribute('stroke-dashoffset', (1 - d).toFixed(3));
@@ -1961,6 +2030,11 @@ document.addEventListener('click', function (e) {
       }
       resize();
       S.add($('today'), { render: render, resize: resize });
+      TOUR_PAUSES.today = function () {
+        var el = $('today'), span = el.offsetHeight - innerHeight, out = [];
+        for (var i = 0; i < N; i++) out.push(el.offsetTop + (i + 0.2) / N * 0.92 * span);
+        return out;
+      };
     });
   }
 
