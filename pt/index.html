@@ -194,7 +194,7 @@ html:is([lang="ar"],[lang="ur"]) :is(.hero-copy,.copy,.board-cap,.plans-in,.fina
 .rail.dragging{cursor:grabbing;}
 .rail.dragging a{transition:none;}
 .rail a{height:44px;margin-top:-22px;-webkit-user-drag:none;display:flex;align-items:center;text-decoration:none;color:var(--muted);font:700 15px/1 var(--mono);letter-spacing:.1em;white-space:nowrap;transition:color .25s ease;}
-.rail a i{display:none;}
+/* (the wheel labels had an empty <i> tick here; removed 2026-10-21, it was hidden) */
 .rail a.on{color:var(--gold-ink);}
 .rail .sep{width:34px;height:1.5px;margin-top:-.75px;border-radius:2px;background:var(--muted);}
 /* Short, long, short between two words (Daniel, 2026-10-20), like a ruler. */
@@ -217,7 +217,9 @@ html:is([lang="ar"],[lang="ur"]) :is(.hero-copy,.copy,.board-cap,.plans-in,.fina
 @media (min-width:1280px){ .grid2{padding-left:190px;} }
 .copy{position:relative;}
 .eyebrow{font:700 12px/1 var(--mono);letter-spacing:.16em;color:var(--gold-ink);text-transform:uppercase;display:flex;align-items:center;gap:10px;}
-.eyebrow b{display:inline-grid;place-items:center;width:26px;height:26px;border-radius:50%;border:1px solid var(--gold);font-size:11px;}
+/* The number is a <data> element, not <b>: translate.js then keeps it
+   apart from the words (2026-10-21: DeepL merged "09" into "Record"). */
+.eyebrow .eb-n{display:inline-grid;place-items:center;width:26px;height:26px;border-radius:50%;border:1px solid var(--gold);font-size:11px;}
 h1,h2{font-weight:800;letter-spacing:-.035em;line-height:1.04;margin:16px 0 0;}
 h1{font-size:clamp(40px,6.4vw,78px);}
 h2{font-size:clamp(32px,4.4vw,56px);}
@@ -261,7 +263,7 @@ h2{font-size:clamp(32px,4.4vw,56px);}
 .hero-copy{position:relative;z-index:2;max-width:760px;}
 .hero-sub{font-size:clamp(17px,2vw,21px);color:var(--muted);margin:18px 0 0;max-width:600px;}
 .hero-stats{display:flex;gap:28px;margin-top:26px;font:600 13px/1.3 var(--ui);color:var(--muted);}
-.hero-stats b{display:block;font:800 26px/1.1 var(--mono);color:var(--text);letter-spacing:-.02em;}
+.hero-stats .hs-v{display:block;font:800 26px/1.1 var(--mono);color:var(--text);letter-spacing:-.02em;}
 .wall{position:absolute;inset:0;z-index:1;pointer-events:none;}
 .coin{position:absolute;left:0;top:0;will-change:transform,opacity;}
 .coin .in{display:flex;align-items:center;gap:8px;border-radius:999px;padding:5px;background:var(--panel);border:1px solid var(--panel-b);box-shadow:0 8px 24px rgba(0,0,0,.25);backdrop-filter:blur(6px);}
@@ -355,13 +357,13 @@ html:is([lang="ar"],[lang="ur"]) .cc-hilo{right:auto;left:0;}
 .te-row{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
 .te-opt{display:flex;flex-direction:column;align-items:flex-start;gap:6px;text-align:left;text-decoration:none;color:var(--text);padding:16px;border-radius:16px;border:1px solid var(--panel-b);background:var(--panel);transition:transform .2s ease,border-color .2s ease;}
 .te-opt:hover{transform:translateY(-2px);border-color:var(--gold);}
-.te-opt span{font:700 12px/1 var(--mono);letter-spacing:.16em;text-transform:uppercase;color:var(--gold-ink);}
-.te-opt b{font-size:22px;font-weight:800;}
-.te-opt em{font-style:normal;color:var(--muted);font-size:14px;line-height:1.35;}
-.te-opt i{margin-top:auto;padding-top:6px;font:700 14px/1 var(--ui);font-style:normal;color:var(--gold-ink);}
+.te-opt .te-k{font:700 12px/1 var(--mono);letter-spacing:.16em;text-transform:uppercase;color:var(--gold-ink);}
+.te-opt .te-v{font-size:22px;font-weight:800;}
+.te-opt .te-d{font-style:normal;color:var(--muted);font-size:14px;line-height:1.35;}
+.te-opt .te-go{margin-top:auto;padding-top:6px;font:700 14px/1 var(--ui);font-style:normal;color:var(--gold-ink);}
 .te-opt.pro{border-color:rgba(42,171,238,.45);}
 .te-opt.pro:hover{border-color:var(--tg);}
-.te-opt.pro span,.te-opt.pro i{color:var(--tg-ink);}
+.te-opt.pro .te-k,.te-opt.pro .te-go{color:var(--tg-ink);}
 .te-x{position:absolute;top:10px;right:12px;width:34px;height:34px;border:0;border-radius:50%;background:transparent;color:var(--muted);font-size:24px;line-height:1;cursor:pointer;}
 .te-x:hover{color:var(--text);}
 .te-again{margin-top:16px;border:0;background:transparent;color:var(--muted);font:700 12px/1 var(--mono);letter-spacing:.12em;text-transform:uppercase;cursor:pointer;padding:8px;}
@@ -612,10 +614,10 @@ html:is([lang="ar"],[lang="ur"]) .td-hint{letter-spacing:0;font-family:var(--ui)
 .plan-cols{display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-top:38px;text-align:left;}
 .plan{position:relative;display:flex;flex-direction:column;padding:28px 26px 26px;border-radius:24px;border:1px solid var(--panel-b);background:var(--panel);box-shadow:var(--shadow);}
 .plan.pro{background:radial-gradient(90% 70% at 100% 0%,rgba(42,171,238,.16),transparent 65%),var(--panel);border-color:rgba(42,171,238,.35);}
-.plan-hd span{font:700 12px/1 var(--mono);letter-spacing:.16em;text-transform:uppercase;color:var(--gold-ink);}
-.plan.pro .plan-hd span{color:var(--tg-ink);}
-.plan-hd b{display:block;font:800 34px/1.1 var(--ui);letter-spacing:-.03em;margin-top:10px;}
-.plan-hd em{display:block;font-style:normal;color:var(--muted);font-size:14px;margin-top:2px;}
+.plan-hd .ph-k{font:700 12px/1 var(--mono);letter-spacing:.16em;text-transform:uppercase;color:var(--gold-ink);}
+.plan.pro .plan-hd .ph-k{color:var(--tg-ink);}
+.plan-hd .ph-v{display:block;font:800 34px/1.1 var(--ui);letter-spacing:-.03em;margin-top:10px;}
+.plan-hd .ph-d{display:block;font-style:normal;color:var(--muted);font-size:14px;margin-top:2px;}
 .plan ul{list-style:none;margin:20px 0 22px;padding:0;display:flex;flex-direction:column;gap:10px;}
 .plan li{position:relative;padding-left:26px;font-size:15px;line-height:1.45;color:var(--muted);}
 .plan li strong{color:var(--text);font-weight:600;}
@@ -669,11 +671,11 @@ html:is([lang="ar"],[lang="ur"]) .td-hint{letter-spacing:0;font-family:var(--ui)
 @media (min-width:861px){
   .grid2{max-width:1400px;gap:46px;}
   .vis{height:min(700px,82vh);}
-  .eyebrow{font-size:13.5px;} .eyebrow b{width:29px;height:29px;font-size:12px;}
+  .eyebrow{font-size:13.5px;} .eyebrow .eb-n{width:29px;height:29px;font-size:12px;}
   h1{font-size:clamp(44px,7.2vw,88px);}
   h2{font-size:clamp(36px,4.9vw,63px);}
   .hero-sub{font-size:clamp(19px,2.2vw,23.5px);max-width:670px;} .hero-copy{max-width:850px;}
-  .hero-stats{font-size:14.5px;} .hero-stats b{font-size:29px;}
+  .hero-stats{font-size:14.5px;} .hero-stats .hs-v{font-size:29px;}
   .step{font-size:20px;} .steps{min-height:7.8em;}
   .btn{font-size:15.5px;padding:13px 22px;} .btn-sm{font-size:14px;padding:10px 16px;}
   .tag{font-size:11px;}
@@ -696,7 +698,7 @@ html:is([lang="ar"],[lang="ur"]) .td-hint{letter-spacing:0;font-family:var(--ui)
   .bar-lbl{font-size:14.5px;} .bar-lbl b{font-size:15.5px;} .bar{height:13px;} .bar-row{margin-bottom:20px;}
   .tl-pt{width:134px;} .tl-pt b{font-size:13.5px;} .tl-pt span{font-size:13px;}
   .plans-in{max-width:1120px;} .plans-sub{font-size:19px;max-width:700px;}
-  .plan-hd b{font-size:38px;} .plan-hd em{font-size:15.5px;} .plan li{font-size:16.5px;} .plan-note{font-size:14.5px;}
+  .plan-hd .ph-v{font-size:38px;} .plan-hd .ph-d{font-size:15.5px;} .plan li{font-size:16.5px;} .plan-note{font-size:14.5px;}
   .finale .card{max-width:920px;} .finale p{font-size:20px;max-width:630px;}
 }
 </style>
@@ -722,16 +724,16 @@ document.addEventListener('click', function (e) {
 </script>
 
 <nav class="rail" aria-label="Capítulos" id="rail">
-  <a href="#hero" data-for="hero"><i></i>COMEÇAR</a>
-  <a href="#today" data-for="today"><i></i>HOJE</a>
-  <a href="#capital" data-for="capital"><i></i>CAPITAL</a>
-  <a href="#momentum" data-for="momentum"><i></i>MOMENTUM</a>
-  <a href="#liq" data-for="liq"><i></i>LIQUIDAÇÕES</a>
-  <a href="#yours" data-for="yours">SUAS</a>
-  <a href="#coins" data-for="coins"><i></i>CRIPTOMOEDAS</a>
-  <a href="#score" data-for="score"><i></i>PONTUAÇÃO</a>
-  <a href="#tool" data-for="tool">ROTATOR TOOL</a>
-  <a href="#record" data-for="record">HISTÓRICO</a>
+  <a href="#hero" data-for="hero">COMEÇAR</a>
+  <a href="#today" data-for="today">HOJE</a>
+  <a href="#capital" data-for="capital">CAPITAL</a>
+  <a href="#momentum" data-for="momentum">MOMENTUM</a>
+  <a href="#liq" data-for="liq">LIQUIDAÇÕES</a>
+  <a href="#yours" data-for="yours">SUA</a>
+  <a href="#coins" data-for="coins">CRIPTOMOEDAS</a>
+  <a href="#score" data-for="score">PONTUAÇÃO</a>
+  <a href="#tool" data-for="tool">FERRAMENTA ROTATOR</a>
+  <a href="#record" data-for="record">RECORD</a>
 </nav>
 
 <!-- HERO: a wall of live coins that settles into a board as you scroll. -->
@@ -745,9 +747,9 @@ document.addEventListener('click', function (e) {
         <h1>Veja para onde <span class="grad">o capital está indo.</span></h1>
         <p class="hero-sub"><strong>Acompanhamento na cadeia de onde o dinheiro está indo.</strong> Você decide o que fazer com ele. Sem carteira, sem chave de câmbio, sem conta.</p>
         <div class="hero-stats">
-          <div><b id="st-coins">262</b>moedas no painel</div>
-          <div><b>15 min</b>entre pontuações</div>
-          <div><b>$0</b>para usar o painel</div>
+          <div><data class="hs-v" id="st-coins" value="262">262</data>moedas no painel</div>
+          <div><div class="hs-v">15 min</div>entre pontuações</div>
+          <div><data class="hs-v" value="0">$0</data>para usar o painel</div>
         </div>
         <div class="cta-row" style="display:flex">
           <a class="btn btn-gold" href="../board.html">Entrar no painel</a>
@@ -765,7 +767,7 @@ document.addEventListener('click', function (e) {
     <div class="glow" style="--gx:60%;--gy:50%"></div>
     <div class="grid2">
       <div class="copy">
-        <div class="eyebrow"><b>01Hoje</b></div>
+        <div class="eyebrow"><data class="eb-n" value="01">01</data>Hoje</div>
         <h2>Seu resumo diário do mercado, sempre à mão.</h2>
         <div class="steps" data-scene="today">
           <p class="step" data-at="0">Comece seu dia por aqui: <strong>cotações, ouro, petróleo, dólar, ações e dinheiro na blockchain</strong>, um cartão para cada um, atualizados diariamente.</p>
@@ -789,7 +791,7 @@ document.addEventListener('click', function (e) {
     <div class="glow" style="--gx:30%;--gy:40%"></div>
     <div class="grid2">
       <div class="copy">
-        <div class="eyebrow"><b>02</b>Capital</div>
+        <div class="eyebrow"><data class="eb-n" value="02">02</data>Capital</div>
         <h2>Segue o dinheiro.</h2>
         <div class="steps" data-scene="capital">
           <p class="step" data-at="0"><strong>Entradas e saídas de dinheiro dos ETFs de Bitcoin dos EUA</strong>, a cada dia de negociação. Verde: entrou; vermelho: saiu.</p>
@@ -811,7 +813,7 @@ document.addEventListener('click', function (e) {
     <div class="glow" style="--gx:72%;--gy:40%"></div>
     <div class="grid2">
       <div class="copy">
-        <div class="eyebrow"><b>03</b>Momentum</div>
+        <div class="eyebrow"><data class="eb-n" value="03">03</data>Momentum</div>
         <h2>Veja quais moedas estão mudando de direção.</h2>
         <div class="steps" data-scene="momentum">
           <p class="step" data-at="0">Toda moeda encontra seu lugar. <strong>As moedas que dispararam sobem, as que ficaram para trás caem</strong>, e da esquerda para a direita está o movimento desta semana.</p>
@@ -832,7 +834,7 @@ document.addEventListener('click', function (e) {
     <div class="glow" style="--gx:65%;--gy:55%"></div>
     <div class="grid2">
       <div class="copy">
-        <div class="eyebrow"><b>04</b>Liquidações</div>
+        <div class="eyebrow"><data class="eb-n" value="04">04</data>Liquidações</div>
         <h2>Veja onde os traders se deram mal.</h2>
         <div class="steps" data-scene="liq">
           <p class="step" data-at="0">Quando o preço oscila muito, <strong>as posições com alavancagem são fechadas à força.</strong> A Binance informa cada uma delas.</p>
@@ -854,7 +856,7 @@ document.addEventListener('click', function (e) {
     <div class="glow" style="--gx:66%;--gy:45%"></div>
     <div class="grid2">
       <div class="copy">
-        <div class="eyebrow"><b>05</b>Suas</div>
+        <div class="eyebrow"><data class="eb-n" value="05">05</data>Atenciosamente</div>
         <h2>Suas moedas, monitoradas pra você.</h2>
         <div class="steps" data-scene="yours">
           <p class="step" data-at="0">Adicione o que você tem. <strong>Sem carteira, sem chave de câmbio, sem conta.</strong> Fica tudo no seu navegador.</p>
@@ -880,7 +882,7 @@ document.addEventListener('click', function (e) {
     <div class="glow" style="--gx:62%;--gy:45%"></div>
     <div class="grid2">
       <div class="copy">
-        <div class="eyebrow"><b>06</b>Moedas</div>
+        <div class="eyebrow"><data class="eb-n" value="06">06</data>Moedas</div>
         <h2>Uma pontuação para cada moeda.</h2>
         <div class="steps" data-scene="coins">
           <p class="step" data-at="0">Cada moeda no quadro recebe <strong>um número, de −50 a 100</strong>, recalculado a cada 15 minutos e classificado.</p>
@@ -904,7 +906,7 @@ document.addEventListener('click', function (e) {
     <div class="glow" style="--gx:58%;--gy:50%"></div>
     <div class="grid2">
       <div class="copy">
-        <div class="eyebrow"><b>07Pontuação</b></div>
+        <div class="eyebrow"><data class="eb-n" value="07">07</data>Pontuação</div>
         <h2>Como funciona a pontuação.</h2>
         <div class="steps" data-scene="score">
           <p class="step" data-at="0">O símbolo é <strong>uma moeda composta por quatro camadas.</strong> Vê como ela se desfaz.</p>
@@ -928,7 +930,7 @@ document.addEventListener('click', function (e) {
     <div class="glow" style="--gx:55%;--gy:45%"></div>
     <div class="grid2">
       <div class="copy">
-        <div class="eyebrow"><b>08 </b>Rotator Tool</div>
+        <div class="eyebrow"><data class="eb-n" value="08">08</data>Rotator Tool</div>
         <h2>Descubra o melhor momento para trocar.</h2>
         <div class="steps" data-scene="tool">
           <p class="step" data-at="0"><strong>A moeda B está caindo, enquanto a moeda A está subindo.</strong> A cada semana, com uma moeda B dá pra comprar menos moedas A.</p>
@@ -952,7 +954,7 @@ document.addEventListener('click', function (e) {
     <div class="glow" style="--gx:70%;--gy:55%"></div>
     <div class="grid2">
       <div class="copy">
-        <div class="eyebrow"><b>09Record</b></div>
+        <div class="eyebrow"><data class="eb-n" value="09">09</data>Registrar</div>
         <h2>Todos os resultados são mostrados, sejam bons ou ruins.</h2>
         <div class="steps" data-scene="record">
           <p class="step" data-at="0">O Rotator avalia suas próprias recomendações em relação à moeda que está no meio do mercado. <strong>Se fosse um lance de moeda, ele acertaria na metade das vezes.</strong></p>
@@ -982,7 +984,7 @@ document.addEventListener('click', function (e) {
     <p class="plans-sub">O Rotator mostra dados relevantes sobre suas moedas, na hora certa, pra você ficar por dentro e decidir por conta própria. Ele não vende sinais de compra ou venda.</p>
     <div class="plan-cols">
       <div class="plan">
-        <div class="plan-hd"><span>Grátis</span><b>$0</b><em>no site, sem conta</em></div>
+        <div class="plan-hd"><div class="ph-k">Grátis</div><div class="ph-v">$0</div><div class="ph-d">No site, sem precisar criar conta</div></div>
         <ul>
           <li>Cada pontuação, sinal e card</li>
           <li>Hoje: Capital, Momentum e Liquidações</li>
@@ -994,7 +996,7 @@ document.addEventListener('click', function (e) {
         <a class="btn btn-gold" href="../board.html">Entrar no painel</a>
       </div>
       <div class="plan pro">
-        <div class="plan-hd"><span>Pro</span><em>porcionado a você no Telegram</em></div>
+        <div class="plan-hd"><div class="ph-k">Pro</div><div class="ph-d">Enviado pra você no Telegram</div></div>
         <ul>
           <li><strong>Resumo pessoal no Telegram</strong> sobre suas moedas, às segundas e quintas-feiras</li>
           <li><strong>Aviso de desbloqueio</strong>, daqui a mais de 3 dias</li>
@@ -1059,8 +1061,8 @@ document.addEventListener('click', function (e) {
     <div class="eyebrow" style="justify-content:center">Fim do tour</div>
     <h3 id="tourEndH">Como você quer usar o Rotator?</h3>
     <div class="te-row">
-      <a class="te-opt" href="../board.html"><b>Grátis $0. Todas</b><em> as pontuações e blocos do site. Sem precisar de conta.</em> <i>Entra no tabuleiro →</i></a>
-      <a class="te-opt pro" href="../board.html#pro"><span>Pro</span><em>: Alertas personalizados sobre suas moedas, enviados para você pelo Telegram.</em> <i>Assine o Pro →</i></a>
+      <a class="te-opt" href="../board.html"><div class="te-k">Grátis</div><div class="te-v">$0</div><div class="te-d">Todas as pontuações e blocos do site. Sem precisar criar conta.</div><div class="te-go">Acesse o painel →</div></a>
+      <a class="te-opt pro" href="../board.html#pro"><div class="te-k">Pro</div><div class="te-d">Alertas pessoais sobre suas moedas, enviados pra você pelo Telegram.</div><div class="te-go">Adquira a versão Pro →</div></a>
     </div>
     <button type="button" class="te-again" id="tourAgain">Assista ao tour de novo</button>
   </div>

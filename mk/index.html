@@ -194,7 +194,7 @@ html:is([lang="ar"],[lang="ur"]) :is(.hero-copy,.copy,.board-cap,.plans-in,.fina
 .rail.dragging{cursor:grabbing;}
 .rail.dragging a{transition:none;}
 .rail a{height:44px;margin-top:-22px;-webkit-user-drag:none;display:flex;align-items:center;text-decoration:none;color:var(--muted);font:700 15px/1 var(--mono);letter-spacing:.1em;white-space:nowrap;transition:color .25s ease;}
-.rail a i{display:none;}
+/* (the wheel labels had an empty <i> tick here; removed 2026-10-21, it was hidden) */
 .rail a.on{color:var(--gold-ink);}
 .rail .sep{width:34px;height:1.5px;margin-top:-.75px;border-radius:2px;background:var(--muted);}
 /* Short, long, short between two words (Daniel, 2026-10-20), like a ruler. */
@@ -217,7 +217,9 @@ html:is([lang="ar"],[lang="ur"]) :is(.hero-copy,.copy,.board-cap,.plans-in,.fina
 @media (min-width:1280px){ .grid2{padding-left:190px;} }
 .copy{position:relative;}
 .eyebrow{font:700 12px/1 var(--mono);letter-spacing:.16em;color:var(--gold-ink);text-transform:uppercase;display:flex;align-items:center;gap:10px;}
-.eyebrow b{display:inline-grid;place-items:center;width:26px;height:26px;border-radius:50%;border:1px solid var(--gold);font-size:11px;}
+/* The number is a <data> element, not <b>: translate.js then keeps it
+   apart from the words (2026-10-21: DeepL merged "09" into "Record"). */
+.eyebrow .eb-n{display:inline-grid;place-items:center;width:26px;height:26px;border-radius:50%;border:1px solid var(--gold);font-size:11px;}
 h1,h2{font-weight:800;letter-spacing:-.035em;line-height:1.04;margin:16px 0 0;}
 h1{font-size:clamp(40px,6.4vw,78px);}
 h2{font-size:clamp(32px,4.4vw,56px);}
@@ -261,7 +263,7 @@ h2{font-size:clamp(32px,4.4vw,56px);}
 .hero-copy{position:relative;z-index:2;max-width:760px;}
 .hero-sub{font-size:clamp(17px,2vw,21px);color:var(--muted);margin:18px 0 0;max-width:600px;}
 .hero-stats{display:flex;gap:28px;margin-top:26px;font:600 13px/1.3 var(--ui);color:var(--muted);}
-.hero-stats b{display:block;font:800 26px/1.1 var(--mono);color:var(--text);letter-spacing:-.02em;}
+.hero-stats .hs-v{display:block;font:800 26px/1.1 var(--mono);color:var(--text);letter-spacing:-.02em;}
 .wall{position:absolute;inset:0;z-index:1;pointer-events:none;}
 .coin{position:absolute;left:0;top:0;will-change:transform,opacity;}
 .coin .in{display:flex;align-items:center;gap:8px;border-radius:999px;padding:5px;background:var(--panel);border:1px solid var(--panel-b);box-shadow:0 8px 24px rgba(0,0,0,.25);backdrop-filter:blur(6px);}
@@ -355,13 +357,13 @@ html:is([lang="ar"],[lang="ur"]) .cc-hilo{right:auto;left:0;}
 .te-row{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
 .te-opt{display:flex;flex-direction:column;align-items:flex-start;gap:6px;text-align:left;text-decoration:none;color:var(--text);padding:16px;border-radius:16px;border:1px solid var(--panel-b);background:var(--panel);transition:transform .2s ease,border-color .2s ease;}
 .te-opt:hover{transform:translateY(-2px);border-color:var(--gold);}
-.te-opt span{font:700 12px/1 var(--mono);letter-spacing:.16em;text-transform:uppercase;color:var(--gold-ink);}
-.te-opt b{font-size:22px;font-weight:800;}
-.te-opt em{font-style:normal;color:var(--muted);font-size:14px;line-height:1.35;}
-.te-opt i{margin-top:auto;padding-top:6px;font:700 14px/1 var(--ui);font-style:normal;color:var(--gold-ink);}
+.te-opt .te-k{font:700 12px/1 var(--mono);letter-spacing:.16em;text-transform:uppercase;color:var(--gold-ink);}
+.te-opt .te-v{font-size:22px;font-weight:800;}
+.te-opt .te-d{font-style:normal;color:var(--muted);font-size:14px;line-height:1.35;}
+.te-opt .te-go{margin-top:auto;padding-top:6px;font:700 14px/1 var(--ui);font-style:normal;color:var(--gold-ink);}
 .te-opt.pro{border-color:rgba(42,171,238,.45);}
 .te-opt.pro:hover{border-color:var(--tg);}
-.te-opt.pro span,.te-opt.pro i{color:var(--tg-ink);}
+.te-opt.pro .te-k,.te-opt.pro .te-go{color:var(--tg-ink);}
 .te-x{position:absolute;top:10px;right:12px;width:34px;height:34px;border:0;border-radius:50%;background:transparent;color:var(--muted);font-size:24px;line-height:1;cursor:pointer;}
 .te-x:hover{color:var(--text);}
 .te-again{margin-top:16px;border:0;background:transparent;color:var(--muted);font:700 12px/1 var(--mono);letter-spacing:.12em;text-transform:uppercase;cursor:pointer;padding:8px;}
@@ -612,10 +614,10 @@ html:is([lang="ar"],[lang="ur"]) .td-hint{letter-spacing:0;font-family:var(--ui)
 .plan-cols{display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-top:38px;text-align:left;}
 .plan{position:relative;display:flex;flex-direction:column;padding:28px 26px 26px;border-radius:24px;border:1px solid var(--panel-b);background:var(--panel);box-shadow:var(--shadow);}
 .plan.pro{background:radial-gradient(90% 70% at 100% 0%,rgba(42,171,238,.16),transparent 65%),var(--panel);border-color:rgba(42,171,238,.35);}
-.plan-hd span{font:700 12px/1 var(--mono);letter-spacing:.16em;text-transform:uppercase;color:var(--gold-ink);}
-.plan.pro .plan-hd span{color:var(--tg-ink);}
-.plan-hd b{display:block;font:800 34px/1.1 var(--ui);letter-spacing:-.03em;margin-top:10px;}
-.plan-hd em{display:block;font-style:normal;color:var(--muted);font-size:14px;margin-top:2px;}
+.plan-hd .ph-k{font:700 12px/1 var(--mono);letter-spacing:.16em;text-transform:uppercase;color:var(--gold-ink);}
+.plan.pro .plan-hd .ph-k{color:var(--tg-ink);}
+.plan-hd .ph-v{display:block;font:800 34px/1.1 var(--ui);letter-spacing:-.03em;margin-top:10px;}
+.plan-hd .ph-d{display:block;font-style:normal;color:var(--muted);font-size:14px;margin-top:2px;}
 .plan ul{list-style:none;margin:20px 0 22px;padding:0;display:flex;flex-direction:column;gap:10px;}
 .plan li{position:relative;padding-left:26px;font-size:15px;line-height:1.45;color:var(--muted);}
 .plan li strong{color:var(--text);font-weight:600;}
@@ -669,11 +671,11 @@ html:is([lang="ar"],[lang="ur"]) .td-hint{letter-spacing:0;font-family:var(--ui)
 @media (min-width:861px){
   .grid2{max-width:1400px;gap:46px;}
   .vis{height:min(700px,82vh);}
-  .eyebrow{font-size:13.5px;} .eyebrow b{width:29px;height:29px;font-size:12px;}
+  .eyebrow{font-size:13.5px;} .eyebrow .eb-n{width:29px;height:29px;font-size:12px;}
   h1{font-size:clamp(44px,7.2vw,88px);}
   h2{font-size:clamp(36px,4.9vw,63px);}
   .hero-sub{font-size:clamp(19px,2.2vw,23.5px);max-width:670px;} .hero-copy{max-width:850px;}
-  .hero-stats{font-size:14.5px;} .hero-stats b{font-size:29px;}
+  .hero-stats{font-size:14.5px;} .hero-stats .hs-v{font-size:29px;}
   .step{font-size:20px;} .steps{min-height:7.8em;}
   .btn{font-size:15.5px;padding:13px 22px;} .btn-sm{font-size:14px;padding:10px 16px;}
   .tag{font-size:11px;}
@@ -696,7 +698,7 @@ html:is([lang="ar"],[lang="ur"]) .td-hint{letter-spacing:0;font-family:var(--ui)
   .bar-lbl{font-size:14.5px;} .bar-lbl b{font-size:15.5px;} .bar{height:13px;} .bar-row{margin-bottom:20px;}
   .tl-pt{width:134px;} .tl-pt b{font-size:13.5px;} .tl-pt span{font-size:13px;}
   .plans-in{max-width:1120px;} .plans-sub{font-size:19px;max-width:700px;}
-  .plan-hd b{font-size:38px;} .plan-hd em{font-size:15.5px;} .plan li{font-size:16.5px;} .plan-note{font-size:14.5px;}
+  .plan-hd .ph-v{font-size:38px;} .plan-hd .ph-d{font-size:15.5px;} .plan li{font-size:16.5px;} .plan-note{font-size:14.5px;}
   .finale .card{max-width:920px;} .finale p{font-size:20px;max-width:630px;}
 }
 </style>
@@ -708,7 +710,7 @@ html:is([lang="ar"],[lang="ur"]) .td-hint{letter-spacing:0;font-family:var(--ui)
     <button type="button" class="btn btn-ghost btn-sm theme-btn" data-theme-btn onclick="RotTheme.cycle()">◐ АВТО</button>
     <!-- i18n:menu --><details class="lang-menu" translate="no"><summary class="btn btn-ghost btn-sm" aria-label="Language"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M2 12h20M12 2a15 15 0 0 1 0 20M12 2a15 15 0 0 0 0 20"/></svg><b class="lang-cur">MK</b></summary><nav class="lang-list" aria-label="Language"><a href="/" lang="en"><svg class="flag" viewBox="0 0 60 30" aria-hidden="true" preserveAspectRatio="none"><clipPath id="fl-uk-t"><path d="M30,15h30v15zv15h-30zh-30v-15zv-15h30z"/></clipPath><path d="M0,0v30h60v-30z" fill="#012169"/><path d="M0,0L60,30M60,0L0,30" stroke="#fff" stroke-width="6"/><path d="M0,0L60,30M60,0L0,30" clip-path="url(#fl-uk-t)" stroke="#C8102E" stroke-width="4"/><path d="M30,0v30M0,15h60" stroke="#fff" stroke-width="10"/><path d="M30,0v30M0,15h60" stroke="#C8102E" stroke-width="6"/></svg>English</a><a href="/de/" lang="de"><svg class="flag" viewBox="0 0 5 3" aria-hidden="true" preserveAspectRatio="none"><rect width="5" height="3" fill="#FFCE00"/><rect width="5" height="2" fill="#DD0000"/><rect width="5" height="1" fill="#000"/></svg>Deutsch</a><a href="/es/" lang="es"><svg class="flag" viewBox="0 0 3 2" aria-hidden="true" preserveAspectRatio="none"><rect width="3" height="2" fill="#AA151B"/><rect y=".5" width="3" height="1" fill="#F1BF00"/></svg>Español</a><a href="/tr/" lang="tr"><svg class="flag" viewBox="0 0 30 20" aria-hidden="true" preserveAspectRatio="none"><rect width="30" height="20" fill="#E30A17"/><circle cx="10.6" cy="10" r="5" fill="#fff"/><circle cx="11.9" cy="10" r="4" fill="#E30A17"/><polygon fill="#fff" points="14.10,10.00 15.83,9.44 15.83,7.62 16.89,9.10 18.62,8.53 17.55,10.00 18.62,11.47 16.89,10.90 15.83,12.38 15.83,10.56"/></svg>Türkçe</a><a href="/pt/" lang="pt"><svg class="flag" viewBox="0 0 30 20" aria-hidden="true" preserveAspectRatio="none"><clipPath id="fl-pt-br"><polygon points="30,0 30,20 0,20"/></clipPath><rect width="30" height="20" fill="#DA291C"/><rect width="12" height="20" fill="#046A38"/><circle cx="11" cy="7" r="3.6" fill="#FFE900" stroke="#DA291C" stroke-width=".6"/><g clip-path="url(#fl-pt-br)"><rect width="30" height="20" fill="#009C3B"/><polygon points="20.5,7.2 29,13.5 20.5,19.8 12,13.5" fill="#FFDF00"/><circle cx="20.5" cy="13.5" r="3.4" fill="#002776"/></g><line x1="30" y1="0" x2="0" y2="20" stroke="#fff" stroke-width=".6"/></svg>Português</a><a href="/fr/" lang="fr"><svg class="flag" viewBox="0 0 3 2" aria-hidden="true" preserveAspectRatio="none"><rect width="3" height="2" fill="#EF4135"/><rect width="2" height="2" fill="#fff"/><rect width="1" height="2" fill="#0055A4"/></svg>Français</a><a href="/ru/" lang="ru"><svg class="flag" viewBox="0 0 9 6" aria-hidden="true" preserveAspectRatio="none"><rect width="9" height="6" fill="#D52B1E"/><rect width="9" height="4" fill="#0039A6"/><rect width="9" height="2" fill="#fff"/></svg>Русский</a><a href="/id/" lang="id"><svg class="flag" viewBox="0 0 3 2" aria-hidden="true" preserveAspectRatio="none"><rect width="3" height="2" fill="#fff"/><rect width="3" height="1" fill="#FF0000"/></svg>Bahasa Indonesia</a><a href="/zh/" lang="zh-Hans"><svg class="flag" viewBox="0 0 30 20" aria-hidden="true" preserveAspectRatio="none"><rect width="30" height="20" fill="#EE1C25"/><polygon fill="#FFDE00" points="5.00,2.00 5.67,4.08 7.85,4.07 6.08,5.35 6.76,7.43 5.00,6.14 3.24,7.43 3.92,5.35 2.15,4.07 4.33,4.08"/><polygon fill="#FFDE00" points="10.50,1.13 10.35,1.85 10.98,2.21 10.25,2.28 10.10,2.99 9.81,2.33 9.09,2.41 9.63,1.92 9.33,1.26 9.96,1.62"/><polygon fill="#FFDE00" points="12.17,3.02 12.27,3.74 12.99,3.86 12.34,4.18 12.44,4.90 11.93,4.37 11.28,4.69 11.62,4.05 11.12,3.53 11.83,3.66"/><polygon fill="#FFDE00" points="11.83,6.02 12.17,6.66 12.88,6.53 12.38,7.05 12.72,7.69 12.07,7.37 11.56,7.90 11.66,7.18 11.01,6.86 11.73,6.74"/><polygon fill="#FFDE00" points="9.50,8.13 10.04,8.62 10.67,8.26 10.37,8.92 10.91,9.41 10.19,9.33 9.90,9.99 9.75,9.28 9.02,9.21 9.65,8.85"/></svg>简体中文</a><a href="/ar/" lang="ar"><svg class="flag" viewBox="0 0 12 6" aria-hidden="true" preserveAspectRatio="none"><rect width="12" height="2" fill="#00732F"/><rect y="2" width="12" height="2" fill="#fff"/><rect y="4" width="12" height="2" fill="#000"/><rect width="3" height="6" fill="#FF0000"/></svg>العربية</a><a href="/hi/" lang="hi"><svg class="flag" viewBox="0 0 30 20" aria-hidden="true" preserveAspectRatio="none"><rect width="30" height="20" fill="#138808"/><rect width="30" height="13.33" fill="#fff"/><rect width="30" height="6.67" fill="#FF9933"/><circle cx="15" cy="10" r="2.6" fill="none" stroke="#000080" stroke-width=".7"/></svg>हिन्दी</a><a href="/bn/" lang="bn"><svg class="flag" viewBox="0 0 20 12" aria-hidden="true" preserveAspectRatio="none"><rect width="20" height="12" fill="#006A4E"/><circle cx="9" cy="6" r="4" fill="#F42A41"/></svg>বাংলা</a><a href="/ur/" lang="ur"><svg class="flag" viewBox="0 0 30 20" aria-hidden="true" preserveAspectRatio="none"><rect width="30" height="20" fill="#fff"/><rect x="7.5" width="22.5" height="20" fill="#01411C"/><circle cx="19" cy="10" r="6" fill="#fff"/><circle cx="20.6" cy="8.6" r="5.3" fill="#01411C"/><polygon fill="#fff" points="23.45,5.73 23.19,6.94 24.26,7.55 23.03,7.68 22.78,8.89 22.28,7.76 21.05,7.89 21.97,7.07 21.46,5.94 22.53,6.56"/></svg>اردو</a><a href="/te/" lang="te"><svg class="flag" viewBox="0 0 30 20" aria-hidden="true" preserveAspectRatio="none"><rect width="30" height="20" fill="#138808"/><rect width="30" height="13.33" fill="#fff"/><rect width="30" height="6.67" fill="#FF9933"/><circle cx="15" cy="10" r="2.6" fill="none" stroke="#000080" stroke-width=".7"/></svg>తెలుగు</a><a href="/sw/" lang="sw"><svg class="flag" viewBox="0 0 72 48" aria-hidden="true" preserveAspectRatio="none"><rect width="72" height="48" fill="#00A3DD"/><polygon points="0,0 72,0 0,48" fill="#1EB53A"/><path d="M0,48L72,0" stroke="#FCD116" stroke-width="18"/><path d="M0,48L72,0" stroke="#000" stroke-width="12"/></svg>Kiswahili</a><a href="/tl/" lang="tl"><svg class="flag" viewBox="0 0 30 15" aria-hidden="true" preserveAspectRatio="none"><rect width="30" height="15" fill="#CE1126"/><rect width="30" height="7.5" fill="#0038A8"/><polygon points="0,0 13,7.5 0,15" fill="#fff"/><circle cx="4.3" cy="7.5" r="1.6" fill="#FCD116"/></svg>Tagalog</a><a class="on" href="/mk/" lang="mk"><svg class="flag" viewBox="0 0 20 10" aria-hidden="true" preserveAspectRatio="none"><rect width="20" height="10" fill="#D20000"/><g fill="#FFE600"><polygon points="10,5 8.9,0 11.1,0"/><polygon points="10,5 8.9,10 11.1,10"/><polygon points="10,5 0,3.9 0,6.1"/><polygon points="10,5 20,3.9 20,6.1"/><polygon points="10,5 0,0 2.4,0 0,1"/><polygon points="10,5 20,0 17.6,0 20,1"/><polygon points="10,5 0,10 2.4,10 0,9"/><polygon points="10,5 20,10 17.6,10 20,9"/><circle cx="10" cy="5" r="2"/></g><circle cx="10" cy="5" r="1.7" fill="#D20000"/><circle cx="10" cy="5" r="1.4" fill="#FFE600"/></svg>Македонски</a></nav></details><!-- /i18n:menu -->
     <a class="btn btn-ghost btn-sm hide-sm" href="#plans">Бесплатна и Pro</a>
-    <a class="btn btn-gold btn-sm" href="../board.html">Влезете на таблата</a>
+    <a class="btn btn-gold btn-sm" href="../board.html">Влез кон табелите</a>
   </div>
 </header>
 <script>
@@ -722,16 +724,16 @@ document.addEventListener('click', function (e) {
 </script>
 
 <nav class="rail" aria-label="Поглавја" id="rail">
-  <a href="#hero" data-for="hero"><i></i>СТАРТ</a>
-  <a href="#today" data-for="today"><i></i>ДЕНЕС</a>
-  <a href="#capital" data-for="capital"><i></i>КАПИТАЛ</a>
-  <a href="#momentum" data-for="momentum"><i></i>ИМПУЛС</a>
-  <a href="#liq" data-for="liq"><i></i>ЛИКВИДАЦИИ</a>
-  <a href="#yours" data-for="yours"><i></i>ВАШЕТО</a>
-  <a href="#coins" data-for="coins"><i></i>МОНЕТЫ</a>
-  <a href="#score" data-for="score"><i></i>ОЦЕНКА</a>
-  <a href="#tool" data-for="tool">ROTATOR<i></i> АЛАТКА</a>
-  <a href="#record" data-for="record"><i></i>ЗАПИШИ</a>
+  <a href="#hero" data-for="hero">СТАРТ</a>
+  <a href="#today" data-for="today">ДЕНЕС</a>
+  <a href="#capital" data-for="capital">КАПИТАЛ</a>
+  <a href="#momentum" data-for="momentum">ИМПУЛС</a>
+  <a href="#liq" data-for="liq">ЛИКВИДАЦИИ</a>
+  <a href="#yours" data-for="yours">ВАШЕ</a>
+  <a href="#coins" data-for="coins">МОНЕТИ</a>
+  <a href="#score" data-for="score">ОЦЕНКА</a>
+  <a href="#tool" data-for="tool">ROTATOR АЛАТКА</a>
+  <a href="#record" data-for="record">ЗАПИШИ</a>
 </nav>
 
 <!-- HERO: a wall of live coins that settles into a board as you scroll. -->
@@ -743,14 +745,14 @@ document.addEventListener('click', function (e) {
       <div class="hero-copy" id="hero-copy">
         <div class="eyebrow">Бесплатна алатка за трговците на Binance</div>
         <h1>Видете каде <span class="grad">се врти капиталот.</span></h1>
-        <p class="hero-sub"><strong>Следење на блокчејн каде се движат парите.</strong> Вие одлучувате што да правите со нив. Без паричник, без клуч од размена, без сметка.</p>
+        <p class="hero-sub"><strong>Следење на блокчејн каде се движат парите.</strong> Вие одлучувате што да правите со информациите. Без паричник, без клуч од менувачница, без сметка.</p>
         <div class="hero-stats">
-          <div><b id="st-coins">262 монети</b> на таблата</div>
-          <div><b>15 мин.</b> помеѓу резултатите</div>
-          <div><b>$0 за</b> користење на таблата</div>
+          <div><data class="hs-v" id="st-coins" value="262">262</data>монети на табелите</div>
+          <div><div class="hs-v">15 мин</div>обнова на резултати</div>
+          <div><data class="hs-v" value="0">$0</data>за користење на табелите</div>
         </div>
         <div class="cta-row" style="display:flex">
-          <a class="btn btn-gold" href="../board.html">Влезете на таблата</a>
+          <a class="btn btn-gold" href="../board.html">Влез кон табелите</a>
           <a class="btn btn-ghost" href="#today">Погледнете како функционира ↓</a>
         </div>
       </div>
@@ -765,7 +767,7 @@ document.addEventListener('click', function (e) {
     <div class="glow" style="--gx:60%;--gy:50%"></div>
     <div class="grid2">
       <div class="copy">
-        <div class="eyebrow"><b>01Денес</b></div>
+        <div class="eyebrow"><data class="eb-n" value="01">01</data>Денес</div>
         <h2>Вашиот дневен пазарен брифинг, на дофат.</h2>
         <div class="steps" data-scene="today">
           <p class="step" data-at="0">Започнете го денот овде: <strong>курсеви, злато, нафта, долар, акции и он-чејн пари</strong>, по една картичка за секое, ажурирано секој ден.</p>
@@ -789,7 +791,7 @@ document.addEventListener('click', function (e) {
     <div class="glow" style="--gx:30%;--gy:40%"></div>
     <div class="grid2">
       <div class="copy">
-        <div class="eyebrow"><b>02Капитал</b></div>
+        <div class="eyebrow"><data class="eb-n" value="02">02</data>Капитал</div>
         <h2>Следете ги парите.</h2>
         <div class="steps" data-scene="capital">
           <p class="step" data-at="0"><strong>Пари влегуваат и излегуваат од американските Биткоин ЕТФ-ови</strong> секој работен ден. Зелено влезе, црвено излезе.</p>
@@ -811,7 +813,7 @@ document.addEventListener('click', function (e) {
     <div class="glow" style="--gx:72%;--gy:40%"></div>
     <div class="grid2">
       <div class="copy">
-        <div class="eyebrow"><b>03</b>Моментум</div>
+        <div class="eyebrow"><data class="eb-n" value="03">03</data>Моментум</div>
         <h2>Видете кои монети ја менуваат насоката.</h2>
         <div class="steps" data-scene="momentum">
           <p class="step" data-at="0">Секоја монета го наоѓа своето место. <strong>Монетите што напредуваа пливаат нагоре, монетите што заостануваа тонат</strong>, а од лево кон десно е движењето на оваа недела.</p>
@@ -832,7 +834,7 @@ document.addEventListener('click', function (e) {
     <div class="glow" style="--gx:65%;--gy:55%"></div>
     <div class="grid2">
       <div class="copy">
-        <div class="eyebrow">04Ликвидации</div>
+        <div class="eyebrow"><data class="eb-n" value="04">04</data>Ликвидации</div>
         <h2>Видете каде трговците заглавија.</h2>
         <div class="steps" data-scene="liq">
           <p class="step" data-at="0">Кога цената силно се движи, <strong>позајмените облози се принудно затвораат.</strong> Binance ги пријавува сите.</p>
@@ -854,7 +856,7 @@ document.addEventListener('click', function (e) {
     <div class="glow" style="--gx:66%;--gy:45%"></div>
     <div class="grid2">
       <div class="copy">
-        <div class="eyebrow"><b>05</b>Твои</div>
+        <div class="eyebrow"><data class="eb-n" value="05">05</data>Ваш</div>
         <h2>Вашите монети, следени за вас.</h2>
         <div class="steps" data-scene="yours">
           <p class="step" data-at="0">Додајте што поседувате. <strong>Без паричник, без клуч од размена, без сметка.</strong> Останува во вашиот прелистувач.</p>
@@ -880,7 +882,7 @@ document.addEventListener('click', function (e) {
     <div class="glow" style="--gx:62%;--gy:45%"></div>
     <div class="grid2">
       <div class="copy">
-        <div class="eyebrow"><b>06</b>Коинс</div>
+        <div class="eyebrow"><data class="eb-n" value="06">06</data>Монети</div>
         <h2>Бодување за секоја монета поединечно.</h2>
         <div class="steps" data-scene="coins">
           <p class="step" data-at="0">Секоја монета на таблата добива <strong>еден број, од −50 до 100</strong>, пресметан повторно на секои 15 минути и рангиран.</p>
@@ -904,7 +906,7 @@ document.addEventListener('click', function (e) {
     <div class="glow" style="--gx:58%;--gy:50%"></div>
     <div class="grid2">
       <div class="copy">
-        <div class="eyebrow"><b>07Score</b></div>
+        <div class="eyebrow"><data class="eb-n" value="07">07</data>Поени</div>
         <h2>Како функционира бодувањето.</h2>
         <div class="steps" data-scene="score">
           <p class="step" data-at="0">Поенот е <strong>една монета составена од четири слоја.</strong> Гледајте како се разделува.</p>
@@ -928,7 +930,7 @@ document.addEventListener('click', function (e) {
     <div class="glow" style="--gx:55%;--gy:45%"></div>
     <div class="grid2">
       <div class="copy">
-        <div class="eyebrow"><b>08</b>Rotator Tool</div>
+        <div class="eyebrow"><data class="eb-n" value="08">08</data>Rotator Tool</div>
         <h2>Пронајдете го најдоброто време за замена.</h2>
         <div class="steps" data-scene="tool">
           <p class="step" data-at="0"><strong>Коин Б се слабее додека коин А расте.</strong> Секоја недела еден Б купува помалку А.</p>
@@ -952,7 +954,7 @@ document.addEventListener('click', function (e) {
     <div class="glow" style="--gx:70%;--gy:55%"></div>
     <div class="grid2">
       <div class="copy">
-        <div class="eyebrow"><b>09Запис</b></div>
+        <div class="eyebrow"><data class="eb-n" value="09">09</data>Запис</div>
         <h2>Секој прикажан резултат, добар или лош.</h2>
         <div class="steps" data-scene="record">
           <p class="step" data-at="0">Rotator ги оценува сопствените сигнали во споредба со кованицата во средината на пазарот. <strong>Фрлањето на паричка би победувало половина од времето.</strong></p>
@@ -982,7 +984,7 @@ document.addEventListener('click', function (e) {
     <p class="plans-sub">Rotator прикажува релевантни податоци за вашите коин, навреме, за да останете информирани и да одлучувате сами. Не продава сигнали за купување или продавање.</p>
     <div class="plan-cols">
       <div class="plan">
-        <div class="plan-hd"><b>Бесплатно на</b><em> сајтот, без сметка</em></div>
+        <div class="plan-hd"><div class="ph-k">Бесплатно</div><div class="ph-v">$0</div><div class="ph-d">на сајтот, без сметка</div></div>
         <ul>
           <li>Секој резултат, знак и плочка</li>
           <li>Денес, Капитал, Моментум и Ликвидации</li>
@@ -991,10 +993,10 @@ document.addEventListener('click', function (e) {
           <li>2 холдингa и алатката &quot;Rotator Tool&quot;</li>
           <li>Јавен канал на Telegram: настани на целото пазарно подрачје и понеделнички пулс</li>
         </ul>
-        <a class="btn btn-gold" href="../board.html">Влезете на таблата</a>
+        <a class="btn btn-gold" href="../board.html">Влез кон табелите</a>
       </div>
       <div class="plan pro">
-        <div class="plan-hd"><span>Pro</span><em>-пораки на Telegram</em></div>
+        <div class="plan-hd"><div class="ph-k">Pro</div><div class="ph-d">испратено до вас на Telegram</div></div>
         <ul>
           <li><strong>Личен брифинг</strong> на <strong>Telegram</strong> за вашите коин, понеделник и четврток</li>
           <li><strong>Отклучување предупредување</strong>, 3+ дена однапред</li>
@@ -1015,7 +1017,7 @@ document.addEventListener('click', function (e) {
     <h2>Видете каде се <span class="grad">вашите монети</span>.</h2>
     <p>Бесплатно, без паричник, без клуч за размена, без сметка. Додајте ги монетите што ги поседувате и табелата ќе го направи остатокот.</p>
     <div class="cta-row">
-      <a class="btn btn-gold" href="../board.html">Влезете на таблата</a>
+      <a class="btn btn-gold" href="../board.html">Влез кон табелите</a>
       <a class="btn btn-ghost" href="https://t.me/rotatortool" rel="noopener">Telegram канал</a>
     </div>
   </div>
@@ -1033,7 +1035,7 @@ document.addEventListener('click', function (e) {
   </nav>
   <p>Читање на пазарот, не финансиски совет.</p>
 </footer>
-<nav class="mbar off" id="mbar" aria-label="Започнете"><a class="btn btn-ghost btn-sm" href="#plans">Бесплатна и Pro</a><a class="btn btn-gold btn-sm" href="../board.html">Влезете на таблата</a></nav>
+<nav class="mbar off" id="mbar" aria-label="Започнете"><a class="btn btn-ghost btn-sm" href="#plans">Бесплатна и Pro</a><a class="btn btn-gold btn-sm" href="../board.html">Влез кон табелите</a></nav>
 
 <div class="cue-bar" id="cueBar">
 <button type="button" class="scroll-cue" id="cue" aria-label="Прелистајте до следното поглавје"><i aria-hidden="true"></i><b>СКРОЛАЈ</b><svg viewBox="0 0 12 12" aria-hidden="true"><path d="M2 4l4 4 4-4" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
@@ -1059,8 +1061,8 @@ document.addEventListener('click', function (e) {
     <div class="eyebrow" style="justify-content:center">Крај на турата</div>
     <h3 id="tourEndH">Како сакате да го користите Rotator?</h3>
     <div class="te-row">
-      <a class="te-opt" href="../board.html"><b>Бесплатно $0 Секој</b><em> резултат и плочка на страницата. Без сметка.</em> <i>Влези на таблата →</i></a>
-      <a class="te-opt pro" href="../board.html#pro"><span>Pro</span><em>Лични известувања за вашите монети, испратени на Telegram.</em><i>Добијте Pro →</i></a>
+      <a class="te-opt" href="../board.html"><div class="te-k">Бесплатно</div><div class="te-v">$0</div><div class="te-d">Секој резултат и плочка на сајтот. Без сметка.</div><div class="te-go">Влез кон табелите &rarr;</div></a>
+      <a class="te-opt pro" href="../board.html#pro"><div class="te-k">Pro</div><div class="te-d">Лични известувања за вашите коин, испратени на Telegram.</div><div class="te-go">Добијте Pro →</div></a>
     </div>
     <button type="button" class="te-again" id="tourAgain">Погледнете ја турата повторно</button>
   </div>

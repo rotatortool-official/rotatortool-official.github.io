@@ -194,7 +194,7 @@ html:is([lang="ar"],[lang="ur"]) :is(.hero-copy,.copy,.board-cap,.plans-in,.fina
 .rail.dragging{cursor:grabbing;}
 .rail.dragging a{transition:none;}
 .rail a{height:44px;margin-top:-22px;-webkit-user-drag:none;display:flex;align-items:center;text-decoration:none;color:var(--muted);font:700 15px/1 var(--mono);letter-spacing:.1em;white-space:nowrap;transition:color .25s ease;}
-.rail a i{display:none;}
+/* (the wheel labels had an empty <i> tick here; removed 2026-10-21, it was hidden) */
 .rail a.on{color:var(--gold-ink);}
 .rail .sep{width:34px;height:1.5px;margin-top:-.75px;border-radius:2px;background:var(--muted);}
 /* Short, long, short between two words (Daniel, 2026-10-20), like a ruler. */
@@ -217,7 +217,9 @@ html:is([lang="ar"],[lang="ur"]) :is(.hero-copy,.copy,.board-cap,.plans-in,.fina
 @media (min-width:1280px){ .grid2{padding-left:190px;} }
 .copy{position:relative;}
 .eyebrow{font:700 12px/1 var(--mono);letter-spacing:.16em;color:var(--gold-ink);text-transform:uppercase;display:flex;align-items:center;gap:10px;}
-.eyebrow b{display:inline-grid;place-items:center;width:26px;height:26px;border-radius:50%;border:1px solid var(--gold);font-size:11px;}
+/* The number is a <data> element, not <b>: translate.js then keeps it
+   apart from the words (2026-10-21: DeepL merged "09" into "Record"). */
+.eyebrow .eb-n{display:inline-grid;place-items:center;width:26px;height:26px;border-radius:50%;border:1px solid var(--gold);font-size:11px;}
 h1,h2{font-weight:800;letter-spacing:-.035em;line-height:1.04;margin:16px 0 0;}
 h1{font-size:clamp(40px,6.4vw,78px);}
 h2{font-size:clamp(32px,4.4vw,56px);}
@@ -261,7 +263,7 @@ h2{font-size:clamp(32px,4.4vw,56px);}
 .hero-copy{position:relative;z-index:2;max-width:760px;}
 .hero-sub{font-size:clamp(17px,2vw,21px);color:var(--muted);margin:18px 0 0;max-width:600px;}
 .hero-stats{display:flex;gap:28px;margin-top:26px;font:600 13px/1.3 var(--ui);color:var(--muted);}
-.hero-stats b{display:block;font:800 26px/1.1 var(--mono);color:var(--text);letter-spacing:-.02em;}
+.hero-stats .hs-v{display:block;font:800 26px/1.1 var(--mono);color:var(--text);letter-spacing:-.02em;}
 .wall{position:absolute;inset:0;z-index:1;pointer-events:none;}
 .coin{position:absolute;left:0;top:0;will-change:transform,opacity;}
 .coin .in{display:flex;align-items:center;gap:8px;border-radius:999px;padding:5px;background:var(--panel);border:1px solid var(--panel-b);box-shadow:0 8px 24px rgba(0,0,0,.25);backdrop-filter:blur(6px);}
@@ -355,13 +357,13 @@ html:is([lang="ar"],[lang="ur"]) .cc-hilo{right:auto;left:0;}
 .te-row{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
 .te-opt{display:flex;flex-direction:column;align-items:flex-start;gap:6px;text-align:left;text-decoration:none;color:var(--text);padding:16px;border-radius:16px;border:1px solid var(--panel-b);background:var(--panel);transition:transform .2s ease,border-color .2s ease;}
 .te-opt:hover{transform:translateY(-2px);border-color:var(--gold);}
-.te-opt span{font:700 12px/1 var(--mono);letter-spacing:.16em;text-transform:uppercase;color:var(--gold-ink);}
-.te-opt b{font-size:22px;font-weight:800;}
-.te-opt em{font-style:normal;color:var(--muted);font-size:14px;line-height:1.35;}
-.te-opt i{margin-top:auto;padding-top:6px;font:700 14px/1 var(--ui);font-style:normal;color:var(--gold-ink);}
+.te-opt .te-k{font:700 12px/1 var(--mono);letter-spacing:.16em;text-transform:uppercase;color:var(--gold-ink);}
+.te-opt .te-v{font-size:22px;font-weight:800;}
+.te-opt .te-d{font-style:normal;color:var(--muted);font-size:14px;line-height:1.35;}
+.te-opt .te-go{margin-top:auto;padding-top:6px;font:700 14px/1 var(--ui);font-style:normal;color:var(--gold-ink);}
 .te-opt.pro{border-color:rgba(42,171,238,.45);}
 .te-opt.pro:hover{border-color:var(--tg);}
-.te-opt.pro span,.te-opt.pro i{color:var(--tg-ink);}
+.te-opt.pro .te-k,.te-opt.pro .te-go{color:var(--tg-ink);}
 .te-x{position:absolute;top:10px;right:12px;width:34px;height:34px;border:0;border-radius:50%;background:transparent;color:var(--muted);font-size:24px;line-height:1;cursor:pointer;}
 .te-x:hover{color:var(--text);}
 .te-again{margin-top:16px;border:0;background:transparent;color:var(--muted);font:700 12px/1 var(--mono);letter-spacing:.12em;text-transform:uppercase;cursor:pointer;padding:8px;}
@@ -612,10 +614,10 @@ html:is([lang="ar"],[lang="ur"]) .td-hint{letter-spacing:0;font-family:var(--ui)
 .plan-cols{display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-top:38px;text-align:left;}
 .plan{position:relative;display:flex;flex-direction:column;padding:28px 26px 26px;border-radius:24px;border:1px solid var(--panel-b);background:var(--panel);box-shadow:var(--shadow);}
 .plan.pro{background:radial-gradient(90% 70% at 100% 0%,rgba(42,171,238,.16),transparent 65%),var(--panel);border-color:rgba(42,171,238,.35);}
-.plan-hd span{font:700 12px/1 var(--mono);letter-spacing:.16em;text-transform:uppercase;color:var(--gold-ink);}
-.plan.pro .plan-hd span{color:var(--tg-ink);}
-.plan-hd b{display:block;font:800 34px/1.1 var(--ui);letter-spacing:-.03em;margin-top:10px;}
-.plan-hd em{display:block;font-style:normal;color:var(--muted);font-size:14px;margin-top:2px;}
+.plan-hd .ph-k{font:700 12px/1 var(--mono);letter-spacing:.16em;text-transform:uppercase;color:var(--gold-ink);}
+.plan.pro .plan-hd .ph-k{color:var(--tg-ink);}
+.plan-hd .ph-v{display:block;font:800 34px/1.1 var(--ui);letter-spacing:-.03em;margin-top:10px;}
+.plan-hd .ph-d{display:block;font-style:normal;color:var(--muted);font-size:14px;margin-top:2px;}
 .plan ul{list-style:none;margin:20px 0 22px;padding:0;display:flex;flex-direction:column;gap:10px;}
 .plan li{position:relative;padding-left:26px;font-size:15px;line-height:1.45;color:var(--muted);}
 .plan li strong{color:var(--text);font-weight:600;}
@@ -669,11 +671,11 @@ html:is([lang="ar"],[lang="ur"]) .td-hint{letter-spacing:0;font-family:var(--ui)
 @media (min-width:861px){
   .grid2{max-width:1400px;gap:46px;}
   .vis{height:min(700px,82vh);}
-  .eyebrow{font-size:13.5px;} .eyebrow b{width:29px;height:29px;font-size:12px;}
+  .eyebrow{font-size:13.5px;} .eyebrow .eb-n{width:29px;height:29px;font-size:12px;}
   h1{font-size:clamp(44px,7.2vw,88px);}
   h2{font-size:clamp(36px,4.9vw,63px);}
   .hero-sub{font-size:clamp(19px,2.2vw,23.5px);max-width:670px;} .hero-copy{max-width:850px;}
-  .hero-stats{font-size:14.5px;} .hero-stats b{font-size:29px;}
+  .hero-stats{font-size:14.5px;} .hero-stats .hs-v{font-size:29px;}
   .step{font-size:20px;} .steps{min-height:7.8em;}
   .btn{font-size:15.5px;padding:13px 22px;} .btn-sm{font-size:14px;padding:10px 16px;}
   .tag{font-size:11px;}
@@ -696,7 +698,7 @@ html:is([lang="ar"],[lang="ur"]) .td-hint{letter-spacing:0;font-family:var(--ui)
   .bar-lbl{font-size:14.5px;} .bar-lbl b{font-size:15.5px;} .bar{height:13px;} .bar-row{margin-bottom:20px;}
   .tl-pt{width:134px;} .tl-pt b{font-size:13.5px;} .tl-pt span{font-size:13px;}
   .plans-in{max-width:1120px;} .plans-sub{font-size:19px;max-width:700px;}
-  .plan-hd b{font-size:38px;} .plan-hd em{font-size:15.5px;} .plan li{font-size:16.5px;} .plan-note{font-size:14.5px;}
+  .plan-hd .ph-v{font-size:38px;} .plan-hd .ph-d{font-size:15.5px;} .plan li{font-size:16.5px;} .plan-note{font-size:14.5px;}
   .finale .card{max-width:920px;} .finale p{font-size:20px;max-width:630px;}
 }
 </style>
@@ -722,16 +724,16 @@ document.addEventListener('click', function (e) {
 </script>
 
 <nav class="rail" aria-label="Bölümler" id="rail">
-  <a href="#hero" data-for="hero"><i></i>BAŞLA</a>
-  <a href="#today" data-for="today"><i></i>BUGÜN</a>
-  <a href="#capital" data-for="capital">SERMAYE</a>
-  <a href="#momentum" data-for="momentum"><i></i>MOMENTUM</a>
-  <a href="#liq" data-for="liq"><i></i>LİKİDASYONLAR</a>
+  <a href="#hero" data-for="hero">BAŞLA</a>
+  <a href="#today" data-for="today">BUGÜN</a>
+  <a href="#capital" data-for="capital">BÜYÜK HARF</a>
+  <a href="#momentum" data-for="momentum">MOMENTUM</a>
+  <a href="#liq" data-for="liq">LİKİDASYONLAR</a>
   <a href="#yours" data-for="yours">SİZİN</a>
-  <a href="#coins" data-for="coins"><i></i>COINS</a>
-  <a href="#score" data-for="score"><i></i>PUAN</a>
-  <a href="#tool" data-for="tool">ROTATOR TOOL</a>
-  <a href="#record" data-for="record">SİCİL</a>
+  <a href="#coins" data-for="coins">COINS</a>
+  <a href="#score" data-for="score">PUAN</a>
+  <a href="#tool" data-for="tool">ROTATOR ARAÇ</a>
+  <a href="#record" data-for="record">KAYIT</a>
 </nav>
 
 <!-- HERO: a wall of live coins that settles into a board as you scroll. -->
@@ -745,9 +747,9 @@ document.addEventListener('click', function (e) {
         <h1>Sermayenin <span class="grad">nereye döndüğünü</span> görün.</h1>
         <p class="hero-sub"><strong>Paranın nereye aktarıldığını zincir üzerinde takip edin.</strong> Ne yapacağınıza siz karar verin. Cüzdan yok, borsa anahtarı yok, hesap yok.</p>
         <div class="hero-stats">
-          <div><b id="st-coins">262</b>coin panoda</div>
-          <div><b>15 dk</b>puanlar arası</div>
-          <div><b>$0</b>pano kullanımı</div>
+          <div><data class="hs-v" id="st-coins" value="262">262</data>panodaki coinler</div>
+          <div><div class="hs-v">15 dakika</div>puanlar arasında</div>
+          <div><data class="hs-v" value="0">$0</data>panoyu kullanmak için</div>
         </div>
         <div class="cta-row" style="display:flex">
           <a class="btn btn-gold" href="../board.html">Panoya git</a>
@@ -765,7 +767,7 @@ document.addEventListener('click', function (e) {
     <div class="glow" style="--gx:60%;--gy:50%"></div>
     <div class="grid2">
       <div class="copy">
-        <div class="eyebrow"><b>01Bugün</b></div>
+        <div class="eyebrow"><data class="eb-n" value="01">01</data>Bugün</div>
         <h2>Günlük piyasa özetiniz, parmaklarınızın ucunda.</h2>
         <div class="steps" data-scene="today">
           <p class="step" data-at="0">Güne buradan başlayın: <strong>kurlar, altın, petrol, dolar, hisse senetleri ve zincir içi para</strong>; her biri için bir kart, her gün güncelleniyor.</p>
@@ -789,7 +791,7 @@ document.addEventListener('click', function (e) {
     <div class="glow" style="--gx:30%;--gy:40%"></div>
     <div class="grid2">
       <div class="copy">
-        <div class="eyebrow"><b>02</b>Sermaye</div>
+        <div class="eyebrow"><data class="eb-n" value="02">02</data>Sermaye</div>
         <h2>Paranın izini sürün.</h2>
         <div class="steps" data-scene="capital">
           <p class="step" data-at="0">Her işlem gününde<strong> ABD Bitcoin ETF&#x27;lerine giren ve çıkan para</strong>. Yeşil renkli olanlar girdi, kırmızı renkli olanlar çıktı.</p>
@@ -811,7 +813,7 @@ document.addEventListener('click', function (e) {
     <div class="glow" style="--gx:72%;--gy:40%"></div>
     <div class="grid2">
       <div class="copy">
-        <div class="eyebrow"><b>03</b>Momentum</div>
+        <div class="eyebrow"><data class="eb-n" value="03">03</data>Momentum</div>
         <h2>Hangi kripto paraların yön değiştirdiğini görün.</h2>
         <div class="steps" data-scene="momentum">
           <p class="step" data-at="0">Her kripto paranın kendine ait bir yeri vardır. <strong>Öne geçen kripto paralar yükselir, geride kalanlar düşer</strong>; soldan sağa doğru ise bu haftaki hareketler gösterilir.</p>
@@ -832,7 +834,7 @@ document.addEventListener('click', function (e) {
     <div class="glow" style="--gx:65%;--gy:55%"></div>
     <div class="grid2">
       <div class="copy">
-        <div class="eyebrow"><b>04</b>Likidasyonlar</div>
+        <div class="eyebrow"><data class="eb-n" value="04">04</data>Likidasyonlar</div>
         <h2>Yatırımcıların nerede tuzağa düştüğünü görün.</h2>
         <div class="steps" data-scene="liq">
           <p class="step" data-at="0">Fiyatta şiddetli dalgalanmalar olduğunda, <strong>borçlu pozisyonlar zorla kapatılır.</strong> Binance, her birini raporlar.</p>
@@ -854,7 +856,7 @@ document.addEventListener('click', function (e) {
     <div class="glow" style="--gx:66%;--gy:45%"></div>
     <div class="grid2">
       <div class="copy">
-        <div class="eyebrow"><b>05</b>Sizin</div>
+        <div class="eyebrow"><data class="eb-n" value="05">05</data>Saygılarımla</div>
         <h2>Kripto paralarınız, sizin için takip ediliyor.</h2>
         <div class="steps" data-scene="yours">
           <p class="step" data-at="0">Elinizde ne varsa ekleyin. <strong>Cüzdan, borsa anahtarı veya hesap gerekmez.</strong> Her şey tarayıcınızda kalır.</p>
@@ -880,7 +882,7 @@ document.addEventListener('click', function (e) {
     <div class="glow" style="--gx:62%;--gy:45%"></div>
     <div class="grid2">
       <div class="copy">
-        <div class="eyebrow"><b>06</b>Coinler</div>
+        <div class="eyebrow"><data class="eb-n" value="06">06</data>Kripto paralar</div>
         <h2>Her coin için tek bir puan.</h2>
         <div class="steps" data-scene="coins">
           <p class="step" data-at="0">Panodaki her coin <strong>−50 ile 100 arasında tek bir sayı</strong> alır; bu sayı her 15 dakikada yeniden hesaplanır ve sıralanır.</p>
@@ -904,7 +906,7 @@ document.addEventListener('click', function (e) {
     <div class="glow" style="--gx:58%;--gy:50%"></div>
     <div class="grid2">
       <div class="copy">
-        <div class="eyebrow"><b>07Puan</b></div>
+        <div class="eyebrow"><data class="eb-n" value="07">07</data>Puan</div>
         <h2>Puanlama sistemi nasıl işliyor?</h2>
         <div class="steps" data-scene="score">
           <p class="step" data-at="0">Skor, <strong>dört katmandan oluşan bir madeni</strong> paradır<strong>.</strong> Nasıl parçalandığını izleyin.</p>
@@ -928,7 +930,7 @@ document.addEventListener('click', function (e) {
     <div class="glow" style="--gx:55%;--gy:45%"></div>
     <div class="grid2">
       <div class="copy">
-        <div class="eyebrow"><b>08 </b>Rotator Tool</div>
+        <div class="eyebrow"><data class="eb-n" value="08">08</data>Rotator Tool</div>
         <h2>Takas yapmak için en uygun zamanı bulun.</h2>
         <div class="steps" data-scene="tool">
           <p class="step" data-at="0"><strong>A kripto parası yükselirken B kripto parası değer kaybediyor.</strong> Her hafta bir B, daha az A satın alıyor.</p>
@@ -952,7 +954,7 @@ document.addEventListener('click', function (e) {
     <div class="glow" style="--gx:70%;--gy:55%"></div>
     <div class="grid2">
       <div class="copy">
-        <div class="eyebrow"><b>09Record</b></div>
+        <div class="eyebrow"><data class="eb-n" value="09">09</data>Kaydet</div>
         <h2>Görüntülenen her sonuç, iyi ya da kötü.</h2>
         <div class="steps" data-scene="record">
           <p class="step" data-at="0">Rotator, kendi sinyallerini piyasanın ortasındaki kripto paraya göre değerlendirir. <strong>Yazı tura atma bile yarı yarıya kazanırdı.</strong></p>
@@ -982,7 +984,7 @@ document.addEventListener('click', function (e) {
     <p class="plans-sub">Rotator, coin&#x27;lerinizle ilgili verileri zamanında gösterir; böylece her zaman bilgili kalır ve kararları kendiniz verirsiniz. Alım veya satım sinyalleri satmaz.</p>
     <div class="plan-cols">
       <div class="plan">
-        <div class="plan-hd"><span>Ücretsiz</span><b>$0</b><em>sitede, hesap yok</em></div>
+        <div class="plan-hd"><div class="ph-k">Ücretsiz</div><div class="ph-v">$0</div><div class="ph-d">Sitede hesap açmaya gerek yok</div></div>
         <ul>
           <li>Her puan, sinyal ve kutucuk</li>
           <li>Bugün: Sermaye, Momentum ve Likidasyonlar</li>
@@ -994,7 +996,7 @@ document.addEventListener('click', function (e) {
         <a class="btn btn-gold" href="../board.html">Panoya git</a>
       </div>
       <div class="plan pro">
-        <div class="plan-hd"><em>Telegram üzerinden size </em><span>Pro</span><em> ile gönderilir</em></div>
+        <div class="plan-hd"><div class="ph-k">Pro</div><div class="ph-d">Telegram üzerinden size gönderildi</div></div>
         <ul>
           <li>Pazartesi ve Perşembe günleri, coin&#x27;lerinizle ilgili <strong>kişisel Telegram bilgilendirmeleri</strong></li>
           <li><strong>Kilit açılımı uyarısı</strong>, 3+ gün önceden</li>
@@ -1059,8 +1061,8 @@ document.addEventListener('click', function (e) {
     <div class="eyebrow" style="justify-content:center">Turun sonu</div>
     <h3 id="tourEndH">Rotator&#x27;ı nasıl kullanmak istersiniz?</h3>
     <div class="te-row">
-      <a class="te-opt" href="../board.html"><b>Ücretsiz 0$</b> <em>Sitedeki</em> <b>tüm</b><em> puanlar ve karolar. Hesap gerektirmez.</em> <i>Tahtaya gir →</i></a>
-      <a class="te-opt pro" href="../board.html#pro"><span>Pro</span><em>: Coin&#x27;lerinizle ilgili kişisel uyarılar, Telegram üzerinden size gönderilir.</em> <i>Pro&#x27;ya geçin →</i></a>
+      <a class="te-opt" href="../board.html"><div class="te-k">Ücretsiz</div><div class="te-v">$0</div><div class="te-d">Sitedeki her puan ve kutucuk. Hesap gerektirmez.</div><div class="te-go">Panoya girin →</div></a>
+      <a class="te-opt pro" href="../board.html#pro"><div class="te-k">Pro</div><div class="te-d">Telegram üzerinden size gönderilen, coin&#x27;lerinizle ilgili kişisel uyarılar.</div><div class="te-go">Pro&#x27;ya Geç →</div></a>
     </div>
     <button type="button" class="te-again" id="tourAgain">Tur videosunu tekrar izleyin</button>
   </div>

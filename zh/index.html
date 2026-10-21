@@ -194,7 +194,7 @@ html:is([lang="ar"],[lang="ur"]) :is(.hero-copy,.copy,.board-cap,.plans-in,.fina
 .rail.dragging{cursor:grabbing;}
 .rail.dragging a{transition:none;}
 .rail a{height:44px;margin-top:-22px;-webkit-user-drag:none;display:flex;align-items:center;text-decoration:none;color:var(--muted);font:700 15px/1 var(--mono);letter-spacing:.1em;white-space:nowrap;transition:color .25s ease;}
-.rail a i{display:none;}
+/* (the wheel labels had an empty <i> tick here; removed 2026-10-21, it was hidden) */
 .rail a.on{color:var(--gold-ink);}
 .rail .sep{width:34px;height:1.5px;margin-top:-.75px;border-radius:2px;background:var(--muted);}
 /* Short, long, short between two words (Daniel, 2026-10-20), like a ruler. */
@@ -217,7 +217,9 @@ html:is([lang="ar"],[lang="ur"]) :is(.hero-copy,.copy,.board-cap,.plans-in,.fina
 @media (min-width:1280px){ .grid2{padding-left:190px;} }
 .copy{position:relative;}
 .eyebrow{font:700 12px/1 var(--mono);letter-spacing:.16em;color:var(--gold-ink);text-transform:uppercase;display:flex;align-items:center;gap:10px;}
-.eyebrow b{display:inline-grid;place-items:center;width:26px;height:26px;border-radius:50%;border:1px solid var(--gold);font-size:11px;}
+/* The number is a <data> element, not <b>: translate.js then keeps it
+   apart from the words (2026-10-21: DeepL merged "09" into "Record"). */
+.eyebrow .eb-n{display:inline-grid;place-items:center;width:26px;height:26px;border-radius:50%;border:1px solid var(--gold);font-size:11px;}
 h1,h2{font-weight:800;letter-spacing:-.035em;line-height:1.04;margin:16px 0 0;}
 h1{font-size:clamp(40px,6.4vw,78px);}
 h2{font-size:clamp(32px,4.4vw,56px);}
@@ -261,7 +263,7 @@ h2{font-size:clamp(32px,4.4vw,56px);}
 .hero-copy{position:relative;z-index:2;max-width:760px;}
 .hero-sub{font-size:clamp(17px,2vw,21px);color:var(--muted);margin:18px 0 0;max-width:600px;}
 .hero-stats{display:flex;gap:28px;margin-top:26px;font:600 13px/1.3 var(--ui);color:var(--muted);}
-.hero-stats b{display:block;font:800 26px/1.1 var(--mono);color:var(--text);letter-spacing:-.02em;}
+.hero-stats .hs-v{display:block;font:800 26px/1.1 var(--mono);color:var(--text);letter-spacing:-.02em;}
 .wall{position:absolute;inset:0;z-index:1;pointer-events:none;}
 .coin{position:absolute;left:0;top:0;will-change:transform,opacity;}
 .coin .in{display:flex;align-items:center;gap:8px;border-radius:999px;padding:5px;background:var(--panel);border:1px solid var(--panel-b);box-shadow:0 8px 24px rgba(0,0,0,.25);backdrop-filter:blur(6px);}
@@ -355,13 +357,13 @@ html:is([lang="ar"],[lang="ur"]) .cc-hilo{right:auto;left:0;}
 .te-row{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
 .te-opt{display:flex;flex-direction:column;align-items:flex-start;gap:6px;text-align:left;text-decoration:none;color:var(--text);padding:16px;border-radius:16px;border:1px solid var(--panel-b);background:var(--panel);transition:transform .2s ease,border-color .2s ease;}
 .te-opt:hover{transform:translateY(-2px);border-color:var(--gold);}
-.te-opt span{font:700 12px/1 var(--mono);letter-spacing:.16em;text-transform:uppercase;color:var(--gold-ink);}
-.te-opt b{font-size:22px;font-weight:800;}
-.te-opt em{font-style:normal;color:var(--muted);font-size:14px;line-height:1.35;}
-.te-opt i{margin-top:auto;padding-top:6px;font:700 14px/1 var(--ui);font-style:normal;color:var(--gold-ink);}
+.te-opt .te-k{font:700 12px/1 var(--mono);letter-spacing:.16em;text-transform:uppercase;color:var(--gold-ink);}
+.te-opt .te-v{font-size:22px;font-weight:800;}
+.te-opt .te-d{font-style:normal;color:var(--muted);font-size:14px;line-height:1.35;}
+.te-opt .te-go{margin-top:auto;padding-top:6px;font:700 14px/1 var(--ui);font-style:normal;color:var(--gold-ink);}
 .te-opt.pro{border-color:rgba(42,171,238,.45);}
 .te-opt.pro:hover{border-color:var(--tg);}
-.te-opt.pro span,.te-opt.pro i{color:var(--tg-ink);}
+.te-opt.pro .te-k,.te-opt.pro .te-go{color:var(--tg-ink);}
 .te-x{position:absolute;top:10px;right:12px;width:34px;height:34px;border:0;border-radius:50%;background:transparent;color:var(--muted);font-size:24px;line-height:1;cursor:pointer;}
 .te-x:hover{color:var(--text);}
 .te-again{margin-top:16px;border:0;background:transparent;color:var(--muted);font:700 12px/1 var(--mono);letter-spacing:.12em;text-transform:uppercase;cursor:pointer;padding:8px;}
@@ -612,10 +614,10 @@ html:is([lang="ar"],[lang="ur"]) .td-hint{letter-spacing:0;font-family:var(--ui)
 .plan-cols{display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-top:38px;text-align:left;}
 .plan{position:relative;display:flex;flex-direction:column;padding:28px 26px 26px;border-radius:24px;border:1px solid var(--panel-b);background:var(--panel);box-shadow:var(--shadow);}
 .plan.pro{background:radial-gradient(90% 70% at 100% 0%,rgba(42,171,238,.16),transparent 65%),var(--panel);border-color:rgba(42,171,238,.35);}
-.plan-hd span{font:700 12px/1 var(--mono);letter-spacing:.16em;text-transform:uppercase;color:var(--gold-ink);}
-.plan.pro .plan-hd span{color:var(--tg-ink);}
-.plan-hd b{display:block;font:800 34px/1.1 var(--ui);letter-spacing:-.03em;margin-top:10px;}
-.plan-hd em{display:block;font-style:normal;color:var(--muted);font-size:14px;margin-top:2px;}
+.plan-hd .ph-k{font:700 12px/1 var(--mono);letter-spacing:.16em;text-transform:uppercase;color:var(--gold-ink);}
+.plan.pro .plan-hd .ph-k{color:var(--tg-ink);}
+.plan-hd .ph-v{display:block;font:800 34px/1.1 var(--ui);letter-spacing:-.03em;margin-top:10px;}
+.plan-hd .ph-d{display:block;font-style:normal;color:var(--muted);font-size:14px;margin-top:2px;}
 .plan ul{list-style:none;margin:20px 0 22px;padding:0;display:flex;flex-direction:column;gap:10px;}
 .plan li{position:relative;padding-left:26px;font-size:15px;line-height:1.45;color:var(--muted);}
 .plan li strong{color:var(--text);font-weight:600;}
@@ -669,11 +671,11 @@ html:is([lang="ar"],[lang="ur"]) .td-hint{letter-spacing:0;font-family:var(--ui)
 @media (min-width:861px){
   .grid2{max-width:1400px;gap:46px;}
   .vis{height:min(700px,82vh);}
-  .eyebrow{font-size:13.5px;} .eyebrow b{width:29px;height:29px;font-size:12px;}
+  .eyebrow{font-size:13.5px;} .eyebrow .eb-n{width:29px;height:29px;font-size:12px;}
   h1{font-size:clamp(44px,7.2vw,88px);}
   h2{font-size:clamp(36px,4.9vw,63px);}
   .hero-sub{font-size:clamp(19px,2.2vw,23.5px);max-width:670px;} .hero-copy{max-width:850px;}
-  .hero-stats{font-size:14.5px;} .hero-stats b{font-size:29px;}
+  .hero-stats{font-size:14.5px;} .hero-stats .hs-v{font-size:29px;}
   .step{font-size:20px;} .steps{min-height:7.8em;}
   .btn{font-size:15.5px;padding:13px 22px;} .btn-sm{font-size:14px;padding:10px 16px;}
   .tag{font-size:11px;}
@@ -696,7 +698,7 @@ html:is([lang="ar"],[lang="ur"]) .td-hint{letter-spacing:0;font-family:var(--ui)
   .bar-lbl{font-size:14.5px;} .bar-lbl b{font-size:15.5px;} .bar{height:13px;} .bar-row{margin-bottom:20px;}
   .tl-pt{width:134px;} .tl-pt b{font-size:13.5px;} .tl-pt span{font-size:13px;}
   .plans-in{max-width:1120px;} .plans-sub{font-size:19px;max-width:700px;}
-  .plan-hd b{font-size:38px;} .plan-hd em{font-size:15.5px;} .plan li{font-size:16.5px;} .plan-note{font-size:14.5px;}
+  .plan-hd .ph-v{font-size:38px;} .plan-hd .ph-d{font-size:15.5px;} .plan li{font-size:16.5px;} .plan-note{font-size:14.5px;}
   .finale .card{max-width:920px;} .finale p{font-size:20px;max-width:630px;}
 }
 </style>
@@ -722,16 +724,16 @@ document.addEventListener('click', function (e) {
 </script>
 
 <nav class="rail" aria-label="章节" id="rail">
-  <a href="#hero" data-for="hero"><i></i>开始</a>
-  <a href="#today" data-for="today"><i></i>今日</a>
-  <a href="#capital" data-for="capital">资金</a>
-  <a href="#momentum" data-for="momentum"><i></i>MOMENTUM</a>
-  <a href="#liq" data-for="liq">强制<i></i>平仓</a>
-  <a href="#yours" data-for="yours">您的</a>
-  <a href="#coins" data-for="coins"><i></i>币种</a>
-  <a href="#score" data-for="score"><i></i>评分</a>
-  <a href="#tool" data-for="tool">ROTATOR TOOL</a>
-  <a href="#record" data-for="record">战绩</a>
+  <a href="#hero" data-for="hero">开始</a>
+  <a href="#today" data-for="today">今日</a>
+  <a href="#capital" data-for="capital">大写</a>
+  <a href="#momentum" data-for="momentum">MOMENTUM</a>
+  <a href="#liq" data-for="liq">强制平仓</a>
+  <a href="#yours" data-for="yours">YOURS</a>
+  <a href="#coins" data-for="coins">币种</a>
+  <a href="#score" data-for="score">评分</a>
+  <a href="#tool" data-for="tool">ROTATOR 工具</a>
+  <a href="#record" data-for="record">RECORD</a>
 </nav>
 
 <!-- HERO: a wall of live coins that settles into a board as you scroll. -->
@@ -745,9 +747,9 @@ document.addEventListener('click', function (e) {
         <h1>了解<span class="grad">资金流向。</span></h1>
         <p class="hero-sub"><strong>通过链上追踪资金流向。</strong>如何处理这些资金由您决定。无需钱包、无需交易所密钥、无需账户。</p>
         <div class="hero-stats">
-          <div><b id="st-coins">262</b>个币种在看板上</div>
-          <div><b>15 分钟</b>评分间隔</div>
-          <div><b>$0</b>使用看板</div>
+          <div><data class="hs-v" id="st-coins" value="262">262</data>板上的币种</div>
+          <div><div class="hs-v">15 分钟</div>分数之间</div>
+          <div><data class="hs-v" value="0">$0</data>使用该平台</div>
         </div>
         <div class="cta-row" style="display:flex">
           <a class="btn btn-gold" href="../board.html">进入看板</a>
@@ -765,7 +767,7 @@ document.addEventListener('click', function (e) {
     <div class="glow" style="--gx:60%;--gy:50%"></div>
     <div class="grid2">
       <div class="copy">
-        <div class="eyebrow"><b>01</b>今天</div>
+        <div class="eyebrow"><data class="eb-n" value="01">01</data>今天</div>
         <h2>每日市场简报，触手可及。</h2>
         <div class="steps" data-scene="today">
           <p class="step" data-at="0">从这里开始新的一天：<strong>汇率、黄金、原油、美元、股票和链上资金</strong>，每项一张卡片，每日更新。</p>
@@ -789,7 +791,7 @@ document.addEventListener('click', function (e) {
     <div class="glow" style="--gx:30%;--gy:40%"></div>
     <div class="grid2">
       <div class="copy">
-        <div class="eyebrow"><b>02</b>资金</div>
+        <div class="eyebrow"><data class="eb-n" value="02">02</data>Capital</div>
         <h2>追踪资金流向。</h2>
         <div class="steps" data-scene="capital">
           <p class="step" data-at="0"><strong>美国比特币ETF的资金流入与流出情况</strong>，按每个交易日统计。绿色代表资金流入，红色代表资金流出。</p>
@@ -811,7 +813,7 @@ document.addEventListener('click', function (e) {
     <div class="glow" style="--gx:72%;--gy:40%"></div>
     <div class="grid2">
       <div class="copy">
-        <div class="eyebrow"><b>0</b>3动量</div>
+        <div class="eyebrow"><data class="eb-n" value="03">03</data>动量</div>
         <h2>查看哪些币种正在反转走势。</h2>
         <div class="steps" data-scene="momentum">
           <p class="step" data-at="0">每种币都有其定位。<strong>领涨的币价上涨，滞后的币价下跌</strong>，从左到右便是本周的走势。</p>
@@ -832,7 +834,7 @@ document.addEventListener('click', function (e) {
     <div class="glow" style="--gx:65%;--gy:55%"></div>
     <div class="grid2">
       <div class="copy">
-        <div class="eyebrow"><b>04</b>清算</div>
+        <div class="eyebrow"><data class="eb-n" value="04">04</data>强制平仓</div>
         <h2>看看交易者们在哪里踩了雷。</h2>
         <div class="steps" data-scene="liq">
           <p class="step" data-at="0">当价格剧烈波动时，<strong>借入的仓位会被强制平仓。</strong>Binance会报告每一笔。</p>
@@ -854,7 +856,7 @@ document.addEventListener('click', function (e) {
     <div class="glow" style="--gx:66%;--gy:45%"></div>
     <div class="grid2">
       <div class="copy">
-        <div class="eyebrow"><b>05</b>您的</div>
+        <div class="eyebrow"><data class="eb-n" value="05">05</data>此致</div>
         <h2>为您实时监控您的数字资产。</h2>
         <div class="steps" data-scene="yours">
           <p class="step" data-at="0">添加您持有的资产。<strong>无需钱包、无需交易所密钥、无需账户。</strong>所有数据都保存在您的浏览器中。</p>
@@ -880,7 +882,7 @@ document.addEventListener('click', function (e) {
     <div class="glow" style="--gx:62%;--gy:45%"></div>
     <div class="grid2">
       <div class="copy">
-        <div class="eyebrow"><b>06</b>币种</div>
+        <div class="eyebrow"><data class="eb-n" value="06">06</data>币种</div>
         <h2>每个币种一个评分。</h2>
         <div class="steps" data-scene="coins">
           <p class="step" data-at="0">榜单上的每种币都会获得<strong>一个数值，范围从−50到100</strong>，每15分钟重新计算一次并进行排名。</p>
@@ -904,7 +906,7 @@ document.addEventListener('click', function (e) {
     <div class="glow" style="--gx:58%;--gy:50%"></div>
     <div class="grid2">
       <div class="copy">
-        <div class="eyebrow"><b>07Score</b></div>
+        <div class="eyebrow"><data class="eb-n" value="07">07</data>评分</div>
         <h2>评分机制说明。</h2>
         <div class="steps" data-scene="score">
           <p class="step" data-at="0">评分图标是一<strong>枚由四层组成的硬币。</strong>看它如何分层解体。</p>
@@ -928,7 +930,7 @@ document.addEventListener('click', function (e) {
     <div class="glow" style="--gx:55%;--gy:45%"></div>
     <div class="grid2">
       <div class="copy">
-        <div class="eyebrow"><b>08 </b>Rotator Tool</div>
+        <div class="eyebrow"><data class="eb-n" value="08">08</data>Rotator Tool</div>
         <h2>找到最佳的兑换时机。</h2>
         <div class="steps" data-scene="tool">
           <p class="step" data-at="0"><strong>币种 B 正在走弱，而币种 A 则在上涨。</strong>每周，1 个 B 能买到的 A 越来越少。</p>
@@ -952,7 +954,7 @@ document.addEventListener('click', function (e) {
     <div class="glow" style="--gx:70%;--gy:55%"></div>
     <div class="grid2">
       <div class="copy">
-        <div class="eyebrow"><b>09Record</b></div>
+        <div class="eyebrow"><data class="eb-n" value="09">09</data>记录</div>
         <h2>所有显示的结果，无论好坏。</h2>
         <div class="steps" data-scene="record">
           <p class="step" data-at="0">Rotator 用市场中位币来检验自己的信号。<strong>抛硬币也能赢一半。</strong></p>
@@ -982,7 +984,7 @@ document.addEventListener('click', function (e) {
     <p class="plans-sub">Rotator 会及时显示与您持有的币种相关的数据，让您随时掌握最新动态并自主决策。该工具不提供买入或卖出信号。</p>
     <div class="plan-cols">
       <div class="plan">
-        <div class="plan-hd"><span>免费</span><b>$0</b><em>在网站上，无需账户</em></div>
+        <div class="plan-hd"><div class="ph-k">免费</div><div class="ph-v">$0</div><div class="ph-d">网站上无需注册账号</div></div>
         <ul>
           <li>每个评分、信号和卡片</li>
           <li>今日：资本、动量和强制平仓</li>
@@ -994,7 +996,7 @@ document.addEventListener('click', function (e) {
         <a class="btn btn-gold" href="../board.html">进入看板</a>
       </div>
       <div class="plan pro">
-        <div class="plan-hd"><span>Pro</span><em> 通过 Telegram 为您呈现</em></div>
+        <div class="plan-hd"><div class="ph-k">Pro</div><div class="ph-d">已通过 Telegram 发送给您</div></div>
         <ul>
           <li><strong>个人 Telegram 简报</strong>，关于您的币种，每周一和周四</li>
           <li><strong>解锁提醒</strong>，还有3天以上</li>
@@ -1059,8 +1061,8 @@ document.addEventListener('click', function (e) {
     <div class="eyebrow" style="justify-content:center">导览结束</div>
     <h3 id="tourEndH">您打算如何使用Rotator？</h3>
     <div class="te-row">
-      <a class="te-opt" href="../board.html"><em>免费$0网站上的</em><b>所有</b><em>评分和板块均免费。无需注册。</em><i>进入面板 →</i></a>
-      <a class="te-opt pro" href="../board.html#pro"><span>Pro</span><em>：针对您持有的币种提供个性化提醒，通过Telegram发送给您。</em><i>获取Pro →</i></a>
+      <a class="te-opt" href="../board.html"><div class="te-k">免费</div><div class="te-v">$0</div><div class="te-d">网站上的所有评分和模块。无需注册。</div><div class="te-go">进入交易板 →</div></a>
+      <a class="te-opt pro" href="../board.html#pro"><div class="te-k">Pro</div><div class="te-d">针对您持有的币种的个性化提醒，将通过Telegram发送给您。</div><div class="te-go">获取Pro版 →</div></a>
     </div>
     <button type="button" class="te-again" id="tourAgain">再次观看演示</button>
   </div>
