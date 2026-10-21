@@ -1127,7 +1127,7 @@ td.qa-cell{text-align:center;width:28px;padding:0 4px !important;}
 .tool-panel{background:linear-gradient(180deg,rgba(130,110,200,.055) 0%,rgba(130,110,200,.025) 50%,var(--bg2) 100%);border-left:2px solid rgba(130,110,200,.2);box-shadow:-4px 0 24px rgba(0,0,0,.3);display:flex;flex-direction:column;overflow-y:auto;overflow-x:hidden;height:100%;max-height:100%;}
 
 /* ══ PORTFOLIO SIGNAL: guaranteed flush below mode bar ══ */
-.sidebar > .sig-box {
+.sidebar > .sig-box, .sidebar > .yours-left > .sig-box {
   margin: 0 !important;
   flex-shrink: 0;
   border-top: none;
@@ -6567,3 +6567,140 @@ a.mob-more-item{text-decoration:none;color:inherit;}
 .td-story-share:hover{border-color:var(--amber,#f0b90b);color:var(--amber,#f0b90b);}
 .td-story-p{margin:0;font-size:15px;line-height:1.55;color:var(--text);}
 @media (max-width:760px){ .td-story-p{font-size:14px;} }
+
+/* ── Your position, in the coin window (2026-10-21) ───────────────
+   renderTdPosition() in js/holdings.js. The chart's labels are HTML over
+   a stretched SVG so text never squashes with the plot. Both themes. */
+.tdp-sum{display:flex;gap:6px;margin-bottom:10px;}
+.tdp-sum:empty{display:none;}
+.tdp-c{flex:1;min-width:0;background:var(--bg3);border:1px solid var(--bdr);border-radius:6px;padding:6px 8px;}
+.tdp-k{display:block;font:600 10.5px/1.3 var(--font-ui);color:var(--muted);margin-bottom:2px;}
+.tdp-v{display:block;font:700 13px/1.25 var(--font-mono);color:var(--text);overflow-wrap:anywhere;}
+.tdp-v.up{color:var(--green);} .tdp-v.dn{color:var(--red);}
+.tdp-chart{margin-bottom:12px;}
+.tdp-chart:empty{display:none;}
+.tdp-note{font-size:12px;color:var(--muted);padding:6px 0;}
+.tdp-ch-top{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:6px;min-height:22px;}
+.tdp-read{font:500 12px/1.3 var(--font-ui);color:var(--muted);min-width:0;}
+.tdp-read b{font-family:var(--font-mono);color:var(--text);}
+.tdp-read .up{color:var(--green);} .tdp-read .dn{color:var(--red);}
+.tdp-rngs{display:flex;gap:3px;flex-shrink:0;}
+.tdp-rng{font:700 11px/1 var(--font-mono);padding:5px 8px;border-radius:5px;border:1px solid var(--bdr);background:transparent;color:var(--muted);cursor:pointer;}
+.tdp-rng.on{background:var(--bg3);color:var(--text);border-color:var(--amber);}
+.tdp-plot{position:relative;height:120px;touch-action:pan-y;cursor:crosshair;}
+.tdp-plot svg{position:absolute;inset:0;width:100%;height:100%;display:block;overflow:visible;}
+.tdp-avg{stroke:var(--amber);stroke-width:1.2;stroke-dasharray:4 4;}
+.tdp-avg-lbl{position:absolute;right:0;transform:translateY(-120%);font:700 10.5px/1 var(--font-mono);color:var(--amber);
+  background:var(--bg2);padding:2px 5px;border-radius:4px;white-space:nowrap;pointer-events:none;}
+.tdp-avg-lbl.below{transform:translateY(20%);}
+.tdp-avg-lbl span{font-family:var(--font-ui);font-weight:600;}
+.tdp-hi,.tdp-lo{position:absolute;left:0;font:500 10px/1 var(--font-mono);color:var(--muted);pointer-events:none;background:var(--bg2);padding:2px 4px;border-radius:3px;}
+:root.light .tdp-hi,:root.light .tdp-lo{background:rgba(255,253,247,.92);}
+.tdp-hi{top:-2px;} .tdp-lo{bottom:-2px;}
+.tdp-dot{position:absolute;width:8px;height:8px;margin:-4px 0 0 -4px;border-radius:50%;background:var(--text);box-shadow:0 0 0 2px var(--bg);pointer-events:none;}
+.tdp-ch-foot{display:flex;justify-content:space-between;font:500 10.5px/1 var(--font-mono);color:var(--muted);margin-top:5px;}
+.tdp-lock{display:flex;align-items:center;justify-content:space-between;gap:10px;font-size:12px;color:var(--muted);line-height:1.45;
+  background:var(--bg3);border:1px dashed var(--bdr);border-radius:6px;padding:9px 10px;}
+.tdp-lock-btn{flex-shrink:0;font:700 11.5px/1 var(--font-ui);padding:7px 11px;border-radius:5px;border:none;background:var(--amber);color:#000;cursor:pointer;}
+.tdp-row{display:flex;gap:8px;align-items:flex-end;}
+.tdp-f{flex:1;min-width:0;}
+.tdp-f label{display:block;font-size:11.5px;color:var(--muted);letter-spacing:.02em;}
+.tdp-f input{width:100%;margin-top:3px;padding:7px 8px;background:var(--bg);border:1px solid var(--bdr);border-radius:4px;color:var(--text);font-size:13px;font-family:var(--font-mono);}
+.tdp-btn{padding:8px 12px;background:var(--green);color:#000;border:none;border-radius:4px;font-size:12px;font-weight:700;cursor:pointer;white-space:nowrap;}
+.tdp-btn-2{background:var(--amber);}
+.tdp-sub{font-size:12px;color:var(--muted);margin:12px 0 6px;line-height:1.4;}
+.tdp-prev{font-size:12px;color:var(--muted);margin-top:7px;line-height:1.5;}
+.tdp-prev:empty{display:none;}
+.tdp-prev b{font-family:var(--font-mono);color:var(--text);}
+.tdp-warn{color:var(--amber);margin-top:3px;}
+.ahm-grp.held{color:var(--amber);}
+.ahm-pv-hint{font-size:12px;color:var(--amber);padding-top:6px;}
+:root.light .tdp-c,:root.light .tdp-lock{background:rgba(255,255,255,.6);}
+:root.light .tdp-avg-lbl{background:rgba(255,253,247,.92);color:#9a6a10;}
+:root.light .tdp-avg{stroke:#b87818;}
+:root.light .tdp-warn,:root.light .ahm-pv-hint,:root.light .ahm-grp.held{color:#9a6a10;}
+@media (max-width:480px){
+  .tdp-row{flex-wrap:wrap;}
+  .tdp-f{flex:1 1 40%;}
+  .tdp-btn{flex:1 1 100%;padding:10px;}
+  .tdp-sum{flex-wrap:wrap;}
+  .tdp-c{flex:1 1 40%;}
+}
+
+/* ── One colour per holding + Your coins on one chart (2026-10-21) ──
+   Validated with the dataviz palette checker on --bg2 in each theme.
+   Green and red stay out: on this page they mean up and down. */
+:root{--hc0:#3987e5;--hc1:#d95926;--hc2:#199e70;--hc3:#c98500;--hc4:#d55181;--hc5:#9085e9;}
+:root.light{--hc0:#2a78d6;--hc1:#eb6834;--hc2:#1baf7a;--hc3:#eda100;--hc4:#e87ba4;--hc5:#6250d6;}
+.tile.tile-hc::after{content:'';position:absolute;left:0;right:0;top:0;height:3px;background:var(--hc);pointer-events:none;}
+.tile.tile-hc-dash::after{background:repeating-linear-gradient(90deg,var(--hc) 0 8px,transparent 8px 13px);}
+.hold-chart{margin:12px 0 4px;padding:10px 12px 12px;border:1px solid var(--bdr);border-radius:8px;background:var(--bg2);}
+.hold-chart:empty{display:none;}
+.hm-top{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:8px;}
+.hm-title{font:700 13px/1.3 var(--font-ui);color:var(--text);}
+.hm-plot{position:relative;height:160px;margin-right:52px;touch-action:pan-y;cursor:crosshair;}
+.hm-plot svg{position:absolute;inset:0;width:100%;height:100%;display:block;overflow:visible;}
+.hm-zero{stroke:var(--muted);stroke-width:1;stroke-dasharray:2 4;opacity:.7;}
+.hm-ax{position:absolute;left:0;transform:translateY(-50%);font:500 10px/1 var(--font-mono);color:var(--muted);background:var(--bg2);padding:1px 3px;border-radius:3px;pointer-events:none;}
+.hm-ax-hi{top:0;transform:none;} .hm-ax-lo{bottom:0;top:auto;transform:none;}
+.hm-end{position:absolute;left:100%;transform:translateY(-50%);margin-left:6px;display:flex;align-items:center;gap:4px;font:700 10.5px/1 var(--font-mono);color:var(--text);white-space:nowrap;pointer-events:none;}
+.hm-end i{width:7px;height:7px;border-radius:50%;}
+.hm-cross{position:absolute;top:0;bottom:0;width:1px;background:var(--muted);opacity:.6;pointer-events:none;}
+.hm-tip{position:absolute;top:4px;z-index:2;min-width:110px;background:var(--bg3);border:1px solid var(--bdr);border-radius:6px;padding:6px 8px;box-shadow:0 4px 14px rgba(0,0,0,.25);pointer-events:none;}
+.hm-tip-d{font:600 10.5px/1.2 var(--font-ui);color:var(--muted);margin-bottom:4px;}
+.hm-tip-r{display:flex;align-items:center;gap:6px;font:500 11.5px/1.5 var(--font-mono);color:var(--text);}
+.hm-tip-r b{margin-left:auto;padding-left:10px;}
+.hm-tip-r i,.hm-chip i{width:12px;height:3px;border-radius:2px;background:var(--hc);flex-shrink:0;}
+.hm-tip-r i.dash,.hm-chip i.dash{background:repeating-linear-gradient(90deg,var(--hc) 0 4px,transparent 4px 6px);}
+.hm-legend{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px;}
+.hm-chip{display:flex;align-items:center;gap:6px;padding:5px 9px;border:1px solid var(--bdr);border-radius:14px;background:transparent;color:var(--text);cursor:pointer;font:600 11.5px/1 var(--font-ui);}
+.hm-chip:hover{background:var(--bg3);}
+.hm-pct{font-family:var(--font-mono);color:var(--muted);}
+.hm-lock{margin-top:8px;}
+:root.light .hold-chart{background:rgba(255,255,255,.55);}
+:root.light .hm-ax{background:rgba(255,253,247,.92);}
+@media (max-width:480px){ .hm-plot{height:140px;margin-right:44px;} }
+.hm-plot.hm-noend{margin-right:0;}
+/* One coin far ahead of the rest (2026-10-21), under the Yours chart. */
+.hm-run{position:relative;margin-top:10px;padding:10px 34px 10px 12px;border:1px solid var(--bdr);border-left:3px solid var(--amber);border-radius:6px;background:var(--bg3);}
+.hm-run-h{font:700 13px/1.35 var(--font-ui);color:var(--text);margin-bottom:4px;}
+.hm-run-b{font-size:12.5px;line-height:1.5;color:var(--text);margin-bottom:4px;}
+.hm-run-n{font-size:11.5px;line-height:1.45;color:var(--muted);margin-top:8px;}
+.hm-run-btn{margin-top:4px;font:700 12px/1 var(--font-ui);padding:8px 12px;border-radius:5px;border:none;background:var(--amber);color:#000;cursor:pointer;}
+.hm-run-x{position:absolute;top:6px;right:8px;border:none;background:transparent;color:var(--muted);font-size:17px;line-height:1;cursor:pointer;padding:2px 4px;}
+:root.light .hm-run{background:rgba(255,255,255,.7);}
+
+/* ── YOURS, rearranged (2026-10-21; light first, dark the same day) ──────────────────
+   The chart and the run-ahead note made the coins column tall, and the
+   alerts sat full width under everything, so the signal column ended
+   beside empty space (Daniel marked it). Two columns from 1100px:
+
+     signal                 | MY COINS label, coin tiles
+     alerts for your coins  | your coins chart (+ run note)
+                            | paper trades
+     DYOR ─────────────────────────────────────────
+
+   .yours-left holds the signal and the alerts; the three wrappers around
+   the tiles go display:contents so the label, tiles, chart and paper
+   trades place on this grid directly. Phone is unchanged.
+   Both themes since Daniel's OK the same day. */
+.yours-left{display:contents;}
+@media(min-width:1100px){
+  #sec-yours .sidebar{grid-template-columns:260px minmax(0,1fr);grid-template-rows:auto auto auto 1fr auto;gap:12px 16px;}
+  #sec-yours .yours-left{display:flex;flex-direction:column;gap:12px;grid-column:1;grid-row:1 / 5;min-width:0;}
+  #sec-yours .yours-left .sig-box{order:-1;}
+  /* Bounded, so 5-10 coins' alerts scroll inside instead of stretching the column. */
+  #sec-yours .yours-left .coin-alerts{margin:0;display:block;max-height:380px;overflow-y:auto;scrollbar-width:thin;overscroll-behavior:contain;}
+  #sec-yours .sig-many .sig-coin-row{display:none;}
+  #sec-yours .yours-left .coin-alerts > .ca-hd{position:sticky;top:-10px;z-index:1;background:inherit;padding-top:2px;padding-bottom:4px;}
+  #sec-yours .yours-left .coin-alerts > * + *{margin-top:8px;}
+  #sec-yours #cb-holdings,
+  #sec-yours #holdings-crypto,
+  #sec-yours #my-holdings-panel{display:contents;}
+  #sec-yours .holdings-section-label{grid-column:2;grid-row:1;margin:0;}
+  #sec-yours .tiles-scroll{grid-column:2;grid-row:2;min-width:0;}
+  #sec-yours .hold-chart{grid-column:2;grid-row:3;margin:0;min-width:0;}
+  #sec-yours .hold-chart .hm-plot{height:190px;}
+  #sec-yours .paper-trades{grid-column:2;grid-row:4;margin:0;min-width:0;align-self:start;}
+  #sec-yours .signal-dyor{grid-column:1 / -1;grid-row:5;margin:0;}
+}

@@ -321,20 +321,28 @@ function ahmFilter() {
     ? c.filter(function(x) { return x.sym.toLowerCase().includes(q) || (x.name || '').toLowerCase().includes(q); })
     : c;
 
-  var held = (typeof holdings !== 'undefined' ? holdings : []).map(function(h) { return h.sym; });
+  /* Coins you hold come first in holdings mode: a buy of one of them is
+     added to it (mergeBuy in js/holdings.js, DCA since 2026-10-21). They
+     used to be left out, so a second buy had nowhere to go. The watchlist
+     has no use for them. */
+  var heldMode = _ahmMode !== 'watchlist';
   var watch = (typeof watchlist !== 'undefined' ? watchlist : []);
-  var onWatch = [], rest = [];
+  var onHeld = [], onWatch = [], rest = [];
   match.forEach(function(x) {
-    if (held.indexOf(x.sym) >= 0) return;      /* already a holding */
-    (watch.indexOf(x.sym) >= 0 ? onWatch : rest).push(x);
+    if (typeof isHeldCoin === 'function' && isHeldCoin(x)) { if (heldMode) onHeld.push(x); return; }
+    (watch.indexOf(x.sym) >= 0 || watch.indexOf(x.id) >= 0 ? onWatch : rest).push(x);
   });
 
   var html = '';
+  if (onHeld.length) {
+    html += '<div class="ahm-grp held">You hold: add another buy</div>'
+          + onHeld.slice(0, 10).map(_ahmRow).join('');
+  }
   if (onWatch.length) {
     html += '<div class="ahm-grp watch">Watching</div>'
           + onWatch.slice(0, 20).map(_ahmRow).join('');
-    if (rest.length) html += '<div class="ahm-grp">All coins</div>';
   }
+  if ((onHeld.length || onWatch.length) && rest.length) html += '<div class="ahm-grp">All coins</div>';
   html += rest.slice(0, 50).map(_ahmRow).join('');
 
   listEl.innerHTML = html
@@ -388,25 +396,48 @@ function ahmPreview() {
   var q   = parseFloat(qty);
   var pl  = (typeof holdingPL === 'function') ? holdingPL(c.price, qty, avg) : null;
 
+  var held = (typeof holdings !== 'undefined' && typeof holdingMatches === 'function')
+    ? holdings.find(function(h) { return holdingMatches(h, c); }) : null;
+
+  var avgLbl = document.querySelector('label[for="ahm-avg"]');
+  if (avgLbl) avgLbl.textContent = held ? 'Price you paid ($)' : 'Avg buy price ($)';
+
   btn.disabled = false;
-  btn.textContent = (isFinite(q) && q > 0)
+  btn.textContent = held
+    ? ((isFinite(q) && q > 0) ? 'Add this buy to your ' + c.sym : 'Enter the amount you bought')
+    : (isFinite(q) && q > 0)
     ? 'Add ' + (+q.toFixed(8)) + ' ' + c.sym + ' to holdings'
     : 'Add ' + c.sym + ' to holdings';
+  if (held && !(isFinite(q) && q > 0)) btn.disabled = true;
 
   var rows = '';
-  if (isFinite(q) && q > 0) {
+  if (held) {
+    /* Before and after, so the merge is never a surprise. */
+    var m = mergeBuy(held, qty, avg);
+    var _q = function(v) { return v ? String(+Number(v).toFixed(8)) : '—'; };
+    rows += '<div class="ahm-pv-row"><span class="ahm-pv-k">You hold now</span>'
+          + '<span class="ahm-pv-v">' + _q(held.qty) + ' ' + c.sym + (held.avg ? ' @ ' + _ahmPrice(Number(held.avg)) : '') + '</span></div>'
+          + '<div class="ahm-pv-row"><span class="ahm-pv-k">After this buy</span>'
+          + '<span class="ahm-pv-v">' + _q(m.qty) + ' ' + c.sym + (m.avg ? ' @ ' + _ahmPrice(m.avg) : '') + '</span></div>';
+    var mpl = holdingPL(c.price, m.qty, m.avg);
+    if (mpl) rows += '<div class="ahm-pv-row"><span class="ahm-pv-k">Profit vs new average</span>'
+          + '<span class="ahm-pv-v ' + mpl.dir + '">' + mpl.text + '</span></div>';
+    if (isFinite(q) && q > 0 && !(parseFloat(avg) > 0) && held.avg) {
+      rows += '<div class="ahm-pv-hint">Add the price you paid, so your average entry stays right.</div>';
+    }
+  } else if (isFinite(q) && q > 0) {
     rows += '<div class="ahm-pv-row"><span class="ahm-pv-k">Position value</span>'
           + '<span class="ahm-pv-v">$' + (c.price * q).toLocaleString('en-US',
               { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + '</span></div>';
   }
-  if (pl) {
+  if (pl && !held) {
     rows += '<div class="ahm-pv-row"><span class="ahm-pv-k">Profit vs average</span>'
           + '<span class="ahm-pv-v ' + pl.dir + '">' + pl.text + '</span></div>';
   }
 
   box.style.display = '';
   box.innerHTML =
-      '<div class="ahm-pv-cap">The tile you are about to create</div>'
+      '<div class="ahm-pv-cap">' + (held ? 'Your average entry, with this buy' : 'The tile you are about to create') + '</div>'
     + '<div class="ahm-pv-top">'
       + '<div class="ahm-coin-ico"><img src="' + c.image + '" alt="" onerror="this.style.display=\'none\'"></div>'
       + '<div class="ahm-coin-who"><div class="ahm-coin-name">' + c.sym + '</div>'

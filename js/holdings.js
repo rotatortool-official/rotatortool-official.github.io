@@ -291,8 +291,14 @@ function addHolding() {
       return;
     }
   }
-  if (idx >= 0) holdings[idx] = {id: c.id, sym: c.sym, qty: qty, avg: avg};
-  else holdings.push({id: c.id, sym: c.sym, qty: qty, avg: avg});
+  /* A coin already held takes the new buy on top (DCA, Daniel 2026-10-21).
+     It used to replace qty and avg, so a second buy erased the first. */
+  if (idx >= 0) {
+    var m = mergeBuy(holdings[idx], qty, avg);
+    holdings[idx].id = c.id; holdings[idx].sym = c.sym;
+    holdings[idx].qty = m.qty; holdings[idx].avg = m.avg; holdings[idx].buys = m.buys;
+  }
+  else holdings.push({id: c.id, sym: c.sym, qty: qty, avg: avg, buys: qty ? 1 : 0});
   saveH();
   if (typeof supaCountFeature === 'function') supaCountFeature('holdings_edit');
   if (isFirst) creditReferrer();
@@ -300,6 +306,42 @@ function addHolding() {
   document.getElementById('inp-qty').value   = '';
   document.getElementById('inp-avg').value   = '';
   renderAll();
+}
+
+/* ── One more buy of a coin already held (DCA) ───────────────────
+   Returns {qty, avg, buys} for the holding `h` after a buy of `qty` at
+   `avg`, and changes nothing itself (the add window previews with it).
+
+     qty   the quantities that are known, added up.
+     avg   weighted by quantity over the parts that have BOTH a quantity
+           and a price. A part missing either cannot be weighted, so it
+           does not move the average; when no part has both, the first
+           price known is kept.
+     buys  how many buys with a quantity went in. Optional on an entry:
+           one saved before 2026-10-21 has none and counts as 1 when it
+           has a quantity, so old holdings merge with nothing lost. */
+function mergeBuy(h, qty, avg) {
+  var q1 = parseFloat(h && h.qty), a1 = parseFloat(h && h.avg);
+  var q2 = parseFloat(qty), a2 = parseFloat(avg);
+  q1 = q1 > 0 ? q1 : 0; q2 = q2 > 0 ? q2 : 0;
+  a1 = a1 > 0 ? a1 : 0; a2 = a2 > 0 ? a2 : 0;
+  var wq = (q1 && a1 ? q1 : 0) + (q2 && a2 ? q2 : 0);
+  var wv = (q1 && a1 ? q1 * a1 : 0) + (q2 && a2 ? q2 * a2 : 0);
+  var n1 = h && h.buys != null ? Number(h.buys) || 0 : (q1 ? 1 : 0);
+  return {
+    qty:  (q1 + q2) || null,
+    avg:  wq ? wv / wq : (a1 || a2 || null),
+    buys: n1 + (q2 ? 1 : 0)
+  };
+}
+
+/* ── The price chart's gate: same as the holdings count ──────────
+   2 charts free, 10 Pro, counted in holdings order. Someone whose Pro
+   ended keeps every holding but sees charts on the first 2 only. */
+function holdingChartAllowed(c) {
+  var idx = holdings.findIndex(function(h) { return holdingMatches(h, c); });
+  if (idx < 0) return false;
+  return idx < (isPro ? PRO_HOLDINGS_LIMIT : FREE_HOLDINGS_LIMIT);
 }
 
 /* Takes holdingKey(h) — a coin id, or a ticker for an entry not yet
@@ -416,6 +458,7 @@ function _leftTheList(h) {
 function _hbDurFor(pct) { return hbDurStyle(pct); }   /* steps: hbBeatSeconds() in js/signals.js */
 
 function renderTiles() {
+  ensureHoldingColors();
   Object.keys(sparkStop).forEach(function(k) { sparkStop[k](); delete sparkStop[k]; });
   var grid  = document.getElementById('tiles-grid');
   var hcEl  = document.getElementById('hcount');
@@ -447,7 +490,8 @@ function renderTiles() {
     var glw  = c._retired ? '' : { hi: 'glow-g', md: 'glow-a', lo: 'glow-r' }[scoreBand(c.score)];
     var scrC = c._retired ? '' : scoreBand(c.score);
     var isTop = topG && c.sym === topG.sym && c.p24 > 0;
-    html += '<div class="tile ' + glw + '" id="tile-' + c.sym + '" onclick="openTileDetail(\'' + c.id + '\',event)" style="cursor:pointer;' + _hbDurFor(_pl ? _pl.pct : c.p7) + '" title="Click for full breakdown">'
+    var hcol = holdingColor(h);
+    html += '<div class="tile tile-hc' + (hcol.dash ? ' tile-hc-dash' : '') + ' ' + glw + '" id="tile-' + c.sym + '" onclick="openTileDetail(\'' + c.id + '\',event)" style="cursor:pointer;--hc:' + hcol.v + ';' + _hbDurFor(_pl ? _pl.pct : c.p7) + '" title="Click for full breakdown">'
           + (isTop ? '<canvas class="sp" id="sp-' + c.sym + '"></canvas>' : '')
           + '<div class="tile-top"><div class="tile-ico"><img src="' + c.image + '" alt="' + c.sym + ' logo" loading="lazy" width="16" height="16" onerror="this.style.display=\'none\'"></div>'
           + '<span class="tile-sym">' + c.sym + '</span>'
@@ -557,6 +601,7 @@ function renderTiles() {
     }); });
   }
   renderSignal(heldCoins);
+  renderHoldingsChart();
   if (typeof RatioTracker !== 'undefined') RatioTracker.refresh();
 }
 
@@ -578,7 +623,7 @@ function _holdingsPie() {
   holdings.forEach(function(h) {
     var c = coinOfHolding(h);
     if (!c || c._retired) return;
-    if (h.qty > 0 && c.price > 0) rows.push({ c: c, v: h.qty * c.price });
+    if (h.qty > 0 && c.price > 0) rows.push({ c: c, v: h.qty * c.price, col: holdingColor(h).v });
     else noAmt.push(c.sym);
   });
   if (!rows.length) {
@@ -592,7 +637,10 @@ function _holdingsPie() {
   var R = 46, r = 30, cx = 54, cy = 54, a0 = -Math.PI / 2, paths = '';
   rows.forEach(function(row) {
     var band = scoreBand(row.c.score);
-    row.col = COL[band][seen[band]++ % 2];
+    /* The coin's own colour since 2026-10-21, so a coin is the same
+       colour on its tile, its line and its slice. The band still shows
+       in the "Your money" line under the chart. */
+    row.col = row.col || COL[band][seen[band]++ % 2];
     row.pct = row.v / total * 100;
     byBand[band] += row.pct;
     var a1 = a0 + row.v / total * Math.PI * 2;
@@ -678,6 +726,10 @@ function renderSignal(hc) {
   });
 
   el.innerHTML = h;
+  /* Five coins or more: the light desktop layout drops the per-coin rows
+     (each tile and the donut legend already carry the score), so the
+     alerts under this box are not pushed down a row per coin. */
+  el.classList.toggle('sig-many', hc.length >= 5);
 
   /* DYOR warning only if any are lagging.
      It used to be appended INSIDE the signal box, where a 230px column
@@ -695,4 +747,413 @@ function renderSignal(hc) {
       : '';
     dy.style.display = under.length ? '' : 'none';
   }
+}
+
+
+/* ══════════════════════════════════════════════════════════════════
+   YOUR POSITION, in the coin window (Daniel, 2026-10-21)
+   ──────────────────────────────────────────────────────────────────
+   What you hold of the open coin: its worth and profit against your
+   average entry, a price chart with that average drawn across it, the
+   average and quantity to edit, and "Add a buy", which goes through
+   mergeBuy() like the add window does. Everything is read from and
+   written to rot_h5 only; nothing here reaches the server.
+
+   The chart is the coin's daily closes from binance_daily_klines (from
+   2026-04-20) with today's live price as the last point. Gated by
+   holdingChartAllowed(): 2 free, 10 Pro, same as the holdings count.
+══════════════════════════════════════════════════════════════════ */
+var _hcCache = {};          /* sym → [{t, v}] oldest first, for this page load */
+var _hcRange = 90;          /* days; 30 / 90 / 182 */
+var _HC_RANGES = [[30, '1M'], [90, '3M'], [182, '6M']];
+var _HC_MON = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+
+function _tdpHolding(c) {
+  return c ? holdings.find(function(h) { return holdingMatches(h, c); }) || null : null;
+}
+function _hcDay(t) { var d = new Date(t); return d.getUTCDate() + ' ' + _HC_MON[d.getUTCMonth()]; }
+function _hcQty(v) { return v ? String(+Number(v).toFixed(8)) : '—'; }
+
+function renderTdPosition(c) {
+  var h = _tdpHolding(c);
+  var sum = document.getElementById('tdp-sum');
+  if (!h || !sum) return;
+  document.getElementById('td-hold-avg').value = h.avg ? +Number(h.avg).toPrecision(10) : '';
+  document.getElementById('td-hold-qty').value = h.qty || '';
+  var pl = holdingPL(c.price, h.qty, h.avg);
+  var buys = h.buys != null ? Number(h.buys) : (h.qty ? 1 : 0);
+  var cell = function(k, v, cls) {
+    return '<div class="tdp-c"><span class="tdp-k">' + k + '</span><span class="tdp-v' + (cls ? ' ' + cls : '') + '">' + v + '</span></div>';
+  };
+  sum.innerHTML = (h.qty && c.price ? cell('Worth now', fmtP(h.qty * c.price)) : cell('Amount', 'not set'))
+    + (pl ? cell('Profit vs your average', pl.text, pl.dir) : cell('Average entry', h.avg ? fmtP(Number(h.avg)) : 'not set'))
+    + (buys > 1 ? cell('Buys', String(buys)) : '');
+  tdBuyPreview();
+  _renderHoldingChart(c);
+}
+
+function _renderHoldingChart(c) {
+  var box = document.getElementById('tdp-chart');
+  if (!box) return;
+  box.setAttribute('data-sym', c.sym);
+  if (c.isStable) { box.innerHTML = ''; return; }
+  if (!holdingChartAllowed(c)) {
+    box.innerHTML = '<div class="tdp-lock"><span>Price charts are free for your first ' + FREE_HOLDINGS_LIMIT
+      + ' holdings, and for up to ' + PRO_HOLDINGS_LIMIT + ' with Pro.</span>'
+      + '<button type="button" class="tdp-lock-btn" onclick="openPro()">See Pro</button></div>';
+    return;
+  }
+  if (!_hcCache[c.sym]) box.innerHTML = '<div class="tdp-note">Loading the price chart…</div>';
+  _hcLoad(c.sym).then(function(rows) {
+    if (box.getAttribute('data-sym') !== c.sym) return;   /* the window moved on */
+    _drawHoldingChart(box, c, rows);
+  });
+}
+
+function _hcLoad(sym) {
+  if (_hcCache[sym]) return Promise.resolve(_hcCache[sym]);
+  if (typeof supaRest !== 'function') return Promise.resolve([]);
+  return supaRest('binance_daily_klines', 'GET', {
+    'base_asset': 'eq.' + sym, 'select': 'open_time,close', 'order': 'open_time.desc', 'limit': '200'
+  }).then(function(rows) {
+    var out = (Array.isArray(rows) ? rows : []).map(function(r) {
+      return { t: Date.parse(String(r.open_time).slice(0, 10) + 'T00:00:00Z'), v: Number(r.close) };
+    }).filter(function(p) { return isFinite(p.t) && p.v > 0; }).reverse();
+    _hcCache[sym] = out;
+    return out;
+  }).catch(function() { return []; });
+}
+
+function setHoldingChartRange(days) {
+  _hcRange = days;
+  if (typeof _tdCoin !== 'undefined' && _tdCoin) _renderHoldingChart(_tdCoin);
+}
+
+function _drawHoldingChart(box, c, rows) {
+  var from = Date.now() - _hcRange * 864e5;
+  /* Today's candle is still open; the live price stands in for it. */
+  var today = Date.parse(new Date().toISOString().slice(0, 10) + 'T00:00:00Z');
+  var pts = rows.filter(function(p) { return p.t >= from && p.t < today; });
+  if (c.price > 0) pts.push({ t: Date.now(), v: c.price });
+  if (pts.length < 5) {
+    box.innerHTML = '<div class="tdp-note">No price history for this coin yet.</div>';
+    return;
+  }
+  var h = _tdpHolding(c), avg = h && Number(h.avg) > 0 ? Number(h.avg) : null;
+  var vals = pts.map(function(p) { return p.v; });
+  var vLo = Math.min.apply(null, vals), vHi = Math.max.apply(null, vals);
+  /* The average is always in view: it is the line the chart is for. */
+  var lo = avg ? Math.min(vLo, avg) : vLo, hi = avg ? Math.max(vHi, avg) : vHi;
+  var pad = (hi - lo) * 0.08 || hi * 0.02;
+  lo -= pad; hi += pad;
+  var W = 300, H = 100;
+  var X = function(i) { return (i / (pts.length - 1)) * W; };
+  var Y = function(v) { return H - ((v - lo) / (hi - lo)) * H; };
+  var line = pts.map(function(p, i) { return (i ? 'L' : 'M') + X(i).toFixed(1) + ' ' + Y(p.v).toFixed(1); }).join(' ');
+  var chg = (pts[pts.length - 1].v / pts[0].v - 1) * 100;
+  /* The coin's own colour, the same as its tile and its line in Yours. */
+  var col = holdingColor(h).v;
+  var tabs = _HC_RANGES.map(function(r) {
+    return '<button type="button" class="tdp-rng' + (r[0] === _hcRange ? ' on' : '') + '" onclick="setHoldingChartRange(' + r[0] + ')">' + r[1] + '</button>';
+  }).join('');
+  /* Can be less than the range asked for: the table starts 2026-04-20. */
+  var spanDays = Math.round((pts[pts.length - 1].t - pts[0].t) / 864e5);
+  box.innerHTML =
+      '<div class="tdp-ch-top"><span class="tdp-read" id="tdp-read">'
+      + '<b class="' + (chg >= 0 ? 'up' : 'dn') + '">' + (chg >= 0 ? '+' : '') + chg.toFixed(1) + '%</b> '
+      + '<span>in ' + spanDays + ' days</span></span>'
+      + '<span class="tdp-rngs">' + tabs + '</span></div>'
+    + '<div class="tdp-plot" id="tdp-plot">'
+      + '<svg viewBox="0 0 ' + W + ' ' + H + '" preserveAspectRatio="none" role="img" aria-label="' + c.sym + ' price, last ' + spanDays + ' days">'
+        + '<path d="' + line + ' L' + W + ' ' + H + ' L0 ' + H + ' Z" fill="' + col + '" fill-opacity=".09" stroke="none"/>'
+        + '<path d="' + line + '" fill="none" stroke="' + col + '" stroke-width="1.6" vector-effect="non-scaling-stroke" stroke-linejoin="round"/>'
+        + (avg ? '<line class="tdp-avg" x1="0" x2="' + W + '" y1="' + Y(avg).toFixed(1) + '" y2="' + Y(avg).toFixed(1) + '" vector-effect="non-scaling-stroke"/>' : '')
+      + '</svg>'
+      + (avg ? '<span class="tdp-avg-lbl' + (Y(avg) / H < 0.2 ? ' below' : '') + '" style="top:' + (Y(avg) / H * 100).toFixed(1) + '%"><span>Your average</span> ' + fmtP(avg) + '</span>' : '')
+      + '<span class="tdp-hi">' + fmtP(vHi) + '</span>'
+      + '<span class="tdp-lo">' + fmtP(vLo) + '</span>'
+      + '<i class="tdp-dot" id="tdp-dot" hidden></i>'
+    + '</div>'
+    + '<div class="tdp-ch-foot"><span>' + _hcDay(pts[0].t) + '</span><span>Now</span></div>';
+
+  /* Point and read: the day and close under the finger or cursor. */
+  var plot = document.getElementById('tdp-plot'), read = document.getElementById('tdp-read'), dot = document.getElementById('tdp-dot');
+  var rest = read.innerHTML;
+  var show = function(e) {
+    var r = plot.getBoundingClientRect();
+    var f = Math.max(0, Math.min(1, (e.clientX - r.left) / r.width));
+    var i = Math.round(f * (pts.length - 1)), p = pts[i];
+    dot.hidden = false;
+    dot.style.left = (i / (pts.length - 1) * 100) + '%';
+    dot.style.top = (Y(p.v) / H * 100) + '%';
+    var vs = avg ? (p.v / avg - 1) * 100 : null;
+    read.innerHTML = '<b>' + fmtP(p.v) + '</b> <span>' + (i === pts.length - 1 ? 'now' : _hcDay(p.t)) + '</span>'
+      + (vs != null ? ' <b class="' + (vs >= 0 ? 'up' : 'dn') + '">' + (vs >= 0 ? '+' : '') + vs.toFixed(1) + '%</b> <span>vs your average</span>' : '');
+  };
+  plot.addEventListener('pointermove', show);
+  plot.addEventListener('pointerdown', show);
+  plot.addEventListener('pointerleave', function() { dot.hidden = true; read.innerHTML = rest; });
+}
+
+/* What the next buy would make of the position, under the inputs. */
+function tdBuyPreview() {
+  var out = document.getElementById('td-buy-prev');
+  var c = typeof _tdCoin !== 'undefined' ? _tdCoin : null;
+  var h = _tdpHolding(c);
+  if (!out || !h) return;
+  var q = document.getElementById('td-buy-qty').value, a = document.getElementById('td-buy-avg').value;
+  if (!(parseFloat(q) > 0)) { out.innerHTML = ''; return; }
+  var m = mergeBuy(h, q, a);
+  out.innerHTML = '<span>After this buy:</span> <b>' + _hcQty(m.qty) + ' ' + c.sym + '</b>'
+    + (m.avg ? ' <span>at an average of</span> <b>' + fmtP(m.avg) + '</b>' : '')
+    + (!(parseFloat(a) > 0) && h.avg ? '<div class="tdp-warn">Add the price you paid, so your average entry stays right.</div>' : '');
+}
+
+function addTileBuy() {
+  var c = typeof _tdCoin !== 'undefined' ? _tdCoin : null;
+  var h = _tdpHolding(c);
+  var qEl = document.getElementById('td-buy-qty'), aEl = document.getElementById('td-buy-avg');
+  if (!h || !(parseFloat(qEl.value) > 0)) { if (qEl) qEl.focus(); return; }
+  var m = mergeBuy(h, qEl.value, aEl.value);
+  h.qty = m.qty; h.avg = m.avg; h.buys = m.buys;
+  saveH();
+  if (typeof supaCountFeature === 'function') supaCountFeature('holdings_edit');
+  qEl.value = ''; aEl.value = '';
+  renderAll();
+  renderTdPosition(c);
+  var btn = document.getElementById('td-buy-add');
+  if (btn) { btn.textContent = '✓ ADDED'; setTimeout(function() { btn.textContent = 'ADD BUY'; }, 1500); }
+}
+
+
+/* ══════════════════════════════════════════════════════════════════
+   ONE COLOUR PER HOLDING, and all of them on one chart (2026-10-21)
+   ──────────────────────────────────────────────────────────────────
+   Each holding keeps a colour slot (`col`, 0-9) in its entry, so a coin
+   stays the same colour on its tile, its line and its donut slice, and
+   removing one coin never repaints the others. Entries saved before
+   this get the lowest free slot on first render.
+
+   Six hues, validated for colour-blind separation in both themes (the
+   dataviz validator, worst adjacent ΔE 8.4 dark / 9.1 light). Green and
+   red are left out on purpose: on this page they mean up and down.
+   Slots 7-10 (Pro) reuse the six hues as DASHED lines and stripes, so no
+   two coins ever look alike. The hex values live in styles.css as
+   --hc0..--hc5, stepped separately for :root.light. */
+var HOLDING_HUES = 6, HOLDING_SLOTS = 10;
+
+function ensureHoldingColors() {
+  var used = {}, changed = false;
+  holdings.forEach(function(h) { if (h.col != null && h.col >= 0 && h.col < HOLDING_SLOTS && !used[h.col]) used[h.col] = 1; else if (h.col != null) { delete h.col; changed = true; } });
+  holdings.forEach(function(h) {
+    if (h.col != null) return;
+    for (var i = 0; i < HOLDING_SLOTS; i++) if (!used[i]) { h.col = i; used[i] = 1; changed = true; return; }
+    h.col = holdings.indexOf(h) % HOLDING_SLOTS; changed = true;
+  });
+  if (changed) saveH();
+}
+function holdingColor(h) {
+  var i = h && h.col != null ? Number(h.col) : 0;
+  return { v: 'var(--hc' + (i % HOLDING_HUES) + ')', dash: i >= HOLDING_HUES };
+}
+
+/* Daily closes for several coins, into _hcCache. Five coins per request:
+   the API returns at most 1,000 rows, and 5 × 200 days fits. One request
+   for all ten cut every coin's history short (found 2026-10-21). */
+function _hcLoadMany(syms) {
+  var need = syms.filter(function(s) { return !_hcCache[s]; });
+  if (!need.length || typeof supaRest !== 'function') return Promise.resolve();
+  var parts = [];
+  for (var i = 0; i < need.length; i += 5) parts.push(_hcLoadFive(need.slice(i, i + 5)));
+  return Promise.all(parts);
+}
+function _hcLoadFive(need) {
+  return supaRest('binance_daily_klines', 'GET', {
+    'base_asset': 'in.(' + need.join(',') + ')', 'select': 'base_asset,open_time,close',
+    'order': 'open_time.desc', 'limit': String(200 * need.length)
+  }).then(function(rows) {
+    var by = {};
+    need.forEach(function(s) { by[s] = []; });
+    (Array.isArray(rows) ? rows : []).forEach(function(r) {
+      var t = Date.parse(String(r.open_time).slice(0, 10) + 'T00:00:00Z'), v = Number(r.close);
+      if (by[r.base_asset] && isFinite(t) && v > 0) by[r.base_asset].push({ t: t, v: v });
+    });
+    need.forEach(function(s) { _hcCache[s] = by[s].reverse(); });
+  }).catch(function() {});
+}
+
+var _hmRange = 30;   /* days, for the Yours chart; 30 / 90 / 182 */
+function setHoldingsChartRange(days) { _hmRange = days; renderHoldingsChart(); }
+
+/* ── Your coins on one chart ─────────────────────────────────────
+   Prices of different coins cannot share an axis, so every line is the
+   coin's % change since the first day of the range (all start at 0%).
+   One axis, no second scale. */
+function renderHoldingsChart() {
+  var box = document.getElementById('hold-chart');
+  if (!box) return;
+  var list = holdings.map(function(h) { return { h: h, c: coinOfHolding(h) }; })
+    .filter(function(x) { return x.c && !x.c.isStable; });
+  var shown = list.filter(function(x) { return holdingChartAllowed(x.c); });
+  var locked = list.length - shown.length;
+  if (!shown.length) { box.innerHTML = ''; return; }
+  var syms = shown.map(function(x) { return x.c.sym; });
+  var key = syms.join(',') + '|' + _hmRange;
+  box.setAttribute('data-key', key);
+  if (!box.innerHTML) box.innerHTML = '<div class="tdp-note">Loading the price chart…</div>';
+  _hcLoadMany(syms).then(function() {
+    if (box.getAttribute('data-key') !== key) return;
+    _drawHoldingsChart(box, shown, locked);
+  });
+}
+
+function _drawHoldingsChart(box, shown, locked) {
+  var now = Date.now(), from = now - _hmRange * 864e5;
+  var today = Date.parse(new Date().toISOString().slice(0, 10) + 'T00:00:00Z');
+  var series = shown.map(function(x) {
+    var pts = (_hcCache[x.c.sym] || []).filter(function(p) { return p.t >= from && p.t < today; });
+    if (x.c.price > 0) pts = pts.concat([{ t: now, v: x.c.price }]);
+    if (pts.length < 5) return null;
+    var base = pts[0].v;
+    return { c: x.c, col: holdingColor(x.h), pts: pts.map(function(p) { return { t: p.t, v: p.v, p: (p.v / base - 1) * 100 }; }) };
+  }).filter(Boolean);
+  var tabs = _HC_RANGES.map(function(r) {
+    return '<button type="button" class="tdp-rng' + (r[0] === _hmRange ? ' on' : '') + '" onclick="setHoldingsChartRange(' + r[0] + ')">' + r[1] + '</button>';
+  }).join('');
+  var head = '<div class="hm-top"><span class="hm-title">Your coins, % change</span><span class="tdp-rngs">' + tabs + '</span></div>';
+  if (!series.length) { box.innerHTML = head + '<div class="tdp-note">No price history for these coins yet.</div>'; return; }
+
+  var t0 = Math.min.apply(null, series.map(function(s) { return s.pts[0].t; }));
+  var lo = 0, hi = 0;
+  series.forEach(function(s) { s.pts.forEach(function(p) { if (p.p < lo) lo = p.p; if (p.p > hi) hi = p.p; }); });
+  var pad = (hi - lo) * 0.08 || 1; lo -= pad; hi += pad;
+  var W = 600, H = 160;
+  var X = function(t) { return (t - t0) / (now - t0) * W; };
+  var Y = function(p) { return H - (p - lo) / (hi - lo) * H; };
+  var lines = series.map(function(s) {
+    var d = s.pts.map(function(p, i) { return (i ? 'L' : 'M') + X(p.t).toFixed(1) + ' ' + Y(p.p).toFixed(1); }).join(' ');
+    return '<path d="' + d + '" fill="none" stroke="' + s.col.v + '" stroke-width="2" vector-effect="non-scaling-stroke" stroke-linejoin="round" stroke-linecap="round"'
+      + (s.col.dash ? ' stroke-dasharray="6 4"' : '') + '/>';
+  }).join('');
+  /* Coin names at the line ends, nudged apart so they never sit on top of each other. */
+  var ends = series.map(function(s) { var e = s.pts[s.pts.length - 1]; return { s: s, y: Y(e.p) / H * 100 }; })
+    .sort(function(a, b) { return a.y - b.y; });
+  for (var i = 1; i < ends.length; i++) if (ends[i].y - ends[i - 1].y < 9) ends[i].y = ends[i - 1].y + 9;
+  var endLbl = series.length <= 6 ? ends.map(function(e) {
+    return '<span class="hm-end" style="top:' + Math.min(e.y, 100).toFixed(1) + '%"><i style="background:' + e.s.col.v + '"></i>' + e.s.c.sym + '</span>';
+  }).join('') : '';
+  var legend = series.slice().sort(function(a, b) { return b.pts[b.pts.length - 1].p - a.pts[a.pts.length - 1].p; }).map(function(s) {
+    var p = s.pts[s.pts.length - 1].p;
+    return '<button type="button" class="hm-chip" onclick="openTileDetail(\'' + s.c.id + '\', event)">'
+      + '<i class="' + (s.col.dash ? 'dash' : '') + '" style="--hc:' + s.col.v + '"></i><span class="hm-sym">' + s.c.sym + '</span>'
+      + '<span class="hm-pct">' + (p >= 0 ? '+' : '') + p.toFixed(1) + '%</span></button>';
+  }).join('');
+  box.innerHTML = head
+    + '<div class="hm-plot' + (endLbl ? '' : ' hm-noend') + '" id="hm-plot">'
+      + '<svg viewBox="0 0 ' + W + ' ' + H + '" preserveAspectRatio="none" role="img" aria-label="Your coins, % change over ' + _hmRange + ' days">'
+        + '<line class="hm-zero" x1="0" x2="' + W + '" y1="' + Y(0).toFixed(1) + '" y2="' + Y(0).toFixed(1) + '" vector-effect="non-scaling-stroke"/>'
+        + lines + '</svg>'
+      + '<span class="hm-ax" style="top:' + (Y(0) / H * 100).toFixed(1) + '%">0%</span>'
+      /* Top and bottom readings, left out when they would sit on the 0% line. */
+      + ((hi - pad) > (hi - lo) * 0.15 ? '<span class="hm-ax hm-ax-hi">+' + (hi - pad).toFixed(0) + '%</span>' : '')
+      + ((lo + pad) < -(hi - lo) * 0.15 ? '<span class="hm-ax hm-ax-lo">' + (lo + pad).toFixed(0) + '%</span>' : '')
+      + endLbl
+      + '<i class="hm-cross" id="hm-cross" hidden></i><div class="hm-tip" id="hm-tip" hidden></div>'
+    + '</div>'
+    + '<div class="tdp-ch-foot"><span>' + _hcDay(t0) + '</span><span>Now</span></div>'
+    + '<div class="hm-legend">' + legend + '</div>'
+    + _runAheadNote(series)
+    + (locked ? '<div class="tdp-lock hm-lock"><span>Price charts are free for your first ' + FREE_HOLDINGS_LIMIT
+        + ' holdings, and for up to ' + PRO_HOLDINGS_LIMIT + ' with Pro.</span>'
+        + '<button type="button" class="tdp-lock-btn" onclick="openPro()">See Pro</button></div>' : '');
+
+  /* Crosshair: every coin's change on the day under the cursor or finger. */
+  var plot = document.getElementById('hm-plot'), cross = document.getElementById('hm-cross'), tip = document.getElementById('hm-tip');
+  var show = function(e) {
+    var r = plot.getBoundingClientRect();
+    var f = Math.max(0, Math.min(1, (e.clientX - r.left) / r.width)), t = t0 + f * (now - t0);
+    var rows = series.map(function(s) {
+      var best = s.pts[0];
+      s.pts.forEach(function(p) { if (Math.abs(p.t - t) < Math.abs(best.t - t)) best = p; });
+      return { s: s, p: best };
+    }).sort(function(a, b) { return b.p.p - a.p.p; });
+    var tt = rows[0].p.t;
+    cross.hidden = false; cross.style.left = (X(tt) / W * 100) + '%';
+    tip.hidden = false;
+    tip.innerHTML = '<div class="hm-tip-d">' + (now - tt < 864e5 / 2 ? 'Now' : _hcDay(tt)) + '</div>' + rows.map(function(x) {
+      return '<div class="hm-tip-r"><i class="' + (x.s.col.dash ? 'dash' : '') + '" style="--hc:' + x.s.col.v + '"></i><span>' + x.s.c.sym + '</span>'
+        + '<b>' + (x.p.p >= 0 ? '+' : '') + x.p.p.toFixed(1) + '%</b></div>';
+    }).join('');
+    var left = f > 0.55;
+    tip.style.left = left ? '' : 'calc(' + (f * 100) + '% + 10px)';
+    tip.style.right = left ? 'calc(' + ((1 - f) * 100) + '% + 10px)' : '';
+  };
+  plot.addEventListener('pointermove', show);
+  plot.addEventListener('pointerdown', show);
+  plot.addEventListener('pointerleave', function() { cross.hidden = true; tip.hidden = true; });
+}
+
+
+/* ── One coin far ahead of the rest (Daniel, 2026-10-21) ─────────
+   When one holding beat every other charted holding over 7 days, 1, 3
+   AND 6 months, by RUN_LEAD points each time, and is up at least
+   RUN_MIN_30D over the month, a note under the chart says so and opens
+   the Rotator Tool with that coin as FROM.
+
+   Worded as information, never a call: the board's own Score gaps note
+   says moving from a high score into a low one did not beat two random
+   coins over 771 days (promptove/64), and the note repeats that. A
+   range only counts when at least two coins have history covering most
+   of it (the table starts 2026-04-20). Closed with × for 7 days, per
+   coin, in this browser only. */
+var RUN_LEAD = 10, RUN_MIN_30D = 20;
+function _runAheadNote(series) {
+  if (!series || series.length < 2) return '';
+  var now = Date.now(), today = Date.parse(new Date().toISOString().slice(0, 10) + 'T00:00:00Z');
+  var change = function(c, days) {
+    if (days === 7) return isFinite(c.p7) ? Number(c.p7) : null;
+    var rows = (_hcCache[c.sym] || []).filter(function(p) { return p.t < today; });
+    var from = now - days * 864e5, base = null;
+    for (var i = 0; i < rows.length; i++) if (rows[i].t >= from) { base = rows[i]; break; }
+    if (!base || base.t - from > days * 864e5 * 0.2 || !(c.price > 0)) return null;   /* history too short */
+    return (c.price / base.v - 1) * 100;
+  };
+  var ranges = [7, 30, 90, 182], leader = null, used = 0, labels = { 7: '7 days', 30: '1 month', 90: '3 months', 182: '6 months' }, done = [];
+  for (var r = 0; r < ranges.length; r++) {
+    var vals = series.map(function(s) { return { c: s.c, v: change(s.c, ranges[r]) }; }).filter(function(x) { return x.v != null; });
+    if (vals.length < 2) continue;
+    vals.sort(function(a, b) { return b.v - a.v; });
+    if (vals[0].v - vals[1].v < RUN_LEAD) return '';
+    if (leader && leader.id !== vals[0].c.id) return '';
+    leader = vals[0].c; used++; done.push(labels[ranges[r]]);
+    if (ranges[r] === 30 && vals[0].v < RUN_MIN_30D) return '';
+  }
+  if (!leader || used < 3 || change(leader, 30) == null) return '';
+  try { var until = Number(localStorage.getItem('rot_runnote_' + leader.id)); if (until > now) return ''; } catch (e) {}
+  var h = holdings.find(function(x) { return holdingMatches(x, leader); });
+  var pl = h ? holdingPL(leader.price, h.qty, h.avg) : null;
+  return '<div class="hm-run" id="hm-run">'
+    + '<button type="button" class="hm-run-x" aria-label="Close" onclick="closeRunAheadNote(\'' + leader.id + '\')">×</button>'
+    + '<div class="hm-run-h">' + leader.sym + ' ran far ahead of your other coins</div>'
+    + '<div class="hm-run-b"><span>It beat each of them over ' + done.slice(0, -1).join(', ') + ' and ' + done[done.length - 1] + '.</span>'
+    + (pl && pl.pct > 0 ? ' <span>You are up ' + pl.pct.toFixed(0) + '% on your average.</span>' : '') + '</div>'
+    + '<div class="hm-run-b"><span>After a run like this, some holders take part of the profit, or move part of it into another coin.</span> '
+    + '<span>Compare it with other coins in the Rotator Tool first.</span></div>'
+    + '<button type="button" class="hm-run-btn" onclick="openSwapFrom(\'' + leader.id + '\')">Compare ' + leader.sym + ' in the Rotator Tool →</button>'
+    + '<div class="hm-run-n"><span>In past data, swapping out of the strongest coin into a weaker one did not beat picking at random.</span> <span>Not financial advice.</span></div>'
+    + '</div>';
+}
+function closeRunAheadNote(id) {
+  try { localStorage.setItem('rot_runnote_' + id, String(Date.now() + 7 * 864e5)); } catch (e) {}
+  var el = document.getElementById('hm-run'); if (el) el.remove();
+}
+/* The Rotator Tool with this coin as FROM, and the TO picker open. */
+function openSwapFrom(id) {
+  if (window.innerWidth < 768 && typeof mobGo === 'function') mobGo('sec-swap');
+  else if (typeof railGo === 'function') { railGo('sec-swap'); if (typeof RatioTracker !== 'undefined') RatioTracker.loadAll(); }
+  setTimeout(function() {
+    if (typeof RatioTracker === 'undefined') return;
+    RatioTracker._openPicker('from'); RatioTracker._pickerSelect(id);
+    setTimeout(function() { RatioTracker._openPicker('to'); }, 250);
+  }, 700);
 }

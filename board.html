@@ -460,21 +460,40 @@
     <div id="td-chainflow"></div>
   </div>
 
-  <!-- Edit Holdings (shown only for held coins). Not folded: a holder
-       opening their own coin is usually here to update it. -->
+  <!-- Your position (shown only for held coins). Not folded: a holder
+       opening their own coin is usually here to update it. Since
+       2026-10-21: the summary, a price chart with the average entry
+       (2 free / 10 Pro, holdingChartAllowed), the average and quantity to
+       edit, and "Add a buy", which merges into the average (mergeBuy).
+       All filled by renderTdPosition() in js/holdings.js. -->
   <div class="td-section" id="td-edit-hold-sec" style="display:none;">
-    <div class="td-section-title">Edit Holdings</div>
-    <div style="display:flex;gap:8px;align-items:flex-end;">
-      <div style="flex:1;">
-        <label style="font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;">Buy Price ($)</label>
-        <input type="number" id="td-hold-avg" aria-label="Buy price" placeholder="0.00" step="any" min="0" style="width:100%;margin-top:3px;padding:6px 8px;background:var(--bg1);border:1px solid var(--bdr);border-radius:4px;color:var(--fg);font-size:12px;font-family:var(--font-mono);">
+    <div class="td-section-title">Your position</div>
+    <div class="tdp-sum" id="tdp-sum"></div>
+    <div class="tdp-chart" id="tdp-chart"></div>
+    <div class="tdp-row">
+      <div class="tdp-f">
+        <label for="td-hold-avg">Average entry ($)</label>
+        <input type="number" id="td-hold-avg" aria-label="Average entry" placeholder="0.00" step="any" min="0">
       </div>
-      <div style="flex:1;">
-        <label style="font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;">Quantity</label>
-        <input type="number" id="td-hold-qty" aria-label="Quantity" placeholder="0" step="any" min="0" style="width:100%;margin-top:3px;padding:6px 8px;background:var(--bg1);border:1px solid var(--bdr);border-radius:4px;color:var(--fg);font-size:12px;font-family:var(--font-mono);">
+      <div class="tdp-f">
+        <label for="td-hold-qty">Quantity</label>
+        <input type="number" id="td-hold-qty" aria-label="Quantity" placeholder="0" step="any" min="0">
       </div>
-      <button id="td-hold-save" onclick="saveTileHolding()" style="padding:6px 14px;background:var(--green);color:#000;border:none;border-radius:4px;font-size:12px;font-weight:700;cursor:pointer;white-space:nowrap;">SAVE</button>
+      <button id="td-hold-save" class="tdp-btn" onclick="saveTileHolding()">SAVE</button>
     </div>
+    <div class="tdp-sub">Bought more? Add the buy and the average works itself out.</div>
+    <div class="tdp-row">
+      <div class="tdp-f">
+        <label for="td-buy-qty">Amount bought</label>
+        <input type="number" id="td-buy-qty" aria-label="Amount bought" placeholder="0" step="any" min="0" oninput="tdBuyPreview()">
+      </div>
+      <div class="tdp-f">
+        <label for="td-buy-avg">Price paid ($)</label>
+        <input type="number" id="td-buy-avg" aria-label="Price paid" placeholder="0.00" step="any" min="0" oninput="tdBuyPreview()">
+      </div>
+      <button id="td-buy-add" class="tdp-btn tdp-btn-2" onclick="addTileBuy()">ADD BUY</button>
+    </div>
+    <div class="tdp-prev" id="td-buy-prev"></div>
   </div>
 
   <div class="td-details-lbl">Expand for more details</div>
@@ -1282,12 +1301,17 @@
   <section class="rsec" id="sec-yours">
     <div class="rsec-hdr"><span class="rsec-label">YOURS</span><span class="rsec-meta" id="rsec-meta-yours">track what you hold and watch; warnings and notifications follow your coins</span></div>
   <div class="sidebar">
+    <!-- Left column on the light desktop layout (2026-10-21): the signal
+         with the alerts under it. display:contents everywhere else, so the
+         phone order and the dark grid see the two as before. -->
+    <div class="yours-left">
     <!-- ALERTS FOR YOUR COINS — renderCoinAlerts() in js/turn-watch.js -->
     <div class="coin-alerts" id="coin-alerts"></div>
     <!-- PORTFOLIO SIGNAL: direct sidebar child — zero gap guaranteed -->
     <div class="sig-box" id="sig-box-crypto">
       <h2 class="sig-title">◈ Portfolio Signal</h2>
       <div id="sig-content"><div style="font-size:12px;color:var(--muted);font-family:var(--font-ui);">Add holdings to see your signal.</div></div>
+    </div>
     </div>
 
     <!-- HOLDINGS — collapsible on mobile -->
@@ -1316,6 +1340,11 @@
           <span id="hcount" style="color:var(--bnb);font-size:12px;letter-spacing:.04em;"></span>
         </div>
         <div class="tiles-scroll"><div class="tiles-grid" id="tiles-grid"></div></div>
+        <!-- YOUR COINS ON ONE CHART (2026-10-21): each holding's % change
+             over the range, one colour per coin that its tile and donut
+             slice share (holdingColor). 2 free / 10 Pro, like the charts in
+             the coin window. renderHoldingsChart() in js/holdings.js. -->
+        <div class="hold-chart" id="hold-chart"></div>
         <!-- PAPER TRADES — "what if I had bought when the sign appeared", renderPaperTrades() in js/paper-trades.js -->
         <div class="paper-trades" id="paper-trades"></div>
       </div>

@@ -5317,15 +5317,16 @@ function openTileDetail(coinId, evt) {
     if (insDet) insDet.open = !!(tNow && tNow.cross && tNow.crossDays != null);
   }
 
-  /* Edit Holdings section — show only for held coins */
+  /* Your position — held coins only. Summary, chart, edit and "Add a
+     buy" are drawn by renderTdPosition() in js/holdings.js. */
   var editSec = document.getElementById('td-edit-hold-sec');
   if (editSec) {
     var hIdx = holdings.findIndex(function(h) { return holdingMatches(h, c); });
     if (hIdx >= 0) {
       editSec.style.display = '';
-      var h = holdings[hIdx];
-      document.getElementById('td-hold-avg').value = h.avg || '';
-      document.getElementById('td-hold-qty').value = h.qty || '';
+      document.getElementById('td-buy-qty').value = '';
+      document.getElementById('td-buy-avg').value = '';
+      renderTdPosition(c);
     } else {
       editSec.style.display = 'none';
     }
@@ -5348,6 +5349,7 @@ function saveTileHolding() {
     holdings[idx].qty = qty;
     saveH();
     renderAll();
+    renderTdPosition(_tdCoin);
     /* Flash save button green */
     var btn = document.getElementById('td-hold-save');
     if (btn) { btn.textContent = '✓ SAVED'; setTimeout(function() { btn.textContent = 'SAVE'; }, 1500); }

@@ -1875,3 +1875,52 @@ Object.assign(MK_TEXT, {
   'No thanks': 'Не, благодарам',
   'Start the tour': 'Започнете ја турата'
 });
+
+/* ── Your position: DCA average and the holding's price chart (2026-10-21) ── */
+Object.assign(MK_TEXT, {
+  'Your position': 'Вашата позиција',
+  'Average entry ($)': 'Просечна набавна цена ($)', 'Average entry': 'Просечна набавна цена',
+  'Amount bought': 'Купена количина', 'Price paid ($)': 'Платена цена ($)', 'Price paid': 'Платена цена',
+  'Price you paid ($)': 'Платена цена ($)',
+  'ADD BUY': 'ДОДАЈ КУПУВАЊЕ', '✓ ADDED': '✓ ДОДАДЕНО',
+  'Bought more? Add the buy and the average works itself out.': 'Купивте уште? Додајте го купувањето и просекот ќе се пресмета сам.',
+  'Worth now': 'Вредност сега', 'not set': 'не е внесено', 'Profit vs your average': 'Добивка наспроти вашиот просек', 'Buys': 'Купувања',
+  'Loading the price chart…': 'Се вчитува графиконот на цената…',
+  'No price history for this coin yet.': 'Сè уште нема историја на цената за оваа монета.',
+  'See Pro': 'Видете Pro',
+  'Your average': 'Вашиот просек', 'vs your average': 'наспроти вашиот просек', 'Now': 'Сега',
+  'After this buy:': 'По ова купување:', 'at an average of': 'со просек од',
+  'Add the price you paid, so your average entry stays right.': 'Внесете ја платената цена, за просекот да остане точен.',
+  'You hold: add another buy': 'Ја имате: додајте уште едно купување',
+  'Enter the amount you bought': 'Внесете колку купивте',
+  'You hold now': 'Имате сега', 'After this buy': 'По ова купување', 'Profit vs new average': 'Добивка наспроти новиот просек',
+  'Your average entry, with this buy': 'Вашиот просек, со ова купување'
+});
+(function () {
+  var P = function (re, fn) { MK_PATTERNS.push([re, fn]); };
+  P(/^in (\d+) days?$/, function (m) { return 'за ' + m[1] + (m[1] === '1' ? ' ден' : ' дена'); });
+  P(/^Price charts are free for your first (\d+) holdings, and for up to (\d+) with Pro\.$/, function (m) { return 'Графиконите на цената се бесплатни за првите ' + m[1] + ' позиции, а со Pro за најмногу ' + m[2] + '.'; });
+  P(/^Add this buy to your (\S+)$/, function (m) { return 'Додајте го купувањето во вашиот ' + m[1]; });
+  P(/^(\S+) price, last (\d+) days$/, function (m) { return 'Цена на ' + m[1] + ', последните ' + m[2] + ' дена'; });
+})();
+Object.assign(MK_TEXT, {
+  'Your coins, % change': 'Вашите монети, промена во %',
+  'No price history for these coins yet.': 'Сè уште нема историја на цената за овие монети.'
+});
+MK_PATTERNS.push([/^Your coins, % change over (\d+) days$/, function (m) { return 'Вашите монети, промена во % за ' + m[1] + ' дена'; }]);
+/* One coin far ahead of the rest (2026-10-21) */
+Object.assign(MK_TEXT, {
+  'After a run like this, some holders take part of the profit, or move part of it into another coin.':
+    'По ваков раст, некои сопственици земаат дел од добивката или преместуваат дел во друга монета.',
+  'Compare it with other coins in the Rotator Tool first.': 'Прво споредете ја со други монети во Rotator Tool.',
+  'In past data, swapping out of the strongest coin into a weaker one did not beat picking at random.':
+    'Во минатите податоци, замената од најсилната монета во послаба не беше подобра од случаен избор.'
+});
+(function () {
+  var P = function (re, fn) { MK_PATTERNS.push([re, fn]); };
+  var D = { '7 days': '7 дена', '1 month': '1 месец', '3 months': '3 месеци', '6 months': '6 месеци' };
+  P(/^(\S+) ran far ahead of your other coins$/, function (m) { return m[1] + ' многу ги престигна вашите други монети'; });
+  P(/^It beat each of them over (.+)\.$/, function (m) { var parts = m[1].split(/, | and /).map(function (x) { return D[x] || x; }); return 'Ја победи секоја од нив за ' + parts.slice(0, -1).join(', ') + ' и ' + parts[parts.length - 1] + '.'; });
+  P(/^You are up (\d+)% on your average\.$/, function (m) { return 'Во добивка сте ' + m[1] + '% над вашиот просек.'; });
+  P(/^Compare (\S+) in the Rotator Tool →$/, function (m) { return 'Споредете ја ' + m[1] + ' во Rotator Tool →'; });
+})();
