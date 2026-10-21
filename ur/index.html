@@ -1179,7 +1179,7 @@ document.addEventListener('click', function (e) {
   var TOUR_EXTRA = { today: 2 };
   /* Seconds the tour waits on a scene's last picture before it jumps on
      (Daniel, 2026-10-21: the bell "needs to stay one more second"). */
-  var TOUR_HOLD = { momentum: 1, yours: 1, tool: 1 };
+  var TOUR_HOLD = { hero: 1, momentum: 1, yours: 1, tool: 1 };
   function tourScene(y) {
     var id = null;
     stops.forEach(function (x) { if (x.el.offsetTop <= y + 1) id = x.el.id; });
