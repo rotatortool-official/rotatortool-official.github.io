@@ -24,6 +24,7 @@
 <link rel="alternate" hreflang="te" href="https://rotatortool.com/te/">
 <link rel="alternate" hreflang="sw" href="https://rotatortool.com/sw/">
 <link rel="alternate" hreflang="tl" href="https://rotatortool.com/tl/">
+<link rel="alternate" hreflang="mk" href="https://rotatortool.com/mk/">
 <link rel="alternate" hreflang="x-default" href="https://rotatortool.com/">
 <!-- /i18n:alt -->
 <meta property="og:type" content="website">
@@ -479,7 +480,20 @@ html:is([lang="ar"],[lang="ur"]) .cc-hilo{right:auto;left:0;}
 @media (prefers-reduced-motion:reduce){ .tc-ic>*{animation:none;opacity:1;} }
 html:is([lang="ar"],[lang="ur"]) .today-cat{letter-spacing:0;font-family:var(--ui);}
 #today-vis .tag{z-index:4;}
-@media (max-width:860px){ .today-cat{font-size:20px;bottom:auto;top:14px;gap:10px;} #today-vis .tag{display:none;} #today-vis .ring-wrap{top:40px;bottom:26px;} }
+/* Today is swiped, not scrolled (a visitor's suggestion, 2026-10-21):
+   left/right turns the cards, up/down leaves the browser to scroll on. */
+#today-vis{touch-action:pan-y;cursor:grab;user-select:none;-webkit-user-select:none;}
+#today-vis.drag{cursor:grabbing;}
+.td-nav{position:absolute;top:50%;z-index:5;width:44px;height:44px;margin-top:-22px;border-radius:50%;border:1px solid var(--panel-b);background:var(--bg2);color:var(--text);
+  display:grid;place-items:center;cursor:pointer;box-shadow:var(--shadow);transition:border-color .2s ease,transform .2s ease;}
+.td-nav:hover{border-color:var(--gold);}
+.td-nav:active{transform:scale(.94);}
+.td-nav svg{width:18px;height:18px;}
+.td-nav.prev{left:14px;} .td-nav.next{right:14px;}
+.td-hint{position:absolute;left:0;right:0;bottom:12px;z-index:4;text-align:center;font:700 10.5px/1 var(--mono);letter-spacing:.14em;text-transform:uppercase;color:var(--dim);pointer-events:none;transition:opacity .4s ease;}
+.td-hint.off{opacity:0;}
+html:is([lang="ar"],[lang="ur"]) .td-hint{letter-spacing:0;font-family:var(--ui);}
+@media (max-width:860px){ .today-cat{font-size:20px;bottom:auto;top:14px;gap:10px;} #today-vis .tag{display:none;} #today-vis .ring-wrap{top:40px;bottom:26px;} .td-nav{width:36px;height:36px;margin-top:-18px;} .td-nav.prev{left:6px;} .td-nav.next{right:6px;} .td-hint{display:none;} }
 .ring{position:relative;width:var(--cw);height:var(--chh);transform-style:preserve-3d;will-change:transform;}
 .c3{position:absolute;inset:0;transform-style:preserve-3d;}
 .flip{position:absolute;inset:0;transform-style:preserve-3d;}
@@ -690,7 +704,7 @@ html:is([lang="ar"],[lang="ur"]) .today-cat{letter-spacing:0;font-family:var(--u
   <a class="logo" href="./">⬡ ROTATOR</a>
   <div style="display:flex;gap:8px;align-items:center">
     <button type="button" class="btn btn-ghost btn-sm theme-btn" data-theme-btn onclick="RotTheme.cycle()">◐ AUTO</button>
-    <!-- i18n:menu --><details class="lang-menu" translate="no"><summary class="btn btn-ghost btn-sm" aria-label="Language"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M2 12h20M12 2a15 15 0 0 1 0 20M12 2a15 15 0 0 0 0 20"/></svg><b class="lang-cur">FR</b></summary><nav class="lang-list" aria-label="Language"><a href="/" lang="en"><svg class="flag" viewBox="0 0 60 30" aria-hidden="true" preserveAspectRatio="none"><clipPath id="fl-uk-t"><path d="M30,15h30v15zv15h-30zh-30v-15zv-15h30z"/></clipPath><path d="M0,0v30h60v-30z" fill="#012169"/><path d="M0,0L60,30M60,0L0,30" stroke="#fff" stroke-width="6"/><path d="M0,0L60,30M60,0L0,30" clip-path="url(#fl-uk-t)" stroke="#C8102E" stroke-width="4"/><path d="M30,0v30M0,15h60" stroke="#fff" stroke-width="10"/><path d="M30,0v30M0,15h60" stroke="#C8102E" stroke-width="6"/></svg>English</a><a href="/de/" lang="de"><svg class="flag" viewBox="0 0 5 3" aria-hidden="true" preserveAspectRatio="none"><rect width="5" height="3" fill="#FFCE00"/><rect width="5" height="2" fill="#DD0000"/><rect width="5" height="1" fill="#000"/></svg>Deutsch</a><a href="/es/" lang="es"><svg class="flag" viewBox="0 0 3 2" aria-hidden="true" preserveAspectRatio="none"><rect width="3" height="2" fill="#AA151B"/><rect y=".5" width="3" height="1" fill="#F1BF00"/></svg>Español</a><a href="/tr/" lang="tr"><svg class="flag" viewBox="0 0 30 20" aria-hidden="true" preserveAspectRatio="none"><rect width="30" height="20" fill="#E30A17"/><circle cx="10.6" cy="10" r="5" fill="#fff"/><circle cx="11.9" cy="10" r="4" fill="#E30A17"/><polygon fill="#fff" points="14.10,10.00 15.83,9.44 15.83,7.62 16.89,9.10 18.62,8.53 17.55,10.00 18.62,11.47 16.89,10.90 15.83,12.38 15.83,10.56"/></svg>Türkçe</a><a href="/pt/" lang="pt"><svg class="flag" viewBox="0 0 20 14" aria-hidden="true" preserveAspectRatio="none"><rect width="20" height="14" fill="#009C3B"/><polygon points="10,1.7 18.3,7 10,12.3 1.7,7" fill="#FFDF00"/><circle cx="10" cy="7" r="3.5" fill="#002776"/></svg>Português</a><a class="on" href="/fr/" lang="fr"><svg class="flag" viewBox="0 0 3 2" aria-hidden="true" preserveAspectRatio="none"><rect width="3" height="2" fill="#EF4135"/><rect width="2" height="2" fill="#fff"/><rect width="1" height="2" fill="#0055A4"/></svg>Français</a><a href="/ru/" lang="ru"><svg class="flag" viewBox="0 0 9 6" aria-hidden="true" preserveAspectRatio="none"><rect width="9" height="6" fill="#D52B1E"/><rect width="9" height="4" fill="#0039A6"/><rect width="9" height="2" fill="#fff"/></svg>Русский</a><a href="/id/" lang="id"><svg class="flag" viewBox="0 0 3 2" aria-hidden="true" preserveAspectRatio="none"><rect width="3" height="2" fill="#fff"/><rect width="3" height="1" fill="#FF0000"/></svg>Bahasa Indonesia</a><a href="/zh/" lang="zh-Hans"><svg class="flag" viewBox="0 0 30 20" aria-hidden="true" preserveAspectRatio="none"><rect width="30" height="20" fill="#EE1C25"/><polygon fill="#FFDE00" points="5.00,2.00 5.67,4.08 7.85,4.07 6.08,5.35 6.76,7.43 5.00,6.14 3.24,7.43 3.92,5.35 2.15,4.07 4.33,4.08"/><polygon fill="#FFDE00" points="10.50,1.13 10.35,1.85 10.98,2.21 10.25,2.28 10.10,2.99 9.81,2.33 9.09,2.41 9.63,1.92 9.33,1.26 9.96,1.62"/><polygon fill="#FFDE00" points="12.17,3.02 12.27,3.74 12.99,3.86 12.34,4.18 12.44,4.90 11.93,4.37 11.28,4.69 11.62,4.05 11.12,3.53 11.83,3.66"/><polygon fill="#FFDE00" points="11.83,6.02 12.17,6.66 12.88,6.53 12.38,7.05 12.72,7.69 12.07,7.37 11.56,7.90 11.66,7.18 11.01,6.86 11.73,6.74"/><polygon fill="#FFDE00" points="9.50,8.13 10.04,8.62 10.67,8.26 10.37,8.92 10.91,9.41 10.19,9.33 9.90,9.99 9.75,9.28 9.02,9.21 9.65,8.85"/></svg>简体中文</a><a href="/ar/" lang="ar"><svg class="flag" viewBox="0 0 12 6" aria-hidden="true" preserveAspectRatio="none"><rect width="12" height="2" fill="#00732F"/><rect y="2" width="12" height="2" fill="#fff"/><rect y="4" width="12" height="2" fill="#000"/><rect width="3" height="6" fill="#FF0000"/></svg>العربية</a><a href="/hi/" lang="hi"><svg class="flag" viewBox="0 0 30 20" aria-hidden="true" preserveAspectRatio="none"><rect width="30" height="20" fill="#138808"/><rect width="30" height="13.33" fill="#fff"/><rect width="30" height="6.67" fill="#FF9933"/><circle cx="15" cy="10" r="2.6" fill="none" stroke="#000080" stroke-width=".7"/></svg>हिन्दी</a><a href="/bn/" lang="bn"><svg class="flag" viewBox="0 0 20 12" aria-hidden="true" preserveAspectRatio="none"><rect width="20" height="12" fill="#006A4E"/><circle cx="9" cy="6" r="4" fill="#F42A41"/></svg>বাংলা</a><a href="/ur/" lang="ur"><svg class="flag" viewBox="0 0 30 20" aria-hidden="true" preserveAspectRatio="none"><rect width="30" height="20" fill="#fff"/><rect x="7.5" width="22.5" height="20" fill="#01411C"/><circle cx="19" cy="10" r="6" fill="#fff"/><circle cx="20.6" cy="8.6" r="5.3" fill="#01411C"/><polygon fill="#fff" points="23.45,5.73 23.19,6.94 24.26,7.55 23.03,7.68 22.78,8.89 22.28,7.76 21.05,7.89 21.97,7.07 21.46,5.94 22.53,6.56"/></svg>اردو</a><a href="/te/" lang="te"><svg class="flag" viewBox="0 0 30 20" aria-hidden="true" preserveAspectRatio="none"><rect width="30" height="20" fill="#138808"/><rect width="30" height="13.33" fill="#fff"/><rect width="30" height="6.67" fill="#FF9933"/><circle cx="15" cy="10" r="2.6" fill="none" stroke="#000080" stroke-width=".7"/></svg>తెలుగు</a><a href="/sw/" lang="sw"><svg class="flag" viewBox="0 0 72 48" aria-hidden="true" preserveAspectRatio="none"><rect width="72" height="48" fill="#00A3DD"/><polygon points="0,0 72,0 0,48" fill="#1EB53A"/><path d="M0,48L72,0" stroke="#FCD116" stroke-width="18"/><path d="M0,48L72,0" stroke="#000" stroke-width="12"/></svg>Kiswahili</a><a href="/tl/" lang="tl"><svg class="flag" viewBox="0 0 30 15" aria-hidden="true" preserveAspectRatio="none"><rect width="30" height="15" fill="#CE1126"/><rect width="30" height="7.5" fill="#0038A8"/><polygon points="0,0 13,7.5 0,15" fill="#fff"/><circle cx="4.3" cy="7.5" r="1.6" fill="#FCD116"/></svg>Tagalog</a><a href="/mk/kripto-denes.html" lang="mk"><svg class="flag" viewBox="0 0 20 10" aria-hidden="true" preserveAspectRatio="none"><rect width="20" height="10" fill="#D20000"/><g fill="#FFE600"><polygon points="10,5 8.9,0 11.1,0"/><polygon points="10,5 8.9,10 11.1,10"/><polygon points="10,5 0,3.9 0,6.1"/><polygon points="10,5 20,3.9 20,6.1"/><polygon points="10,5 0,0 2.4,0 0,1"/><polygon points="10,5 20,0 17.6,0 20,1"/><polygon points="10,5 0,10 2.4,10 0,9"/><polygon points="10,5 20,10 17.6,10 20,9"/><circle cx="10" cy="5" r="2"/></g><circle cx="10" cy="5" r="1.7" fill="#D20000"/><circle cx="10" cy="5" r="1.4" fill="#FFE600"/></svg>Македонски</a></nav></details><!-- /i18n:menu -->
+    <!-- i18n:menu --><details class="lang-menu" translate="no"><summary class="btn btn-ghost btn-sm" aria-label="Language"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M2 12h20M12 2a15 15 0 0 1 0 20M12 2a15 15 0 0 0 0 20"/></svg><b class="lang-cur">FR</b></summary><nav class="lang-list" aria-label="Language"><a href="/" lang="en"><svg class="flag" viewBox="0 0 60 30" aria-hidden="true" preserveAspectRatio="none"><clipPath id="fl-uk-t"><path d="M30,15h30v15zv15h-30zh-30v-15zv-15h30z"/></clipPath><path d="M0,0v30h60v-30z" fill="#012169"/><path d="M0,0L60,30M60,0L0,30" stroke="#fff" stroke-width="6"/><path d="M0,0L60,30M60,0L0,30" clip-path="url(#fl-uk-t)" stroke="#C8102E" stroke-width="4"/><path d="M30,0v30M0,15h60" stroke="#fff" stroke-width="10"/><path d="M30,0v30M0,15h60" stroke="#C8102E" stroke-width="6"/></svg>English</a><a href="/de/" lang="de"><svg class="flag" viewBox="0 0 5 3" aria-hidden="true" preserveAspectRatio="none"><rect width="5" height="3" fill="#FFCE00"/><rect width="5" height="2" fill="#DD0000"/><rect width="5" height="1" fill="#000"/></svg>Deutsch</a><a href="/es/" lang="es"><svg class="flag" viewBox="0 0 3 2" aria-hidden="true" preserveAspectRatio="none"><rect width="3" height="2" fill="#AA151B"/><rect y=".5" width="3" height="1" fill="#F1BF00"/></svg>Español</a><a href="/tr/" lang="tr"><svg class="flag" viewBox="0 0 30 20" aria-hidden="true" preserveAspectRatio="none"><rect width="30" height="20" fill="#E30A17"/><circle cx="10.6" cy="10" r="5" fill="#fff"/><circle cx="11.9" cy="10" r="4" fill="#E30A17"/><polygon fill="#fff" points="14.10,10.00 15.83,9.44 15.83,7.62 16.89,9.10 18.62,8.53 17.55,10.00 18.62,11.47 16.89,10.90 15.83,12.38 15.83,10.56"/></svg>Türkçe</a><a href="/pt/" lang="pt"><svg class="flag" viewBox="0 0 20 14" aria-hidden="true" preserveAspectRatio="none"><rect width="20" height="14" fill="#009C3B"/><polygon points="10,1.7 18.3,7 10,12.3 1.7,7" fill="#FFDF00"/><circle cx="10" cy="7" r="3.5" fill="#002776"/></svg>Português</a><a class="on" href="/fr/" lang="fr"><svg class="flag" viewBox="0 0 3 2" aria-hidden="true" preserveAspectRatio="none"><rect width="3" height="2" fill="#EF4135"/><rect width="2" height="2" fill="#fff"/><rect width="1" height="2" fill="#0055A4"/></svg>Français</a><a href="/ru/" lang="ru"><svg class="flag" viewBox="0 0 9 6" aria-hidden="true" preserveAspectRatio="none"><rect width="9" height="6" fill="#D52B1E"/><rect width="9" height="4" fill="#0039A6"/><rect width="9" height="2" fill="#fff"/></svg>Русский</a><a href="/id/" lang="id"><svg class="flag" viewBox="0 0 3 2" aria-hidden="true" preserveAspectRatio="none"><rect width="3" height="2" fill="#fff"/><rect width="3" height="1" fill="#FF0000"/></svg>Bahasa Indonesia</a><a href="/zh/" lang="zh-Hans"><svg class="flag" viewBox="0 0 30 20" aria-hidden="true" preserveAspectRatio="none"><rect width="30" height="20" fill="#EE1C25"/><polygon fill="#FFDE00" points="5.00,2.00 5.67,4.08 7.85,4.07 6.08,5.35 6.76,7.43 5.00,6.14 3.24,7.43 3.92,5.35 2.15,4.07 4.33,4.08"/><polygon fill="#FFDE00" points="10.50,1.13 10.35,1.85 10.98,2.21 10.25,2.28 10.10,2.99 9.81,2.33 9.09,2.41 9.63,1.92 9.33,1.26 9.96,1.62"/><polygon fill="#FFDE00" points="12.17,3.02 12.27,3.74 12.99,3.86 12.34,4.18 12.44,4.90 11.93,4.37 11.28,4.69 11.62,4.05 11.12,3.53 11.83,3.66"/><polygon fill="#FFDE00" points="11.83,6.02 12.17,6.66 12.88,6.53 12.38,7.05 12.72,7.69 12.07,7.37 11.56,7.90 11.66,7.18 11.01,6.86 11.73,6.74"/><polygon fill="#FFDE00" points="9.50,8.13 10.04,8.62 10.67,8.26 10.37,8.92 10.91,9.41 10.19,9.33 9.90,9.99 9.75,9.28 9.02,9.21 9.65,8.85"/></svg>简体中文</a><a href="/ar/" lang="ar"><svg class="flag" viewBox="0 0 12 6" aria-hidden="true" preserveAspectRatio="none"><rect width="12" height="2" fill="#00732F"/><rect y="2" width="12" height="2" fill="#fff"/><rect y="4" width="12" height="2" fill="#000"/><rect width="3" height="6" fill="#FF0000"/></svg>العربية</a><a href="/hi/" lang="hi"><svg class="flag" viewBox="0 0 30 20" aria-hidden="true" preserveAspectRatio="none"><rect width="30" height="20" fill="#138808"/><rect width="30" height="13.33" fill="#fff"/><rect width="30" height="6.67" fill="#FF9933"/><circle cx="15" cy="10" r="2.6" fill="none" stroke="#000080" stroke-width=".7"/></svg>हिन्दी</a><a href="/bn/" lang="bn"><svg class="flag" viewBox="0 0 20 12" aria-hidden="true" preserveAspectRatio="none"><rect width="20" height="12" fill="#006A4E"/><circle cx="9" cy="6" r="4" fill="#F42A41"/></svg>বাংলা</a><a href="/ur/" lang="ur"><svg class="flag" viewBox="0 0 30 20" aria-hidden="true" preserveAspectRatio="none"><rect width="30" height="20" fill="#fff"/><rect x="7.5" width="22.5" height="20" fill="#01411C"/><circle cx="19" cy="10" r="6" fill="#fff"/><circle cx="20.6" cy="8.6" r="5.3" fill="#01411C"/><polygon fill="#fff" points="23.45,5.73 23.19,6.94 24.26,7.55 23.03,7.68 22.78,8.89 22.28,7.76 21.05,7.89 21.97,7.07 21.46,5.94 22.53,6.56"/></svg>اردو</a><a href="/te/" lang="te"><svg class="flag" viewBox="0 0 30 20" aria-hidden="true" preserveAspectRatio="none"><rect width="30" height="20" fill="#138808"/><rect width="30" height="13.33" fill="#fff"/><rect width="30" height="6.67" fill="#FF9933"/><circle cx="15" cy="10" r="2.6" fill="none" stroke="#000080" stroke-width=".7"/></svg>తెలుగు</a><a href="/sw/" lang="sw"><svg class="flag" viewBox="0 0 72 48" aria-hidden="true" preserveAspectRatio="none"><rect width="72" height="48" fill="#00A3DD"/><polygon points="0,0 72,0 0,48" fill="#1EB53A"/><path d="M0,48L72,0" stroke="#FCD116" stroke-width="18"/><path d="M0,48L72,0" stroke="#000" stroke-width="12"/></svg>Kiswahili</a><a href="/tl/" lang="tl"><svg class="flag" viewBox="0 0 30 15" aria-hidden="true" preserveAspectRatio="none"><rect width="30" height="15" fill="#CE1126"/><rect width="30" height="7.5" fill="#0038A8"/><polygon points="0,0 13,7.5 0,15" fill="#fff"/><circle cx="4.3" cy="7.5" r="1.6" fill="#FCD116"/></svg>Tagalog</a><a href="/mk/" lang="mk"><svg class="flag" viewBox="0 0 20 10" aria-hidden="true" preserveAspectRatio="none"><rect width="20" height="10" fill="#D20000"/><g fill="#FFE600"><polygon points="10,5 8.9,0 11.1,0"/><polygon points="10,5 8.9,10 11.1,10"/><polygon points="10,5 0,3.9 0,6.1"/><polygon points="10,5 20,3.9 20,6.1"/><polygon points="10,5 0,0 2.4,0 0,1"/><polygon points="10,5 20,0 17.6,0 20,1"/><polygon points="10,5 0,10 2.4,10 0,9"/><polygon points="10,5 20,10 17.6,10 20,9"/><circle cx="10" cy="5" r="2"/></g><circle cx="10" cy="5" r="1.7" fill="#D20000"/><circle cx="10" cy="5" r="1.4" fill="#FFE600"/></svg>Македонски</a></nav></details><!-- /i18n:menu -->
     <a class="btn btn-ghost btn-sm hide-sm" href="#plans">Gratuit &amp; Pro</a>
     <a class="btn btn-gold btn-sm" href="../board.html">Accéder au tableau</a>
   </div>
@@ -744,7 +758,7 @@ document.addEventListener('click', function (e) {
 </section>
 
 <!-- 01 TODAY -->
-<section class="scene" id="today" style="height:190vh">
+<section class="scene" id="today" style="height:100vh">
   <div class="stage">
     <div class="glow" style="--gx:60%;--gy:50%"></div>
     <div class="grid2">
@@ -758,6 +772,9 @@ document.addEventListener('click', function (e) {
         <div class="cta-row"><a class="btn btn-gold" href="../board.html#sec-today">Ouvrir Aujourd’hui ›</a></div>
       </div>
       <div class="vis"><div class="panel" id="today-vis">
+        <button type="button" class="td-nav prev" id="tdPrev" aria-label="Fiche précédente"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg></button>
+        <button type="button" class="td-nav next" id="tdNext" aria-label="Carte suivante"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 5l7 7-7 7"/></svg></button>
+        <div class="td-hint" id="tdHint">← Fais glisser pour voir d&#x27;autres cartes →</div>
         <div class="tag live" style="right:18px;top:16px">En direct aujourd’hui</div>
       </div></div>
     </div>
@@ -1010,7 +1027,7 @@ document.addEventListener('click', function (e) {
     <a href="https://t.me/rotatortool" rel="noopener">Telegram</a>
     <a href="https://x.com/RotatorTool" rel="noopener">X</a>
     <a href="https://www.instagram.com/rotatortool/" rel="noopener">Instagram</a>
-    <!-- i18n:langs --><span class="langs" translate="no" style="display:contents"><a href="/" lang="en">English</a><a href="/de/" lang="de">Deutsch</a><a href="/es/" lang="es">Español</a><a href="/tr/" lang="tr">Türkçe</a><a href="/pt/" lang="pt">Português</a><a href="/fr/" lang="fr">Français</a><a href="/ru/" lang="ru">Русский</a><a href="/id/" lang="id">Bahasa Indonesia</a><a href="/zh/" lang="zh-Hans">简体中文</a><a href="/ar/" lang="ar">العربية</a><a href="/hi/" lang="hi">हिन्दी</a><a href="/bn/" lang="bn">বাংলা</a><a href="/ur/" lang="ur">اردو</a><a href="/te/" lang="te">తెలుగు</a><a href="/sw/" lang="sw">Kiswahili</a><a href="/tl/" lang="tl">Tagalog</a><a href="/mk/kripto-denes.html" lang="mk">Македонски</a></span><!-- /i18n:langs -->
+    <!-- i18n:langs --><span class="langs" translate="no" style="display:contents"><a href="/" lang="en">English</a><a href="/de/" lang="de">Deutsch</a><a href="/es/" lang="es">Español</a><a href="/tr/" lang="tr">Türkçe</a><a href="/pt/" lang="pt">Português</a><a href="/fr/" lang="fr">Français</a><a href="/ru/" lang="ru">Русский</a><a href="/id/" lang="id">Bahasa Indonesia</a><a href="/zh/" lang="zh-Hans">简体中文</a><a href="/ar/" lang="ar">العربية</a><a href="/hi/" lang="hi">हिन्दी</a><a href="/bn/" lang="bn">বাংলা</a><a href="/ur/" lang="ur">اردو</a><a href="/te/" lang="te">తెలుగు</a><a href="/sw/" lang="sw">Kiswahili</a><a href="/tl/" lang="tl">Tagalog</a><a href="/mk/" lang="mk">Македонски</a></span><!-- /i18n:langs -->
   </nav>
   <p>Une analyse du marché, pas un conseil financier.</p>
 </footer>
@@ -1260,7 +1277,7 @@ document.addEventListener('click', function (e) {
      for a second when each card is presented" on Today). A scene sets
      TOUR_PAUSES[id] = fn returning page y values. These replace Today's
      earlier 2 extra seconds. */
-  var TOUR_PAUSES = {}, TOUR_PAUSE_S = 1;
+  var TOUR_PAUSES = {}, TOUR_PAUSE_S = 1;     /* none at the moment: Today turns inside TOUR_SHOW */
   /* Seconds the tour waits on a scene's last picture before it jumps on
      (Daniel, 2026-10-21: the bell "needs to stay one more second"). */
   var TOUR_HOLD = { hero: 1, momentum: 1, yours: 1, tool: 1 };
@@ -1891,6 +1908,8 @@ document.addEventListener('click', function (e) {
     gold: '<span style="display:flex;flex-direction:column;align-items:center;gap:1px;height:100%;justify-content:flex-end"><span style="height:45%;display:block">' + tcIngot() + '</span><span style="height:45%;display:flex;gap:2px">' + tcIngot() + tcIngot() + '</span></span>',
     dxy: ['$', '€', '¥', '元'].map(function (c) { return '<span class="tc-cur">' + c + '</span>'; }).join('')
   };
+  /* The feed's Fear & Greed words, as translatable text. */
+  var FG_WORDS = { 'extreme-fear': 'Peur extrême', fear: 'La peur', neutral: 'Neutre', greed: 'La cupidité', 'extreme-greed': 'Une cupidité sans limite' };
   function today() {
     var vis = $('today-vis');
     Promise.all([TOPIC.cache('world_data'), TOPIC.cache('fear_greed'), TOPIC.cache('etf_flows_summary'), TOPIC.cache('tile_news')]).then(function (res) {
@@ -1938,13 +1957,13 @@ document.addEventListener('click', function (e) {
       var cards = [];
       TODAY_TILES.forEach(function (t) {
         var k = t[0], w = wd[k], val, chg = null, sub = '7 jours';
-        if (k === 'fg') { if (!fg) return; val = String(fg.value); sub = fg.label; }
+        if (k === 'fg') { if (!fg) return; val = String(fg.value); sub = FG_WORDS[String(fg.label || '').toLowerCase().replace(/\s+/g, '-')] || fg.label; }
         else if (k === 'etf') {
           var L = etf && etf.BTC && etf.BTC.last; if (!L) return;
           val = TOPIC.usdM(L.total, { plus: true }); sub = 'on ' + TOPIC.day(L.day);
         } else {
           if (!w || w.v == null) return;
-          if (k === 'fed') { val = w.v.toFixed(2) + '%'; chg = w.c7 ? { t: (w.c7 > 0 ? '+' : '−') + Math.abs(w.c7).toFixed(2) + ' pts', up: w.c7 > 0 } : { t: 'unchanged', up: null }; }
+          if (k === 'fed') { val = w.v.toFixed(2) + '%'; chg = w.c7 ? { t: (w.c7 > 0 ? '+' : '−') + Math.abs(w.c7).toFixed(2) + ' pts', up: w.c7 > 0 } : { t: 'inchangé', up: null }; }
           else {
             val = k === 'gold' ? money(w.v) : k === 'oil' || k === 'crack' ? money(w.v, 1) : k === 'ndx' ? Math.round(w.v).toLocaleString('en-US')
               : k === 'stable' || k === 'tvl' ? TOPIC.usd(w.v) : k === 'hash' ? Math.round(w.v).toLocaleString('en-US') + ' EH/s' : w.v.toFixed(1);
@@ -1991,49 +2010,84 @@ document.addEventListener('click', function (e) {
         ring.style.setProperty('--cw', cw + 'px'); ring.style.setProperty('--chh', chh + 'px');
         cards.forEach(function (c, i) { c.el.style.transform = 'rotateY(' + (i * step) + 'deg) translateZ(' + Rr.toFixed(1) + 'px)'; });
       }
-      function render(p) {
-        steps('today', p);
-        /* Slow ring (Daniel, 2026-10-20: "scroll happens too fast on
-           today"): the scene was 480vh (was 280) with the turn over the
-           first 70%. 2026-10-21, Daniel: "I like the scrolling pace but
-           make it 20% shorter": 384vh, the turn over the first 78% (about
-           11% quicker), the quiet tail after it does most of the cut.
-           2026-10-21 later, Daniel: "too many scrolls to pass": 250vh, and
-           the ring turns at most one lap (the short way round to the news
-           card, never under half a lap) instead of 1-2 laps, so the pace
-           per screen stays about the same.
-           Third ask, Daniel 2026-10-21: "TOO long", no flips, turn it like a
-           revolver: 190vh, one lap, a click per card with a short rest on each. */
-        var pos = seg(p, 0, 0.92) * N, k = Math.min(N, Math.floor(pos)), fr = pos - k;
-        var a = -step * (k + ease(seg(fr, 0.3, 1)));
-        var tilt = 9 * (1 - ease(seg(p, 0, 0.4)));
-        /* Each card gets its own perspective and stacking order instead of
-           one shared 3D ring (2026-10-21: Safari flattened the shared ring,
-           so edge-on cards drew over the front one with mirrored text). */
+      /* The ring follows tdGoal (a card index, any integer; the ring wraps)
+         with a soft ease, driven by its own frames instead of the page
+         scroll. Pictures draw in once, the first time Today is on screen. */
+      var tdPos = 0, tdGoal = 0, tdRaf = 0, drawn = 0, drawT0 = 0;
+      function draw() {
+        var a = -step * tdPos, idx = ((Math.round(tdPos) % N) + N) % N;
+        showCat(idx);
+        steps('today', idx / N);
         ring.style.transform = 'none';
-        showCat((k + (ease(seg(fr, 0.3, 1)) > 0.5 ? 1 : 0)) % N);
         cards.forEach(function (c, i) {
           var ang = ((i * step + a) % 360 + 360) % 360, rad = ang * Math.PI / 180, cos = Math.cos(rad);
-          c.el.style.transform = 'perspective(1100px) rotateX(' + tilt.toFixed(2) + 'deg) translate3d(' + (Rr * Math.sin(rad)).toFixed(1) + 'px,0,' + (Rr * cos - Rr).toFixed(1) + 'px) rotateY(' + (ang > 180 ? ang - 360 : ang).toFixed(2) + 'deg)';
+          /* Each card has its own perspective and stacking order (Safari
+             flattened one shared 3D ring and drew edge-on cards over the
+             front one, mirrored). A card facing away is not drawn. */
+          c.el.style.transform = 'perspective(1100px) translate3d(' + (Rr * Math.sin(rad)).toFixed(1) + 'px,0,' + (Rr * cos - Rr).toFixed(1) + 'px) rotateY(' + (ang > 180 ? ang - 360 : ang).toFixed(2) + 'deg)';
           c.el.style.zIndex = String(Math.round(100 + cos * 100));
           c.faces[0].style.opacity = String(0.2 + 0.8 * Math.max(0, cos));
-          /* Safari drew the backs of the far cards mirrored (backface-
-             visibility is not honoured there with these opacities), so a
-             card facing away is simply not drawn. */
           c.el.style.visibility = cos < -0.02 ? 'hidden' : '';
-          /* The pictures draw in as the ring turns. */
-          var d = ease(seg(p, 0.02, 0.5));
-          if (c.line) c.line.setAttribute('stroke-dashoffset', (1 - d).toFixed(3));
-          if (c.needle) c.needle.style.transform = 'rotate(' + ((-90 + 180 * c.fg / 100 * d)).toFixed(1) + 'deg)';
-          for (var b = 0; b < c.bs.length; b++) c.bs[b].style.transform = 'scaleY(' + ease(seg(d * 1.4 - b * 0.02, 0, 1)).toFixed(3) + ')';
+          if (c.line) c.line.setAttribute('stroke-dashoffset', (1 - drawn).toFixed(3));
+          if (c.needle) c.needle.style.transform = 'rotate(' + ((-90 + 180 * c.fg / 100 * drawn)).toFixed(1) + 'deg)';
+          for (var b = 0; b < c.bs.length; b++) c.bs[b].style.transform = 'scaleY(' + ease(seg(drawn * 1.4 - b * 0.02, 0, 1)).toFixed(3) + ')';
         });
       }
-      resize();
-      S.add($('today'), { render: render, resize: resize });
-      TOUR_PAUSES.today = function () {
-        var el = $('today'), span = el.offsetHeight - innerHeight, out = [];
-        for (var i = 0; i < N; i++) out.push(el.offsetTop + (i + 0.2) / N * 0.92 * span);
-        return out;
+      function tick(now) {
+        var d = tdGoal - tdPos;
+        tdPos = S.reduce || Math.abs(d) < 0.002 ? tdGoal : tdPos + d * 0.14;
+        if (drawT0 && drawn < 1) drawn = ease(Math.min(1, (now - drawT0) / 1400));
+        draw();
+        tdRaf = tdPos === tdGoal && (!drawT0 || drawn >= 1) ? 0 : requestAnimationFrame(tick);
+      }
+      function go(n) { tdGoal = n; hintOff(); if (!tdRaf) tdRaf = requestAnimationFrame(tick); }
+      var hint = $('tdHint');
+      function hintOff() { if (hint) hint.classList.add('off'); }
+      $('tdPrev').addEventListener('click', function () { go(Math.round(tdGoal) - 1); });
+      $('tdNext').addEventListener('click', function () { go(Math.round(tdGoal) + 1); });
+      /* Drag or swipe sideways. touch-action: pan-y hands vertical moves
+         to the browser, so scrolling up or down goes on to the next
+         section; only a mostly-sideways move turns the ring. */
+      var dr = null;
+      vis.addEventListener('pointerdown', function (e) {
+        if (e.target.closest('.td-nav')) return;
+        dr = { x: e.clientX, y: e.clientY, from: tdGoal, on: false, id: e.pointerId };
+      });
+      vis.addEventListener('pointermove', function (e) {
+        if (!dr || e.pointerId !== dr.id) return;
+        var dx = e.clientX - dr.x, dy = e.clientY - dr.y;
+        if (!dr.on) {
+          if (Math.abs(dx) > 8 && Math.abs(dx) > Math.abs(dy) * 1.2) { dr.on = true; vis.classList.add('drag'); try { vis.setPointerCapture(e.pointerId); } catch (x) {} }
+          else if (Math.abs(dy) > 12) { dr = null; return; }
+        }
+        if (dr.on) { tdGoal = dr.from - dx / (cw * 0.85); hintOff(); if (!tdRaf) tdRaf = requestAnimationFrame(tick); }
+      });
+      function endDrag() { if (!dr) return; var on = dr.on; dr = null; vis.classList.remove('drag'); if (on) go(Math.round(tdGoal)); }
+      vis.addEventListener('pointerup', endDrag);
+      vis.addEventListener('pointercancel', endDrag);
+      /* A sideways trackpad swipe or shift+wheel turns it too; plain
+         up/down wheel scrolls the page as everywhere else. */
+      var wx = 0, wT = 0;
+      vis.addEventListener('wheel', function (e) {
+        var dx = e.deltaX || (e.shiftKey ? e.deltaY : 0);
+        if (!dx || Math.abs(dx) < Math.abs(e.shiftKey ? 0 : e.deltaY)) return;
+        e.preventDefault();
+        wx += dx; clearTimeout(wT); wT = setTimeout(function () { wx = 0; }, 180);
+        if (Math.abs(wx) > 60) { go(Math.round(tdGoal) + (wx > 0 ? 1 : -1)); wx = 0; }
+      }, { passive: false });
+      function render() {
+        if (!drawT0) { drawT0 = performance.now(); if (!tdRaf) tdRaf = requestAnimationFrame(tick); }
+      }
+      resize(); draw();
+      S.add($('today'), { render: render, resize: function () { resize(); draw(); } });
+      /* The tour turns the cards itself: a second on each, then on. */
+      TOUR_SHOW.today = function (t) {
+        var D = 1.25, n = Math.floor(t / D);
+        if (t < 0) return true;
+        if (TOUR_SHOW.today.start == null) TOUR_SHOW.today.start = Math.round(tdGoal);
+        if (n >= N) { TOUR_SHOW.today.start = null; return true; }
+        if (TOUR_SHOW.today.start + n !== tdGoal) go(TOUR_SHOW.today.start + n);
+        return false;
       };
     });
   }
