@@ -3916,9 +3916,10 @@ function setUnits(mode) {
 document.addEventListener('DOMContentLoaded', _unitsButtons);
 
 /* ── Theme toggle (dark/light) ──────────────────────────────── */
-function toggleTheme(isLight) {
+function toggleTheme(isLight, byClock) {
   document.documentElement.classList.toggle('light', isLight);
   try { localStorage.setItem('rot_theme', isLight ? 'light' : 'dark'); } catch(e) {}
+  if (!byClock) try { localStorage.setItem('rot_theme_mode', isLight ? 'light' : 'dark'); } catch(e) {}
   var tog = document.getElementById('theme-toggle');
   if (tog) tog.checked = isLight;
   var ico = document.getElementById('theme-icon');

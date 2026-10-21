@@ -67,8 +67,8 @@
      Live coins and prices from the board's own CoinGecko list (TOPIC.coins)
      and market_cache rows; tested numbers from config.js; anything that is
      not live says "example". Scroll engine: js/scroll-scene.js. Follows the
-     board's theme (rot_theme). -->
-<script>try{if(localStorage.getItem('rot_theme')==='light')document.documentElement.className='light';}catch(e){}</script>
+     board's theme: js/theme-mode.js (Auto by time of day, Light, Dark). -->
+<script src="js/theme-mode.js"></script>
 <script defer src="https://cloud.umami.is/script.js" data-website-id="77a817bc-ca03-4680-83b2-c914f8efaa6e"></script>
 <style>
 :root{
@@ -113,6 +113,7 @@ body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:0;opa
 .btn-ghost{color:var(--text);border:1px solid var(--panel-b);background:var(--panel);backdrop-filter:blur(10px);}
 .btn-ghost:hover{border-color:var(--gold);}
 .btn-sm{padding:9px 15px;font-size:13px;}
+.theme-btn{font:inherit;font-family:var(--mono,monospace);font-size:12px;letter-spacing:.06em;cursor:pointer;white-space:nowrap;}
 @media (max-width:520px){ .hide-sm{display:none;} }
 .btn-tg{color:#fff;background:linear-gradient(180deg,#1a8acb,#126aa3);box-shadow:0 8px 28px rgba(42,171,238,.32);}
 
@@ -481,6 +482,7 @@ h2{font-size:clamp(32px,4.4vw,56px);}
 <header class="top">
   <a class="logo" href="./">⬡ ROTATOR</a>
   <div style="display:flex;gap:8px;align-items:center">
+    <button type="button" class="btn btn-ghost btn-sm theme-btn" data-theme-btn onclick="RotTheme.cycle()">◐ AUTO</button>
     <a class="btn btn-ghost btn-sm hide-sm" href="#plans">Free &amp; Pro</a>
     <a class="btn btn-gold btn-sm" href="board.html">Enter the board</a>
   </div>

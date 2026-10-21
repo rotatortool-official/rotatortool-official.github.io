@@ -792,7 +792,10 @@ function handleSearchSelect(coinId) {
 document.addEventListener('DOMContentLoaded', function() {
   var _themeRAF = null;
   /* Wrap whatever toggleTheme data-loaders.js defined */
-  function _applyTheme(isLight) {
+  /* byClock: called by js/theme-mode.js (Auto) or the load re-apply; a
+     click on the board's toggle leaves it out and becomes a manual choice. */
+  function _applyTheme(isLight, byClock) {
+    if (!byClock) try { localStorage.setItem('rot_theme_mode', isLight ? 'light' : 'dark'); } catch(e) {}
     if (_themeRAF) cancelAnimationFrame(_themeRAF);
     _themeRAF = requestAnimationFrame(function() {
       document.documentElement.classList.toggle('light', isLight);
@@ -816,7 +819,7 @@ document.addEventListener('DOMContentLoaded', function() {
   /* Also re-apply saved theme to fix any ghost state on load */
   try {
     var saved = localStorage.getItem('rot_theme');
-    if (saved) _applyTheme(saved === 'light');
+    if (saved) _applyTheme(saved === 'light', true);
   } catch(e) {}
 });
 
