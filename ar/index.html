@@ -296,6 +296,53 @@ h2{font-size:clamp(32px,4.4vw,56px);}
 .play-cue .pl-pause,.play-cue.playing .pl-play{display:none;}
 .play-cue.playing .pl-pause{display:inline;}
 .play-cue.playing,:root.light .play-cue.playing{background:linear-gradient(180deg,var(--gold2),var(--gold));color:#1a1203;border-color:var(--gold);}
+/* Coin card (Daniel, 2026-10-21): during the tour, once the coins have
+   settled into the grid, one coin opens into the card the board shows for
+   every coin, row by row, then closes back into its place. */
+.cc-dim{position:fixed;inset:0;z-index:29;background:rgba(4,6,10,.55);opacity:0;pointer-events:none;}
+:root.light .cc-dim{background:rgba(220,230,242,.55);}
+.cc{position:fixed;left:0;top:0;z-index:30;width:min(620px,calc(100vw - 24px));transform-origin:0 0;opacity:0;pointer-events:none;visibility:hidden;
+  background:var(--bg2);border:1px solid var(--panel-b);border-radius:22px;padding:18px 20px 16px;box-shadow:var(--shadow),0 30px 80px rgba(0,0,0,.4);will-change:transform,opacity;}
+.cc-hd{display:flex;align-items:center;gap:12px;}
+.cc-hd img{width:48px;height:48px;border-radius:50%;flex:0 0 auto;}
+.cc-id{flex:1 1 auto;min-width:0;}
+.cc-id b{display:block;font:800 20px/1.1 var(--mono);color:var(--text);}
+.cc-id span{display:block;font:500 13px/1.3 var(--ui);color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.cc-px{text-align:right;}
+.cc-px b{display:block;font:800 20px/1.1 var(--mono);color:var(--text);}
+.cc-px em{font:700 12.5px/1.4 var(--mono);font-style:normal;}
+.cc-row{margin-top:12px;padding-top:12px;border-top:1px solid var(--panel-b);opacity:0;}
+.cc-row .cc-lb{display:flex;align-items:center;gap:6px;font:700 10px/1 var(--mono);letter-spacing:.12em;text-transform:uppercase;color:var(--dim);margin-bottom:7px;}
+.cc-chart{position:relative;}
+.cc-chart svg{display:block;width:100%;height:120px;overflow:visible;}
+.cc-hilo{position:absolute;right:0;top:12px;display:flex;flex-direction:column;align-items:flex-end;gap:2px;font:700 10.5px/1.2 var(--mono);color:var(--muted);}
+.cc-tiles{display:grid;grid-template-columns:1fr 1fr;gap:0 18px;}
+.cc-tile b{display:block;font:800 26px/1.05 var(--mono);color:var(--text);}
+.cc-tile>span{display:block;font:600 13px/1.35 var(--ui);color:var(--muted);margin-top:3px;}
+.cc-gauge{position:relative;height:6px;border-radius:3px;margin-top:9px;background:var(--panel-b);}
+.cc-gauge i{position:absolute;top:0;bottom:0;border-radius:3px;}
+.cc-gauge i.lo{left:0;width:30%;background:color-mix(in srgb,var(--green) 35%,transparent);}
+.cc-gauge i.hi{right:0;width:20%;background:color-mix(in srgb,var(--red) 35%,transparent);}
+.cc-gauge em{position:absolute;top:50%;width:12px;height:12px;margin:-6px 0 0 -6px;border-radius:50%;background:var(--text);box-shadow:0 0 0 3px var(--bg2);}
+.cc-split{height:6px;border-radius:3px;margin-top:9px;background:color-mix(in srgb,var(--red) 70%,transparent);overflow:hidden;}
+.cc-split i{display:block;height:100%;background:var(--green);}
+.cc-pro{font:800 8.5px/1 var(--mono);letter-spacing:.08em;color:#fff;background:var(--tg);border-radius:4px;padding:2px 4px;}
+#ccUnlock{display:flex;align-items:baseline;flex-wrap:wrap;gap:4px 14px;font:600 14px/1.35 var(--ui);color:var(--text);}
+#ccUnlock b{font:800 22px/1.1 var(--mono);color:var(--gold-ink);}
+#ccUnlock em{font-style:normal;color:var(--muted);font-weight:500;}
+.cc-sig{display:flex;align-items:center;gap:8px;font:600 14px/1.35 var(--ui);color:var(--text);}
+.cc-sig+.cc-sig{margin-top:5px;}
+.cc-sig i{width:8px;height:8px;border-radius:50%;flex:0 0 auto;}
+.cc-foot{font:500 13.5px/1.45 var(--ui);color:var(--muted);}
+.cc-foot strong{color:var(--tg-ink);}
+/* Arabic script joins its letters: no wide tracking or mono font on the
+   card's labels or the tour buttons. */
+html:is([lang="ar"],[lang="ur"]) :is(.cc-row .cc-lb,.play-cue,.scroll-cue){letter-spacing:0;font-family:var(--ui);white-space:nowrap;}
+html:is([lang="ar"],[lang="ur"]) .cc{direction:rtl;}
+html:is([lang="ar"],[lang="ur"]) :is(.cc-px,.cc-hilo){text-align:left;align-items:flex-start;}
+html:is([lang="ar"],[lang="ur"]) .cc-hilo{right:auto;left:0;}
+@media (max-width:600px){ .cc{padding:13px 14px 12px;border-radius:18px;} .cc-hd img{width:36px;height:36px;} .cc-id b,.cc-px b{font-size:16px;} .cc-row{margin-top:8px;padding-top:8px;} .cc-row .cc-lb{font-size:9px;margin-bottom:5px;}
+  .cc-chart svg{height:72px;} .cc-tile b{font-size:20px;} .cc-tile>span{font-size:11.5px;} .cc-tiles{gap:0 12px;} #ccUnlock{font-size:12.5px;} #ccUnlock b{font-size:17px;} .cc-sig{font-size:12.5px;} .cc-foot{font-size:12px;} }
 /* The end of the tour: Free (the board) or Pro. */
 .tour-end{position:fixed;inset:0;z-index:40;display:flex;align-items:center;justify-content:center;padding:16px;background:rgba(4,6,10,.62);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);animation:teIn .3s ease;}
 .tour-end[hidden]{display:none;}
@@ -955,6 +1002,20 @@ document.addEventListener('click', function (e) {
 <button type="button" class="scroll-cue" id="cue" aria-label="انتقل إلى الفصل التالي"><i aria-hidden="true"></i><b>مرر لأسفل</b><svg viewBox="0 0 12 12" aria-hidden="true"><path d="M2 4l4 4 4-4" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
 <button type="button" class="play-cue" id="play" aria-label="شاهد الجولة التوضيحية" aria-pressed="false"><svg class="pl-play" viewBox="0 0 14 14" aria-hidden="true"><path d="M3 1.8v10.4L12 7z" fill="currentColor"/></svg><b class="pl-play">PLAY</b><svg class="pl-pause" viewBox="0 0 14 14" aria-hidden="true"><rect x="2.5" y="2" width="3.2" height="10" rx="1" fill="currentColor"/><rect x="8.3" y="2" width="3.2" height="10" rx="1" fill="currentColor"/></svg><b class="pl-pause">إيقاف مؤقت</b></button>
 </div>
+<div class="cc-dim" id="ccDim"></div>
+<div class="cc" id="coinCard" aria-hidden="true">
+  <div class="cc-hd"><img id="ccImg" alt=""><div class="cc-id"><b id="ccSym"></b><span id="ccName"></span></div><div class="cc-px"><b id="ccPx"></b><em id="ccCh"></em></div></div>
+  <div class="cc-row cc-chart"><div class="cc-lb">آخر 7 أيام</div><svg id="ccLine" preserveAspectRatio="none"></svg><div class="cc-hilo"><span id="ccHi"></span><span id="ccLo"></span></div></div>
+  <div class="cc-tiles">
+    <div class="cc-row cc-tile"><div class="cc-lb">تقييم Rotator</div><b id="ccScore"></b><span id="ccBand"></span></div>
+    <div class="cc-row cc-tile"><div class="cc-lb">مؤشر القوة النسبية (RSI) (14 يومًا)</div><b id="ccRsi"></b><span id="ccRsiTxt"></span><div class="cc-gauge"><i class="lo"></i><i class="hi"></i><em id="ccRsiDot"></em></div></div>
+    <div class="cc-row cc-tile"><div class="cc-lb">العقود الآجلة (شراء/بيع) <span class="cc-pro">PRO</span></div><b id="ccLs"></b><span id="ccLsTxt"></span><div class="cc-split"><i id="ccLong"></i></div></div>
+    <div class="cc-row cc-tile"><div class="cc-lb">الاتجاه</div><b id="ccTrend"></b><span id="ccTrendTxt"></span></div>
+  </div>
+  <div class="cc-row cc-unlock"><div class="cc-lb">تاريخ فتح الرموز التالي</div><div id="ccUnlock"></div></div>
+  <div class="cc-row"><div class="cc-lb">الإشارات هذا الأسبوع</div><div id="ccSigns"></div></div>
+  <div class="cc-row cc-foot">كل عملة لها هذه البطاقة على اللوحة. <strong>تأتي التنبيهات الخاصة بعملاتك مع الإصدار «Pro».</strong></div>
+</div>
 <div class="tour-end" id="tourEnd" role="dialog" aria-modal="true" aria-labelledby="tourEndH" hidden>
   <div class="te-card">
     <button type="button" class="te-x" id="tourX" aria-label="إغلاق">×</button>
@@ -1180,6 +1241,10 @@ document.addEventListener('click', function (e) {
   /* Seconds the tour waits on a scene's last picture before it jumps on
      (Daniel, 2026-10-21: the bell "needs to stay one more second"). */
   var TOUR_HOLD = { hero: 1, momentum: 1, yours: 1, tool: 1 };
+  /* A show the tour plays on a scene's last picture, after its hold:
+     fn(seconds since it started) draws it and returns true when done.
+     The coin card fills in TOUR_SHOW.hero once its data is in. */
+  var TOUR_SHOW = {};
   function tourScene(y) {
     var id = null;
     stops.forEach(function (x) { if (x.el.offsetTop <= y + 1) id = x.el.id; });
@@ -1193,7 +1258,7 @@ document.addEventListener('click', function (e) {
     }
     return TOUR_SPEED;
   }
-  var tour = { on: false, started: false, gliding: false, raf: 0, y: 0, t: 0, held: null, holdUntil: 0 };
+  var tour = { on: false, started: false, gliding: false, raf: 0, y: 0, t: 0, held: null, holdUntil: 0, shown: null, showing: null, showT: 0 };
   /* The next section top if y sits in the slide-in screen before it. */
   function tourHop(y) {
     var vh = innerHeight, ends = stops.map(function (x) { return x.el.offsetTop; }).concat(plansEl.offsetTop);
@@ -1222,6 +1287,12 @@ document.addEventListener('click', function (e) {
       var sid = tourScene(tour.y);
       if (TOUR_HOLD[sid] && tour.held !== sid) { tour.held = sid; tour.holdUntil = now + TOUR_HOLD[sid] * 1000; }
       if (now < tour.holdUntil) { tour.t = now; tour.raf = requestAnimationFrame(tourStep); return; }
+      if (TOUR_SHOW[sid] && tour.shown !== sid) {
+        if (tour.showing !== sid) { tour.showing = sid; tour.showT = 0; }
+        tour.showT += Math.min(200, now - tour.t) / 1000; tour.t = now;
+        if (TOUR_SHOW[sid](tour.showT)) { tour.shown = sid; tour.showing = null; }
+        tour.raf = requestAnimationFrame(tourStep); return;
+      }
       tour.gliding = true; glide(hop); tour.raf = requestAnimationFrame(tourStep); return;
     }
     var dt = Math.min(200, now - tour.t), end = tourStopY();
@@ -1234,7 +1305,8 @@ document.addEventListener('click', function (e) {
   function tourPlay() {
     stopGlide();
     if (scrollY >= tourStopY() - 2) window.scrollTo(0, 0);
-    tour.on = true; tour.started = true; tour.y = scrollY; tour.t = performance.now(); tour.held = null;
+    tour.on = true; tour.started = true; tour.y = scrollY; tour.t = performance.now();
+    if (!tour.showing) { tour.held = null; tour.shown = null; }
     tourUi();
     tour.raf = requestAnimationFrame(tourStep);
   }
@@ -1247,6 +1319,10 @@ document.addEventListener('click', function (e) {
   function tourShowEnd() { endEl.hidden = false; endEl.querySelector('.te-opt').focus(); }
   function tourHideEnd() { endEl.hidden = true; }
   playEl.addEventListener('click', function () { if (tour.on) tourPause(); else tourPlay(); });
+  /* The visitor scrolls while a show is paused open: put it away. */
+  window.addEventListener('scroll', function () {
+    if (!tour.on && tour.showing && TOUR_SHOW[tour.showing]) { TOUR_SHOW[tour.showing](-1); tour.showing = null; }
+  }, { passive: true });
   ['wheel', 'touchstart', 'keydown'].forEach(function (ev) {
     window.addEventListener(ev, function (e) { if (tour.on && !cueBar.contains(e.target)) tourPause(); }, { passive: true });
   });
@@ -1270,6 +1346,7 @@ document.addEventListener('click', function (e) {
     if (list.length) $('st-coins').textContent = String(C.list.length);
     list.sort(function (a, b) { return (b.market_cap || 0) - (a.market_cap || 0); });
     hero(list.slice(0, 40));
+    coinCard();
     momentum(list.slice(0, 160));
     yours(C);
     record();
@@ -1281,6 +1358,7 @@ document.addEventListener('click', function (e) {
   });
 
   /* ── HERO ─────────────────────────────────────────────── */
+  var heroEls = [];
   function hero(coins) {
     var wall = $('wall'), els = [];
     coins.forEach(function (c) {
@@ -1290,7 +1368,7 @@ document.addEventListener('click', function (e) {
       d.innerHTML = '<div class="in"><img src="' + esc(c.image) + '" alt="" loading="lazy" onerror="this.style.visibility=\'hidden\'">'
         + '<span class="meta">' + esc(c.symbol.toUpperCase()) + '<em class="' + (p7 >= 0 ? 'up' : 'dn') + '">' + TOPIC.pct(p7) + '</em></span></div>';
       wall.appendChild(d);
-      els.push({ el: d, meta: d.querySelector('.meta'), sx: rnd(), sy: rnd(), sz: 0.55 + rnd() * 0.8, ph: rnd() * 6.28 });
+      els.push({ c: c, el: d, meta: d.querySelector('.meta'), sx: rnd(), sy: rnd(), sz: 0.55 + rnd() * 0.8, ph: rnd() * 6.28 });
     });
     var W, H, cols, cw, ch, gx0, gy0;
     function resize() {
@@ -1328,6 +1406,7 @@ document.addEventListener('click', function (e) {
       });
     }
     resize();
+    heroEls = els;
     var scene = S.add($('hero'), { render: render, resize: resize });
     /* Gentle drift while the hero sits still at the top. */
     if (!S.reduce) (function loop() { if (scene.cur < 0.7) render(scene.cur); requestAnimationFrame(loop); })();
@@ -1344,6 +1423,171 @@ document.addEventListener('click', function (e) {
       return 'rgb(' + a[1].map(function (x, k) { return Math.round(x + (b[1][k] - x) * t); }).join(',') + ')';
     }
     return 'rgb(14,159,110)';
+  }
+
+  /* ── COIN CARD (tour only) ─────────────────────────────── */
+  /* Daniel, 2026-10-21: "from chaos to order", then one coin opens into
+     the card the board keeps for every coin, "expanded with the chart, and
+     upcoming unlocks showcased, oversold/overbought, long to short ratio".
+     Live rows, read-only, the same tables the board reads: the 7-day line,
+     the newest score, RSI and trend (coin_technicals), the futures
+     long/short ratio (binance_futures_metrics; Derivatives is Pro on the
+     board, so the tile says PRO), the next unlock (token_unlocks) and this
+     week's signs (coin_events, the board's 3-day window). The coin comes
+     from the grid's first 24 (all show on phones), preferring one with a
+     sign, an unlock ahead and futures data. Tour only (TOUR_SHOW.hero),
+     so scrolling by hand keeps the opening screen as short as it is. */
+  function coinCard() {
+    var cand = heroEls.slice(0, 24);
+    if (!cand.length) return;
+    var since = new Date(Date.now() - 3 * 86400000).toISOString().slice(0, 10);
+    var syms = cand.map(function (o) { return o.c.symbol.toUpperCase(); }).join(',');
+    Promise.all([
+      TOPIC.cache('cg_markets_with_sparkline'),
+      TOPIC.get('coin_events', { event_date: 'gte.' + since, select: 'base_asset,event_type,detail', order: 'event_date.desc', limit: '400' }),
+      TOPIC.get('token_unlocks', { select: 'coin_id,next_unlock_at,next_unlock_pct,unlock30d_pct', limit: '1000' }),
+      TOPIC.get('signal_run_items', { select: 'run_id', order: 'run_id.desc', limit: '1' }).then(function (r) {
+        var id = r && r[0] && r[0].run_id; if (id == null) return null;
+        return TOPIC.get('signal_run_items', { run_id: 'eq.' + id, select: 'coin_id,score' });
+      }),
+      TOPIC.get('coin_technicals', { base_asset: 'in.(' + syms + ')', select: 'base_asset,rsi14_daily,cross_state' }),
+      TOPIC.get('binance_futures_metrics', { base_asset: 'in.(' + syms + ')', select: 'base_asset,long_short_ratio' })
+    ]).then(function (res) {
+      var spark = {}, evs = {}, unl = {}, sc = {}, tech = {}, fut = {};
+      ((res[0] && res[0].data) || []).forEach(function (c) { if (c && c.sparkline_in_7d && c.sparkline_in_7d.price) spark[c.id] = c.sparkline_in_7d.price; });
+      (res[1] || []).forEach(function (e) { (evs[e.base_asset] = evs[e.base_asset] || []).push(e); });
+      (res[2] || []).forEach(function (u) { unl[u.coin_id] = u; });
+      (res[3] || []).forEach(function (r) { if (r.score != null) sc[r.coin_id] = Number(r.score); });
+      (res[4] || []).forEach(function (t) { tech[t.base_asset] = t; });
+      (res[5] || []).forEach(function (f) { if (f.long_short_ratio != null) fut[f.base_asset] = Number(f.long_short_ratio); });
+      var now = Date.now();
+      function unlock(c) {
+        var u = unl[c.id], at = u && u.next_unlock_at ? Date.parse(u.next_unlock_at) : NaN;
+        if (!u || isNaN(at) || at <= now || at > now + 60 * 86400000 || !(Number(u.next_unlock_pct) >= 0.05)) return null;
+        return { at: at, p: Number(u.next_unlock_pct), p30: u.unlock30d_pct != null ? Number(u.unlock30d_pct) : null, usd: c.market_cap ? c.market_cap * Number(u.next_unlock_pct) / 100 : null };
+      }
+      var best = null, bestPts = -1;
+      cand.forEach(function (o) {
+        var c = o.c, sym = c.symbol.toUpperCase(), sp = spark[c.id]; if (!sp || sp.length < 20) return;
+        var pts = ((evs[sym] || []).length ? 3 : 0) + (unlock(c) ? 2 : 0) + (fut[sym] != null ? 1 : 0) + (tech[sym] ? 1 : 0) + (sc[c.id] != null ? 1 : 0);
+        if (pts > bestPts) { best = o; bestPts = pts; }
+      });
+      if (!best) return;
+      var bs = best.c.symbol.toUpperCase();
+      build(best, spark[best.c.id], evs[bs] || [], unlock(best.c), sc[best.c.id], tech[bs], fut[bs]);
+    });
+
+    function sign(e) {
+      var d = e.detail || {};
+      switch (e.event_type) {
+        case 'golden_cross': return ['var(--green)', 'التقاطع الذهبي: ارتفع المتوسط المتحرك السريع فوق المتوسط المتحرك البطيء'];
+        case 'death_cross': return ['var(--red)', 'تقاطع الموت: انخفض المتوسط السريع إلى ما دون المتوسط البطيء'];
+        case 'rsi_overbought': return ['var(--red)', 'مؤشر RSI فوق 80'];
+        case 'rsi_oversold': return ['var(--green)', 'تراجع حاد: مؤشر القوة النسبية (RSI) أقل من 30'];
+        case 'rsi_reclaim': return d.fast ? ['var(--green)', 'إشارة الصعود: ارتداد سريع لمؤشر القوة النسبية (RSI) فوق مستوى 30'] : ['var(--muted)', 'مؤشر القوة النسبية (RSI) يعود إلى ما فوق مستوى 30'];
+        case 'futures_long_crowded': return ['var(--gold-ink)', 'العقود الآجلة: تراكم صفقات الشراء'];
+        case 'futures_short_crowded': return ['var(--gold-ink)', 'العقود الآجلة: تراكم صفقات البيع'];
+        default: return null;
+      }
+    }
+    function build(o, sp, ev, un, score, tc, ls) {
+      var c = o.c, card = $('coinCard'), dim = $('ccDim'), lang = document.documentElement.lang || 'en';
+      $('ccImg').src = c.image;
+      $('ccSym').textContent = c.symbol.toUpperCase();
+      $('ccName').textContent = c.name || '';
+      $('ccPx').textContent = TOPIC.price(c.current_price);
+      var p7 = c.price_change_percentage_7d_in_currency, ch = $('ccCh');
+      if (Math.abs(p7) < 0.05) p7 = 0;
+      ch.textContent = (p7 ? TOPIC.pct(p7) : '0.0%') + ' 7D';
+      ch.className = p7 > 0 ? 'up' : p7 < 0 ? 'dn' : '';
+      /* The 7-day line with a soft fill, drawn left to right. */
+      var line = $('ccLine'), VW = 600, VH = 120, mn = Math.min.apply(null, sp), mx = Math.max.apply(null, sp), pad = (mx - mn) * 0.08 || 1;
+      line.setAttribute('viewBox', '0 0 ' + VW + ' ' + VH);
+      var pts = sp.map(function (v, i) { return [(i / (sp.length - 1) * VW), (VH - (v - mn + pad) / (mx - mn + 2 * pad) * VH)]; });
+      var d = pts.map(function (q, i) { return (i ? 'L' : 'M') + q[0].toFixed(1) + ' ' + q[1].toFixed(1); }).join(' ');
+      var col = sp[sp.length - 1] >= sp[0] ? 'var(--green)' : 'var(--red)';
+      line.innerHTML = '<defs><linearGradient id="ccFill" x1="0" x2="0" y1="0" y2="1"><stop offset="0" style="stop-color:' + col + ';stop-opacity:.25"/><stop offset="1" style="stop-color:' + col + ';stop-opacity:0"/></linearGradient>'
+        + '<clipPath id="ccClip"><rect id="ccClipR" x="0" y="-10" width="0" height="' + (VH + 20) + '"/></clipPath></defs>'
+        + '<path d="' + d + ' L' + VW + ' ' + VH + ' L0 ' + VH + ' Z" fill="url(#ccFill)" clip-path="url(#ccClip)"/>'
+        + '<path d="' + d + '" fill="none" stroke="' + col + '" stroke-width="2.2" vector-effect="non-scaling-stroke" stroke-linejoin="round" clip-path="url(#ccClip)"/>';
+      $('ccHi').textContent = TOPIC.price(mx); $('ccLo').textContent = TOPIC.price(mn);
+      var clipR = $('ccClipR');
+      var rows = Array.prototype.slice.call(card.querySelectorAll('.cc-row'));
+      function hide(el) { el.style.display = 'none'; }
+      /* Score */
+      if (score != null) {
+        var band = score >= 65 ? ['var(--green)', 'أقوى من معظم العملات الرقمية في الآونة الأخيرة'] : score >= 40 ? ['var(--gold-ink)', 'في منتصف المجموعة'] : ['var(--red)', 'أضعف من معظم العملات الرقمية في الآونة الأخيرة'];
+        $('ccScore').textContent = String(Math.round(score)); $('ccScore').style.color = band[0];
+        $('ccBand').textContent = band[1];
+      } else hide($('ccScore').parentNode);
+      /* RSI: the board's own lines, 30 and 80. */
+      var rsi = tc && tc.rsi14_daily != null ? Number(tc.rsi14_daily) : null;
+      if (rsi != null) {
+        var rs = rsi >= 80 ? ['var(--red)', 'الذروة الشرائية: السعر في ارتفاع حاد'] : rsi >= 70 ? ['var(--gold-ink)', 'نقترب من الهدف'] : rsi <= 30 ? ['var(--green)', 'البيع المفرط: انخفاض حاد في الأسعار'] : ['var(--muted)', 'في النطاق الطبيعي'];
+        $('ccRsi').textContent = rsi.toFixed(0); $('ccRsi').style.color = rs[0] === 'var(--muted)' ? '' : rs[0];
+        $('ccRsiTxt').textContent = rs[1];
+      } else hide($('ccRsi').parentNode);
+      /* Long/short: said from the crowded side, like the board. */
+      if (ls != null && ls > 0) {
+        var longPct = ls / (1 + ls) * 100;
+        $('ccLs').textContent = (ls >= 1 ? ls : 1 / ls).toFixed(2);
+        $('ccLsTxt').textContent = ls >= 1 ? 'صفقات شراء مقابل كل صفقة بيع' : 'صفقات بيع قصيرة مقابل كل صفقة شراء طويلة';
+        $('ccLong').style.width = '0%';
+      } else hide($('ccLs').parentNode);
+      /* Trend from the two moving averages. */
+      if (tc && tc.cross_state) {
+        var up = tc.cross_state === 'golden';
+        $('ccTrend').textContent = up ? '▲' : '▼'; $('ccTrend').style.color = up ? 'var(--green)' : 'var(--red)';
+        $('ccTrendTxt').textContent = up ? 'المتوسط السريع أعلى من المتوسط البطيء' : 'المتوسط السريع أقل من المتوسط البطيء';
+      } else hide($('ccTrend').parentNode);
+      /* Upcoming unlock: the date, how soon, the share of supply, the dollars. */
+      if (un) {
+        var days = Math.max(0, Math.round((un.at - Date.now()) / 86400000));
+        $('ccUnlock').innerHTML = '<b>' + esc(new Date(un.at).toLocaleDateString(lang, { day: 'numeric', month: 'short', timeZone: 'UTC' })) + '</b>'
+          + '<span>' + esc(window.Intl && Intl.RelativeTimeFormat ? new Intl.RelativeTimeFormat(lang, { numeric: 'auto' }).format(days, 'day') : days + 'd') + '</span>'
+          + '<span>' + (un.p < 1 ? un.p.toFixed(2) : un.p.toFixed(1)) + '% <em>' + esc('من العرض') + '</em></span>'
+          + (un.usd ? '<span>≈ ' + esc(TOPIC.usd(un.usd)) + '</span>' : '')
+          + (un.p30 != null && un.p30 > un.p ? '<em>' + esc('خلال الثلاثين يومًا القادمة:') + ' ' + un.p30.toFixed(un.p30 < 1 ? 2 : 1) + '%</em>' : '');
+      } else $('ccUnlock').innerHTML = '<span>' + esc('لن يكون هناك فتح كبير خلال الـ60 يومًا القادمة') + '</span>';
+      /* Signs */
+      var sg = ev.map(sign).filter(Boolean).slice(0, 2);
+      $('ccSigns').innerHTML = sg.length
+        ? sg.map(function (x) { return '<div class="cc-sig"><i style="background:' + x[0] + '"></i>' + esc(x[1]) + '</div>'; }).join('')
+        : '<div class="cc-sig"><i style="background:var(--dim)"></i>' + esc('لا توجد إشارات تحذيرية هذا الأسبوع') + '</div>';
+      var shown = rows.filter(function (r) { return r.style.display !== 'none'; });
+
+      /* Timeline in seconds: open, rows one at a time, a moment to read,
+         close back into the grid. About 8 seconds. */
+      var OPEN = 0.6, ROW0 = 0.7, STEP = 0.72, T = ROW0 + shown.length * STEP + 1.5, CLOSE = 0.6;
+      function geo() {
+        var r = o.el.getBoundingClientRect(), cw = card.offsetWidth, chh = card.offsetHeight;
+        return { x0: r.left, y0: r.top, s0: Math.max(0.08, r.width / cw), x1: (innerWidth - cw) / 2, y1: Math.max(10, (innerHeight - chh) / 2) };
+      }
+      function draw(t) {
+        if (t < 0) { card.style.visibility = 'hidden'; card.style.opacity = '0'; dim.style.opacity = '0'; o.el.style.visibility = ''; return true; }
+        card.style.visibility = 'visible';
+        var g = geo(), k = ease(seg(t, 0, OPEN)) * (1 - ease(seg(t, T, T + CLOSE)));
+        var x = g.x0 + (g.x1 - g.x0) * k, y = g.y0 + (g.y1 - g.y0) * k, s = g.s0 + (1 - g.s0) * k;
+        card.style.transform = 'translate3d(' + x.toFixed(1) + 'px,' + y.toFixed(1) + 'px,0) scale(' + s.toFixed(3) + ')';
+        card.style.opacity = String(Math.min(1, k * 2.5));
+        dim.style.opacity = String(k);
+        o.el.style.visibility = k > 0.02 ? 'hidden' : '';
+        shown.forEach(function (r, i) {
+          var a = ease(seg(t, ROW0 + i * STEP, ROW0 + i * STEP + 0.4));
+          r.style.opacity = String(a);
+          r.style.transform = 'translateY(' + ((1 - a) * 8).toFixed(1) + 'px)';
+          if (r.classList.contains('cc-chart')) clipR.setAttribute('width', (VW * ease(seg(t, ROW0 + i * STEP, ROW0 + (i + 1.4) * STEP))).toFixed(1));
+        });
+        /* The gauges fill once their tile is in. */
+        var ti = shown.indexOf($('ccRsi').parentNode);
+        if (ti >= 0) $('ccRsiDot').style.left = (rsi * ease(seg(t, ROW0 + ti * STEP + 0.2, ROW0 + ti * STEP + 0.9))).toFixed(1) + '%';
+        var li = shown.indexOf($('ccLs').parentNode);
+        if (li >= 0) $('ccLong').style.width = (longPct * ease(seg(t, ROW0 + li * STEP + 0.2, ROW0 + li * STEP + 0.9))).toFixed(1) + '%';
+        if (t >= T + CLOSE) { draw(-1); return true; }
+        return false;
+      }
+      TOUR_SHOW.hero = draw;
+    }
   }
 
   /* ── 01 MOMENTUM ──────────────────────────────────────── */
