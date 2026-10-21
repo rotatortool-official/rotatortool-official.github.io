@@ -380,19 +380,7 @@ function liqMapCanvas(rows, hours, W, H, wm, opts) {
   var legend = 'Red: mostly longs wiped out · Green: mostly shorts · Binance stream, a lower bound';
   shareFit(ctx, legend, W - 120, '500 {SIZE}px Inter, sans-serif', 16, 12);
   ctx.fillText(legend, MX, tall ? RY + 236 : 528);
-  if (opts.square) {
-    /* Square: the gold bar without "Find out more" or the address. */
-    var barH = H >= 900 ? 150 : 124, top = H - barH;
-    ctx.fillStyle = ROTATOR_SHARE.gold; ctx.fillRect(0, top, W, barH);
-    ctx.fillStyle = ROTATOR_SHARE.ink; ctx.textBaseline = 'alphabetic';
-    ctx.textAlign = 'right'; ctx.font = '800 ' + (H >= 900 ? 46 : 40) + 'px Inter, sans-serif';
-    var pal = ROTATOR_SHARE.palettes[Math.floor(Math.random() * ROTATOR_SHARE.palettes.length)], ny = top + barH / 2 + 15;
-    ctx.fillStyle = pal[0]; ctx.fillText('Tool', W - 60, ny);
-    ctx.fillStyle = ROTATOR_SHARE.ink; ctx.fillText('Rotator ', W - 60 - ctx.measureText('Tool').width, ny);
-    ctx.textAlign = 'left';
-    var hook = ROTATOR_SHARE.hooks[Math.floor(Math.random() * ROTATOR_SHARE.hooks.length)];
-    shareFit(ctx, hook, W - 460, '800 {SIZE}px Inter, sans-serif', H >= 900 ? 44 : 38, 24); ctx.fillText(hook, 60, top + barH / 2 + 14);
-  } else shareBrandBar(ctx, W, H);
+  if (opts.square) _liqSquareBar(ctx, W, H); else shareBrandBar(ctx, W, H);
   var head = 'At least ' + _liqUsd(t.all) + ' of Binance futures positions liquidated in ' + hours + 'h, ' + lsh.toFixed(0) + '% of it longs';
   var text = 'At least ' + _liqUsd(t.all) + ' of Binance futures positions were liquidated in the last ' + hours + 'h: '
     + lsh.toFixed(0) + '% longs, ' + (100 - lsh).toFixed(0) + '% shorts.'
@@ -401,6 +389,146 @@ function liqMapCanvas(rows, hours, W, H, wm, opts) {
   return { can: can, head: head, text: text, totals: { all: t.all, long: t.long, short: t.short, coins: t.coins,
     big: t.big ? { sym: _liqSym(t.big.symbol), usd: +t.big.max_usd, side: t.big.max_side, price: +t.big.max_price } : null,
     top: _liqBoxes(rows, 5).filter(function (b) { return b.sym; }).map(function (b) { return { sym: b.name, usd: Math.round(b.v), longShare: +b.ls.toFixed(2) }; }) } };
+}
+/* Binance Square's gold bar: its rules forbid addresses, so the bar carries
+   the hook and the name "Rotator Tool" ("Tool" in a flag colour). */
+function _liqSquareBar(ctx, W, H) {
+  var barH = H >= 900 ? 150 : 124, top = H - barH;
+  ctx.fillStyle = ROTATOR_SHARE.gold; ctx.fillRect(0, top, W, barH);
+  ctx.fillStyle = ROTATOR_SHARE.ink; ctx.textBaseline = 'alphabetic';
+  ctx.textAlign = 'right'; ctx.font = '800 ' + (H >= 900 ? 46 : 40) + 'px Inter, sans-serif';
+  var pal = ROTATOR_SHARE.palettes[Math.floor(Math.random() * ROTATOR_SHARE.palettes.length)], ny = top + barH / 2 + 15;
+  ctx.fillStyle = pal[0]; ctx.fillText('Tool', W - 60, ny);
+  ctx.fillStyle = ROTATOR_SHARE.ink; ctx.fillText('Rotator ', W - 60 - ctx.measureText('Tool').width, ny);
+  ctx.textAlign = 'left';
+  var hook = ROTATOR_SHARE.hooks[Math.floor(Math.random() * ROTATOR_SHARE.hooks.length)];
+  shareFit(ctx, hook, W - 460, '800 {SIZE}px Inter, sans-serif', H >= 900 ? 44 : 38, 24); ctx.fillText(hook, 60, top + barH / 2 + 14);
+}
+
+/* ── One coin's week, as a story (2026-10-21) ──────────────────────
+   The social desk's per-coin liquidation card (shoot.js chart-liq-<SYM>):
+   168 hourly bars, shorts wiped up in green, longs wiped down in red, the
+   coin's daily closes as a line over them. _liqCoinFacts gives the numbers
+   the card and the story's text share: the last 24 hours against the
+   coin's own daily average of the days before (only hours we collected
+   count, so the first week is not diluted by empty days). */
+function _liqWhen(d) {
+  var MON = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  return d.getUTCDate() + ' ' + MON[d.getUTCMonth()] + ', ' + ('0' + d.getUTCHours()).slice(-2) + ':' + ('0' + d.getUTCMinutes()).slice(-2) + ' UTC';
+}
+function _liqCoinFacts(sym, rows) {
+  var name = _liqSym(sym), slots = _liqSlots(rows, 168), d24 = slots.slice(-24), prev = slots.slice(0, -24);
+  var sum = function (a, k) { return a.reduce(function (t, s) { return t + s[k]; }, 0); };
+  var l24 = sum(d24, 'long'), s24 = sum(d24, 'short'), all = l24 + s24;
+  var from = Math.floor(_LIQ_START / 36e5) * 36e5;
+  var prevHours = prev.filter(function (s) { return Date.parse(s.hour) >= from; }).length;
+  var prevDays = prevHours / 24, prevAll = sum(prev, 'long') + sum(prev, 'short');
+  var avg = prevDays >= 3 ? prevAll / prevDays : null, ratio = avg ? all / avg : null;
+  var cut = Date.parse(d24[0].hour), big = (rows || []).filter(function (r) { return Date.parse(r.hour) >= cut; })
+    .sort(function (a, b) { return (+b.max_usd || 0) - (+a.max_usd || 0); })[0] || null;
+  var longPct = all ? l24 / all * 100 : 50, side = longPct >= 50 ? 'longs' : 'shorts', sidePct = Math.max(longPct, 100 - longPct);
+  var when = _liqWhen(new Date());
+  /* A one-sided day names the side; otherwise the whole total. */
+  var head = sidePct >= 90
+    ? 'At least ' + _liqUsd(side === 'longs' ? l24 : s24) + ' of ' + name + ' ' + side + ' were liquidated on Binance in the 24 h to ' + when
+    : 'At least ' + _liqUsd(all) + ' of ' + name + ' positions were liquidated on Binance in the 24 h to ' + when;
+  var sub = [];
+  if (ratio != null && ratio >= 1.5) sub.push((ratio >= 10 ? Math.round(ratio) : ratio.toFixed(1)) + 'x its daily average ' + (prevDays < 5.95 ? 'since 14 Oct' : 'of the previous 6 days'));
+  sub.push(Math.round(sidePct) + '% of it ' + side);
+  return { sym: name, all: all, long: l24, short: s24, longPct: longPct, side: side, sidePct: sidePct, avg: avg, ratio: ratio,
+    prevDays: prevDays, when: when, head: head, sub: sub.join(', '), slots: slots,
+    big: big ? { usd: +big.max_usd, side: big.max_side, price: +big.max_price, hour: big.hour } : null };
+}
+/* The coin's last 8 daily closes from binance_daily_klines (the board's own
+   history), for the price line. Resolves [] when there are none. */
+function loadLiqCoinWeek(sym) {
+  var name = _liqSym(sym);
+  var liq = _liqRpc('liquidations_coin', { p_symbol: name, p_hours: 168 }).catch(function () { return []; });
+  var px = typeof supaRest === 'function'
+    ? supaRest('binance_daily_klines', 'GET', { base_asset: 'eq.' + name, select: 'open_time,close', order: 'open_time.desc', limit: '8' }).catch(function () { return []; })
+    : Promise.resolve([]);
+  return Promise.all([liq, px]).then(function (r) {
+    return { rows: Array.isArray(r[0]) ? r[0] : [], prices: (Array.isArray(r[1]) ? r[1] : []).map(function (p) { return { t: Date.parse(p.open_time), v: +p.close }; })
+      .filter(function (p) { return isFinite(p.t) && p.v > 0; }).reverse() };
+  });
+}
+/* The card at any size: 1200x675 (X) or 1080x1350 (Instagram); opts.square
+   for Binance Square (no address). Returns { can, facts, text }. */
+function liqCoinCanvas(sym, rows, prices, W, H, wm, opts) {
+  opts = opts || {}; wm = wm || {};
+  var f = _liqCoinFacts(sym, rows), tall = H > W, slots = f.slots;
+  var can = document.createElement('canvas'); can.width = W; can.height = H;
+  var ctx = can.getContext('2d');
+  ctx.fillStyle = '#0a0f17'; ctx.fillRect(0, 0, W, H);
+  _liqCardHead(ctx, W, f.sym + ' liquidations on Binance futures · last 7 days, by hour', wm);
+  var CX = 60, CY = tall ? 120 : 100, CW = W - 120 - (prices.length > 1 ? 70 : 0), CH = tall ? 620 : (opts.square ? 206 : 230), mid = CY + CH / 2;
+  var hi = Math.max.apply(null, slots.map(function (s) { return Math.max(s.long, s.short); })) || 1, sc = (CH / 2 - 8) / hi, bw = CW / slots.length;
+  if (wm.mark) { var ms = Math.min(CH, 300); ctx.globalAlpha = 0.08; ctx.drawImage(wm.mark, CX + CW / 2 - ms / 2, CY + CH / 2 - ms / 2, ms, ms); ctx.globalAlpha = 1; }
+  /* Midnight lines and day labels. */
+  ctx.font = '600 ' + (tall ? 18 : 15) + 'px Inter, sans-serif'; ctx.textAlign = 'center';
+  slots.forEach(function (s, i) {
+    var d = new Date(s.hour);
+    if (d.getUTCHours() !== 0) return;
+    var x = CX + i * bw;
+    ctx.strokeStyle = 'rgba(255,255,255,0.07)'; ctx.lineWidth = 1; ctx.beginPath(); ctx.moveTo(x, CY); ctx.lineTo(x, CY + CH); ctx.stroke();
+    if (x + 12 * bw < CX + CW) { ctx.fillStyle = '#6f7b8c'; ctx.fillText(d.getUTCDate() + ' ' + ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'][d.getUTCMonth()], x + 12 * bw, CY + CH + (tall ? 30 : 22)); }
+  });
+  /* The last 24 hours get a faint band: the window the headline counts. */
+  ctx.fillStyle = 'rgba(243,186,47,0.07)'; ctx.fillRect(CX + (slots.length - 24) * bw, CY, 24 * bw, CH);
+  ctx.strokeStyle = '#3a4352'; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(CX, mid); ctx.lineTo(CX + CW, mid); ctx.stroke();
+  slots.forEach(function (s, i) {
+    var x = CX + i * bw + bw * 0.12, w = Math.max(1, bw * 0.76);
+    if (s.short) { ctx.fillStyle = '#16c784'; ctx.fillRect(x, mid - Math.max(2, s.short * sc), w, Math.max(2, s.short * sc)); }
+    if (s.long) { ctx.fillStyle = '#ea3943'; ctx.fillRect(x, mid, w, Math.max(2, s.long * sc)); }
+  });
+  /* Price: daily closes placed at each day's end, on a scale of their own. */
+  if (prices.length > 1) {
+    var t0 = Date.parse(slots[0].hour), t1 = Date.parse(slots[slots.length - 1].hour) + 36e5;
+    var pts = prices.map(function (p) { return { t: Math.min(t1, p.t + 864e5), v: p.v }; }).filter(function (p) { return p.t >= t0; });
+    if (pts.length > 1) {
+      var lo = Math.min.apply(null, pts.map(function (p) { return p.v; })), up = Math.max.apply(null, pts.map(function (p) { return p.v; }));
+      var pad = (up - lo) * 0.15 || up * 0.02; lo -= pad; up += pad;
+      var px = function (t) { return CX + (t - t0) / (t1 - t0) * CW; }, py = function (v) { return CY + 10 + (up - v) / (up - lo) * (CH - 20); };
+      ctx.strokeStyle = 'rgba(232,237,244,0.7)'; ctx.lineWidth = tall ? 2.5 : 2; ctx.lineJoin = 'round'; ctx.beginPath();
+      pts.forEach(function (p, i) { if (i) ctx.lineTo(px(p.t), py(p.v)); else ctx.moveTo(px(p.t), py(p.v)); }); ctx.stroke();
+      ctx.fillStyle = '#e8edf4'; pts.forEach(function (p) { ctx.beginPath(); ctx.arc(px(p.t), py(p.v), tall ? 3.5 : 3, 0, Math.PI * 2); ctx.fill(); });
+      var lp = pts[pts.length - 1];
+      ctx.textAlign = 'left'; ctx.font = '700 ' + (tall ? 18 : 15) + 'px Inter, sans-serif';
+      ctx.fillText('$' + _liqPrice(lp.v), CX + CW + 8, Math.max(CY + 14, Math.min(CY + CH - 4, py(lp.v) + 5)));
+      ctx.fillStyle = '#8a96a8'; ctx.font = '600 ' + (tall ? 15 : 13) + 'px Inter, sans-serif';
+      ctx.fillText('price', CX + CW + 8, Math.max(CY + 14, Math.min(CY + CH - 4, py(lp.v) + 5)) + (tall ? 20 : 17));
+    }
+  }
+  /* Axis legend under the day labels. */
+  var LY = CY + CH + (tall ? 64 : 46);
+  ctx.textAlign = 'left'; ctx.font = '600 ' + (tall ? 18 : 15) + 'px Inter, sans-serif';
+  var lg = [['▲ shorts wiped out', '#16c784'], ['   ▼ longs wiped out', '#ea3943'], [prices.length > 1 ? '   — price, daily close' : '', '#c9d2de'], ['   shaded: last 24 h', '#8a96a8']], lx = CX;
+  lg.forEach(function (p) { if (!p[0]) return; ctx.fillStyle = p[1]; ctx.fillText(p[0], lx, LY); lx += ctx.measureText(p[0]).width; });
+  /* Headline (wrapped to two lines when it must), the comparison, the split. */
+  var TY = LY + (tall ? 70 : 40), TW = W - 120, hs = tall ? 46 : 32, words = f.head.split(' '), lines = [''];
+  ctx.fillStyle = '#ffffff';
+  var hf = function (s) { return '800 ' + s + 'px Inter, sans-serif'; };
+  for (var tries = 0; tries < 8; tries++) {
+    ctx.font = hf(hs); lines = [''];
+    words.forEach(function (w) { var t = lines[lines.length - 1] ? lines[lines.length - 1] + ' ' + w : w; if (ctx.measureText(t).width > TW && lines[lines.length - 1]) lines.push(w); else lines[lines.length - 1] = t; });
+    if (lines.length <= (tall ? 3 : 2)) break;
+    hs -= 2;
+  }
+  lines.forEach(function (l, i) { ctx.fillText(l, 60, TY + i * hs * 1.18); });
+  var y = TY + (lines.length - 1) * hs * 1.18 + (tall ? 56 : 34);
+  ctx.fillStyle = '#f3ba2f'; shareFit(ctx, f.sub, TW, '700 {SIZE}px Inter, sans-serif', tall ? 30 : 24, 16); ctx.fillText(f.sub, 60, y);
+  y += tall ? 48 : 32;
+  ctx.font = '700 ' + (tall ? 26 : 21) + 'px Inter, sans-serif';
+  var parts = [['Longs ' + _liqUsd(f.long), '#ea3943'], ['  ·  ', '#6f7b8c'], ['Shorts ' + _liqUsd(f.short), '#16c784']];
+  if (f.big) parts.push(['  ·  ', '#6f7b8c'], ['biggest order ' + _liqUsd(f.big.usd) + ' (' + (f.big.side === 'long' ? 'long' : 'short') + ')', '#c9d2de']);
+  var px2 = 60;
+  parts.forEach(function (p) { ctx.fillStyle = p[1]; ctx.fillText(p[0], px2, y); px2 += ctx.measureText(p[0]).width; });
+  ctx.fillStyle = '#8a96a8'; ctx.font = '500 ' + (tall ? 18 : 15) + 'px Inter, sans-serif';
+  ctx.fillText('Source: Binance futures liquidation stream, a lower bound', 60, y + (tall ? 40 : 26));
+  if (opts.square) _liqSquareBar(ctx, W, H); else shareBrandBar(ctx, W, H);
+  var text = f.head + (f.sub ? ' (' + f.sub + ')' : '') + '. Longs ' + _liqUsd(f.long) + ', shorts ' + _liqUsd(f.short) + '.'
+    + '\nLive liquidations for every coin, free on Rotator → ' + ROTATOR_SHARE.link + '/?coin=' + encodeURIComponent(f.sym);
+  return { can: can, facts: f, text: text };
 }
 function shareLiqMap() {
   var rows = _liq.rows; if (!rows || !rows.length) return;
