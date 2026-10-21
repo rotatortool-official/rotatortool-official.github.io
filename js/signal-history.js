@@ -11,9 +11,10 @@
 
    FEATURES:
    • Takes a daily snapshot of top rotation signals (top 10 bullish + top 10 lagging)
-   • Stores up to 30 days of history in localStorage (~5kb/day)
-   • After 7 and 14 days, compares price performance
-   • Shows a "Signal Track Record" section with proven correct calls
+   • Stores up to 30 days of history in localStorage (~5kb/day); the
+     whole record since STATS_FROM_DATE is read only when RECORD opens
+   • After 30 days, grades each call against the median coin
+   • Shows the year test, its best and worst calls, and rotation calls
    • Generates shareable "Told You So" cards via canvas
 
    DEPENDS ON: coins array, shareAsImage patterns, data-loaders.js
@@ -128,6 +129,9 @@ var SignalHistory = (function() {
      dampening; the owner chose not to restart the record ("they will
      become better over time"). */
   var ENGINE_LABEL    = '2.12.0';
+  /* Daniel's bar for March 2027 (2026-10-21): about 1,000 graded calls,
+     2 in 3 beating the average coin. Display only; it grades nothing. */
+  var REC_GOAL_CALLS = 1000, REC_GOAL_PCT = 66;
 
   function _passesCutoff(dateStr) {
     return typeof dateStr === 'string' && dateStr >= STATS_FROM_DATE;
@@ -163,11 +167,38 @@ var SignalHistory = (function() {
     }
   }
 
+  /* ── The whole record, once RECORD is opened (2026-10-21) ─────────
+     loadServerHistory() below reads 30 days, and a call grades at 30
+     days, so on its own it graded exactly one day of calls: on 10-21 the
+     strip said "since 2026-09-11, 3/5" while 128 calls from 09-11 to
+     09-21 were gradeable. This reads everything since STATS_FROM_DATE,
+     only when the visitor opens RECORD, and is never mirrored to
+     localStorage (it grows all year). */
+  var _fullAsked = false, _fullLoaded = false;
+  function _loadFullRecord() {
+    if (_fullAsked) return;
+    var w = document.getElementById('rec-wip');
+    if (w && !w.open) return;
+    _fullAsked = true;
+    if (typeof supaLoadSignalHistory !== 'function') return;
+    Promise.all([
+      supaLoadSignalHistory(STATS_FROM_DATE),
+      typeof supaLoadRotationHistory === 'function' ? supaLoadRotationHistory(STATS_FROM_DATE) : []
+    ]).then(function (v) {
+      _fullLoaded = true;
+      if (v[0] && v[0].length) _serverHistory = v[0];
+      if (v[1] && v[1].length) _rotationCache = v[1];
+      /* The candles were warmed from the 30-day oldest date; warm again. */
+      _relWarmStarted = false; _relLoaded = false; _marketRetCache = {};
+      try { render(); } catch (e) {}
+    }).catch(function () { _fullAsked = false; });
+  }
+
   /* ── Fetch shared snapshots from Supabase; re-render when ready. ── */
   function loadServerHistory() {
     if (typeof supaLoadSignalHistory !== 'function') return Promise.resolve([]);
     return supaLoadSignalHistory(MAX_DAYS).then(function(hist) {
-      if (hist && hist.length) {
+      if (hist && hist.length && !_fullLoaded) {
         _serverHistory = hist;
         /* Mirror to localStorage as offline fallback */
         saveHistory(hist);
@@ -661,9 +692,15 @@ var SignalHistory = (function() {
     if (!hist.length) return null;
 
     var totalBull = 0, correctBull = 0, totalLag = 0, correctLag = 0, uncovered = 0;
+    var pending = 0, first = null, last = null;
     hist.forEach(function(snap) {
       if (!_passesCutoff(snap.date)) return;
-      if (_daysSince(snap.date) < CONFIRM_DAYS_MIN) return;
+      if (_daysSince(snap.date) < CONFIRM_DAYS_MIN) {
+        pending += (snap.bullish || []).length + (snap.lagging || []).length;
+        return;
+      }
+      if (!first || snap.date < first) first = snap.date;
+      if (!last || snap.date > last) last = snap.date;
       (snap.bullish || []).forEach(function(entry) {
         if (!entry || !entry.sym) return;
         var g = _gradeEntry(entry, snap.date, true);
@@ -686,8 +723,40 @@ var SignalHistory = (function() {
       accuracy: Math.round((correct / total) * 100),
       bullTotal: totalBull, bullCorrect: correctBull,
       lagTotal: totalLag, lagCorrect: correctLag,
-      benchmark: 50, horizonDays: HORIZON_DAYS, uncovered: uncovered
+      benchmark: 50, horizonDays: HORIZON_DAYS, uncovered: uncovered,
+      pending: pending, first: first, last: last
     };
+  }
+
+  /* ── Every graded call, wins and misses alike (2026-10-21) ─────
+     The board used to list only the calls that beat the average coin
+     ("Calls that held up"). A record that shows only its wins is the
+     cherry-picking the test exists to avoid, so render() now takes the
+     best and the worst from here. `forCall` is the excess in the
+     direction of the call: positive = the call was right. */
+  function getGradedCalls() {
+    if (!_relLoaded) { _warmRelKlines(); return []; }
+    var out = [];
+    loadHistory().forEach(function(snap) {
+      if (!_passesCutoff(snap.date)) return;
+      var daysAgo = _daysSince(snap.date);
+      if (daysAgo < CONFIRM_DAYS_MIN) return;
+      [['bullish', true], ['lagging', false]].forEach(function(pair) {
+        (snap[pair[0]] || []).forEach(function(entry) {
+          if (!entry || !entry.sym) return;
+          var g = _gradeEntry(entry, snap.date, pair[1]);
+          if (!g) return;
+          out.push({
+            id: entry.id, sym: entry.sym, signal: entry.signal, extras: entry.extras || [],
+            date: snap.date, daysAgo: daysAgo, type: pair[0],
+            priceThen: g.priceThen, priceNow: g.priceNow,
+            change: g.change, market: g.market, excess: g.excess,
+            forCall: pair[1] ? g.excess : -g.excess, correct: g.correct
+          });
+        });
+      });
+    });
+    return out;
   }
 
   /* ── The rotation verdict, in one place ──────────────────────────
@@ -743,7 +812,7 @@ var SignalHistory = (function() {
   function loadServerRotationHistory() {
     if (typeof supaLoadRotationHistory !== 'function') return Promise.resolve([]);
     return supaLoadRotationHistory(MAX_DAYS).then(function(rows) {
-      if (rows && rows.length) {
+      if (rows && rows.length && !_fullLoaded) {
         _rotationCache = rows;
         _rotationLocal = rows;
         _saveRotationLocal();
@@ -903,6 +972,7 @@ var SignalHistory = (function() {
     /* Kick off async peak-capture warmup on first render. When it
        finishes, it calls render() again so the UI reflects the locked
        verdicts instead of the current-price fallback. */
+    _loadFullRecord();
     _warmRelKlines();
 
     var proven = getProvenSignals();
@@ -940,8 +1010,7 @@ var SignalHistory = (function() {
         + '<div class="str-empty">'
         + '<div style="font-size:16px;margin-bottom:6px;">📊</div>'
         + '<div style="font-size:12px;color:var(--muted);line-height:1.7;">'
-        + 'Tracking from scratch on the v2 engine. Come back in 7 days to see how our signals performed.'
-        + '<br>Snapshots since reset: <strong style="color:var(--bnb);">' + qualifyingSnaps + '</strong> / 7 needed'
+        + 'Loading the record…'
         + '</div></div>'
         + publicLink
         + attribution;
@@ -954,7 +1023,7 @@ var SignalHistory = (function() {
         + '<div class="str-empty">'
         + '<div style="font-size:16px;margin-bottom:6px;">⏳</div>'
         + '<div style="font-size:12px;color:var(--muted);line-height:1.7;">'
-        + 'Tracking ' + qualifyingSnaps + ' days of signals on the v2 engine. Results appear after 7 days.'
+        + 'Tracking ' + qualifyingSnaps + ' days of signals. Each call is graded 30 days after it was made.'
         + '</div></div>'
         + publicLink
         + attribution;
@@ -967,47 +1036,67 @@ var SignalHistory = (function() {
        MOMENTUM, instead of big numbers and a card per call. Order: the
        Telegram picks (the longest record), the current engine's strip,
        its calls that held up, then the rotation calls. */
-    var html = _botBlock();
+    var html = '';
 
     function sg(v) { return (v >= 0 ? '+' : '') + v + '%'; }
     function cls(v) { return v >= 0 ? 'up' : 'dn'; }
+    function day(d) {
+      var m = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+      return Number(d.slice(8, 10)) + ' ' + m[Number(d.slice(5, 7)) - 1];
+    }
 
-    /* ── Current engine: one strip ── */
-    html += '<div class="rec-h">Current engine, since ' + STATS_FROM_DATE + '</div>';
+    /* ── The year test (2026-10-21, Daniel: "easy to understand"). One
+       question first: how often did a call beat the average coin, out of
+       how many, made when. Then chance and the goal, so the number has
+       something to be read against. ── */
+    html += '<div class="rec-h">The year test · current engine</div>';
     if (stats) {
       var accCls = stats.accuracy >= 50 ? 'up' : 'dn';
+      var span = stats.first === stats.last ? day(stats.first) : day(stats.first) + ' – ' + day(stats.last);
+      var goalPct = Math.min(100, Math.round(stats.total / REC_GOAL_CALLS * 100));
       html += '<div class="rec-strip">'
-        + '<div class="rec-cell"><span class="rec-big ' + accCls + '">' + stats.accuracy + '%</span><span class="rec-lbl">beat the average coin (chance: 50%)</span></div>'
-        + '<div class="rec-cell"><span class="rec-big">' + stats.correct + '/' + stats.total + '</span><span class="rec-lbl">calls graded after 30 days</span></div>'
+        + '<div class="rec-cell"><span class="rec-big ' + accCls + '">' + stats.accuracy + '%</span><span class="rec-lbl">beat the average coin (chance: 50%, goal: ' + REC_GOAL_PCT + '%)</span></div>'
+        + '<div class="rec-cell"><span class="rec-big">' + stats.correct + '/' + stats.total + '</span><span class="rec-lbl">calls graded, made ' + span + '</span></div>'
         + (rotStats ? '<div class="rec-cell"><span class="rec-big ' + (rotStats.accuracy >= 50 ? 'up' : 'dn') + '">' + rotStats.correct + '/' + rotStats.total + '</span><span class="rec-lbl">rotation calls where the new coin did better</span></div>' : '')
-        + '</div>';
+        + '</div>'
+        + '<div class="rec-goal" title="Graded calls so far, out of about ' + REC_GOAL_CALLS + ' by March 2027"><i style="width:' + goalPct + '%"></i></div>'
+        + '<div class="rec-note">' + stats.total + ' of about ' + REC_GOAL_CALLS.toLocaleString('en-US') + ' graded calls by March 2027. '
+        + 'Each call is checked 30 days later: did the coin do better than the average coin (for a rotate-out or underperforming call: worse)? '
+        + 'The average coin is the middle one of all Binance coins, so picking at random gets 50%. Early numbers, not a result.</div>'
+        + '<div class="rec-note rec-dim">' + stats.uncovered + ' calls could not be graded (no Binance price history) · ' + stats.pending + ' calls are waiting for their 30 days</div>';
     }
     html += resetBadge;
 
-    /* ── Calls that held up: table rows ── */
-    if (proven.length) {
-      html += '<div class="rec-sub">Calls that held up</div>'
-        + '<div class="rec-tbl rec-calls">'
-        + '<div class="rec-row rec-head"><span>COIN</span><span>CALL</span><span class="rec-r rec-hide">PRICE THEN → 30D</span><span class="rec-r">MOVE</span><span class="rec-r">VS AVERAGE</span><span></span></div>';
-      proven.forEach(function(p) {
+    /* ── Best and worst, one table each. Each row says right or wrong
+       with a mark as well as colour. ── */
+    var graded = getGradedCalls();
+    if (graded.length) {
+      /* One row per coin, as the old list had: its best call among the
+         best, its worst among the worst. */
+      var byCall = graded.slice().sort(function (x, y) { return y.forCall - x.forCall; });
+      var onePer = function (list) { var seen = {}; return list.filter(function (p) { if (seen[p.sym]) return false; seen[p.sym] = true; return true; }); };
+      var nPick = Math.min(4, Math.floor(byCall.length / 2)) || 1;
+      var best = onePer(byCall).slice(0, nPick);
+      var worst = byCall.length > nPick ? onePer(byCall.slice().reverse()).slice(0, nPick) : [];
+      var rowOf = function (p) {
         var isBull = p.type === 'bullish';
-        var signalBadge = p.signal;
-        if (p.extras && p.extras.length) signalBadge = p.extras[0];
-        var ex = Math.round(p.excess * 10) / 10;
+        var signalBadge = (p.extras && p.extras.length) ? p.extras[0] : p.signal;
         /* Escaped (promptove/108): these fields come from snapshot rows
            that browsers write; an id goes into an onclick, so it is
            reduced to the characters a coin id uses. */
         var pid = String(p.id || '').replace(/[^a-z0-9._-]/gi, '');
-        html += '<div class="rec-row" onclick="SignalHistory.openDetail(\'' + pid + '\')">'
-          + '<span class="rec-sym">' + _shEsc(p.sym) + '<small>' + p.daysAgo + 'd ago</small></span>'
+        return '<div class="rec-row" onclick="SignalHistory.openDetail(\'' + pid + '\')">'
+          + '<span class="rec-sym">' + _shEsc(p.sym) + '<small>' + day(p.date) + '</small></span>'
           + '<span><span class="str-item-signal ' + (isBull ? 'bull' : 'bear') + '">' + _shEsc(signalBadge) + '</span></span>'
           + '<span class="rec-r rec-hide rec-muted">' + fmtP(p.priceThen) + ' → ' + fmtP(p.priceNow) + '</span>'
           + '<span class="rec-r ' + cls(p.change) + '">' + sg(p.change) + '</span>'
-          + '<span class="rec-r rec-b ' + cls(ex) + '">' + sg(ex) + '</span>'
-          + '<span class="rec-r"><button class="rec-share" onclick="event.stopPropagation();SignalHistory.shareProven(\'' + pid + '\')" title="Share this signal" aria-label="Share this signal">↗</button></span>'
+          + '<span class="rec-r rec-b ' + (p.correct ? 'up' : 'dn') + '">' + (p.correct ? '✓ ' : '✗ ') + sg(p.excess) + '</span>'
+          + '<span class="rec-r">' + (p.correct ? '<button class="rec-share" onclick="event.stopPropagation();SignalHistory.shareProven(\'' + pid + '\')" title="Share this signal" aria-label="Share this signal">↗</button>' : '') + '</span>'
           + '</div>';
-      });
-      html += '</div>';
+      };
+      var head = '<div class="rec-row rec-head"><span>COIN</span><span>CALL</span><span class="rec-r rec-hide">PRICE THEN → 30D</span><span class="rec-r">MOVE</span><span class="rec-r">VS AVERAGE</span><span></span></div>';
+      html += '<div class="rec-sub">Best calls</div><div class="rec-tbl rec-calls">' + head + best.map(rowOf).join('') + '</div>';
+      if (worst.length) html += '<div class="rec-sub">Worst calls</div><div class="rec-tbl rec-calls">' + head + worst.map(rowOf).join('') + '</div>';
     }
 
     /* ── Rotation calls: table rows ── */
@@ -1021,7 +1110,7 @@ var SignalHistory = (function() {
         rotProven.forEach(function(r) {
           var oc = !r.correct ? 'dn' : r.outcome === 'AVOIDED LOSS' ? 'mid' : 'up';
           html += '<div class="rec-row">'
-            + '<span class="rec-sym">' + _shEsc(r.fromSym) + ' → ' + _shEsc(r.toSym) + '<small>' + r.daysAgo + 'd ago</small></span>'
+            + '<span class="rec-sym">' + _shEsc(r.fromSym) + ' → ' + _shEsc(r.toSym) + '<small>' + day(r.date) + '</small></span>'
             + '<span><span class="rec-tag ' + oc + '">' + r.outcome + '</span></span>'
             + '<span class="rec-r rec-hide ' + cls(r.fromChange) + '">' + sg(r.fromChange) + '</span>'
             + '<span class="rec-r rec-hide ' + cls(r.toChange) + '">' + sg(r.toChange) + '</span>'
@@ -1031,6 +1120,10 @@ var SignalHistory = (function() {
         html += '</div>';
       }
     }
+
+    /* The finished Telegram picks of April to August come after the live
+       test: the year test is the open question, the picks are history. */
+    html += _botBlock();
 
     html += publicLink + attribution;
 

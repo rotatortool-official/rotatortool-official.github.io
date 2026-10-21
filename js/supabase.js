@@ -1088,27 +1088,50 @@ function supaRecordSignalSnapshot(rows, engineVersion) {
   });
 }
 
+/* Every row, in pages of 1000 (PostgREST's cap). The track record reads
+   everything since its start date, which passes 1000 rows in its sixth
+   week; one plain GET would quietly drop the newest days. */
+function supaRestAll(table, params) {
+  var PAGE = 1000, out = [];
+  function next(offset) {
+    var p = {};
+    for (var k in params) p[k] = params[k];
+    p.limit = PAGE; p.offset = offset;
+    return supaRest(table, 'GET', p).then(function (rows) {
+      rows = rows || [];
+      out = out.concat(rows);
+      return rows.length === PAGE ? next(offset + PAGE) : out;
+    });
+  }
+  return next(0);
+}
+
+/* `since` is a 'YYYY-MM-DD' start date, or a number of days back. */
+function _supaSinceDate(since) {
+  if (typeof since === 'string') return since;
+  var cutoff = new Date(Date.now() - (since || 30) * 24 * 60 * 60 * 1000);
+  return cutoff.getFullYear() + '-'
+       + String(cutoff.getMonth() + 1).padStart(2, '0') + '-'
+       + String(cutoff.getDate()).padStart(2, '0');
+}
+
 /**
- * Load the last `days` days of shared signal snapshots.
+ * Load shared signal snapshots from a start date (or the last `days` days).
  * Returned array mirrors the legacy localStorage shape so
  * signal-history.js can consume it without further transformation:
  *   [{ date:'YYYY-MM-DD', bullish:[...], lagging:[...] }, ...]
  * Ordered oldest → newest.
- * @param {number} days — window size (default 30)
+ * @param {number|string} since — days back (default 30) or 'YYYY-MM-DD'
  * @returns {Promise<Array<object>>}
  */
-function supaLoadSignalHistory(days) {
-  days = days || 30;
-  var cutoff = new Date(Date.now() - days * 24 * 60 * 60 * 1000);
-  var cutoffDate = cutoff.getFullYear() + '-'
-                 + String(cutoff.getMonth() + 1).padStart(2, '0') + '-'
-                 + String(cutoff.getDate()).padStart(2, '0');
+function supaLoadSignalHistory(since) {
+  var cutoffDate = _supaSinceDate(since);
 
-  return supaRest('signal_snapshots', 'GET', {
+  return supaRestAll('signal_snapshots', {
     'snap_date': 'gte.' + cutoffDate,
     'select':    'snap_date,coin_id,coin_sym,coin_name,signal_type,'
                + 'signal_label,extras,score,price,mcap,p24,p7,p30',
-    'order':     'snap_date.asc'
+    'order':     'snap_date.asc,signal_type.asc,coin_id.asc'   /* unique, so pages never overlap */
   }).then(function(rows) {
     if (!rows || !rows.length) return [];
 
@@ -1176,23 +1199,19 @@ function supaLoadSignalHistory(days) {
  * Load shared rotation snapshots, grouped by date so signal-history.js
  * can apply peak-capture verdicts to each leg.
  */
-function supaLoadRotationHistory(days) {
-  days = days || 30;
-  var cutoff = new Date(Date.now() - days * 24 * 60 * 60 * 1000);
-  var cutoffDate = cutoff.getFullYear() + '-'
-                 + String(cutoff.getMonth() + 1).padStart(2, '0') + '-'
-                 + String(cutoff.getDate()).padStart(2, '0');
+function supaLoadRotationHistory(since) {
+  var cutoffDate = _supaSinceDate(since);
 
   /* Published calls only. The table also holds shadow experiments
      (sync-rotation-snapshot-inverted, -gold) that are graded on the
      track record and must never count toward the dashboard's accuracy.
      This had no filter at all; the inverted rows would have entered the
      stats once they turned 30 days old, on 2026-10-18. */
-  return supaRest('rotation_snapshots', 'GET', {
+  return supaRestAll('rotation_snapshots', {
     'snap_date': 'gte.' + cutoffDate,
     'source':    'eq.sync-rotation-snapshot',
     'select':    'snap_date,from_id,from_sym,from_price,from_score,to_id,to_sym,to_price,to_score,source',
-    'order':     'snap_date.asc'
+    'order':     'snap_date.asc,from_id.asc,to_id.asc'
   }).then(function(rows) {
     if (!rows || !rows.length) return [];
     var byDate = {};

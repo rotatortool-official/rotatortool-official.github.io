@@ -6388,6 +6388,12 @@ a.mob-more-item{text-decoration:none;color:inherit;}
 .rec-row:not(.rec-head):hover{background:var(--bg3);}
 .rec-calls .rec-row:not(.rec-head){cursor:pointer;}
 .rec-r{text-align:right;white-space:nowrap;}
+/* The year test (2026-10-21): progress toward ~1,000 graded calls, and
+   the plain-words line under the strip. */
+.rec-goal{height:4px;margin:8px 0 6px;border-radius:2px;background:var(--bdr2);overflow:hidden;}
+.rec-goal i{display:block;height:100%;border-radius:inherit;background:var(--bnb);}
+.rec-note{font-family:var(--font-ui);font-size:12.5px;line-height:1.5;color:var(--text);opacity:.85;margin:2px 0 4px;}
+.rec-note.rec-dim{font-size:11.5px;color:var(--muted);opacity:1;}
 .rec-b{font-weight:800;}
 .rec-muted{color:var(--muted);font-size:11px;}
 .rec-sym{font-weight:700;color:var(--text);display:flex;flex-direction:column;line-height:1.25;min-width:0;}

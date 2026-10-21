@@ -78,8 +78,8 @@ Object.assign(MK_TEXT, {
   '. That grading was generous: it counted the best price reached inside a 7 to 14 day window, where calling every coin would have scored about 68%. Read it as an upper bound, roughly 8 points better than chance.':
     '. Тоа оценување беше великодушно: ја земаше најдобрата цена достигната во период од 7 до 14 дена, каде што повик за секоја монета би постигнал околу 68%. Читајте го како горна граница, околу 8 поени подобро од случајноста.',
   'The current engine': 'Сегашниот начин на бодување',
-  'is held to a stricter test: a call counts only if the coin beats the median coin over the next 30 days, where chance is 50%. It started on 11 September, so its first results arrive from 11 October. Until then there is nothing to claim yet.':
-    'се мери со построг тест: повикот се брои само ако монетата ја надмине просечната монета во следните 30 дена, каде што случајноста е 50%. Започна на 11 септември, па првите резултати стигнуваат од 11 октомври. Дотогаш сè уште нема што да тврдиме.',
+  'is held to a stricter test: a call counts only if the coin beats the median coin over the next 30 days, where chance is 50%. It started on 11 September and its first calls were graded from 11 October. Its running result is in part 2, and the one-year verdict comes in March 2027.':
+    'се мери со построг тест: повикот се брои само ако монетата ја надмине просечната монета во следните 30 дена, каде што случајноста е 50%. Започна на 11 септември, а првите повици се оценети од 11 октомври. Тековниот резултат е во дел 2, а одлуката по една година доаѓа во март 2027.',
   'track what you hold and watch; warnings and notifications follow your coins': 'следете што држите и набљудувате; предупредувањата и известувањата ги следат вашите монети',
   'turn part of a holding into BTC, or any coin you prefer, and see what the swap gives you': 'претворете дел од позицијата во BTC или во монета по ваш избор и видете што ви дава замената',
   'Search': 'Пребарај', 'Settings': 'Поставки', 'Dismiss': 'Затвори', 'Close': 'Затвори',
@@ -1985,3 +1985,70 @@ Object.assign(MK_TEXT, {
 Object.assign(MK_TEXT, {
   'Momentum': 'Моментум', 'Position': 'Позиција', 'Market': 'Пазар', 'Supply': 'Понуда', 'Signals': 'Сигнали'
 });
+
+/* The year test: board RECORD and track-record.html (2026-10-21, Daniel:
+   "easy to understand, match the landing page"). Plain words. */
+Object.assign(MK_TEXT, {
+  'The year test · current engine': 'Тестот од една година · сегашното бодување',
+  'The year test': 'Тестот од една година', 'current engine': 'сегашното бодување',
+  'Best calls': 'Најдобри повици', 'Worst calls': 'Најлоши повици',
+  'Loading the record…': 'Евиденцијата се вчитува…',
+  'Track record': 'Евиденција',
+  'Does Rotator work?': 'Дали Rotator работи?',
+  'We are testing it for a year.': 'Го тестираме цела година.',
+  'Every call is saved on the day it is made, checked 30 days later against the average coin, and kept, right or wrong. The test runs until March 2027.':
+    'Секој повик се зачувува на денот кога е направен, се проверува 30 дена подоцна наспроти просечната монета и останува, точен или погрешен. Тестот трае до март 2027.',
+  'of graded calls beat the average coin.': 'од оценетите повици ја победија просечната монета.',
+  'Picking at random gets 50%. Our goal by March 2027: 66%, about 2 in 3.': 'Случаен избор погодува 50%. Нашата цел до март 2027: 66%, околу 2 од 3.',
+  'CHANCE 50%': 'СЛУЧАЈНО 50%', 'GOAL 66%': 'ЦЕЛ 66%',
+  'calls graded, of about 1,000 by March 2027': 'оценети повици, од околу 1.000 до март 2027',
+  'beat the average coin': 'ја победија просечната монета',
+  'waiting for their 30 days': 'ги чекаат своите 30 дена',
+  'could not be graded (no Binance price history)': 'не можеа да се оценат (нема историја на цени на Binance)',
+  'Early numbers, not a result.': 'Рани бројки, не резултат.',
+  'The average coin is the middle one of all Binance coins on the same 30 days, so half of all coins beat it by definition. Each call and its grade is listed in part 2, with a CSV.':
+    'Просечната монета е средната од сите монети на Binance во истите 30 дена, па половина од монетите ја победуваат по дефиниција. Секој повик и неговата оценка се во дел 2, со CSV.',
+  'See every call ↓': 'Видете го секој повик ↓',
+  'Before the test: Telegram picks, 28 Apr – 31 Aug 2026 (finished)': 'Пред тестот: изборите на Telegram, 28 апр. – 31 авг. 2026 (завршено)',
+  '2 · The year test, every call': '2 · Тестот од една година, секој повик',
+  'The year test: current engine, live since 11 Sep 2026': 'Тестот од една година: сегашното бодување, во живо од 11 септ. 2026',
+  'Beat the average coin': 'Ја победија просечната монета',
+  'Right direction, but the average coin did better': 'Точна насока, но просечната монета помина подобро',
+  'Moved against the call': 'Се движеа против повикот',
+  'Rotation calls: from a strong coin to a weak one': 'Повици за ротација: од силна во слаба монета',
+  'Every call, one row each': 'Секој повик, по еден ред',
+  'Telegram picks, graded strictly': 'Изборите на Telegram, строго оценети',
+  'Engine v2, final record': 'Стариот начин на бодување v2, конечна евиденција',
+  'Every call made since 11 Sep 2026 that is 30 days old. "Vs average" is the coin\'s move minus the average coin\'s move on the same 30 days. Newest first.':
+    'Секој повик од 11 септ. 2026 што е стар 30 дена. „Наспроти просечната“ е движењето на монетата минус движењето на просечната монета во истите 30 дена. Најновите прво.',
+  'All calls': 'Сите повици',
+  'Right direction, average did better': 'Точна насока, просечната беше подобра',
+  'Not graded': 'Неоценети', 'Download CSV': 'Преземи CSV',
+  'Day': 'Ден', 'Coin': 'Монета', 'Call': 'Повик', 'Move': 'Движење', 'Average': 'Просечна', 'Vs average': 'Наспроти просечната', 'Verdict': 'Оценка',
+  'no Binance price history': 'нема историја на цени на Binance',
+  'too few coins to set the average': 'премалку монети за просекот',
+  'Open the board →': 'Отвори ја таблата →',
+  'LAGGING': 'ЗАОСТАНУВА', 'ROTATE OUT': 'ЗА ИЗЛЕЗ'
+});
+(function () {
+  var P = function (re, fn) { MK_PATTERNS.push([re, fn]); };
+  var MON = { Jan: 'јан.', Feb: 'фев.', Mar: 'мар.', Apr: 'апр.', May: 'мај', Jun: 'јун.', Jul: 'јул.', Aug: 'авг.', Sep: 'септ.', Oct: 'окт.', Nov: 'ноем.', Dec: 'дек.' };
+  function d(x) { return x.replace(/(\d+) (Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)\b/g, function (_, n, m) { return n + ' ' + MON[m]; }); }
+  P(/^(\d+) (Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)$/, function (m) { return m[1] + ' ' + MON[m[2]]; });
+  P(/^beat the average coin \(chance: 50%, goal: (\d+)%\)$/, function (m) { return 'ја победија просечната монета (случајно: 50%, цел: ' + m[1] + '%)'; });
+  P(/^calls graded, made (.+)$/, function (m) { return 'оценети повици, направени ' + d(m[1]); });
+  P(/^Calls made (.+) 2026, graded 30 days later$/, function (m) { return 'Повици направени ' + d(m[1]) + ' 2026, оценети 30 дена подоцна'; });
+  P(/^engine ([\d.]+)$/, function (m) { return 'бодување ' + m[1]; });
+  P(/^(\d+) of about [\d,.\s]+ graded calls by March 2027\. Each call is checked 30 days later: did the coin do better than the average coin \(for a rotate-out or underperforming call: worse\)\? The average coin is the middle one of all Binance coins, so picking at random gets 50%\. Early numbers, not a result\.$/, function (m) {
+    return m[1] + ' од околу 1.000 оценети повици до март 2027. Секој повик се проверува 30 дена подоцна: дали монетата помина подобро од просечната монета (за повик за излез или за слаб учинок: полошо)? Просечната монета е средната од сите монети на Binance, па случаен избор погодува 50%. Рани бројки, не резултат.';
+  });
+  P(/^(\d+) calls could not be graded \(no Binance price history\)$/, function (m) { return m[1] + ' повици не можеа да се оценат (нема историја на цени на Binance)'; });
+  P(/^(\d+) calls are waiting for their 30 days$/, function (m) { return m[1] + ' повици ги чекаат своите 30 дена'; });
+  P(/^(\d+) calls could not be graded \(no Binance price history\) · (\d+) calls are waiting for their 30 days$/, function (m) {
+    return m[1] + ' повици не можеа да се оценат (нема историја на цени на Binance) · ' + m[2] + ' повици ги чекаат своите 30 дена';
+  });
+  P(/^Tracking (\d+) days of signals\. Each call is graded 30 days after it was made\.$/, function (m) { return 'Следиме ' + m[1] + ' дена сигнали. Секој повик се оценува 30 дена откако е направен.'; });
+  P(/^([✓~✗]) (beat the average coin|right direction, average did better|moved against the call)$/, function (m) {
+    return m[1] + ' ' + { 'beat the average coin': 'ја победи просечната монета', 'right direction, average did better': 'точна насока, просечната беше подобра', 'moved against the call': 'се движеше против повикот' }[m[2]];
+  });
+})();
