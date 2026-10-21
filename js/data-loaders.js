@@ -1939,6 +1939,9 @@ var BF_SRC = {
   nasdaq:   { n: 'Nasdaq via Yahoo Finance', u: 'https://finance.yahoo.com/quote/' },
   cboe:     { n: 'Cboe via Yahoo Finance', u: 'https://finance.yahoo.com/quote/' },
   russell:  { n: 'FTSE Russell via Yahoo Finance', u: 'https://finance.yahoo.com/quote/' },
+  nikkei:   { n: 'Nikkei via Yahoo Finance', u: 'https://finance.yahoo.com/quote/' },
+  krx:      { n: 'Korea Exchange via Yahoo Finance', u: 'https://finance.yahoo.com/quote/' },
+  hsil:     { n: 'Hang Seng Indexes via Yahoo Finance', u: 'https://finance.yahoo.com/quote/' },
   bc:       { n: 'Blockchain.com', u: 'https://www.blockchain.com/explorer/charts' },
   llama:    { n: 'DefiLlama', u: 'https://defillama.com/' }
 };
@@ -2185,8 +2188,11 @@ var BF_EMB_BY_K = {
   'Ethereum fees': 'eth', 'Solana fees': 'sol', 'Solana DEX volume': 'sol',
   'Uniswap DEX volume': 'swap',
   'Nasdaq 100': 'ndx', 'VIX fear index': 'vix', 'Russell 2000': 'rut', 'Strategy & Coinbase': 'cobld',
-  'Buffett indicator': 'scale'
+  'Buffett indicator': 'scale',
+  'Nikkei 225': 'jp', 'KOSPI': 'kr', 'Hang Seng': 'hk'
 };
+/* Emblems drawn as a 30x20 flag rather than a 24x24 icon. */
+var _BF_FLAG = { us: 1, eu: 1, jp: 1, kr: 1, hk: 1 };
 var _BF_INGOT = { gold: ['#e3b23c', '#a87a12'], silver: ['#b0b8c0', '#5d666e'],
                   copper: ['#c87a4a', '#8a4a26'], aluminum: ['#98a3ad', '#55606a'] };
 function _bfStar(cx, cy, r) {
@@ -2205,7 +2211,7 @@ function _bfIngot(x, y, w, col) {
 var _bfEmbCache = {};
 function _bfEmbSvg(id) {
   if (_bfEmbCache[id]) return _bfEmbCache[id];
-  var flag = id === 'us' || id === 'eu' || id === 'jp';
+  var flag = !!_BF_FLAG[id];
   var s = '';
   if (id === 'us') {
     for (var i = 0; i < 7; i++) s += '<rect y="' + (i * 20 / 7).toFixed(3) + '" width="30" height="' + (20 / 7).toFixed(3) + '" fill="' + (i % 2 ? '#fff' : '#b22234') + '"/>';
@@ -2219,6 +2225,18 @@ function _bfEmbSvg(id) {
     }
   } else if (id === 'jp') {
     s = '<rect width="30" height="20" fill="#fff"/><circle cx="15" cy="10" r="6" fill="#bc002d"/>';
+  } else if (id === 'kr') {   /* the taegeuk and four trigrams, simplified to solid bars */
+    s = '<rect width="30" height="20" fill="#fff"/><g transform="rotate(33.7 15 10)">'
+      + '<circle cx="15" cy="10" r="5" fill="#0047a0"/>'
+      + '<path d="M10 10A5 5 0 0 1 20 10A2.5 2.5 0 0 1 15 10A2.5 2.5 0 0 0 10 10z" fill="#cd2e3a"/></g>';
+    [-33.7, 33.7, 146.3, 213.7].forEach(function (a) {
+      s += '<g transform="rotate(' + a + ' 15 10)" fill="#000">';
+      for (var b = 0; b < 3; b++) s += '<rect x="' + (22.6 + b * 1.25) + '" y="8.1" width=".8" height="3.8"/>';
+      s += '</g>';
+    });
+  } else if (id === 'hk') {   /* red field with a white five-petal bauhinia */
+    s = '<rect width="30" height="20" fill="#de2910"/>';
+    for (var hp = 0; hp < 5; hp++) s += '<ellipse cx="15" cy="7" rx="1.7" ry="3" fill="#fff" transform="rotate(' + (hp * 72 + 15) + ' 15 10)"/>';
   } else if (_BF_INGOT[id]) {
     var c = _BF_INGOT[id];
     s = _bfIngot(1, 15, 11, c) + _bfIngot(12, 15, 11, c) + _bfIngot(6.5, 8.6, 11, c);
@@ -2291,7 +2309,7 @@ function _bfEmb(k) {
   var id = BF_EMB_BY_K[k];
   var svg = id ? _bfEmbSvg(id) : '';
   if (!svg) return '';
-  var flag = id === 'us' || id === 'eu' || id === 'jp';
+  var flag = !!_BF_FLAG[id];
   return '<span class="bf-emb ' + (flag ? 'bf-emb-flag' : 'bf-emb-ico') + '" aria-hidden="true">' + svg + '</span>';
 }
 
@@ -2356,7 +2374,8 @@ var _BF_NEWS_KEY = {
   'Natural gas': 'gas', 'Hash rate': 'hash', 'Active addresses': 'addr', 'DeFi TVL': 'tvl',
   'Stablecoin supply': 'stable', 'Ethereum fees': 'ethFees', 'Solana fees': 'solFees', 'Solana DEX volume': 'solDex',
   'Uniswap DEX volume': 'uniDex', 'Nasdaq 100': 'ndx', 'VIX fear index': 'vix', 'Russell 2000': 'rut',
-  'Strategy & Coinbase': 'mstr', 'Buffett indicator': 'buffett'
+  'Strategy & Coinbase': 'mstr', 'Buffett indicator': 'buffett',
+  'Nikkei 225': 'n225', 'KOSPI': 'kospi', 'Hang Seng': 'hsi'
 };
 function _bfNews(k) {
   var key = _BF_NEWS_KEY[k], e = key && _tileNews[key];
@@ -2411,7 +2430,7 @@ function _bfNewsHtml(k, e) {
   var val = function (v) {
     if (key === 'vix') return v.toFixed(2);
     if (key === 'buffett') return Math.round(v) + '%';
-    if (key === 'ndx' || key === 'rut') return v.toLocaleString('en-US', { maximumFractionDigits: 0 });
+    if (key === 'ndx' || key === 'rut' || key === 'n225' || key === 'kospi' || key === 'hsi') return v.toLocaleString('en-US', { maximumFractionDigits: 0 });
     if (e.unit === 'pts') return (key === 'crack' ? '$' + v.toFixed(2) : v.toFixed(2) + '%');
     if ({ ethFees: 1, solFees: 1, solDex: 1, tvl: 1, stable: 1 }[key]) return _bfUsd(v);
     if (key === 'hash') return v.toFixed(0) + ' EH/s';
@@ -2702,6 +2721,35 @@ function renderBriefing() {
           ['How to read it', 'Around 100% means stocks are worth about one year of output. On our data it peaked near 143% in the dot-com bubble of 2000, fell to about 56% in 2009, reached about 200% in 2021, and went higher still in 2026.'],
           ['Not a timing signal', 'It has said "expensive" almost every year since 2013 while stocks kept rising. It shows how high the bar is, not when anything will happen. Crypto is not part of it.'],
           ['How it is measured here', 'The market value comes from the Wilshire 5000 index, whose points stand for about a billion dollars each. That has drifted over the years, so the level is approximate; the comparison with past readings under the number is not affected. GDP comes from official US figures (the OECD, or the US Bureau of Economic Analysis when the OECD is not answering) and changes once a quarter, so the line steps a little when a new quarter is published.']
+        ] })
+    ] },
+    /* Asian markets (Daniel, 2026-10-21): Japan, Korea and Hong Kong
+       trade while Europe and the US sleep, so they are the first read of
+       a new day. Display only, like the US stock tiles. */
+    { t: 'Asian markets', cells: [
+      _bfWorldCell(W.n225, { k: 'Nikkei 225', kind: 'num', src: BF_SRC.nikkei, sym: '^N225',
+        d: 'Japan\'s best-known stock index. Tokyo opens first, so it often sets the mood for the day.',
+        more: [
+          ['What it is', '225 large companies on the Tokyo Stock Exchange, picked by the Nikkei newspaper: Uniqlo\'s owner Fast Retailing, chip makers like Tokyo Electron and Advantest, SoftBank and others. Shown in index points, in yen.'],
+          ['When it trades', 'From 9:00 to 15:30 Tokyo time, which is midnight to 6:30 UTC. By the time Europe wakes up, Japan has already had its day.'],
+          ['The yen link', 'A weaker yen helps Japan\'s big exporters, so the Nikkei often rises when the yen falls. A sudden jump in the yen can do the opposite, fast. The BoJ rate and Japan 10-year tiles show what drives the yen.'],
+          ['Why crypto cares', 'On 5 August 2024 the Nikkei fell more than 12% in one day, its worst day since 1987, as the cheap-yen trade was closed in a hurry. Bitcoin fell hard the same day. When Tokyo panics, crypto, which trades all night, is often the next thing sold.']
+        ] }),
+      _bfWorldCell(W.kospi, { k: 'KOSPI', kind: 'num', src: BF_SRC.krx, sym: '^KS11',
+        d: 'South Korea\'s main stock index, led by chip makers. Korea is also one of the busiest crypto markets in the world.',
+        more: [
+          ['What it is', 'Every company on the main board of the Korea Exchange in Seoul, weighted by size. Samsung Electronics and SK Hynix, which make the memory chips AI runs on, are the biggest part. Shown in index points, in won.'],
+          ['When it trades', 'From 9:00 to 15:30 Seoul time, the same hours as Tokyo.'],
+          ['Why crypto cares', 'Millions of Koreans trade crypto, on local exchanges like Upbit and Bithumb, in won. When Korean savers feel rich from stocks, some of that money finds its way into coins, and smaller coins listed in Korea can move sharply.'],
+          ['The kimchi premium', 'Korea limits how freely money moves in and out, so Bitcoin sometimes costs more on Korean exchanges than abroad. A big gap means Korean buyers are rushing in; it has often been a sign of overheated moods.']
+        ] }),
+      _bfWorldCell(W.hsi, { k: 'Hang Seng', kind: 'num', src: BF_SRC.hsil, sym: '^HSI',
+        d: 'The biggest companies listed in Hong Kong, many of them Chinese. The quickest read on how money feels about China.',
+        more: [
+          ['What it is', 'About 80 of the largest companies on the Hong Kong exchange: Tencent, Alibaba, HSBC, Xiaomi, Meituan and others. Shown in index points, in Hong Kong dollars.'],
+          ['When it trades', 'From 9:30 to 16:00 Hong Kong time, 1:30 to 8:00 UTC, with a lunch break.'],
+          ['Why it matters', 'Mainland China keeps much of its market closed to outsiders, so foreign money uses Hong Kong to bet on China. When Beijing announces help for the economy, the Hang Seng is usually the first to jump.'],
+          ['Next to crypto', 'Crypto trading is banned in mainland China, but Hong Kong allows it under licence and approved spot Bitcoin and Ether ETFs in April 2024. A rising Hang Seng means more appetite for risk in Asia, though it does not move coins by itself.']
         ] })
     ] },
     { t: 'Metals', cells: [

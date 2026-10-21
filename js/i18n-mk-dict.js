@@ -1721,6 +1721,46 @@ Object.assign(MK_TEXT, {
   "The market value comes from the Wilshire 5000 index, whose points stand for about a billion dollars each. That has drifted over the years, so the level is approximate; the comparison with past readings under the number is not affected. GDP comes from official US figures (the OECD, or the US Bureau of Economic Analysis when the OECD is not answering) and changes once a quarter, so the line steps a little when a new quarter is published.":
     "Вредноста на пазарот доаѓа од индексот Wilshire 5000, каде секој поен е околу милијарда долари. Тоа со годините малку се изместило, па бројот е приближен; споредбата со минатите мерења под бројот не е засегната. БДП доаѓа од официјални американски податоци (од ОЕЦД, или од Бирото за економска анализа на САД кога ОЕЦД не одговара) и се менува еднаш на три месеци, па линијата малку скокнува кога ќе се објави нов квартал."
 });
+/* ── TODAY: Asian markets group (2026-10-21; DeepL draft, simplified) ── */
+Object.assign(MK_TEXT, {
+  "Asian markets": "Азиски берзи",
+  "When it trades": "Кога се тргува",
+  "The yen link": "Врската со јенот",
+  "The kimchi premium": "„Кимчи премијата“",
+  "Nikkei via Yahoo Finance": "Nikkei преку Yahoo Finance",
+  "Korea Exchange via Yahoo Finance": "Korea Exchange преку Yahoo Finance",
+  "Hang Seng Indexes via Yahoo Finance": "Hang Seng Indexes преку Yahoo Finance",
+  "Japan's best-known stock index. Tokyo opens first, so it often sets the mood for the day.":
+    "Најпознатиот берзански индекс на Јапонија. Токио се отвора прв, па често го задава расположението за денот.",
+  "225 large companies on the Tokyo Stock Exchange, picked by the Nikkei newspaper: Uniqlo's owner Fast Retailing, chip makers like Tokyo Electron and Advantest, SoftBank and others. Shown in index points, in yen.":
+    "225 големи компании на берзата во Токио, избрани од весникот Nikkei: Fast Retailing (сопственикот на Uniqlo), производители на чипови како Tokyo Electron и Advantest, SoftBank и други. Прикажано во поени на индексот, во јени.",
+  "From 9:00 to 15:30 Tokyo time, which is midnight to 6:30 UTC. By the time Europe wakes up, Japan has already had its day.":
+    "Од 9:00 до 15:30 по токиско време, тоа е од полноќ до 6:30 по UTC. Додека Европа се буди, Јапонија веќе го завршила својот ден.",
+  "A weaker yen helps Japan's big exporters, so the Nikkei often rises when the yen falls. A sudden jump in the yen can do the opposite, fast. The BoJ rate and Japan 10-year tiles show what drives the yen.":
+    "Послаб јен им помага на големите јапонски извозници, па Nikkei често расте кога јенот паѓа. Нагол скок на јенот може брзо да направи обратно. Плочките за каматата на Банката на Јапонија и за јапонската 10-годишна обврзница покажуваат што го движи јенот.",
+  "On 5 August 2024 the Nikkei fell more than 12% in one day, its worst day since 1987, as the cheap-yen trade was closed in a hurry. Bitcoin fell hard the same day. When Tokyo panics, crypto, which trades all night, is often the next thing sold.":
+    "На 5 август 2024 Nikkei падна повеќе од 12% за еден ден, најлошиот ден од 1987 година, кога заемите во евтини јени набрзина се затвораа. Биткоин силно падна истиот ден. Кога Токио паничи, криптото, со кое се тргува цела ноќ, често е следното што се продава.",
+  "South Korea's main stock index, led by chip makers. Korea is also one of the busiest crypto markets in the world.":
+    "Главниот берзански индекс на Јужна Кореја, предводен од производителите на чипови. Кореја е и еден од најживите крипто пазари во светот.",
+  "Every company on the main board of the Korea Exchange in Seoul, weighted by size. Samsung Electronics and SK Hynix, which make the memory chips AI runs on, are the biggest part. Shown in index points, in won.":
+    "Сите компании на главниот пазар на берзата во Сеул, според нивната големина. Samsung Electronics и SK Hynix, кои прават мемориски чипови за вештачката интелигенција, се најголемиот дел. Прикажано во поени на индексот, во вони.",
+  "From 9:00 to 15:30 Seoul time, the same hours as Tokyo.":
+    "Од 9:00 до 15:30 по сеулско време, во истите часови како Токио.",
+  "Millions of Koreans trade crypto, on local exchanges like Upbit and Bithumb, in won. When Korean savers feel rich from stocks, some of that money finds its way into coins, and smaller coins listed in Korea can move sharply.":
+    "Милиони Корејци тргуваат со крипто на домашни берзи како Upbit и Bithumb, во вони. Кога Корејците се чувствуваат побогати од акциите, дел од тие пари завршува во монети, а помалите монети што ги има во Кореја можат нагло да скокнат или паднат.",
+  "Korea limits how freely money moves in and out, so Bitcoin sometimes costs more on Korean exchanges than abroad. A big gap means Korean buyers are rushing in; it has often been a sign of overheated moods.":
+    "Кореја ограничува колку слободно парите влегуваат и излегуваат, па биткоинот понекогаш е поскап на корејските берзи отколку во странство. Голема разлика значи дека корејските купувачи брзаат да купат; тоа често било знак дека расположението се прегреало.",
+  "The biggest companies listed in Hong Kong, many of them Chinese. The quickest read on how money feels about China.":
+    "Најголемите компании на берзата во Хонг Конг, многу од нив кинески. Најбрзиот начин да се види како пазарот гледа на Кина.",
+  "About 80 of the largest companies on the Hong Kong exchange: Tencent, Alibaba, HSBC, Xiaomi, Meituan and others. Shown in index points, in Hong Kong dollars.":
+    "Околу 80 од најголемите компании на берзата во Хонг Конг: Tencent, Alibaba, HSBC, Xiaomi, Meituan и други. Прикажано во поени на индексот, во хонгконшки долари.",
+  "From 9:30 to 16:00 Hong Kong time, 1:30 to 8:00 UTC, with a lunch break.":
+    "Од 9:30 до 16:00 по хонгконшко време, од 1:30 до 8:00 по UTC, со пауза за ручек.",
+  "Mainland China keeps much of its market closed to outsiders, so foreign money uses Hong Kong to bet on China. When Beijing announces help for the economy, the Hang Seng is usually the first to jump.":
+    "Кина го држи поголемиот дел од својот пазар затворен за странци, па странските пари одат преку Хонг Конг кога сакаат да вложат во Кина. Кога Пекинг ќе најави помош за економијата, Hang Seng обично прв скокнува.",
+  "Crypto trading is banned in mainland China, but Hong Kong allows it under licence and approved spot Bitcoin and Ether ETFs in April 2024. A rising Hang Seng means more appetite for risk in Asia, though it does not move coins by itself.":
+    "Тргувањето со крипто е забрането во Кина, но Хонг Конг го дозволува со лиценца и во април 2024 одобри спот ETF-фондови за биткоин и етер. Hang Seng во пораст значи дека Азија е подготвена повеќе да ризикува, но сам по себе не ги движи монетите."
+});
 /* ── Fear & Greed: why other sites differ (2026-10-06) ── */
 Object.assign(MK_TEXT, {
   "Why other sites differ ›": "Зошто другите сајтови се разликуваат ›",
