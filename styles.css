@@ -179,6 +179,16 @@ body::before{content:'';position:fixed;inset:0;background:repeating-linear-gradi
 .legal-content ul{margin:0 0 10px;padding-left:18px;}
 .legal-content li{margin:0 0 6px;}
 .legal-content strong{color:var(--text);}
+/* Light theme: Terms and Privacy read like a clean document (Daniel,
+   2026-10-21: the pale dark-theme text was barely readable on white).
+   White card, dark body text, the UI font, headings set apart by a line. */
+:root.light #tos-modal .modal,:root.light #privacy-modal .modal{background:#fff;border:1px solid var(--bdr2);box-shadow:0 18px 50px rgba(17,24,36,.16);}
+:root.light #tos-modal .modal-title{color:var(--bnb) !important;}
+:root.light #privacy-modal .modal-title{color:var(--green) !important;}
+:root.light .legal-content{font-family:var(--font-ui,'Inter',system-ui,sans-serif);font-size:14px;line-height:1.7;color:#2b3a4c;}
+:root.light .legal-content h4{font-size:15px;color:var(--text);margin:22px 0 6px;padding-top:16px;border-top:1px solid var(--bdr);letter-spacing:0;}
+:root.light .legal-content strong{color:var(--text);font-weight:600;}
+:root.light .legal-content a{color:var(--bnb) !important;}
 #tos-modal .modal{border:1px solid rgba(243,186,47,.22);box-shadow:0 0 40px rgba(243,186,47,.06);}
 #privacy-modal .modal{border:1px solid rgba(0,200,150,.22);box-shadow:0 0 40px rgba(0,200,150,.06);}
 

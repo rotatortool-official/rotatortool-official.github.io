@@ -73,8 +73,8 @@
 <style>
 :root{
   --bg:#04060a;--bg2:#0a0f17;--panel:rgba(255,255,255,.035);--panel-b:rgba(255,255,255,.08);
-  --text:#eef2f7;--muted:#8d98ab;--dim:#5d6878;
-  --gold:#f3ba2f;--gold2:#ffd76a;--green:#16c79a;--red:#ff4d63;--blue:#4c8dff;--tg:#2aabee;
+  --text:#eef2f7;--muted:#8d98ab;--dim:#7a8597;
+  --gold:#f3ba2f;--gold2:#ffd76a;--gold-ink:#f3ba2f;--tg-ink:#2aabee;--green:#16c79a;--red:#ff4d63;--blue:#4c8dff;--tg:#2aabee;
   --glow-a:rgba(243,186,47,.16);--glow-b:rgba(22,199,154,.10);
   --shadow:0 20px 60px rgba(0,0,0,.45);--card:#0c121c;
   --ui:'Inter',system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;
@@ -82,8 +82,8 @@
 }
 :root.light{
   --bg:#eef3f9;--bg2:#e3ebf5;--panel:rgba(255,255,255,.72);--panel-b:rgba(17,24,36,.09);
-  --text:#0f1724;--muted:#4a5a6e;--dim:#8a97a8;
-  --gold:#b8860b;--gold2:#d9a521;--green:#059669;--red:#dc2626;--blue:#1f6fd1;
+  --text:#0f1724;--muted:#4a5a6e;--dim:#5f6d82;
+  --gold:#b8860b;--gold2:#d9a521;--gold-ink:#835f00;--tg-ink:#0b6fa8;--green:#059669;--red:#dc2626;--blue:#1f6fd1;
   --glow-a:rgba(217,165,33,.18);--glow-b:rgba(5,150,105,.10);
   --shadow:0 18px 50px rgba(17,24,36,.12);--card:#ffffff;
 }
@@ -91,6 +91,9 @@
 html,body{margin:0;background:var(--bg);color:var(--text);font:16px/1.6 var(--ui);-webkit-font-smoothing:antialiased;}
 body{overflow-x:clip;}
 a{color:inherit}
+/* Keyboard focus: a gold ring on every link and button (mouse clicks show none). */
+a:focus-visible,button:focus-visible{outline:2px solid var(--gold-ink);outline-offset:3px;border-radius:999px;}
+.rail a:focus-visible{border-radius:6px;}
 img{display:block}
 
 /* Grain + glow, very faint: depth without noise. */
@@ -101,7 +104,7 @@ body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:0;opa
 .top{position:fixed;top:0;left:0;right:0;z-index:20;display:flex;align-items:center;justify-content:space-between;gap:12px;padding:14px 22px;
   background:linear-gradient(var(--bg),rgba(0,0,0,0));}
 :root.light .top{background:linear-gradient(var(--bg),rgba(238,243,249,0));}
-.logo{font:800 17px/1 var(--mono);letter-spacing:.08em;color:var(--gold);text-decoration:none;}
+.logo{font:800 17px/1 var(--mono);letter-spacing:.08em;color:var(--gold-ink);text-decoration:none;}
 .btn{display:inline-flex;align-items:center;gap:8px;font:700 14px/1 var(--ui);text-decoration:none;border-radius:999px;padding:12px 20px;white-space:nowrap;
   transition:transform .18s cubic-bezier(.23,1,.32,1),box-shadow .18s ease,background-color .18s ease;}
 .btn:active{transform:scale(.97);}
@@ -111,7 +114,7 @@ body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:0;opa
 .btn-ghost:hover{border-color:var(--gold);}
 .btn-sm{padding:9px 15px;font-size:13px;}
 @media (max-width:520px){ .hide-sm{display:none;} }
-.btn-tg{color:#fff;background:linear-gradient(180deg,#43b9f2,#1f95d4);box-shadow:0 8px 28px rgba(42,171,238,.32);}
+.btn-tg{color:#fff;background:linear-gradient(180deg,#1a8acb,#126aa3);box-shadow:0 8px 28px rgba(42,171,238,.32);}
 
 /* Chapter rail on the left, like the board's sidebar. */
 /* Chapter rail as a picker wheel, like the iPhone date/time wheel
@@ -126,14 +129,14 @@ body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:0;opa
 .rail.dragging a{transition:none;}
 .rail a{height:44px;margin-top:-22px;-webkit-user-drag:none;display:flex;align-items:center;text-decoration:none;color:var(--muted);font:700 15px/1 var(--mono);letter-spacing:.1em;white-space:nowrap;transition:color .25s ease;}
 .rail a i{display:none;}
-.rail a.on{color:var(--gold);}
+.rail a.on{color:var(--gold-ink);}
 .rail .sep{width:34px;height:1.5px;margin-top:-.75px;border-radius:2px;background:var(--muted);}
 /* Short, long, short between two words (Daniel, 2026-10-20), like a ruler. */
 .rail .sep.s{width:16px;}
 .rail{height:420px;margin-top:-210px;}
 .rail-snd{display:none;position:fixed;left:24px;top:calc(50% + 226px);z-index:15;background:none;border:0;padding:4px 0;cursor:pointer;
   font:700 10px/1 var(--mono);letter-spacing:.14em;color:var(--dim);}
-.rail-snd:hover{color:var(--gold);}
+.rail-snd:hover{color:var(--gold-ink);}
 @media (min-width:1280px){ .rail{display:block;} .rail-snd{display:block;} }
 /* The "01 TODAY" labels repeat the wheel (Daniel, 2026-10-20), so they go
    where the wheel shows; narrower screens have no wheel and keep them. */
@@ -147,12 +150,14 @@ body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:0;opa
 .grid2{position:relative;height:100%;max-width:1240px;margin:0 auto;padding:84px 28px 40px 28px;display:grid;grid-template-columns:minmax(0,5fr) minmax(0,7fr);gap:40px;align-items:center;}
 @media (min-width:1280px){ .grid2{padding-left:190px;} }
 .copy{position:relative;}
-.eyebrow{font:700 12px/1 var(--mono);letter-spacing:.16em;color:var(--gold);text-transform:uppercase;display:flex;align-items:center;gap:10px;}
+.eyebrow{font:700 12px/1 var(--mono);letter-spacing:.16em;color:var(--gold-ink);text-transform:uppercase;display:flex;align-items:center;gap:10px;}
 .eyebrow b{display:inline-grid;place-items:center;width:26px;height:26px;border-radius:50%;border:1px solid var(--gold);font-size:11px;}
 h1,h2{font-weight:800;letter-spacing:-.035em;line-height:1.04;margin:16px 0 0;}
 h1{font-size:clamp(40px,6.4vw,78px);}
 h2{font-size:clamp(32px,4.4vw,56px);}
 .grad{background:linear-gradient(100deg,var(--gold2),var(--gold) 45%,#ff9f43);-webkit-background-clip:text;background-clip:text;color:transparent;}
+/* Light theme: the pale gold read at under 3:1 on the light background; these stay above 3.3:1. */
+:root.light .grad{background-image:linear-gradient(100deg,#b07a08,#a86f0a 45%,#a65a12);}
 .steps{position:relative;margin-top:20px;min-height:7.5em;}
 .step{position:absolute;left:0;right:0;top:0;margin:0;font-size:18px;line-height:1.55;color:var(--muted);opacity:0;transform:translateY(10px);
   transition:opacity .45s ease,transform .45s cubic-bezier(.23,1,.32,1);}
@@ -206,7 +211,7 @@ h2{font-size:clamp(32px,4.4vw,56px);}
   padding:11px 18px 11px 14px;border-radius:999px;border:1px solid rgba(243,186,47,.55);background:rgba(10,15,23,.72);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);
   color:var(--gold);font:800 12px/1 var(--mono);letter-spacing:.18em;box-shadow:0 10px 34px rgba(0,0,0,.45),0 0 0 0 rgba(243,186,47,.4);
   animation:cueGlow 2.6s ease-in-out infinite;transition:opacity .35s ease,transform .35s cubic-bezier(.23,1,.32,1),border-color .2s ease;}
-:root.light .scroll-cue{background:rgba(255,255,255,.82);color:#9a6f05;border-color:rgba(184,134,11,.55);box-shadow:0 10px 30px rgba(17,24,36,.14);}
+:root.light .scroll-cue{background:rgba(255,255,255,.82);color:var(--gold-ink);border-color:rgba(184,134,11,.55);box-shadow:0 10px 30px rgba(17,24,36,.14);}
 .scroll-cue:hover{border-color:var(--gold);transform:translate(-50%,-2px);}
 .scroll-cue.off{opacity:0;transform:translate(-50%,14px);pointer-events:none;}
 .scroll-cue i{position:relative;width:18px;height:26px;border:2px solid currentColor;border-radius:10px;flex:0 0 auto;}
@@ -264,7 +269,7 @@ h2{font-size:clamp(32px,4.4vw,56px);}
 .tl-pt.done i{border-color:var(--gold);background:var(--gold);}
 .tl-pt b{display:block;font:800 12px/1.2 var(--mono);color:var(--text);}
 .tl-pt span{display:block;font:500 11.5px/1.35 var(--ui);color:var(--muted);margin-top:3px;}
-.tl-now{position:absolute;top:2px;transform:translateX(-50%);font:800 9.5px/1 var(--mono);letter-spacing:.1em;color:var(--gold);}
+.tl-now{position:absolute;top:2px;transform:translateX(-50%);font:800 9.5px/1 var(--mono);letter-spacing:.1em;color:var(--gold-ink);}
 
 /* ── Today: rotating ring of briefing cards ── */
 .ring-wrap{position:absolute;inset:0;perspective:1100px;display:grid;place-items:center;}
@@ -286,7 +291,7 @@ h2{font-size:clamp(32px,4.4vw,56px);}
 .fs{font:500 11px/1.3 var(--ui);color:var(--dim);margin-top:6px;}
 .fb{font:500 14px/1.5 var(--ui);color:var(--text);margin-top:10px;}
 .fnews{margin-top:auto;padding-top:10px;border-top:1px solid var(--panel-b);}
-.fnews b{display:block;font:700 9.5px/1 var(--mono);letter-spacing:.12em;color:var(--gold);margin-bottom:6px;}
+.fnews b{display:block;font:700 9.5px/1 var(--mono);letter-spacing:.12em;color:var(--gold-ink);margin-bottom:6px;}
 .fnews span{display:-webkit-box;-webkit-line-clamp:4;-webkit-box-orient:vertical;overflow:hidden;font:600 12.5px/1.4 var(--ui);color:var(--text);}
 .fnews em{display:block;font-style:normal;font:500 11px/1.3 var(--ui);color:var(--muted);margin-top:4px;}
 
@@ -374,8 +379,8 @@ h2{font-size:clamp(32px,4.4vw,56px);}
 .plan-cols{display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-top:38px;text-align:left;}
 .plan{position:relative;display:flex;flex-direction:column;padding:28px 26px 26px;border-radius:24px;border:1px solid var(--panel-b);background:var(--panel);box-shadow:var(--shadow);}
 .plan.pro{background:radial-gradient(90% 70% at 100% 0%,rgba(42,171,238,.16),transparent 65%),var(--panel);border-color:rgba(42,171,238,.35);}
-.plan-hd span{font:700 12px/1 var(--mono);letter-spacing:.16em;text-transform:uppercase;color:var(--gold);}
-.plan.pro .plan-hd span{color:var(--tg);}
+.plan-hd span{font:700 12px/1 var(--mono);letter-spacing:.16em;text-transform:uppercase;color:var(--gold-ink);}
+.plan.pro .plan-hd span{color:var(--tg-ink);}
 .plan-hd b{display:block;font:800 34px/1.1 var(--ui);letter-spacing:-.03em;margin-top:10px;}
 .plan-hd em{display:block;font-style:normal;color:var(--muted);font-size:14px;margin-top:2px;}
 .plan ul{list-style:none;margin:20px 0 22px;padding:0;display:flex;flex-direction:column;gap:10px;}
@@ -395,8 +400,25 @@ h2{font-size:clamp(32px,4.4vw,56px);}
 .finale h2{margin-top:14px;}
 .finale p{color:var(--muted);font-size:18px;max-width:560px;margin:16px auto 0;}
 .finale .cta-row{justify-content:center;display:flex;}
-.foot{position:relative;z-index:1;text-align:center;font-size:12.5px;color:var(--dim);padding:0 20px 40px;}
-.foot a{color:var(--muted);}
+.foot{position:relative;z-index:1;text-align:center;font-size:13px;color:var(--dim);padding:0 20px 44px;}
+.foot p{margin:14px 0 0;}
+.foot-links{display:flex;flex-wrap:wrap;justify-content:center;gap:6px 18px;}
+.foot a{color:var(--muted);text-decoration:none;padding:4px 0;}
+.foot a:hover{color:var(--text);text-decoration:underline;}
+/* Phones: the scene buttons are hidden, so a slim bar keeps the way into
+   the board and to Free & Pro in reach from the first scene until Free & Pro
+   itself is on screen (2026-10-20 audit: one small header button was the
+   only way in for ~27 screens). Scene pictures stop above it. */
+.mbar{display:none;}
+@media (max-width:860px){
+  .mbar{position:fixed;left:12px;right:12px;bottom:max(12px,env(safe-area-inset-bottom));z-index:16;display:flex;gap:8px;padding:7px;border-radius:999px;
+    background:rgba(10,15,23,.82);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);border:1px solid var(--panel-b);box-shadow:0 10px 30px rgba(0,0,0,.4);
+    transition:opacity .3s ease,transform .3s cubic-bezier(.23,1,.32,1);}
+  :root.light .mbar{background:rgba(255,255,255,.88);box-shadow:0 10px 30px rgba(17,24,36,.14);}
+  .mbar .btn{flex:1 1 0;justify-content:center;}
+  .mbar.off{opacity:0;transform:translateY(18px);pointer-events:none;}
+  .scene:not(#hero) .grid2{padding-bottom:80px;}
+}
 /* Phones, for the scenes added on 2026-10-20 (after their base rules so they win). */
 @media (max-width:860px){
   .cf-row{grid-template-columns:70px 1fr 62px;height:26px;gap:8px;}
@@ -475,7 +497,7 @@ h2{font-size:clamp(32px,4.4vw,56px);}
       <div class="hero-copy" id="hero-copy">
         <div class="eyebrow">Free crypto market pulse</div>
         <h1>Every Binance coin, and <span class="grad">where it stands.</span></h1>
-        <p class="hero-sub">Rotator scores about 250 coins every 15 minutes, against each other and against the big markets. No wallet, no exchange key, no account.</p>
+        <p class="hero-sub">Rotator scores every coin on the board every 15 minutes, against each other and against the big markets. No wallet, no exchange key, no account.</p>
         <div class="hero-stats">
           <div><b id="st-coins">262</b>coins on the board</div>
           <div><b>15 min</b>between scores</div>
@@ -722,7 +744,20 @@ h2{font-size:clamp(32px,4.4vw,56px);}
     </div>
   </div>
 </section>
-<p class="foot">A reading of the market, not financial advice. <a href="how-the-score-works.html">How the score works</a> · <a href="track-record.html">Track record</a></p>
+<footer class="foot">
+  <nav class="foot-links" aria-label="More from Rotator">
+    <a href="how-the-score-works.html">How the score works</a>
+    <a href="track-record.html">Track record</a>
+    <a href="board.html#privacy">Privacy</a>
+    <a href="board.html#terms">Terms</a>
+    <a href="https://t.me/rotatortool" rel="noopener">Telegram</a>
+    <a href="https://x.com/RotatorTool" rel="noopener">X</a>
+    <a href="https://www.instagram.com/rotatortool/" rel="noopener">Instagram</a>
+    <a href="mk/kripto-denes.html" lang="mk">Македонски</a>
+  </nav>
+  <p>A reading of the market, not financial advice.</p>
+</footer>
+<nav class="mbar off" id="mbar" aria-label="Get started"><a class="btn btn-ghost btn-sm" href="#plans">Free &amp; Pro</a><a class="btn btn-gold btn-sm" href="board.html">Enter the board</a></nav>
 
 <button type="button" class="scroll-cue" id="cue" aria-label="Scroll to the next chapter"><i aria-hidden="true"></i><b>SCROLL</b><svg viewBox="0 0 12 12" aria-hidden="true"><path d="M2 4l4 4 4-4" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
 <script src="js/config.js"></script>
@@ -905,7 +940,7 @@ h2{font-size:clamp(32px,4.4vw,56px);}
      animation). Clicking a word or dragging the wheel still jumps. */
 
   /* Floating scroll button: next chapter on click; hides near the end. */
-  var cue = $('cue'), plansEl = $('plans');
+  var cue = $('cue'), plansEl = $('plans'), mbar = $('mbar');
   cue.addEventListener('click', function () {
     var cur = Math.round(wheelTarget()), nx = stops.filter(function (x) { return x.i > cur; })[0];
     if (nx) goTo(nx.i, 1); else plansEl.scrollIntoView({ behavior: S.reduce ? 'auto' : 'smooth' });
@@ -914,6 +949,7 @@ h2{font-size:clamp(32px,4.4vw,56px);}
     var phone = innerWidth <= 860, heroEnd = $('hero').offsetHeight - innerHeight * 0.9;
     var hide = scrollY + innerHeight > plansEl.offsetTop + 80 || (phone && scrollY > heroEnd);
     cue.classList.toggle('off', hide);
+    mbar.classList.toggle('off', !phone || scrollY <= heroEnd || scrollY + innerHeight > plansEl.offsetTop + 80);
   }
   window.addEventListener('scroll', cueVis, { passive: true });
   window.addEventListener('resize', cueVis);

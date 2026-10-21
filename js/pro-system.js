@@ -86,15 +86,20 @@ function getMyReferralLink() {
 }
 setTimeout(ensureRefCode, 4000);
 
-/* rotatortool.com/#pro opens the Pro window once the board is up: the
-   tour page's "Get Pro" lands here (2026-10-20). */
-window.addEventListener('load', function () {
-  if (location.hash !== '#pro') return;
+/* board.html#pro opens the Pro window once the board is up: the home
+   page's "Get Pro" lands here (2026-10-20). #privacy and #terms open those
+   windows, for the home page footer. */
+function openFromHash(delay) {
+  var h = location.hash, modal = { '#privacy': 'privacy-modal', '#terms': 'tos-modal' }[h];
+  if (h !== '#pro' && !modal) return;
   setTimeout(function () {
-    if (typeof openPro === 'function') openPro();
+    if (h === '#pro') { if (typeof openPro === 'function') openPro(); }
+    else if (typeof openModal === 'function') openModal(modal);
     history.replaceState(null, '', location.pathname + location.search);
-  }, 800);
-});
+  }, delay);
+}
+window.addEventListener('load', function () { openFromHash(800); });
+window.addEventListener('hashchange', function () { openFromHash(0); });
 
 function getRefData()    { try { return JSON.parse(localStorage.getItem('rot_refs') || '{"refs":[],"pro":false}'); } catch(e) { return {refs:[], pro:false}; } }
 function saveRefData(d)  { try { localStorage.setItem('rot_refs', JSON.stringify(d)); } catch(e) {} }
