@@ -369,7 +369,7 @@ function openPro() {
         + '<div class="plb-row"><span>Market-data APIs</span><span>call limits</span></div>'
         + '<div class="plb-row"><span>Domain</span><span>yearly</span></div>'
         + '<div class="plb-note">One person cannot carry these alone. Pro is how the people who get the most from Rotator keep it running for everyone.</div></div>'
-      + '<div class="plb-price"><b>$20 once</b><span>The first 10 who pay keep Pro for as long as Rotator pays its own costs. After that, Pro becomes a subscription.</span>'
+      + '<div class="plb-price"><span>The first 10 who pay keep Pro for as long as Rotator pays its own costs. After that, Pro becomes a subscription.</span>'
         + '<div class="pro-places" id="pro-places" style="display:none;"></div></div>'   /* filled by _proPlacesFill() */
       + '<div class="plb-ways">Three ways to get Pro: invite 5 friends (free), redeem a Pro code (free), or pay $20 below.</div>'
 

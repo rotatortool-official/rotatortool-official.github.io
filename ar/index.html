@@ -49,7 +49,7 @@
 (function () {
   try {
     var q = new URLSearchParams(location.search), h = location.hash;
-    var own = /^#(hero|today|capital|momentum|liq|yours|coins|tool|record|plans)?$/.test(h);
+    var own = /^#(hero|today|capital|momentum|liq|yours|coins|score|tool|record|plans)?$/.test(h);
     if (q.has('coin') || q.has('donate') || (h && !own)) { location.replace('../board.html' + location.search + h); return; }
     /* Language (Daniel, 2026-10-21: "loads default on portuguese if someone
        from brazil opens it"). On the English page at / only: a pick from the
@@ -330,6 +330,18 @@ h2{font-size:clamp(32px,4.4vw,56px);}
 @keyframes cue{0%{transform:scaleY(0)}60%{transform:scaleY(1);opacity:1}100%{transform:scaleY(1);opacity:0}}
 @media (prefers-reduced-motion:reduce){ .scroll-cue,.scroll-cue i::after,.scroll-cue svg,.live::before,.tour-end,.te-card{animation:none;} }
 
+/* ── Score: the exploding coin ── */
+.sd-disc{position:absolute;left:0;top:0;will-change:transform;}
+.sd-disc svg{display:block;overflow:visible;}
+.sd-lbl{position:absolute;left:0;top:0;opacity:0;will-change:transform,opacity;background:var(--card);border:1px solid var(--panel-b);border-radius:12px;padding:8px 12px;box-shadow:var(--shadow);}
+.sd-lbl .hd{display:flex;align-items:baseline;justify-content:space-between;gap:10px;}
+.sd-lbl .nm{font:700 13px/1.25 var(--ui);color:var(--text);}
+.sd-lbl .pt{font:800 17px/1 var(--mono);white-space:nowrap;}
+.sd-lbl .rg{font:600 10px/1.3 var(--mono);letter-spacing:.06em;text-transform:uppercase;color:var(--muted);margin-top:3px;}
+.sd-sum{position:absolute;left:0;right:0;bottom:18px;z-index:2;text-align:center;font:700 13px/1.4 var(--mono);color:var(--muted);opacity:0;}
+.sd-sum b{color:var(--gold-ink);font-size:16px;}
+@media (max-width:600px){ .sd-lbl{padding:6px 9px;} .sd-lbl .nm{font-size:11.5px;} .sd-lbl .pt{font-size:14px;} .sd-lbl .rg{font-size:9px;} }
+
 /* ── Momentum ── */
 .bub{position:absolute;left:0;top:0;will-change:transform,opacity;}
 .bub .ball{width:var(--d);height:var(--d);border-radius:50%;overflow:hidden;background:var(--bg2);box-shadow:0 0 0 2px var(--ring,var(--dim)),0 6px 18px rgba(0,0,0,.3);transition:box-shadow .3s ease;}
@@ -354,6 +366,18 @@ h2{font-size:clamp(32px,4.4vw,56px);}
 .fly em{font-style:normal;color:var(--muted);font-weight:600;}
 .alert{position:absolute;left:50%;bottom:22px;width:min(380px,calc(100% - 32px));display:flex;gap:12px;align-items:flex-start;padding:14px 16px;border-radius:16px;background:var(--bg2);border:1px solid var(--panel-b);box-shadow:var(--shadow);opacity:0;will-change:transform,opacity;}
 .alert .bell{font-size:20px;line-height:1;transform-origin:50% 0;}
+/* Big bell after the example alert (Daniel, 2026-10-21: "larger bell that
+   is zooming in and out, GET personalised alerts with Pro"). */
+.pro-bell{position:absolute;left:0;top:0;z-index:4;display:flex;align-items:center;gap:14px;padding:12px 20px 12px 14px;border-radius:20px;text-decoration:none;color:var(--text);
+  background:var(--bg2);border:1px solid rgba(42,171,238,.55);box-shadow:var(--shadow),0 0 0 6px rgba(42,171,238,.08);opacity:0;pointer-events:none;will-change:transform,opacity;}
+.pro-bell.on{pointer-events:auto;}
+.pro-bell:hover{border-color:var(--tg);}
+.pb-bell{font-size:52px;line-height:1;display:block;animation:pbZoom 1.5s ease-in-out infinite;}
+.pb-t{font:700 15px/1.3 var(--ui);max-width:170px;}
+.pb-t strong{color:var(--tg-ink);}
+@keyframes pbZoom{0%,100%{transform:scale(.86) rotate(-6deg)}50%{transform:scale(1.22) rotate(6deg)}}
+@media (prefers-reduced-motion:reduce){ .pb-bell{animation:none;} }
+@media (max-width:600px){ .pb-bell{font-size:40px;} .pb-t{font-size:13.5px;} }
 .alert b{display:block;font:700 14px/1.3 var(--ui);}
 .alert span{display:block;font:500 12.5px/1.45 var(--ui);color:var(--muted);margin-top:2px;}
 .alert small{display:block;font:700 9.5px/1 var(--mono);letter-spacing:.12em;color:var(--dim);text-transform:uppercase;margin-bottom:6px;}
@@ -611,6 +635,7 @@ document.addEventListener('click', function (e) {
   <a href="#liq" data-for="liq">عمليات <i></i>التصفية</a>
   <a href="#yours" data-for="yours">عملاتك</a>
   <a href="#coins" data-for="coins"><i></i>العملات</a>
+  <a href="#score" data-for="score"><i></i>النتيجة</a>
   <a href="#tool" data-for="tool">ROTATOR TOOL</a>
   <a href="#record" data-for="record">السجل</a>
 </nav>
@@ -744,6 +769,7 @@ document.addEventListener('click', function (e) {
       </div>
       <div class="vis"><div class="panel" id="yours-vis">
         <div class="tag" style="right:18px;top:16px">أمثلة على المحافظ الاستثمارية · الأسعار الحية</div>
+        <a class="pro-bell" id="proBell" href="../board.html#pro"><div class="pb-bell" aria-hidden="true">🔔</div><span class="pb-t">احصل على <strong>تنبيهات مخصصة</strong> مع الإصدار «Pro»</span></a>
       </div></div>
     </div>
   </div>
@@ -773,13 +799,39 @@ document.addEventListener('click', function (e) {
   </div>
 </section>
 
-<!-- 07 ROTATOR TOOL -->
+<!-- 07 SCORE (Daniel, 2026-10-21: "include how the score works in the
+     tour"). The exploding coin from how-the-score-works.html: the score
+     comes apart into its four layers, one at a time. Example numbers. -->
+<section class="scene" id="score" style="height:260vh">
+  <div class="stage">
+    <div class="glow" style="--gx:58%;--gy:50%"></div>
+    <div class="grid2">
+      <div class="copy">
+        <div class="eyebrow"><b>07Score</b></div>
+        <h2>كيف يتم احتساب النتيجة.</h2>
+        <div class="steps" data-scene="score">
+          <p class="step" data-at="0">النتيجة هي <strong>عملة واحدة مكونة من أربع طبقات.</strong> شاهدها وهي تتفكك.</p>
+          <p class="step" data-at=".26">يقوم <strong>مؤشر الزخم</strong> بترتيب العملة مقارنةً بجميع العملات الأخرى على مدى 7 و14 و30 يومًا. ثم يتم قياسها <strong>مقارنةً بالبيتكوين والذهب والفضة والنفط.</strong></p>
+          <p class="step" data-at=".5"><strong>العرض</strong> هو العامل الذي قد يؤثر سلبًا على المؤشر: فعمليات الإطلاق الكبيرة والتضخم المرتفع تؤدي إلى انخفاض المؤشر، حتى إلى ما دون الصفر. ويضيف <strong>الحجم</strong> خطوة صغيرة وثابتة.</p>
+          <p class="step" data-at=".78">تدل النتيجة العالية على أن العملة كانت أقوى من البقية. <strong>وهي تصف ما حدث بالفعل. وليست توقعات.</strong></p>
+        </div>
+        <div class="cta-row"><a class="btn btn-gold" href="../how-the-score-works.html">كيف تعمل نظام التقييم ›</a></div>
+      </div>
+      <div class="vis"><div class="panel" id="score-vis">
+        <div class="tag" style="left:26px;top:20px">عملة نموذجية</div>
+        <div class="sd-sum" id="sdSum">22 + 18 − 6 + 0 = <b>34</b></div>
+      </div></div>
+    </div>
+  </div>
+</section>
+
+<!-- 08 ROTATOR TOOL -->
 <section class="scene" id="tool" style="height:300vh">
   <div class="stage">
     <div class="glow" style="--gx:55%;--gy:45%"></div>
     <div class="grid2">
       <div class="copy">
-        <div class="eyebrow"><b>07 </b>Rotator Tool</div>
+        <div class="eyebrow"><b>08 </b>Rotator Tool</div>
         <h2>اعثر على أفضل وقت للتبادل.</h2>
         <div class="steps" data-scene="tool">
           <p class="step" data-at="0"><strong>العملة «ب» آخذة في الانخفاض بينما العملة «أ» آخذة في الارتفاع.</strong> كل أسبوع، كل عملة «ب» تشتري كمية أقل من العملة «أ».</p>
@@ -796,13 +848,13 @@ document.addEventListener('click', function (e) {
   </div>
 </section>
 
-<!-- 08 RECORD -->
+<!-- 09 RECORD -->
 <section class="scene" id="record" style="height:250vh">
   <div class="stage">
     <div class="glow" style="--gx:70%;--gy:55%"></div>
     <div class="grid2">
       <div class="copy">
-        <div class="eyebrow"><b>08</b>السجل</div>
+        <div class="eyebrow"><b>09Record</b></div>
         <h2>يتم عرض كل النتائج، سواء كانت جيدة أم سيئة.</h2>
         <div class="steps" data-scene="record">
           <p class="step" data-at="0">تقوم Rotator بتقييم إشاراتها مقارنةً بالعملة في منتصف السوق. <strong>ورمي العملة في الهواء سيؤدي إلى الفوز في نصف المرات.</strong></p>
@@ -844,7 +896,7 @@ document.addEventListener('click', function (e) {
         <a class="btn btn-gold" href="../board.html">ادخل إلى اللوحة</a>
       </div>
       <div class="plan pro">
-        <div class="plan-hd"><span>Pro</span><b> 20 دولارًا </b><em>تُرسل إليك عبر Telegram</em></div>
+        <div class="plan-hd"><span>Pro</span><em> تُقدم إليك عبر Telegram</em></div>
         <ul>
           <li><strong>تقرير شخصي عبر Telegram</strong> حول عملاتك الرقمية، يومي الاثنين والخميس</li>
           <li><strong>تحذير بشأن فتح الحساب</strong>، قبل 3 أيام أو أكثر</li>
@@ -896,7 +948,7 @@ document.addEventListener('click', function (e) {
     <h3 id="tourEndH">كيف تريد استخدام «Rotator»؟</h3>
     <div class="te-row">
       <a class="te-opt" href="../board.html"><b>مجانية 0 دولار</b><em> </em><b>كل</b><em> نتيجة وكل مربع على الموقع. لا حاجة لإنشاء حساب.</em> <i>ادخل إلى اللوحة →</i></a>
-      <a class="te-opt pro" href="../board.html#pro"><span>Pro</span><b> 20 دولارًا لمرة</b> <em>واحدة تنبيهات شخصية حول عملاتك الرقمية، تُرسل إليك عبر Telegram.</em> <i>احصل على Pro →</i></a>
+      <a class="te-opt pro" href="../board.html#pro"><span>Pro</span><em>: تنبيهات شخصية بشأن عملاتك الرقمية، تُرسل إليك عبر Telegram.</em> <i>احصل على Pro →</i></a>
     </div>
     <button type="button" class="te-again" id="tourAgain">شاهد الجولة مرة أخرى</button>
   </div>
@@ -1107,6 +1159,18 @@ document.addEventListener('click', function (e) {
      the next one slides in is a quick glide. */
   var playEl = $('play'), endEl = $('tourEnd');
   var TOUR_SPEED = 0.3;                    /* screens per second */
+  /* Seconds added to a scene's steady part (Daniel, 2026-10-21: Today "2
+     second slower"). The scene keeps its height, so scrolling by hand is
+     unchanged. */
+  var TOUR_EXTRA = { today: 2 };
+  function tourSpeed(y) {
+    var vh = innerHeight;
+    for (var k = 0; k < stops.length - 1; k++) {
+      var st = stops[k], id = st.el.id, a = st.el.offsetTop, b = stops[k + 1].el.offsetTop - vh;
+      if (y >= a && y < b && TOUR_EXTRA[id]) { var sc = (b - a) / vh; return sc / (sc / TOUR_SPEED + TOUR_EXTRA[id]); }
+    }
+    return TOUR_SPEED;
+  }
   var tour = { on: false, started: false, gliding: false, raf: 0, y: 0, t: 0 };
   /* The next section top if y sits in the slide-in screen before it. */
   function tourHop(y) {
@@ -1135,7 +1199,7 @@ document.addEventListener('click', function (e) {
     if (hop >= 0) { tour.gliding = true; glide(hop); tour.raf = requestAnimationFrame(tourStep); return; }
     var dt = Math.min(200, now - tour.t), end = tourStopY();
     tour.t = now;
-    tour.y = Math.min(end, tour.y + innerHeight * TOUR_SPEED * dt / 1000);
+    tour.y = Math.min(end, tour.y + innerHeight * tourSpeed(tour.y) * dt / 1000);
     window.scrollTo(0, tour.y);
     if (tour.y >= end - 0.5) { tour.started = false; tourPause(); tourShowEnd(); return; }
     tour.raf = requestAnimationFrame(tourStep);
@@ -1409,6 +1473,7 @@ document.addEventListener('click', function (e) {
     al.innerHTML = '<div class="bell">🔔</div><div><small>مثال على تنبيه</small><b>' + esc(rows[rows.length - 1].c.symbol.toUpperCase()) + ': إشارة انعطاف صاعد</b>'
       + '<span>ارتداد سريع لمؤشر القوة النسبية (RSI): عاد إلى ما فوق 30 في غضون يومين. وقد تفوق أداء المؤشر على السوق بنسبة تزيد قليلاً عن الصدفة.</span></div>';
     vis.appendChild(al);
+    var pbEl = $('proBell');
     var W, H, phone, ds, cx0, cy0, cx1, cy1, chart, pts = [], lastP = 0;
     function resize() {
       W = vis.clientWidth; H = vis.clientHeight; phone = W < 520;
@@ -1436,7 +1501,7 @@ document.addEventListener('click', function (e) {
     function render(p) {
       lastP = p;
       steps('yours', p);
-      var fly = seg(p, 0.04, 0.3), grow = ease(seg(p, 0.24, 0.46)), k = ease(seg(p, 0.46, 0.58)), ch = ease(seg(p, 0.52, 0.72)), al1 = ease(seg(p, 0.76, 0.93));
+      var fly = seg(p, 0.04, 0.3), grow = ease(seg(p, 0.24, 0.46)), k = ease(seg(p, 0.46, 0.58)), ch = ease(seg(p, 0.52, 0.72)), al1 = ease(seg(p, 0.72, 0.85)), pb = ease(seg(p, 0.87, 0.95));
       /* Donut moves to the corner to make room for the chart. */
       var sc = ds * (1 - 0.45 * k);
       dw.style.left = (cx0 + (cx1 - cx0) * k - 115) + 'px';
@@ -1472,6 +1537,12 @@ document.addEventListener('click', function (e) {
       }
       al.style.opacity = String(al1);
       al.style.transform = 'translate3d(-50%,' + ((1 - al1) * 24).toFixed(1) + 'px,0)';
+      /* Over the middle of the chart, the scene's last beat. */
+      var pbw = pbEl.offsetWidth, pbh = pbEl.offsetHeight;
+      var pbx = (W - pbw) / 2, pby = chart.y + chart.h / 2 - pbh / 2;
+      pbEl.style.opacity = pb.toFixed(3);
+      pbEl.style.transform = 'translate3d(' + pbx.toFixed(1) + 'px,' + (pby + (1 - pb) * 18).toFixed(1) + 'px,0) scale(' + (0.9 + 0.1 * pb).toFixed(3) + ')';
+      pbEl.classList.toggle('on', pb > 0.5);
       al.querySelector('.bell').style.transform = 'rotate(' + (Math.sin(al1 * Math.PI * 4) * 14 * (1 - al1 * 0.6)).toFixed(1) + 'deg)';
     }
     resize();
@@ -1824,7 +1895,103 @@ document.addEventListener('click', function (e) {
     });
   }
 
-  /* ── 07 ROTATOR TOOL ──────────────────────────────────── */
+  /* ── 07 SCORE ─────────────────────────────────────────── */
+  /* The coin from how-the-score-works.html (same layers, colours and
+     example numbers; ranges from rotator-engine computeScores). It starts
+     stacked, then the layers lift one at a time, top first, each label
+     arriving with its layer (Daniel, 2026-10-20: one element at a time). */
+  (function () {
+    var vis = $('score-vis'), sumEl = $('sdSum');
+    var LAYERS = [
+      { key: 'cap', name: 'تقييم Rotator', pts: '34', range: 'من −50 إلى 100', col: ['#f6d26b', '#d9a62a', '#8a6610'], ink: 'var(--gold-ink)' },
+      { key: 'mom', name: 'تصنيف الزخم', pts: '+22', range: 'من 0 إلى 40', col: ['#5fd3a8', '#0e9f72', '#04664a'], ink: 'var(--green)' },
+      { key: 'mac', name: 'في مواجهة الأسواق الكبرى', pts: '+18', range: 'من 0 إلى 30', col: ['#8ab8f2', '#2f7ad8', '#174a8c'], ink: 'var(--blue)' },
+      { key: 'tok', name: 'العرض وإلغاء القفل', pts: '−6', range: 'من −50 إلى +30', col: ['#f0c27a', '#c98a26', '#7d5310'], ink: '#c98a26' },
+      { key: 'size', name: 'تعديل الحجم', pts: '0', range: 'من −4 إلى +2', col: ['#c3cdd9', '#8695a8', '#4d5b6d'], ink: 'var(--muted)' }
+    ];
+    var N = LAYERS.length, RX = 120, RY = 46, TH = 16, VW = 244, VH = RY * 2 + TH + 4, CX = 122, CY = RY + 2, SQ = RY / RX;
+    var F = 'font-family="IBM Plex Mono,ui-monospace,monospace" font-weight="800"';
+    function glyph(key) {
+      var g = '';
+      if (key === 'cap') {
+        g += '<circle r="104" fill="none" stroke="rgba(255,255,255,.55)" stroke-width="3"/><circle r="92" fill="none" stroke="rgba(90,60,0,.25)" stroke-width="1.5" stroke-dasharray="3 6"/>';
+        g += '<text y="30" text-anchor="middle" ' + F + ' font-size="92" fill="#4a3606">34</text><text y="-50" text-anchor="middle" ' + F + ' font-size="22" letter-spacing="6" fill="rgba(74,54,6,.75)">⬡ SCORE</text>';
+      } else if (key === 'mom') {
+        g += '<rect x="-66" y="10" width="34" height="40" rx="4" fill="rgba(255,255,255,.75)"/><rect x="-17" y="-20" width="34" height="70" rx="4" fill="rgba(255,255,255,.85)"/><rect x="32" y="-58" width="34" height="108" rx="4" fill="#fff"/>';
+        g += '<path d="M-80 30 L-30 -8 L10 -30 L74 -82" fill="none" stroke="#04533c" stroke-width="5" stroke-linecap="round"/><text y="88" text-anchor="middle" ' + F + ' font-size="20" fill="rgba(4,64,46,.8)">7D · 14D · 30D</text>';
+      } else if (key === 'mac') {
+        [['BTC', -58, -46], ['GOLD', 58, -46], ['SILV', -58, 48], ['OIL', 58, 48]].forEach(function (q) {
+          g += '<circle cx="' + q[1] + '" cy="' + q[2] + '" r="30" fill="rgba(255,255,255,.85)"/><text x="' + q[1] + '" y="' + (q[2] + 7) + '" text-anchor="middle" ' + F + ' font-size="17" fill="#174a8c">' + q[0] + '</text>';
+        });
+        g += '<circle r="16" fill="#fff"/><text y="6" text-anchor="middle" ' + F + ' font-size="15" fill="#174a8c">vs</text>';
+      } else if (key === 'tok') {
+        var a = 0.78 * Math.PI * 2, r = 70, x = Math.sin(a) * r, y = -Math.cos(a) * r;
+        g += '<circle r="' + r + '" fill="rgba(255,255,255,.35)"/><path d="M0 0 L0 ' + (-r) + ' A' + r + ' ' + r + ' 0 1 1 ' + x.toFixed(1) + ' ' + y.toFixed(1) + ' Z" fill="rgba(255,255,255,.9)"/>';
+        g += '<text y="8" text-anchor="middle" ' + F + ' font-size="24" fill="#5c3c08">78%</text><text y="100" text-anchor="middle" ' + F + ' font-size="18" fill="rgba(92,60,8,.8)">UNLOCKED</text>';
+      } else {
+        g += '<circle r="96" fill="none" stroke="rgba(255,255,255,.7)" stroke-width="4"/><circle r="64" fill="none" stroke="rgba(255,255,255,.55)" stroke-width="4"/><circle r="32" fill="none" stroke="rgba(255,255,255,.45)" stroke-width="4"/>';
+        g += '<text y="7" text-anchor="middle" ' + F + ' font-size="18" fill="#2c3644">SIZE</text>';
+      }
+      return '<g transform="translate(' + CX + ' ' + CY + ') scale(1 ' + SQ.toFixed(3) + ')">' + g + '</g>';
+    }
+    function discSVG(L, i) {
+      var c = L.col, id = 'sdg' + i;
+      var side = 'M' + (CX - RX) + ' ' + CY + ' L' + (CX - RX) + ' ' + (CY + TH) + ' A' + RX + ' ' + RY + ' 0 0 0 ' + (CX + RX) + ' ' + (CY + TH) + ' L' + (CX + RX) + ' ' + CY + ' A' + RX + ' ' + RY + ' 0 0 1 ' + (CX - RX) + ' ' + CY + ' Z';
+      return '<svg viewBox="0 0 ' + VW + ' ' + VH + '" aria-hidden="true"><defs>'
+        + '<linearGradient id="' + id + 's" x1="0" x2="1"><stop offset="0" stop-color="' + c[2] + '"/><stop offset=".35" stop-color="' + c[1] + '"/><stop offset=".6" stop-color="' + c[0] + '"/><stop offset="1" stop-color="' + c[2] + '"/></linearGradient>'
+        + '<radialGradient id="' + id + 'f" cx=".38" cy=".3" r=".9"><stop offset="0" stop-color="' + c[0] + '"/><stop offset=".7" stop-color="' + c[1] + '"/><stop offset="1" stop-color="' + c[2] + '"/></radialGradient></defs>'
+        + '<path d="' + side + '" fill="url(#' + id + 's)"/><path d="' + side + '" fill="none" stroke="rgba(0,0,0,.18)" stroke-width="1"/>'
+        + '<ellipse cx="' + CX + '" cy="' + CY + '" rx="' + RX + '" ry="' + RY + '" fill="url(#' + id + 'f)"/>'
+        + '<ellipse cx="' + CX + '" cy="' + CY + '" rx="' + (RX - 1) + '" ry="' + (RY - 1) + '" fill="none" stroke="rgba(255,255,255,.55)" stroke-width="1.5"/>'
+        + glyph(L.key) + '</svg>';
+    }
+    /* Bottom layer first, so the score cap paints on top. */
+    var discs = [], labels = [];
+    for (var i = N - 1; i >= 0; i--) {
+      var d = document.createElement('div'); d.className = 'sd-disc'; d.innerHTML = discSVG(LAYERS[i], i);
+      vis.appendChild(d); discs[i] = d;
+    }
+    LAYERS.forEach(function (L, i) {
+      var l = document.createElement('div'); l.className = 'sd-lbl';
+      l.innerHTML = '<div class="hd"><span class="nm">' + L.name + '</span><span class="pt" style="color:' + L.ink + '">' + L.pts + '</span></div><div class="rg">' + L.range + '</div>';
+      vis.appendChild(l); labels[i] = l;
+    });
+    var G = {};
+    function resize() {
+      var W = vis.clientWidth, H = vis.clientHeight, phone = W < 520;
+      G.coinW = phone ? Math.min(W * 0.4, 150) : Math.min(W * 0.36, 250);
+      G.discH = VH * G.coinW / VW; G.th = TH * G.coinW / VW; G.faceY = CY * G.coinW / VW;
+      var usable = H - (phone ? 70 : 110);
+      G.gap = Math.max(G.th, (usable - G.discH) / (N - 1));
+      G.top0 = (phone ? 34 : 54) + Math.max(0, (usable - (G.gap * (N - 1) + G.discH)) / 2);
+      G.topAsm = (H - (G.th * (N - 1) + G.discH)) / 2;
+      G.dx = phone ? 3 : 12;
+      G.x0 = phone ? 10 : Math.max(20, W * 0.07);
+      G.lblX = G.x0 + G.coinW + (phone ? 12 : 34);
+      var lw = Math.min(W - G.lblX - (N - 1) * G.dx - 12, 300);
+      discs.forEach(function (dd) { dd.firstChild.setAttribute('width', G.coinW); dd.firstChild.setAttribute('height', G.discH); });
+      labels.forEach(function (l) { l.style.width = lw + 'px'; });
+    }
+    /* 0–.08 stacked; each layer lifts in its own slice of .08–.72, top
+       first; the sum line comes in at the end. */
+    function render(p) {
+      steps('score', p);
+      for (var i = 0; i < N; i++) {
+        var li = ease(seg(p, 0.08 + i * 0.128, 0.08 + (i + 1) * 0.128));
+        var y = G.topAsm + i * G.th + (G.top0 + i * G.gap - G.topAsm - i * G.th) * li;
+        var x = G.x0 + i * G.dx * li;
+        discs[i].style.transform = 'translate3d(' + x.toFixed(1) + 'px,' + y.toFixed(1) + 'px,0)';
+        var lo = seg(li, 0.6, 1), l = labels[i];
+        l.style.opacity = lo.toFixed(3);
+        l.style.transform = 'translate3d(' + (G.lblX + i * G.dx + (1 - lo) * 14).toFixed(1) + 'px,' + (y + G.faceY - l.offsetHeight / 2).toFixed(1) + 'px,0)';
+      }
+      sumEl.style.opacity = seg(p, 0.76, 0.84).toFixed(3);
+    }
+    resize();
+    S.add($('score'), { render: render, resize: resize });
+  })();
+
+  /* ── 08 ROTATOR TOOL ──────────────────────────────────── */
   /* Drawn like the "coins against Bitcoin" share card (Daniel, 2026-10-21):
      jagged lines, a soft area under them, faint grid, a dashed start level,
      a value pill riding the tip. The story (Daniel, same day): swap the
