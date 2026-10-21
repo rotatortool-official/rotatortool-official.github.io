@@ -6796,7 +6796,9 @@ a.mob-more-item{text-decoration:none;color:inherit;}
 }
 
 /* ── Coin-window history behind Pro (2026-10-21, _tdProLock) ── */
-.td-pro-lock{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-top:8px;padding:8px 10px;
+/* grid-column: the derivatives history box is a grid, and a lock in one
+   cell wrapped into a tall thin column (Daniel, 2026-10-21). */
+.td-pro-lock{grid-column:1 / -1;width:100%;box-sizing:border-box;display:flex;align-items:center;justify-content:space-between;gap:10px;margin-top:8px;padding:8px 10px;
   border:1px dashed rgba(243,186,47,.45);border-radius:6px;font-size:12px;line-height:1.45;color:var(--muted);background:rgba(243,186,47,.05);}
 .td-pro-lock-btn{flex-shrink:0;font:700 11.5px/1 var(--font-ui);padding:6px 10px;border-radius:5px;border:none;background:var(--amber);color:#000;cursor:pointer;}
 
