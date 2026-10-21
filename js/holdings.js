@@ -764,8 +764,9 @@ function renderSignal(hc) {
    holdingChartAllowed(): 2 free, 10 Pro, same as the holdings count.
 ══════════════════════════════════════════════════════════════════ */
 var _hcCache = {};          /* sym → [{t, v}] oldest first, for this page load */
-var _hcRange = 90;          /* days; 30 / 90 / 182 */
-var _HC_RANGES = [[30, '1M'], [90, '3M'], [182, '6M']];
+var _hcRange = 90;          /* days; 7 / 30 / 90 / 182 */
+/* 1W since 2026-10-21 (Daniel: "add 1 week timeframe also"): 6 daily closes + the live price. */
+var _HC_RANGES = [[7, '1W'], [30, '1M'], [90, '3M'], [182, '6M']];
 var _HC_MON = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
 
 function _tdpHolding(c) {

@@ -104,6 +104,10 @@ function _tdxExpand() {
     if (warn) _tdxSlot('sum').appendChild(warn);
     var rsi = document.getElementById('td-rsi-sec');
     if (rsi) _tdxSlot('mom').appendChild(rsi);
+    /* The coin's name and price head the Price box, so the window needs no
+       header row (Daniel, 2026-10-21). Collapse puts it back with the rest. */
+    var head = panel.querySelector('.tdh'), cbox = document.querySelector('#tdx-dash .tdx-chart');
+    if (head && cbox) cbox.replaceChild(head, cbox.querySelector('.tdx-card-h'));
     var share = panel.querySelector('.td-share-wrap'), bnb = document.getElementById('td-bnb');
     if (share) _tdxSlot('share').appendChild(share);
     if (bnb) _tdxSlot('share').appendChild(bnb);
@@ -283,7 +287,33 @@ function _tdxFill() {
   if (!ev.parentNode) sum.appendChild(ev);
 
   if (!chart.querySelector('#tdx-chart')) chart.innerHTML = '<div class="tdp-chart" id="tdx-chart"></div>';
+  _tdxWatermark(chart);
   tdxRenderChart();
+}
+
+/* The R-and-arrow logo, faint, behind the price chart (Daniel, 2026-10-21),
+   the same mark as the share cards. Set on the box, not the plot, because
+   the plot is drawn again on every 1M / 3M / 6M switch. */
+var _tdxWmUrl = null;   /* { dark, light }: the light theme needs the mark in dark ink to show */
+function _tdxWatermark(el) {
+  var put = function() { el.style.backgroundImage = 'url(' + _tdxWmUrl[document.documentElement.classList.contains('light') ? 'light' : 'dark'] + ')'; };
+  if (_tdxWmUrl) { put(); return; }
+  if (typeof _shareWatermark !== 'function') return;
+  _shareWatermark(function(wm) {
+    if (!wm.mark) return;
+    try {
+      var draw = function(ink, a) {
+        var c = document.createElement('canvas'); c.width = c.height = 256;
+        var x = c.getContext('2d'); x.drawImage(wm.mark, 0, 0, 256, 256);
+        if (ink) { x.globalCompositeOperation = 'source-in'; x.fillStyle = ink; x.fillRect(0, 0, 256, 256); }
+        var o = document.createElement('canvas'); o.width = o.height = 256;
+        var y = o.getContext('2d'); y.globalAlpha = a; y.drawImage(c, 0, 0);
+        return o.toDataURL('image/png');
+      };
+      _tdxWmUrl = { dark: draw(null, 0.1), light: draw('#3c2a0a', 0.08) };
+      put();
+    } catch (e) {}
+  });
 }
 
 /* The board's price chart: any coin, with your average when you hold it. */

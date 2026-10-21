@@ -6759,8 +6759,17 @@ a.mob-more-item{text-decoration:none;color:inherit;}
   .tdx-box .td-section{margin:0;padding:0;border:none;}
   .tdx-box .td-card{margin:0;}
 
-  /* Price: the chart on the left of its box, the scenarios on the right. */
-  .tdx-chart > .tdx-box-b{overflow:hidden;}
+  /* The coin header sits on top of the Price box (js/coin-expand.js), so the
+     window keeps only the close and Smaller buttons above the boxes. */
+  .td-expanded .tdx-chart > .tdh{margin:0 0 8px;padding-right:170px;}
+  /* Smaller and × sit in that header row's right end, over the box. */
+  .tile-detail.td-expanded > .td-close{position:absolute;top:30px;right:34px;margin:0;float:none;}
+  .td-expanded .td-expand{position:absolute;top:30px;right:88px;margin:0;float:none;}
+  .td-expanded .tdx-dash{height:calc(100% - 14px);}
+  /* Price: the chart on the left of its box, the scenarios on the right;
+     the logo faint behind the chart (centred on the chart column). */
+  .tdx-chart > .tdx-box-b{overflow:hidden;background-repeat:no-repeat;background-size:auto 72%;
+    background-position:calc((100% - 336px) / 2 - 60px) 60%;}
   .td-expanded #tdx-chart{display:grid;height:100%;grid-template-columns:minmax(0,1fr) minmax(250px,320px);grid-template-rows:auto minmax(0,1fr) auto;column-gap:16px;}
   .td-expanded #tdx-chart > .tdp-ch-top{grid-column:1;grid-row:1;}
   .td-expanded #tdx-chart > .tdp-plot{grid-column:1;grid-row:2;height:auto;min-height:90px;}
