@@ -6704,3 +6704,125 @@ a.mob-more-item{text-decoration:none;color:inherit;}
   #sec-yours .paper-trades{grid-column:2;grid-row:4;margin:0;min-width:0;align-self:start;}
   #sec-yours .signal-dyor{grid-column:1 / -1;grid-row:5;margin:0;}
 }
+
+/* ── Coin window full screen (Pro, desktop; 2026-10-21) ────────────
+   js/coin-expand.js moves the sections into .tdx-body's three columns.
+   !important beats the inline left/top that _positionPanel() writes. */
+/* Small card: a full-width bar under the price. */
+.td-expand{display:flex;width:100%;justify-content:center;align-items:center;gap:7px;margin:0 0 12px;min-height:40px;padding:0 14px;
+  border-radius:8px;border:1px solid rgba(243,186,47,.45);background:rgba(243,186,47,.12);color:var(--text);font:700 12.5px/1 var(--font-ui);cursor:pointer;}
+/* Full view: pulled up into the header row, beside the ×, and sticky like it. */
+.td-expanded .td-expand{position:sticky;top:0;float:right;z-index:11;width:auto;min-height:44px;border-radius:22px;margin:-76px 54px 0 0;
+  backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px);}
+.td-expand[hidden]{display:none;}
+.td-expand:hover{background:rgba(243,186,47,.22);}
+.td-expand-ico{font-size:15px;line-height:1;}
+:root.light .td-expand{background:rgba(255,255,255,.9);border-color:rgba(184,120,24,.45);}
+.tile-detail-overlay.show.tdx{background:rgba(5,8,12,.62);backdrop-filter:blur(2px);-webkit-backdrop-filter:blur(2px);}
+:root.light .tile-detail-overlay.show.tdx{background:rgba(30,45,60,.35);}
+@media(min-width:1024px){
+  .tile-detail.td-expanded{
+    left:50% !important;top:24px !important;transform:translateX(-50%);
+    width:min(1440px,calc(100vw - 48px)) !important;max-width:none !important;
+    height:calc(100vh - 48px);max-height:calc(100vh - 48px);
+    padding:22px 28px 28px;border-radius:12px;animation:none;
+  }
+  .td-expanded .tdh{padding-right:180px;}
+  .td-expanded .tdh-sym{font-size:24px;}
+  .td-expanded .tdh-price{font-size:26px;}
+  .td-expanded .td-details-lbl{display:none;}
+  .td-expanded .tdx-body{clear:both;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:0 28px;align-items:start;margin-top:6px;}
+  .td-expanded .tdx-col{min-width:0;display:flex;flex-direction:column;}
+  .td-expanded .tdx-col + .tdx-col{border-left:1px solid var(--bdr);padding-left:28px;}
+  .td-expanded .tdx-col > .td-section{margin-bottom:18px;}
+  /* Open folds read as plain section titles, no fold arrow. */
+  .td-expanded details.td-fold > summary{pointer-events:none;list-style:none;}
+  .td-expanded details.td-fold > summary::-webkit-details-marker{display:none;}
+  .td-expanded details.td-fold > summary::before{display:none;}
+  .td-expanded .tdp-plot{height:170px;}
+}
+@media(min-width:1024px) and (max-width:1279px){
+  .td-expanded .tdx-body{gap:0 20px;}
+  .td-expanded .tdx-col + .tdx-col{padding-left:20px;}
+}
+
+/* ── Full breakdown board (2026-10-21) ─────────────────────────────
+   _tdxBoard() in js/coin-expand.js: price | evaluation, then pointing up
+   | pointing down. Free users see the button as "Full breakdown · PRO". */
+.td-expand.td-expand-lock{border-color:rgba(243,186,47,.6);}
+.td-expand-pro{font:800 10px/1 var(--font-ui);letter-spacing:.06em;padding:3px 6px;border-radius:4px;background:var(--amber);color:#000;margin-left:2px;}
+@media(min-width:1024px){
+  .td-expanded .tdx-board{clear:both;margin:4px 0 20px;display:flex;flex-direction:column;gap:14px;}
+  .td-expanded .tdx-row1{display:grid;grid-template-columns:minmax(0,1.7fr) minmax(300px,1fr);gap:14px;}
+  .td-expanded .tdx-row2{display:grid;grid-template-columns:1fr 1fr;gap:14px;align-items:start;}
+  .tdx-card{background:var(--bg3);border:1px solid var(--bdr);border-radius:10px;padding:14px 16px;min-width:0;}
+  .tdx-card-h{display:flex;align-items:center;gap:8px;font:700 11px/1.2 var(--font-ui);letter-spacing:.14em;text-transform:uppercase;color:var(--muted);margin-bottom:10px;}
+  .td-expanded .tdx-chart-card .tdp-plot{height:220px;}
+  .tdx-eval-top{display:flex;align-items:baseline;gap:6px;flex-wrap:wrap;margin-bottom:8px;}
+  .tdx-eval-score{font:800 44px/1 var(--font-mono);}
+  .tdx-eval-of{font:600 13px/1 var(--font-mono);color:var(--muted);}
+  .tdx-eval-st{margin-left:auto;font:700 11px/1 var(--font-ui);letter-spacing:.06em;text-transform:uppercase;padding:6px 9px;border-radius:12px;border:1px solid var(--bdr);color:var(--text);}
+  .tdx-eval-st.ahead{color:var(--green);border-color:rgba(0,200,150,.35);}
+  .tdx-eval-st.lagging{color:var(--red);border-color:rgba(239,68,68,.35);}
+  .tdx-eval-head{font:700 14px/1.35 var(--font-ui);color:var(--text);margin-bottom:4px;}
+  .tdx-eval-sub{font-size:13px;line-height:1.5;color:var(--muted);margin-bottom:12px;}
+  .tdx-bal{display:flex;height:8px;border-radius:5px;overflow:hidden;background:var(--bg2);gap:2px;}
+  .tdx-bal-g{background:var(--green);} .tdx-bal-b{background:var(--red);}
+  .tdx-bal-g[style*="width:0%"],.tdx-bal-b[style*="width:0%"]{display:none;}
+  .tdx-bal-n{display:flex;justify-content:space-between;font:600 12px/1.4 var(--font-ui);margin-top:6px;}
+  .tdx-bal-n .up{color:var(--green);} .tdx-bal-n .dn{color:var(--red);}
+  .tdx-verdict{font:700 13.5px/1.4 var(--font-ui);color:var(--text);margin-top:12px;}
+  .tdx-neutral{font-size:12px;line-height:1.5;color:var(--muted);margin-top:6px;}
+  .tdx-note{font-size:11.5px;color:var(--muted);margin-top:10px;padding-top:8px;border-top:1px solid var(--bdr);}
+  .tdx-list.tdx-good{border-top:3px solid var(--green);}
+  .tdx-list.tdx-bad{border-top:3px solid var(--red);}
+  .tdx-good .tdx-card-h{color:var(--green);} .tdx-bad .tdx-card-h{color:var(--red);}
+  .tdx-count{font-family:var(--font-mono);font-size:11px;padding:2px 7px;border-radius:9px;background:var(--bg2);color:var(--text);letter-spacing:0;}
+  .tdx-list > * + *{margin-top:6px;}
+  .tdx-fact{display:flex;justify-content:space-between;gap:10px;align-items:baseline;padding:8px 10px;border-radius:6px;background:var(--bg2);}
+  .tdx-good .tdx-fact{border-left:3px solid var(--green);} .tdx-bad .tdx-fact{border-left:3px solid var(--red);}
+  .tdx-fact-t{font:600 13px/1.35 var(--font-ui);color:var(--text);min-width:0;}
+  .tdx-fact-s{font-size:11.5px;color:var(--muted);white-space:nowrap;flex-shrink:0;}
+  .tdx-empty{font-size:12.5px;color:var(--muted);padding:6px 0;}
+  /* What the board replaces, hidden while expanded so nothing shows twice. */
+  .td-expanded #td-turns-sec,
+  .td-expanded #td-reading > .td-reading,
+  .td-expanded #td-score-sec > .td-section-title,
+  .td-expanded #td-score-sec .td-score-wrap,
+  .td-expanded #td-insight-content .signal-tile-grid,
+  .td-expanded #tdp-chart{display:none !important;}
+  :root.light .tdx-card{background:rgba(255,255,255,.7);}
+  :root.light .tdx-fact,:root.light .tdx-count,:root.light .tdx-bal{background:rgba(240,235,220,.7);}
+}
+
+/* ── Coin-window history behind Pro (2026-10-21, _tdProLock) ── */
+.td-pro-lock{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-top:8px;padding:8px 10px;
+  border:1px dashed rgba(243,186,47,.45);border-radius:6px;font-size:12px;line-height:1.45;color:var(--muted);background:rgba(243,186,47,.05);}
+.td-pro-lock-btn{flex-shrink:0;font:700 11.5px/1 var(--font-ui);padding:6px 10px;border-radius:5px;border:none;background:var(--amber);color:#000;cursor:pointer;}
+
+/* ── Scenarios on the breakdown chart (Pro, 2026-10-21, _hcScn) ── */
+.tdp-tgt{stroke:var(--text);stroke-width:1.3;stroke-dasharray:2 3;opacity:.75;}
+.tdp-navg{stroke:var(--green);stroke-width:1.3;stroke-dasharray:6 4;}
+.tdp-tgt-h{position:absolute;left:50%;transform:translate(-50%,-50%);display:inline-flex;align-items:center;gap:4px;padding:5px 10px;border-radius:14px;
+  background:var(--text);color:var(--bg);font:600 11px/1 var(--font-ui);cursor:ns-resize;touch-action:none;user-select:none;box-shadow:0 2px 8px rgba(0,0,0,.3);z-index:2;}
+.tdp-tgt-h b{font-family:var(--font-mono);}
+.tdp-tgt-h.drag{transform:translate(-50%,-50%) scale(1.06);}
+.tdp-navg-lbl{position:absolute;left:0;transform:translateY(-120%);font:700 10.5px/1 var(--font-mono);color:var(--green);background:var(--bg2);padding:2px 5px;border-radius:4px;white-space:nowrap;pointer-events:none;}
+.tdp-navg-lbl span{font-family:var(--font-ui);font-weight:600;}
+.tdp-scn{margin-top:12px;padding-top:10px;border-top:1px solid var(--bdr);display:flex;flex-direction:column;gap:8px;}
+.tdp-scn-row{display:flex;align-items:center;gap:6px;flex-wrap:wrap;}
+.tdp-scn-k{font:700 11px/1.2 var(--font-ui);letter-spacing:.06em;text-transform:uppercase;color:var(--muted);min-width:170px;}
+.tdp-scn input{width:120px;padding:6px 8px;background:var(--bg);border:1px solid var(--bdr);border-radius:5px;color:var(--text);font:500 12.5px/1 var(--font-mono);}
+.tdp-scn-at{font-size:12px;color:var(--muted);}
+.tdp-mvs{display:flex;gap:4px;flex-wrap:wrap;}
+.tdp-mv,.tdp-scn-clear{font:700 11px/1 var(--font-mono);padding:6px 8px;border-radius:5px;border:1px solid var(--bdr);background:transparent;color:var(--muted);cursor:pointer;}
+.tdp-mv.on{color:var(--text);border-color:var(--amber);background:var(--bg2);}
+.tdp-scn-clear{font-family:var(--font-ui);margin-left:auto;}
+.tdp-scn-out{display:flex;flex-direction:column;gap:4px;font-size:13px;line-height:1.5;color:var(--text);padding:8px 10px;border-radius:6px;background:var(--bg2);}
+.tdp-scn-out b{font-family:var(--font-mono);}
+.tdp-scn-out .up{color:var(--green);} .tdp-scn-out .dn{color:var(--red);}
+.tdp-scn-out span{color:var(--muted);}
+.tdp-scn-note{font-size:11px;color:var(--muted);}
+:root.light .tdp-navg-lbl{background:rgba(255,253,247,.92);color:#047857;}
+:root.light .tdp-scn input{background:#fff;}
+:root.light .tdp-scn-out{background:rgba(240,235,220,.7);}

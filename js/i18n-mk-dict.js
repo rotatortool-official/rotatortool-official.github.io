@@ -1924,3 +1924,57 @@ Object.assign(MK_TEXT, {
   P(/^You are up (\d+)% on your average\.$/, function (m) { return 'Во добивка сте ' + m[1] + '% над вашиот просек.'; });
   P(/^Compare (\S+) in the Rotator Tool →$/, function (m) { return 'Споредете ја ' + m[1] + ' во Rotator Tool →'; });
 })();
+/* Coin window full screen (2026-10-21) */
+Object.assign(MK_TEXT, {
+  'Expand': 'Прошири', 'Smaller': 'Помало',
+  'Show this coin full screen': 'Прикажи ја монетата на цел екран', 'Back to the small window': 'Назад на малиот прозорец'
+});
+/* Full breakdown board (2026-10-21) */
+Object.assign(MK_TEXT, {
+  'Full breakdown': 'Целосна анализа',
+  'The whole coin on one screen: chart, evaluation, and what points up and down. With Pro.': 'Целата монета на еден екран: графикон, оценка и што покажува нагоре и надолу. Со Pro.',
+  'Evaluation': 'Оценка', 'Price': 'Цена', 'Pointing up': 'Покажува нагоре', 'Pointing down': 'Покажува надолу',
+  'pointing up': 'нагоре', 'pointing down': 'надолу', 'Neutral:': 'Неутрално:',
+  'Ran ahead this week': 'Истрча напред оваа недела', 'Lagged this week': 'Заостана оваа недела', 'Middle of the pack': 'Во средината',
+  'More points for it than against it right now.': 'Моментално има повеќе работи за неа отколку против неа.',
+  'More points against it than for it right now.': 'Моментално има повеќе работи против неа отколку за неа.',
+  'The points for and against are about even.': 'Работите за и против се приближно еднакви.',
+  'Nothing points clearly either way right now.': 'Моментално ништо не покажува јасно ни на едната ни на другата страна.',
+  'A reading of the past, not a forecast.': 'Читање на минатото, не прогноза.',
+  'Nothing pointing up right now.': 'Моментално ништо не покажува нагоре.', 'Nothing pointing down right now.': 'Моментално ништо не покажува надолу.',
+  'Exchange or unlock warning': 'Предупредување од берзата или за отклучување',
+  'A stablecoin holds its price, so there is no chart.': 'Стејблкоинот ја задржува цената, па нема графикон.'
+});
+(function () {
+  var P = function (re, fn) { MK_PATTERNS.push([re, fn]); };
+  var D = { '7-day rank': 'Место за 7 дена', '14-day rank': 'Место за 14 дена', '30-day rank': 'Место за 30 дена' };
+  P(/^(7-day rank|14-day rank|30-day rank) #(\d+)$/, function (m) { return D[m[1]] + ' #' + m[2]; });
+  P(/^top (\d+)% of (\d+) coins$/, function (m) { return 'меѓу првите ' + m[1] + '% од ' + m[2] + ' монети'; });
+})();
+Object.assign(MK_TEXT, {
+  'See the full breakdown': 'Видете ја целосната анализа', 'Open the full breakdown': 'Отворете ја целосната анализа'
+});
+Object.assign(MK_TEXT, {
+  'Full coin breakdown on one screen (desktop), with price scenarios': 'Целосна анализа на монетата на еден екран (компјутер), со сценарија за цената'
+});
+/* Coin-window history behind Pro, and chart scenarios (2026-10-21) */
+Object.assign(MK_TEXT, {
+  'The last 7 days of volume are part of Pro.': 'Прометот за последните 7 дена е дел од Pro.',
+  'Open interest, funding and long/short history are part of Pro.': 'Историјата на отворени позиции, финансирање и долги/кратки е дел од Pro.',
+  'The RSI line over time is part of Pro.': 'Линијата на RSI низ времето е дел од Pro.',
+  'The dated events, with their readings, are part of Pro.': 'Настаните со датуми и нивните читања се дел од Pro.',
+  'Coin history: RSI, open interest, funding and events': 'Историја на монетата: RSI, отворени позиции, финансирање и настани',
+  'What if the price goes to': 'Што ако цената стигне до', 'Try a buy': 'Пробајте купување', 'at': 'по',
+  'Clear': 'Исчисти', 'New average': 'Нов просек', 'What if': 'Што ако', 'Drag up or down': 'Повлечете нагоре или надолу',
+  'vs your average.': 'наспроти вашиот просек.', 'at this price.': 'по оваа цена.',
+  'A sandbox: nothing here is saved or sent anywhere.': 'Само за проба: ништо тука не се зачувува и не се праќа никаде.',
+  'Test price': 'Цена за проба', 'Amount to buy': 'Количина за купување', 'Buy price': 'Цена на купување'
+});
+(function () {
+  var P = function (re, fn) { MK_PATTERNS.push([re, fn]); };
+  P(/^(\d+) technical events? in the last (\d+) days\.$/, function (m) { return m[1] + (m[1] === '1' ? ' технички настан' : ' технички настани') + ' во последните ' + m[2] + ' дена.'; });
+  P(/^If (\S+) goes to (\S+)$/, function (m) { return 'Ако ' + m[1] + ' стигне до ' + m[2]; });
+  P(/^\(([+−\-]?[\d.,]+)% from now\)$/, function (m) { return '(' + m[1] + '% од сега)'; });
+  P(/^Your (\S+) (\S+) would be worth$/, function (m) { return 'Вашите ' + m[1] + ' ' + m[2] + ' би вределе'; });
+  P(/^With a buy of (\S+) at (\S+):$/, function (m) { return 'Со купување од ' + m[1] + ' по ' + m[2] + ':'; });
+})();

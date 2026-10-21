@@ -826,7 +826,10 @@ function _hcLoad(sym) {
 
 function setHoldingChartRange(days) {
   _hcRange = days;
-  if (typeof _tdCoin !== 'undefined' && _tdCoin) _renderHoldingChart(_tdCoin);
+  if (typeof _tdCoin !== 'undefined' && _tdCoin) {
+    if (_tdpHolding(_tdCoin)) _renderHoldingChart(_tdCoin);
+    if (typeof tdxRenderChart === 'function') tdxRenderChart();
+  }
 }
 
 function _drawHoldingChart(box, c, rows) {
@@ -842,8 +845,12 @@ function _drawHoldingChart(box, c, rows) {
   var h = _tdpHolding(c), avg = h && Number(h.avg) > 0 ? Number(h.avg) : null;
   var vals = pts.map(function(p) { return p.v; });
   var vLo = Math.min.apply(null, vals), vHi = Math.max.apply(null, vals);
-  /* The average is always in view: it is the line the chart is for. */
-  var lo = avg ? Math.min(vLo, avg) : vLo, hi = avg ? Math.max(vHi, avg) : vHi;
+  /* Scenarios: the board chart, for Pro (see _hcScn below). */
+  var scn = _hcScnFor(box, c), navg = scn ? _hcScnAvg(c, h, scn) : null;
+  /* The average is always in view: it is the line the chart is for. So are
+     a scenario's price and new average. */
+  var keep = [vLo, vHi].concat(avg ? [avg] : [], scn ? [scn.t] : [], navg ? [navg] : []);
+  var lo = Math.min.apply(null, keep), hi = Math.max.apply(null, keep);
   var pad = (hi - lo) * 0.08 || hi * 0.02;
   lo -= pad; hi += pad;
   var W = 300, H = 100;
@@ -851,35 +858,45 @@ function _drawHoldingChart(box, c, rows) {
   var Y = function(v) { return H - ((v - lo) / (hi - lo)) * H; };
   var line = pts.map(function(p, i) { return (i ? 'L' : 'M') + X(i).toFixed(1) + ' ' + Y(p.v).toFixed(1); }).join(' ');
   var chg = (pts[pts.length - 1].v / pts[0].v - 1) * 100;
-  /* The coin's own colour, the same as its tile and its line in Yours. */
-  var col = holdingColor(h).v;
+  /* The coin's own colour, the same as its tile and its line in Yours;
+     a coin you do not hold is drawn in the first hue. */
+  var col = h ? holdingColor(h).v : 'var(--hc0)';
   var tabs = _HC_RANGES.map(function(r) {
     return '<button type="button" class="tdp-rng' + (r[0] === _hcRange ? ' on' : '') + '" onclick="setHoldingChartRange(' + r[0] + ')">' + r[1] + '</button>';
   }).join('');
   /* Can be less than the range asked for: the table starts 2026-04-20. */
   var spanDays = Math.round((pts[pts.length - 1].t - pts[0].t) / 864e5);
   box.innerHTML =
-      '<div class="tdp-ch-top"><span class="tdp-read" id="tdp-read">'
+      '<div class="tdp-ch-top"><span class="tdp-read">'
       + '<b class="' + (chg >= 0 ? 'up' : 'dn') + '">' + (chg >= 0 ? '+' : '') + chg.toFixed(1) + '%</b> '
       + '<span>in ' + spanDays + ' days</span></span>'
       + '<span class="tdp-rngs">' + tabs + '</span></div>'
-    + '<div class="tdp-plot" id="tdp-plot">'
+    + '<div class="tdp-plot">'
       + '<svg viewBox="0 0 ' + W + ' ' + H + '" preserveAspectRatio="none" role="img" aria-label="' + c.sym + ' price, last ' + spanDays + ' days">'
         + '<path d="' + line + ' L' + W + ' ' + H + ' L0 ' + H + ' Z" fill="' + col + '" fill-opacity=".09" stroke="none"/>'
         + '<path d="' + line + '" fill="none" stroke="' + col + '" stroke-width="1.6" vector-effect="non-scaling-stroke" stroke-linejoin="round"/>'
         + (avg ? '<line class="tdp-avg" x1="0" x2="' + W + '" y1="' + Y(avg).toFixed(1) + '" y2="' + Y(avg).toFixed(1) + '" vector-effect="non-scaling-stroke"/>' : '')
+        + (navg ? '<line class="tdp-navg" x1="0" x2="' + W + '" y1="' + Y(navg).toFixed(1) + '" y2="' + Y(navg).toFixed(1) + '" vector-effect="non-scaling-stroke"/>' : '')
+        + (scn ? '<line class="tdp-tgt" x1="0" x2="' + W + '" y1="' + Y(scn.t).toFixed(1) + '" y2="' + Y(scn.t).toFixed(1) + '" vector-effect="non-scaling-stroke"/>' : '')
       + '</svg>'
+      + (navg ? '<span class="tdp-navg-lbl" style="top:' + (Y(navg) / H * 100).toFixed(1) + '%"><span>New average</span> ' + fmtP(navg) + '</span>' : '')
+      + (scn ? '<span class="tdp-tgt-h" title="Drag up or down" style="top:' + (Y(scn.t) / H * 100).toFixed(1) + '%">⇕ <span>What if</span> <b>' + fmtP(scn.t) + '</b></span>' : '')
       + (avg ? '<span class="tdp-avg-lbl' + (Y(avg) / H < 0.2 ? ' below' : '') + '" style="top:' + (Y(avg) / H * 100).toFixed(1) + '%"><span>Your average</span> ' + fmtP(avg) + '</span>' : '')
       + '<span class="tdp-hi">' + fmtP(vHi) + '</span>'
       + '<span class="tdp-lo">' + fmtP(vLo) + '</span>'
-      + '<i class="tdp-dot" id="tdp-dot" hidden></i>'
+      + '<i class="tdp-dot" hidden></i>'
     + '</div>'
-    + '<div class="tdp-ch-foot"><span>' + _hcDay(pts[0].t) + '</span><span>Now</span></div>';
+    + '<div class="tdp-ch-foot"><span>' + _hcDay(pts[0].t) + '</span><span>Now</span></div>'
+    + (scn ? _hcScnPanel(c, h, scn) : '');
+  if (scn) _hcScnWire(box, c, h, scn, rows, lo, hi, H, Y);
 
   /* Point and read: the day and close under the finger or cursor. */
-  var plot = document.getElementById('tdp-plot'), read = document.getElementById('tdp-read'), dot = document.getElementById('tdp-dot');
+  /* Found inside this box, not by id: the full-screen coin view draws a
+     second chart on the same page (js/coin-expand.js). */
+  var plot = box.querySelector('.tdp-plot'), read = box.querySelector('.tdp-read'), dot = box.querySelector('.tdp-dot');
   var rest = read.innerHTML;
   var show = function(e) {
+    if (box._hcDragging) return;
     var r = plot.getBoundingClientRect();
     var f = Math.max(0, Math.min(1, (e.clientX - r.left) / r.width));
     var i = Math.round(f * (pts.length - 1)), p = pts[i];
@@ -893,6 +910,105 @@ function _drawHoldingChart(box, c, rows) {
   plot.addEventListener('pointermove', show);
   plot.addEventListener('pointerdown', show);
   plot.addEventListener('pointerleave', function() { dot.hidden = true; read.innerHTML = rest; });
+}
+
+/* ── Scenarios on the chart (Pro, the full breakdown; 2026-10-21) ──
+   "What if the price goes here": a line you drag up or down (or set with
+   the moves under the chart), and what your coins would be worth there.
+   "Try a buy": an amount and price, drawn as the new average it would
+   give, and what the position would be worth at the tested price. It all
+   goes through mergeBuy() and holdingPL(), the same arithmetic as the
+   real holding, and NOTHING is saved: it is a sandbox. Kept per coin for
+   this page load. */
+var _hcScn = {};
+var _HC_MOVES = [-20, -10, 0, 10, 25, 50];
+function _hcScnFor(box, c) {
+  if (!box || box.id !== 'tdx-chart' || typeof isPro === 'undefined' || !isPro || !(c.price > 0)) return null;
+  return _hcScn[c.sym] || (_hcScn[c.sym] = { t: c.price, bq: '', bp: '' });
+}
+function _hcScnAvg(c, h, s) {
+  var bq = parseFloat(s.bq);
+  if (!(bq > 0)) return null;
+  var bp = parseFloat(s.bp) > 0 ? parseFloat(s.bp) : c.price;
+  return mergeBuy(h || {}, bq, bp).avg;
+}
+function _hcScnRead(c, h, s) {
+  var t = Number(s.t), mv = (t / c.price - 1) * 100, sg = function(v) { return v >= 0 ? '+' : ''; };
+  var out = '<div class="tdp-scn-l"><b>If ' + c.sym + ' goes to ' + fmtP(t) + '</b> '
+    + '<span class="' + (mv >= 0 ? 'up' : 'dn') + '">(' + sg(mv) + mv.toFixed(1) + '% from now)</span></div>';
+  if (h && h.qty > 0) {
+    var pl = holdingPL(t, h.qty, h.avg);
+    out += '<div class="tdp-scn-l"><span>Your ' + _hcQty(h.qty) + ' ' + c.sym + ' would be worth</span> <b>' + fmtP(h.qty * t) + '</b>'
+      + (pl ? ' <b class="' + pl.dir + '">' + pl.text + '</b> <span>vs your average.</span>' : '') + '</div>';
+  }
+  var bq = parseFloat(s.bq);
+  if (bq > 0) {
+    var bp = parseFloat(s.bp) > 0 ? parseFloat(s.bp) : c.price;
+    var m = mergeBuy(h || {}, bq, bp), pl2 = holdingPL(t, m.qty, m.avg);
+    out += '<div class="tdp-scn-l"><span>With a buy of ' + _hcQty(bq) + ' at ' + fmtP(bp) + ':</span> <b>' + _hcQty(m.qty) + ' ' + c.sym + '</b>'
+      + ' <span>at an average of</span> <b>' + fmtP(m.avg) + '</b>'
+      + (pl2 ? ' <b class="' + pl2.dir + '">' + pl2.text + '</b> <span>at this price.</span>' : '') + '</div>';
+  }
+  return out;
+}
+function _hcScnPanel(c, h, s) {
+  var chips = _HC_MOVES.map(function(m) {
+    var t = c.price * (1 + m / 100), on = Math.abs(Number(s.t) / t - 1) < 0.001;
+    return '<button type="button" class="tdp-mv' + (on ? ' on' : '') + '" data-mv="' + m + '">' + (m === 0 ? 'now' : (m > 0 ? '+' : '') + m + '%') + '</button>';
+  }).join('');
+  return '<div class="tdp-scn">'
+    + '<div class="tdp-scn-row"><span class="tdp-scn-k">What if the price goes to</span>'
+      + '<input type="number" class="tdp-scn-t" step="any" min="0" aria-label="Test price" value="' + (+Number(s.t).toPrecision(8)) + '">'
+      + '<span class="tdp-mvs">' + chips + '</span></div>'
+    + '<div class="tdp-scn-row"><span class="tdp-scn-k">Try a buy</span>'
+      + '<input type="number" class="tdp-scn-bq" step="any" min="0" placeholder="Amount" aria-label="Amount to buy" value="' + _hpEsc(s.bq) + '">'
+      + '<span class="tdp-scn-at">at</span>'
+      + '<input type="number" class="tdp-scn-bp" step="any" min="0" placeholder="' + (+Number(c.price).toPrecision(8)) + '" aria-label="Buy price" value="' + _hpEsc(s.bp) + '">'
+      + '<button type="button" class="tdp-scn-clear">Clear</button></div>'
+    + '<div class="tdp-scn-out">' + _hcScnRead(c, h, s) + '</div>'
+    + '<div class="tdp-scn-note">A sandbox: nothing here is saved or sent anywhere.</div>'
+    + '</div>';
+}
+function _hcScnWire(box, c, h, s, rows, lo, hi, H, Y) {
+  var plot = box.querySelector('.tdp-plot'), handle = box.querySelector('.tdp-tgt-h'), line = box.querySelector('.tdp-tgt');
+  var out = box.querySelector('.tdp-scn-out'), tIn = box.querySelector('.tdp-scn-t');
+  var redraw = function() { _drawHoldingChart(box, c, rows); };
+  var live = function() {   /* readout and lines, without a full redraw */
+    out.innerHTML = _hcScnRead(c, h, s);
+    var y = Y(Math.max(lo, Math.min(hi, s.t)));
+    line.setAttribute('y1', y.toFixed(1)); line.setAttribute('y2', y.toFixed(1));
+    handle.style.top = (y / H * 100).toFixed(1) + '%';
+    handle.querySelector('b').textContent = fmtP(s.t);
+  };
+  /* Drag the line: the price follows the pointer inside the chart's
+     range; the chips and the box above reach beyond it. */
+  handle.addEventListener('pointerdown', function(e) {
+    e.preventDefault(); e.stopPropagation();
+    box._hcDragging = true; handle.classList.add('drag');
+    try { handle.setPointerCapture(e.pointerId); } catch (x) {}
+  });
+  handle.addEventListener('pointermove', function(e) {
+    if (!box._hcDragging) return;
+    var r = plot.getBoundingClientRect();
+    var f = Math.max(0, Math.min(1, (e.clientY - r.top) / r.height));
+    s.t = +(hi - f * (hi - lo)).toPrecision(6);
+    tIn.value = s.t;
+    live();
+  });
+  var drop = function() { if (!box._hcDragging) return; box._hcDragging = false; redraw(); };
+  handle.addEventListener('pointerup', drop);
+  handle.addEventListener('pointercancel', drop);
+  box.querySelectorAll('.tdp-mv').forEach(function(b) {
+    b.addEventListener('click', function() { s.t = +(c.price * (1 + Number(b.getAttribute('data-mv')) / 100)).toPrecision(6); redraw(); });
+  });
+  tIn.addEventListener('input', function() { var v = parseFloat(tIn.value); if (v > 0) { s.t = v; live(); } });
+  tIn.addEventListener('change', redraw);
+  ['bq', 'bp'].forEach(function(k) {
+    var el = box.querySelector('.tdp-scn-' + k);
+    el.addEventListener('input', function() { s[k] = el.value; out.innerHTML = _hcScnRead(c, h, s); });
+    el.addEventListener('change', redraw);
+  });
+  box.querySelector('.tdp-scn-clear').addEventListener('click', function() { s.t = c.price; s.bq = ''; s.bp = ''; redraw(); });
 }
 
 /* What the next buy would make of the position, under the inputs. */

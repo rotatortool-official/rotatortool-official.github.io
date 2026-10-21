@@ -417,6 +417,11 @@
   <!-- Accent bar that changes color by score -->
   <div id="td-accent-bar" style="height:2px;margin:-2px -2px 12px -2px;border-radius:0;transition:background .3s;"></div>
 
+  <!-- Full breakdown (2026-10-21, js/coin-expand.js): desktop only. A bar
+       under the price in the small card (free: opens the Pro window; Pro:
+       opens the full-screen view); "Smaller" at the top right of that view. -->
+  <button type="button" class="td-expand" id="td-expand" onclick="tdToggleExpand()" hidden><span class="td-expand-ico" aria-hidden="true">⤢</span> <span class="td-expand-lbl">Expand</span></button>
+
   <!-- ═══ Redesigned 2026-09-26 (promptove/67) ═══════════════════════════
        The window reads top-down to a conclusion instead of making the
        reader assemble one from thirteen sections:
@@ -447,7 +452,7 @@
   </div>
 
   <!-- Score: the number and the 7/14/30D ranks. -->
-  <div class="td-section">
+  <div class="td-section" id="td-score-sec">
     <div class="td-section-title">Score</div>
     <div class="td-score-wrap">
       <div class="td-score-big" id="td-score-num"></div>
@@ -1963,6 +1968,7 @@
   <script src="js/liquidations.js"></script>
   <script src="js/radio.js"></script>
   <script src="js/coin-reading.js"></script>
+  <script src="js/coin-expand.js"></script>
   <script src="js/turn-watch.js"></script>
   <script src="js/paper-trades.js"></script>
   <script src="js/engage.js"></script>

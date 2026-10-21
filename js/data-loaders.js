@@ -4409,6 +4409,11 @@ function _tdVolumeTile(c) {
     + '</div></div>';
 }
 function _tdLoadVolumeDays(sym) {
+  if (!_tdIsPro()) {
+    var lockBox = document.getElementById('td-vol-days');
+    if (lockBox) lockBox.innerHTML = _tdProLock('The last 7 days of volume are part of Pro.');
+    return;
+  }
   if (typeof supaRest !== 'function') return;
   supaRest('binance_daily_klines', 'GET', {
     'base_asset': 'eq.' + sym, 'select': 'open_time,quote_volume',
@@ -4435,6 +4440,32 @@ function _tdLoadVolumeDays(sym) {
             + _volDay(x.d) + ' ' + _volPct(x.r) + '</span>';
         }).join('');
   }).catch(function () {});
+}
+
+/* ── Coin-window history behind Pro (Daniel, 2026-10-21) ─────────
+   Free users keep today's numbers; the HISTORY that costs a database
+   read every time a coin is opened is Pro: the RSI line and daily
+   long/short, open-interest and funding history, the last 7 days of
+   volume, and the dated technical events. This narrows the 2026-10-10
+   "data stays free" rule for these parts only, at Daniel's request, to
+   keep free traffic from loading the database. The line says what is
+   there and opens the Pro window (the coin window closes first, it sits
+   above it). */
+function _tdIsPro() { return typeof isPro !== 'undefined' && !!isPro; }
+function _tdProLock(sentence) {
+  return '<div class="td-pro-lock"><span>🔒 ' + sentence + '</span>'
+    + '<button type="button" class="td-pro-lock-btn" onclick="closeTileDetail();openPro()">See Pro</button></div>';
+}
+
+/* good / bad / neutral for one Insight Engine signal. One copy: the
+   Insight section and the full-screen breakdown (js/coin-expand.js) both
+   ask here. BB Squeeze stays neutral: it says nothing about direction
+   (promptove/75). */
+function insightSignalClass(s) {
+  s = String(s || '');
+  if (s.indexOf('Oversold') >= 0 || s.indexOf('Accumulation') >= 0 || s.indexOf('Hidden Strength') >= 0 || s.indexOf('Cleared') >= 0 || s.indexOf('Extreme Fear') >= 0 || s.indexOf('Outperforming') >= 0 || s.indexOf('Bullish Cross') >= 0 || s.indexOf('MACD Above') >= 0 || s.indexOf('Accelerating') >= 0 || s.indexOf('Recovery') >= 0) return 'good';
+  if (s.indexOf('Overbought') >= 0 || s.indexOf('Dilution') >= 0 || s.indexOf('Greed') >= 0 || s.indexOf('Underperforming') >= 0 || s.indexOf('Low Liquidity') >= 0 || s.indexOf('Bearish Cross') >= 0 || s.indexOf('MACD Below') >= 0 || s.indexOf('Decelerating') >= 0 || s.indexOf('Weakening') >= 0) return 'bad';
+  return 'neutral';
 }
 
 function openTileDetail(coinId, evt) {
@@ -4671,6 +4702,7 @@ function openTileDetail(coinId, evt) {
   function _renderDerivHistory(sym, futSymbol) {
     var box = document.getElementById('td-deriv-hist');
     if (!box || !futSymbol || typeof supaLoadFuturesHistory !== 'function') return;
+    if (!_tdIsPro()) { box.innerHTML = _tdProLock('Open interest, funding and long/short history are part of Pro.'); return; }
     box.innerHTML = '<div class="td-hist-note">Loading history…</div>';
     supaLoadFuturesHistory(futSymbol).then(function(rows) {
       /* The modal may have moved on to another coin while this resolved. */
@@ -4897,6 +4929,11 @@ function openTileDetail(coinId, evt) {
 
       (function(sym) {
         if (typeof supaLoadIndicatorHistory !== 'function') return;
+        if (!_tdIsPro()) {
+          var lockBox = document.getElementById('td-rsi-hist');
+          if (lockBox) lockBox.innerHTML = _tdProLock('The RSI line over time is part of Pro.');
+          return;
+        }
         supaLoadIndicatorHistory(sym).then(function(rows) {
           var box = document.getElementById('td-rsi-hist');
           if (!box || box.getAttribute('data-sym') !== sym) return;   /* modal moved on */
@@ -4951,7 +4988,12 @@ function openTileDetail(coinId, evt) {
         return (quick(b) - quick(a)) || String(b.event_date).localeCompare(String(a.event_date));
       });
       var take = evs.slice(0, 6);
-      evEl.innerHTML = take.map(_eventRow).join('')
+      /* Free: how many, not which (Pro gate, 2026-10-21). */
+      evEl.innerHTML = !_tdIsPro()
+        ? '<div class="td-ev-note">' + evs.length + (evs.length === 1 ? ' technical event' : ' technical events')
+          + ' in the last ' + (typeof EVENT_WINDOW_DAYS !== 'undefined' ? EVENT_WINDOW_DAYS : 3) + ' days.</div>'
+          + _tdProLock('The dated events, with their readings, are part of Pro.')
+        : take.map(_eventRow).join('')
         + (evs.length > take.length
             ? '<div class="td-ev-more">+ ' + (evs.length - take.length) + ' more in the last '
               + (typeof EVENT_WINDOW_DAYS !== 'undefined' ? EVENT_WINDOW_DAYS : 3) + ' days</div>'
@@ -5274,9 +5316,7 @@ function openTileDetail(coinId, evt) {
       if (ins.signals && ins.signals.length) {
         insHtml += '<div class="signal-tile-grid">';
         ins.signals.forEach(function(s) {
-          var cls = 'neutral';
-          if (s.indexOf('Oversold') >= 0 || s.indexOf('Accumulation') >= 0 || s.indexOf('Hidden Strength') >= 0 || s.indexOf('Cleared') >= 0 || s.indexOf('Extreme Fear') >= 0 || s.indexOf('Outperforming') >= 0 || s.indexOf('Bullish Cross') >= 0 || s.indexOf('MACD Above') >= 0 || s.indexOf('Accelerating') >= 0 || s.indexOf('Recovery') >= 0) cls = 'good';   /* BB Squeeze left neutral: it says nothing about direction (promptove/75) */
-          else if (s.indexOf('Overbought') >= 0 || s.indexOf('Dilution') >= 0 || s.indexOf('Greed') >= 0 || s.indexOf('Underperforming') >= 0 || s.indexOf('Low Liquidity') >= 0 || s.indexOf('Bearish Cross') >= 0 || s.indexOf('MACD Below') >= 0 || s.indexOf('Decelerating') >= 0 || s.indexOf('Weakening') >= 0) cls = 'bad';
+          var cls = insightSignalClass(s);
           var icon = cls === 'good' ? '✓' : cls === 'bad' ? '−' : '—';
           var hlCls = cls === 'good' ? ' highlight-good' : cls === 'bad' ? ' highlight-bad' : '';
           insHtml += '<div class="signal-tile' + hlCls + '">'
@@ -5335,6 +5375,8 @@ function openTileDetail(coinId, evt) {
   /* Warnings, the reading and the turn signals at the top (coin-reading.js). */
   if (typeof renderCoinReading === 'function') renderCoinReading(c);
 
+  /* Full-screen view for Pro on desktop (js/coin-expand.js). */
+  if (typeof tdSyncExpand === 'function') tdSyncExpand();
   _positionPanel(panel, evt);
 }
 
