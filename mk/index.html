@@ -259,7 +259,7 @@ h2{font-size:clamp(32px,4.4vw,56px);}
 }
 
 /* ── Hero ── */
-#hero .grid2{grid-template-columns:minmax(0,1fr);align-content:center;justify-items:start;}
+#hero .grid2{grid-template-columns:minmax(0,1fr);align-content:center;justify-items:start;z-index:2;}
 .hero-copy{position:relative;z-index:2;max-width:760px;}
 .hero-sub{font-size:clamp(17px,2vw,21px);color:var(--muted);margin:18px 0 0;max-width:600px;}
 .hero-stats{display:flex;gap:28px;margin-top:26px;font:600 13px/1.3 var(--ui);color:var(--muted);}
@@ -348,6 +348,22 @@ html:is([lang="ar"],[lang="ur"]) :is(.cc-px,.cc-hilo){text-align:left;align-item
 html:is([lang="ar"],[lang="ur"]) .cc-hilo{right:auto;left:0;}
 @media (max-width:600px){ .cc{padding:13px 14px 12px;border-radius:18px;} .cc-hd img{width:36px;height:36px;} .cc-id b,.cc-px b{font-size:16px;} .cc-row{margin-top:8px;padding-top:8px;} .cc-row .cc-lb{font-size:9px;margin-bottom:5px;}
   .cc-chart svg{height:72px;} .cc-tile b{font-size:20px;} .cc-tile>span{font-size:11.5px;} .cc-tiles{gap:0 12px;} #ccUnlock{font-size:12.5px;} #ccUnlock b{font-size:17px;} .cc-sig{font-size:12.5px;} .cc-foot{font-size:12px;} }
+/* "Watch the tour": the English tour video on YouTube (Daniel, 2026-10-21,
+   https://youtu.be/shfXFBE--zI). A thumbnail button in the hero; the
+   YouTube player (privacy-enhanced domain) loads only when clicked. */
+.watch-btn{gap:10px;padding:6px 16px 6px 6px;cursor:pointer;background:var(--bg2);}
+.wt-thumb{position:relative;display:block;width:64px;height:36px;border-radius:8px;overflow:hidden;flex:0 0 auto;background:#000;}
+.wt-thumb img{display:block;width:100%;height:100%;object-fit:cover;}
+.wt-thumb .wt-play{position:absolute;left:50%;top:50%;width:22px;height:22px;margin:-11px 0 0 -11px;border-radius:50%;background:rgba(0,0,0,.6);}
+.wt-thumb .wt-play::after{content:'';position:absolute;left:8.5px;top:6px;border-left:8px solid #fff;border-top:5px solid transparent;border-bottom:5px solid transparent;}
+.wt-len{font:700 11px/1 var(--mono);color:var(--muted);}
+.vid-modal{position:fixed;inset:0;z-index:45;display:flex;align-items:center;justify-content:center;padding:16px;background:rgba(4,6,10,.8);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);}
+.vid-modal[hidden]{display:none;}
+.vm-card{position:relative;width:min(1100px,100%);}
+.vm-frame{position:relative;width:100%;aspect-ratio:16/9;border-radius:16px;overflow:hidden;background:#000;box-shadow:0 30px 80px rgba(0,0,0,.5);}
+.vm-frame iframe{position:absolute;inset:0;width:100%;height:100%;border:0;}
+.vm-x{position:absolute;right:-6px;top:-46px;width:38px;height:38px;border:0;border-radius:50%;background:var(--bg2);color:var(--text);font-size:24px;line-height:1;cursor:pointer;}
+@media (max-width:520px){ .cta-row .watch-btn{padding-right:12px;} }
 /* The end of the tour: Free (the board) or Pro. */
 .tour-end{position:fixed;inset:0;z-index:40;display:flex;align-items:center;justify-content:center;padding:16px;background:rgba(4,6,10,.62);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);animation:teIn .3s ease;}
 .tour-end[hidden]{display:none;}
@@ -754,7 +770,8 @@ document.addEventListener('click', function (e) {
         </div>
         <div class="cta-row" style="display:flex">
           <a class="btn btn-gold" href="../board.html">Влез кон табелите</a>
-          <a class="btn btn-ghost" href="#today">Погледнете како функционира ↓</a>
+          <button type="button" class="btn btn-ghost watch-btn" id="watchTour" data-vid="shfXFBE--zI"><div class="wt-thumb" aria-hidden="true"><img src="https://i.ytimg.com/vi/shfXFBE--zI/mqdefault.jpg" alt="" loading="lazy" width="64" height="36"><div class="wt-play"></div></div><div class="wt-t">Погледнете ја турата</div><div class="wt-len">1:13</div></button>
+          <a class="btn btn-ghost hide-sm" href="#today">Погледнете како функционира ↓</a>
         </div>
       </div>
     </div>
@@ -1032,6 +1049,7 @@ document.addEventListener('click', function (e) {
     <a href="https://t.me/rotatortool" rel="noopener">Telegram</a>
     <a href="https://x.com/RotatorTool" rel="noopener">X</a>
     <a href="https://www.instagram.com/rotatortool/" rel="noopener">Инстаграм</a>
+    <a href="https://www.youtube.com/@RotatorTool" rel="noopener">Јутјуб</a>
     <!-- i18n:langs --><span class="langs" translate="no" style="display:contents"><a href="/" lang="en">English</a><a href="/de/" lang="de">Deutsch</a><a href="/es/" lang="es">Español</a><a href="/tr/" lang="tr">Türkçe</a><a href="/pt/" lang="pt">Português</a><a href="/fr/" lang="fr">Français</a><a href="/ru/" lang="ru">Русский</a><a href="/id/" lang="id">Bahasa Indonesia</a><a href="/zh/" lang="zh-Hans">简体中文</a><a href="/ar/" lang="ar">العربية</a><a href="/hi/" lang="hi">हिन्दी</a><a href="/bn/" lang="bn">বাংলা</a><a href="/ur/" lang="ur">اردو</a><a href="/te/" lang="te">తెలుగు</a><a href="/sw/" lang="sw">Kiswahili</a><a href="/tl/" lang="tl">Tagalog</a><a href="/mk/" lang="mk">Македонски</a></span><!-- /i18n:langs -->
   </nav>
   <p>Читање на пазарот, не финансиски совет.</p>
@@ -1041,6 +1059,9 @@ document.addEventListener('click', function (e) {
 <div class="cue-bar" id="cueBar">
 <button type="button" class="scroll-cue" id="cue" aria-label="Прелистајте до следното поглавје"><i aria-hidden="true"></i><b>СКРОЛАЈ</b><svg viewBox="0 0 12 12" aria-hidden="true"><path d="M2 4l4 4 4-4" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
 <button type="button" class="play-cue" id="play" aria-label="Пушти го турот" aria-pressed="false"><svg class="pl-play" viewBox="0 0 14 14" aria-hidden="true"><path d="M3 1.8v10.4L12 7z" fill="currentColor"/></svg><b class="pl-play">ПУШТИ</b><svg class="pl-pause" viewBox="0 0 14 14" aria-hidden="true"><rect x="2.5" y="2" width="3.2" height="10" rx="1" fill="currentColor"/><rect x="8.3" y="2" width="3.2" height="10" rx="1" fill="currentColor"/></svg><b class="pl-pause">ПАУЗА</b></button>
+</div>
+<div class="vid-modal" id="vidModal" role="dialog" aria-modal="true" aria-label="Видео-турнеја на Rotator" hidden>
+  <div class="vm-card"><button type="button" class="vm-x" id="vidX" aria-label="Затвори">×</button><div class="vm-frame" id="vidFrame"></div></div>
 </div>
 <div class="cc-dim" id="ccDim"></div>
 <div class="cc" id="coinCard" aria-hidden="true">
@@ -1380,6 +1401,18 @@ document.addEventListener('click', function (e) {
   endEl.addEventListener('click', function (e) { if (e.target === endEl) tourHideEnd(); });
   window.addEventListener('keydown', function (e) { if (e.key === 'Escape' && !endEl.hidden) tourHideEnd(); });
   $('tourAgain').addEventListener('click', function () { tourHideEnd(); window.scrollTo(0, 0); tourPlay(); });
+  /* "Watch the tour" video: the player is created on click and removed on
+     close, so nothing from YouTube loads until a visitor asks for it. */
+  var vm = $('vidModal'), vf = $('vidFrame'), wb = $('watchTour');
+  function vidClose() { vm.hidden = true; vf.innerHTML = ''; wb.focus(); }
+  wb.addEventListener('click', function () {
+    if (tour.on) tourPause();
+    vf.innerHTML = '<iframe src="https://www.youtube-nocookie.com/embed/' + wb.getAttribute('data-vid') + '?autoplay=1&rel=0&modestbranding=1&playsinline=1" title="Rotator tour" allow="autoplay; encrypted-media; picture-in-picture; fullscreen" allowfullscreen></iframe>';
+    vm.hidden = false; $('vidX').focus();
+  });
+  $('vidX').addEventListener('click', vidClose);
+  vm.addEventListener('click', function (e) { if (e.target === vm) vidClose(); });
+  window.addEventListener('keydown', function (e) { if (e.key === 'Escape' && !vm.hidden) vidClose(); });
   window.addEventListener('scroll', cueVis, { passive: true });
   window.addEventListener('resize', cueVis);
   cueVis();
