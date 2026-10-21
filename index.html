@@ -43,6 +43,31 @@
     var q = new URLSearchParams(location.search), h = location.hash;
     var own = /^#(hero|today|capital|momentum|liq|yours|coins|tool|record|plans)?$/.test(h);
     if (q.has('coin') || q.has('donate') || (h && !own)) { location.replace('board.html' + location.search + h); return; }
+    /* Language (Daniel, 2026-10-21: "loads default on portuguese if someone
+       from brazil opens it"). On the English page at / only: a pick from the
+       language menu or footer is remembered and wins; without one, the first
+       browser language that has a page here opens it. English, or a language
+       with no page, stays here. The pages come from the hreflang links, so a
+       language added by translate.js joins on its own. */
+    if (/^\/(index\.html)?$/.test(location.pathname)) {
+      var pages = {};
+      Array.prototype.forEach.call(document.querySelectorAll('link[rel="alternate"][hreflang]'), function (l) {
+        var c = l.getAttribute('hreflang').split('-')[0].toLowerCase();
+        if (c !== 'en' && c !== 'x') pages[c] = new URL(l.href).pathname;
+      });
+      var pick = null, want = null;
+      try { pick = localStorage.getItem('rot_home_lang'); } catch (e) {}
+      if (pick) want = pages[pick];
+      else {
+        var nav = navigator.languages && navigator.languages.length ? navigator.languages : [navigator.language || ''];
+        for (var k = 0; k < nav.length; k++) {
+          var c = String(nav[k]).split('-')[0].toLowerCase();
+          if (c === 'en') break;
+          if (pages[c]) { want = pages[c]; break; }
+        }
+      }
+      if (want) { location.replace(want + location.search + h); return; }
+    }
     var carry = new URLSearchParams();
     ['ref', 'utm_source', 'utm_medium', 'utm_campaign'].forEach(function (k) { if (q.get(k)) carry.set(k, q.get(k)); });
     var extra = carry.toString();
@@ -522,6 +547,9 @@ h2{font-size:clamp(32px,4.4vw,56px);}
 /* Close the language menu on a click anywhere else. */
 document.addEventListener('click', function (e) {
   document.querySelectorAll('details.lang-menu[open]').forEach(function (d) { if (!d.contains(e.target)) d.removeAttribute('open'); });
+  /* A language picked by hand is remembered, so / stops choosing for them. */
+  var a = e.target.closest && e.target.closest('.lang-menu a[lang], .langs a[lang]');
+  if (a) try { localStorage.setItem('rot_home_lang', a.getAttribute('lang').split('-')[0].toLowerCase()); } catch (err) {}
 });
 </script>
 
