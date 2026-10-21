@@ -843,6 +843,7 @@ document.addEventListener('click', function (e) {
       </div>
       <div class="vis"><div class="panel" id="tool-vis">
         <div class="tag" style="left:26px;top:20px">Örnek · gerçek fiyatlar değildir</div>
+        <a class="pro-bell" id="proBellSwap" href="../board.html#pro"><div class="pb-bell" aria-hidden="true">🔔</div><span class="pb-t">Pro ile <strong>takas için en uygun zamanı bildiren</strong> uyarıları alın</span></a>
       </div></div>
     </div>
   </div>
@@ -1163,6 +1164,14 @@ document.addEventListener('click', function (e) {
      second slower"). The scene keeps its height, so scrolling by hand is
      unchanged. */
   var TOUR_EXTRA = { today: 2 };
+  /* Seconds the tour waits on a scene's last picture before it jumps on
+     (Daniel, 2026-10-21: the bell "needs to stay one more second"). */
+  var TOUR_HOLD = { yours: 1, tool: 1 };
+  function tourScene(y) {
+    var id = null;
+    stops.forEach(function (x) { if (x.el.offsetTop <= y + 1) id = x.el.id; });
+    return id;
+  }
   function tourSpeed(y) {
     var vh = innerHeight;
     for (var k = 0; k < stops.length - 1; k++) {
@@ -1171,7 +1180,7 @@ document.addEventListener('click', function (e) {
     }
     return TOUR_SPEED;
   }
-  var tour = { on: false, started: false, gliding: false, raf: 0, y: 0, t: 0 };
+  var tour = { on: false, started: false, gliding: false, raf: 0, y: 0, t: 0, held: null, holdUntil: 0 };
   /* The next section top if y sits in the slide-in screen before it. */
   function tourHop(y) {
     var vh = innerHeight, ends = stops.map(function (x) { return x.el.offsetTop; }).concat(plansEl.offsetTop);
@@ -1196,7 +1205,12 @@ document.addEventListener('click', function (e) {
     /* The visitor dragged the scrollbar: let them have the page. */
     if (Math.abs(scrollY - tour.y) > 60) { tourPause(); return; }
     var hop = tourHop(tour.y);
-    if (hop >= 0) { tour.gliding = true; glide(hop); tour.raf = requestAnimationFrame(tourStep); return; }
+    if (hop >= 0) {
+      var sid = tourScene(tour.y);
+      if (TOUR_HOLD[sid] && tour.held !== sid) { tour.held = sid; tour.holdUntil = now + TOUR_HOLD[sid] * 1000; }
+      if (now < tour.holdUntil) { tour.t = now; tour.raf = requestAnimationFrame(tourStep); return; }
+      tour.gliding = true; glide(hop); tour.raf = requestAnimationFrame(tourStep); return;
+    }
     var dt = Math.min(200, now - tour.t), end = tourStopY();
     tour.t = now;
     tour.y = Math.min(end, tour.y + innerHeight * tourSpeed(tour.y) * dt / 1000);
@@ -1207,7 +1221,7 @@ document.addEventListener('click', function (e) {
   function tourPlay() {
     stopGlide();
     if (scrollY >= tourStopY() - 2) window.scrollTo(0, 0);
-    tour.on = true; tour.started = true; tour.y = scrollY; tour.t = performance.now();
+    tour.on = true; tour.started = true; tour.y = scrollY; tour.t = performance.now(); tour.held = null;
     tourUi();
     tour.raf = requestAnimationFrame(tourStep);
   }
@@ -2033,6 +2047,7 @@ document.addEventListener('click', function (e) {
     var pill = document.createElement('div'); pill.className = 'sw-pill'; vis.appendChild(pill);
     var best = document.createElement('div'); best.className = 'sw-best'; best.textContent = 'Takas yapmak için en uygun zaman'; vis.appendChild(best);
     var svgNS = 'http://www.w3.org/2000/svg', sv = document.createElementNS(svgNS, 'svg'); sv.setAttribute('class', 'swap-svg'); vis.appendChild(sv);
+    var pbEl = $('proBellSwap');
     var W, H, phone, ch, base, posA, posB, LO = 84, HI = 166;
     function X(t) { return ch.x + t * ch.w; }
     function Y(v) { return ch.y + ch.h - (v - LO) / (HI - LO) * ch.h; }
@@ -2102,6 +2117,12 @@ document.addEventListener('click', function (e) {
       if (kept > 0.05) extra += '<span class="alt">Takas yapılmadı: $' + Math.round(Bv(t)) + '</span>';
       if (alt > 0.05) extra += '<span>Eğer A tekrar düşüşe geçseydi: $' + Math.round(Aalt(1)) + '</span>';
       wal.innerHTML = '<small>Elinizde</small><b>' + held + ' · $' + Math.round(v) + '</b>' + extra;
+      /* Last beat (Daniel, 2026-10-21: a bell for the best-time-to-swap
+         alert too), like the bell at the end of Yours. */
+      var pb = ease(seg(p, 0.92, 0.97)), pbw = pbEl.offsetWidth, pbh = pbEl.offsetHeight;
+      pbEl.style.opacity = pb.toFixed(3);
+      pbEl.style.transform = 'translate3d(' + ((W - pbw) / 2).toFixed(1) + 'px,' + (ch.y + ch.h / 2 - pbh / 2 + (1 - pb) * 18).toFixed(1) + 'px,0) scale(' + (0.9 + 0.1 * pb).toFixed(3) + ')';
+      pbEl.classList.toggle('on', pb > 0.5);
     }
     resize();
     S.add($('tool'), { render: render, resize: resize });
