@@ -359,7 +359,7 @@ function openPro() {
           + '<li><b>Delisting and swap-pair alerts</b>, right away</li>'
           + '<li>10 holdings, any swap pair</li>'
           + '<li>Full coin breakdown on one screen (desktop), with price scenarios</li>'
-          + '<li>Coin history: RSI, open interest, funding and events</li>'
+          + '<li>Coin derivatives (funding, open interest, positioning) and history: RSI, events</li>'
           + '<li>Browser notifications</li></ul></div>'
       + '</div>'
       /* Why it costs money (Daniel: API calls have limits, one person cannot

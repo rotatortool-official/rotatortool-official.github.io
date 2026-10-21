@@ -1963,7 +1963,7 @@ Object.assign(MK_TEXT, {
   'Open interest, funding and long/short history are part of Pro.': 'Историјата на отворени позиции, финансирање и долги/кратки е дел од Pro.',
   'The RSI line over time is part of Pro.': 'Линијата на RSI низ времето е дел од Pro.',
   'The dated events, with their readings, are part of Pro.': 'Настаните со датуми и нивните читања се дел од Pro.',
-  'Coin history: RSI, open interest, funding and events': 'Историја на монетата: RSI, отворени позиции, финансирање и настани',
+  'Coin derivatives (funding, open interest, positioning) and history: RSI, events': 'Деривати на монетата (финансирање, отворени позиции, позиционирање) и историја: RSI, настани',
   'What if the price goes to': 'Што ако цената стигне до', 'Try a buy': 'Пробајте купување', 'at': 'по',
   'Clear': 'Исчисти', 'New average': 'Нов просек', 'What if': 'Што ако', 'Drag up or down': 'Повлечете нагоре или надолу',
   'vs your average.': 'наспроти вашиот просек.', 'at this price.': 'по оваа цена.',
@@ -1978,3 +1978,6 @@ Object.assign(MK_TEXT, {
   P(/^Your (\S+) (\S+) would be worth$/, function (m) { return 'Вашите ' + m[1] + ' ' + m[2] + ' би вределе'; });
   P(/^With a buy of (\S+) at (\S+):$/, function (m) { return 'Со купување од ' + m[1] + ' по ' + m[2] + ':'; });
 })();
+Object.assign(MK_TEXT, {
+  'Funding, open interest, positioning, taker flow and basis for this coin are part of Pro.': 'Финансирањето, отворените позиции, позиционирањето, текот на купувања/продажби и базата за оваа монета се дел од Pro.'
+});

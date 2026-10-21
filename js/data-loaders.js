@@ -5152,11 +5152,19 @@ function openTileDetail(coinId, evt) {
       drvEl.style.gridTemplateColumns = 'repeat(3,1fr)';
       drvSec.style.display = '';
 
+      /* The whole section is Pro, today's readings too (Daniel,
+         2026-10-21: "data is not gate keeped, it is on the card"). One
+         lock line in place of the grid; no history request. */
+      var histBox = document.getElementById('td-deriv-hist');
+      if (!_tdIsPro()) {
+        drvEl.innerHTML = _tdProLock('Funding, open interest, positioning, taker flow and basis for this coin are part of Pro.');
+        if (histBox) histBox.innerHTML = '';
+      }
+
       /* History below the current readings. data-sym guards against a
          late response landing in a modal the visitor has already
          navigated away from. */
-      var histBox = document.getElementById('td-deriv-hist');
-      if (histBox) {
+      else if (histBox) {
         histBox.setAttribute('data-sym', c.sym);
         histBox.innerHTML = '';
         _renderDerivHistory(c.sym, f.symbol);
