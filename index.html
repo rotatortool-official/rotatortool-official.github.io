@@ -3,21 +3,21 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Rotator — Free Tool to See Which Binance Coins Are Turning</title>
+<title>Rotator — See Where Crypto Capital Rotates</title>
 <meta name="description" content="Rotator is a free crypto market pulse for Binance traders. It scores about 250 coins every 15 minutes, follows the money, watches your coins and shows every result, good or bad. No wallet, no account.">
 <meta name="robots" content="index, follow">
 <link rel="canonical" href="https://rotatortool.com/">
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="Rotator">
-<meta property="og:title" content="Rotator — see which Binance coins are starting to turn">
-<meta property="og:description" content="A free tool that checks every Binance coin every 15 minutes and shows, in plain words, which ones are getting stronger, which are fading and where the money is moving. No wallet, no account.">
+<meta property="og:title" content="Rotator — see where crypto capital rotates">
+<meta property="og:description" content="Free on-chain tracking of where the money is moving, and deep analysis of every Binance token every 15 minutes. No wallet, no account.">
 <meta property="og:url" content="https://rotatortool.com/">
 <meta property="og:image" content="https://rotatortool.com/og-card.png?v=20261011">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
 <meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:title" content="Rotator — see which Binance coins are starting to turn">
-<meta name="twitter:description" content="A free tool that checks every Binance coin every 15 minutes and shows which ones are getting stronger, which are fading and where the money is moving. No wallet, no account.">
+<meta name="twitter:title" content="Rotator — see where crypto capital rotates">
+<meta name="twitter:description" content="Free on-chain tracking of where the money is moving, and deep analysis of every Binance token every 15 minutes. No wallet, no account.">
 <meta name="twitter:image" content="https://rotatortool.com/og-card.png?v=20261011">
 <!-- HOME PAGE since 2026-10-20 (Daniel: "make the landing page the home
      page for everyone and move the board to its own address"). The board
@@ -506,8 +506,8 @@ h2{font-size:clamp(32px,4.4vw,56px);}
     <div class="grid2">
       <div class="hero-copy" id="hero-copy">
         <div class="eyebrow">Free tool for Binance traders</div>
-        <h1>See which coins are <span class="grad">starting to turn.</span></h1>
-        <p class="hero-sub">Rotator checks every coin on Binance every 15 minutes and shows, in plain words, <strong>which ones are getting stronger, which are fading, and where the money is moving.</strong> You decide what to do with it. No wallet, no exchange key, no account.</p>
+        <h1>See where <span class="grad">capital rotates.</span></h1>
+        <p class="hero-sub"><strong>On-chain tracking of where the money is moving.</strong> You decide what to do with it. No wallet, no exchange key, no account.</p>
         <div class="hero-stats">
           <div><b id="st-coins">262</b>coins on the board</div>
           <div><b>15 min</b>between scores</div>
@@ -524,7 +524,7 @@ h2{font-size:clamp(32px,4.4vw,56px);}
 </section>
 
 <!-- 01 TODAY -->
-<section class="scene" id="today" style="height:250vh">
+<section class="scene" id="today" style="height:190vh">
   <div class="stage">
     <div class="glow" style="--gx:60%;--gy:50%"></div>
     <div class="grid2">
@@ -533,8 +533,7 @@ h2{font-size:clamp(32px,4.4vw,56px);}
         <h2>Your daily market briefing, at hand.</h2>
         <div class="steps" data-scene="today">
           <p class="step" data-at="0">Start your day here: <strong>rates, gold, oil, the dollar, stocks and on-chain money</strong>, one card each, updated every day.</p>
-          <p class="step" data-at=".34">Every card turns over to say <strong>what it is and why it matters for crypto</strong>, in plain words.</p>
-          <p class="step" data-at=".72">When something moves more than usual, <strong>the headline behind it shows up on the card.</strong> Your daily news, at hand.</p>
+          <p class="step" data-at=".5">When something moves more than usual, <strong>the headline behind it shows up on the board.</strong> Your daily news, at hand.</p>
         </div>
         <div class="cta-row"><a class="btn btn-gold" href="board.html#sec-today">Open Today ›</a></div>
       </div>
@@ -1360,7 +1359,6 @@ h2{font-size:clamp(32px,4.4vw,56px);}
       });
       if (!cards.length) return;
       /* The card the ring stops on: one with a headline, else the first. */
-      var f = cards.findIndex(function (c) { return c.news; }); if (f < 0) f = 0;
       var wrap = document.createElement('div'); wrap.className = 'ring-wrap';
       var ring = document.createElement('div'); ring.className = 'ring'; wrap.appendChild(ring); vis.appendChild(wrap);
       cards.forEach(function (c, i) {
@@ -1368,9 +1366,8 @@ h2{font-size:clamp(32px,4.4vw,56px);}
         var front = '<div class="fk">' + esc(c.title) + '</div>' + cardPic(c) + '<div class="fv">' + esc(c.val) + '</div>'
           + (c.chg ? '<div class="fc ' + (c.chg.up == null ? '' : c.chg.up ? 'up' : 'dn') + '"><span class="' + (c.chg.up == null ? '' : c.chg.up ? 'up' : 'dn') + '">' + esc(c.chg.t) + '</span></div>' : '')
           + '<div class="fs">' + esc(c.sub) + '</div>';
-        var back = '<div class="fk">What it is</div><div class="fb">' + esc(c.what) + '</div>'
-          + (c.news ? '<div class="fnews"><b>IN THE NEWS · ' + (c.move != null ? esc(TOPIC.pct(c.move)) + ' TODAY' : 'UNUSUAL MOVE') + '</b><span>' + esc(c.news.t) + '</span><em>' + esc(c.news.src || '') + '</em></div>' : '');
-        el.innerHTML = '<div class="flip"><div class="face front">' + front + '</div><div class="face back">' + back + '</div></div>';
+        /* Front faces only (Daniel, 2026-10-21: the back text is not for the landing page). */
+        el.innerHTML = '<div class="flip"><div class="face front">' + front + '</div></div>';
         ring.appendChild(el); c.el = el; c.flip = el.firstChild;
         c.faces = el.querySelectorAll('.face'); c.line = el.querySelector('.spk-l'); c.needle = el.querySelector('.fg-needle'); c.bs = el.querySelectorAll('.mb');
       });
@@ -1392,25 +1389,21 @@ h2{font-size:clamp(32px,4.4vw,56px);}
            2026-10-21 later, Daniel: "too many scrolls to pass": 250vh, and
            the ring turns at most one lap (the short way round to the news
            card, never under half a lap) instead of 1-2 laps, so the pace
-           per screen stays about the same. */
-        var r = seg(p, 0, 0.78);
-        var a = (f * step >= 180 ? -f * step : 360 - f * step) * r;
-        /* Starts tilted, levels out, and at the end moves in on the card with the news. */
-        var z = ease(seg(p, 0.8, 0.97)), tilt = 9 * (1 - ease(seg(p, 0, 0.5)));
-        ring.style.transform = 'translateZ(' + (-Rr + z * Rr * 0.22).toFixed(1) + 'px) rotateX(' + tilt.toFixed(2) + 'deg) rotateY(' + a.toFixed(2) + 'deg)';
-        var all = ease(seg(p, 0.34, 0.45)) - ease(seg(p, 0.52, 0.62));
-        var feat = ease(seg(p, 0.7, 0.8));
+           per screen stays about the same.
+           Third ask, Daniel 2026-10-21: "TOO long", no flips, turn it like a
+           revolver: 190vh, one lap, a click per card with a short rest on each. */
+        var pos = seg(p, 0, 0.92) * N, k = Math.min(N, Math.floor(pos)), fr = pos - k;
+        var a = -step * (k + ease(seg(fr, 0.3, 1)));
+        var tilt = 9 * (1 - ease(seg(p, 0, 0.4)));
+        ring.style.transform = 'translateZ(' + (-Rr).toFixed(1) + 'px) rotateX(' + tilt.toFixed(2) + 'deg) rotateY(' + a.toFixed(2) + 'deg)';
         cards.forEach(function (c, i) {
           var ang = ((i * step + a) % 360 + 360) % 360, cos = Math.cos(ang * Math.PI / 180);
-          var op = String(0.2 + 0.8 * Math.max(0, cos));
-          c.faces[0].style.opacity = op; c.faces[1].style.opacity = op;
+          c.faces[0].style.opacity = String(0.2 + 0.8 * Math.max(0, cos));
           /* The pictures draw in as the ring turns. */
-          var d = ease(seg(p, 0.02, 0.55));
+          var d = ease(seg(p, 0.02, 0.5));
           if (c.line) c.line.setAttribute('stroke-dashoffset', (1 - d).toFixed(3));
           if (c.needle) c.needle.style.transform = 'rotate(' + ((-90 + 180 * c.fg / 100 * d)).toFixed(1) + 'deg)';
           for (var b = 0; b < c.bs.length; b++) c.bs[b].style.transform = 'scaleY(' + ease(seg(d * 1.4 - b * 0.02, 0, 1)).toFixed(3) + ')';
-          var fl = i === f ? Math.max(all, feat) : all;
-          c.flip.style.transform = 'rotateY(' + (180 * fl).toFixed(1) + 'deg)';
         });
       }
       resize();
@@ -1640,11 +1633,19 @@ h2{font-size:clamp(32px,4.4vw,56px);}
      case, A turning back down. Example paths, not real prices. */
   function swapTool() {
     var vis = $('tool-vis');
+    /* Zig-zag like real prices (Daniel, 2026-10-21: the two smooth lines
+       looked fake): a seeded jagged walk, zero at the start and pinned at
+       the swap so the two lines meet exactly there. */
+    var NZ = 56, walks = {};
+    function walk(k) {
+      var sd = 1000 + k * 7919, v = 0, w = [0];
+      for (var i = 1; i <= NZ; i++) { sd = (sd * 16807) % 2147483647; v = v * 0.5 + (sd / 2147483647 - 0.5) * 12; w.push(v); }
+      return w;
+    }
     function jag(t, k) {
-      /* Seeded wiggle, zero at the start and pinned at the swap so the two
-         lines meet exactly there. */
-      var n = 1.7 * Math.sin(t * 61 + k) + 1.1 * Math.sin(t * 113 + 2.1 * k) + 0.7 * Math.sin(t * 197 + 3.7 * k);
-      return n * Math.min(1, t * 10) * (1 - Math.exp(-Math.pow((t - 0.5) / 0.05, 2)));
+      var w = walks[k] || (walks[k] = walk(k)), x = Math.max(0, Math.min(NZ, t * NZ)), i = Math.min(NZ - 1, Math.floor(x));
+      var n = w[i] + (w[i + 1] - w[i]) * (x - i);
+      return n * Math.min(1, t * 10) * (1 - Math.exp(-Math.pow((t - 0.5) / 0.03, 2)));
     }
     var TS = 0.5, KA = 2;                 /* swap point; 1 B buys 2 A there */
     function Bv(t) { return 150 - 58 * t + jag(t, 4); }                      /* weakening */
@@ -1666,7 +1667,7 @@ h2{font-size:clamp(32px,4.4vw,56px);}
     function X(t) { return ch.x + t * ch.w; }
     function Y(v) { return ch.y + ch.h - (v - LO) / (HI - LO) * ch.h; }
     function path(fn, t0, t1) {
-      var d = '', n = Math.round(180 * (t1 - t0));
+      var d = '', n = Math.round(168 * (t1 - t0));   /* 3 samples per zig-zag leg */
       for (var i = 0; i <= n; i++) { var t = t0 + (t1 - t0) * i / n; d += (i ? ' L' : 'M') + X(t).toFixed(1) + ' ' + Y(fn(t)).toFixed(1); }
       return d;
     }
