@@ -2085,13 +2085,21 @@ document.addEventListener('click', function (e) {
       }
       resize(); draw();
       S.add($('today'), { render: render, resize: function () { resize(); draw(); } });
-      /* The tour turns the cards itself: a second on each, then on. */
+      /* The tour turns the cards itself, but shows only three (Daniel,
+         2026-10-21: "show 3 only so people don't get bored", also for the
+         tour video): the dollar, metals and oil, the ones with pictures.
+         Swiping by hand still reaches every card. */
+      var TOUR_TODAY = ['dxy', 'gold', 'oil'].map(function (k) { return cards.findIndex(function (c) { return c.k === k; }); }).filter(function (i) { return i >= 0; });
+      if (TOUR_TODAY.length < 3) TOUR_TODAY = [0, 1, 2].slice(0, Math.min(3, N));
       TOUR_SHOW.today = function (t) {
-        var D = 1.25, n = Math.floor(t / D);
-        if (t < 0) return true;
-        if (TOUR_SHOW.today.start == null) TOUR_SHOW.today.start = Math.round(tdGoal);
-        if (n >= N) { TOUR_SHOW.today.start = null; return true; }
-        if (TOUR_SHOW.today.start + n !== tdGoal) go(TOUR_SHOW.today.start + n);
+        var D = 1.6, n = Math.floor(t / D), self = TOUR_SHOW.today;
+        if (t < 0) { self.at = null; return true; }
+        if (n >= TOUR_TODAY.length) { self.at = null; return true; }
+        if (self.at !== n) {
+          /* Always turn forward to the next chosen card. */
+          var cur = Math.round(tdGoal), want = TOUR_TODAY[n], fwd = ((want - cur) % N + N) % N;
+          self.at = n; go(cur + fwd);
+        }
         return false;
       };
     });
