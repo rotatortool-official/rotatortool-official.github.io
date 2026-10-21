@@ -7,47 +7,49 @@
    payments are verified on the server, so local changes unlock nothing. Security
    problems: report them (see /.well-known/security.txt), do not exploit them. */
 /* ══════════════════════════════════════════════════════════════════
-   coin-expand.js — the coin window full screen (Daniel, 2026-10-21)
+   coin-expand.js — the full coin breakdown on one screen (2026-10-21)
 
-   Pro, desktop only (TD_X_MIN_W and up). The Expand button in the coin
-   window's top bar lays the same sections out in three columns across
-   the screen instead of one narrow scrolling card:
+   Pro, desktop only (TD_X_MIN_W and up); free users see the bar as
+   "See the full breakdown · PRO" and it opens the Pro window. Daniel's
+   brief: the whole coin on ONE screen, no scrolling once it is open.
 
-     the story and overview first on the left, your position in the
-     middle, momentum on the right; every other section then goes to the
-     shortest column (TD_X_ORDER), so the three end close together
+     ┌ Momentum ─────────┬ Price chart + scenarios ─────────────────┐
+     ├ Pointing up ──────┼ Pointing down ──┬ Details (tabs) ────────┤
+     ├ Summary: in short, warnings, evaluation ───────────┬ Share ──┤
 
-   Nothing is re-rendered: the existing section elements are MOVED into
-   the columns and moved back in their original order on collapse, so
-   every id openTileDetail() fills keeps working. All folds open while
-   expanded and return to how they were. The data is the same as in the
-   small window (data stays free); Pro gets the layout. The choice is
-   remembered in this browser (rot_td_expanded), so the next coin opens
-   the same way.
+   The page itself does not scroll; a box with more than fits scrolls
+   inside itself. Everything else the small window has sits in the
+   Details tabs (position, market, supply, derivatives, signals, score,
+   about), so nothing is lost from this view.
+
+   Nothing is re-rendered: the existing elements are MOVED into the
+   boxes, so every id openTileDetail() fills keeps working, and moved
+   back on "Smaller". The pieces renderCoinReading() writes inside
+   #td-reading (story, overview, performance, key facts) are new nodes
+   for every coin, so they are re-placed on every open (_tdxPlace). The
+   choice is remembered in this browser (rot_td_expanded).
 ══════════════════════════════════════════════════════════════════ */
 var TD_X_MIN_W = 1024;
-/* The order sections are laid down in. Each goes into whichever column is
-   SHORTEST at that moment (Daniel, 2026-10-21: fixed lists left the middle
-   column two screens long beside two short ones). The first three open
-   their columns: the story left, your position in the middle, momentum
-   right. Anything not named here (share, Binance, a section added later)
-   follows in its original order, so nothing is lost from this view. */
-var TD_X_ORDER = ['td-reading-sec', 'td-edit-hold-sec', 'td-rsi-sec', 'td-score-sec', 'td-market-sec', 'td-events-sec',
-  'td-insight-sec', 'td-liquidity-sec', 'td-supply-sec', 'td-cycle-sec', 'td-deriv-sec', 'td-signals-sec', 'td-biz-sec',
-  'td-breakdown-sec', 'td-about-sec', 'td-turns-sec'];
-var TD_X_PIN = { 'td-reading-sec': 0, 'td-edit-hold-sec': 1, 'td-rsi-sec': 2 };
+/* Details tabs: label → sections, in order. A tab shows only when one of
+   its sections has something for this coin. */
+var TD_X_TABS = [
+  ['Position',    ['td-edit-hold-sec']],
+  ['Market',      ['@ov', 'td-market-sec', 'td-liquidity-sec', 'td-cycle-sec']],
+  ['Supply',      ['td-supply-sec']],
+  ['Derivatives', ['td-deriv-sec']],
+  ['Signals',     ['td-insight-sec', 'td-events-sec', 'td-signals-sec', 'td-biz-sec']],
+  ['Score',       ['td-score-sec', 'td-breakdown-sec']],
+  ['About',       ['td-about-sec']]
+];
 var _tdxOrder = null;     /* the panel's children before expanding, in order */
-var _tdxItems = null;     /* the sections in the columns, in laying-down order */
-var _tdxTimers = [];
+var _tdxTab = null;       /* the open Details tab, kept between coins */
 var _tdxPref = (function() { try { return localStorage.getItem('rot_td_expanded') === '1'; } catch (e) { return false; } })();
 
 function _tdxWide() { return window.innerWidth >= TD_X_MIN_W; }
 function _tdxPro() { return typeof isPro !== 'undefined' && !!isPro; }
 function tdCanExpand() { return _tdxPro() && _tdxWide(); }
 
-/* Called by openTileDetail() and on resize: button shown or not, layout on
-   or off. Free users on desktop see the button too, as "Full breakdown ·
-   PRO", and it opens the Pro window (Daniel, 2026-10-21). */
+/* Called by openTileDetail() and on resize: button shown or not, layout on or off. */
 function tdSyncExpand() {
   var btn = document.getElementById('td-expand');
   if (btn) btn.hidden = !_tdxWide();
@@ -64,81 +66,129 @@ function tdToggleExpand() {
   if (p) p.scrollTop = 0;
 }
 
+function _tdxBox(area, title, extraCls) {
+  var d = document.createElement('div');
+  d.className = 'tdx-box tdx-' + area + (extraCls ? ' ' + extraCls : '');
+  d.setAttribute('data-area', area);
+  if (title) { var h = document.createElement('div'); h.className = 'tdx-card-h'; h.textContent = title; d.appendChild(h); }
+  var b = document.createElement('div'); b.className = 'tdx-box-b'; d.appendChild(b);
+  return d;
+}
+function _tdxSlot(area) { return document.querySelector('#tdx-dash .tdx-' + area + ' > .tdx-box-b'); }
+
 function _tdxExpand() {
   var panel = document.getElementById('td-panel');
   if (!panel) return;
-  if (panel.classList.contains('td-expanded')) {
-    /* Already expanded, a new coin opened: openTileDetail() may have
-       closed a fold (the Insight Engine follows its cross), so open them
-       again. Their saved small-window state is left as it was. */
-    panel.querySelectorAll('details.td-fold').forEach(function(d) { d.open = true; });
-    _tdxBoard();
-    _tdxBalanceSoon();
-    _tdxLabel(true);
-    return;
+  if (!panel.classList.contains('td-expanded')) {
+    _tdxOrder = [].slice.call(panel.children);
+    var dash = document.createElement('div');
+    dash.className = 'tdx-dash'; dash.id = 'tdx-dash';
+    [['mom', 'Momentum'], ['chart', 'Price'], ['up', ''], ['down', ''], ['det', ''], ['sum', ''], ['share', '']].forEach(function(a) {
+      dash.appendChild(_tdxBox(a[0], a[1]));
+    });
+    panel.appendChild(dash);
+    /* Details: a tab bar and one pane per tab. */
+    var det = _tdxSlot('det');
+    var bar = document.createElement('div'); bar.className = 'tdx-tabs'; bar.setAttribute('role', 'tablist');
+    det.appendChild(bar);
+    TD_X_TABS.forEach(function(t, i) {
+      var b = document.createElement('button');
+      b.type = 'button'; b.className = 'tdx-tab'; b.textContent = t[0]; b.setAttribute('data-tab', t[0]);
+      b.addEventListener('click', function() { _tdxShowTab(t[0]); });
+      bar.appendChild(b);
+      var pane = document.createElement('div'); pane.className = 'tdx-pane'; pane.setAttribute('data-tab', t[0]);
+      det.appendChild(pane);
+      t[1].forEach(function(id) { var el = id[0] !== '@' && document.getElementById(id); if (el) pane.appendChild(el); });
+    });
+    var warn = document.getElementById('td-warn');
+    if (warn) _tdxSlot('sum').appendChild(warn);
+    var rsi = document.getElementById('td-rsi-sec');
+    if (rsi) _tdxSlot('mom').appendChild(rsi);
+    var share = panel.querySelector('.td-share-wrap'), bnb = document.getElementById('td-bnb');
+    if (share) _tdxSlot('share').appendChild(share);
+    if (bnb) _tdxSlot('share').appendChild(bnb);
+    panel.querySelectorAll('details.td-fold').forEach(function(d) {
+      d.setAttribute('data-tdx-open', d.open ? '1' : '0');
+    });
+    panel.classList.add('td-expanded');
+    var ov = document.getElementById('td-overlay'); if (ov) ov.classList.add('tdx');
   }
-  _tdxOrder = [].slice.call(panel.children);
-  var body = document.createElement('div');
-  body.className = 'tdx-body';
-  for (var i = 0; i < 3; i++) { var d = document.createElement('div'); d.className = 'tdx-col'; body.appendChild(d); }
-  var named = {};
-  _tdxItems = [];
-  TD_X_ORDER.forEach(function(id) { var el = document.getElementById(id); if (el) { _tdxItems.push(el); named[id] = 1; } });
-  _tdxOrder.forEach(function(el) {
-    if (el.id && named[el.id]) return;
-    if (el.classList.contains('td-close') || el.classList.contains('td-expand') || el.classList.contains('tdh')
-        || el.id === 'td-accent-bar' || el.classList.contains('td-details-lbl')) return;
-    _tdxItems.push(el);
-  });
-  var board = document.createElement('div');
-  board.className = 'tdx-board'; board.id = 'tdx-board';
-  panel.appendChild(board);
-  panel.appendChild(body);
-  _tdxBoard();
-  panel.querySelectorAll('details.td-fold').forEach(function(d) {
-    d.setAttribute('data-tdx-open', d.open ? '1' : '0');
-    d.open = true;
-  });
-  panel.classList.add('td-expanded');
-  var ov = document.getElementById('td-overlay'); if (ov) ov.classList.add('tdx');
-  _tdxBalanceSoon();
+  panel.querySelectorAll('details.td-fold').forEach(function(d) { d.open = true; });
+  _tdxPlace();
+  _tdxFill();
+  _tdxTabs();
   _tdxLabel(true);
 }
 
-/* Lay the sections into the three columns, shortest first. Runs again
-   while the slower parts (RSI and derivatives history, events) arrive,
-   then stops, so the page does not shift under someone reading it. */
-function _tdxBalance() {
-  var panel = document.getElementById('td-panel');
-  var body = panel && panel.querySelector('.tdx-body');
-  if (!body || !_tdxItems) return;
-  var cols = [].slice.call(body.children), h = [0, 0, 0];
-  _tdxItems.forEach(function(el) {
-    var k = el.id in TD_X_PIN ? TD_X_PIN[el.id] : h.indexOf(Math.min.apply(null, h));
-    cols[k].appendChild(el);
-    h[k] += el.offsetHeight ? el.offsetHeight + 18 : 0;
-  });
+/* The parts renderCoinReading() writes fresh for every coin: the old
+   copies leave, the new ones move into their boxes. The fresh ones sit
+   in the hidden #td-reading, which comes first in the page, so the
+   performance bars' late fill (_tdLoadPerf, by id) finds the new copy. */
+function _tdxPlace() {
+  var read = document.getElementById('td-reading');
+  var mom = _tdxSlot('mom'), sum = _tdxSlot('sum');
+  var pane = document.querySelector('#tdx-dash .tdx-pane[data-tab="Market"]');
+  if (!read || !mom || !sum || !pane) return;
+  var fresh = {
+    story: read.querySelector('.td-story'), ov: read.querySelector('.td-ov'),
+    perf: read.querySelector('#td-perf'), kv: read.querySelector('.td-kv:not(.td-ov)')
+  };
+  /* Swap each piece only when a fresh copy exists: a second pass (a
+     resize, the same coin again) finds none and must keep what is
+     placed, not remove it. */
+  var put = function(kind, el, where) {
+    if (!el) return;
+    var old = document.querySelector('#tdx-dash [data-tdx-kind="' + kind + '"]');
+    if (old) old.remove();
+    el.setAttribute('data-tdx-kind', kind);
+    where.insertBefore(el, where.firstChild);
+  };
+  /* Momentum: key facts, then the bars, then RSI (already in the box). */
+  put('perf', fresh.perf, mom);
+  put('kv', fresh.kv, mom);
+  put('story', fresh.story, sum);
+  put('ov', fresh.ov, pane);
 }
-function _tdxBalanceSoon() {
-  _tdxTimers.forEach(clearTimeout);
-  _tdxBalance();
-  _tdxTimers = [700, 1800, 3500].map(function(ms) { return setTimeout(_tdxBalance, ms); });
+
+function _tdxShowTab(name) {
+  _tdxTab = name;
+  document.querySelectorAll('#tdx-dash .tdx-tab').forEach(function(b) {
+    var on = b.getAttribute('data-tab') === name;
+    b.classList.toggle('on', on); b.setAttribute('aria-selected', on ? 'true' : 'false');
+  });
+  document.querySelectorAll('#tdx-dash .tdx-pane').forEach(function(p) { p.hidden = p.getAttribute('data-tab') !== name; });
+}
+/* Which tabs have something for this coin; keep the open one if it still does. */
+function _tdxTabs() {
+  var first = null, keep = false;
+  document.querySelectorAll('#tdx-dash .tdx-pane').forEach(function(p) {
+    var name = p.getAttribute('data-tab');
+    /* A section with nothing for this coin is display:none (openTileDetail). */
+    var any = [].slice.call(p.children).some(function(el) { return el.style.display !== 'none'; });
+    var btn = document.querySelector('#tdx-dash .tdx-tab[data-tab="' + name + '"]');
+    if (btn) btn.hidden = !any;
+    if (any && !first) first = name;
+    if (any && name === _tdxTab) keep = true;
+  });
+  _tdxShowTab(keep ? _tdxTab : first);
 }
 
 function _tdxCollapse() {
   var panel = document.getElementById('td-panel');
   if (!panel || !panel.classList.contains('td-expanded')) { _tdxLabel(false); return; }
   (_tdxOrder || []).forEach(function(el) { panel.appendChild(el); });
-  var body = panel.querySelector('.tdx-body'); if (body) body.remove();
-  var board = document.getElementById('tdx-board'); if (board) board.remove();
+  var rs = document.getElementById('td-reading-sec'), warn = document.getElementById('td-warn');
+  if (rs && warn) rs.insertBefore(warn, rs.firstChild);
+  var dash = document.getElementById('tdx-dash'); if (dash) dash.remove();
   panel.querySelectorAll('details.td-fold[data-tdx-open]').forEach(function(d) {
     d.open = d.getAttribute('data-tdx-open') === '1';
     d.removeAttribute('data-tdx-open');
   });
   panel.classList.remove('td-expanded');
   var ov = document.getElementById('td-overlay'); if (ov) ov.classList.remove('tdx');
-  _tdxTimers.forEach(clearTimeout); _tdxTimers = [];
-  _tdxOrder = null; _tdxItems = null;
+  _tdxOrder = null;
+  /* The story, overview and bars left with the boxes: write them again. */
+  if (typeof _tdCoin !== 'undefined' && _tdCoin && typeof renderCoinReading === 'function') renderCoinReading(_tdCoin);
   _tdxLabel(false);
 }
 
@@ -166,21 +216,19 @@ function _tdxLabel(on) {
   });
 })();
 
-/* ── The breakdown board, on top of the full-screen view ─────────
-   Price chart | Evaluation, then what points up | what points down.
+/* ── Pointing up / down and the evaluation ───────────────────────
    Only facts the small window already shows, sorted by the rules it
    already uses: turn signs from coinReading() (with "Track from this
    sign"), the 7/14/30-day ranks (top half = up), exchange and unlock
    warnings (_holderRisk, down) and, for coins you hold or watch, the
-   Insight Engine checks (insightSignalClass). Neutral ones are named
-   under the evaluation. The parts this replaces are hidden by CSS while
-   expanded, so nothing shows twice. */
+   Insight Engine checks (insightSignalClass). Neutral ones are named in
+   the evaluation. */
 function _tdxEsc(t) { return String(t == null ? '' : t).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;'); }
 
-function _tdxBoard() {
-  var box = document.getElementById('tdx-board');
+function _tdxFill() {
   var c = typeof _tdCoin !== 'undefined' ? _tdCoin : null;
-  if (!box || !c) return;
+  var up = _tdxSlot('up'), down = _tdxSlot('down'), sum = _tdxSlot('sum'), chart = _tdxSlot('chart');
+  if (!c || !up || !down || !sum || !chart) return;
   var R = (typeof coinReading === 'function') ? coinReading(c) : null;
   var good = [], bad = [], neutral = [];
   var fact = function(text, sub) { return '<div class="tdx-fact"><span class="tdx-fact-t">' + _tdxEsc(text) + '</span>' + (sub ? '<span class="tdx-fact-s">' + _tdxEsc(sub) + '</span>' : '') + '</div>'; };
@@ -206,6 +254,13 @@ function _tdxBoard() {
     });
   }
 
+  var list = function(cls, title, items, empty) {
+    return '<div class="tdx-card-h ' + cls + '"><span>' + title + '</span> <span class="tdx-count">' + items.length + '</span></div>'
+      + (items.length ? items.join('') : '<div class="tdx-empty">' + empty + '</div>');
+  };
+  up.innerHTML = list('tdx-good', 'Pointing up', good, 'Nothing pointing up right now.');
+  down.innerHTML = list('tdx-bad', 'Pointing down', bad, 'Nothing pointing down right now.');
+
   var g = good.length, b = bad.length;
   var verdict = g > b + 1 ? 'More points for it than against it right now.'
               : b > g + 1 ? 'More points against it than for it right now.'
@@ -214,9 +269,9 @@ function _tdxBoard() {
   var stLbl = { ahead: 'Ran ahead this week', lagging: 'Lagged this week', middle: 'Middle of the pack' }[st];
   var scC = typeof scoreColor === 'function' ? scoreColor(c.score) : 'var(--text)';
   var pctG = g + b ? Math.round(g / (g + b) * 100) : 50;
-
-  var evalHtml = '<div class="tdx-card tdx-eval">'
-    + '<div class="tdx-card-h">Evaluation</div>'
+  var ev = sum.querySelector('.tdx-eval') || document.createElement('div');
+  ev.className = 'tdx-eval';
+  ev.innerHTML = '<div class="tdx-card-h">Evaluation</div>'
     + '<div class="tdx-eval-top"><span class="tdx-eval-score" style="color:' + scC + '">' + (c._retired ? '—' : c.score) + '</span><span class="tdx-eval-of">/ 100</span>'
     + '<span class="tdx-eval-st ' + st + '">' + stLbl + '</span></div>'
     + (R ? '<div class="tdx-eval-head">' + _tdxEsc(R.head) + '</div><div class="tdx-eval-sub">' + _tdxEsc(R.sub) + '</div>' : '')
@@ -224,18 +279,10 @@ function _tdxBoard() {
     + '<div class="tdx-bal-n"><span class="up"><b>' + g + '</b> <span>pointing up</span></span><span class="dn"><b>' + b + '</b> <span>pointing down</span></span></div>'
     + '<div class="tdx-verdict">' + verdict + '</div>'
     + (neutral.length ? '<div class="tdx-neutral"><span>Neutral:</span> ' + neutral.map(_tdxEsc).join(' · ') + '</div>' : '')
-    + '<div class="tdx-note"><span>A reading of the past, not a forecast.</span> <span>Not financial advice.</span></div>'
-    + '</div>';
+    + '<div class="tdx-note"><span>A reading of the past, not a forecast.</span> <span>Not financial advice.</span></div>';
+  if (!ev.parentNode) sum.appendChild(ev);
 
-  var list = function(cls, title, items, empty) {
-    return '<div class="tdx-card tdx-list ' + cls + '"><div class="tdx-card-h"><span>' + title + '</span> <span class="tdx-count">' + items.length + '</span></div>'
-      + (items.length ? items.join('') : '<div class="tdx-empty">' + empty + '</div>') + '</div>';
-  };
-  box.innerHTML = '<div class="tdx-row1"><div class="tdx-card tdx-chart-card"><div class="tdx-card-h">Price</div><div class="tdp-chart" id="tdx-chart"></div></div>' + evalHtml + '</div>'
-    + '<div class="tdx-row2">'
-    + list('tdx-good', 'Pointing up', good, 'Nothing pointing up right now.')
-    + list('tdx-bad', 'Pointing down', bad, 'Nothing pointing down right now.')
-    + '</div>';
+  if (!chart.querySelector('#tdx-chart')) chart.innerHTML = '<div class="tdp-chart" id="tdx-chart"></div>';
   tdxRenderChart();
 }
 

@@ -1981,3 +1981,7 @@ Object.assign(MK_TEXT, {
 Object.assign(MK_TEXT, {
   'Funding, open interest, positioning, taker flow and basis for this coin are part of Pro.': 'Финансирањето, отворените позиции, позиционирањето, текот на купувања/продажби и базата за оваа монета се дел од Pro.'
 });
+/* Full breakdown on one screen: box titles and Details tabs (2026-10-21) */
+Object.assign(MK_TEXT, {
+  'Momentum': 'Моментум', 'Position': 'Позиција', 'Market': 'Пазар', 'Supply': 'Понуда', 'Signals': 'Сигнали'
+});

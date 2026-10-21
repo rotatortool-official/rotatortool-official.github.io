@@ -6706,7 +6706,7 @@ a.mob-more-item{text-decoration:none;color:inherit;}
 }
 
 /* ── Coin window full screen (Pro, desktop; 2026-10-21) ────────────
-   js/coin-expand.js moves the sections into .tdx-body's three columns.
+   js/coin-expand.js moves the sections into the boxes of .tdx-dash.
    !important beats the inline left/top that _positionPanel() writes. */
 /* Small card: a full-width bar under the price. */
 .td-expand{display:flex;width:100%;justify-content:center;align-items:center;gap:7px;margin:0 0 12px;min-height:40px;padding:0 14px;
@@ -6721,29 +6721,77 @@ a.mob-more-item{text-decoration:none;color:inherit;}
 .tile-detail-overlay.show.tdx{background:rgba(5,8,12,.62);backdrop-filter:blur(2px);-webkit-backdrop-filter:blur(2px);}
 :root.light .tile-detail-overlay.show.tdx{background:rgba(30,45,60,.35);}
 @media(min-width:1024px){
+  /* One screen (Daniel, 2026-10-21): wide, and the page does not scroll;
+     each box scrolls inside itself when it has more than fits. */
   .tile-detail.td-expanded{
-    left:50% !important;top:24px !important;transform:translateX(-50%);
-    width:min(1440px,calc(100vw - 48px)) !important;max-width:none !important;
-    height:calc(100vh - 48px);max-height:calc(100vh - 48px);
-    padding:22px 28px 28px;border-radius:12px;animation:none;
+    left:50% !important;top:16px !important;transform:translateX(-50%);
+    width:min(1760px,calc(100vw - 32px)) !important;max-width:none !important;
+    height:calc(100vh - 32px);max-height:calc(100vh - 32px);
+    padding:14px 20px 16px;border-radius:12px;animation:none;overflow:hidden;
   }
-  .td-expanded .tdh{padding-right:180px;}
+  .td-expanded .tdh{padding-right:200px;}
   .td-expanded .tdh-sym{font-size:24px;}
   .td-expanded .tdh-price{font-size:26px;}
-  .td-expanded .td-details-lbl{display:none;}
-  .td-expanded .tdx-body{clear:both;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:0 28px;align-items:start;margin-top:6px;}
-  .td-expanded .tdx-col{min-width:0;display:flex;flex-direction:column;}
-  .td-expanded .tdx-col + .tdx-col{border-left:1px solid var(--bdr);padding-left:28px;}
-  .td-expanded .tdx-col > .td-section{margin-bottom:18px;}
+  .td-expanded .td-details-lbl,
+  .td-expanded #td-reading-sec{display:none !important;}
   /* Open folds read as plain section titles, no fold arrow. */
   .td-expanded details.td-fold > summary{pointer-events:none;list-style:none;}
   .td-expanded details.td-fold > summary::-webkit-details-marker{display:none;}
   .td-expanded details.td-fold > summary::before{display:none;}
-  .td-expanded .tdp-plot{height:170px;}
+
+  .td-expanded .tdx-dash{clear:both;display:grid;height:calc(100% - 80px);gap:12px;
+    grid-template-columns:repeat(4,minmax(0,1fr));
+    grid-template-rows:minmax(0,1.25fr) minmax(0,1fr) minmax(0,.95fr);
+    grid-template-areas:"mom chart chart chart" "up down det det" "sum sum sum share";}
+  .tdx-box{display:flex;flex-direction:column;min-height:0;min-width:0;background:var(--bg3);border:1px solid var(--bdr);border-radius:10px;padding:12px 14px;}
+  .tdx-box-b{flex:1;min-height:0;overflow:auto;scrollbar-width:thin;overscroll-behavior:contain;}
+  .tdx-mom{grid-area:mom;} .tdx-chart{grid-area:chart;} .tdx-up{grid-area:up;border-top:3px solid var(--green);}
+  .tdx-down{grid-area:down;border-top:3px solid var(--red);} .tdx-det{grid-area:det;} .tdx-sum{grid-area:sum;} .tdx-share{grid-area:share;}
+  .tdx-box-b > * + *{margin-top:8px;}
+  .tdx-box .td-section{margin:0;padding:0;border:none;}
+  .tdx-box .td-card{margin:0;}
+
+  /* Price: the chart on the left of its box, the scenarios on the right. */
+  .tdx-chart > .tdx-box-b{overflow:hidden;}
+  .td-expanded #tdx-chart{display:grid;height:100%;grid-template-columns:minmax(0,1fr) minmax(250px,320px);grid-template-rows:auto minmax(0,1fr) auto;column-gap:16px;}
+  .td-expanded #tdx-chart > .tdp-ch-top{grid-column:1;grid-row:1;}
+  .td-expanded #tdx-chart > .tdp-plot{grid-column:1;grid-row:2;height:auto;min-height:90px;}
+  .td-expanded #tdx-chart > .tdp-ch-foot{grid-column:1;grid-row:3;}
+  .td-expanded #tdx-chart > .tdp-note{grid-column:1 / -1;}
+  .td-expanded #tdx-chart > .tdp-scn{grid-column:2;grid-row:1 / 4;margin:0;padding:0 0 0 16px;border-top:none;border-left:1px solid var(--bdr);overflow:auto;scrollbar-width:thin;}
+  .td-expanded #tdx-chart .tdp-scn-k{min-width:0;width:100%;}
+  .td-expanded #tdx-chart .tdp-scn input{width:96px;}
+
+  /* Details: tabs on top, the open tab scrolls. */
+  .tdx-det > .tdx-box-b{display:flex;flex-direction:column;overflow:hidden;}
+  .tdx-tabs{display:flex;gap:4px;flex-wrap:wrap;flex-shrink:0;padding-bottom:8px;border-bottom:1px solid var(--bdr);}
+  .tdx-tab{font:700 11.5px/1 var(--font-ui);padding:7px 10px;border-radius:6px;border:1px solid transparent;background:transparent;color:var(--muted);cursor:pointer;}
+  .tdx-tab:hover{color:var(--text);}
+  .tdx-tab.on{color:var(--text);background:var(--bg2);border-color:var(--amber);}
+  .tdx-tab[hidden],.tdx-pane[hidden]{display:none;}
+  .tdx-pane{flex:1;min-height:0;overflow:auto;scrollbar-width:thin;padding-top:10px;margin-top:0 !important;}
+  .tdx-pane > * + *{margin-top:14px;}
+
+  /* Summary: the story and warnings left, the evaluation right. */
+  .tdx-sum > .tdx-box-b{display:grid;grid-template-columns:minmax(0,1.1fr) minmax(0,1fr);gap:8px 18px;align-content:start;}
+  .tdx-sum > .tdx-box-b > *{grid-column:1;margin:0 !important;}
+  .tdx-sum > .tdx-box-b > .tdx-eval{grid-column:2;grid-row:1 / span 4;}
+  .tdx-sum .td-story{margin:0;}
+  .tdx-eval-score{font-size:34px !important;}
+  /* Evaluation, tightened to fit its box without scrolling. */
+  .tdx-sum .tdx-eval-top{margin-bottom:4px;}
+  .tdx-sum .tdx-eval-sub{margin-bottom:8px;}
+  .tdx-sum .tdx-verdict{margin-top:8px;}
+  .tdx-sum .tdx-note{margin-top:6px;padding-top:6px;}
+  .tdx-share > .tdx-box-b{display:flex;flex-direction:column;gap:8px;}
+  .tdx-share .td-share-wrap,.tdx-share .td-bnb{margin:0;}
+
+  :root.light .tdx-box{background:rgba(255,255,255,.7);}
 }
-@media(min-width:1024px) and (max-width:1279px){
-  .td-expanded .tdx-body{gap:0 20px;}
-  .td-expanded .tdx-col + .tdx-col{padding-left:20px;}
+/* A short window: the boxes keep their own height and the view scrolls. */
+@media(min-width:1024px) and (max-height:700px){
+  .tile-detail.td-expanded{overflow-y:auto;}
+  .td-expanded .tdx-dash{height:auto;grid-template-rows:380px 340px auto;}
 }
 
 /* ── Full breakdown board (2026-10-21) ─────────────────────────────
@@ -6752,12 +6800,7 @@ a.mob-more-item{text-decoration:none;color:inherit;}
 .td-expand.td-expand-lock{border-color:rgba(243,186,47,.6);}
 .td-expand-pro{font:800 10px/1 var(--font-ui);letter-spacing:.06em;padding:3px 6px;border-radius:4px;background:var(--amber);color:#000;margin-left:2px;}
 @media(min-width:1024px){
-  .td-expanded .tdx-board{clear:both;margin:4px 0 20px;display:flex;flex-direction:column;gap:14px;}
-  .td-expanded .tdx-row1{display:grid;grid-template-columns:minmax(0,1.7fr) minmax(300px,1fr);gap:14px;}
-  .td-expanded .tdx-row2{display:grid;grid-template-columns:1fr 1fr;gap:14px;align-items:start;}
-  .tdx-card{background:var(--bg3);border:1px solid var(--bdr);border-radius:10px;padding:14px 16px;min-width:0;}
   .tdx-card-h{display:flex;align-items:center;gap:8px;font:700 11px/1.2 var(--font-ui);letter-spacing:.14em;text-transform:uppercase;color:var(--muted);margin-bottom:10px;}
-  .td-expanded .tdx-chart-card .tdp-plot{height:220px;}
   .tdx-eval-top{display:flex;align-items:baseline;gap:6px;flex-wrap:wrap;margin-bottom:8px;}
   .tdx-eval-score{font:800 44px/1 var(--font-mono);}
   .tdx-eval-of{font:600 13px/1 var(--font-mono);color:var(--muted);}
@@ -6774,13 +6817,10 @@ a.mob-more-item{text-decoration:none;color:inherit;}
   .tdx-verdict{font:700 13.5px/1.4 var(--font-ui);color:var(--text);margin-top:12px;}
   .tdx-neutral{font-size:12px;line-height:1.5;color:var(--muted);margin-top:6px;}
   .tdx-note{font-size:11.5px;color:var(--muted);margin-top:10px;padding-top:8px;border-top:1px solid var(--bdr);}
-  .tdx-list.tdx-good{border-top:3px solid var(--green);}
-  .tdx-list.tdx-bad{border-top:3px solid var(--red);}
-  .tdx-good .tdx-card-h{color:var(--green);} .tdx-bad .tdx-card-h{color:var(--red);}
+  .tdx-card-h.tdx-good{color:var(--green);} .tdx-card-h.tdx-bad{color:var(--red);}
   .tdx-count{font-family:var(--font-mono);font-size:11px;padding:2px 7px;border-radius:9px;background:var(--bg2);color:var(--text);letter-spacing:0;}
-  .tdx-list > * + *{margin-top:6px;}
   .tdx-fact{display:flex;justify-content:space-between;gap:10px;align-items:baseline;padding:8px 10px;border-radius:6px;background:var(--bg2);}
-  .tdx-good .tdx-fact{border-left:3px solid var(--green);} .tdx-bad .tdx-fact{border-left:3px solid var(--red);}
+  .tdx-up .tdx-fact{border-left:3px solid var(--green);} .tdx-down .tdx-fact{border-left:3px solid var(--red);}
   .tdx-fact-t{font:600 13px/1.35 var(--font-ui);color:var(--text);min-width:0;}
   .tdx-fact-s{font-size:11.5px;color:var(--muted);white-space:nowrap;flex-shrink:0;}
   .tdx-empty{font-size:12.5px;color:var(--muted);padding:6px 0;}
@@ -6791,7 +6831,6 @@ a.mob-more-item{text-decoration:none;color:inherit;}
   .td-expanded #td-score-sec .td-score-wrap,
   .td-expanded #td-insight-content .signal-tile-grid,
   .td-expanded #tdp-chart{display:none !important;}
-  :root.light .tdx-card{background:rgba(255,255,255,.7);}
   :root.light .tdx-fact,:root.light .tdx-count,:root.light .tdx-bal{background:rgba(240,235,220,.7);}
 }
 
