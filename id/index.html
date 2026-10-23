@@ -725,6 +725,10 @@ html:is([lang="ar"],[lang="ur"]) .td-hint{letter-spacing:0;font-family:var(--ui)
   .rail{left:12px;width:140px;height:176px;margin-top:-88px;}
   .rail a{font-size:12px;}
   .grid2{padding-left:150px;}
+  /* The top bar already carries Free & Pro and Enter the board here, so
+     the bottom bar would only repeat them over a third of the screen. */
+  .mbar{display:none;}
+  .scene:not(#hero) .grid2{padding-bottom:18px;}
 }
 </style>
 </head>
