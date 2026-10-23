@@ -42,7 +42,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Rotator">
 
-  <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="styles.css?v=20261023">
   <script src="js/theme-mode.js"></script>
 
   <!-- Umami Cloud analytics (privacy-friendly, no cookies). Replace data-website-id after signup at cloud.umami.is. -->
@@ -1814,6 +1814,20 @@
      from MORE. The active button follows the scroll, like the rail
      (initRail() in js/ui.js reads data-sec). -->
 <nav class="mob-nav" id="mob-nav" aria-label="Section navigation">
+  <!-- Sideways phones only (2026-10-23): the side bar has room for every
+       section, so TODAY, CAPITAL and COINS join it (styles.css, end). -->
+  <button type="button" class="mob-nav-btn mob-nav-land" id="mn-today" data-sec="sec-today" onclick="mobGo('sec-today')">
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 19V9"/><path d="M10 19V5"/><path d="M16 19v-7"/><path d="M22 19H2"/></svg>
+    <span>TODAY</span>
+  </button>
+  <button type="button" class="mob-nav-btn mob-nav-land" id="mn-capital" data-sec="sec-capital" onclick="mobGo('sec-capital')">
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="6" cy="12" r="3"/><circle cx="18" cy="12" r="3"/><path d="M9 9.5c1.8-1.4 4.2-1.4 6 0"/><path d="M15 14.5c-1.8 1.4-4.2 1.4-6 0"/></svg>
+    <span>CAPITAL</span>
+  </button>
+  <button type="button" class="mob-nav-btn mob-nav-land" id="mn-coins" data-sec="sec-coins" onclick="mobGo('sec-coins')">
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 6h18"/><path d="M3 12h18"/><path d="M3 18h18"/></svg>
+    <span>COINS</span>
+  </button>
   <button type="button" class="mob-nav-btn" id="mn-liq" data-sec="sec-liq" onclick="mobGo('sec-liq')">
     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M13 2 4 14h7l-1 8 9-12h-7l1-8z"/></svg>
     <span>LIQUIDATIONS</span>

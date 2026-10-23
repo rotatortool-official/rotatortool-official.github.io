@@ -714,6 +714,18 @@ html:is([lang="ar"],[lang="ur"]) .td-hint{letter-spacing:0;font-family:var(--ui)
 /* A scene far from the screen (scroll-scene.js park) is not drawn; the
    section keeps its height, so the scroll position does not move. */
 .scene.parked > .stage{display:none;}
+/* Sideways phones and tablets get the chapter wheel too (Daniel,
+   2026-10-23: "the same navigation scrollable that we have on web").
+   A short screen shows about three chapters: before, current, after. */
+@media (orientation:landscape) and (hover:none) and (max-width:1279px){
+  .rail{display:block;}
+  .grid2{padding-left:190px;}
+}
+@media (orientation:landscape) and (hover:none) and (max-height:500px){
+  .rail{left:12px;width:140px;height:176px;margin-top:-88px;}
+  .rail a{font-size:12px;}
+  .grid2{padding-left:150px;}
+}
 </style>
 </head>
 <body>

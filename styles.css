@@ -4520,6 +4520,17 @@ header{background:var(--bg2);}
   .root{margin-left:60px;width:calc(100vw - 60px) !important;}
   .mob-more-menu{left:68px;}
 }
+/* The side bar carries every section in the rail's order (2026-10-23):
+   TODAY, CAPITAL and COINS show here only; the upright bottom bar keeps
+   its five. A very short screen scrolls the bar instead of clipping it. */
+.mob-nav-land{display:none !important;}
+@media(max-height:500px) and (orientation:landscape){
+  .mob-nav-land{display:flex !important;}
+  .mob-nav{overflow-y:auto !important;}
+  .mob-nav-btn,.mob-nav-fab{flex:1 0 34px !important;min-height:34px !important;}
+  #mn-today{order:1;} #mn-capital{order:2;} #mn-momentum{order:3;} #mn-liq{order:4;}
+  #mn-yours{order:5;} #mn-coins{order:6;} #mn-swap{order:7;} #mn-more{order:8;}
+}
 
 /* ── The remove × was sized for a thumb ──────────────────────────────
    44px of minimum touch target inside a 155px tile left the symbol about
