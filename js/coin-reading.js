@@ -128,8 +128,8 @@ function _tdSignsRaw(c) {
      there, so 70-85 is momentum, not a cooling sign, and sits in info.
      "Overbought" starts at 85: rare (63 times in 2 years), 59% then
      trailed the median, too few to count as tested. */
-  if (rsi != null && rsi >= 85) down.push({ title: 'Overbought', when: 'now', detail: 'Daily RSI ' + rsi.toFixed(1) + '. 85 and above is rare; most such coins then trailed the average coin, too few cases to call it tested', ev: null, src: SRC.rsi });
-  else if (rsi != null && rsi >= 70) info.push({ title: 'Gaining momentum', when: 'now', detail: 'Daily RSI ' + rsi.toFixed(1) + '. In our 2-year test, coins at 70 to 85 kept beating the average coin over the next 2 weeks', ev: null, src: SRC.rsi });
+  if (rsi != null && rsi >= 85) down.push({ title: 'Overbought', when: 'now', detail: 'Daily RSI ' + rsi.toFixed(1) + '. Rare: in our 2-year test most such coins dipped 15% or more within 2 weeks. Too few cases to call it a tested warning', ev: null, src: SRC.rsi });
+  else if (rsi != null && rsi >= 70) info.push({ title: 'Gaining momentum', when: 'now', detail: 'Daily RSI ' + rsi.toFixed(1) + '. In our 2-year test, coins at 70 to 85 kept beating the average coin over the next 2 weeks, but about half dipped 15% or more along the way', ev: null, src: SRC.rsi });
   else if (rsi != null && rsi <= 30) info.push({ title: 'Oversold', when: 'now', detail: 'Daily RSI ' + rsi.toFixed(1) + '. Oversold alone has not beaten the market', ev: 'rsiOversold', src: SRC.rsi });
 
   /* ── Hot run: the one exit warning that passed its test (promptove/98) ──
