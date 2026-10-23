@@ -16,6 +16,7 @@
      ScrollScene.add(trackEl, { render: function (p) {}, resize: fn })
      ScrollScene.seg(p, a, b)   0..1 progress of p inside [a, b]
      ScrollScene.ease(t)        ease-out cubic
+     ScrollScene.park(true)     hide scenes far from the screen (phones)
 ══════════════════════════════════════════════════════════════════ */
 var ScrollScene = (function () {
   var scenes = [], raf = 0;
@@ -25,11 +26,27 @@ var ScrollScene = (function () {
   function seg(p, a, b) { return clamp((p - a) / (b - a), 0, 1); }
   function ease(t) { return 1 - Math.pow(1 - t, 3); }
 
+  /* Parking (2026-10-23, iPhone reloads): with park(true), a scene more
+     than a screen away gets the class 'parked' (the page hides its stage
+     with display:none, freeing its graphics memory) and is laid out again
+     before it scrolls into view. Only from the first real scroll, so a
+     page that never scrolls (a search crawler) keeps every scene. */
+  var parking = false, scrolled = false;
+  function setParked(s, on) {
+    if (s.parked === on) return;
+    s.parked = on;
+    s.el.classList.toggle('parked', on);
+    if (!on) {
+      if (s.opts.resize) s.opts.resize();
+      s.opts.render(s.cur);
+    }
+  }
   function measure(s) {
     var r = s.el.getBoundingClientRect(), vh = window.innerHeight;
     var span = r.height - vh;
     s.target = span > 0 ? clamp(-r.top / span, 0, 1) : (r.top < vh ? 1 : 0);
     s.near = r.bottom > -vh && r.top < vh * 2;
+    if (parking && scrolled) setParked(s, !s.near);
   }
   function tick() {
     var again = false;
@@ -47,7 +64,7 @@ var ScrollScene = (function () {
     if (!raf) raf = requestAnimationFrame(tick);
   }
   function add(el, opts) {
-    var s = { el: el, opts: opts, cur: 0, target: 0, near: true };
+    var s = { el: el, opts: opts, cur: 0, target: 0, near: true, parked: false };
     measure(s);
     s.cur = s.target;
     if (opts.resize) opts.resize();
@@ -55,10 +72,16 @@ var ScrollScene = (function () {
     scenes.push(s);
     return s;
   }
-  window.addEventListener('scroll', refresh, { passive: true });
+  function park(on) {
+    parking = !!on;
+    if (!parking) scenes.forEach(function (s) { setParked(s, false); });
+    else refresh();
+  }
+  window.addEventListener('scroll', function () { scrolled = true; refresh(); }, { passive: true });
+  /* A parked scene measures as 0 x 0; it is laid out when it comes back. */
   window.addEventListener('resize', function () {
-    scenes.forEach(function (s) { if (s.opts.resize) s.opts.resize(); s.opts.render(s.cur); });
+    scenes.forEach(function (s) { if (s.parked) return; if (s.opts.resize) s.opts.resize(); s.opts.render(s.cur); });
     refresh();
   });
-  return { add: add, refresh: refresh, clamp: clamp, seg: seg, ease: ease, reduce: reduce };
+  return { add: add, refresh: refresh, park: park, clamp: clamp, seg: seg, ease: ease, reduce: reduce };
 })();

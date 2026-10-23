@@ -711,6 +711,9 @@ html:is([lang="ar"],[lang="ur"]) .td-hint{letter-spacing:0;font-family:var(--ui)
   *{will-change:auto !important;}
   .btn-ghost,.coin .in{backdrop-filter:none;-webkit-backdrop-filter:none;}
 }
+/* A scene far from the screen (scroll-scene.js park) is not drawn; the
+   section keeps its height, so the scroll position does not move. */
+.scene.parked > .stage{display:none;}
 </style>
 </head>
 <body>
@@ -1079,10 +1082,13 @@ document.addEventListener('click', function (e) {
 </div>
 <script src="../js/config.js"></script>
 <script src="../js/topic.js"></script>
-<script src="../js/scroll-scene.js"></script>
+<script src="../js/scroll-scene.js?v=2"></script>
 <script>
 (function () {
   var S = ScrollScene, seg = S.seg, ease = S.ease, clamp = S.clamp;
+  /* Phones and tablets keep only the scenes near the screen drawn
+     (2026-10-23: an iPhone ran out of graphics memory and reloaded). */
+  if (S.park && matchMedia('(hover:none),(max-width:860px)').matches) S.park(true);
   var $ = function (id) { return document.getElementById(id); };
   var esc = TOPIC.esc;
 
