@@ -216,8 +216,19 @@
      the split the candidate classifier always used. RSI words follow the
      RSI panel's bands and name a level, never a direction; MACD states
      say "above / below signal" instead of "cross". The record is NOT
-     reset (owner, 2026-10-05): see verify-tracking-labels.js. */
-  var ENGINE_VERSION = '2.12.0';
+     reset (owner, 2026-10-05): see verify-tracking-labels.js.
+
+     2.13.0 (2026-10-23, owner's decision, promptove/160): RSI exhaustion.
+     A coin whose daily RSI is 85 or more gets score points, so it leans
+     toward rotate-out: +7 while BTC is below its 200-day average, +4 while
+     above (90% of 5, rounded down so scores stay whole), +5 if the 200-day
+     average is unknown. UNTESTED as a call: RSI 85+ happened 63 times in the
+     771-day backtest, too few to pass (promptove/159); it is under review in
+     January. RSI 70-85 is unchanged. Record not reset (owner). */
+  var ENGINE_VERSION = '2.13.0';
+
+  /* RSI exhaustion points (2.13.0). See the note above. */
+  var RSI_EXHAUSTION = { line: 85, base: 5, btcBelow200: 7, btcAbove200: 4 };
   var SCORING_MODELS = ['v1', 'v2'];
 
   /* ── Eligibility defaults ──────────────────────────────────────────
@@ -2331,6 +2342,26 @@
    * @returns {object} { engineVersion, asOf, thresholds, cycleLabel,
    *                     items, zones, volumeHistory, dataQuality }
    */
+  /* RSI exhaustion (2.13.0). Runs after computeScores() and the RSI
+     coverage check, before the zones, so the points move the zone. Only
+     when the RSI feed is alive (_rsiApplied), only crypto, only RSI >= 85.
+     Recorded in scoreBreakdown.rsiExhaustion so every point is visible. */
+  function _applyRsiExhaustion(tech) {
+    var R = RSI_EXHAUSTION;
+    var regime = (btcMA200 > 0 && btcPrice > 0) ? (btcPrice < btcMA200 ? 'below' : 'above') : null;
+    var pts = regime === 'below' ? R.btcBelow200 : regime === 'above' ? R.btcAbove200 : R.base;
+    for (var i = 0; i < coins.length; i++) {
+      var c = coins[i];
+      if (!c || c.isStable || c.isStock || c.dataComplete === false) continue;
+      if (c.scoreBreakdown) c.scoreBreakdown.rsiExhaustion = 0;
+      if (!_rsiApplied) continue;
+      var rsi = _candidateRsi(_candidateTechnical(tech, c));
+      if (typeof rsi !== 'number' || rsi < R.line) continue;
+      c.score = Math.min(100, Math.max(-50, c.score + pts));
+      if (c.scoreBreakdown) { c.scoreBreakdown.rsiExhaustion = pts; c.scoreBreakdown.rsiExhaustionBtc = regime; }
+    }
+  }
+
   function computeSignalRun(input) {
     if (!input || !input.asOf) throw new Error('rotator-engine: input.asOf is required');
     if (!input.coins || !input.coins.length) throw new Error('rotator-engine: input.coins is empty');
@@ -2357,6 +2388,8 @@
     var rsiCoverage = classifiable ? withRsi / classifiable : 0;
     var rsiApplied = rsiCoverage >= candRules.rsi.minCoverage;
     _rsiApplied = rsiApplied;
+
+    _applyRsiExhaustion(candTech);
 
     /* _classifyZones() computes the insights it needs. */
     _classifyZones();
@@ -2650,6 +2683,7 @@
 
   return {
     ENGINE_VERSION: ENGINE_VERSION,
+    RSI_EXHAUSTION: RSI_EXHAUSTION,
     computeSignalRun: computeSignalRun,
     computeSignalRunV2: computeSignalRunV2,
     V2_WEIGHTS: V2_WEIGHTS,

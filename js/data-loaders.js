@@ -4657,8 +4657,13 @@ function openTileDetail(coinId, evt) {
         ? '<div class="td-cell" title="No tokenomics data applies to equities — see the bStock badge tooltip. This is a partial score (max 70), not directly comparable to a crypto composite.">'
           +'<div class="td-cell-l">TOKENOMICS</div><div class="td-cell-v" style="color:var(--muted);">n/a (stock)</div></div>'
         : '<div class="td-cell" title="Supply issuance schedule, deflationary mechanics, and unlock/vesting risk. Can be negative — bad tokenomics actively subtracts from the score, it is not just a neutral add-on.">'
-          +'<div class="td-cell-l">TOKENOMICS</div><div class="td-cell-v '+(bd.layer3>=0?'up':'dn')+'">'+(bd.layer3>=0?'+':'')+bd.layer3+' / 30</div></div>');
-    bdEl.style.gridTemplateColumns = 'repeat(3,1fr)';
+          +'<div class="td-cell-l">TOKENOMICS</div><div class="td-cell-v '+(bd.layer3>=0?'up':'dn')+'">'+(bd.layer3>=0?'+':'')+bd.layer3+' / 30</div></div>')
+      /* Engine 2.13.0: RSI 85+ exhaustion points, shown only when they apply. */
+      + (bd.rsiExhaustion > 0
+        ? '<div class="td-cell" title="Daily RSI is 85 or more, so the score gets extra points toward rotate-out: +7 while BTC is below its 200-day average, +4 while above. Not a tested signal yet; under review in January.">'
+          +'<div class="td-cell-l">RSI 85+</div><div class="td-cell-v dn">+'+bd.rsiExhaustion+'</div></div>'
+        : '');
+    bdEl.style.gridTemplateColumns = 'repeat(' + (bd.rsiExhaustion > 0 ? 4 : 3) + ',1fr)';
     bdSec.style.display = '';
 
     /* Honest scope disclosure — shown once, directly under the numbers

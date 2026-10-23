@@ -368,6 +368,7 @@ Object.assign(MK_TEXT, {
   'MOMENTUM': 'МОМЕНТУМ', 'MACRO STRENGTH': 'МАКРО СИЛА', 'TOKENOMICS': 'ТОКЕНОМИКА',
   'Supply issuance schedule, deflationary mechanics, and unlock/vesting risk. Can be negative — bad tokenomics actively subtracts from the score, it is not just a neutral add-on.':
     'Распоред на издавање на понудата, дефлациски механизми и ризик од отклучување/вестинг. Може да биде негативно — лошата токеномика активно одзема од резултатот, не е само неутрален додаток.',
+  'Daily RSI is 85 or more, so the score gets extra points toward rotate-out: +7 while BTC is below its 200-day average, +4 while above. Not a tested signal yet; under review in January.': 'Дневниот RSI е 85 или повеќе, па скорот добива дополнителни поени кон излез од монетата: +7 додека BTC е под својот 200-дневен просек, +4 додека е над него. Сè уште не е проверен сигнал; ќе се разгледа во јануари.',
   'Rank vs every other tracked coin on 7D/14D/30D momentum, weighted 25/30/45%. Higher = stronger relative recent momentum.':
     'Ранг наспроти секоја друга следена монета по моментум за 7D/14D/30D, пондерирано 25/30/45%. Повисоко = посилен релативен неодамнешен моментум.',
   'Relative strength vs BTC, Gold, Silver, Oil, DXY and the broader alt market (Total3) over 7D. Higher = outperforming the macro backdrop, not just the crypto market.':

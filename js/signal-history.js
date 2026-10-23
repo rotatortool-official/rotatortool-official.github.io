@@ -128,7 +128,11 @@ var SignalHistory = (function() {
      insight score moves, and a zone near a band can through the
      dampening; the owner chose not to restart the record ("they will
      become better over time"). */
-  var ENGINE_LABEL    = '2.12.0';
+  /* 2.13.0 since 2026-10-23, also without moving STATS_FROM_DATE: RSI 85+
+     adds score points toward rotate-out (promptove/160). No coin was at 85
+     on the release day, so no call moved; the owner chose to let it show
+     in the runs until New Year. */
+  var ENGINE_LABEL    = '2.13.0';
   /* Daniel's bar for March 2027 (2026-10-21): about 1,000 graded calls,
      2 in 3 beating the average coin. Display only; it grades nothing. */
   var REC_GOAL_CALLS = 1000, REC_GOAL_PCT = 66;

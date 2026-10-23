@@ -145,10 +145,11 @@ ul{margin:0 0 13px 20px;} li{color:var(--muted);font-size:14.5px;line-height:1.7
       a separate classification rather than as another term inside the score.
     </p>
     <p>
-      <strong>Two exceptions, stated plainly.</strong> 2.11.0 changed which coins can be
-      selected, and 2.12.0 moved the insight score. By the test above, both should have
-      restarted the counter. The owner chose to keep it running instead, so the first
-      30-day results would not be pushed back again. Both entries below say so.
+      <strong>Three exceptions, stated plainly.</strong> 2.11.0 changed which coins can be
+      selected, 2.12.0 moved the insight score, and 2.13.0 adds score points at an RSI of
+      85 or more. By the test above, all three should have restarted the counter. The owner
+      chose to keep it running instead, so the first 30-day results would not be pushed
+      back again. All three entries below say so.
     </p>
   </div>
 </section>
@@ -481,6 +482,38 @@ ul{margin:0 0 13px 20px;} li{color:var(--muted);font-size:14.5px;line-height:1.7
         shifted 7 of 177 effective scores in the reference test. <strong>The main score,
         the rankings and the thresholds did not change.</strong> The counter was kept
         running: the owner chose not to restart it for this fix.
+      </p>
+    </div>
+
+    <div class="rel">
+      <div class="rel-head">
+        <span class="rel-v">2.13.0</span>
+        <span class="rel-date">23 OCT 2026</span>
+        <span class="tag tag-moved">score moved at RSI 85+</span>
+        <span class="tag tag-still">counter not restarted</span>
+      </div>
+      <div class="rel-title">RSI tweak: a very high RSI now leans toward rotate-out</div>
+      <p>
+        <strong>What changed.</strong> When an asset's daily RSI reaches <strong>85 or
+        more</strong>, its score gets extra points, which moves it toward the rotate-out
+        side: <strong>+7</strong> while Bitcoin is below its 200-day average, <strong>+4</strong>
+        while Bitcoin is above it, so assets in a strong market get a little more room to
+        run. The points show in the asset's score breakdown. An RSI from 70 to 85 changes
+        nothing in the score.
+      </p>
+      <p>
+        <strong>Why.</strong> In two years of price history, assets at an RSI of 70 to 85
+        mostly kept beating the average asset, so the site now calls that "gaining
+        momentum". Above 85, more than half dropped 15% or more within two weeks, and most
+        fell behind the average asset. The goal is clearer rotate-out calls on stretched
+        assets.
+      </p>
+      <p>
+        <strong>Stated plainly: this is not a tested result yet.</strong> An RSI of 85 is
+        rare, 63 times across 132 assets in two years, too few to pass our test bar. It is
+        under review in January with everything else. No asset was at 85 on the release
+        day, so no call changed that day. The counter was kept running by the owner's
+        choice.
       </p>
     </div>
   </div>
