@@ -180,7 +180,10 @@ function _tdSignsRaw(c) {
      LS_CROWD_MIN keeps it at 1.5 at the very least. And the account
      ratio must agree with the sign: negative funding alone had labelled
      MANA "Crowded shorts" at 2.28 long accounts per short. Funding and
-     events still raise a sign when the ratio is unknown. */
+     events still raise a sign when the ratio is unknown.
+     2026-10-23 (Daniel): both are info, not turn signs. A one-month look
+     (Sep-Oct, promptove/150 P2) had 2:1 longs a coin flip and 1:2 shorts
+     lagging 67%; the 2:1 / 1:2 rule is graded live with P (~2027-02). */
   var LS_CROWD_MIN = 1.5;
   var fund = f && f.funding_rate != null ? Number(f.funding_rate) * 100 : null;   /* % per 8h */
   /* When the per-coin futures detail was measured. sync-binance-futures
@@ -199,9 +202,9 @@ function _tdSignsRaw(c) {
   var longsAgree  = lsv == null || lsv >= LS_CROWD_MIN;
   var shortsAgree = lsv == null || lsv <= 1 / LS_CROWD_MIN;
   if (longsAgree && ((lsp && lsp.pct >= 0.90) || (fund != null && fund >= 0.05) || ev('futures_long_crowded'))) {
-    down.push({ title: 'Crowded longs', when: fWhen('now'), detail: (lsv != null ? lsv.toFixed(2) + ' long accounts per short' + (lsp ? ', among the most long-heavy 10% of ' + lsp.n + ' perpetuals' : '') : 'Longs paying heavily to stay in') + '. Crowded trades can unwind fast', ev: null, src: SRC.ls });
+    info.push({ title: 'Crowded longs', when: fWhen('now'), detail: (lsv != null ? lsv.toFixed(2) + ' long accounts per short' + (lsp ? ', among the most long-heavy 10% of ' + lsp.n + ' perpetuals' : '') : 'Longs paying heavily to stay in') + '. In our first month of data, coins this crowded were a coin flip against the average coin; under test until February', ev: null, src: SRC.ls });
   } else if (shortsAgree && (lsv != null || (fund != null && fund <= -0.015) || ev('futures_short_crowded'))) {
-    up.push({ title: 'Crowded shorts', when: fWhen('now'), detail: (lsv != null ? (1 / lsv).toFixed(2) + ' short accounts per long' : 'Shorts paying longs') + '. This is the setup a short squeeze needs', ev: null, src: SRC.ls });
+    info.push({ title: 'Crowded shorts', when: fWhen('now'), detail: (lsv != null ? (1 / lsv).toFixed(2) + ' short accounts per long' : 'Shorts paying longs') + '. In our first month of data, no short squeeze followed on average; under test until February', ev: null, src: SRC.ls });
   }
   if (f && f.oi_change_24h_pct != null && f.price_change_pct_24h != null) {
     var oi24 = Number(f.oi_change_24h_pct), pc24 = Number(f.price_change_pct_24h);
