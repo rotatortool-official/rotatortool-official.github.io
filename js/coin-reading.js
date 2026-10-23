@@ -183,9 +183,11 @@ function _tdSignsRaw(c) {
      events still raise a sign when the ratio is unknown.
      2026-10-23 (Daniel): both are info, not turn signs. A one-month look
      (Sep-Oct, promptove/150 P2) had 2:1 longs a coin flip and 1:2 shorts
-     lagging 67%; the 2:1 / 1:2 rule is graded live with P (~2027-02). */
-  var LS_CROWD_MIN = 1.5;
-  var fund = f && f.funding_rate != null ? Number(f.funding_rate) * 100 : null;   /* % per 8h */
+     lagging 67%; the 2:1 / 1:2 rule is graded live with P (~2027-02).
+     2026-10-23 later (Daniel): shown ONLY at 2:1 or more (longs) and 1:2 or
+     less (shorts), on the account ratio itself, so the label matches the
+     rule under test. Funding or an event alone no longer raises it. */
+  var LS_CROWD_MIN = 2;
   /* When the per-coin futures detail was measured. sync-binance-futures
      refreshes it for 75 of 300 perpetuals per half hour, so a reading can
      be up to ~2 hours old; "now" and "last hour" overstated it
@@ -199,12 +201,10 @@ function _tdSignsRaw(c) {
   var lsv = f && f.long_short_ratio != null ? Number(f.long_short_ratio) : (pos && pos.longShort != null ? Number(pos.longShort) : null);
   var lsp = (lsv != null && typeof _futuresPercentile === 'function')
     ? _futuresPercentile(function(r) { return r.long_short_ratio != null ? Number(r.long_short_ratio) : null; }, lsv) : null;
-  var longsAgree  = lsv == null || lsv >= LS_CROWD_MIN;
-  var shortsAgree = lsv == null || lsv <= 1 / LS_CROWD_MIN;
-  if (longsAgree && ((lsp && lsp.pct >= 0.90) || (fund != null && fund >= 0.05) || ev('futures_long_crowded'))) {
-    info.push({ title: 'Crowded longs', when: fWhen('now'), detail: (lsv != null ? lsv.toFixed(2) + ' long accounts per short' + (lsp ? ', among the most long-heavy 10% of ' + lsp.n + ' perpetuals' : '') : 'Longs paying heavily to stay in') + '. In our first month of data, coins this crowded were a coin flip against the average coin; under test until February', ev: null, src: SRC.ls });
-  } else if (shortsAgree && (lsv != null || (fund != null && fund <= -0.015) || ev('futures_short_crowded'))) {
-    info.push({ title: 'Crowded shorts', when: fWhen('now'), detail: (lsv != null ? (1 / lsv).toFixed(2) + ' short accounts per long' : 'Shorts paying longs') + '. In our first month of data, no short squeeze followed on average; under test until February', ev: null, src: SRC.ls });
+  if (lsv != null && lsv >= LS_CROWD_MIN) {
+    info.push({ title: 'Crowded longs', when: fWhen('now'), detail: lsv.toFixed(2) + ' long accounts per short' + (lsp && lsp.pct >= 0.90 ? ', among the most long-heavy 10% of ' + lsp.n + ' perpetuals' : '') + '. In our first month of data, coins this crowded were a coin flip against the average coin; under test until February', ev: null, src: SRC.ls });
+  } else if (lsv != null && lsv > 0 && lsv <= 1 / LS_CROWD_MIN) {
+    info.push({ title: 'Crowded shorts', when: fWhen('now'), detail: (1 / lsv).toFixed(2) + ' short accounts per long. In our first month of data, no short squeeze followed on average; under test until February', ev: null, src: SRC.ls });
   }
   if (f && f.oi_change_24h_pct != null && f.price_change_pct_24h != null) {
     var oi24 = Number(f.oi_change_24h_pct), pc24 = Number(f.price_change_pct_24h);
