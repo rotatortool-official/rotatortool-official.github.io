@@ -427,7 +427,11 @@ function supaLoadBinanceSpot() {
    points at the other. */
 var KLINE_PAGE_LIMIT = 1000;  /* PostgREST's hard cap on one response */
 var KLINE_ROW_BUDGET = 800;   /* rows we aim for per request — headroom under the cap */
-var KLINE_MAX_PAGES  = 12;    /* paging floor; hitting it warns rather than truncating quietly */
+var KLINE_MAX_PAGES  = 80;    /* paging floor; hitting it warns rather than truncating quietly.
+                                 Was 12 until 2026-10-23: the whole-universe read since 2026-09-11 passed
+                                 12,000 rows, the warning read group.length on group === null, threw, and
+                                 emptied the candle map, so every graded count showed 0/0.
+                                 ~300 symbols x ~200 days to the March 2027 verdict = ~60 pages. */
 var KLINE_MAX_DAYS   = 200;   /* table retention (180d) + slack, when no window bound is known */
 var KLINE_MAX_SYMS   = 60;    /* keeps the in.() list to a sane URL length */
 var KLINE_STALE_DAYS = 3;     /* the sync runs every 3h; older than this is suspicious */
@@ -474,13 +478,13 @@ function supaFetchKlinePages(group, sinceIso) {
       if (batch.length < KLINE_PAGE_LIMIT) return rows;      /* short page — complete */
       if (pageNo >= KLINE_MAX_PAGES) {
         console.warn('[Supabase] kline paging hit the ' + KLINE_MAX_PAGES + '-page floor for '
-          + group.length + ' symbols (' + rows.length + ' rows). Candles are incomplete '
+          + (group ? group.length : 'all') + ' symbols (' + rows.length + ' rows). Candles are incomplete '
           + 'and graded accuracy will read low.');
         return rows;
       }
       return page(offset + KLINE_PAGE_LIMIT, pageNo + 1);
     }).catch(function(e) {
-      console.warn('[Supabase] daily klines page failed (' + group.length
+      console.warn('[Supabase] daily klines page failed (' + (group ? group.length : 'all')
         + ' symbols, offset ' + offset + '):', (e && e.message) || e);
       return rows;   /* partial beats nothing; uncovered coins fall back per coin */
     });
