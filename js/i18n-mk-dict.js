@@ -167,7 +167,7 @@ Object.assign(MK_TEXT, {
   'Quick RSI bounce': 'Брз RSI отскок', 'Slow RSI bounce': 'Бавен RSI отскок', 'RSI back above 30': 'RSI повторно над 30',
   'Crowded shorts': 'Преполни шорт позиции', 'Crowded longs': 'Преполни лонг позиции',
   'Momentum slowing': 'Моментумот забавува', 'Decline slowing': 'Падот забавува', 'Decline speeding up': 'Падот забрзува',
-  'Running hot': 'Прегреано', 'Overbought': 'Прекупено', 'Oversold': 'Препродадено',
+  'Running hot': 'Прегреано', 'Overbought': 'Прекупено', 'Oversold': 'Препродадено', 'Gaining momentum': 'Добива замав',
   'Rally on short covering': 'Раст од затворање шорт позиции',
   'Heavy aggressive buying': 'Силно агресивно купување', 'Heavy aggressive selling': 'Силна агресивна продажба',
   'Big 24-hour jump': 'Голем скок за 24 часа', 'Whole market oversold': 'Целиот пазар е препродаден',
@@ -355,7 +355,7 @@ Object.assign(MK_TEXT, {
   'No published vesting schedule. That is not the same as no unlock due.': 'Нема објавен распоред за вестинг. Тоа не е исто што и да нема предвидено отклучување.',
   'Circulating supply as a share of max supply': 'Понудата во оптек како дел од максималната понуда',
   'Circulating supply as a share of total supply': 'Понудата во оптек како дел од вкупната понуда',
-  'Daily RSI(14). 30 and below is called oversold, 70 and above overbought.': 'Дневен RSI(14). 30 и помалку се смета за препродадено, 70 и повеќе за прекупено.',
+  'Daily RSI(14). 30 and below is called oversold, 70 to 85 gaining momentum, 85 and above overbought.': 'Дневен RSI(14). 30 и помалку се смета за препродадено, од 70 до 85 монетата добива замав, 85 и повеќе е прекупено.',
   '60-day average above the 125-day': '60-дневниот просек е над 125-дневниот', '60-day average below the 125-day': '60-дневниот просек е под 125-дневниот',
   'Relative strength': 'Релативна сила', 'Zone': 'Зона', 'Engine read': 'Читање на бодувањето',
   'bottom of the range': 'дното на опсегот', 'top of the range': 'врвот на опсегот', 'middle of the range': 'средината на опсегот',
@@ -380,7 +380,7 @@ Object.assign(MK_TEXT, {
   'No tokenomics data applies to equities — see the bStock badge tooltip. This is a partial score (max 70), not directly comparable to a crypto composite.':
     'Податоци за токеномика не важат за акции — видете го објаснувањето на ознаката bStock. Ова е делумен резултат (макс. 70), не е директно споредлив со крипто резултатот.',
   'RSI · DAILY': 'RSI · ДНЕВЕН', 'RSI · WEEKLY': 'RSI · НЕДЕЛЕН', 'RSI · DAILY OVER TIME': 'RSI · ДНЕВЕН НИЗ ВРЕМЕТО',
-  'elevated': 'покачен', 'neutral': 'неутрален', 'overbought': 'прекупено', 'oversold': 'препродадено', 'low': 'низок', 'high': 'висок',
+  'elevated': 'покачен', 'neutral': 'неутрален', 'overbought': 'прекупено', 'momentum': 'замав', 'oversold': 'препродадено', 'low': 'низок', 'high': 'висок',
   'Wilder RSI(14) on daily candles, computed server-side. Compares recent gains with recent losses on a 0-100 scale. It describes what price has already done.':
     'Wilder RSI(14) на дневни свеќи, пресметано на серверот. Ги споредува неодамнешните добивки со неодамнешните загуби на скала 0-100. Опишува што цената веќе направила.',
   'Wilder RSI(14) on weekly closes. Slower, so it moves less often than the daily reading.':
@@ -657,7 +657,7 @@ Object.assign(MK_TEXT, {
   P(/^Tested: only (\d+) cases, too few to judge$/, function (m) { return 'Тестирано: само ' + m[1] + ' случаи, премалку за проценка'; });
   P(/^Tested: big outflow weeks were followed by a weaker BTC week \(([^)]+)% vs average, (\d+) trading days\) · weak, not proven$/, function (m) { return 'Тестирано: по неделите со големи одливи следуваше послаба недела за BTC (' + m[1] + '% наспроти просекот, ' + m[2] + ' дена на тргување) · слабо, не е докажано'; });
   /* Key facts chips */
-  P(/^RSI (\d+) · (oversold|overbought)$/, function (m) { return 'RSI ' + m[1] + ' · ' + (m[2] === 'oversold' ? 'препродадено' : 'прекупено'); });
+  P(/^RSI (\d+) · (oversold|overbought|momentum)$/, function (m) { return 'RSI ' + m[1] + ' · ' + (m[2] === 'oversold' ? 'препродадено' : m[2] === 'momentum' ? 'замав' : 'прекупено'); });
   P(/^Trend (up|down) \(60D ([<>]) 125D\)$/, function (m) { return 'Тренд ' + (m[1] === 'up' ? 'нагоре' : 'надолу') + ' (60D ' + m[2] + ' 125D)'; });
   P(/^Supply (\d+)% unlocked$/, function (m) { return 'Понуда ' + m[1] + '% отклучена'; });
   P(/^Unlock ([\d.]+)% in 30D( · [\d-]+)?$/, function (m) { return 'Отклучување ' + m[1] + '% за 30D' + (m[2] || ''); });
@@ -682,7 +682,8 @@ Object.assign(MK_TEXT, {
   /* Turn signs: futures flow, sources, named signs (2026-10-04) */
   P(/^Traders buying at the market price traded ([\d.]+)× as much as those selling at the market price\. A typical coin today: ([\d.]+)\. Among the top 15% of (\d+) perpetuals$/, function (m) { return 'Купувачите по пазарна цена тргуваа ' + m[1] + '× повеќе од продавачите по пазарна цена. Просечната монета денес: ' + m[2] + '. Меѓу горните 15% од ' + m[3] + ' перпетуали'; });
   P(/^Traders selling at the market price traded ([\d.]+)× as much as those buying at the market price\. A typical coin today: ([\d.]+)\. Among the bottom 15% of (\d+) perpetuals$/, function (m) { return 'Продавачите по пазарна цена тргуваа ' + m[1] + '× повеќе од купувачите по пазарна цена. Просечната монета денес: ' + m[2] + '. Меѓу долните 15% од ' + m[3] + ' перпетуали'; });
-  P(/^Daily RSI ([\d.]+)\. 70 and above is called overbought$/, function (m) { return 'Дневен RSI ' + m[1] + '. 70 и повеќе се смета за прекупено'; });
+  P(/^Daily RSI ([\d.]+)\. 85 and above is rare; most such coins then trailed the average coin, too few cases to call it tested$/, function (m) { return 'Дневен RSI ' + m[1] + '. 85 и повеќе е ретко; повеќето такви монети потоа заостанаа зад просечната монета, но случаите се премалку за да се смета за проверено'; });
+  P(/^Daily RSI ([\d.]+)\. In our 2-year test, coins at 70 to 85 kept beating the average coin over the next 2 weeks$/, function (m) { return 'Дневен RSI ' + m[1] + '. Во нашиот тест од 2 години, монетите со RSI од 70 до 85 продолжија да ја надминуваат просечната монета во следните 2 недели'; });
   P(/^(Buyers|Sellers) are stepping in: in the last hour, traders (?:buying|selling) at the market price traded ([\d.]+)× as much as those (?:selling|buying)\. Ranked against (\d+) perpetuals, median ([\d.]+)\. Source: Binance futures, last hour\.( Not part of the score\.)?$/, function (m) { return (m[1] === 'Buyers' ? 'Купувачите влегуваат: во последниот час купувачите по пазарна цена тргуваа ' : 'Продавачите влегуваат: во последниот час продавачите по пазарна цена тргуваа ') + m[2] + '× повеќе од ' + (m[1] === 'Buyers' ? 'продавачите' : 'купувачите') + '. Споредено со ' + m[3] + ' перпетуали, просечната монета ' + m[4] + '. Извор: Binance фјучерси, последниот час.' + (m[m.length - 1] ? ' Не е дел од резултатот.' : ''); });
   P(/^Market buying and selling are not unusual for this coin compared with the rest of the market in the last hour\. Ranked against (\d+) perpetuals, median ([\d.]+)\. Source: Binance futures, last hour\.( Not part of the score\.)?$/, function (m) { return 'Купувањето и продажбата по пазарна цена не се невообичаени за оваа монета во последниот час, во споредба со остатокот од пазарот. Споредено со ' + m[1] + ' перпетуали, просечната монета ' + m[2] + '. Извор: Binance фјучерси, последниот час.' + (m[m.length - 1] ? ' Не е дел од резултатот.' : ''); });
   P(/^Backed by a ([+\-][\d.]+%) day$/, function (m) { return 'Поткрепено со ден од ' + m[1]; });

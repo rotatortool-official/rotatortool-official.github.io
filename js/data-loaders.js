@@ -4963,6 +4963,8 @@ function openTileDetail(coinId, evt) {
         if (v <= 45) return { t: 'low',        c: 'var(--green)' };
         if (v <  60) return { t: 'neutral',    c: 'var(--muted)' };
         if (v <  70) return { t: 'elevated',   c: 'var(--amber)' };
+        /* 70-85 momentum, 85+ overbought (2026-10-23, promptove/157, /159) */
+        if (v <  85) return { t: 'momentum',   c: 'var(--green)' };
         return             { t: 'overbought', c: 'var(--red)' };
       };
       var bD = band(rNow), bW = band(rWk);

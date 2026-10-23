@@ -122,8 +122,14 @@ function _tdSignsRaw(c) {
     else if (tech.cross === 'death') info.push({ title: 'Death cross', when: tech.crossDays === 0 ? 'latest close' : tech.crossDays + ' days ago', detail: '60-day average crossed below the 125-day. Tested, it was not a warning', ev: 'deathCross', src: SRC.cross });
   }
 
-  /* ── RSI level now ── */
-  if (rsi != null && rsi >= 70) down.push({ title: rsi >= 80 ? 'Running hot' : 'Overbought', when: 'now', detail: 'Daily RSI ' + rsi.toFixed(1) + '. 70 and above is called overbought', ev: null, src: SRC.rsi });
+  /* ── RSI level now ──
+     2026-10-23 (promptove/157, /159): coins at RSI 70+ kept BEATING the
+     median coin over the next 14 days, more so the longer they stayed
+     there, so 70-85 is momentum, not a cooling sign, and sits in info.
+     "Overbought" starts at 85: rare (63 times in 2 years), 59% then
+     trailed the median, too few to count as tested. */
+  if (rsi != null && rsi >= 85) down.push({ title: 'Overbought', when: 'now', detail: 'Daily RSI ' + rsi.toFixed(1) + '. 85 and above is rare; most such coins then trailed the average coin, too few cases to call it tested', ev: null, src: SRC.rsi });
+  else if (rsi != null && rsi >= 70) info.push({ title: 'Gaining momentum', when: 'now', detail: 'Daily RSI ' + rsi.toFixed(1) + '. In our 2-year test, coins at 70 to 85 kept beating the average coin over the next 2 weeks', ev: null, src: SRC.rsi });
   else if (rsi != null && rsi <= 30) info.push({ title: 'Oversold', when: 'now', detail: 'Daily RSI ' + rsi.toFixed(1) + '. Oversold alone has not beaten the market', ev: 'rsiOversold', src: SRC.rsi });
 
   /* ── Hot run: the one exit warning that passed its test (promptove/98) ──
@@ -139,7 +145,8 @@ function _tdSignsRaw(c) {
       ev: 'hotRun', src: SRC.hot });
     /* The hot run already says the RSI is high; "Running hot" / "Overbought"
        beside it would say the same fact twice under a similar name. */
-    down = down.filter(function (x) { return x.title !== 'Running hot' && x.title !== 'Overbought'; });
+    down = down.filter(function (x) { return x.title !== 'Overbought'; });
+    info = info.filter(function (x) { return x.title !== 'Gaining momentum'; });
   }
 
   /* ── Momentum pace, from the engine's own candidate numbers ── */
@@ -337,9 +344,9 @@ function _tdKeyFacts(c, tech) {
   chip('30D ' + _tdPct(c.p30 || 0), (c.p30 || 0) >= 0 ? 'up' : 'dn');
   var rsi = tech && tech.rsiD != null ? tech.rsiD : null;
   if (rsi != null) {
-    var rl = rsi <= 30 ? ' · oversold' : rsi >= 70 ? ' · overbought' : '';
-    chip('RSI ' + rsi.toFixed(0) + rl, rsi <= 30 ? 'dn' : rsi >= 70 ? 'warn' : '', 'td-rsi-sec', 'Daily RSI(14). 30 and below is called oversold, 70 and above overbought.',
-      'Daily RSI', rsi.toFixed(0) + (rsi <= 30 ? ' · oversold' : rsi >= 70 ? ' · overbought' : ''));
+    var rl = rsi <= 30 ? ' · oversold' : rsi >= 85 ? ' · overbought' : rsi >= 70 ? ' · momentum' : '';
+    chip('RSI ' + rsi.toFixed(0) + rl, rsi <= 30 ? 'dn' : rsi >= 85 ? 'warn' : rsi >= 70 ? 'up' : '', 'td-rsi-sec', 'Daily RSI(14). 30 and below is called oversold, 70 to 85 gaining momentum, 85 and above overbought.',
+      'Daily RSI', rsi.toFixed(0) + rl);
   }
   var circ = c.circulating_supply, basis = c.max_supply > 0 ? c.max_supply : (c.total_supply > 0 ? c.total_supply : null);
   if (circ && basis) chip('Supply ' + Math.round((circ / basis) * 100) + '% unlocked', '', 'td-supply-sec', 'Circulating supply as a share of ' + (c.max_supply > 0 ? 'max' : 'total') + ' supply',
@@ -550,7 +557,8 @@ function coinStory(c) {
   /* 3. What stands out on the chart: RSI, a fresh cross, a volume spike. */
   var t = (typeof coinTechnicals !== 'undefined' && coinTechnicals[c.sym]) || {};
   var bits = [];
-  if (t.rsiD != null && t.rsiD >= 70) bits.push(mk ? 'дневниот RSI е ' + t.rsiD.toFixed(0) + ', зона што трејдерите ја викаат прекупено' : 'its daily RSI is ' + t.rsiD.toFixed(0) + ', the zone traders call overbought');
+  if (t.rsiD != null && t.rsiD >= 85) bits.push(mk ? 'дневниот RSI е ' + t.rsiD.toFixed(0) + ', ретко високо, зона што ја викаме прекупено' : 'its daily RSI is ' + t.rsiD.toFixed(0) + ', rare territory we call overbought');
+  else if (t.rsiD != null && t.rsiD >= 70) bits.push(mk ? 'дневниот RSI е ' + t.rsiD.toFixed(0) + ', монетата добива замав' : 'its daily RSI is ' + t.rsiD.toFixed(0) + ', it is gaining momentum');
   else if (t.rsiD != null && t.rsiD <= 30) bits.push(mk ? 'дневниот RSI е ' + t.rsiD.toFixed(0) + ', зона што трејдерите ја викаат препродадено' : 'its daily RSI is ' + t.rsiD.toFixed(0) + ', the zone traders call oversold');
   if ((t.cross === 'golden' || t.cross === 'death') && t.crossDays != null && t.crossDays <= 14) {
     var cd = t.crossDays === 0 ? (mk ? 'денес' : 'today') : t.crossDays === 1 ? (mk ? 'вчера' : 'yesterday') : (mk ? 'пред ' + t.crossDays + ' дена' : t.crossDays + ' days ago');
@@ -589,7 +597,7 @@ function coinStory(c) {
     + (rk === 1 ? ', the best of ' + pool.length + ' coins this week' : (rk && rk <= 10) ? ', #' + rk + ' of ' + pool.length + ' this week' : '');
   var facts = [];
   if (typeof c.p24 === 'number' && Math.abs(c.p24) >= 7) facts.push(['Today', sg(c.p24), c.p24 >= 0 ? 'up' : 'dn']);
-  if (t.rsiD != null && (t.rsiD >= 70 || t.rsiD <= 30)) facts.push(['RSI', t.rsiD.toFixed(0) + (t.rsiD >= 70 ? ' overbought' : ' oversold'), 'amb']);
+  if (t.rsiD != null && (t.rsiD >= 70 || t.rsiD <= 30)) facts.push(['RSI', t.rsiD.toFixed(0) + (t.rsiD >= 85 ? ' overbought' : t.rsiD >= 70 ? ' momentum' : ' oversold'), t.rsiD >= 70 && t.rsiD < 85 ? 'up' : 'amb']);
   if ((t.cross === 'golden' || t.cross === 'death') && t.crossDays != null && t.crossDays <= 14)
     facts.push([t.cross === 'golden' ? 'Golden cross' : 'Death cross', t.crossDays === 0 ? 'today' : t.crossDays + 'd ago', t.cross === 'golden' ? 'up' : 'dn']);
   if (t.volRatio != null && t.volRatio >= 3) facts.push(['Volume', (t.volRatio >= 10 ? Math.round(t.volRatio) : t.volRatio.toFixed(1)) + '× usual', 'amb']);
