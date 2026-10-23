@@ -1290,6 +1290,17 @@ Object.assign(MK_TEXT, {
     'Нови монети во оптек, согорување и отклучувања. Големите отклучувања или високата инфлација одземаат поени, и затоа резултатот може да падне под 0.',
   'Everywhere on the page: 65 and up is green, 40 to 64 amber, below 40 red. Open any coin to see its three parts.':
     'Насекаде на страницата: 65 и нагоре е зелено, од 40 до 64 жолто, под 40 црвено. Отворете која било монета за да ги видите нејзините три дела.',
+  'Then two small steps:': 'Потоа два мали чекори:',
+  'Size, −4 to +2.': 'Големина, од −4 до +2.',
+  'A small fixed step by market cap: −4 under $100M, +2 over $50B.':
+    'Мал фиксен чекор според тржишната вредност: −4 под $100M, +2 над $50B.',
+  'RSI 85 or more, +4 to +7.': 'RSI 85 или повеќе, од +4 до +7.',
+  'Points toward rotate-out, +7 while Bitcoin is below its 200-day average. New in October and not yet tested.':
+    'Поени кон излез од монетата, +7 додека Bitcoin е под својот 200-дневен просек. Ново во октомври и сè уште не е проверено.',
+  'Rotator score': 'Rotator резултат', 'Momentum rank': 'Ранг по моментум', 'Against the big markets': 'Наспроти големите пазари',
+  'Size nudge': 'Мал чекор по големина',
+  '−50 to 100': 'од −50 до 100', '0 to 40': 'од 0 до 40', '0 to 30': 'од 0 до 30', '−50 to +30': 'од −50 до +30', '−4 to +2': 'од −4 до +2',
+  '· example coin': '· пример монета',
   'Score from −50 to 100: momentum against every other coin, strength against BTC, gold and oil, and tokenomics. Higher = stronger so far. bStock rows show a partial momentum-only score (max 70) — see STOCKS tab tooltip.':
     'Резултат од −50 до 100: моментум во однос на секоја друга монета, сила наспроти BTC, златото и нафтата, и токеномика. Повисоко = посилна досега. Редовите за bStocks покажуваат делумен резултат само од моментум (најмногу 70).',
 });

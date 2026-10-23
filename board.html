@@ -42,7 +42,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Rotator">
 
-  <link rel="stylesheet" href="styles.css?v=20261023">
+  <link rel="stylesheet" href="styles.css?v=20261023b">
   <script src="js/theme-mode.js"></script>
 
   <!-- Umami Cloud analytics (privacy-friendly, no cookies). Replace data-website-id after signup at cloud.umami.is. -->
@@ -1408,14 +1408,21 @@
          (promptove/106). Layers and weights are the engine's own
          (rotator-engine/engine.js: 0.25 / 0.30 / 0.45); colour bands are
          scoreBand() in js/config.js. Keep the three in step. -->
-    <details class="score-explain">
+    <details class="score-explain" id="score-explain">
       <summary><span class="se-k">Score</span><span class="se-line">How a coin has done against the rest, from −50 to 100. Higher means it has been stronger. It describes the past, not the future.</span><span class="se-more">How is it calculated?</span></summary>
       <div class="se-body">
+        <!-- The exploding coin (js/score-coin.js), played each time this opens. -->
+        <div class="se-coin" id="se-coin"><div class="se-coin-sum">22 + 18 − 6 + 0 = <b>34</b> · example coin</div></div>
         <p>Three parts are added up:</p>
         <ul>
           <li><b>Momentum, up to 40.</b> Where the coin ranks against every other coin over 7, 14 and 30 days, counted 25%, 30% and 45%.</li>
           <li><b>Macro strength, up to 30.</b> How it did over 7 days against BTC, gold, silver, oil, the dollar and the rest of the altcoin market.</li>
           <li><b>Tokenomics, up to 30.</b> New supply, burns and unlocks. Heavy unlocks or high inflation take points away, which is why a score can fall below 0.</li>
+        </ul>
+        <p>Then two small steps:</p>
+        <ul>
+          <li><b>Size, −4 to +2.</b> A small fixed step by market cap: −4 under $100M, +2 over $50B.</li>
+          <li><b>RSI 85 or more, +4 to +7.</b> Points toward rotate-out, +7 while Bitcoin is below its 200-day average. New in October and not yet tested.</li>
         </ul>
         <p>Everywhere on the page: 65 and up is green, 40 to 64 amber, below 40 red. Open any coin to see its three parts.</p>
       </div>
@@ -1983,6 +1990,14 @@
   <script src="js/liquidations.js"></script>
   <script src="js/radio.js"></script>
   <script src="js/coin-reading.js"></script>
+  <script src="js/score-coin.js"></script>
+  <script>
+    /* Play the score coin each time "How is it calculated?" opens. */
+    (function () {
+      var d = document.getElementById('score-explain');
+      if (d) d.addEventListener('toggle', function () { if (d.open) scoreCoinPlay(document.getElementById('se-coin')); });
+    })();
+  </script>
   <script src="js/coin-expand.js"></script>
   <script src="js/turn-watch.js"></script>
   <script src="js/paper-trades.js"></script>
