@@ -702,6 +702,15 @@ html:is([lang="ar"],[lang="ur"]) .td-hint{letter-spacing:0;font-family:var(--ui)
   .plan-hd .ph-v{font-size:38px;} .plan-hd .ph-d{font-size:15.5px;} .plan li{font-size:16.5px;} .plan-note{font-size:14.5px;}
   .finale .card{max-width:920px;} .finale p{font-size:20px;max-width:630px;}
 }
+/* Phones and tablets (2026-10-23): ~180 will-change layers and ~60 blurred
+   chips ran an iPhone out of graphics memory, and Safari reloads a page it
+   runs out on, again and again while scrolling. A transform still animates
+   smoothly without will-change; the small chips lose their blur, the big
+   panels keep it. */
+@media (hover:none),(max-width:860px){
+  *{will-change:auto !important;}
+  .btn-ghost,.coin .in{backdrop-filter:none;-webkit-backdrop-filter:none;}
+}
 </style>
 </head>
 <body>
