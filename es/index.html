@@ -372,7 +372,6 @@ html:is([lang="ar"],[lang="ur"]) .cc-hilo{right:auto;left:0;}
 @keyframes teIn{from{opacity:0}to{opacity:1}}
 @keyframes teUp{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:none}}
 @media (max-width:520px){ .te-row{grid-template-columns:1fr;} }
-@media (max-width:860px){ .cue-bar.lift{bottom:calc(max(12px,env(safe-area-inset-bottom)) + 66px);} }
 .scroll-cue i{position:relative;width:18px;height:26px;border:2px solid currentColor;border-radius:10px;flex:0 0 auto;}
 .scroll-cue i::after{content:'';position:absolute;left:50%;top:5px;width:3px;height:6px;margin-left:-1.5px;border-radius:2px;background:currentColor;animation:cueDot 1.6s cubic-bezier(.23,1,.32,1) infinite;}
 .scroll-cue b{font:inherit;}
@@ -641,20 +640,6 @@ html:is([lang="ar"],[lang="ur"]) .td-hint{letter-spacing:0;font-family:var(--ui)
 .foot-links{display:flex;flex-wrap:wrap;justify-content:center;gap:6px 18px;}
 .foot a{color:var(--muted);text-decoration:none;padding:4px 0;}
 .foot a:hover{color:var(--text);text-decoration:underline;}
-/* Phones: the scene buttons are hidden, so a slim bar keeps the way into
-   the board and to Free & Pro in reach from the first scene until Free & Pro
-   itself is on screen (2026-10-20 audit: one small header button was the
-   only way in for ~27 screens). Scene pictures stop above it. */
-.mbar{display:none;}
-@media (max-width:860px){
-  .mbar{position:fixed;left:12px;right:12px;bottom:max(12px,env(safe-area-inset-bottom));z-index:16;display:flex;gap:8px;padding:7px;border-radius:999px;
-    background:rgba(10,15,23,.82);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);border:1px solid var(--panel-b);box-shadow:0 10px 30px rgba(0,0,0,.4);
-    transition:opacity .3s ease,transform .3s cubic-bezier(.23,1,.32,1);}
-  :root.light .mbar{background:rgba(255,255,255,.88);box-shadow:0 10px 30px rgba(17,24,36,.14);}
-  .mbar .btn{flex:1 1 0;justify-content:center;}
-  .mbar.off{opacity:0;transform:translateY(18px);pointer-events:none;}
-  .scene:not(#hero) .grid2{padding-bottom:80px;}
-}
 /* Phones, for the scenes added on 2026-10-20 (after their base rules so they win). */
 @media (max-width:860px){
   .cf-row{grid-template-columns:70px 1fr 62px;height:26px;gap:8px;}
@@ -725,10 +710,6 @@ html:is([lang="ar"],[lang="ur"]) .td-hint{letter-spacing:0;font-family:var(--ui)
   .rail{left:12px;width:140px;height:176px;margin-top:-88px;}
   .rail a{font-size:12px;}
   .grid2{padding-left:150px;}
-  /* The top bar already carries Free & Pro and Enter the board here, so
-     the bottom bar would only repeat them over a third of the screen. */
-  .mbar{display:none;}
-  .scene:not(#hero) .grid2{padding-bottom:18px;}
 }
 </style>
 </head>
@@ -1064,7 +1045,6 @@ document.addEventListener('click', function (e) {
   </nav>
   <p>Un análisis del mercado, no un consejo financiero.</p>
 </footer>
-<nav class="mbar off" id="mbar" aria-label="Empieza ya"><a class="btn btn-ghost btn-sm" href="#plans">Gratis y Pro</a><a class="btn btn-gold btn-sm" href="../board.html">Ir al tablero</a></nav>
 
 <div class="cue-bar" id="cueBar">
 <button type="button" class="scroll-cue" id="cue" aria-label="Desplázate al siguiente capítulo"><i aria-hidden="true"></i><b>DESLIZA</b><svg viewBox="0 0 12 12" aria-hidden="true"><path d="M2 4l4 4 4-4" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
@@ -1279,7 +1259,7 @@ document.addEventListener('click', function (e) {
      animation). Clicking a word or dragging the wheel still jumps. */
 
   /* Floating scroll button: next chapter on click; hides near the end. */
-  var cue = $('cue'), cueBar = $('cueBar'), plansEl = $('plans'), mbar = $('mbar');
+  var cue = $('cue'), cueBar = $('cueBar'), plansEl = $('plans');
   cue.addEventListener('click', function () {
     var cur = Math.round(wheelTarget()), nx = stops.filter(function (x) { return x.i > cur; })[0];
     if (nx) goTo(nx.i, 1); else plansEl.scrollIntoView({ behavior: S.reduce ? 'auto' : 'smooth' });
@@ -1288,11 +1268,10 @@ document.addEventListener('click', function (e) {
     var phone = innerWidth <= 860, heroEnd = $('hero').offsetHeight - innerHeight * 0.9;
     var atEnd = scrollY + innerHeight > plansEl.offsetTop + 80, past = phone && scrollY > heroEnd;
     /* On phones SCROLL goes after the opening screen; PLAY/PAUSE stays once
-       the tour has started, lifted above the bottom bar. */
+       the tour has started. No bottom bar since 2026-10-23 (Daniel: the
+       top bar already has both buttons, let people see the page). */
     cue.classList.toggle('off', past);
     cueBar.classList.toggle('off', (atEnd && !tour.on) || (past && !tour.started));
-    cueBar.classList.toggle('lift', past);
-    mbar.classList.toggle('off', !phone || scrollY <= heroEnd || atEnd);
   }
 
   /* Tour (Daniel, 2026-10-21: "one play button and entire thing scrolls
