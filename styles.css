@@ -7009,3 +7009,12 @@ a.mob-more-item{text-decoration:none;color:inherit;}
 :root.light .tdp-navg-lbl{background:rgba(255,253,247,.92);color:#047857;}
 :root.light .tdp-scn input{background:#fff;}
 :root.light .tdp-scn-out{background:rgba(240,235,220,.7);}
+
+/* Phones and tablets (2026-10-24): iPhone Safari reloaded the board a few
+   seconds after opening (the Pro popup) and on opening a window. Every
+   window, menu and popup sat on a full-screen backdrop blur over a
+   13,000-element page, and Safari reloads a page that runs out of graphics
+   memory. The overlays keep their dark tint, only the blur goes. */
+@media (hover:none),(max-width:860px){
+  *{backdrop-filter:none !important;-webkit-backdrop-filter:none !important;}
+}

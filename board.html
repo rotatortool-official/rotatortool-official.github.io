@@ -42,7 +42,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Rotator">
 
-  <link rel="stylesheet" href="styles.css?v=20261023b">
+  <link rel="stylesheet" href="styles.css?v=20261024a">
   <script src="js/theme-mode.js"></script>
 
   <!-- Umami Cloud analytics (privacy-friendly, no cookies). Replace data-website-id after signup at cloud.umami.is. -->
@@ -2002,6 +2002,18 @@
   <script src="js/turn-watch.js"></script>
   <script src="js/paper-trades.js"></script>
   <script src="js/engage.js"></script>
+  <script>
+  /* Phones and tablets (2026-10-24, iPhone reloads): HOME replaces the
+     board instead of stacking the landing on top of it, so Safari never
+     holds both pages in memory; the landing does the same on its way in. */
+  document.addEventListener('click', function (e) {
+    var a = e.target.closest && e.target.closest('a.rail-home, a.mob-more-item[href="./"]');
+    if (!a || a.target || e.defaultPrevented || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
+    if (!matchMedia('(hover:none),(max-width:860px)').matches) return;
+    e.preventDefault();
+    location.replace(a.href);
+  });
+  </script>
   <!-- Register Service Worker — required for PWA install prompt -->
   <script>
   if ('serviceWorker' in navigator) {

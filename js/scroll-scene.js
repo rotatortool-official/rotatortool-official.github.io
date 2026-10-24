@@ -29,9 +29,11 @@ var ScrollScene = (function () {
   /* Parking (2026-10-23, iPhone reloads): with park(true), a scene more
      than a screen away gets the class 'parked' (the page hides its stage
      with display:none, freeing its graphics memory) and is laid out again
-     before it scrolls into view. Only from the first real scroll, so a
-     page that never scrolls (a search crawler) keeps every scene. */
-  var parking = false, scrolled = false;
+     before it scrolls into view. From the start (2026-10-24: waiting for
+     the first scroll let a phone hold all ten scenes at once, and it still
+     reloaded a few seconds after opening). The hidden scenes stay in the
+     HTML, so search crawlers still read their text. */
+  var parking = false;
   function setParked(s, on) {
     if (s.parked === on) return;
     s.parked = on;
@@ -46,7 +48,7 @@ var ScrollScene = (function () {
     var span = r.height - vh;
     s.target = span > 0 ? clamp(-r.top / span, 0, 1) : (r.top < vh ? 1 : 0);
     s.near = r.bottom > -vh && r.top < vh * 2;
-    if (parking && scrolled) setParked(s, !s.near);
+    if (parking) setParked(s, !s.near);
   }
   function tick() {
     var again = false;
@@ -77,7 +79,7 @@ var ScrollScene = (function () {
     if (!parking) scenes.forEach(function (s) { setParked(s, false); });
     else refresh();
   }
-  window.addEventListener('scroll', function () { scrolled = true; refresh(); }, { passive: true });
+  window.addEventListener('scroll', refresh, { passive: true });
   /* A parked scene measures as 0 x 0; it is laid out when it comes back. */
   window.addEventListener('resize', function () {
     scenes.forEach(function (s) { if (s.parked) return; if (s.opts.resize) s.opts.resize(); s.opts.render(s.cur); });

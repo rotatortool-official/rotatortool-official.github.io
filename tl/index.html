@@ -690,11 +690,11 @@ html:is([lang="ar"],[lang="ur"]) .td-hint{letter-spacing:0;font-family:var(--ui)
 /* Phones and tablets (2026-10-23): ~180 will-change layers and ~60 blurred
    chips ran an iPhone out of graphics memory, and Safari reloads a page it
    runs out on, again and again while scrolling. A transform still animates
-   smoothly without will-change; the small chips lose their blur, the big
-   panels keep it. */
+   smoothly without will-change. 2026-10-24: it still reloaded on open and
+   on opening a window, so phones drop every backdrop blur (scene panels,
+   SCROLL/PLAY, the tour-end dialog); the panels are near-solid there anyway. */
 @media (hover:none),(max-width:860px){
-  *{will-change:auto !important;}
-  .btn-ghost,.coin .in{backdrop-filter:none;-webkit-backdrop-filter:none;}
+  *{will-change:auto !important;backdrop-filter:none !important;-webkit-backdrop-filter:none !important;}
 }
 /* A scene far from the screen (scroll-scene.js park) is not drawn; the
    section keeps its height, so the scroll position does not move. */
@@ -730,6 +730,16 @@ document.addEventListener('click', function (e) {
   /* A language picked by hand is remembered, so / stops choosing for them. */
   var a = e.target.closest && e.target.closest('.lang-menu a[lang], .langs a[lang]');
   if (a) try { localStorage.setItem('rot_home_lang', a.getAttribute('lang').split('-')[0].toLowerCase()); } catch (err) {}
+  /* Phones and tablets (2026-10-24, iPhone reloads): entering the board
+     replaces this page instead of stacking on it, so Safari does not keep
+     the whole landing frozen in memory for Back. HOME on the board loads
+     it fresh. Desktop keeps the normal Back. */
+  var b = e.target.closest && e.target.closest('a[href]');
+  if (b && //board.html$/.test(b.pathname) && b.origin === location.origin && !b.target && !e.defaultPrevented &&
+      !(e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) && matchMedia('(hover:none),(max-width:860px)').matches) {
+    e.preventDefault();
+    location.replace(b.href);
+  }
 });
 </script>
 
@@ -1078,7 +1088,7 @@ document.addEventListener('click', function (e) {
 </div>
 <script src="../js/config.js"></script>
 <script src="../js/topic.js"></script>
-<script src="../js/scroll-scene.js?v=2"></script>
+<script src="../js/scroll-scene.js?v=3"></script>
 <script>
 (function () {
   var S = ScrollScene, seg = S.seg, ease = S.ease, clamp = S.clamp;
