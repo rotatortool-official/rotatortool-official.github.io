@@ -2105,3 +2105,35 @@ Object.assign(MK_TEXT, {
     return m[1] + ' ' + { 'beat the average coin': 'ја победи просечната монета', 'right direction, average did better': 'точна насока, просечната беше подобра', 'moved against the call': 'се движеше против повикот' }[m[2]];
   });
 })();
+/* Full breakdown additions (2026-10-24, promptove/162) */
+Object.assign(MK_TEXT, {
+  'Why this score': 'Зошто овој резултат', 'Macro strength': 'Макро сила', 'Tokenomics': 'Токеномика',
+  'strongest': 'најсилно', 'weakest': 'најслабо',
+  'Rank against every tracked coin over 7, 14 and 30 days (25/30/45%).': 'Место меѓу сите следени монети за 7, 14 и 30 дена (25/30/45%).',
+  'Strength over 7 days against BTC, gold, silver, oil, the dollar and the alt market.': 'Сила за 7 дена наспроти BTC, златото, среброто, нафтата, доларот и пазарот на алткоини.',
+  'Supply growth, burns and unlocks. Can go below zero.': 'Раст на понудата, горење и отклучувања. Може да падне под нула.',
+  'Daily RSI 85 or more adds points toward rotating out. Untested, under review in January.': 'Дневен RSI 85 или повеќе додава поени кон излегување. Не е тестирано, се прегледува во јануари.',
+  'Close to a coin flip: the score describes the past month, not the next.': 'Речиси фрлање паричка: резултатот го опишува изминатиот месец, не следниот.',
+  'Turns to Ran ahead at 55, to Lagged at 35.': 'Станува „Истрча напред“ на 55, а „Заостана“ на 35.',
+  'Stays Ran ahead while the score is 55 or more.': 'Останува „Истрча напред“ додека резултатот е 55 или повеќе.',
+  'Stays Lagged while the score is 35 or less.': 'Останува „Заостана“ додека резултатот е 35 или помалку.',
+  'Prices just now': 'Цени: штотуку', 'Prices not loaded': 'Цените не се вчитани',
+  'RSI from daily candles': 'RSI од дневните свеќи',
+  'Amber means older than its usual schedule.': 'Жолто значи постаро од вообичаеното.',
+  'daily': 'дневен', 'Normal range': 'Нормално', 'RSI alone does not call a turn.': 'Само RSI не најавува пресврт.',
+  'Positioning': 'Позиционирање', 'Funding': 'Фандинг', 'Open interest 24h': 'Отворен интерес 24ч',
+  'Longs paying heavily': 'Лонговите плаќаат многу', 'Longs paying': 'Лонговите плаќаат', 'Shorts paying': 'Шортовите плаќаат',
+  'New money': 'Нови пари', 'Short covering': 'Затворање шортови', 'New shorts': 'Нови шортови', 'Unwinding': 'Затворање позиции',
+  'Binance perpetuals. Context only, not part of the score. Opens the Derivatives tab.': 'Binance перпетуали. Само контекст, не е дел од резултатот. Го отвора делот Деривати.'
+});
+(function () {
+  var P = function (re, fn) { MK_PATTERNS.push([re, fn]); };
+  P(/^Coins scoring (.+?) beat the average coin over the next 30 days (\d+)% of the time, and (\d+)% fell 20% or more\.$/, function (m) {
+    return 'Монетите со резултат ' + (m[1] === 'below 20' ? 'под 20' : m[1]) + ' ја победија просечната монета во следните 30 дена во ' + m[2] + '% од случаите, а ' + m[3] + '% паднаа 20% или повеќе.';
+  });
+  P(/^(Prices|Derivatives) (\d+)([mh]) ago$/, function (m) {
+    return (m[1] === 'Prices' ? 'Цени' : 'Деривати') + ': пред ' + m[2] + (m[3] === 'm' ? ' мин' : ' ч');
+  });
+  P(/^Derivatives just now$/, function () { return 'Деривати: штотуку'; });
+  P(/^(Long|Short) (\d+)%$/, function (m) { return (m[1] === 'Long' ? 'Лонг ' : 'Шорт ') + m[2] + '%'; });
+})();

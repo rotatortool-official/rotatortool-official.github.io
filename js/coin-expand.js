@@ -13,9 +13,11 @@
    "See the full breakdown · PRO" and it opens the Pro window. Daniel's
    brief: the whole coin on ONE screen, no scrolling once it is open.
 
-     ┌ Momentum ─────────┬ Price chart + scenarios ─────────────────┐
-     ├ Pointing up ──────┼ Pointing down ──┬ Details (tabs) ────────┤
-     ├ Summary: in short, warnings, evaluation ───────────┬ Share ──┤
+     ┌ Momentum ─┬ Price chart + scenarios ──────────┬ In short,   ┐
+     │ facts,    ├ Up / down / ──┬ Details (tabs) ───┤ warnings,   │
+     │ RSI, pos. │ neutral       │                   │ evaluation  │
+     ├ Share, referral links ......... data age, disclaimer ───────┤
+   (layout since 2026-10-24, promptove/162; fits 1280x720 and up)
 
    The page itself does not scroll; a box with more than fits scrolls
    inside itself. Everything else the small window has sits in the
@@ -85,7 +87,10 @@ function _tdxExpand() {
     _tdxOrder = [].slice.call(panel.children);
     var dash = document.createElement('div');
     dash.className = 'tdx-dash'; dash.id = 'tdx-dash';
-    [['mom', 'Momentum'], ['chart', 'Price'], ['up', ''], ['down', ''], ['det', ''], ['sum', ''], ['share', '']].forEach(function(a) {
+    /* 2026-10-24 (promptove/162): up and down share one box, and the
+       evaluation is a full-height column on the right, so everything fits
+       one screen down to 1280x720. */
+    [['mom', 'Momentum'], ['chart', 'Price'], ['sig', ''], ['det', ''], ['sum', ''], ['share', '']].forEach(function(a) {
       dash.appendChild(_tdxBox(a[0], a[1]));
     });
     panel.appendChild(dash);
@@ -162,6 +167,11 @@ function _tdxShowTab(name) {
   });
   document.querySelectorAll('#tdx-dash .tdx-pane').forEach(function(p) { p.hidden = p.getAttribute('data-tab') !== name; });
 }
+/* Open a Details tab only when it is shown for this coin. */
+function _tdxGo(name) {
+  var b = document.querySelector('#tdx-dash .tdx-tab[data-tab="' + name + '"]');
+  if (b && !b.hidden) _tdxShowTab(name);
+}
 /* Which tabs have something for this coin; keep the open one if it still does. */
 function _tdxTabs() {
   var first = null, keep = false;
@@ -231,8 +241,8 @@ function _tdxEsc(t) { return String(t == null ? '' : t).replace(/&/g, '&amp;').r
 
 function _tdxFill() {
   var c = typeof _tdCoin !== 'undefined' ? _tdCoin : null;
-  var up = _tdxSlot('up'), down = _tdxSlot('down'), sum = _tdxSlot('sum'), chart = _tdxSlot('chart');
-  if (!c || !up || !down || !sum || !chart) return;
+  var sig = _tdxSlot('sig'), sum = _tdxSlot('sum'), chart = _tdxSlot('chart'), mom = _tdxSlot('mom');
+  if (!c || !sig || !sum || !chart) return;
   var R = (typeof coinReading === 'function') ? coinReading(c) : null;
   var good = [], bad = [], neutral = [];
   var fact = function(text, sub) { return '<div class="tdx-fact"><span class="tdx-fact-t">' + _tdxEsc(text) + '</span>' + (sub ? '<span class="tdx-fact-s">' + _tdxEsc(sub) + '</span>' : '') + '</div>'; };
@@ -259,11 +269,13 @@ function _tdxFill() {
   }
 
   var list = function(cls, title, items, empty) {
-    return '<div class="tdx-card-h ' + cls + '"><span>' + title + '</span> <span class="tdx-count">' + items.length + '</span></div>'
-      + (items.length ? items.join('') : '<div class="tdx-empty">' + empty + '</div>');
+    return '<div class="tdx-sig-l ' + cls + '"><div class="tdx-card-h ' + cls + '"><span>' + title + '</span> <span class="tdx-count">' + items.length + '</span></div>'
+      + (items.length ? items.join('') : '<div class="tdx-empty">' + empty + '</div>') + '</div>';
   };
-  up.innerHTML = list('tdx-good', 'Pointing up', good, 'Nothing pointing up right now.');
-  down.innerHTML = list('tdx-bad', 'Pointing down', bad, 'Nothing pointing down right now.');
+  /* Up, down, then neutral: three groups, never mixed (promptove/162). */
+  sig.innerHTML = list('tdx-good', 'Pointing up', good, 'Nothing pointing up right now.')
+    + list('tdx-bad', 'Pointing down', bad, 'Nothing pointing down right now.')
+    + (neutral.length ? list('tdx-mid', 'Neutral', neutral.map(function(t) { return fact(t, 'Insight Engine'); }), '') : '');
 
   var g = good.length, b = bad.length;
   var verdict = g > b + 1 ? 'More points for it than against it right now.'
@@ -278,17 +290,133 @@ function _tdxFill() {
   ev.innerHTML = '<div class="tdx-card-h">Evaluation</div>'
     + '<div class="tdx-eval-top"><span class="tdx-eval-score" style="color:' + scC + '">' + (c._retired ? '—' : c.score) + '</span><span class="tdx-eval-of">/ 100</span>'
     + '<span class="tdx-eval-st ' + st + '">' + stLbl + '</span></div>'
-    + (R ? '<div class="tdx-eval-head">' + _tdxEsc(R.head) + '</div><div class="tdx-eval-sub">' + _tdxEsc(R.sub) + '</div>' : '')
-    + '<div class="tdx-bal"><span class="tdx-bal-g" style="width:' + pctG + '%"></span><span class="tdx-bal-b" style="width:' + (100 - pctG) + '%"></span></div>'
+    + (c._retired ? '' : _tdxWhy(c, st))
+    /* No signs either way: a grey bar, not a 50/50 green and red one. */
+    + (g + b ? '<div class="tdx-bal"><span class="tdx-bal-g" style="width:' + pctG + '%"></span><span class="tdx-bal-b" style="width:' + (100 - pctG) + '%"></span></div>'
+             : '<div class="tdx-bal tdx-bal-none"></div>')
     + '<div class="tdx-bal-n"><span class="up"><b>' + g + '</b> <span>pointing up</span></span><span class="dn"><b>' + b + '</b> <span>pointing down</span></span></div>'
     + '<div class="tdx-verdict">' + verdict + '</div>'
-    + (neutral.length ? '<div class="tdx-neutral"><span>Neutral:</span> ' + neutral.map(_tdxEsc).join(' · ') + '</div>' : '')
-    + '<div class="tdx-note"><span>A reading of the past, not a forecast.</span> <span>Not financial advice.</span></div>';
   if (!ev.parentNode) sum.appendChild(ev);
+  /* Data age and the disclaimer ride on the share strip's free right end,
+     so the evaluation column keeps its height (promptove/162). */
+  var shareB = _tdxSlot('share');
+  if (shareB) {
+    var ft = shareB.querySelector('.tdx-foot') || shareB.appendChild(document.createElement('div'));
+    ft.className = 'tdx-foot';
+    ft.innerHTML = _tdxFresh(c) + '<div class="tdx-note"><span>A reading of the past, not a forecast.</span> <span>Not financial advice.</span></div>';
+  }
+  if (mom) _tdxMomExtra(c, mom);
 
   if (!chart.querySelector('#tdx-chart')) chart.innerHTML = '<div class="tdp-chart" id="tdx-chart"></div>';
   _tdxWatermark(chart);
   tdxRenderChart();
+}
+
+/* ── Why this score (promptove/162) ──────────────────────────────
+   The three layers from c.scoreBreakdown as bars, each against its own
+   maximum (that maximum IS its weight), the strongest and weakest marked;
+   then what coins at this score did next in the 2024-26 backtest
+   (promptove/161, rotator-backtest/results/score-bands.json, v1 score),
+   and where the status label changes (_tdStatus: 55 / 35). Nothing new is
+   calculated about the coin; no confidence number is made up. */
+var _TDX_BANDS = [   /* [below, label, beat the average coin 30d %, fell 20%+ within 30d %] */
+  [20, 'below 20', 47, 42], [35, '20–34', 51, 38], [50, '35–49', 51, 39],
+  [65, '50–64', 52, 39], [75, '65–74', 48, 40], [Infinity, '75+', 50, 44]
+];
+function _tdxWhy(c, st) {
+  var bd = c.scoreBreakdown, h = '';
+  if (bd) {
+    var L = [['Momentum', bd.layer1, 40, 'Rank against every tracked coin over 7, 14 and 30 days (25/30/45%).'],
+             ['Macro strength', bd.layer2, 30, 'Strength over 7 days against BTC, gold, silver, oil, the dollar and the alt market.']];
+    if (!bd.partial) L.push(['Tokenomics', bd.layer3, 30, 'Supply growth, burns and unlocks. Can go below zero.']);
+    var r = L.map(function(l) { return (l[1] || 0) / l[2]; });
+    var hi = r.indexOf(Math.max.apply(null, r)), lo = r.indexOf(Math.min.apply(null, r));
+    h += '<div class="tdx-why"><div class="tdx-why-h">Why this score</div>';
+    L.forEach(function(l, i) {
+      var w = Math.max(0, Math.min(100, Math.round(r[i] * 100)));
+      var tag = hi !== lo && i === hi ? '<span class="tdx-why-tag up">strongest</span>' : hi !== lo && i === lo ? '<span class="tdx-why-tag dn">weakest</span>' : '';
+      h += '<div class="tdx-why-r" title="' + _tdxEsc(l[3]) + '"><span class="tdx-why-k">' + l[0] + '</span>' + tag
+        + '<span class="tdx-why-bar"><i class="' + (l[1] < 0 ? 'neg' : '') + '" style="width:' + w + '%"></i></span>'
+        + '<span class="tdx-why-v">' + l[1] + ' / ' + l[2] + '</span></div>';
+    });
+    if (bd.rsiExhaustion > 0) h += '<div class="tdx-why-r" title="Daily RSI 85 or more adds points toward rotating out. Untested, under review in January."><span class="tdx-why-k">RSI 85+</span><span class="tdx-why-bar"></span><span class="tdx-why-v">+' + bd.rsiExhaustion + '</span></div>';
+    h += '</div>';
+  }
+  /* The backtest covers coins only: not stocks (partial score), not stablecoins. */
+  if (!c.isStock && !c.isStable && !(bd && bd.partial)) {
+    var band = _TDX_BANDS.filter(function(x) { return c.score < x[0]; })[0];
+    h += '<div class="tdx-past"><span>Coins scoring ' + band[1] + ' beat the average coin over the next 30 days ' + band[2] + '% of the time, and ' + band[3] + '% fell 20% or more.</span> '
+      + '<span>Close to a coin flip: the score describes the past month, not the next.</span></div>';
+  }
+  var chg = { middle: 'Turns to Ran ahead at 55, to Lagged at 35.', ahead: 'Stays Ran ahead while the score is 55 or more.', lagging: 'Stays Lagged while the score is 35 or less.' }[st];
+  if (chg) h += '<div class="tdx-chg">' + chg + '</div>';
+  return h;
+}
+
+/* How old the data behind this view is. Prices: the market row's age
+   (_marketDataTime, the same as "updated Xm ago" on the board).
+   Derivatives: the futures row's detail_updated_at. Amber only when it is
+   clearly older than its schedule; a 7-30 day tool does not need to the
+   minute (Daniel, 2026-10-04). */
+function _tdxAge(ms) {
+  var m = Math.floor(ms / 60000);
+  return m < 1 ? 'just now' : m < 60 ? m + 'm ago' : Math.floor(m / 60) + 'h ago';
+}
+function _tdxFresh(c) {
+  var parts = [], now = Date.now();
+  var pt = (typeof _marketDataTime !== 'undefined' && _marketDataTime) || (typeof _lastUpdated !== 'undefined' && _lastUpdated) || 0;
+  if (pt) parts.push('<span class="' + (now - pt > 2 * 3600e3 ? 'old' : '') + '">Prices ' + _tdxAge(now - pt) + '</span>');
+  else parts.push('<span class="old">Prices not loaded</span>');
+  var f = typeof _futuresBySym !== 'undefined' ? _futuresBySym[c.sym] : null;
+  var ft = f && f.detail_updated_at ? Date.parse(f.detail_updated_at) : 0;
+  if (ft) parts.push('<span class="' + (now - ft > 3 * 3600e3 ? 'old' : '') + '">Derivatives ' + _tdxAge(now - ft) + '</span>');
+  if (_tdxRsi(c) != null) parts.push('<span>RSI from daily candles</span>');
+  return '<div class="tdx-fresh" title="Amber means older than its usual schedule.">' + parts.join(' · ') + '</div>';
+}
+
+function _tdxRsi(c) {
+  var t = typeof coinTechnicals !== 'undefined' && coinTechnicals ? coinTechnicals[c.sym] : null;
+  return t && t.rsiD != null ? t.rsiD : (c._rsi != null ? c._rsi : null);
+}
+
+/* The Momentum box: daily RSI on a scale with the site's own lines
+   (30 oversold, 70-85 gaining momentum, 85+ overbought, coin-reading.js),
+   and, for coins with a Binance perpetual, positioning at a glance with
+   the same thresholds as the Derivatives tab. Both open their tab. */
+function _tdxMomExtra(c, mom) {
+  [].slice.call(mom.querySelectorAll('.tdx-rsi,.tdx-pos')).forEach(function(el) { el.remove(); });
+  var rsi = _tdxRsi(c);
+  if (rsi != null) {
+    var zone = rsi <= 30 ? ['Oversold', 'dn'] : rsi >= 85 ? ['Overbought', 'warn'] : rsi >= 70 ? ['Gaining momentum', 'up'] : ['Normal range', ''];
+    var d = document.createElement('button');
+    d.type = 'button'; d.className = 'td-card tdx-rsi';
+    d.title = 'Daily RSI(14). 30 and below is called oversold, 70 to 85 gaining momentum, 85 and above overbought.';
+    d.onclick = function() { _tdxGo('RSI'); };
+    d.innerHTML = '<div class="tdx-rsi-h"><span class="td-card-h">RSI · daily</span><b class="' + zone[1] + '">' + rsi.toFixed(0) + '</b><span class="tdx-rsi-z ' + zone[1] + '">' + zone[0] + '</span></div>'
+      + '<div class="tdx-rsi-sc"><i style="left:30%"></i><i style="left:70%"></i><i style="left:85%"></i><b style="left:' + Math.max(0, Math.min(100, rsi)) + '%"></b></div>'
+      + '<div class="tdx-rsi-n"><span>RSI alone does not call a turn.</span></div>';
+    mom.appendChild(d);
+  }
+  var f = typeof _futuresBySym !== 'undefined' ? _futuresBySym[c.sym] : null;
+  if (f && f.open_interest_value) {
+    var fund = f.funding_rate != null ? Number(f.funding_rate) * 100 : null;
+    var oi = f.oi_change_24h_pct != null ? Number(f.oi_change_24h_pct) : null;
+    var pc = f.price_change_pct_24h != null ? Number(f.price_change_pct_24h) : null;
+    var ls = f.long_short_ratio != null ? Number(f.long_short_ratio) : null;
+    var fl = fund == null ? ['—', ''] : fund >= 0.05 ? ['Longs paying heavily', 'dn'] : fund >= 0.015 ? ['Longs paying', 'warn'] : fund <= -0.015 ? ['Shorts paying', 'up'] : ['Neutral', ''];
+    var pl = oi == null || pc == null ? '' : pc >= 0 ? (oi >= 0 ? 'New money' : 'Short covering') : (oi >= 0 ? 'New shorts' : 'Unwinding');
+    var row = function(k, v, cls) { return '<div class="td-kv-row"><span class="td-kv-k">' + k + '</span><span class="td-kv-v ' + (cls || '') + '">' + v + '</span></div>'; };
+    var p = document.createElement('button');
+    p.type = 'button'; p.className = 'td-card tdx-pos';
+    p.title = 'Binance perpetuals. Context only, not part of the score. Opens the Derivatives tab.';
+    p.onclick = function() { _tdxGo('Derivatives'); };
+    var lp = ls != null && ls > 0 ? Math.round(ls / (1 + ls) * 100) : null;
+    p.innerHTML = '<div class="td-card-h">Positioning</div>'
+      + row('Funding', fl[0], fl[1])
+      + (oi != null ? row('Open interest 24h', (oi >= 0 ? '+' : '') + oi.toFixed(1) + '%' + (pl ? ' · ' + pl : ''), '') : '')
+      + (lp != null ? '<div class="tdx-ls"><span class="up">Long ' + lp + '%</span><span class="tdx-ls-bar"><i style="width:' + lp + '%"></i></span><span class="dn">Short ' + (100 - lp) + '%</span></div>' : '');
+    mom.appendChild(p);
+  }
 }
 
 /* The R-and-arrow logo, faint, behind the price chart (Daniel, 2026-10-21),
