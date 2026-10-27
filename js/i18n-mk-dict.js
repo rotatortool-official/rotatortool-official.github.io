@@ -1664,6 +1664,7 @@ Object.assign(MK_TEXT, {
 Object.assign(MK_TEXT, {
   "Follow Rotator": "Следете го Rotator",
   "Weekly on Substack": "Неделно на Substack",
+  "by email: one letter on Mondays. Subscribe free →": "по е-пошта: по едно писмо во понеделник. Претплатете се бесплатно →",   // DeepL 2026-10-27
   "Telegram channel": "Telegram канал"
 });
 
