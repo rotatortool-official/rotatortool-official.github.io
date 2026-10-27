@@ -48,6 +48,9 @@ var ScrollScene = (function () {
     var span = r.height - vh;
     s.target = span > 0 ? clamp(-r.top / span, 0, 1) : (r.top < vh ? 1 : 0);
     s.near = r.bottom > -vh && r.top < vh * 2;
+    /* 'far' only pauses looping CSS animations (the page's CSS); the scene
+       stays drawn, so nothing is rebuilt when it comes back. */
+    if (s.far !== !s.near) { s.far = !s.near; s.el.classList.toggle('far', s.far); }
     if (parking) setParked(s, !s.near);
   }
   function tick() {

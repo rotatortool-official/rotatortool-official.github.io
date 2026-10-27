@@ -699,6 +699,9 @@ html:is([lang="ar"],[lang="ur"]) .td-hint{letter-spacing:0;font-family:var(--ui)
 /* A scene far from the screen (scroll-scene.js park) is not drawn; the
    section keeps its height, so the scroll position does not move. */
 .scene.parked > .stage{display:none;}
+/* A scene a screen or more away (scroll-scene.js 'far') pauses its looping
+   animations; it is still drawn, so it returns without a rebuild. */
+.scene.far *{animation-play-state:paused !important;}
 /* Sideways phones and tablets get the chapter wheel too (Daniel,
    2026-10-23: "the same navigation scrollable that we have on web").
    A short screen shows about three chapters: before, current, after. */
@@ -735,7 +738,7 @@ document.addEventListener('click', function (e) {
      the whole landing frozen in memory for Back. HOME on the board loads
      it fresh. Desktop keeps the normal Back. */
   var b = e.target.closest && e.target.closest('a[href]');
-  if (b && //board.html$/.test(b.pathname) && b.origin === location.origin && !b.target && !e.defaultPrevented &&
+  if (b && b.pathname.slice(-11) === '/board.html' && b.origin === location.origin && !b.target && !e.defaultPrevented &&
       !(e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) && matchMedia('(hover:none),(max-width:860px)').matches) {
     e.preventDefault();
     location.replace(b.href);
@@ -1088,13 +1091,13 @@ document.addEventListener('click', function (e) {
 </div>
 <script src="../js/config.js"></script>
 <script src="../js/topic.js"></script>
-<script src="../js/scroll-scene.js?v=3"></script>
+<script src="../js/scroll-scene.js?v=4"></script>
 <script>
 (function () {
   var S = ScrollScene, seg = S.seg, ease = S.ease, clamp = S.clamp;
-  /* Phones and tablets keep only the scenes near the screen drawn
-     (2026-10-23: an iPhone ran out of graphics memory and reloaded). */
-  if (S.park && matchMedia('(hover:none),(max-width:860px)').matches) S.park(true);
+  /* Parking is off (2026-10-27): Daniel's iPhone reloaded the page at the
+     moment a parked scene came back, and parking saved no measurable memory
+     in WebKit. ScrollScene.park(true) still exists if it is ever needed. */
   var $ = function (id) { return document.getElementById(id); };
   var esc = TOPIC.esc;
 
