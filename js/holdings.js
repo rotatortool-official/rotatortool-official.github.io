@@ -766,7 +766,7 @@ function renderSignal(hc) {
 var _hcCache = {};          /* sym → [{t, v}] oldest first, for this page load */
 var _hcRange = 90;          /* days; 7 / 30 / 90 / 182 */
 /* 1W since 2026-10-21 (Daniel: "add 1 week timeframe also"): 6 daily closes + the live price. */
-var _HC_RANGES = [[7, '1W'], [30, '1M'], [90, '3M'], [182, '6M']];
+var _HC_RANGES = [[7, '1W'], [30, '1M'], [60, '2M'], [90, '3M'], [182, '6M']];   /* 2M since 2026-10-27, for the 60-day crossover alert */
 var _HC_MON = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
 
 function _tdpHolding(c) {
@@ -957,18 +957,63 @@ function _hcScnPanel(c, h, s) {
     var t = c.price * (1 + m / 100), on = Math.abs(Number(s.t) / t - 1) < 0.001;
     return '<button type="button" class="tdp-mv' + (on ? ' on' : '') + '" data-mv="' + m + '">' + (m === 0 ? 'now' : (m > 0 ? '+' : '') + m + '%') + '</button>';
   }).join('');
-  return '<div class="tdp-scn">'
+  return '<div class="tdp-scn" title="The test price and buy are a sandbox: nothing is saved. Only a price alert you set is kept.">'
     + '<div class="tdp-scn-row"><span class="tdp-scn-k">What if the price goes to</span>'
       + '<input type="number" class="tdp-scn-t" step="any" min="0" aria-label="Test price" value="' + (+Number(s.t).toPrecision(8)) + '">'
       + '<span class="tdp-mvs">' + chips + '</span></div>'
+    + _hcPaRow(c, s)
     + '<div class="tdp-scn-row"><span class="tdp-scn-k">Try a buy</span>'
       + '<input type="number" class="tdp-scn-bq" step="any" min="0" placeholder="Amount" aria-label="Amount to buy" value="' + _hpEsc(s.bq) + '">'
       + '<span class="tdp-scn-at">at</span>'
       + '<input type="number" class="tdp-scn-bp" step="any" min="0" placeholder="' + (+Number(c.price).toPrecision(8)) + '" aria-label="Buy price" value="' + _hpEsc(s.bp) + '">'
       + '<button type="button" class="tdp-scn-clear">Clear</button></div>'
     + '<div class="tdp-scn-out">' + _hcScnRead(c, h, s) + '</div>'
-    + '<div class="tdp-scn-note">A sandbox: nothing here is saved or sent anywhere.</div>'
     + '</div>';
+}
+
+/* ── Price alert from the What-if price (promptove/163, Pro) ──────
+   One tap keeps the tested price as an alert (js/turn-watch.js): at or
+   above it when it is above today's price, at or below when under. */
+function _hcPaNear(c, t) { return !(Number(t) > 0) || Math.abs(Number(t) / c.price - 1) < 0.005; }
+function _hcPaLabel(c, t) {
+  if (_hcPaNear(c, t)) return '🔔 Pick a price above or below today to set an alert';
+  return (Number(t) >= c.price ? '📈 Alert me when ' + c.sym + ' reaches ' : '📉 Alert me when ' + c.sym + ' falls to ') + fmtP(Number(t));
+}
+function _hcPaRow(c, s) {
+  if (typeof twPriceAlerts !== 'function') return '';
+  var mine = twPriceAlerts().filter(function(a) { return a.id === c.id; });
+  var linked = typeof _twTg !== 'undefined' && _twTg.linked;
+  return '<div class="tdp-pa">'
+    + '<button type="button" class="tdp-pa-btn"' + (_hcPaNear(c, s.t) ? ' disabled' : '') + '>' + _hcPaLabel(c, s.t) + '</button>'
+    + '<span class="tdp-pa-msg" aria-live="polite"></span>'
+    + (mine.length ? '<div class="tdp-pa-list">' + mine.map(function(a) {
+        return '<span class="tdp-pa-chip' + (a.fired ? ' done' : '') + '">'
+          + (a.fired ? '✓ <span>Reached</span> ' : (a.dir === 'up' ? '≥ ' : '≤ ')) + '<b>' + fmtP(a.price) + '</b>'
+          + '<button type="button" class="tdp-pa-x" aria-label="Remove alert" data-pa="' + _hpEsc(a.dir + '|' + a.price) + '">×</button></span>';
+      }).join('') + '</div>' : '')
+    + '<div class="tdp-pa-note" title="Checked every hour at the latest price, so it can arrive up to an hour late.">'
+      + (linked ? 'Checked every hour; on the bell and on Telegram.' : 'Checked every hour; on the bell, and on Telegram once linked in YOURS.') + '</div>'
+    + '</div>';
+}
+function _hcPaWire(box, c, s, redraw) {
+  var btn = box.querySelector('.tdp-pa-btn'), msg = box.querySelector('.tdp-pa-msg');
+  if (!btn) return;
+  btn.addEventListener('click', function() {
+    var r = twPriceAlertAdd(c, s.t);
+    if (r === 'ok') { redraw(); var m2 = box.querySelector('.tdp-pa-msg'); if (m2) m2.textContent = '✓ Alert saved'; return; }
+    msg.textContent = r === 'same' ? 'You already have this alert.' : r === 'full' ? 'You have 10 alerts. Remove one first.' : 'Set a price first.';
+  });
+  box.querySelectorAll('.tdp-pa-x').forEach(function(x) {
+    x.addEventListener('click', function() {
+      var k = x.getAttribute('data-pa').split('|');
+      twPriceAlertRemove(c.id, k[0], k[1]);
+      redraw();
+    });
+  });
+}
+/* A reached alert came back from the server: show it in an open breakdown. */
+function tdxPriceAlertsRedraw() {
+  if (document.getElementById('tdx-chart') && typeof tdxRenderChart === 'function') tdxRenderChart();
 }
 function _hcScnWire(box, c, h, s, rows, lo, hi, H, Y) {
   var plot = box.querySelector('.tdp-plot'), handle = box.querySelector('.tdp-tgt-h'), line = box.querySelector('.tdp-tgt');
@@ -980,6 +1025,7 @@ function _hcScnWire(box, c, h, s, rows, lo, hi, H, Y) {
     line.setAttribute('y1', y.toFixed(1)); line.setAttribute('y2', y.toFixed(1));
     handle.style.top = (y / H * 100).toFixed(1) + '%';
     handle.querySelector('b').textContent = fmtP(s.t);
+    var pb = box.querySelector('.tdp-pa-btn'); if (pb) { pb.textContent = _hcPaLabel(c, s.t); pb.disabled = _hcPaNear(c, s.t); }
   };
   /* Drag the line: the price follows the pointer inside the chart's
      range; the chips and the box above reach beyond it. */
@@ -1010,6 +1056,7 @@ function _hcScnWire(box, c, h, s, rows, lo, hi, H, Y) {
     el.addEventListener('change', redraw);
   });
   box.querySelector('.tdp-scn-clear').addEventListener('click', function() { s.t = c.price; s.bq = ''; s.bp = ''; redraw(); });
+  _hcPaWire(box, c, s, redraw);
 }
 
 /* What the next buy would make of the position, under the inputs. */
@@ -1099,7 +1146,7 @@ function _hcLoadFive(need) {
   }).catch(function() {});
 }
 
-var _hmRange = 30;   /* days, for the Yours chart; 30 / 90 / 182 */
+var _hmRange = 30;   /* days, for the Yours chart; one of _HC_RANGES */
 function setHoldingsChartRange(days) { _hmRange = days; renderHoldingsChart(); }
 
 /* ── Your coins on one chart ─────────────────────────────────────
@@ -1179,11 +1226,13 @@ function _drawHoldingsChart(box, shown, locked) {
     + '</div>'
     + '<div class="tdp-ch-foot"><span>' + _hcDay(t0) + '</span><span>Now</span></div>'
     + '<div class="hm-legend">' + legend + '</div>'
+    + _hmCrossRow(series)
     + _runAheadNote(series)
     + (locked ? '<div class="tdp-lock hm-lock"><span>Price charts are free for your first ' + FREE_HOLDINGS_LIMIT
         + ' holdings, and for up to ' + PRO_HOLDINGS_LIMIT + ' with Pro.</span>'
         + '<button type="button" class="tdp-lock-btn" onclick="openPro()">See Pro</button></div>' : '');
 
+  _hmCrossWire(box);
   /* Crosshair: every coin's change on the day under the cursor or finger. */
   var plot = document.getElementById('hm-plot'), cross = document.getElementById('hm-cross'), tip = document.getElementById('hm-tip');
   var show = function(e) {
@@ -1210,6 +1259,89 @@ function _drawHoldingsChart(box, shown, locked) {
   plot.addEventListener('pointerleave', function() { cross.hidden = true; tip.hidden = true; });
 }
 
+
+/* ── Crossover alert (promptove/163, Pro) ────────────────────────
+   Daniel, 2026-10-27: alert "when the weaker asset has temporarily
+   surpassed the stronger asset in the chart for the last 7, 30 or 60
+   days", on Telegram, and kept as a pair in the Rotator Tool. Saved as a
+   saved swap pair FROM (the one behind) -> TO with cross = days
+   (RatioTracker._setCross); the server checks it hourly (_pair_state in
+   sql/holding_alerts.sql): FROM ahead by 1 point or more now, after
+   trailing on each of the last 3 daily closes. Worded as information:
+   in past data, swapping into the coin that lagged did not beat picking
+   at random (promptove/64). */
+var _HM_CROSS_D = [[7, '1W'], [30, '1M'], [60, '2M']];
+var _hmCross = { a: '', b: '', d: 0 };
+function _hmCrossRow(series) {
+  if (!series || series.length < 2 || typeof RatioTracker === 'undefined' || !RatioTracker._setCross) return '';
+  if (typeof isPro === 'undefined' || !isPro) {
+    return '<button type="button" class="hm-x-lock" onclick="openPro()">🔔 <span>Get an alert when one of your coins gets ahead of another</span> <b class="td-expand-pro">PRO</b></button>';
+  }
+  var last = function(x) { return x.pts[x.pts.length - 1].p; };
+  var by = series.slice().sort(function(x, y) { return last(x) - last(y); });
+  var ids = series.map(function(x) { return x.c.id; });
+  if (ids.indexOf(_hmCross.a) < 0) _hmCross.a = by[0].c.id;
+  if (ids.indexOf(_hmCross.b) < 0 || _hmCross.b === _hmCross.a) _hmCross.b = (by[by.length - 1].c.id !== _hmCross.a ? by[by.length - 1] : by[0]).c.id;
+  if (!_hmCross.d) _hmCross.d = _hmRange <= 7 ? 7 : _hmRange <= 30 ? 30 : 60;
+  var opt = function(sel) { return series.map(function(x) { return '<option value="' + x.c.id + '"' + (x.c.id === sel ? ' selected' : '') + '>' + x.c.sym + '</option>'; }).join(''); };
+  var symOf = {}; series.forEach(function(x) { symOf[x.c.id] = x.c.sym; });
+  var mine = RatioTracker.getSaved().filter(function(p) { return p.cross && symOf[p.from] && symOf[p.to]; });
+  return '<div class="hm-x">'
+    + '<div class="hm-x-row"><span class="hm-x-l">🔔 Alert me when</span>'
+      + '<select class="hm-x-a" aria-label="The coin behind">' + opt(_hmCross.a) + '</select>'
+      + '<span class="hm-x-l">gets ahead of</span>'
+      + '<select class="hm-x-b" aria-label="The coin ahead">' + opt(_hmCross.b) + '</select>'
+      + '<span class="hm-x-l">over</span><span class="tdp-rngs hm-x-d">'
+        + _HM_CROSS_D.map(function(r) { return '<button type="button" class="tdp-rng' + (r[0] === _hmCross.d ? ' on' : '') + '" data-d="' + r[0] + '">' + r[1] + '</button>'; }).join('')
+      + '</span>'
+      + '<button type="button" class="hm-x-save">Set alert</button>'
+      + '<button type="button" class="hm-x-cmp">Compare in the Rotator Tool →</button>'
+      + '<span class="hm-x-msg" aria-live="polite"></span></div>'
+    + (mine.length ? '<div class="hm-x-list">' + mine.map(function(p) {
+        var d = _HM_CROSS_D.filter(function(r) { return r[0] === p.cross; })[0];
+        return '<span class="hm-x-chip"><button type="button" class="hm-x-open" data-f="' + p.from + '" data-t="' + p.to + '" title="Open in the Rotator Tool">'
+          + symOf[p.from] + ' ⤴ ' + symOf[p.to] + ' · ' + (d ? d[1] : p.cross + 'd') + '</button>'
+          + '<button type="button" class="hm-x-del" aria-label="Remove alert" data-f="' + p.from + '" data-t="' + p.to + '">×</button></span>';
+      }).join('') + '</div>' : '')
+    + '<div class="hm-x-n"><span>Kept with your saved pairs in the Rotator Tool, checked every hour, on the bell and on Telegram.</span> '
+      + '<span>Information, not a call to swap: in past data, swapping into the coin that lagged did not beat picking at random.</span></div>'
+    + '</div>';
+}
+/* The Rotator Tool with this pair (phones: the swap screen). */
+function _hmOpenPair(f, t) {
+  if (window.innerWidth < 768 && typeof mobGo === 'function') mobGo('sec-swap');
+  else if (typeof railGo === 'function') railGo('sec-swap');
+  setTimeout(function() { if (typeof RatioTracker !== 'undefined') RatioTracker._loadFav(f, t); }, 400);
+}
+function _hmCrossWire(box) {
+  var row = box.querySelector('.hm-x');
+  if (!row) return;
+  var a = row.querySelector('.hm-x-a'), b = row.querySelector('.hm-x-b'), msg = row.querySelector('.hm-x-msg');
+  a.addEventListener('change', function() { _hmCross.a = a.value; msg.textContent = ''; });
+  b.addEventListener('change', function() { _hmCross.b = b.value; msg.textContent = ''; });
+  row.querySelectorAll('.hm-x-d .tdp-rng').forEach(function(x) {
+    x.addEventListener('click', function() {
+      _hmCross.d = Number(x.getAttribute('data-d'));
+      row.querySelectorAll('.hm-x-d .tdp-rng').forEach(function(y) { y.classList.toggle('on', y === x); });
+    });
+  });
+  row.querySelector('.hm-x-save').addEventListener('click', function() {
+    if (a.value === b.value) { msg.textContent = 'Pick two different coins.'; return; }
+    var r = RatioTracker._setCross(a.value, b.value, _hmCross.d);
+    if (r === 'full') { msg.textContent = 'You have 8 saved pairs in the Rotator Tool. Remove one first.'; return; }
+    renderHoldingsChart();
+    setTimeout(function() { var m = document.querySelector('#hold-chart .hm-x-msg'); if (m) m.textContent = '✓ Alert saved'; }, 60);
+  });
+  row.querySelector('.hm-x-cmp').addEventListener('click', function() { _hmOpenPair(a.value, b.value); });
+  row.querySelectorAll('.hm-x-open').forEach(function(x) {
+    x.addEventListener('click', function() { _hmOpenPair(x.getAttribute('data-f'), x.getAttribute('data-t')); });
+  });
+  row.querySelectorAll('.hm-x-del').forEach(function(x) {
+    x.addEventListener('click', function() { RatioTracker._setCross(x.getAttribute('data-f'), x.getAttribute('data-t'), 0); renderHoldingsChart(); });
+  });
+}
+/* A pair removed in the Rotator Tool leaves this list too. */
+document.addEventListener('rot:pairs', function() { if (document.querySelector('#hold-chart .hm-x')) renderHoldingsChart(); });
 
 /* ── One coin far ahead of the rest (Daniel, 2026-10-21) ─────────
    When one holding beat every other charted holding over 7 days, 1, 3

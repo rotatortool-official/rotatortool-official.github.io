@@ -163,6 +163,28 @@ var RatioTracker = (function() {
   }
   function isSaved(f,t){ return S.saved.some(function(p){ return p.from===f&&p.to===t; }); }
 
+  /* Crossover alert (promptove/163, Pro): set on the holdings chart.
+     The pair FROM -> TO alerts when FROM, behind TO over the last `days`
+     (7, 30 or 60), gets ahead of it. Saved as a normal saved pair with
+     `cross`, so it shows here and uses the pair path to Telegram. 0 clears
+     it; a pair made only for the crossover leaves with it. */
+  function setCross(f,t,days){
+    days=Number(days);
+    var p=S.saved.find(function(x){ return x.from===f&&x.to===t; });
+    if(!days){
+      if(!p) return 'ok';
+      if(p.auto) S.saved=S.saved.filter(function(x){ return x!==p; }); else delete p.cross;
+    } else {
+      if(!p){
+        if(S.saved.length>=8) return 'full';
+        p={from:f,to:t,auto:1}; S.saved.push(p);
+      }
+      p.cross=days;
+    }
+    persistSaved(); renderSavedPairs(); updateStarBtn();
+    return 'ok';
+  }
+
   function saveFavourite(){
     if(!S.from||!S.to) return;
     if(isSaved(S.from,S.to)) return;
@@ -297,6 +319,7 @@ var RatioTracker = (function() {
       var active=(p.from===S.from&&p.to===S.to);
       return '<button class="rt-saved-chip'+(active?' active':'')+'" onclick="RatioTracker._loadFav(\''+p.from+'\',\''+p.to+'\')">'
         +lbl(p.from)+' → '+lbl(p.to)+(p.target>0?' <span class="rt-chip-bell" aria-hidden="true">🔔</span>':'')
+        +(p.cross?' <span class="rt-chip-cross" title="Crossover alert, '+p.cross+' days">⤴'+p.cross+'d</span>':'')
         +'<span class="rt-chip-x" onclick="event.stopPropagation();RatioTracker._removeFav(\''+p.from+'\',\''+p.to+'\')">×</span>'
         +'</button>';
     }).join('')+_pairAlertRow();
@@ -320,7 +343,9 @@ var RatioTracker = (function() {
       +'<input type="number" min="0" step="any" inputmode="decimal" class="rt-pa-inp" aria-label="Target ratio"'
         +' value="'+(cur.target>0?cur.target:'')+'" placeholder="'+ph+'" onchange="RatioTracker._setTarget(this.value)">'
       +'<span class="rt-pa-eq">'+lbl(S.to)+'</span>'
-      +'<span class="rt-pa-note">Also when it enters the good swap zone. Shown on the bell, and on Telegram once linked.</span>'
+      +'<span class="rt-pa-note">'+(cur.cross?'Crossover alert: when '+lbl(S.from)+' gets ahead of '+lbl(S.to)+' over '+cur.cross+' days (set on your holdings chart). No swap-zone alert for this pair.'
+        :'Also when it enters the good swap zone.')+' Shown on the bell, and on Telegram once linked.</span>'
+      +(cur.cross?'<button type="button" class="rt-pa-x" onclick="RatioTracker._setCross(\''+S.from+'\',\''+S.to+'\',0)">Remove crossover alert</button>':'')
       +'</div>';
   }
 
@@ -1099,14 +1124,14 @@ var RatioTracker = (function() {
     loadAll:function(force){loadAll(force!==undefined?force:true);},
     onFromChange:onFromChange, onToChange:onToChange, calcSwap:calcSwap,
     swapPair:swapPair,
-    _loadFav:loadFavourite, _removeFav:removeFavourite, _setTarget:setTarget,
+    _loadFav:loadFavourite, _removeFav:removeFavourite, _setTarget:setTarget, _setCross:setCross,
     _openPicker:_openPicker, _closePicker:_closePicker, _pickerFilter:_pickerFilter, _pickerSelect:_pickerSelect,
     /* Redraw with the current theme's palette (ui.js, on a theme switch). */
     redraw:function(){ if(S.series&&S.series.length) renderChart(S.series); },
     getState:function(){ return { from:S.from, to:S.to, fromPrice:S.fromPrice, toPrice:S.toPrice, series:S.series||[], days:S.days, fromSym:_symOf(S.from), toSym:_symOf(S.to) }; },
     /* Saved pairs with their alert targets, for the bell and Telegram
        (js/turn-watch.js, promptove/111). A copy: callers cannot edit it. */
-    getSaved:function(){ return S.saved.map(function(p){ var o={from:p.from,to:p.to}; if(p.target>0) o.target=p.target; return o; }); },
+    getSaved:function(){ return S.saved.map(function(p){ var o={from:p.from,to:p.to}; if(p.target>0) o.target=p.target; if(p.cross) o.cross=p.cross; return o; }); },
     /* Another tab changed the saved pairs (ui.js storage listener,
        2026-10-15): read them back so this tab does not save over them. */
     reloadSaved:function(){ loadSaved(); renderSavedPairs(); updateStarBtn(); try{ document.dispatchEvent(new Event('rot:pairs')); }catch(e){} },

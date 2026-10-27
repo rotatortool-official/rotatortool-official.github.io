@@ -199,7 +199,7 @@ Object.assign(MK_TEXT, {
     'Известувањата во прелистувачот се појавуваат додека Rotator е отворен во јазиче. „Ново“ се памети во овој прелистувач.',
   'Exchange and unlock warnings are free. Pro adds turn signs, ETF alerts, saved swap pair alerts, Telegram messages and browser notifications.':
     'Предупредувањата од берзата и за отклучувања се бесплатни. Pro додава знаци за свртување, известувања за ETF, известувања за зачуваните парови за замена, пораки на Telegram и известувања во прелистувачот.',
-  'Telegram connected: a briefing every Monday and Thursday, delistings and pair alerts right away.': 'Telegram е поврзан: брифинг секој понеделник и четврток, отстранувања од листата и известувања за парови веднаш.',
+  'Telegram connected: a briefing every Monday and Thursday; delistings, price and pair alerts within the hour.': 'Telegram е поврзан: брифинг секој понеделник и четврток; отстранувања од листата, известувања за цени и парови во рок од еден час.',
   'Disconnect': 'Исклучи',
   'Telegram disconnected.': 'Telegram е исклучен.',
   'In Telegram, tap Start. This panel updates once the bot confirms.': 'Во Telegram, допрете Start. Овој панел се ажурира откако ботот ќе потврди.',
@@ -2136,4 +2136,41 @@ Object.assign(MK_TEXT, {
   });
   P(/^Derivatives just now$/, function () { return 'Деривати: штотуку'; });
   P(/^(Long|Short) (\d+)%$/, function (m) { return (m[1] === 'Long' ? 'Лонг ' : 'Шорт ') + m[2] + '%'; });
+})();
+/* Price and crossover alerts (2026-10-27, promptove/163) */
+Object.assign(MK_TEXT, {
+  'Pick a price above or below today to set an alert': 'Изберете цена над или под денешната за да поставите известување',
+  'Alert saved': 'Известувањето е зачувано',
+  'You already have this alert.': 'Ова известување веќе го имате.',
+  'You have 10 alerts. Remove one first.': 'Имате 10 известувања. Прво отстранете едно.',
+  'Set a price first.': 'Прво поставете цена.',
+  'Reached': 'Достигнато', 'Remove alert': 'Отстрани го известувањето',
+  'Checked every hour at the latest price, so it can arrive up to an hour late.': 'Се проверува секој час според последната цена, па може да стигне до еден час подоцна.',
+  'Checked every hour; on the bell and on Telegram.': 'Се проверува секој час; на ѕвончето и на Telegram.',
+  'Checked every hour; on the bell, and on Telegram once linked in YOURS.': 'Се проверува секој час; на ѕвончето, и на Telegram откако ќе го поврзете во ВАШЕ.',
+  'The test price and buy are a sandbox: nothing is saved. Only a price alert you set is kept.': 'Пробната цена и купување се само за проба: ништо не се зачувува. Се чува само известувањето за цена што ќе го поставите.',
+  'Get an alert when one of your coins gets ahead of another': 'Добијте известување кога една ваша монета ќе претекне друга',
+  'Alert me when': 'Извести ме кога', 'gets ahead of': 'ќе ја претекне', 'over': 'за',
+  'Set alert': 'Постави известување', 'Compare in the Rotator Tool →': 'Споредете во Rotator Tool →',
+  'Pick two different coins.': 'Изберете две различни монети.',
+  'You have 8 saved pairs in the Rotator Tool. Remove one first.': 'Имате 8 зачувани парови во Rotator Tool. Прво отстранете еден.',
+  'Open in the Rotator Tool': 'Отвори во Rotator Tool', 'The coin behind': 'Монетата што заостанува', 'The coin ahead': 'Монетата што води',
+  'Kept with your saved pairs in the Rotator Tool, checked every hour, on the bell and on Telegram.': 'Се чува со вашите зачувани парови во Rotator Tool, се проверува секој час, на ѕвончето и на Telegram.',
+  'Information, not a call to swap: in past data, swapping into the coin that lagged did not beat picking at random.': 'Информација, не повик за замена: во минатите податоци, замената во монетата што заостанувала не била подобра од случаен избор.',
+  'Remove crossover alert': 'Отстрани го известувањето за претекнување',
+  'price': 'цена'
+});
+(function () {
+  var P = function (re, fn) { MK_PATTERNS.push([re, fn]); };
+  P(/^Alert me when (\S+) (reaches|falls to) (\$\S+)$/, function (m) { return 'Извести ме кога ' + m[1] + (m[2] === 'reaches' ? ' ќе стигне до ' : ' ќе падне до ') + m[3]; });
+  P(/^(\S+) (reached|fell to) (\$\S+)$/, function (m) { return m[1] + (m[2] === 'reached' ? ' стигна до ' : ' падна до ') + m[3]; });
+  P(/^Your price alert, set (\S*)\. It has now switched off\.$/, function (m) { return 'Вашето известување за цена, поставено ' + m[1] + '. Сега е исклучено.'; });
+  P(/^(\S+) is now ahead of (\S+)$/, function (m) { return m[1] + ' сега е пред ' + m[2]; });
+  P(/^Over the last (\d+) days (\S+) gained (-?[\d.]+) points more than (\S+), after trailing it\. Information, not a call to swap\.$/, function (m) {
+    return 'За последните ' + m[1] + ' дена ' + m[2] + ' порасна ' + m[3].replace('.', ',') + ' поени повеќе од ' + m[4] + ', откако заостануваше. Информација, не повик за замена.';
+  });
+  P(/^Crossover alert: when (\S+) gets ahead of (\S+) over (\d+) days \(set on your holdings chart\)\. No swap-zone alert for this pair\. Shown on the bell, and on Telegram once linked\.$/, function (m) {
+    return 'Известување за претекнување: кога ' + m[1] + ' ќе ја претекне ' + m[2] + ' за ' + m[3] + ' дена (поставено на графиконот на вашите монети). За овој пар нема известување за зоната за замена. Се прикажува на ѕвончето, и на Telegram откако ќе го поврзете.';
+  });
+  P(/^Crossover alert, (\d+) days$/, function (m) { return 'Известување за претекнување, ' + m[1] + ' дена'; });
 })();

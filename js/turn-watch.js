@@ -334,6 +334,7 @@ function _twAlerts() {
     }
   });
   if (isPro) out = out.concat(_twPairAlerts());   /* saved swap pairs (promptove/111) */
+  if (isPro) out = out.concat(_twPriceAlertsBell());   /* price alerts (promptove/163) */
   out.sort(function (a, b) { return b.sev - a.sev || (a.sym < b.sym ? -1 : 1); });
   return out;
 }
@@ -385,6 +386,7 @@ function renderCoinAlerts() {
   if (badge) { badge.textContent = fresh.length ? String(fresh.length) : ''; badge.style.display = fresh.length ? '' : 'none'; }
   _twNotify(visible);
   _twPairsRefresh(false);
+  _twPricesRefresh(false);
   if (!host) return;
   if (!_twMyCoins().length && !_twPairs.list.length) {
     host.innerHTML = '<div class="ca-hd"><span class="ca-title">🔔 Alerts for your coins</span></div>'
@@ -451,7 +453,8 @@ function _twTgSync(force) {
   var lang = (typeof currentLang !== 'undefined' && currentLang === 'mk') ? 'mk' : 'en';
   /* The saved swap pairs go with the coins (promptove/111): Telegram reads
      the server's copy, never this browser. */
-  var list = _twTgCoins(), pairs = _twSavedPairs(), sig = lang + JSON.stringify(list) + JSON.stringify(pairs);
+  var list = _twTgCoins(), pairs = _twSavedPairs(), prices = twPriceAlertsActive();
+  var sig = lang + JSON.stringify(list) + JSON.stringify(pairs) + JSON.stringify(prices);
   if (!force && sig === _twTg.sig) return;
   _twTg.sig = sig;
   _twRpc('alert_set_coins', { p_uid: getMyId(), p_coins: list, p_lang: lang }).then(function (linked) {
@@ -463,7 +466,10 @@ function _twTgSync(force) {
     if (linked === null) { if (_twTg.sig === sig) _twTg.sig = ''; return; }
     var was = _twTg.linked;
     _twTg.linked = linked === true;
-    if (_twTg.linked) _twRpc('alert_set_pairs', { p_uid: getMyId(), p_pairs: pairs });
+    if (_twTg.linked) {
+      _twRpc('alert_set_pairs', { p_uid: getMyId(), p_pairs: pairs });
+      _twRpc('alert_set_prices', { p_uid: getMyId(), p_alerts: prices });
+    }
     if (was !== _twTg.linked) renderCoinAlerts();
   });
 }
@@ -504,11 +510,19 @@ function _twPairAlerts() {
   var out = [], zs = _twLoad('rot_tw_pairzone'), zs0 = JSON.stringify(zs), today = new Date().toISOString().slice(0, 10);
   _twPairs.list.forEach(function (p) {
     if (!p || p.ratio == null || !_TW_PAIR_ID.test(p.from || '') || !_TW_PAIR_ID.test(p.to || '')) return;
-    var id = p.from + '>' + p.to, fs = String(p.from_sym || ''), ts = String(p.to_sym || ''), r = _twFmtRatio(p.ratio);
+    /* The site's own ticker first, the server's as the fallback. */
+    var symOf = function (cid, srv) { var c = Array.isArray(coins) && coins.find(function (x) { return x.id === cid; }); return String((c && c.sym) || srv || ''); };
+    var id = p.from + '>' + p.to, fs = symOf(p.from, p.from_sym), ts = symOf(p.to, p.to_sym), r = _twFmtRatio(p.ratio);
     var base = { sym: fs + ' → ' + ts, id: null, pair: [p.from, p.to], role: 'pair', kind: 'up', pro: true, sev: 2 };
     /* The zone key carries the day it was first seen there, so staying in
        it stays "read", and coming back after leaving is new. */
-    if (p.in_zone) {
+    /* Crossover pairs (promptove/163) alert on the crossing, not the zone. */
+    if (p.cross && p.cross_hit) {
+      out.push(Object.assign({ key: 'pair|' + id + '|cross|' + p.cross + '|' + String(p.as_of || '').slice(0, 10),
+        title: fs + ' is now ahead of ' + ts,
+        detail: 'Over the last ' + p.cross + ' days ' + fs + ' gained ' + Number(p.cross_lead).toFixed(1) + ' points more than ' + ts + ', after trailing it. Information, not a call to swap.' }, base));
+    }
+    if (p.in_zone && !p.cross) {
       zs[id] = zs[id] || today;
       out.push(Object.assign({ key: 'pair|' + id + '|zone|' + zs[id], title: 'In the good swap zone',
         detail: '1 ' + fs + ' = ' + r + ' ' + ts + ', in the top quarter of its 30-day range.' }, base));
@@ -531,6 +545,74 @@ function _twOpenPair(f, t) {
 }
 
 document.addEventListener('rot:pairs', function () { _twPairsRefresh(true); _twTgSync(false); });
+
+/* ── Price alerts (promptove/163, Pro) ───────────────────────────────
+   Set in the full breakdown's What-if box: "tell me when DEXE reaches
+   $1.90". Kept in this browser (rot_price_alerts, at most 10); the
+   server's copy feeds Telegram (alert_set_prices) and the state comes
+   from price_alert_check, the same _price_state() send-dm-alerts reads,
+   at the 15-minute signal run's price. Each alert fires once: it then
+   stays in the list as "reached" (and on the bell) until removed, and is
+   no longer sent to the server. */
+var _TW_PRICE_KEY = 'rot_price_alerts', TW_PRICE_MAX = 10;
+var _twPrices = { sig: '', at: 0 };
+function twPriceAlerts() {
+  try { var a = JSON.parse(localStorage.getItem(_TW_PRICE_KEY) || '[]'); return Array.isArray(a) ? a.filter(function (x) { return x && _TW_PAIR_ID.test(x.id || '') && x.price > 0; }) : []; } catch (e) { return []; }
+}
+function twPriceAlertsActive() {
+  return twPriceAlerts().filter(function (a) { return !a.fired; }).map(function (a) { return { id: a.id, dir: a.dir, price: String(a.price) }; });
+}
+function _twPriceSave(list, quiet) {
+  try { localStorage.setItem(_TW_PRICE_KEY, JSON.stringify(list)); } catch (e) {}
+  if (!quiet) try { document.dispatchEvent(new Event('rot:prices')); } catch (e) {}
+}
+/* Add one; the direction follows the current price. Answers 'ok',
+   'same', 'full' or 'bad'. */
+function twPriceAlertAdd(c, price) {
+  price = +Number(price).toPrecision(8);
+  if (!c || !(price > 0) || !(c.price > 0)) return 'bad';
+  var list = twPriceAlerts(), dir = price >= c.price ? 'up' : 'down';
+  if (list.some(function (a) { return a.id === c.id && a.dir === dir && Number(a.price) === price && !a.fired; })) return 'same';
+  if (list.filter(function (a) { return !a.fired; }).length >= TW_PRICE_MAX) return 'full';
+  list.push({ id: c.id, sym: c.sym, dir: dir, price: price, set: new Date().toISOString().slice(0, 10) });
+  _twPriceSave(list);
+  return 'ok';
+}
+function twPriceAlertRemove(id, dir, price) {
+  _twPriceSave(twPriceAlerts().filter(function (a) { return !(a.id === id && a.dir === dir && Number(a.price) === Number(price)); }));
+}
+function _twPricesRefresh(force) {
+  if (!isPro || typeof getMyId !== 'function' || typeof SUPA_URL === 'undefined') return;
+  var act = twPriceAlertsActive(), sig = JSON.stringify(act);
+  if (!act.length) { _twPrices.sig = sig; return; }
+  if (!force && sig === _twPrices.sig && Date.now() - _twPrices.at < 15 * 60 * 1000) return;
+  _twPrices.sig = sig; _twPrices.at = Date.now();
+  _twRpc('price_alert_check', { p_uid: getMyId(), p_alerts: act }).then(function (res) {
+    if (!Array.isArray(res)) return;
+    var hit = res.filter(function (r) { return r && r.hit; });
+    if (!hit.length) return;
+    var list = twPriceAlerts();
+    hit.forEach(function (r) {
+      list.forEach(function (a) {
+        if (a.id === r.id && a.dir === r.dir && Number(a.price) === Number(r.target) && !a.fired) { a.fired = new Date().toISOString().slice(0, 10); a.at = Number(r.price); }
+      });
+    });
+    _twPriceSave(list, true);
+    renderCoinAlerts();
+    if (typeof tdxPriceAlertsRedraw === 'function') tdxPriceAlertsRedraw();
+  });
+}
+/* Reached alerts on the bell. */
+function _twPriceAlertsBell() {
+  return twPriceAlerts().filter(function (a) { return a.fired; }).map(function (a) {
+    var p = typeof fmtP === 'function' ? fmtP(a.price) : '$' + a.price;
+    return { key: 'price|' + a.id + '|' + a.dir + '|' + a.price, sym: a.sym || a.id, id: a.id, role: 'price', kind: a.dir === 'up' ? 'up' : 'down', pro: true, sev: 2,
+      title: (a.sym || a.id) + (a.dir === 'up' ? ' reached ' : ' fell to ') + p,
+      detail: 'Your price alert, set ' + (a.set || '') + '. It has now switched off.' };
+  });
+}
+document.addEventListener('rot:prices', function () { _twPricesRefresh(true); _twTgSync(false); });
+setInterval(function () { _twPricesRefresh(false); }, 5 * 60 * 1000);
 setInterval(function () { _twPairsRefresh(false); }, 5 * 60 * 1000);
 
 function _twTgFoot() {
@@ -538,7 +620,7 @@ function _twTgFoot() {
     /* A briefing twice a week since 2026-10-05 (promptove/112): Monday and
        Thursday 06:10 UTC; only a delisting and saved-pair alerts are sent
        as they happen (send-dm-alerts urgent mode, hourly). */
-    return '<span class="ca-tg on">📨 Telegram connected: a briefing every Monday and Thursday, delistings and pair alerts right away.'
+    return '<span class="ca-tg on">📨 Telegram connected: a briefing every Monday and Thursday; delistings, price and pair alerts within the hour.'
       + ' <button type="button" class="ca-act" onclick="_twTgUnlink()">Disconnect</button></span>';
   }
   return '<button type="button" class="ca-act ca-tg-btn" onclick="_twTgConnect()"' + (_twTg.busy ? ' disabled' : '') + '>📨 Get these on Telegram</button>'
