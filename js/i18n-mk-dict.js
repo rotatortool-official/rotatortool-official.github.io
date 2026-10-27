@@ -1664,6 +1664,17 @@ Object.assign(MK_TEXT, {
 Object.assign(MK_TEXT, {
   "Follow Rotator": "Следете го Rotator",
   "Weekly on Substack": "Неделно на Substack",
+  "by email: one letter on Mondays + a free 2-week Pro code. Subscribe →": "по е-пошта: по едно писмо во понеделник + бесплатен 2-неделен Pro код. Претплатете се →",   // DeepL 2026-10-27 (Pro weeks)
+  "Personal alerts: 1 week for each friend you invite, 2 weeks for subscribing to Rotator Weekly, or a $20 payment.": "Лични известувања: 1 недела за секој пријател што ќе го поканите, 2 недели за претплата на Rotator Weekly или уплата од $20.",   // DeepL 2026-10-27 (Pro weeks)
+  "Ways to get Pro: each friend you invite adds 1 week (free),": "Начини за добивање Pro: секој пријател што ќе го поканите додава 1 недела (бесплатно),",   // DeepL 2026-10-27 (Pro weeks)
+  "subscribe to Rotator Weekly": "претплатете се на Rotator Weekly",   // DeepL 2026-10-27 (Pro weeks)
+  "for a 2-week code (free), or pay $20 below.": "за двонеделен код (бесплатно), или платете $20 подолу.",   // DeepL 2026-10-27 (Pro weeks)
+  "EACH FRIEND = 1 WEEK OF PRO": "СЕКОЈ ПРИЈАТЕЛ = 1 НЕДЕЛА PRO",   // DeepL 2026-10-27 (Pro weeks)
+  "Share your link. Each friend who opens Rotator through it gives you 1 week of Pro, up to 8 weeks ahead.": "Споделете го вашиот линк. Секој пријател што ќе го отвори Rotator преку него ви дава 1 недела Pro, до 8 недели однапред.",   // DeepL 2026-10-27 (Pro weeks)
+  "EACH FRIEND = 1 MORE WEEK": "СЕКОЈ ПРИЈАТЕЛ = УШТЕ ЕДНА НЕДЕЛА",   // DeepL 2026-10-27 (Pro weeks)
+  "Each friend who opens Rotator through your link adds 1 week to your Pro, up to 8 weeks ahead.": "Секој пријател што ќе го отвори Rotator преку вашиот линк додава 1 недела на вашиот Pro, до 8 недели однапред.",   // DeepL 2026-10-27 (Pro weeks)
+  "This code has run out. Subscribers get the current one in their Rotator Weekly email.": "Овој код е истечен. Претплатниците го добиваат тековниот во својот имејл од Rotator Weekly.",   // DeepL 2026-10-27 (Pro weeks)
+  "This code was already used on 3 devices on this network.": "Овој код веќе беше искористен на 3 уреди на оваа мрежа.",   // DeepL 2026-10-27 (Pro weeks)
   "by email: one letter on Mondays. Subscribe free →": "по е-пошта: по едно писмо во понеделник. Претплатете се бесплатно →",   // DeepL 2026-10-27
   "Telegram channel": "Telegram канал"
 });
@@ -2175,3 +2186,6 @@ Object.assign(MK_TEXT, {
   });
   P(/^Crossover alert, (\d+) days$/, function (m) { return 'Известување за претекнување, ' + m[1] + ' дена'; });
 })();
+MK_PATTERNS.push([/^(\d+) friends?$/, function (m) { return m[1] + (m[1] === '1' ? ' пријател' : ' пријатели'); }]);   // Pro weeks 2026-10-27
+MK_PATTERNS.push([/^(\d+) (friend has|friends have) joined\. Each one adds 1 week of Pro once the 1-hour check has passed: refresh the page to check\.$/, function (m) { return m[1] + (m[1] === '1' ? ' пријател се приклучи' : ' пријатели се приклучија') + '. Секој додава 1 недела Pro откако ќе помине проверката од 1 час: освежете ја страницата за да проверите.'; }]);
+MK_PATTERNS.push([/^Pro is active until (\d+) (\w+)$/, function (m) { return 'Pro е активен до ' + m[1] + ' ' + m[2]; }]);

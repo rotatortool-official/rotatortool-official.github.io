@@ -154,7 +154,7 @@ var TUT_STEPS = [
     "p": [
       "All the data is free. **Pro** sends it to you on Telegram: a briefing every Monday and Thursday about your coins, and a warning before an unlock on a coin you hold."
     ],
-    "note": "From $20 in crypto, five friends who join, or a Pro code."
+    "note": "From $20 in crypto, 1 week for each friend who joins, or a Pro code (Rotator Weekly subscribers get 2 weeks)."
   },
 
   /* 10. Install as an app: desktop points at the download icon, phones at MORE */

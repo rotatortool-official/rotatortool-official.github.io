@@ -171,9 +171,13 @@ function _supaRpc(name, body) {
 }
 
 /* ── Check if uid has Pro in Supabase ────────────────────────── */
+/* pro_info (2026-10-27) also says when Pro ends: week codes and referral
+   weeks expire; null = lifetime. The end date waits in _proUntil for the caller. */
+var _proUntil = null;
 function supaCheckPro(uid) {
-  return _supaRpc('pro_status', { p_uid: uid }).then(function (v) {
-    return v === true;
+  return _supaRpc('pro_info', { p_uid: uid }).then(function (v) {
+    _proUntil = v && v.until || null;
+    return !!(v && v.pro === true);
   }).catch(function (e) {
     console.warn('[Supabase] Pro check failed:', e.message);
     return false;
@@ -195,7 +199,13 @@ function supaRestoreOnLoad() {
      Pro away. An error is not a no: offline or an outage keeps Pro, so a
      paying user is never locked out by a hiccup. */
   if (isPro) {
-    _supaRpc('pro_status', { p_uid: uid }).then(function (v) {
+    _supaRpc('pro_info', { p_uid: uid }).then(function (info) {
+      var v = info ? info.pro === true : null;
+      if (v === true && typeof setProUntil === 'function') {   /* keep the end date in step with the server */
+        setProUntil(info.until || null);
+        if (typeof updateTierBadge === 'function') updateTierBadge();
+        return;
+      }
       if (v !== false || !isPro) return;
       isPro = false;
       savePro(false);
@@ -211,7 +221,7 @@ function supaRestoreOnLoad() {
   supaCheckPro(uid).then(function(hasPro) {
     if (hasPro && !isPro) {
       isPro = true;
-      savePro(true);
+      if (typeof setProUntil === 'function') setProUntil(_proUntil); else savePro(true);
       updateTierBadge();
       if (window.Analytics) Analytics.track('Pro Unlocked', { method: 'cloud-restore' });
       console.log('[Supabase] Pro restored from cloud for uid:', uid);
@@ -229,7 +239,7 @@ function supaRecoverPro(inputUid) {
       /* Adopt this uid and activate Pro */
       localStorage.setItem('rot_uid', inputUid);
       isPro = true;
-      savePro(true);
+      if (typeof setProUntil === 'function') setProUntil(_proUntil); else savePro(true);
       updateTierBadge();
       if (window.Analytics) Analytics.track('Pro Unlocked', { method: 'recovery' });
       return true;
@@ -250,7 +260,7 @@ function supaRecoverPro(inputUid) {
    This prevents: incognito-tab spam, bot clicks, drive-by visits
 ══════════════════════════════════════════════════════════════════ */
 
-var REFERRAL_NEEDED = 5;
+var REFERRAL_NEEDED = 1;   /* each friend = +1 week of Pro since 2026-10-27 */
 var REFERRAL_TIME_GATE_MS = 60 * 60 * 1000; /* 1 hour */
 
 /**

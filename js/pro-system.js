@@ -51,6 +51,19 @@ function getProExpiry() {
   var d = getRefData();
   return d.pro_expires || null;
 }
+/* Pro with the server's end date (2026-10-27, promptove/165): week codes and
+   referral weeks end; null = lifetime. */
+function setProUntil(until) {
+  var d = getRefData();
+  d.pro = true;
+  d.pro_expires = until ? Date.parse(until) : null;
+  saveRefData(d);
+  isPro = true;
+}
+function proUntilText(until) {
+  var t = new Date(until);
+  return t.getDate() + ' ' + ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'][t.getMonth()];
+}
 
 /* ── Referral system helpers ─────────────────────────────────── */
 function genId()      { return Math.random().toString(36).slice(2, 9); }
@@ -134,7 +147,9 @@ function checkMyReferrals() {
   /* Ask the server to count + grant in one atomic check.
      Step 0b: only the grant_pro_via_referrals RPC can set is_pro=true.
      The client cannot forge a count by padding localStorage. */
-  if (typeof supaGrantProViaReferrals === 'function' && !d.pro) {
+  /* Asked on every visit unless Pro is lifetime: each new friend adds a
+     week (2026-10-27), so a Pro week can still grow. */
+  if (typeof supaGrantProViaReferrals === 'function' && !(d.pro && !d.pro_expires)) {
     supaGrantProViaReferrals(getMyId()).then(function(res) {
       /* The server's own count (credited AND at least 1 hour old) — the
          only number that can unlock Pro. Remembered so the Pro window and
@@ -149,15 +164,16 @@ function checkMyReferrals() {
           refreshReferralProgressUI();
         });
       }
-      if (res && res.ok && !isPro) {
-        isPro = true; savePro(true);
-        if (window.Analytics) Analytics.track('Pro Unlocked', { method: 'referral' });
-        var count = res.count || REF_NEEDED;
-        var dd = getRefData();
-        dd.pro = true; dd.refs = [];
-        for (var i = 0; i < count; i++) dd.refs.push('supa-' + i);
-        saveRefData(dd);
-        showProToast();
+      /* Each friend = +7 days (server adds them once; res.added = days added now). */
+      if (res && res.ok && (res.added > 0 || !isPro)) {
+        var wasPro = isPro;
+        setProUntil(res.until || null);
+        if (res.added > 0) {
+          if (window.Analytics) Analytics.track('Pro Unlocked', { method: 'referral', days: res.added });
+          var wk = Math.round(res.added / 7);
+          showProToast('⚡ +' + wk + ' WEEK' + (wk > 1 ? 'S' : '') + ' OF PRO — ' + (wk > 1 ? wk + ' friends' : 'a friend') + ' joined!',
+            res.until ? 'Pro until ' + proUntilText(res.until) + '. Every friend who joins adds another week.' : null, wasPro);
+        }
         updateTierBadge();
         if (typeof initCategoryLocks === 'function') initCategoryLocks();
         updateProGates();
@@ -188,41 +204,35 @@ function getReferralProgress() {
   return { joined: joined, verified: verified };
 }
 
-function referralSubText(p, needed) {
-  var left = needed - p.joined;
-  if (left > 0) {
-    return 'Share your link. When ' + left + ' more ' + (left === 1 ? 'friend opens' : 'friends open')
-      + ' Rotator through it, the full features unlock.';
-  }
-  return 'All ' + needed + ' friends have joined. Pro unlocks automatically once the 1-hour check has passed: refresh the page to check.';
+function referralSubText(p) {
+  if (!p.joined) return 'Share your link. Each friend who opens Rotator through it gives you 1 week of Pro, up to 8 weeks ahead.';
+  return p.joined + ' ' + (p.joined === 1 ? 'friend has' : 'friends have') + ' joined. Each one adds 1 week of Pro once the 1-hour check has passed: refresh the page to check.';
 }
 
 /* Redraws the progress in an open Pro window and the tier badge once the
    server's numbers arrive, so nobody stares at a stale 0/5. */
 function refreshReferralProgressUI() {
-  if (isPro) return;
-  var needed = (typeof REFERRAL_NEEDED !== 'undefined') ? REFERRAL_NEEDED : 5;
   var p = getReferralProgress();
   var el;
-  if ((el = document.getElementById('refx-count'))) el.textContent = Math.min(p.joined, needed) + '/' + needed;
-  if ((el = document.getElementById('refx-bar-fill'))) el.style.width = Math.min(100, Math.round(p.joined / needed * 100)) + '%';
-  if ((el = document.getElementById('refx-sub'))) el.textContent = referralSubText(p, needed);
+  if ((el = document.getElementById('refx-count'))) el.textContent = p.joined + (p.joined === 1 ? ' friend' : ' friends');
+  if ((el = document.getElementById('refx-bar-fill'))) el.style.width = Math.min(100, Math.round(p.joined / 8 * 100)) + '%';
+  if ((el = document.getElementById('refx-sub'))) el.textContent = referralSubText(p);
   if ((el = document.getElementById('refx-pending'))) {
-    var waiting = Math.max(0, Math.min(p.joined, needed) - p.verified);
+    var waiting = Math.max(0, p.joined - p.verified);
     el.textContent = waiting > 0 ? waiting + ' ' + (waiting === 1 ? 'friend is' : 'friends are') + ' waiting for the 1-hour check.' : '';
     el.style.display = waiting > 0 ? '' : 'none';
   }
   if (typeof updateTierBadge === 'function') updateTierBadge();
 }
 
-function showProToast() {
+function showProToast(head, sub, noTour) {
   var t = document.createElement('div');
   t.style.cssText = 'position:fixed;top:56px;left:50%;transform:translateX(-50%);background:#1a2030;border:1px solid #a78bfa;border-radius:6px;padding:14px 22px;font-family:IBM Plex Mono,monospace;font-size:12px;color:#a78bfa;z-index:900;text-align:center;box-shadow:0 0 30px rgba(167,139,250,.2);letter-spacing:.06em;';
-  t.innerHTML = '⚡ PRO UNLOCKED — 5 friends joined!<br><span style="font-size:12px;color:#3e4d60;margin-top:4px;display:block;">10 holdings, every score gap and the live Insight read are now open.</span>';
+  t.innerHTML = (head || '⚡ PRO UNLOCKED') + '<br><span style="font-size:12px;color:#8f9aab;margin-top:4px;display:block;">' + (sub || 'Personal Telegram alerts, 10 holdings and the full coin breakdown are now open.') + '</span>';
   document.body.appendChild(t);
-  setTimeout(function() { t.style.transition = 'opacity .5s'; t.style.opacity = '0'; setTimeout(function() { t.remove(); }, 500); }, 4000);
-  /* Start Pro tutorial after toast */
-  setTimeout(function() { if (typeof startProTutorial === 'function') startProTutorial(); }, 2500);
+  setTimeout(function() { t.style.transition = 'opacity .5s'; t.style.opacity = '0'; setTimeout(function() { t.remove(); }, 500); }, 4500);
+  /* Start Pro tutorial after toast (not when Pro only got longer) */
+  if (!noTour) setTimeout(function() { if (typeof startProTutorial === 'function') startProTutorial(); }, 2500);
 }
 
 /* ── Tier badge ──────────────────────────────────────────────── */
@@ -243,8 +253,7 @@ function updateTierBadge() {
     if (daysLeft >= 0 && daysLeft <= 3) showExpiryWarning(daysLeft);
   } else {
     b.className = 'tier-badge free'; b.textContent = 'FREE';
-    var refNeeded = (typeof REFERRAL_NEEDED !== 'undefined') ? REFERRAL_NEEDED : 5;
-    if (pb) { pb.textContent = count > 0 ? '⚡ UNLOCK PRO (' + count + '/' + refNeeded + ')' : '⚡ UNLOCK PRO'; pb.style.opacity = ''; }
+    if (pb) { pb.textContent = '⚡ UNLOCK PRO'; pb.style.opacity = ''; }
   }
 }
 
@@ -288,10 +297,10 @@ function openPro() {
   if (window.Analytics) Analytics.track('Pro Modal Opened');
   var body  = document.getElementById('pro-modal-body');
   var d     = checkMyReferrals();
-  var needed = (typeof REFERRAL_NEEDED !== 'undefined') ? REFERRAL_NEEDED : 5, link = getMyReferralLink();
-  var prog  = getReferralProgress(), count = Math.min(prog.joined, needed);
+  var link = getMyReferralLink();
+  var prog  = getReferralProgress(), count = prog.joined;
   var waiting = Math.max(0, count - prog.verified);
-  var pct   = Math.round(count / needed * 100);
+  var pct   = Math.round(count / 8 * 100);   /* 8 weeks is the most Pro can run ahead */
 
   var _ = (typeof t === 'function') ? t : function(k){ return k; };
 
@@ -299,7 +308,7 @@ function openPro() {
     body.innerHTML = '<div class="already-pro">'
       + '<div class="already-pro-icon">⚡</div>'
       + '<div class="already-pro-txt">Thank you!</div>'
-      + '<div class="already-pro-sub" style="color:var(--green);font-weight:600;">Pro is active — full features unlocked</div>'
+      + '<div class="already-pro-sub" style="color:var(--green);font-weight:600;">' + (getProExpiry() ? 'Pro is active until ' + proUntilText(getProExpiry()) : 'Pro is active — full features unlocked') + '</div>'
       + '<div style="margin-top:10px;background:var(--gd);border:1px solid rgba(0,200,150,.2);border-radius:4px;padding:8px 14px;text-align:center;font-size:12px;color:var(--green);font-weight:600;">Full features — your support keeps Rotator independent</div>'
       + '<div style="margin-top:14px;background:var(--bg3);border:1px solid var(--bdr2);border-radius:4px;padding:12px 14px;">'
         + '<div style="font-size:12px;color:var(--muted);letter-spacing:.12em;margin-bottom:8px;">' + _('pro_coming') + '</div>'
@@ -319,9 +328,9 @@ function openPro() {
       + '</div>'
       + '<div class="refx-section" style="margin-top:14px;">'
         + '<div class="refx-hdr">'
-          + '<span class="refx-title">💜 SHARE ROTATOR WITH FRIENDS</span>'
+          + '<span class="refx-title">' + (getProExpiry() ? '🎁 EACH FRIEND = 1 MORE WEEK' : '💜 SHARE ROTATOR WITH FRIENDS') + '</span>'
         + '</div>'
-        + '<div class="refx-sub">Rotator stays independent because supporters like you spread the word. Share the love:</div>'
+        + '<div class="refx-sub">' + (getProExpiry() ? 'Each friend who opens Rotator through your link adds 1 week to your Pro, up to 8 weeks ahead.' : 'Rotator stays independent because supporters like you spread the word. Share the love:') + '</div>'
         + '<div class="refx-row">'
           + '<input class="refx-link" value="' + link + '" readonly onclick="this.select()">'
           + '<button class="refx-copy" id="copy-ref-btn" onclick="copyRefLink()">COPY</button>'
@@ -371,16 +380,16 @@ function openPro() {
         + '<div class="plb-note">One person cannot carry these alone. Pro is how the people who get the most from Rotator keep it running for everyone.</div></div>'
       + '<div class="plb-price"><span>The first 10 who pay keep Pro for as long as Rotator pays its own costs. After that, Pro becomes a subscription.</span>'
         + '<div class="pro-places" id="pro-places" style="display:none;"></div></div>'   /* filled by _proPlacesFill() */
-      + '<div class="plb-ways">Three ways to get Pro: invite 5 friends (free), redeem a Pro code (free), or pay $20 below.</div>'
+      + '<div class="plb-ways">Ways to get Pro: each friend you invite adds 1 week (free), <a href="https://rotatortool.substack.com/subscribe?utm_source=rotatortool&amp;utm_medium=pro-window" target="_blank" rel="noopener" style="color:var(--gold, #f3ba2f);">subscribe to Rotator Weekly</a> for a 2-week code (free), or pay $20 below.</div>'
 
-      /* ── Viral: Invite 5 friends → Pro free ── */
+      /* ── Viral: each friend → +1 week of Pro (2026-10-27) ── */
       + '<div class="refx-section">'
         + '<div class="refx-hdr">'
-          + '<span class="refx-title">🎁 INVITE ' + needed + ' FRIENDS → UNLOCK PRO FREE</span>'
-          + '<span class="refx-count" id="refx-count">' + count + '/' + needed + '</span>'
+          + '<span class="refx-title">🎁 EACH FRIEND = 1 WEEK OF PRO</span>'
+          + '<span class="refx-count" id="refx-count">' + count + (count === 1 ? ' friend' : ' friends') + '</span>'
         + '</div>'
         + '<div class="refx-bar"><div class="refx-bar-fill" id="refx-bar-fill" style="width:' + Math.min(100, pct) + '%;"></div></div>'
-        + '<div class="refx-sub" id="refx-sub">' + referralSubText(prog, needed) + '</div>'
+        + '<div class="refx-sub" id="refx-sub">' + referralSubText(prog) + '</div>'
         + '<div class="refx-sub" id="refx-pending" style="color:var(--amber);' + (waiting > 0 ? '' : 'display:none;') + '">' + (waiting > 0 ? waiting + ' ' + (waiting === 1 ? 'friend is' : 'friends are') + ' waiting for the 1-hour check.' : '') + '</div>'
         + '<div class="refx-sub" style="opacity:.75;">A friend counts once Rotator has fully loaded for them through your link. Each friend counts once, and is confirmed 1 hour after their visit.</div>'
         + '<div class="refx-row">'
@@ -525,6 +534,10 @@ function checkProCode() {
       inp.style.borderColor = 'var(--red)';
       if (res.reason === 'used') {
         err.textContent = '⚠ This code has already been redeemed on another device.';
+      } else if (res.reason === 'expired' || res.reason === 'full') {
+        err.textContent = '⚠ This code has run out. Subscribers get the current one in their Rotator Weekly email.';
+      } else if (res.reason === 'network_limit') {
+        err.textContent = '⚠ This code was already used on 3 devices on this network.';
       } else if (res.reason === 'inactive') {
         err.textContent = '⚠ This code is no longer active.';
       } else if (res.reason === 'offline') {
@@ -538,17 +551,23 @@ function checkProCode() {
     /* Server confirmed the redeem — activate Pro locally.
        The RPC already wrote pro_users (Step 0b), so we don't need
        a separate supaSavePro call here. */
-    isPro = true; savePro(true);
-    if (window.Analytics) Analytics.track('Pro Unlocked', { method: 'code' });
+    /* Week codes come back with 'until' (2026-10-27); lifetime codes with null. */
+    var wasLifetime = isPro && !getProExpiry();
+    if (!wasLifetime) setProUntil(res.until || null);
+    if (window.Analytics) Analytics.track('Pro Unlocked', { method: 'code', days: res.days || 0 });
     updateTierBadge();
-    if (res.reason === 'redeemed') incrementDonationCount();
+    if (res.reason === 'redeemed' && !res.days) incrementDonationCount();
     closeModal('pro-modal');
     renderAll();
 
     /* Launch Pro tutorial after a brief welcome toast */
     var t = document.createElement('div');
     t.style.cssText = 'position:fixed;top:56px;left:50%;transform:translateX(-50%);background:var(--bg2);border:1px solid var(--pro);border-radius:6px;padding:14px 22px;font-family:IBM Plex Mono,monospace;font-size:12px;color:var(--pro);z-index:900;text-align:center;box-shadow:0 0 30px rgba(167,139,250,.2);letter-spacing:.06em;';
-    t.innerHTML = '⚡ PRO UNLOCKED — Welcome!<br><span style="font-size:12px;color:var(--muted);margin-top:4px;display:block;">Thank you for supporting Rotator ♥</span>';
+    t.innerHTML = res.reason === 'already_pro'
+      ? '⚡ YOU ALREADY HAVE PRO<br><span style="font-size:12px;color:var(--muted);margin-top:4px;display:block;">Yours never ends, so the code adds nothing.</span>'
+      : res.until
+        ? '⚡ ' + (res.days ? Math.round(res.days / 7) + ' WEEKS OF PRO' : 'PRO') + ' — Welcome!<br><span style="font-size:12px;color:var(--muted);margin-top:4px;display:block;">Pro until ' + proUntilText(res.until) + '. Connect Telegram in Pro to get your alerts.</span>'
+        : '⚡ PRO UNLOCKED — Welcome!<br><span style="font-size:12px;color:var(--muted);margin-top:4px;display:block;">Thank you for supporting Rotator ♥</span>';
     document.body.appendChild(t);
     setTimeout(function() { t.style.transition = 'opacity .5s'; t.style.opacity = '0'; setTimeout(function() { t.remove(); }, 500); }, 3500);
     setTimeout(function() { if (typeof startProTutorial === 'function') startProTutorial(); }, 2000);
