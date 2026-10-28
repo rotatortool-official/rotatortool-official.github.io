@@ -7244,7 +7244,7 @@ a.mob-more-item{text-decoration:none;color:inherit;}
 :root.light .td-ir > b,:root.light .td-sl-k{color:#835f00;}
 :root.light .td-more-i{border-color:#835f00;color:#835f00;}
 :root.light .td-story-p2.warn b{color:#a86a0c;}
-.td-story.is-told .td-story-read{opacity:0;animation:tdWordIn .4s ease .5s forwards;}
+/* The reading streams in line by line (tdStoryRun). */
 /* Shown in the big card's top right too since 2026-10-28. */
 .td-story:not(.is-thinking) .td-think{display:none;}
 /* "Summarize SOL →" (Daniel, 2026-10-28): the summary loads on this click. */
@@ -7265,11 +7265,11 @@ a.mob-more-item{text-decoration:none;color:inherit;}
 .td-think li.done{opacity:.8;}
 .td-think li.done::before{content:"✓";border:none;width:auto;height:auto;top:0;left:2px;font-size:11px;line-height:1.5;color:var(--green);}
 .td-story.is-told .td-think{display:none;}
-.td-story.is-told .td-story-p span{opacity:0;animation:tdWordIn .35s ease forwards;}
+.td-story.is-told .td-w,.td-story.is-told .td-stream{opacity:0;animation:tdWordIn .35s ease forwards;}
 @keyframes tdThinkSpin{to{transform:rotate(360deg);}}
 @keyframes tdThinkPulse{0%,100%{transform:scale(1);}50%{transform:scale(.88);}}
 @keyframes tdWordIn{from{opacity:0;transform:translateY(3px);}to{opacity:1;transform:none;}}
-@media (prefers-reduced-motion:reduce){.td-story.is-told .td-story-p span{animation:none;opacity:1;}}
+@media (prefers-reduced-motion:reduce){.td-story.is-told .td-w,.td-story.is-told .td-stream{animation:none;opacity:1;}}
 
 /* ── Landing-page hierarchy in the coin window, small and big (light
    theme first, light-theme-is-the-experimental-board; port to dark on

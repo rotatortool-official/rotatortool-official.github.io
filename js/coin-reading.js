@@ -681,14 +681,30 @@ function tdStoryRun(btn) {
     if (!el.isConnected) return;
     if (i > 0) li[i - 1].className = 'done';
     if (i < li.length) { li[i].className = 'now'; i++; setTimeout(tick, TD_THINK_MS); return; }
-    /* Each word fades in after the one before; the bold first sentence stays bold. */
-    var p = el.querySelector('.td-story-p'), k = 0;
-    var wrap = function (t) {
-      return t.split(' ').map(function (w) { return w ? '<span style="animation-delay:' + Math.min(k++ * 22, 900) + 'ms">' + _esc(w) + '</span>' : ''; }).join(' ');
+    /* Streamed like a chat answer (Daniel, 2026-10-28: "let it populate
+       gradually, like one paragraph, then another"): the two paragraphs
+       word by word, then each line (Score, Momentum, Supply, Futures, every
+       sign row, the closing line) one after another. One running clock. */
+    var at = 0, WORD = 26, GAP = 220, LINE = 300;
+    var words = function (p) {
+      var wrap = function (t) {
+        return t.split(' ').map(function (w) { if (!w) return ''; var d = at; at += WORD; return '<span class="td-w" style="animation-delay:' + d + 'ms">' + _esc(w) + '</span>'; }).join(' ');
+      };
+      /* Text nodes and plain <b> only; the paragraphs hold nothing else. */
+      p.innerHTML = [].map.call(p.childNodes, function (n) {
+        if (n.nodeType !== 1) return wrap(n.textContent);
+        var tag = n.tagName.toLowerCase();
+        return '<' + tag + '>' + wrap(n.textContent) + '</' + tag + '>';
+      }).join('');
+      at += GAP;
     };
-    p.innerHTML = [].map.call(p.childNodes, function (n) {
-      return n.nodeType === 1 ? '<' + n.tagName.toLowerCase() + '>' + wrap(n.textContent) + '</' + n.tagName.toLowerCase() + '>' : wrap(n.textContent);
-    }).join('');
+    var line = function (b) { b.classList.add('td-stream'); b.style.animationDelay = at + 'ms'; at += LINE; };
+    words(el.querySelector('.td-story-p'));
+    [].forEach.call(el.querySelectorAll('.td-story-read > p, .td-story-ind > .td-sl, .td-story-ind > .td-sb > *, .td-story-ind > .td-sl-end'), function (b) {
+      if (b.tagName === 'P') words(b); else line(b);
+    });
+    var share = el.querySelector('.td-story-share');
+    if (share) line(share);
     el.classList.remove('is-thinking');
     el.classList.add('is-told');
   };
