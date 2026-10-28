@@ -902,23 +902,39 @@ body::before{content:'';position:fixed;inset:0;background:repeating-linear-gradi
 .tdx-tv-full{margin:6px 0 0;}
 .td-expanded #td-tv-sec{display:none !important;}
 /* Big card with TradingView (Daniel, 2026-10-28: "make more space for the
-   TradingView chart"): the chart takes the whole Price box and a taller top
-   row; Pointing up/down goes under Momentum; the Details tabs run wide and
-   short; What if, alerts and Try a buy sit bottom right beside the
-   evaluation. Stocks and stablecoins keep the old layout (no .tdx-tvlay). */
+   TradingView chart", then "I want that WHAT IF part ... under the right
+   bottom part, where the daily briefing is ... lower the part that is with
+   momentum RSI ... so the chart can be bigger"): the chart takes the whole
+   Price box and a tall top row; the briefing and evaluation stay top right
+   with What if, alerts and Try a buy under them; Pointing up/down goes under
+   Momentum; the Details tabs run the full width under the chart, low.
+   Stocks and stablecoins keep the old layout (no .tdx-tvlay). */
 .tdx-wif{grid-area:wif;}
 .td-expanded .tdx-dash:not(.tdx-tvlay) .tdx-wif{display:none;}
-.td-expanded .tdx-dash.tdx-tvlay{grid-template-rows:minmax(0,1.6fr) minmax(0,1fr) auto;
-  grid-template-columns:minmax(0,.95fr) minmax(0,1fr) minmax(0,.55fr) minmax(0,.45fr) minmax(0,1fr) minmax(0,1.1fr);
-  grid-template-areas:"mom chart chart chart chart sum" "sig det det wif wif sum" "share share share share share share";}
+.td-expanded .tdx-dash.tdx-tvlay{grid-template-rows:minmax(0,2fr) minmax(0,1fr) auto;
+  grid-template-columns:minmax(0,.95fr) repeat(3,minmax(0,1fr)) minmax(0,1.6fr);
+  grid-template-areas:"mom chart chart chart sum" "sig det det det wif" "share share share share share";}
 @media(max-width:1500px){
-  .td-expanded .tdx-dash.tdx-tvlay{grid-template-columns:minmax(0,.9fr) minmax(0,1fr) minmax(0,.55fr) minmax(0,.45fr) minmax(0,1fr) minmax(0,1.2fr);}
+  .td-expanded .tdx-dash.tdx-tvlay{grid-template-columns:minmax(0,.85fr) repeat(3,minmax(0,1fr)) minmax(0,1.75fr);}
 }
-/* Short laptop screens (720-760px tall): Momentum and Pointing up/down do
+/* Laptop heights: tighter text in the briefing / evaluation column, What if
+   and Pointing up/down, so they scroll as little as possible. */
+@media(max-height:860px){
+  .td-expanded .tdx-tvlay .tdx-sum .td-story{font-size:12.5px;line-height:1.4;padding:8px 10px;}
+  .td-expanded .tdx-tvlay .tdx-sum .tdx-box-b > * + *{margin-top:6px;}
+  .td-expanded .tdx-tvlay .tdx-past{font-size:10.5px;line-height:1.35;padding:5px 7px;}
+  .td-expanded .tdx-tvlay .tdx-why-r{font-size:11px;}
+  .td-expanded .tdx-tvlay .tdx-eval-score{font-size:26px !important;}
+  .td-expanded .tdx-tvlay .tdx-verdict,.td-expanded .tdx-tvlay .tdx-chg{font-size:11.5px;}
+  .td-expanded .tdx-tvlay .tdx-wif .tdp-scn{font-size:11.5px;gap:6px 10px;}
+  .td-expanded .tdx-tvlay .tdx-sig .tdx-fact{padding:4px 7px;}
+  .td-expanded .tdx-tvlay .tdx-box{padding:8px 10px;}
+}
+/* Laptop screens (up to 860px tall): Momentum and Pointing up/down do
    not fit one column, so Momentum runs full height again and Pointing
    up/down sits under the chart, left of the tabs. */
-@media(max-height:760px){
-  .td-expanded .tdx-dash.tdx-tvlay{grid-template-areas:"mom chart chart chart chart sum" "mom sig det wif wif sum" "share share share share share share";}
+@media(max-height:860px){
+  .td-expanded .tdx-dash.tdx-tvlay{grid-template-areas:"mom chart chart chart sum" "mom sig det det wif" "share share share share share";}
 }
 /* What if 2 x 2: What if | price alert, Try a buy | its result. */
 .td-expanded .tdx-wif #tdx-chart > .tdp-scn{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:8px 14px;align-content:start;}
