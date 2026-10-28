@@ -368,6 +368,7 @@ function openPro() {
           + '<li><b>Delisting and swap-pair alerts</b>, right away</li>'
           + '<li>10 holdings, any swap pair</li>'
           + '<li><b>TradingView charts inside Rotator</b>: the big coin card and full screen, with drawing tools and indicators</li>'
+          + '<li><b>Rotator indicators</b>: our golden cross, death cross and RSI comeback flags on the price chart, with RSI and the Rotator score</li>'
           + '<li>Full coin breakdown on one screen (desktop), with price scenarios</li>'
           + '<li>Coin market data, supply and unlocks, derivatives (funding, open interest, positioning) and history: RSI, events</li>'
           + '<li>Browser notifications</li></ul></div>'

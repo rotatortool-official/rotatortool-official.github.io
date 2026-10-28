@@ -947,6 +947,15 @@ body::before{content:'';position:fixed;inset:0;background:repeating-linear-gradi
 .tdx-tv-row{display:none;}
 .td-expanded .tdx-tvlay .tdx-tv-row{display:flex;align-items:center;flex-wrap:wrap;gap:4px 14px;margin-top:6px;}
 .td-expanded .tdx-tvlay .tdx-tv-row .tdx-tv-full{margin:0;}
+/* Rotator indicators (js/rotator-indicators.js): same place and size as the
+   TradingView chart; legend line on top, the chart fills the rest. */
+.td-expanded .tdx-tv-on > .tdx-ri{flex:1 1 auto;min-width:0;min-height:200px;flex-direction:column;}
+.td-expanded .tdx-tv-on > .tdx-ri:not([style*="none"]){display:flex;}
+.tdx-ri .ri-chart{flex:1;min-height:0;position:relative;}
+.ri-legend{display:flex;flex-wrap:wrap;gap:4px 12px;align-items:center;font-size:11px;color:var(--muted);margin-bottom:4px;}
+.ri-legend b{color:var(--text);font-size:12px;}
+.ri-legend .up{color:var(--green);} .ri-legend .dn{color:var(--red);} .ri-legend .ri-gold{color:var(--gold);}
+.ri-note{padding:12px;font-size:13px;color:var(--muted);}
 .tdx-tv-link{font-size:12px;font-weight:600;color:var(--text);text-decoration:none;}
 .tdx-tv-link:hover{text-decoration:underline;}
 .tdx-tv-ref{font-size:10.5px;color:var(--muted);}

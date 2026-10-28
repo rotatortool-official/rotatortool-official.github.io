@@ -123,6 +123,14 @@ function _tdxExpand() {
       tvb.type = 'button'; tvb.className = 'tdx-tv-full'; tvb.textContent = '⛶ TradingView full screen';
       tvb.addEventListener('click', tvFullscreen);
       row.appendChild(tvb);
+      /* Rotator's own indicator chart (js/rotator-indicators.js, Pro like
+         the whole card): swaps places with the TradingView chart. */
+      if (typeof riRender === 'function') {
+        var rib = document.createElement('button');
+        rib.type = 'button'; rib.className = 'tdx-tv-full tdx-ri-btn'; rib.id = 'tdx-ri-btn';
+        rib.addEventListener('click', function() { _tdxRiOn = !_tdxRiOn; _tdxRiSync(typeof _tdCoin !== 'undefined' ? _tdCoin : null); });
+        row.appendChild(rib);
+      }
       /* Every TradingView link of ours carries Daniel's referral (2026-10-28);
          the links inside TradingView's own frame cannot be changed. */
       var tvl = document.createElement('a'); tvl.className = 'tdx-tv-link'; tvl.id = 'tdx-tv-link';
@@ -353,6 +361,8 @@ function _tdxTv(slot, c) {
   var box = document.getElementById('tdx-chart'), wif = _tdxSlot('wif');
   if (!c || c.isStock || c.isStable || typeof _tvEmbed !== 'function') {
     if (tv) tv.remove();
+    var riOld = document.getElementById('tdx-ri');
+    if (riOld) { if (typeof riDestroy === 'function') riDestroy(); riOld.remove(); }
     slot.classList.remove('tdx-tv-on');
     if (dash) dash.classList.remove('tdx-tvlay');
     if (box && box.parentNode !== slot) slot.appendChild(box);
@@ -364,11 +374,26 @@ function _tdxTv(slot, c) {
   if (box && wif && box.parentNode !== wif) wif.appendChild(box);
   var link = document.getElementById('tdx-tv-link');
   if (link && typeof _tvLink === 'function') { link.href = _tvLink(); link.textContent = 'Sign up on TradingView ↗'; }
+  _tdxRiSync(c);
   var key = c.sym + '|' + (document.documentElement.classList.contains('light') ? 'light' : 'dark');
   if (tv.getAttribute('data-key') === key) return;
   tv.setAttribute('data-key', key);
   if (typeof supaCountFeature === 'function') supaCountFeature('tradingview_open');
   _tvEmbed(tv, c, true, 'The TradingView chart did not load (an ad blocker may be blocking it). Allow tradingview.com in the blocker and open the coin again.');
+}
+
+/* TradingView or Rotator indicators in the Price box; the choice is kept
+   between coins for this page load. */
+var _tdxRiOn = false;
+function _tdxRiSync(c) {
+  var slot = _tdxSlot('chart'), tv = document.getElementById('tdx-tv'), btn = document.getElementById('tdx-ri-btn');
+  if (!slot || !tv || typeof riRender !== 'function') return;
+  var ri = document.getElementById('tdx-ri');
+  if (!ri) { ri = document.createElement('div'); ri.id = 'tdx-ri'; ri.className = 'tdx-ri'; tv.parentNode.insertBefore(ri, tv.nextSibling); }
+  tv.style.display = _tdxRiOn ? 'none' : '';
+  ri.style.display = _tdxRiOn ? '' : 'none';
+  if (btn) btn.textContent = _tdxRiOn ? '⇄ Back to TradingView' : '📈 Rotator indicators';
+  if (_tdxRiOn && c && ri.getAttribute('data-sym') !== c.sym) riRender(ri, c);
 }
 
 /* ── Why this score (promptove/162) ──────────────────────────────

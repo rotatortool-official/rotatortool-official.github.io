@@ -2037,6 +2037,10 @@ Object.assign(MK_TEXT, {
   'Market cap, 24h volume, rank and the 7, 14 and 30-day moves are part of Pro.': 'Пазарната капитализација, прометот за 24 часа, рангот и движењата за 7, 14 и 30 дена се дел од Pro.',
   'Circulating and max supply, the share unlocked, distance from the top and the next unlock are part of Pro.': 'Циркулирачката и максималната понуда, отклучениот дел, растојанието од врвот и следното отклучување се дел од Pro.',
   'Sign up on TradingView ↗': 'Регистрирајте се на TradingView ↗', 'TradingView full screen': 'TradingView на цел екран',
+  /* Rotator indicators (DeepL, brand kept in Latin, "крст на смртта" and
+     "Резултат" as elsewhere on the board). */
+  'Rotator indicators: our golden cross, death cross and RSI comeback flags on the price chart, with RSI and the Rotator score': 'Rotator индикатори: нашите ознаки за златен крст, крст на смртта и враќање на RSI на графиконот на цената, со RSI и резултатот на Rotator',
+  'Rotator indicators': 'Rotator индикатори', 'Back to TradingView': 'Назад кон TradingView',
   'What if the price goes to': 'Што ако цената стигне до', 'Try a buy': 'Пробајте купување', 'at': 'по',
   'Clear': 'Исчисти', 'New average': 'Нов просек', 'What if': 'Што ако', 'Drag up or down': 'Повлечете нагоре или надолу',
   'vs your average.': 'наспроти вашиот просек.', 'at this price.': 'по оваа цена.',
