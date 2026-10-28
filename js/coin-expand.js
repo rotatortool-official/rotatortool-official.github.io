@@ -113,6 +113,14 @@ function _tdxExpand() {
        header row (Daniel, 2026-10-21). Collapse puts it back with the rest. */
     var head = panel.querySelector('.tdh'), cbox = document.querySelector('#tdx-dash .tdx-chart');
     if (head && cbox) cbox.replaceChild(head, cbox.querySelector('.tdx-card-h'));
+    /* TradingView over the whole screen (Pro, Daniel 2026-10-28); the small
+       fold stays in the collapsed window. */
+    if (cbox && typeof tvFullscreen === 'function') {
+      var tvb = document.createElement('button');
+      tvb.type = 'button'; tvb.className = 'tdx-tv-full'; tvb.textContent = '⛶ TradingView full screen';
+      tvb.addEventListener('click', tvFullscreen);
+      cbox.appendChild(tvb);
+    }
     var share = panel.querySelector('.td-share-wrap'), bnb = document.getElementById('td-bnb');
     if (share) _tdxSlot('share').appendChild(share);
     if (bnb) _tdxSlot('share').appendChild(bnb);
@@ -122,7 +130,9 @@ function _tdxExpand() {
     panel.classList.add('td-expanded');
     var ov = document.getElementById('td-overlay'); if (ov) ov.classList.add('tdx');
   }
-  panel.querySelectorAll('details.td-fold').forEach(function(d) { d.open = true; });
+  /* Not the TradingView fold: opening it loads the heavy widget, and the
+     expanded card has its full-screen button instead. */
+  panel.querySelectorAll('details.td-fold').forEach(function(d) { if (d.id !== 'td-tv-fold') d.open = true; });
   _tdxPlace();
   _tdxFill();
   _tdxTabs();

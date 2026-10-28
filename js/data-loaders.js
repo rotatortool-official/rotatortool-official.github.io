@@ -3703,9 +3703,15 @@ function _tdTradingView(c) {
     + (mk ? 'Отворете го ' + sym + ' на TradingView' : 'Open ' + sym + ' on TradingView') + ' ↗</a>'
     + (TV_REF ? '<div class="td-tv-note">' + (mk ? 'Линк за препорака: ако купите план на TradingView, добивате попуст, а Rotator добива кредит на TradingView. Вас не ве чини ништо повеќе.'
       : 'Referral link: if you buy a TradingView plan, you get money off and Rotator gets TradingView credit. It costs you nothing extra.') + '</div>' : '');
+  /* Full screen is Pro (Daniel, 2026-10-28: "the pro users can have access to
+     the TradingView full screen ... For the free users, it will stay only a
+     small chart ... a nice little nudge"). */
+  var full = _tdIsPro()
+    ? '<button type="button" class="td-tv-full" onclick="tvFullscreen()">⛶ ' + (mk ? 'Цел екран' : 'Full-screen chart') + '</button>'
+    : _tdProLock(mk ? 'Графикон на цел екран со сите алатки е за Pro' : 'Full-screen chart with all the tools is Pro');
   sec.style.display = '';
   fold.open = false;
-  box.innerHTML = '<div class="td-tv-chart" id="td-tv-chart"></div>' + link;
+  box.innerHTML = '<div class="td-tv-chart" id="td-tv-chart"></div>' + full + link;
   fold.ontoggle = function () {
     var host = document.getElementById('td-tv-chart');
     if (!fold.open || !host || host.getAttribute('data-sym') === c.sym) return;
@@ -3731,6 +3737,38 @@ function _tdTradingView(c) {
     host.firstChild.appendChild(s);
     setTimeout(blocked, 8000);
   };
+}
+/* Pro: the coin's TradingView chart over the whole screen, with the drawing
+   tools and indicators. Esc or × closes it; the coin window stays below. */
+function tvFullscreen() {
+  var c = typeof _tdCoin !== 'undefined' ? _tdCoin : null;
+  if (!c || !_tdIsPro()) { if (typeof openPro === 'function') { closeTileDetail(); openPro(); } return; }
+  tvFullscreenClose();
+  if (typeof supaCountFeature === 'function') supaCountFeature('tradingview_open');
+  var ov = document.createElement('div');
+  ov.className = 'tv-full'; ov.id = 'tv-full';
+  ov.innerHTML = '<div class="tv-full-bar"><span>' + _esc(c.sym) + ' · TradingView</span>'
+    + '<a href="' + _tvLink(c) + '" target="_blank" rel="noopener' + (TV_REF ? ' sponsored' : '') + '" onclick="tvLinkClick()">Open on TradingView ↗</a>'
+    + '<button type="button" class="tv-full-x" onclick="tvFullscreenClose()" aria-label="Close">×</button></div>'
+    + '<div class="tv-full-chart"><div class="tradingview-widget-container" style="height:100%;width:100%"><div class="tradingview-widget-container__widget" style="height:100%;width:100%"></div></div></div>';
+  document.body.appendChild(ov);
+  var s = document.createElement('script');
+  s.src = 'https://s3.tradingview.com/external-embedding/embed-widget-advanced-chart.js';
+  s.async = true;
+  s.text = JSON.stringify({
+    autosize: true, symbol: _tvSymbol(c), interval: 'D', timezone: 'Etc/UTC',
+    theme: document.documentElement.classList.contains('light') ? 'light' : 'dark',
+    style: '1', locale: 'en', allow_symbol_change: false, save_image: true,
+    hide_side_toolbar: false, withdateranges: true, details: true, support_host: 'https://www.tradingview.com'
+  });
+  ov.querySelector('.tradingview-widget-container').appendChild(s);
+  document.addEventListener('keydown', _tvFullKey);
+}
+function _tvFullKey(e) { if (e.key === 'Escape') tvFullscreenClose(); }
+function tvFullscreenClose() {
+  var ov = document.getElementById('tv-full');
+  if (ov) ov.remove();
+  document.removeEventListener('keydown', _tvFullKey);
 }
 function _tdChainFlow(c) {
   var el = document.getElementById('td-chainflow');
