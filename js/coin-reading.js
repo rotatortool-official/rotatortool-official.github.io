@@ -766,9 +766,12 @@ function _tdIndRead(c, R, tech, trust) {
     more.push(['Supply', st2.charAt(0).toUpperCase() + st2.slice(1) + '.']);
   }
   var body = more.map(function (o) { return '<span class="td-ir"><b>' + o[0] + '</b> ' + _esc(o[1]) + '</span>'; }).join('')
-    + (trust ? '<span class="td-ir td-ir-trust"><b>Trust</b> ' + _esc(trust) + '</span>' : '');
+    /* Daniel, 2026-10-28: drop "None of these signs has been tested yet";
+       not every sign is ours to test, they are read from the sources we
+       have. The line that stays is the plain one. */
+    + '<span class="td-ir td-ir-trust">A reading, not a forecast.</span>';
   h += '<details class="td-story-more"><summary><span class="td-more-i" aria-hidden="true">i</span> '
-    + 'Score, futures, supply and how far to trust this</summary>' + body + '</details>';
+    + 'Score, futures and supply</summary>' + body + '</details>';
   return '<div class="td-story-ind">' + h + '</div>';
 }
 
