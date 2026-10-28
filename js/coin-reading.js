@@ -688,6 +688,80 @@ function shareCoinStory() {
   });
 }
 
+/* The indicator read: what the window's indicators say, in one paragraph
+   (Daniel, 2026-10-28: the summary "should sum up the short story of the
+   indicators you already have ... we can gate it behind the pro"). Only
+   facts the window already holds: the score and its three parts, daily
+   RSI, the turn signs by name, Binance futures positioning. Free users get
+   one line naming what Pro adds. */
+function _tdIndRead(c, R, tech) {
+  var pro = typeof _tdIsPro === 'function' && _tdIsPro();
+  if (!pro) return '<p class="td-story-pro">🔒 <b>Pro</b> adds the indicator read: score parts, RSI, momentum and turn signals, futures positioning, supply and unlocks in one paragraph. '
+    + '<button type="button" class="td-story-pro-b" onclick="closeTileDetail();openPro()">See Pro →</button></p>';
+  var out = [];
+  /* Score and its parts, each against its own maximum (= its weight). */
+  if (typeof c.score === 'number') {
+    /* Where it stands is already said above; this gives the number. */
+    var t = Math.round(c.score) + ' of 100';
+    var bd = c.scoreBreakdown;
+    if (bd) {
+      var L = [['momentum', bd.layer1, 40], ['macro strength', bd.layer2, 30]];
+      if (!bd.partial) L.push(['tokenomics', bd.layer3, 30]);
+      L = L.filter(function (l) { return typeof l[1] === 'number'; });
+      if (L.length > 1) {
+        L.sort(function (a, b) { return b[1] / b[2] - a[1] / a[2]; });
+        var f = function (l) { return l[0] + ' (' + Math.round(l[1]) + '/' + l[2] + ')'; };
+        t += ', strongest in ' + f(L[0]) + ', weakest in ' + f(L[L.length - 1]);
+      }
+    }
+    out.push(['Score', t.replace(/^Its Rotator score is /, '') + '.']);
+  }
+  /* Daily RSI, with the zones the RSI card uses. */
+  if (tech && tech.rsiD != null) {
+    var r = tech.rsiD;
+    out.push(['RSI', r.toFixed(0) + ' on the daily chart' + (r <= 30 ? ', in the oversold zone' : r >= 85 ? ', overbought' : r >= 70 ? ', gaining momentum' : ', in the normal range') + '.']);
+  }
+  /* The turn signs by name, under the same group names as Turn signals
+     (Daniel, 2026-10-28: "slowing momentum, turning signals"), then the
+     context signs. */
+  var nm = function (a) { return a.map(function (x) { return x.title; }).filter(Boolean); };
+  var up = nm(R.S.up), dn = nm(R.S.down), info = nm(R.S.info || []);
+  var GRP = { ahead: ['Signs it may keep going', 'Cooling signs'], lagging: ['Turn-up signs', 'Weakening signs'],
+              middle: ['Signs pointing up', 'Signs pointing down'] }[R.st];
+  var sg = [];
+  if (up.length) sg.push(GRP[0].toLowerCase() + ': ' + up.join(', '));
+  if (dn.length) sg.push(GRP[1].toLowerCase() + ': ' + dn.join(', '));
+  var sgt = sg.length ? sg.join('; ') : 'no turn signal right now';
+  out.push(['Signals', sgt.charAt(0).toUpperCase() + sgt.slice(1) + '.' + (info.length ? ' Also worth knowing: ' + info.join(', ') + '.' : '')]);
+  /* Binance futures positioning, as on the Positioning card. Context only. */
+  var fu = typeof _futuresBySym !== 'undefined' ? _futuresBySym[c.sym] : null;
+  if (fu && fu.open_interest_value) {
+    var bits = [];
+    var ls = fu.long_short_ratio != null ? Number(fu.long_short_ratio) : null;
+    if (ls > 0) bits.push(Math.round(ls / (1 + ls) * 100) + '% of accounts are long (' + ls.toFixed(2) + ' longs for every short)');
+    var fr = fu.funding_rate != null ? Number(fu.funding_rate) * 100 : null;
+    if (fr != null) bits.push(fr >= 0.05 ? 'longs are paying heavy funding' : fr >= 0.015 ? 'longs are paying funding' : fr <= -0.015 ? 'shorts are paying funding' : 'funding is neutral');
+    var oi = fu.oi_change_24h_pct != null ? Number(fu.oi_change_24h_pct) : null, pc = fu.price_change_pct_24h != null ? Number(fu.price_change_pct_24h) : null;
+    if (oi != null) bits.push('open interest ' + (oi >= 0 ? 'rose ' : 'fell ') + Math.abs(oi).toFixed(1) + '% in 24 hours'
+      + (pc == null ? '' : pc >= 0 ? (oi >= 0 ? ' (new money)' : ' (short covering)') : (oi >= 0 ? ' (new shorts)' : ' (unwinding)')));
+    if (bits.length) { var bt = (bits.length > 1 ? bits.slice(0, -1).join(', ') + ' and ' + bits[bits.length - 1] : bits[0]); out.push(['Futures', bt.charAt(0).toUpperCase() + bt.slice(1) + ' on Binance.']); }
+  }
+  /* Supply and unlocks, as in Key facts. */
+  var sup = [], circ = c.circulating_supply, basis = c.max_supply > 0 ? c.max_supply : (c.total_supply > 0 ? c.total_supply : null);
+  var all = circ && basis && circ / basis >= 0.995;
+  if (all) sup.push('all of its supply is already unlocked');
+  else if (circ && basis) sup.push(Math.round(circ / basis * 100) + '% of its ' + (c.max_supply > 0 ? 'maximum' : 'total') + ' supply is already unlocked');
+  var u = (typeof _tokenUnlocks !== 'undefined' && c.id && _tokenUnlocks[c.id]) || null;
+  var up30 = u && u.unlock30d_pct != null ? Number(u.unlock30d_pct) : null;
+  if (all) { /* nothing left to unlock */ }
+  else if (up30 == null) sup.push('it has no published unlock schedule');
+  else if (up30 > 0) sup.push('another ' + up30.toFixed(1) + '% unlocks in the next 30 days' + (u.next_unlock_at ? ' (next on ' + String(u.next_unlock_at).slice(0, 10) + ')' : ''));
+  else sup.push('nothing unlocks in the next 30 days');
+  var supTxt = sup.join(', and ');
+  out.push(['Supply', supTxt.charAt(0).toUpperCase() + supTxt.slice(1) + '.']);
+  return '<p class="td-story-p3">' + out.map(function (o) { return '<span class="td-ir"><b>' + o[0] + '</b> ' + _esc(o[1]) + '</span>'; }).join('') + '</p>';
+}
+
 /* Fill #td-warn, #td-reading, #td-turns and #td-score-extra. */
 function renderCoinReading(c) {
   var warnEl = document.getElementById('td-warn');
@@ -753,7 +827,14 @@ function renderCoinReading(c) {
   var readHtml = '<div class="td-reading-hd">' + _esc(head) + '</div>'
     + '<div class="td-reading-sub">' + _esc(sub) + '</div>'
     + (trust ? '<details class="td-reading-trust"><summary>How far to trust this</summary>' + _esc(trust) + '</details>' : '');
-  var story = _tdStoryHtml(c, '<div class="td-story-read ' + tone + '">' + readHtml + '</div>');
+  /* Inside the summary it reads on as text, not a box in a box (Daniel,
+     2026-10-28): "Ran ahead this week. It has beaten most of the market...",
+     then the indicator read (Pro), then "How far to trust this". */
+  var lead = head.split(' · ')[0] + '.', rest = sub.replace(/^This week it has /, 'It has ');
+  var flow = '<p class="td-story-p2 ' + tone + '"><b>' + _esc(lead) + '</b> ' + _esc(rest) + '</p>'
+    + _tdIndRead(c, R, tech)
+    + (trust ? '<details class="td-story-trust"><summary>How far to trust this</summary>' + _esc(trust) + '</details>' : '');
+  var story = _tdStoryHtml(c, '<div class="td-story-read">' + flow + '</div>');
   readEl.innerHTML = (story || '<div class="td-reading ' + tone + '">' + readHtml + '</div>')
     + _tdKeyFacts(c, tech);
   _tdLoadPerf(c);

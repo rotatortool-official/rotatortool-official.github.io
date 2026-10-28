@@ -7203,10 +7203,30 @@ a.mob-more-item{text-decoration:none;color:inherit;}
 .td-story:not(.is-idle) .td-story-go{display:none;}
 /* The reading ("Ran ahead this week · 1 cooling sign") inside the summary. */
 .td-story.is-idle .td-story-read,.td-story.is-thinking .td-story-read{display:none;}
-.td-story-read{margin-top:10px;padding:9px 0 0 10px;border-top:1px solid var(--bdr2);border-left:3px solid var(--muted);}
-.td-story-read.good{border-left-color:var(--green);}
-.td-story-read.warn{border-left-color:var(--amber);}
-.td-story-read.bad{border-left-color:var(--red);}
+/* It reads on as the summary's own text (Daniel, 2026-10-28: "a single
+   part of the continuation of the text ... not another submodel"). */
+.td-story-read > p{margin:10px 0 0;font-size:14px;line-height:1.55;color:var(--text);}
+.td-story-p2 b{font-weight:700;}
+.td-story-p2.good b{color:var(--green);}
+.td-story-p2.warn b{color:var(--amber,#f0b90b);}
+.td-story-p2.bad b{color:var(--red);}
+.td-story-read > .td-story-p3{color:var(--muted);font-size:13px;line-height:1.5;}
+/* One fact per line, a short label first (packed, still text). */
+.td-ir{display:block;padding:3px 0;}
+.td-ir + .td-ir{border-top:1px dashed var(--bdr);}
+.td-ir > b{display:inline-block;min-width:58px;font:700 10.5px/1 var(--lp-mono,monospace);letter-spacing:.12em;text-transform:uppercase;color:var(--amber,#f0b90b);}
+.td-story-read > .td-story-pro{font-size:12.5px;color:var(--muted);}
+.td-story-pro-b{all:unset;cursor:pointer;font-weight:700;color:var(--amber,#f0b90b);white-space:nowrap;}
+.td-story-pro-b:hover{text-decoration:underline;}
+.td-story-trust{margin-top:8px;font-size:12px;color:var(--muted);line-height:1.5;}
+.td-story-trust > summary{cursor:pointer;list-style:none;}
+.td-story-trust > summary::-webkit-details-marker{display:none;}
+.td-story-trust > summary::before{content:'\25B8  ';}
+.td-story-trust[open] > summary::before{content:'\25BE  ';}
+@media (max-width:760px){ .td-story-read > p{font-size:13.5px;} }
+:root.light .td-story-read > .td-story-p3{color:#4a5a6e;}
+:root.light .td-ir > b{color:#835f00;}
+:root.light .td-story-p2.warn b{color:#a86a0c;}
 .td-story.is-told .td-story-read{opacity:0;animation:tdWordIn .4s ease .5s forwards;}
 .td-expanded .td-story-read{display:none !important;}
 .td-story:not(.is-thinking) .td-think{display:none;}
