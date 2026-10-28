@@ -607,42 +607,49 @@ function coinStory(c) {
   if (up != null && up >= 1) facts.push(['Unlock', up.toFixed(1) + '% in 30d', 'dn']);
   return { mk: mk, lines: out.slice(0, 4), head: head, facts: facts.slice(0, 3) };
 }
-/* "Thinking" first (Daniel, 2026-10-28: "make a small animation, like it's
-   thinking ... after a few seconds, like a loading state, the short summary
-   ... will be shown", with the Rotator logo). The steps named are the ones
-   coinStory() above really goes through, in its order; the pause is only
-   how it is shown. Once per coin per page load, so a resize or the full
-   breakdown does not replay it, and never with reduced motion. */
+/* The Rotator summary waits behind a button (Daniel, 2026-10-28: "it does
+   not load automatically when the user clicks on the coin ... but when they
+   click" "Summarize this coin"). The click runs a short "thinking" step with
+   the Rotator logo: the steps named are the ones coinStory() above really
+   goes through, in its order; the pause is only how it is shown. Once a
+   coin is summarized it stays open for this page load (a resize or the
+   full breakdown shows the text straight away); reduced motion skips the
+   steps. */
 var _tdStorySeen = {};
 var TD_THINK_MS = 340;   /* per step; four steps ~1.4 s */
 function _tdStoryHtml(c) {
   var S = coinStory(c);
   _tdStoryLast = S ? { c: c, S: S } : null;
   if (!S || !S.lines.length) return '';
-  var reduce = false;
-  try { reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches; } catch (e) {}
-  var think = !_tdStorySeen[c.sym] && !reduce;
+  var seen = !!_tdStorySeen[c.sym];
   var n = coins.filter(function (x) { return !x.isStock && !x.isStable && typeof x.p7 === 'number'; }).length;
   var steps = S.mk
     ? ['Движење на цената за 24 часа, 7 и 30 дена', 'Место меѓу ' + n + ' монети', 'RSI, golden/death cross и обем', 'Отклучувања и растојание од врвот']
     : ['Price moves over 24 hours, 7 and 30 days', 'Its place among ' + n + ' coins', 'RSI, golden/death crosses and volume', 'Unlocks and distance from the top'];
-  return '<div class="td-story' + (think ? ' is-thinking' : '') + '" data-sym="' + _esc(c.sym) + '">'
+  return '<div class="td-story' + (seen ? '' : ' is-idle') + '" data-sym="' + _esc(c.sym) + '">'
     + '<div class="td-story-hd"><span class="td-story-logo" aria-hidden="true"><img src="icon-192.png" alt="" width="22" height="22"></span>'
-    + '<span class="td-story-t">' + (S.mk ? 'Накратко' : 'In short') + '</span>'
+    + '<span class="td-story-t">' + (S.mk ? 'Rotator накратко' : 'Rotator summary') + '</span>'
     + '<button type="button" class="td-story-share" onclick="shareCoinStory()">'
     + '<svg viewBox="0 0 24 24" width="13" height="13" aria-hidden="true"><path fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" d="M12 3v12M7 8l5-5 5 5M5 13v6a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-6"/></svg>'
     + '<span>' + (S.mk ? 'Сподели' : 'Share') + '</span></button></div>'
-    + (think ? '<div class="td-think" role="status"><div class="td-think-t">' + (S.mk ? 'Го читам ' : 'Reading ') + _esc(c.sym) + '…</div><ul>'
-      + steps.map(function (t) { return '<li>' + _esc(t) + '</li>'; }).join('') + '</ul></div>' : '')
+    + (seen ? '' : '<button type="button" class="td-story-go" onclick="tdStoryRun(this)">'
+      + '<span class="td-story-go-t">' + (S.mk ? 'Накратко за ' : 'Summarize ') + _esc(c.sym) + ' →</span>'
+      + '<span class="td-story-go-s">' + (S.mk ? 'Rotator ги чита цената, местото, RSI и отклучувањата' : 'Rotator reads its price moves, rank, RSI and unlocks') + '</span></button>'
+      + '<div class="td-think" role="status"><div class="td-think-t">' + (S.mk ? 'Го читам ' : 'Reading ') + _esc(c.sym) + '…</div><ul>'
+      + steps.map(function (t) { return '<li>' + _esc(t) + '</li>'; }).join('') + '</ul></div>')
     + '<p class="td-story-p" translate="no"><b>' + _esc(S.lines[0]) + '</b>' + (S.lines.length > 1 ? ' ' + S.lines.slice(1).map(_esc).join(' ') : '') + '</p></div>';
 }
-/* Runs the steps of a fresh .is-thinking story, then shows the text word by word. */
-function _tdStoryThink() {
-  var el = document.querySelector('.td-story.is-thinking:not([data-run])');
-  if (!el) return;
-  var sym = el.getAttribute('data-sym');
-  _tdStorySeen[sym] = 1;
-  el.setAttribute('data-run', '1');
+/* The button: runs the steps, then shows the text word by word. */
+function tdStoryRun(btn) {
+  var el = btn && btn.closest('.td-story');
+  if (!el || !el.classList.contains('is-idle')) return;
+  _tdStorySeen[el.getAttribute('data-sym')] = 1;
+  if (typeof supaCountFeature === 'function') supaCountFeature('coin_summary');
+  var reduce = false;
+  try { reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches; } catch (e) {}
+  el.classList.remove('is-idle');
+  if (reduce) { el.classList.add('is-told'); return; }
+  el.classList.add('is-thinking');
   var li = el.querySelectorAll('.td-think li'), i = 0;
   var tick = function () {
     if (!el.isConnected) return;
@@ -715,7 +722,6 @@ function renderCoinReading(c) {
         + (typeof paperFormHtml === 'function' ? paperFormHtml(c) : '')
       : '<div class="td-reading"><div class="td-reading-hd">Stablecoin</div>'
         + '<div class="td-reading-sub">Pegged to a currency, so it has no trend to turn. Its score is not a signal.</div></div>';
-    _tdStoryThink();
     turnsEl.innerHTML = '';
     document.getElementById('td-turns-sec').style.display = 'none';
     if (extraEl) extraEl.innerHTML = '';
@@ -746,7 +752,6 @@ function renderCoinReading(c) {
     + (trust ? '<details class="td-reading-trust"><summary>How far to trust this</summary>' + _esc(trust) + '</details>' : '')
     + '</div>'
     + _tdKeyFacts(c, tech);
-  _tdStoryThink();
   _tdLoadPerf(c);
 
   /* ── 3. The signs, grouped, with their records ── */
