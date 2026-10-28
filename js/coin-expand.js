@@ -319,7 +319,31 @@ function _tdxFill() {
 
   if (!chart.querySelector('#tdx-chart')) chart.innerHTML = '<div class="tdp-chart" id="tdx-chart"></div>';
   _tdxWatermark(chart);
+  _tdxTv(chart, c);
   tdxRenderChart();
+}
+
+/* TradingView replaces our price line in the big card (Daniel, 2026-10-28:
+   "it will replace our existing chart because it's more detailed and
+   better"). It sits beside #tdx-chart, not in it: tdxRenderChart redraws
+   that box on every What if / alert change, which would reload the widget.
+   #tdx-chart keeps only its What if, alerts and Try a buy column; our line
+   (with the drag handle and "Your average") stays hidden behind it. Loaded
+   once per coin and theme. Stocks and stablecoins keep our chart. */
+function _tdxTv(slot, c) {
+  var tv = document.getElementById('tdx-tv');
+  if (!c || c.isStock || c.isStable || typeof _tvEmbed !== 'function') {
+    if (tv) tv.remove();
+    slot.classList.remove('tdx-tv-on');
+    return;
+  }
+  if (!tv) { tv = document.createElement('div'); tv.id = 'tdx-tv'; tv.className = 'tdx-tv'; slot.insertBefore(tv, slot.firstChild); }
+  slot.classList.add('tdx-tv-on');
+  var key = c.sym + '|' + (document.documentElement.classList.contains('light') ? 'light' : 'dark');
+  if (tv.getAttribute('data-key') === key) return;
+  tv.setAttribute('data-key', key);
+  if (typeof supaCountFeature === 'function') supaCountFeature('tradingview_open');
+  _tvEmbed(tv, c, true, 'The TradingView chart did not load (an ad blocker may be blocking it). Use the full-screen button or "Open on TradingView" in the coin window.');
 }
 
 /* ── Why this score (promptove/162) ──────────────────────────────

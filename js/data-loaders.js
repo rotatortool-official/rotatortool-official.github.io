@@ -3717,26 +3717,33 @@ function _tdTradingView(c) {
     if (!fold.open || !host || host.getAttribute('data-sym') === c.sym) return;
     host.setAttribute('data-sym', c.sym);
     if (typeof supaCountFeature === 'function') supaCountFeature('tradingview_open');
-    host.innerHTML = '<div class="tradingview-widget-container" style="height:100%;width:100%"><div class="tradingview-widget-container__widget" style="height:100%;width:100%"></div></div>';
-    var s = document.createElement('script');
-    s.src = 'https://s3.tradingview.com/external-embedding/embed-widget-advanced-chart.js';
-    s.async = true;
-    s.text = JSON.stringify({
-      autosize: true, symbol: _tvSymbol(c), interval: 'D', timezone: 'Etc/UTC',
-      theme: document.documentElement.classList.contains('light') ? 'light' : 'dark',
-      style: '1', locale: 'en', allow_symbol_change: false, save_image: false,
-      hide_side_toolbar: true, support_host: 'https://www.tradingview.com'
-    });
-    var blocked = function () {
-      if (host.querySelector('iframe')) return;
-      host.innerHTML = '<div class="td-tv-blocked">' + (mk ? 'Графиконот не се вчита (можеби го блокира блокатор на реклами). Отворете го на TradingView подолу.'
-        : 'The chart did not load (an ad blocker may be blocking it). Open it on TradingView below.') + '</div>';
-      host.removeAttribute('data-sym');
-    };
-    s.onerror = blocked;
-    host.firstChild.appendChild(s);
-    setTimeout(blocked, 8000);
+    _tvEmbed(host, c, false, mk ? 'Графиконот не се вчита (можеби го блокира блокатор на реклами). Отворете го на TradingView подолу.'
+      : 'The chart did not load (an ad blocker may be blocking it). Open it on TradingView below.');
   };
+}
+/* One TradingView Advanced Chart into `host` (the small fold, the full
+   screen, the big coin card). tools = the Pro set: drawing toolbar, date
+   ranges, screenshot. `blockedMsg` replaces it when an ad blocker stops
+   the script (no iframe after 8 s). */
+function _tvEmbed(host, c, tools, blockedMsg) {
+  host.innerHTML = '<div class="tradingview-widget-container" style="height:100%;width:100%"><div class="tradingview-widget-container__widget" style="height:100%;width:100%"></div></div>';
+  var s = document.createElement('script');
+  s.src = 'https://s3.tradingview.com/external-embedding/embed-widget-advanced-chart.js';
+  s.async = true;
+  s.text = JSON.stringify({
+    autosize: true, symbol: _tvSymbol(c), interval: 'D', timezone: 'Etc/UTC',
+    theme: document.documentElement.classList.contains('light') ? 'light' : 'dark',
+    style: '1', locale: 'en', allow_symbol_change: false, save_image: !!tools,
+    hide_side_toolbar: !tools, withdateranges: !!tools, support_host: 'https://www.tradingview.com'
+  });
+  var blocked = function () {
+    if (!blockedMsg || host.querySelector('iframe')) return;
+    host.innerHTML = '<div class="td-tv-blocked">' + blockedMsg + '</div>';
+    host.removeAttribute('data-sym');
+  };
+  s.onerror = blocked;
+  host.firstChild.appendChild(s);
+  setTimeout(blocked, 8000);
 }
 /* Pro: the coin's TradingView chart over the whole screen, with the drawing
    tools and indicators. Esc or × closes it; the coin window stays below. */
@@ -3750,18 +3757,9 @@ function tvFullscreen() {
   ov.innerHTML = '<div class="tv-full-bar"><span>' + _esc(c.sym) + ' · TradingView</span>'
     + '<a href="' + _tvLink(c) + '" target="_blank" rel="noopener' + (TV_REF ? ' sponsored' : '') + '" onclick="tvLinkClick()">Open on TradingView ↗</a>'
     + '<button type="button" class="tv-full-x" onclick="tvFullscreenClose()" aria-label="Close">×</button></div>'
-    + '<div class="tv-full-chart"><div class="tradingview-widget-container" style="height:100%;width:100%"><div class="tradingview-widget-container__widget" style="height:100%;width:100%"></div></div></div>';
+    + '<div class="tv-full-chart"></div>';
   document.body.appendChild(ov);
-  var s = document.createElement('script');
-  s.src = 'https://s3.tradingview.com/external-embedding/embed-widget-advanced-chart.js';
-  s.async = true;
-  s.text = JSON.stringify({
-    autosize: true, symbol: _tvSymbol(c), interval: 'D', timezone: 'Etc/UTC',
-    theme: document.documentElement.classList.contains('light') ? 'light' : 'dark',
-    style: '1', locale: 'en', allow_symbol_change: false, save_image: true,
-    hide_side_toolbar: false, withdateranges: true, details: true, support_host: 'https://www.tradingview.com'
-  });
-  ov.querySelector('.tradingview-widget-container').appendChild(s);
+  _tvEmbed(ov.querySelector('.tv-full-chart'), c, true, 'The chart did not load (an ad blocker may be blocking it). Use "Open on TradingView" above.');
   document.addEventListener('keydown', _tvFullKey);
 }
 function _tvFullKey(e) { if (e.key === 'Escape') tvFullscreenClose(); }
