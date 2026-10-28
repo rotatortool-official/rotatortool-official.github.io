@@ -621,7 +621,8 @@ function _tdStoryHtml(c, extra) {
   var S = coinStory(c);
   _tdStoryLast = S ? { c: c, S: S } : null;
   if (!S || !S.lines.length) return '';
-  var seen = !!_tdStorySeen[c.sym];
+  var pro = typeof _tdIsPro === 'function' && _tdIsPro();
+  var seen = pro && !!_tdStorySeen[c.sym];
   var n = coins.filter(function (x) { return !x.isStock && !x.isStable && typeof x.p7 === 'number'; }).length;
   var steps = S.mk
     ? ['Движење на цената за 24 часа, 7 и 30 дена', 'Место меѓу ' + n + ' монети', 'RSI, golden/death cross и обем', 'Отклучувања и растојание од врвот']
@@ -633,7 +634,8 @@ function _tdStoryHtml(c, extra) {
     + '<svg viewBox="0 0 24 24" width="13" height="13" aria-hidden="true"><path fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" d="M12 3v12M7 8l5-5 5 5M5 13v6a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-6"/></svg>'
     + '<span>' + (S.mk ? 'Сподели' : 'Share') + '</span></button></div>'
     + (seen ? '' : '<button type="button" class="td-story-go" onclick="tdStoryRun(this)">'
-      + '<span class="td-story-go-t">' + (S.mk ? 'Накратко за ' : 'Summarize ') + _esc(c.sym) + ' →</span>'
+      + '<span class="td-story-go-t">' + (S.mk ? 'Накратко за ' : 'Summarize ') + _esc(c.sym) + ' →'
+      + (pro ? '' : ' <b class="td-expand-pro">PRO</b>') + '</span>'
       + '<span class="td-story-go-s">' + (S.mk ? 'Rotator ги чита цената, местото, RSI и отклучувањата' : 'Rotator reads its price moves, rank, RSI and unlocks') + '</span></button>'
       + '<div class="td-think" role="status"><div class="td-think-t">' + (S.mk ? 'Го читам ' : 'Reading ') + _esc(c.sym) + '…</div><ul>'
       + steps.map(function (t) { return '<li>' + _esc(t) + '</li>'; }).join('') + '</ul></div>')
@@ -644,6 +646,9 @@ function _tdStoryHtml(c, extra) {
 function tdStoryRun(btn) {
   var el = btn && btn.closest('.td-story');
   if (!el || !el.classList.contains('is-idle')) return;
+  /* The summary is Pro (Daniel, 2026-10-28: "The button itself is already
+     behind the Pro"); free users go to the Pro window. */
+  if (!(typeof _tdIsPro === 'function' && _tdIsPro())) { if (typeof closeTileDetail === 'function') closeTileDetail(); if (typeof openPro === 'function') openPro(); return; }
   _tdStorySeen[el.getAttribute('data-sym')] = 1;
   if (typeof supaCountFeature === 'function') supaCountFeature('coin_summary');
   var reduce = false;
@@ -699,13 +704,12 @@ function _tdIndRead(c, R, tech, trust) {
   var h = '';
   /* Momentum: daily RSI with the RSI card's zones, plus the momentum part
      of the score for Pro (the full breakdown is Pro since 2026-10-21). */
-  var pro = typeof _tdIsPro === 'function' && _tdIsPro();
   var bd = c.scoreBreakdown, mom = [];
   if (tech && tech.rsiD != null) {
     var r = tech.rsiD, z = r <= 30 ? ['oversold zone', 'dn'] : r >= 85 ? ['overbought', 'warn'] : r >= 70 ? ['gaining momentum', 'up'] : ['normal range', ''];
     mom.push('Daily RSI <b class="' + z[1] + '">' + r.toFixed(0) + '</b>, ' + z[0]);
   }
-  if (pro && bd && typeof bd.layer1 === 'number') mom.push('<b>' + Math.round(bd.layer1) + '/40</b> on the score\'s momentum part');
+  if (bd && typeof bd.layer1 === 'number') mom.push('<b>' + Math.round(bd.layer1) + '/40</b> on the score\'s momentum part');
   if (mom.length) h += '<div class="td-sl"><span class="td-sl-k">Momentum</span><span class="td-sl-v">' + mom.join(' · ') + '</span></div>';
   /* Turn signals by name, coloured by direction, under the Turn signals group names. */
   var GRP = { ahead: ['May keep going', 'Cooling'], lagging: ['Turning up', 'Weakening'],
@@ -721,7 +725,7 @@ function _tdIndRead(c, R, tech, trust) {
 
   /* ⓘ: the rest, on a click. */
   var more = [];
-  if (pro) {
+  {
     if (typeof c.score === 'number') {
       var t = Math.round(c.score) + ' of 100';
       if (bd) {
@@ -762,11 +766,9 @@ function _tdIndRead(c, R, tech, trust) {
     more.push(['Supply', st2.charAt(0).toUpperCase() + st2.slice(1) + '.']);
   }
   var body = more.map(function (o) { return '<span class="td-ir"><b>' + o[0] + '</b> ' + _esc(o[1]) + '</span>'; }).join('')
-    + (pro ? '' : '<span class="td-ir td-ir-lock">🔒 The score\'s parts, futures positioning, supply and unlocks are in Pro. '
-      + '<button type="button" class="td-story-pro-b" onclick="closeTileDetail();openPro()">See Pro →</button></span>')
     + (trust ? '<span class="td-ir td-ir-trust"><b>Trust</b> ' + _esc(trust) + '</span>' : '');
   h += '<details class="td-story-more"><summary><span class="td-more-i" aria-hidden="true">i</span> '
-    + (pro ? 'Score, futures, supply and how far to trust this' : 'More detail and how far to trust this') + '</summary>' + body + '</details>';
+    + 'Score, futures, supply and how far to trust this</summary>' + body + '</details>';
   return '<div class="td-story-ind">' + h + '</div>';
 }
 
