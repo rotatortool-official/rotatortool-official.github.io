@@ -901,13 +901,39 @@ body::before{content:'';position:fixed;inset:0;background:repeating-linear-gradi
 .td-tv-full:hover,.tdx-tv-full:hover{border-color:var(--text);}
 .tdx-tv-full{margin:6px 0 0;}
 .td-expanded #td-tv-sec{display:none !important;}
-/* Big card: TradingView left, our What if / alerts column right (2026-10-28). */
-.td-expanded .tdx-tv-on{display:flex;gap:16px;height:100%;min-height:0;}
-.td-expanded .tdx-tv-on > .tdx-tv{flex:1 1 auto;min-width:0;min-height:240px;border-radius:8px;overflow:hidden;}
-.td-expanded .tdx-tv-on > #tdx-chart{flex:0 0 280px;grid-template-columns:minmax(0,1fr);}
-.td-expanded .tdx-tv-on > #tdx-chart > .tdp-ch-top,.td-expanded .tdx-tv-on > #tdx-chart > .tdp-plot,.td-expanded .tdx-tv-on > #tdx-chart > .tdp-ch-foot{display:none;}
-.td-expanded .tdx-tv-on > #tdx-chart > .tdp-scn{grid-column:1;grid-row:1 / -1;}
-.td-expanded .tdx-tv-on > #tdx-chart > .tdp-note{display:none;}
+/* Big card with TradingView (Daniel, 2026-10-28: "make more space for the
+   TradingView chart"): the chart takes the whole Price box and a taller top
+   row; Pointing up/down goes under Momentum; the Details tabs run wide and
+   short; What if, alerts and Try a buy sit bottom right beside the
+   evaluation. Stocks and stablecoins keep the old layout (no .tdx-tvlay). */
+.tdx-wif{grid-area:wif;}
+.td-expanded .tdx-dash:not(.tdx-tvlay) .tdx-wif{display:none;}
+.td-expanded .tdx-dash.tdx-tvlay{grid-template-rows:minmax(0,1.6fr) minmax(0,1fr) auto;
+  grid-template-columns:minmax(0,.95fr) minmax(0,1fr) minmax(0,.55fr) minmax(0,.45fr) minmax(0,1fr) minmax(0,1.1fr);
+  grid-template-areas:"mom chart chart chart chart sum" "sig det det wif wif sum" "share share share share share share";}
+@media(max-width:1500px){
+  .td-expanded .tdx-dash.tdx-tvlay{grid-template-columns:minmax(0,.9fr) minmax(0,1fr) minmax(0,.55fr) minmax(0,.45fr) minmax(0,1fr) minmax(0,1.2fr);}
+}
+/* Short laptop screens (720-760px tall): Momentum and Pointing up/down do
+   not fit one column, so Momentum runs full height again and Pointing
+   up/down sits under the chart, left of the tabs. */
+@media(max-height:760px){
+  .td-expanded .tdx-dash.tdx-tvlay{grid-template-areas:"mom chart chart chart chart sum" "mom sig det wif wif sum" "share share share share share share";}
+}
+/* What if 2 x 2: What if | price alert, Try a buy | its result. */
+.td-expanded .tdx-wif #tdx-chart > .tdp-scn{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:8px 14px;align-content:start;}
+.td-expanded .tdx-wif #tdx-chart > .tdp-scn > *{margin:0;}
+.td-expanded .tdx-tv-on{display:flex;height:100%;min-height:0;}
+.td-expanded .tdx-tv-on > .tdx-tv{flex:1 1 auto;min-width:0;min-height:200px;border-radius:8px;overflow:hidden;}
+.td-expanded .tdx-wif #tdx-chart{display:block;height:auto;}
+.td-expanded .tdx-wif #tdx-chart > .tdp-ch-top,.td-expanded .tdx-wif #tdx-chart > .tdp-plot,.td-expanded .tdx-wif #tdx-chart > .tdp-ch-foot,.td-expanded .tdx-wif #tdx-chart > .tdp-note{display:none;}
+.td-expanded .tdx-wif #tdx-chart > .tdp-scn{margin:0;padding:0;border:none;overflow:visible;}
+.tdx-tv-row{display:none;}
+.td-expanded .tdx-tvlay .tdx-tv-row{display:flex;align-items:center;flex-wrap:wrap;gap:4px 14px;margin-top:6px;}
+.td-expanded .tdx-tvlay .tdx-tv-row .tdx-tv-full{margin:0;}
+.tdx-tv-link{font-size:12px;font-weight:600;color:var(--text);text-decoration:none;}
+.tdx-tv-link:hover{text-decoration:underline;}
+.tdx-tv-ref{font-size:10.5px;color:var(--muted);}
 .tv-full{position:fixed;inset:0;z-index:10050;display:flex;flex-direction:column;background:var(--bg,#0b0e14);}
 .tv-full-bar{display:flex;align-items:center;gap:14px;padding:8px 14px;border-bottom:1px solid var(--bdr);font-size:13px;font-weight:600;color:var(--text);}
 .tv-full-bar a{margin-left:auto;color:var(--text);text-decoration:none;font-weight:500;}
@@ -6948,6 +6974,7 @@ a.mob-more-item{text-decoration:none;color:inherit;}
 @media(min-width:1024px) and (max-height:700px){
   .tile-detail.td-expanded{overflow-y:auto;}
   .td-expanded .tdx-dash{height:auto;grid-template-rows:330px 300px auto;}
+  .td-expanded .tdx-dash.tdx-tvlay{grid-template-rows:400px 300px auto;}
 }
 
 /* ── Full breakdown board (2026-10-21) ─────────────────────────────

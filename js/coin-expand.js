@@ -90,7 +90,9 @@ function _tdxExpand() {
     /* 2026-10-24 (promptove/162): up and down share one box, and the
        evaluation is a full-height column on the right, so everything fits
        one screen down to 1280x720. */
-    [['mom', 'Momentum'], ['chart', 'Price'], ['sig', ''], ['det', ''], ['sum', ''], ['share', '']].forEach(function(a) {
+    /* wif: What if, alerts and Try a buy, bottom right, when TradingView
+       has the whole Price box (2026-10-28, _tdxTv). */
+    [['mom', 'Momentum'], ['chart', 'Price'], ['sig', ''], ['det', ''], ['wif', ''], ['sum', ''], ['share', '']].forEach(function(a) {
       dash.appendChild(_tdxBox(a[0], a[1]));
     });
     panel.appendChild(dash);
@@ -116,10 +118,22 @@ function _tdxExpand() {
     /* TradingView over the whole screen (Pro, Daniel 2026-10-28); the small
        fold stays in the collapsed window. */
     if (cbox && typeof tvFullscreen === 'function') {
+      var row = document.createElement('div'); row.className = 'tdx-tv-row';
       var tvb = document.createElement('button');
       tvb.type = 'button'; tvb.className = 'tdx-tv-full'; tvb.textContent = '⛶ TradingView full screen';
       tvb.addEventListener('click', tvFullscreen);
-      cbox.appendChild(tvb);
+      row.appendChild(tvb);
+      /* Every TradingView link of ours carries Daniel's referral (2026-10-28);
+         the links inside TradingView's own frame cannot be changed. */
+      var tvl = document.createElement('a'); tvl.className = 'tdx-tv-link'; tvl.id = 'tdx-tv-link';
+      tvl.target = '_blank'; tvl.rel = 'noopener sponsored';
+      tvl.addEventListener('click', function() { if (typeof tvLinkClick === 'function') tvLinkClick(); });
+      row.appendChild(tvl);
+      var tvn = document.createElement('span'); tvn.className = 'tdx-tv-ref';
+      tvn.textContent = 'Referral link';
+      tvn.title = 'If you buy a TradingView plan through it, you get money off and Rotator gets TradingView credit. It costs you nothing extra.';
+      row.appendChild(tvn);
+      cbox.appendChild(row);
     }
     var share = panel.querySelector('.td-share-wrap'), bnb = document.getElementById('td-bnb');
     if (share) _tdxSlot('share').appendChild(share);
@@ -317,7 +331,8 @@ function _tdxFill() {
   }
   if (mom) _tdxMomExtra(c, mom);
 
-  if (!chart.querySelector('#tdx-chart')) chart.innerHTML = '<div class="tdp-chart" id="tdx-chart"></div>';
+  /* #tdx-chart may sit in the What if box (_tdxTv): look for it anywhere. */
+  if (!document.getElementById('tdx-chart')) chart.innerHTML = '<div class="tdp-chart" id="tdx-chart"></div>';
   _tdxWatermark(chart);
   _tdxTv(chart, c);
   tdxRenderChart();
@@ -329,16 +344,26 @@ function _tdxFill() {
    that box on every What if / alert change, which would reload the widget.
    #tdx-chart keeps only its What if, alerts and Try a buy column; our line
    (with the drag handle and "Your average") stays hidden behind it. Loaded
-   once per coin and theme. Stocks and stablecoins keep our chart. */
+   once per coin and theme. Stocks and stablecoins keep our chart.
+   Layout (Daniel, 2026-10-28: "make more space for the TradingView chart"):
+   the dash gets .tdx-tvlay, TradingView takes the whole Price box, and
+   #tdx-chart moves to the What if box at the bottom right. */
 function _tdxTv(slot, c) {
-  var tv = document.getElementById('tdx-tv');
+  var tv = document.getElementById('tdx-tv'), dash = document.getElementById('tdx-dash');
+  var box = document.getElementById('tdx-chart'), wif = _tdxSlot('wif');
   if (!c || c.isStock || c.isStable || typeof _tvEmbed !== 'function') {
     if (tv) tv.remove();
     slot.classList.remove('tdx-tv-on');
+    if (dash) dash.classList.remove('tdx-tvlay');
+    if (box && box.parentNode !== slot) slot.appendChild(box);
     return;
   }
   if (!tv) { tv = document.createElement('div'); tv.id = 'tdx-tv'; tv.className = 'tdx-tv'; slot.insertBefore(tv, slot.firstChild); }
   slot.classList.add('tdx-tv-on');
+  if (dash) dash.classList.add('tdx-tvlay');
+  if (box && wif && box.parentNode !== wif) wif.appendChild(box);
+  var link = document.getElementById('tdx-tv-link');
+  if (link && typeof _tvLink === 'function') { link.href = _tvLink(c); link.textContent = 'Open ' + c.sym + ' on TradingView ↗'; }
   var key = c.sym + '|' + (document.documentElement.classList.contains('light') ? 'light' : 'dark');
   if (tv.getAttribute('data-key') === key) return;
   tv.setAttribute('data-key', key);
