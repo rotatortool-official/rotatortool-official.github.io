@@ -617,7 +617,7 @@ function coinStory(c) {
    steps. */
 var _tdStorySeen = {};
 var TD_THINK_MS = 340;   /* per step; four steps ~1.4 s */
-function _tdStoryHtml(c) {
+function _tdStoryHtml(c, extra) {
   var S = coinStory(c);
   _tdStoryLast = S ? { c: c, S: S } : null;
   if (!S || !S.lines.length) return '';
@@ -637,7 +637,8 @@ function _tdStoryHtml(c) {
       + '<span class="td-story-go-s">' + (S.mk ? 'Rotator ги чита цената, местото, RSI и отклучувањата' : 'Rotator reads its price moves, rank, RSI and unlocks') + '</span></button>'
       + '<div class="td-think" role="status"><div class="td-think-t">' + (S.mk ? 'Го читам ' : 'Reading ') + _esc(c.sym) + '…</div><ul>'
       + steps.map(function (t) { return '<li>' + _esc(t) + '</li>'; }).join('') + '</ul></div>')
-    + '<p class="td-story-p" translate="no"><b>' + _esc(S.lines[0]) + '</b>' + (S.lines.length > 1 ? ' ' + S.lines.slice(1).map(_esc).join(' ') : '') + '</p></div>';
+    + '<p class="td-story-p" translate="no"><b>' + _esc(S.lines[0]) + '</b>' + (S.lines.length > 1 ? ' ' + S.lines.slice(1).map(_esc).join(' ') : '') + '</p>'
+    + (extra || '') + '</div>';
 }
 /* The button: runs the steps, then shows the text word by word. */
 function tdStoryRun(btn) {
@@ -746,11 +747,14 @@ function renderCoinReading(c) {
 
   /* The signs are listed ONCE, under Turn signals (Daniel, 2026-10-04).
      The reading names how many; the list below names which. */
-  readEl.innerHTML = _tdStoryHtml(c) + '<div class="td-reading ' + tone + '">'
-    + '<div class="td-reading-hd">' + _esc(head) + '</div>'
+  /* The reading sits inside the Rotator summary and opens with it (Daniel,
+     2026-10-28: "Ran ahead this week" and the summary "should be merged");
+     on its own only when a coin has no story to tell. */
+  var readHtml = '<div class="td-reading-hd">' + _esc(head) + '</div>'
     + '<div class="td-reading-sub">' + _esc(sub) + '</div>'
-    + (trust ? '<details class="td-reading-trust"><summary>How far to trust this</summary>' + _esc(trust) + '</details>' : '')
-    + '</div>'
+    + (trust ? '<details class="td-reading-trust"><summary>How far to trust this</summary>' + _esc(trust) + '</details>' : '');
+  var story = _tdStoryHtml(c, '<div class="td-story-read ' + tone + '">' + readHtml + '</div>');
+  readEl.innerHTML = (story || '<div class="td-reading ' + tone + '">' + readHtml + '</div>')
     + _tdKeyFacts(c, tech);
   _tdLoadPerf(c);
 

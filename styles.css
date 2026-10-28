@@ -7201,6 +7201,14 @@ a.mob-more-item{text-decoration:none;color:inherit;}
 .td-story.is-thinking .td-story-p,.td-story.is-thinking .td-story-share,
 .td-story.is-idle .td-story-p,.td-story.is-idle .td-story-share,.td-story.is-idle .td-think{display:none;}
 .td-story:not(.is-idle) .td-story-go{display:none;}
+/* The reading ("Ran ahead this week · 1 cooling sign") inside the summary. */
+.td-story.is-idle .td-story-read,.td-story.is-thinking .td-story-read{display:none;}
+.td-story-read{margin-top:10px;padding:9px 0 0 10px;border-top:1px solid var(--bdr2);border-left:3px solid var(--muted);}
+.td-story-read.good{border-left-color:var(--green);}
+.td-story-read.warn{border-left-color:var(--amber);}
+.td-story-read.bad{border-left-color:var(--red);}
+.td-story.is-told .td-story-read{opacity:0;animation:tdWordIn .4s ease .5s forwards;}
+.td-expanded .td-story-read{display:none !important;}
 .td-story:not(.is-thinking) .td-think{display:none;}
 /* "Summarize SOL →" (Daniel, 2026-10-28): the summary loads on this click. */
 .td-story-go{display:flex;flex-direction:column;align-items:flex-start;gap:4px;width:100%;margin-top:4px;padding:11px 14px;cursor:pointer;text-align:left;
