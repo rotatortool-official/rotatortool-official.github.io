@@ -2029,6 +2029,14 @@ Object.assign(MK_TEXT, {
   'The RSI line over time is part of Pro.': 'Линијата на RSI низ времето е дел од Pro.',
   'The dated events, with their readings, are part of Pro.': 'Настаните со датуми и нивните читања се дел од Pro.',
   'Coin derivatives (funding, open interest, positioning) and history: RSI, events': 'Деривати на монетата (финансирање, отворени позиции, позиционирање) и историја: RSI, настани',
+  /* 2026-10-28: TradingView inside Rotator and the new Pro locks (DeepL,
+     then "the big coin card", "промет" and "отворени позиции" set to the
+     words the board already uses). */
+  'TradingView charts inside Rotator: the big coin card and full screen, with drawing tools and indicators': 'TradingView графикони во Rotator: големата картичка на монетата и цел екран, со алатки за цртање и индикатори',
+  'Coin market data, supply and unlocks, derivatives (funding, open interest, positioning) and history: RSI, events': 'Пазарни податоци за монетата, понуда и отклучувања, деривати (финансирање, отворени позиции, позиционирање) и историја: RSI, настани',
+  'Market cap, 24h volume, rank and the 7, 14 and 30-day moves are part of Pro.': 'Пазарната капитализација, прометот за 24 часа, рангот и движењата за 7, 14 и 30 дена се дел од Pro.',
+  'Circulating and max supply, the share unlocked, distance from the top and the next unlock are part of Pro.': 'Циркулирачката и максималната понуда, отклучениот дел, растојанието од врвот и следното отклучување се дел од Pro.',
+  'Sign up on TradingView ↗': 'Регистрирајте се на TradingView ↗', 'TradingView full screen': 'TradingView на цел екран',
   'What if the price goes to': 'Што ако цената стигне до', 'Try a buy': 'Пробајте купување', 'at': 'по',
   'Clear': 'Исчисти', 'New average': 'Нов просек', 'What if': 'Што ако', 'Drag up or down': 'Повлечете нагоре или надолу',
   'vs your average.': 'наспроти вашиот просек.', 'at this price.': 'по оваа цена.',

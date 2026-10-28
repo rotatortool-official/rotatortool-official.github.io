@@ -363,12 +363,12 @@ function _tdxTv(slot, c) {
   if (dash) dash.classList.add('tdx-tvlay');
   if (box && wif && box.parentNode !== wif) wif.appendChild(box);
   var link = document.getElementById('tdx-tv-link');
-  if (link && typeof _tvLink === 'function') { link.href = _tvLink(c); link.textContent = 'Open ' + c.sym + ' on TradingView ↗'; }
+  if (link && typeof _tvLink === 'function') { link.href = _tvLink(); link.textContent = 'Sign up on TradingView ↗'; }
   var key = c.sym + '|' + (document.documentElement.classList.contains('light') ? 'light' : 'dark');
   if (tv.getAttribute('data-key') === key) return;
   tv.setAttribute('data-key', key);
   if (typeof supaCountFeature === 'function') supaCountFeature('tradingview_open');
-  _tvEmbed(tv, c, true, 'The TradingView chart did not load (an ad blocker may be blocking it). Use the full-screen button or "Open on TradingView" in the coin window.');
+  _tvEmbed(tv, c, true, 'The TradingView chart did not load (an ad blocker may be blocking it). Allow tradingview.com in the blocker and open the coin again.');
 }
 
 /* ── Why this score (promptove/162) ──────────────────────────────

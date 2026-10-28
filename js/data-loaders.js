@@ -3684,12 +3684,15 @@ function _tdBinance(c) {
    link. TV_REF = Daniel's "refer a friend" name (his link, 2026-10-28:
    tradingview.com/pricing/?share_your_love=rotatortool). That program pays
    TradingView credit, not cash: the friend gets money off a plan, Rotator
-   gets credit. Empty = no referral and no referral label. */
+   gets credit. Empty = no referral and no referral label.
+   Since 2026-10-28 (Daniel: TradingView "should open ... in full screen, but
+   it should not leave the Rotator website"): the chart opens inside Rotator
+   (tvFullscreen, Pro); the only link out is "Sign up on TradingView", the
+   pricing page with the referral, for people who want an account. */
 var TV_REF = 'rotatortool';
 function _tvSymbol(c) { return 'BINANCE:' + String(c.sym).toUpperCase() + 'USDT'; }
-function _tvLink(c) {
-  return 'https://www.tradingview.com/chart/?symbol=' + encodeURIComponent(_tvSymbol(c))
-    + (TV_REF ? '&share_your_love=' + encodeURIComponent(TV_REF) : '');
+function _tvLink() {
+  return 'https://www.tradingview.com/pricing/' + (TV_REF ? '?share_your_love=' + encodeURIComponent(TV_REF) : '');
 }
 function tvLinkClick() { if (typeof supaCountFeature === 'function') supaCountFeature('tradingview_click'); }
 function _tdTradingView(c) {
@@ -3699,8 +3702,8 @@ function _tdTradingView(c) {
   var mk = typeof currentLang !== 'undefined' && currentLang === 'mk', sym = _esc(c.sym);
   var t = document.getElementById('td-tv-title');
   if (t) t.textContent = mk ? 'Графикон на TradingView' : 'Chart on TradingView';
-  var link = '<a class="td-tv-link" href="' + _tvLink(c) + '" target="_blank" rel="noopener' + (TV_REF ? ' sponsored' : '') + '" onclick="tvLinkClick()">'
-    + (mk ? 'Отворете го ' + sym + ' на TradingView' : 'Open ' + sym + ' on TradingView') + ' ↗</a>'
+  var link = '<a class="td-tv-link" href="' + _tvLink() + '" target="_blank" rel="noopener' + (TV_REF ? ' sponsored' : '') + '" onclick="tvLinkClick()">'
+    + (mk ? 'Регистрирајте се на TradingView' : 'Sign up on TradingView') + ' ↗</a>'
     + (TV_REF ? '<div class="td-tv-note">' + (mk ? 'Линк за препорака: ако купите план на TradingView, добивате попуст, а Rotator добива кредит на TradingView. Вас не ве чини ништо повеќе.'
       : 'Referral link: if you buy a TradingView plan, you get money off and Rotator gets TradingView credit. It costs you nothing extra.') + '</div>' : '');
   /* Full screen is Pro (Daniel, 2026-10-28: "the pro users can have access to
@@ -3755,11 +3758,11 @@ function tvFullscreen() {
   var ov = document.createElement('div');
   ov.className = 'tv-full'; ov.id = 'tv-full';
   ov.innerHTML = '<div class="tv-full-bar"><span>' + _esc(c.sym) + ' · TradingView</span>'
-    + '<a href="' + _tvLink(c) + '" target="_blank" rel="noopener' + (TV_REF ? ' sponsored' : '') + '" onclick="tvLinkClick()">Open on TradingView ↗</a>'
+    + '<a href="' + _tvLink() + '" target="_blank" rel="noopener' + (TV_REF ? ' sponsored' : '') + '" onclick="tvLinkClick()" title="Referral link: if you buy a TradingView plan, you get money off and Rotator gets TradingView credit.">Sign up on TradingView ↗</a>'
     + '<button type="button" class="tv-full-x" onclick="tvFullscreenClose()" aria-label="Close">×</button></div>'
     + '<div class="tv-full-chart"></div>';
   document.body.appendChild(ov);
-  _tvEmbed(ov.querySelector('.tv-full-chart'), c, true, 'The chart did not load (an ad blocker may be blocking it). Use "Open on TradingView" above.');
+  _tvEmbed(ov.querySelector('.tv-full-chart'), c, true, 'The chart did not load (an ad blocker may be blocking it). Allow tradingview.com in the blocker and open it again.');
   document.addEventListener('keydown', _tvFullKey);
 }
 function _tvFullKey(e) { if (e.key === 'Escape') tvFullscreenClose(); }

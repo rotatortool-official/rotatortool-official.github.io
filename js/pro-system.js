@@ -367,8 +367,9 @@ function openPro() {
           + '<li><b>Unlock warning</b>, 3+ days ahead</li>'
           + '<li><b>Delisting and swap-pair alerts</b>, right away</li>'
           + '<li>10 holdings, any swap pair</li>'
+          + '<li><b>TradingView charts inside Rotator</b>: the big coin card and full screen, with drawing tools and indicators</li>'
           + '<li>Full coin breakdown on one screen (desktop), with price scenarios</li>'
-          + '<li>Coin derivatives (funding, open interest, positioning) and history: RSI, events</li>'
+          + '<li>Coin market data, supply and unlocks, derivatives (funding, open interest, positioning) and history: RSI, events</li>'
           + '<li>Browser notifications</li></ul></div>'
       + '</div>'
       /* Why it costs money (Daniel: API calls have limits, one person cannot
