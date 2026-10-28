@@ -5382,6 +5382,15 @@ function openTileDetail(coinId, evt) {
         : '');
   /* override grid to 3 cols */
   document.getElementById('td-market').style.gridTemplateColumns = 'repeat(3,1fr)';
+  /* Market data and Supply and unlocks are Pro (Daniel, 2026-10-28: "we
+     should also hide the market data, the token supply, and unlocks. They
+     should also be a pro feature"). The folds stay, so free users see what
+     is there; the board's unlocks window and token-unlocks.html stay free. */
+  var tdLockFree = !_tdIsPro();
+  if (tdLockFree) {
+    document.getElementById('td-market').innerHTML = _tdProLock('Market cap, 24h volume, rank and the 7, 14 and 30-day moves are part of Pro.');
+    document.getElementById('td-market').style.gridTemplateColumns = '1fr';
+  }
 
   /* Supply section */
   var supSec = document.getElementById('td-supply-sec');
@@ -5414,6 +5423,10 @@ function openTileDetail(coinId, evt) {
       +'<div class="td-cell"><div class="td-cell-l">FROM ATH</div><div class="td-cell-v '+(athPct>=0?'up':'dn')+'">'+(athPct>=0?'+':'')+athPct.toFixed(1)+'%</div></div>'
       + _tdUnlockCell(c);
     supEl.style.gridTemplateColumns = 'repeat(2,1fr)';
+    if (tdLockFree) {
+      supEl.innerHTML = _tdProLock('Circulating and max supply, the share unlocked, distance from the top and the next unlock are part of Pro.');
+      supEl.style.gridTemplateColumns = '1fr';
+    }
     supSec.style.display = '';
   }
 
