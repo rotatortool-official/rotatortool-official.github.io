@@ -12,9 +12,10 @@
      pane 1  daily candles (binance_daily_klines; it stores no open, so a
              candle opens at the day before's close) with our dated flags
              from coin_events: golden cross ▲, death cross ▼, RSI comeback ●
-     pane 2  RSI 14 on the daily closes, with the 30 and 70 lines
-     pane 3  the Rotator score per day (score_variants_shadow_daily, live
-             score column; it starts 2026-10-06)
+     pane 2  RSI 14 on the daily closes, with the 30 and 70 lines, and
+             the Rotator score per day on the same 0-100 scale
+             (score_variants_shadow_daily, live score column; it starts
+             2026-10-06), its crossings with RSI marked ✕ (2026-10-29)
 
    Facts on a chart, not calls: the flags are the same dated events the
    board and the channel publish. Loaded only when the big card's
@@ -37,7 +38,12 @@ var RI_LIB = 'https://cdn.jsdelivr.net/npm/lightweight-charts@5.2.1/dist/lightwe
 var _riLibP = null, _riChart = null;
 var RI_IND = [['ema', 'EMA 20/50'], ['bb', 'Bollinger'], ['st', 'SuperTrend'], ['macd', 'MACD'], ['sqz', 'Squeeze']];
 var _riOn = (function () { try { return JSON.parse(localStorage.getItem('rot_ri_ind') || '{}') || {}; } catch (e) { return {}; } })();
-var _riData = {};   /* sym -> [klines, events, scores], kept so a chip redraws without fetching */
+var _riData = {};
+/* Time frames (Daniel, 2026-10-29: "we might need to add time frames"):
+   daily candles only (binance_daily_klines holds ~180 days), so the
+   frames are how many days are in view. Kept in this browser. */
+var RI_FRAMES = [[30, '1M'], [90, '3M'], [180, '6M']];
+var _riFrame = (function () { try { return Number(localStorage.getItem('rot_ri_frame')) || 90; } catch (e) { return 90; } })();   /* sym -> [klines, events, scores], kept so a chip redraws without fetching */
 
 function _riLib() {
   if (window.LightweightCharts) return Promise.resolve();
@@ -165,10 +171,21 @@ function _riDraw(host, c) {
   var LC = window.LightweightCharts;
   var text = _riCss('--text', '#d6dbe4'), muted = _riCss('--muted', '#8f9aab'), grid = _riCss('--bdr', 'rgba(128,128,128,.18)');
   var green = _riCss('--green', '#16c784'), red = _riCss('--red', '#ea3943'), gold = _riCss('--gold', '#f3ba2f');
-  host.innerHTML = '<div class="ri-legend"><b>Rotator indicators</b> <span class="up">▲ golden cross</span> <span class="dn">▼ death cross</span> <span class="ri-gold">● RSI back above 30</span>'
+  host.innerHTML = '<div class="ri-legend"><b>Rotator indicators</b>'
+    + '<span class="ri-frames">' + RI_FRAMES.map(function (f) { return '<button type="button" class="ri-frame' + (f[0] === _riFrame ? ' on' : '') + '" data-d="' + f[0] + '">' + f[1] + '</button>'; }).join('') + '</span>'
+    + ' <span class="up">▲ golden cross</span> <span class="dn">▼ death cross</span> <span class="ri-gold">● RSI back above 30</span>'
+    + ' <span class="ri-score-k">— score</span> <span class="ri-x">✕ score crossed RSI</span>'
     + '<span class="ri-chips">' + RI_IND.map(function (x) {
       return '<button type="button" class="ri-chip' + (_riOn[x[0]] ? ' on' : '') + '" data-i="' + x[0] + '" aria-pressed="' + (_riOn[x[0]] ? 'true' : 'false') + '">' + x[1] + '</button>';
     }).join('') + '</span></div><div class="ri-chart"></div>';
+  host.querySelectorAll('.ri-frame').forEach(function (b) {
+    b.addEventListener('click', function () {
+      _riFrame = Number(b.getAttribute('data-d'));
+      try { localStorage.setItem('rot_ri_frame', String(_riFrame)); } catch (e) {}
+      host.querySelectorAll('.ri-frame').forEach(function (x) { x.classList.toggle('on', x === b); });
+      if (_riChart && _riChart._riLen) _riChart.timeScale().setVisibleLogicalRange({ from: Math.max(0, _riChart._riLen - _riFrame), to: _riChart._riLen + 2 });
+    });
+  });
   host.querySelectorAll('.ri-chip').forEach(function (b) {
     b.addEventListener('click', function () {
       var i = b.getAttribute('data-i'); _riOn[i] = !_riOn[i];
@@ -227,10 +244,11 @@ function _riDraw(host, c) {
     }));
   }
 
-  /* Panes under the candles: RSI, then MACD / Squeeze when on, then the score. */
+  /* Panes under the candles: RSI with the score, then MACD / Squeeze when on. */
   var pane = 1;
   var rsi = chart.addSeries(LC.LineSeries, { color: gold, lineWidth: 1.5, priceLineVisible: false, lastValueVisible: true, title: 'RSI 14' }, pane++);
-  rsi.setData(_riRsi(candles.map(function (k) { return { t: k.time, v: k.close }; })));
+  var rsiData = _riRsi(candles.map(function (k) { return { t: k.time, v: k.close }; }));
+  rsi.setData(rsiData);
   rsi.createPriceLine({ price: 70, color: red, lineStyle: 2, lineWidth: 1, axisLabelVisible: false });
   rsi.createPriceLine({ price: 30, color: green, lineStyle: 2, lineWidth: 1, axisLabelVisible: false });
   if (_riOn.macd) {
@@ -267,11 +285,28 @@ function _riDraw(host, c) {
       return { time: b.time, value: 0, color: 2 * sd20[i] < 1.5 * rng[i] ? gold : 'rgba(143,154,171,.35)' };
     }));
   }
+  /* The score shares the RSI panel (Daniel, 2026-10-29: "the white
+     scoring line should have interaction with rsi ... and crossing should
+     be marked"). Both read 0-100, so one scale; a crossing is the day the
+     score moves from under the RSI line to over it (green ✕) or back
+     (red ✕). Shown as a fact on the chart, not a tested signal. */
   if (sc.length) {
-    var ss = chart.addSeries(LC.LineSeries, { color: text, lineWidth: 1.5, priceLineVisible: false, title: 'Score' }, pane++);
-    ss.setData(sc.map(function (s) { return { time: _riDay(s.snap_date), value: Number(s.score) }; }));
+    var ss = chart.addSeries(LC.LineSeries, { color: text, lineWidth: 1.5, priceLineVisible: false, lastValueVisible: true, title: 'Score' }, 1);
+    var sData = sc.map(function (s) { return { time: _riDay(s.snap_date), value: Number(s.score) }; });
+    ss.setData(sData);
+    var rsiAt = {}; rsiData.forEach(function (p) { rsiAt[p.time] = p.value; });
+    var xm = [], prev = null;
+    sData.forEach(function (p) {
+      var rv = rsiAt[p.time]; if (rv == null) return;
+      var d = p.value - rv;
+      if (prev != null && d !== 0 && (prev < 0) !== (d < 0))
+        xm.push({ time: p.time, position: 'inBar', color: d > 0 ? green : red, shape: 'circle', size: 0.6, text: '✕' });
+      if (d !== 0) prev = d;
+    });
+    if (xm.length && LC.createSeriesMarkers) LC.createSeriesMarkers(ss, xm);
   }
   var panes = chart.panes ? chart.panes() : [];
-  panes.forEach(function (p, i) { if (p.setStretchFactor) p.setStretchFactor(i ? 1 : 3); });
-  chart.timeScale().setVisibleLogicalRange({ from: Math.max(0, candles.length - 120), to: candles.length + 2 });
+  panes.forEach(function (p, i) { if (p.setStretchFactor) p.setStretchFactor(i === 0 ? 3 : i === 1 ? 1.4 : 1); });
+  chart._riLen = candles.length;
+  chart.timeScale().setVisibleLogicalRange({ from: Math.max(0, candles.length - _riFrame), to: candles.length + 2 });
 }

@@ -7362,3 +7362,10 @@ a.mob-more-item{text-decoration:none;color:inherit;}
 .td-story .tdx-ls-bar > span{display:block;min-width:4px;white-space:nowrap;overflow:hidden;color:#fff;}
 .td-story .tdx-ls-l{background:var(--green);padding-left:7px;text-align:left;}
 .td-story .tdx-ls-s{background:var(--red);padding-right:7px;text-align:right;}
+
+/* Rotator indicators: time frames and the score/RSI key (2026-10-29). */
+.ri-frames{display:inline-flex;gap:2px;margin:0 4px;}
+.ri-frame{font:700 10.5px/1 inherit;padding:4px 7px;border-radius:5px;border:1px solid var(--bdr);background:transparent;color:var(--muted);cursor:pointer;}
+.ri-frame.on{background:var(--bg3);color:var(--text);border-color:var(--text);}
+.ri-legend .ri-score-k{color:var(--text);}
+.ri-legend .ri-x{color:var(--muted);}
