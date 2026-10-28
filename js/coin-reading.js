@@ -655,7 +655,7 @@ function _tdStoryHtml(c, extra) {
     + '<span>' + (S.mk ? 'Сподели' : 'Share') + '</span></button></div>'
     + (seen ? '' : '<button type="button" class="td-story-go" onclick="tdStoryRun(this)">'
       + '<span class="td-story-go-t">' + (S.mk ? 'Накратко за ' : 'Summarize ') + _esc(c.sym) + ' →'
-      + (pro ? '' : ' <b class="td-expand-pro">PRO</b>') + '</span>'
+      + '</span>'
       + '<span class="td-story-go-s">' + (S.mk ? 'Rotator ги чита цената, местото, RSI и отклучувањата' : 'Rotator reads its price moves, rank, RSI and unlocks') + '</span></button>'
       + '<div class="td-think" role="status"><div class="td-think-t">' + (S.mk ? 'Го читам ' : 'Reading ') + _esc(c.sym) + '…</div><ul>'
       + steps.map(function (t) { return '<li>' + _esc(t) + '</li>'; }).join('') + '</ul></div>')

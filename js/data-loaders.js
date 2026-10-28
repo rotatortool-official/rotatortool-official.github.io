@@ -3698,7 +3698,9 @@ function tvLinkClick() { if (typeof supaCountFeature === 'function') supaCountFe
 function _tdTradingView(c) {
   var sec = document.getElementById('td-tv-sec'), fold = document.getElementById('td-tv-fold'), box = document.getElementById('td-tv');
   if (!sec || !fold || !box) return;
-  if (!c || c.isStock || c.isStable) { sec.style.display = 'none'; box.innerHTML = ''; return; }
+  /* Since 2026-10-28 TradingView is a tab of the chart box at the top
+     (tdChartTab in js/holdings.js); this fold stays empty and hidden. */
+  sec.style.display = 'none'; box.innerHTML = ''; return;
   var mk = typeof currentLang !== 'undefined' && currentLang === 'mk', sym = _esc(c.sym);
   var t = document.getElementById('td-tv-title');
   if (t) t.textContent = mk ? 'Графикон на TradingView' : 'Chart on TradingView';

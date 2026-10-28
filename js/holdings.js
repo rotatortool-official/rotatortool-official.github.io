@@ -840,6 +840,67 @@ function tdMiniChart(c) {
     if (box.getAttribute('data-sym') !== c.sym) return;
     _drawHoldingChart(box, c, rows);
   });
+  tdChartTab(_tdChartTab);
+}
+
+/* The chart box's three tabs (Daniel, 2026-10-28: "present the chart and
+   what it can show, but not give it away freely ... place the chart next to
+   the chart on top"). Price and TradingView are free; TradingView's widget
+   is its free product for public pages, so it stays open to everyone and
+   only its full screen is Pro. Rotator indicators (our own chart, js/
+   rotator-indicators.js) is the Pro tab: free users see that coin's real
+   chart blurred and still, under a lock. Heavy charts load on the tab's
+   first click only (iPhone memory). The tab is kept between coins. */
+var _tdChartTab = 'price';
+function tdChartTab(tab) {
+  var c = typeof _tdCoin !== 'undefined' ? _tdCoin : null;
+  if (!c) return;
+  _tdChartTab = tab;
+  var pro = typeof _tdIsPro === 'function' && _tdIsPro();
+  var mk = typeof currentLang !== 'undefined' && currentLang === 'mk';
+  var noTv = c.isStock || c.isStable;
+  [].forEach.call(document.querySelectorAll('#td-ctabs .td-ctab'), function(b) {
+    var t = b.getAttribute('data-tab');
+    b.classList.toggle('on', t === tab);
+    b.hidden = noTv && t !== 'price';
+  });
+  if (noTv && tab !== 'price') { tdChartTab('price'); return; }
+  var price = document.getElementById('td-mini-chart'), tv = document.getElementById('td-mini-tv'),
+      bar = document.getElementById('td-mini-tvbar'), riw = document.getElementById('td-mini-riw'), ri = document.getElementById('td-mini-ri');
+  price.hidden = tab !== 'price';
+  tv.hidden = bar.hidden = tab !== 'tv';
+  riw.hidden = tab !== 'ri';
+  if (tab === 'tv') {
+    /* Full screen (Pro) and, one level down in the ⋯ menu, the referral link. */
+    /* One Pro mark per window is enough (Daniel, 2026-10-28: "so many pro
+       buttons"): free users get no locked Full screen button here. */
+    bar.innerHTML = (pro ? '<button type="button" class="td-tv-full" onclick="tvFullscreen()">⛶ ' + (mk ? 'Цел екран' : 'Full screen') + '</button>' : '')
+      + '<details class="tdx-more"><summary title="More" aria-label="More">⋯</summary><div class="tdx-more-m">'
+      + '<a class="tdx-tv-link" href="' + _tvLink() + '" target="_blank" rel="noopener sponsored" onclick="tvLinkClick()">' + (mk ? 'Регистрирајте се на TradingView' : 'Sign up on TradingView') + ' ↗</a>'
+      + '<span class="tdx-tv-ref">' + (mk ? 'Линк за препорака: ако купите план на TradingView, добивате попуст, а Rotator добива кредит на TradingView.'
+        : 'Referral link: if you buy a TradingView plan, you get money off and Rotator gets TradingView credit. It costs you nothing extra.') + '</span></div></details>';
+    if (tv.getAttribute('data-sym') !== c.sym && typeof _tvEmbed === 'function') {
+      tv.setAttribute('data-sym', c.sym);
+      if (typeof supaCountFeature === 'function') supaCountFeature('tradingview_open');
+      _tvEmbed(tv, c, false, mk ? 'Графиконот не се вчита (можеби го блокира блокатор на реклами).' : 'The chart did not load (an ad blocker may be blocking it).');
+    }
+  }
+  if (tab === 'ri' && typeof riRender === 'function') {
+    riw.classList.toggle('is-locked', !pro);
+    var old = riw.querySelector('.td-ri-lock'); if (old) old.remove();
+    if (!pro) {
+      var l = document.createElement('div'); l.className = 'td-ri-lock';
+      l.innerHTML = '<div class="td-ri-lock-b"><b>📈 Rotator indicators</b>'
+        + '<span>' + (mk ? 'Свеќи со golden/death cross и RSI ознаки, RSI 14, Rotator оценката по ден, плус EMA, Bollinger, SuperTrend, MACD и Squeeze.'
+          : 'Candles with golden cross, death cross and RSI marks, RSI 14, the Rotator score by day, plus EMA, Bollinger, SuperTrend, MACD and Squeeze.') + '</span>'
+        + '<button type="button" class="td-pro-lock-btn" onclick="closeTileDetail();openPro()">' + (mk ? 'Погледни Pro' : 'See Pro') + '</button></div>';
+      riw.appendChild(l);
+    } else if (typeof supaCountFeature === 'function') supaCountFeature('rotator_indicators');
+    if (ri.getAttribute('data-sym') !== c.sym || ri.getAttribute('data-pro') !== String(pro)) {
+      ri.setAttribute('data-pro', String(pro));
+      riRender(ri, c);
+    }
+  }
 }
 
 function setHoldingChartRange(days) {

@@ -7327,3 +7327,29 @@ a.mob-more-item{text-decoration:none;color:inherit;}
 /* The big card's "Smaller" and × sit over the top-right box, which holds the
    Rotator summary since 2026-10-28: room under them so Share stays clickable. */
 @media(min-width:1024px){ .td-expanded .tdx-dash .tdx-sum{padding-top:44px;} }
+
+/* Chart box tabs at the top of the small coin window (tdChartTab). */
+.td-ctabs{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:4px;margin-bottom:8px;}
+.td-ctab{font:600 11.5px/1.25 inherit;padding:6px 6px;border-radius:7px;border:1px solid var(--bdr);background:transparent;color:var(--muted);cursor:pointer;text-align:center;}
+.td-ctab[hidden]{display:none;}
+.td-ctab:hover{color:var(--text);border-color:var(--text);}
+.td-ctab.on{background:var(--bg3);color:var(--text);border-color:var(--text);}
+.td-ctab-ri{color:var(--amber,#f0b90b);border-color:rgba(243,186,47,.55);}
+.td-ctab-ri.on{background:var(--amber,#f0b90b);color:#111;border-color:var(--amber,#f0b90b);}
+.td-ctab-ri .td-expand-pro{margin-left:3px;font-size:8.5px;padding:2px 4px;}
+.td-mini-tv{height:380px;border-radius:8px;overflow:hidden;}
+.td-mini-tv:has(.td-tv-blocked){height:auto;}
+.td-mini-tvbar{align-items:center;gap:8px;margin-top:6px;}
+.td-mini-tvbar:not([hidden]){display:flex;}
+.td-mini-tvbar .tdx-more{margin-left:auto;}
+.td-tv-full-lock{color:var(--amber,#f0b90b);border-color:rgba(243,186,47,.55);}
+.td-mini-riw{position:relative;}
+.td-mini-ri{height:420px;display:flex;flex-direction:column;}
+.td-mini-riw.is-locked .td-mini-ri{filter:blur(5px) saturate(.8);pointer-events:none;user-select:none;}
+.td-ri-lock{position:absolute;inset:0;display:grid;place-items:center;padding:16px;}
+.td-ri-lock-b{max-width:300px;display:flex;flex-direction:column;align-items:center;gap:8px;text-align:center;padding:16px 18px;border-radius:12px;
+  background:rgba(10,14,20,.82);border:1px solid rgba(243,186,47,.55);box-shadow:0 10px 30px rgba(0,0,0,.4);}
+.td-ri-lock-b b{color:var(--amber,#f0b90b);font-size:15px;}
+.td-ri-lock-b span{font-size:12.5px;line-height:1.45;color:var(--text);}
+:root.light .td-ri-lock-b{background:rgba(255,255,255,.9);}
+@media (max-width:600px){ .td-mini-tv{height:320px;} .td-mini-ri{height:380px;} }
