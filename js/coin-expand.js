@@ -473,7 +473,13 @@ function _tdxMomExtra(c, mom) {
     p.innerHTML = '<div class="td-card-h">Positioning</div>'
       + row('Funding', fl[0], fl[1])
       + (oi != null ? row('Open interest 24h', (oi >= 0 ? '+' : '') + oi.toFixed(1) + '%' + (pl ? ' · ' + pl : ''), '') : '')
-      + (lp != null ? '<div class="tdx-ls"><span class="up">Long ' + lp + '%</span><span class="tdx-ls-bar"><i style="width:' + lp + '%"></i></span><span class="dn">Short ' + (100 - lp) + '%</span></div>' : '');
+      /* A taller green / red bar with the shares inside (Daniel, 2026-10-28:
+         "green and red graphs for the long and short"); a slice too thin for
+         its label keeps it in the title. */
+      + (lp != null ? '<div class="tdx-ls" title="Binance accounts holding a long vs a short: ' + lp + '% / ' + (100 - lp) + '%">'
+        + '<div class="tdx-ls-bar"><span class="tdx-ls-l" style="width:' + lp + '%">' + (lp >= 22 ? 'Long ' + lp + '%' : '') + '</span>'
+        + '<span class="tdx-ls-s" style="width:' + (100 - lp) + '%">' + (100 - lp >= 22 ? 'Short ' + (100 - lp) + '%' : '') + '</span></div>'
+        + '<div class="tdx-ls-n">' + ls.toFixed(2) + ' longs for every short</div></div>' : '');
     mom.appendChild(p);
   }
 }

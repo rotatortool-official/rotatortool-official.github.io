@@ -7072,9 +7072,12 @@ a.mob-more-item{text-decoration:none;color:inherit;}
   .tdx-rsi-sc i{position:absolute;top:-2px;width:1px;height:10px;background:var(--muted);}
   .tdx-rsi-sc b{position:absolute;top:50%;width:11px;height:11px;border-radius:50%;background:var(--text);border:2px solid var(--bg3);transform:translate(-50%,-50%);}
   .tdx-rsi-n{font-size:11px;color:var(--muted);}
-  .tdx-ls{display:flex;align-items:center;gap:8px;margin-top:7px;font:600 11.5px/1 var(--font-ui);}
-  .tdx-ls-bar{flex:1;height:6px;border-radius:3px;background:var(--red);overflow:hidden;opacity:.85;}
-  .tdx-ls-bar i{display:block;height:100%;background:var(--green);}
+  .tdx-ls{margin-top:8px;}
+  .tdx-ls-bar{display:flex;height:22px;border-radius:6px;overflow:hidden;gap:2px;font:700 11px/22px var(--font-ui);}
+  .tdx-ls-bar > span{display:block;min-width:4px;white-space:nowrap;overflow:hidden;color:#fff;}
+  .tdx-ls-l{background:var(--green);padding-left:7px;text-align:left;}
+  .tdx-ls-s{background:var(--red);padding-right:7px;text-align:right;}
+  .tdx-ls-n{margin-top:4px;font-size:10.5px;color:var(--muted);text-align:left;}
   /* The key facts' RSI row is replaced by the scale. */
   .tdx-mom .td-kv-row[onclick*="td-rsi-sec"]{display:none;}
   /* Light (notebook) panel: the buttons clear the punched holes, the ×
