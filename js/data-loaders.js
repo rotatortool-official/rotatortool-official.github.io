@@ -3675,6 +3675,63 @@ function _tdBinance(c) {
     + '<div class="td-bnb-note">' + (mk ? 'Линк за препорака: Rotator може да добие дел од провизиите на Binance. Вас не ве чини ништо повеќе.'
       : 'Referral link: Rotator may earn a share of Binance\'s fees. It costs you nothing extra.') + '</div>';
 }
+/* TradingView chart (Daniel, 2026-10-28: "Let's build the TradingView
+   widget ... then we can build the referral program"). The free Advanced
+   Chart widget needs no account or API. It is heavy, so it loads only when
+   the fold is opened, never with the coin window (iPhone memory reloads,
+   see no-backdrop-blur-on-phones). Ad blockers often block
+   s3.tradingview.com: after 8 s without an iframe the box keeps the plain
+   link. TV_REF = Daniel's "refer a friend" name (his link, 2026-10-28:
+   tradingview.com/pricing/?share_your_love=rotatortool). That program pays
+   TradingView credit, not cash: the friend gets money off a plan, Rotator
+   gets credit. Empty = no referral and no referral label. */
+var TV_REF = 'rotatortool';
+function _tvSymbol(c) { return 'BINANCE:' + String(c.sym).toUpperCase() + 'USDT'; }
+function _tvLink(c) {
+  return 'https://www.tradingview.com/chart/?symbol=' + encodeURIComponent(_tvSymbol(c))
+    + (TV_REF ? '&share_your_love=' + encodeURIComponent(TV_REF) : '');
+}
+function tvLinkClick() { if (typeof supaCountFeature === 'function') supaCountFeature('tradingview_click'); }
+function _tdTradingView(c) {
+  var sec = document.getElementById('td-tv-sec'), fold = document.getElementById('td-tv-fold'), box = document.getElementById('td-tv');
+  if (!sec || !fold || !box) return;
+  if (!c || c.isStock || c.isStable) { sec.style.display = 'none'; box.innerHTML = ''; return; }
+  var mk = typeof currentLang !== 'undefined' && currentLang === 'mk', sym = _esc(c.sym);
+  var t = document.getElementById('td-tv-title');
+  if (t) t.textContent = mk ? 'Графикон на TradingView' : 'Chart on TradingView';
+  var link = '<a class="td-tv-link" href="' + _tvLink(c) + '" target="_blank" rel="noopener' + (TV_REF ? ' sponsored' : '') + '" onclick="tvLinkClick()">'
+    + (mk ? 'Отворете го ' + sym + ' на TradingView' : 'Open ' + sym + ' on TradingView') + ' ↗</a>'
+    + (TV_REF ? '<div class="td-tv-note">' + (mk ? 'Линк за препорака: ако купите план на TradingView, добивате попуст, а Rotator добива кредит на TradingView. Вас не ве чини ништо повеќе.'
+      : 'Referral link: if you buy a TradingView plan, you get money off and Rotator gets TradingView credit. It costs you nothing extra.') + '</div>' : '');
+  sec.style.display = '';
+  fold.open = false;
+  box.innerHTML = '<div class="td-tv-chart" id="td-tv-chart"></div>' + link;
+  fold.ontoggle = function () {
+    var host = document.getElementById('td-tv-chart');
+    if (!fold.open || !host || host.getAttribute('data-sym') === c.sym) return;
+    host.setAttribute('data-sym', c.sym);
+    if (typeof supaCountFeature === 'function') supaCountFeature('tradingview_open');
+    host.innerHTML = '<div class="tradingview-widget-container" style="height:100%;width:100%"><div class="tradingview-widget-container__widget" style="height:100%;width:100%"></div></div>';
+    var s = document.createElement('script');
+    s.src = 'https://s3.tradingview.com/external-embedding/embed-widget-advanced-chart.js';
+    s.async = true;
+    s.text = JSON.stringify({
+      autosize: true, symbol: _tvSymbol(c), interval: 'D', timezone: 'Etc/UTC',
+      theme: document.documentElement.classList.contains('light') ? 'light' : 'dark',
+      style: '1', locale: 'en', allow_symbol_change: false, save_image: false,
+      hide_side_toolbar: true, support_host: 'https://www.tradingview.com'
+    });
+    var blocked = function () {
+      if (host.querySelector('iframe')) return;
+      host.innerHTML = '<div class="td-tv-blocked">' + (mk ? 'Графиконот не се вчита (можеби го блокира блокатор на реклами). Отворете го на TradingView подолу.'
+        : 'The chart did not load (an ad blocker may be blocking it). Open it on TradingView below.') + '</div>';
+      host.removeAttribute('data-sym');
+    };
+    s.onerror = blocked;
+    host.firstChild.appendChild(s);
+    setTimeout(blocked, 8000);
+  };
+}
 function _tdChainFlow(c) {
   var el = document.getElementById('td-chainflow');
   if (!el) return;
@@ -4529,6 +4586,7 @@ function openTileDetail(coinId, evt) {
   _tdAbout(c);
   _tdChainFlow(c);
   _tdBinance(c);
+  _tdTradingView(c);
   _tdBiz(c);
   var panel = document.getElementById('td-panel');
   var icoEl = document.getElementById('td-ico');
