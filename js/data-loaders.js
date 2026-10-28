@@ -3730,25 +3730,56 @@ function _tdTradingView(c) {
    screen, the big coin card). tools = the Pro set: drawing toolbar, date
    ranges, screenshot. `blockedMsg` replaces it when an ad blocker stops
    the script (no iframe after 8 s). */
+/* Empty a TradingView host: the frame goes to about:blank and is removed.
+   2026-10-29, Daniel: on his iPhone the site "refreshes by itself often".
+   In Playwright WebKit (iPhone 13) each TradingView chart costs ~85 MB that
+   WebKit keeps even after the frame is gone (removed, blanked, reused or a
+   direct frame without TradingView's script: all the same), so phones also
+   get a per-visit budget (TV_PHONE_MAX in js/holdings.js). */
+function _tvFree(host) {
+  if (!host) return;
+  [].forEach.call(host.querySelectorAll('iframe'), function (f) { try { f.src = 'about:blank'; } catch (e) {} f.remove(); });
+  host.innerHTML = '';
+  host.removeAttribute('data-sym'); host.removeAttribute('data-key');
+}
+var _tvLoads = 0;   /* TradingView charts loaded in this page visit */
+function _tvUrl(o) { return 'https://www.tradingview-widget.com/embed-widget/advanced-chart/?locale=en#' + encodeURIComponent(JSON.stringify(o)); }
 function _tvEmbed(host, c, tools, blockedMsg) {
-  host.innerHTML = '<div class="tradingview-widget-container" style="height:100%;width:100%"><div class="tradingview-widget-container__widget" style="height:100%;width:100%"></div></div>';
-  var s = document.createElement('script');
-  s.src = 'https://s3.tradingview.com/external-embedding/embed-widget-advanced-chart.js';
-  s.async = true;
-  s.text = JSON.stringify({
+  /* Free the old frame but keep the caller's data-sym / data-key. */
+  var keepSym = host.getAttribute('data-sym'), keepKey = host.getAttribute('data-key');
+  _tvFree(host);
+  if (keepSym) host.setAttribute('data-sym', keepSym);
+  if (keepKey) host.setAttribute('data-key', keepKey);
+  /* The frame is built here, at the same address and with the same settings
+     TradingView's embed-widget-advanced-chart.js writes (2026-10-29). That
+     script ran inside our page once per coin and kept every chart alive:
+     +80 MB a coin in Playwright WebKit (iPhone 13) until Safari reloaded.
+     The widget, its logo and its links are unchanged. */
+  var o = {
     autosize: true, symbol: _tvSymbol(c), interval: 'D', timezone: 'Etc/UTC',
     theme: document.documentElement.classList.contains('light') ? 'light' : 'dark',
-    style: '1', locale: 'en', allow_symbol_change: false, save_image: !!tools,
-    hide_side_toolbar: !tools, withdateranges: !!tools, support_host: 'https://www.tradingview.com'
-  });
-  var blocked = function () {
-    if (!blockedMsg || host.querySelector('iframe')) return;
-    host.innerHTML = '<div class="td-tv-blocked">' + blockedMsg + '</div>';
-    host.removeAttribute('data-sym');
+    style: '1', allow_symbol_change: false, save_image: !!tools,
+    hide_side_toolbar: !tools, withdateranges: !!tools, support_host: 'https://www.tradingview.com',
+    width: '100%', height: '100%',
+    utm_source: location.hostname, utm_medium: 'widget', utm_campaign: 'advanced-chart',
+    'page-uri': location.host + location.pathname
   };
-  s.onerror = blocked;
-  host.firstChild.appendChild(s);
-  setTimeout(blocked, 8000);
+  var f = document.createElement('iframe');
+  f.title = 'TradingView chart';
+  _tvLoads++;
+  f.setAttribute('frameborder', '0'); f.setAttribute('allowtransparency', 'true'); f.setAttribute('scrolling', 'no');
+  f.style.cssText = 'width:100%;height:100%;display:block;border:0;';
+  var loaded = false;
+  f.onload = function () { loaded = true; };
+  f.src = _tvUrl(o);
+  host.appendChild(f);
+  /* An ad blocker that stops the frame: after 8 s without a load, the
+     message replaces it. */
+  setTimeout(function () {
+    if (loaded || !blockedMsg || !host.contains(f)) return;
+    _tvFree(host);
+    host.innerHTML = '<div class="td-tv-blocked">' + blockedMsg + '</div>';
+  }, 8000);
 }
 /* Pro: the coin's chart over the whole screen. On a wide screen it is the
    big card's own full screen (tdxFocus, js/coin-expand.js: the chart in the
@@ -5615,6 +5646,8 @@ function closeTileDetail() {
   if (p) p.style.display = 'none';
   if (o) o.classList.remove('show');
   _tdCoin = null;
+  /* Heavy charts do not stay alive behind a closed window (iPhone memory). */
+  if (typeof tdChartFree === 'function') tdChartFree();
 }
 
 /* ── Deep link: ?donate opens the Support window ───────────────

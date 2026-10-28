@@ -852,6 +852,19 @@ function tdMiniChart(c) {
    chart blurred and still, under a lock. Heavy charts load on the tab's
    first click only (iPhone memory). The tab is kept between coins. */
 var _tdChartTab = 'price';
+var TV_PHONE_MAX = 3;   /* TradingView charts a phone loads per visit (2026-10-29) */
+/* Phones and tablets: memory is tight there, so every coin opens on Price
+   and the heavy TradingView / indicator charts load only when tapped. */
+function _tdPhone() { try { return window.matchMedia('(hover:none),(max-width:860px)').matches; } catch (e) { return false; } }
+/* Called when the coin window closes (closeTileDetail). */
+function tdChartFree() {
+  if (typeof _tvFree === 'function') { _tvFree(document.getElementById('td-mini-tv')); _tvFree(document.getElementById('tdx-tv')); }
+  var ri = document.getElementById('td-mini-ri');
+  if (ri && ri.getAttribute('data-sym')) { if (typeof riDestroy === 'function') riDestroy(); ri.innerHTML = ''; ri.removeAttribute('data-sym'); }
+  var bri = document.getElementById('tdx-ri');
+  if (bri) bri.removeAttribute('data-sym');
+  if (_tdPhone()) _tdChartTab = 'price';
+}
 function tdChartTab(tab) {
   var c = typeof _tdCoin !== 'undefined' ? _tdCoin : null;
   if (!c) return;
@@ -879,7 +892,19 @@ function tdChartTab(tab) {
       + '<a class="tdx-tv-link" href="' + _tvLink() + '" target="_blank" rel="noopener sponsored" onclick="tvLinkClick()">' + (mk ? 'Регистрирајте се на TradingView' : 'Sign up on TradingView') + ' ↗</a>'
       + '<span class="tdx-tv-ref">' + (mk ? 'Линк за препорака: ако купите план на TradingView, добивате попуст, а Rotator добива кредит на TradingView.'
         : 'Referral link: if you buy a TradingView plan, you get money off and Rotator gets TradingView credit. It costs you nothing extra.') + '</span></div></details>';
-    if (tv.getAttribute('data-sym') !== c.sym && typeof _tvEmbed === 'function') {
+    if (tv.getAttribute('data-sym') !== c.sym && typeof _tvEmbed === 'function' && _tdPhone() && _tvLoads >= TV_PHONE_MAX) {
+      /* Phone budget used up: one tap opens this chart on its own page, so
+         the board itself stays loaded (each chart costs ~85 MB in WebKit). */
+      tv.setAttribute('data-sym', c.sym);
+      var u = _tvUrl({ autosize: true, symbol: _tvSymbol(c), interval: 'D', timezone: 'Etc/UTC',
+        theme: document.documentElement.classList.contains('light') ? 'light' : 'dark', style: '1', allow_symbol_change: false,
+        support_host: 'https://www.tradingview.com', width: '100%', height: '100%' });
+      tv.innerHTML = '<div class="td-tv-blocked td-tv-budget">' + (mk
+          ? 'Веќе отворивте неколку TradingView графикони. На телефон уште еден може да го натера Safari повторно да ја вчита страницата.'
+          : 'You have opened several TradingView charts. On a phone one more can make Safari reload this page.')
+        + ' <a href="' + u + '" target="_blank" rel="noopener">' + (mk ? 'Отвори го графиконот за ' : 'Open the ') + _esc(c.sym) + (mk ? ' во нов таб' : ' chart in a new tab') + ' ↗</a>'
+        + ' ' + (mk ? 'или пробајте Rotator indicators.' : 'or try Rotator indicators.') + '</div>';
+    } else if (tv.getAttribute('data-sym') !== c.sym && typeof _tvEmbed === 'function') {
       tv.setAttribute('data-sym', c.sym);
       if (typeof supaCountFeature === 'function') supaCountFeature('tradingview_open');
       _tvEmbed(tv, c, false, mk ? 'Графиконот не се вчита (можеби го блокира блокатор на реклами).' : 'The chart did not load (an ad blocker may be blocking it).');
