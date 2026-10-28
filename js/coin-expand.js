@@ -117,31 +117,41 @@ function _tdxExpand() {
     if (head && cbox) cbox.replaceChild(head, cbox.querySelector('.tdx-card-h'));
     /* TradingView over the whole screen (Pro, Daniel 2026-10-28); the small
        fold stays in the collapsed window. */
+    /* Daniel, 2026-10-28 (evening): the Rotator indicators button "more
+       prominent", TradingView only loads back the default chart, the link
+       to tradingview.com "a little bit deeper into the menu" so people stay
+       on Rotator. So: a two-way switch at the top of the Price box (Rotator
+       indicators first, gold), Full screen beside it, and the referral link
+       inside the "⋯" menu. */
     if (cbox && typeof tvFullscreen === 'function') {
       var row = document.createElement('div'); row.className = 'tdx-tv-row';
-      var tvb = document.createElement('button');
-      tvb.type = 'button'; tvb.className = 'tdx-tv-full'; tvb.textContent = '⛶ TradingView full screen';
-      tvb.addEventListener('click', tvFullscreen);
-      row.appendChild(tvb);
-      /* Rotator's own indicator chart (js/rotator-indicators.js, Pro like
-         the whole card): swaps places with the TradingView chart. */
+      var sw = document.createElement('div'); sw.className = 'tdx-sw'; sw.setAttribute('role', 'tablist');
       if (typeof riRender === 'function') {
         var rib = document.createElement('button');
-        rib.type = 'button'; rib.className = 'tdx-tv-full tdx-ri-btn'; rib.id = 'tdx-ri-btn';
-        rib.addEventListener('click', function() { _tdxRiOn = !_tdxRiOn; _tdxRiSync(typeof _tdCoin !== 'undefined' ? _tdCoin : null); });
-        row.appendChild(rib);
+        rib.type = 'button'; rib.className = 'tdx-sw-b tdx-sw-ri'; rib.id = 'tdx-ri-btn';
+        rib.innerHTML = '📈 Rotator indicators <b class="tdx-sw-new">NEW</b>';
+        rib.addEventListener('click', function() { _tdxRiSet(true); });
+        sw.appendChild(rib);
       }
+      var tvt = document.createElement('button');
+      tvt.type = 'button'; tvt.className = 'tdx-sw-b'; tvt.id = 'tdx-tv-btn'; tvt.textContent = 'TradingView chart';
+      tvt.addEventListener('click', function() { _tdxRiSet(false); });
+      sw.appendChild(tvt);
+      row.appendChild(sw);
+      var tvb = document.createElement('button');
+      tvb.type = 'button'; tvb.className = 'tdx-tv-full'; tvb.id = 'tdx-focus-btn'; tvb.textContent = '⛶ Full screen';
+      tvb.title = 'Bigger chart, with Rotator\'s score, momentum, What if and alerts on both sides';
+      tvb.addEventListener('click', tdxFocusToggle);
+      row.appendChild(tvb);
       /* Every TradingView link of ours carries Daniel's referral (2026-10-28);
          the links inside TradingView's own frame cannot be changed. */
-      var tvl = document.createElement('a'); tvl.className = 'tdx-tv-link'; tvl.id = 'tdx-tv-link';
-      tvl.target = '_blank'; tvl.rel = 'noopener sponsored';
-      tvl.addEventListener('click', function() { if (typeof tvLinkClick === 'function') tvLinkClick(); });
-      row.appendChild(tvl);
-      var tvn = document.createElement('span'); tvn.className = 'tdx-tv-ref';
-      tvn.textContent = 'Referral link';
-      tvn.title = 'If you buy a TradingView plan through it, you get money off and Rotator gets TradingView credit. It costs you nothing extra.';
-      row.appendChild(tvn);
-      cbox.appendChild(row);
+      var more = document.createElement('details'); more.className = 'tdx-more';
+      more.innerHTML = '<summary title="More" aria-label="More">⋯</summary><div class="tdx-more-m">'
+        + '<a class="tdx-tv-link" id="tdx-tv-link" target="_blank" rel="noopener sponsored"></a>'
+        + '<span class="tdx-tv-ref">Referral link: if you buy a TradingView plan through it, you get money off and Rotator gets TradingView credit. It costs you nothing extra.</span></div>';
+      more.querySelector('a').addEventListener('click', function() { more.open = false; if (typeof tvLinkClick === 'function') tvLinkClick(); });
+      row.appendChild(more);
+      cbox.insertBefore(row, cbox.querySelector('.tdx-box-b'));
     }
     var share = panel.querySelector('.td-share-wrap'), bnb = document.getElementById('td-bnb');
     if (share) _tdxSlot('share').appendChild(share);
@@ -222,6 +232,7 @@ function _tdxTabs() {
 function _tdxCollapse() {
   var panel = document.getElementById('td-panel');
   if (!panel || !panel.classList.contains('td-expanded')) { _tdxLabel(false); return; }
+  if (panel.classList.contains('tdx-focus')) tdxFocus(false);
   (_tdxOrder || []).forEach(function(el) { panel.appendChild(el); });
   var rs = document.getElementById('td-reading-sec'), warn = document.getElementById('td-warn');
   if (rs && warn) rs.insertBefore(warn, rs.firstChild);
@@ -383,18 +394,56 @@ function _tdxTv(slot, c) {
 }
 
 /* TradingView or Rotator indicators in the Price box; the choice is kept
-   between coins for this page load. */
-var _tdxRiOn = false;
+   in this browser. TradingView = its default chart, loaded once per coin. */
+var _tdxRiOn = (function() { try { return localStorage.getItem('rot_ri_on') === '1'; } catch (e) { return false; } })();
+function _tdxRiSet(on) {
+  _tdxRiOn = !!on;
+  try { localStorage.setItem('rot_ri_on', on ? '1' : '0'); } catch (e) {}
+  if (on && typeof supaCountFeature === 'function') supaCountFeature('rotator_indicators');
+  _tdxRiSync(typeof _tdCoin !== 'undefined' ? _tdCoin : null);
+}
 function _tdxRiSync(c) {
-  var slot = _tdxSlot('chart'), tv = document.getElementById('tdx-tv'), btn = document.getElementById('tdx-ri-btn');
+  var slot = _tdxSlot('chart'), tv = document.getElementById('tdx-tv');
   if (!slot || !tv || typeof riRender !== 'function') return;
   var ri = document.getElementById('tdx-ri');
   if (!ri) { ri = document.createElement('div'); ri.id = 'tdx-ri'; ri.className = 'tdx-ri'; tv.parentNode.insertBefore(ri, tv.nextSibling); }
   tv.style.display = _tdxRiOn ? 'none' : '';
   ri.style.display = _tdxRiOn ? '' : 'none';
-  if (btn) btn.textContent = _tdxRiOn ? '⇄ Back to TradingView' : '📈 Rotator indicators';
+  var rb = document.getElementById('tdx-ri-btn'), tb = document.getElementById('tdx-tv-btn');
+  if (rb) { rb.classList.toggle('on', _tdxRiOn); rb.setAttribute('aria-selected', _tdxRiOn ? 'true' : 'false'); }
+  if (tb) { tb.classList.toggle('on', !_tdxRiOn); tb.setAttribute('aria-selected', _tdxRiOn ? 'false' : 'true'); }
   if (_tdxRiOn && c && ri.getAttribute('data-sym') !== c.sym) riRender(ri, c);
 }
+
+/* Full screen inside Rotator (Daniel, 2026-10-28: "the graph should expand,
+   but also our tools should be visible from both sides"). The card itself
+   goes full screen: the chart takes the middle, Momentum and Pointing
+   up/down stay on the left, the briefing, What if, alerts and Try a buy on
+   the right; the Details tabs and share strip step aside. Same elements,
+   only moved by CSS, so the TradingView frame never reloads and What if
+   keeps working. Esc (or the browser leaving full screen) ends it. */
+function tdxFocusToggle() { tdxFocus(!document.getElementById('td-panel').classList.contains('tdx-focus')); }
+function tdxFocus(on) {
+  var panel = document.getElementById('td-panel'), btn = document.getElementById('tdx-focus-btn');
+  if (!panel) return;
+  on = !!on && panel.classList.contains('td-expanded');
+  panel.classList.toggle('tdx-focus', on);
+  if (btn) btn.textContent = on ? '⤡ Exit full screen' : '⛶ Full screen';
+  var de = document.documentElement;
+  if (on) {
+    if (typeof supaCountFeature === 'function') supaCountFeature('tradingview_open');
+    if (!document.fullscreenElement && de.requestFullscreen) de.requestFullscreen().catch(function() {});
+    window.addEventListener('keydown', _tdxFocusKey, true);
+  } else {
+    window.removeEventListener('keydown', _tdxFocusKey, true);
+    if (document.fullscreenElement && document.exitFullscreen) document.exitFullscreen().catch(function() {});
+  }
+}
+function _tdxFocusKey(e) { if (e.key === 'Escape') { e.stopPropagation(); tdxFocus(false); } }
+document.addEventListener('fullscreenchange', function() {
+  var p = document.getElementById('td-panel');
+  if (!document.fullscreenElement && p && p.classList.contains('tdx-focus')) tdxFocus(false);
+});
 
 /* ── Why this score (promptove/162) ──────────────────────────────
    The three layers from c.scoreBreakdown as bars, each against its own

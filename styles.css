@@ -945,8 +945,27 @@ body::before{content:'';position:fixed;inset:0;background:repeating-linear-gradi
 .td-expanded .tdx-wif #tdx-chart > .tdp-ch-top,.td-expanded .tdx-wif #tdx-chart > .tdp-plot,.td-expanded .tdx-wif #tdx-chart > .tdp-ch-foot,.td-expanded .tdx-wif #tdx-chart > .tdp-note{display:none;}
 .td-expanded .tdx-wif #tdx-chart > .tdp-scn{margin:0;padding:0;border:none;overflow:visible;}
 .tdx-tv-row{display:none;}
-.td-expanded .tdx-tvlay .tdx-tv-row{display:flex;align-items:center;flex-wrap:wrap;gap:4px 14px;margin-top:6px;}
-.td-expanded .tdx-tvlay .tdx-tv-row .tdx-tv-full{margin:0;}
+.td-expanded .tdx-tvlay .tdx-tv-row{display:flex;align-items:center;flex-wrap:wrap;gap:6px 10px;margin:2px 0 8px;}
+.td-expanded .tdx-tvlay .tdx-tv-row .tdx-tv-full{margin:0 0 0 auto;}
+/* Rotator indicators | TradingView chart (2026-10-28 evening): a two-way
+   switch, Rotator first and gold so it is the button people see. */
+.tdx-sw{display:inline-flex;border:1px solid var(--bdr);border-radius:9px;padding:3px;gap:3px;background:var(--bg2,rgba(0,0,0,.15));}
+.tdx-sw-b{font:600 13px/1 var(--font-ui,inherit);padding:8px 14px;border-radius:6px;border:none;background:transparent;color:var(--muted);cursor:pointer;white-space:nowrap;}
+.tdx-sw-b:hover{color:var(--text);}
+.tdx-sw-b.on{background:var(--bg3);color:var(--text);box-shadow:0 0 0 1px var(--bdr) inset;}
+.tdx-sw-ri{color:var(--gold,#f3ba2f);}
+.tdx-sw-ri.on{background:var(--gold,#f3ba2f);color:#111;box-shadow:0 0 14px rgba(243,186,47,.35);}
+.tdx-sw-ri:not(.on){box-shadow:0 0 0 1px rgba(243,186,47,.55) inset;}
+.tdx-sw-new{font:800 9px/1 var(--font-ui,inherit);letter-spacing:.06em;padding:2px 5px;border-radius:4px;margin-left:4px;background:#111;color:var(--gold,#f3ba2f);vertical-align:1px;}
+.tdx-sw-ri:not(.on) .tdx-sw-new{background:var(--gold,#f3ba2f);color:#111;}
+:root.light .tdx-sw-ri:not(.on){color:#a86a0c;}
+/* The way out to tradingview.com sits in a small menu (Daniel: "hide the
+   TradingView website a little bit deeper into the menu"). */
+.tdx-more{position:relative;}
+.tdx-more > summary{list-style:none;cursor:pointer;font:700 16px/1 inherit;color:var(--muted);padding:6px 9px;border-radius:7px;border:1px solid transparent;}
+.tdx-more > summary::-webkit-details-marker{display:none;}
+.tdx-more > summary:hover,.tdx-more[open] > summary{color:var(--text);border-color:var(--bdr);}
+.tdx-more-m{position:absolute;right:0;top:calc(100% + 4px);z-index:5;width:260px;display:flex;flex-direction:column;gap:6px;padding:10px 12px;border:1px solid var(--bdr);border-radius:9px;background:var(--bg3);box-shadow:0 8px 24px rgba(0,0,0,.35);}
 /* Rotator indicators (js/rotator-indicators.js): same place and size as the
    TradingView chart; legend line on top, the chart fills the rest. */
 .td-expanded .tdx-tv-on > .tdx-ri{flex:1 1 auto;min-width:0;min-height:200px;flex-direction:column;}
@@ -956,15 +975,39 @@ body::before{content:'';position:fixed;inset:0;background:repeating-linear-gradi
 .ri-legend b{color:var(--text);font-size:12px;}
 .ri-legend .up{color:var(--green);} .ri-legend .dn{color:var(--red);} .ri-legend .ri-gold{color:var(--gold);}
 .ri-note{padding:12px;font-size:13px;color:var(--muted);}
+.ri-chips{display:inline-flex;flex-wrap:wrap;gap:4px;margin-left:auto;}
+.ri-chip{font:600 11px/1 inherit;padding:5px 9px;border-radius:999px;border:1px solid var(--bdr);background:transparent;color:var(--muted);cursor:pointer;}
+.ri-chip:hover{color:var(--text);border-color:var(--text);}
+.ri-chip.on{background:rgba(243,186,47,.16);border-color:var(--gold,#f3ba2f);color:var(--text);}
 .tdx-tv-link{font-size:12px;font-weight:600;color:var(--text);text-decoration:none;}
 .tdx-tv-link:hover{text-decoration:underline;}
 .tdx-tv-ref{font-size:10.5px;color:var(--muted);}
+/* Full screen inside Rotator (tdxFocus in js/coin-expand.js): the chart in
+   the middle, Rotator's boxes on both sides; Details and share step aside. */
+@media(min-width:1024px){
+  .tile-detail.td-expanded.tdx-focus{top:0 !important;left:0 !important;transform:none;width:100vw !important;
+    height:100vh;max-height:100vh;border-radius:0;padding:8px 10px;overflow:hidden;}
+  .td-expanded.tdx-focus .tdx-dash.tdx-tvlay{height:calc(100% - 44px);
+    grid-template-columns:minmax(230px,.75fr) minmax(0,3.4fr) minmax(300px,1.05fr);
+    grid-template-rows:minmax(0,1.15fr) minmax(0,1fr);
+    grid-template-areas:"mom chart sum" "sig chart wif";}
+  .td-expanded.tdx-focus .tdx-det,.td-expanded.tdx-focus .tdx-share{display:none;}
+  .td-expanded.tdx-focus .tdh{padding-right:0;}
+}
 .tv-full{position:fixed;inset:0;z-index:10050;display:flex;flex-direction:column;background:var(--bg,#0b0e14);}
 .tv-full-bar{display:flex;align-items:center;gap:14px;padding:8px 14px;border-bottom:1px solid var(--bdr);font-size:13px;font-weight:600;color:var(--text);}
 .tv-full-bar a{margin-left:auto;color:var(--text);text-decoration:none;font-weight:500;}
 .tv-full-bar a:hover{text-decoration:underline;}
 .tv-full-x{font-size:24px;line-height:1;background:none;border:none;color:var(--text);cursor:pointer;padding:0 4px;}
 .tv-full-chart{flex:1;min-height:0;}
+.tv-full-ri{flex:1;min-height:0;flex-direction:column;padding:6px 8px;}
+.tv-full-ri:not([style*="none"]){display:flex;}
+.tv-full-bar .tdx-more{margin-left:auto;}
+.tv-full-bar .tdx-more-m a{margin-left:0;}
+@media(max-width:600px){
+  .tv-full-bar{gap:8px;padding:6px 8px;}
+  .tv-full-bar .tdx-sw-b{font-size:12px;padding:7px 8px;}
+}
 .rt-bnb a{color:var(--muted);text-decoration:underline;}
 /* Hero share-card button */
 .td-share-card-btn{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;padding:10px 0;margin-bottom:8px;background:linear-gradient(135deg,rgba(243,186,47,.15),rgba(243,186,47,.06));border:1px solid rgba(243,186,47,.35);border-radius:6px;color:var(--bnb);font-size:12px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;cursor:pointer;font-family:var(--font-display);transition:all .18s;}

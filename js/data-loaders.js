@@ -3748,28 +3748,54 @@ function _tvEmbed(host, c, tools, blockedMsg) {
   host.firstChild.appendChild(s);
   setTimeout(blocked, 8000);
 }
-/* Pro: the coin's TradingView chart over the whole screen, with the drawing
-   tools and indicators. Esc or × closes it; the coin window stays below. */
+/* Pro: the coin's chart over the whole screen. On a wide screen it is the
+   big card's own full screen (tdxFocus, js/coin-expand.js: the chart in the
+   middle with Rotator's boxes on both sides, Daniel 2026-10-28). On phones
+   it is this overlay: the same Rotator indicators | TradingView switch on
+   top, the tradingview.com link inside the "⋯" menu. Esc or × closes it. */
 function tvFullscreen() {
   var c = typeof _tdCoin !== 'undefined' ? _tdCoin : null;
   if (!c || !_tdIsPro()) { if (typeof openPro === 'function') { closeTileDetail(); openPro(); } return; }
+  if (typeof tdCanExpand === 'function' && tdCanExpand() && typeof tdxFocus === 'function') {
+    var p = document.getElementById('td-panel');
+    if (p && !p.classList.contains('td-expanded')) tdToggleExpand();
+    tdxFocus(true);
+    return;
+  }
   tvFullscreenClose();
   if (typeof supaCountFeature === 'function') supaCountFeature('tradingview_open');
   var ov = document.createElement('div');
   ov.className = 'tv-full'; ov.id = 'tv-full';
-  ov.innerHTML = '<div class="tv-full-bar"><span>' + _esc(c.sym) + ' · TradingView</span>'
-    + '<a href="' + _tvLink() + '" target="_blank" rel="noopener' + (TV_REF ? ' sponsored' : '') + '" onclick="tvLinkClick()" title="Referral link: if you buy a TradingView plan, you get money off and Rotator gets TradingView credit.">Sign up on TradingView ↗</a>'
+  var ri = typeof riRender === 'function';
+  ov.innerHTML = '<div class="tv-full-bar"><span>' + _esc(c.sym) + '</span>'
+    + (ri ? '<div class="tdx-sw"><button type="button" class="tdx-sw-b tdx-sw-ri" data-v="ri">📈 Rotator indicators</button>'
+      + '<button type="button" class="tdx-sw-b" data-v="tv">TradingView</button></div>' : '')
+    + '<details class="tdx-more"><summary title="More" aria-label="More">⋯</summary><div class="tdx-more-m">'
+    + '<a class="tdx-tv-link" href="' + _tvLink() + '" target="_blank" rel="noopener' + (TV_REF ? ' sponsored' : '') + '" onclick="tvLinkClick()">Sign up on TradingView ↗</a>'
+    + '<span class="tdx-tv-ref">Referral link: if you buy a TradingView plan, you get money off and Rotator gets TradingView credit.</span></div></details>'
     + '<button type="button" class="tv-full-x" onclick="tvFullscreenClose()" aria-label="Close">×</button></div>'
-    + '<div class="tv-full-chart"></div>';
+    + '<div class="tv-full-chart"></div><div class="tv-full-ri tdx-ri" style="display:none"></div>';
   document.body.appendChild(ov);
-  _tvEmbed(ov.querySelector('.tv-full-chart'), c, true, 'The chart did not load (an ad blocker may be blocking it). Allow tradingview.com in the blocker and open it again.');
-  document.addEventListener('keydown', _tvFullKey);
+  var tvHost = ov.querySelector('.tv-full-chart'), riHost = ov.querySelector('.tv-full-ri');
+  var show = function (v) {
+    var on = v === 'ri';
+    try { localStorage.setItem('rot_ri_on', on ? '1' : '0'); } catch (e) {}
+    ov.querySelectorAll('.tdx-sw-b').forEach(function (b) { b.classList.toggle('on', b.getAttribute('data-v') === v); });
+    tvHost.style.display = on ? 'none' : '';
+    riHost.style.display = on ? '' : 'none';
+    if (on && riHost.getAttribute('data-sym') !== c.sym) { if (typeof supaCountFeature === 'function') supaCountFeature('rotator_indicators'); riRender(riHost, c); }
+    if (!on && !tvHost.firstChild) _tvEmbed(tvHost, c, true, 'The chart did not load (an ad blocker may be blocking it). Allow tradingview.com in the blocker and open it again.');
+  };
+  ov.querySelectorAll('.tdx-sw-b').forEach(function (b) { b.addEventListener('click', function () { show(b.getAttribute('data-v')); }); });
+  var pref = false; try { pref = localStorage.getItem('rot_ri_on') === '1'; } catch (e) {}
+  show(ri && pref ? 'ri' : 'tv');
+  window.addEventListener('keydown', _tvFullKey, true);
 }
-function _tvFullKey(e) { if (e.key === 'Escape') tvFullscreenClose(); }
+function _tvFullKey(e) { if (e.key === 'Escape') { e.stopPropagation(); tvFullscreenClose(); } }
 function tvFullscreenClose() {
   var ov = document.getElementById('tv-full');
-  if (ov) ov.remove();
-  document.removeEventListener('keydown', _tvFullKey);
+  if (ov) { if (ov.querySelector('.tv-full-ri[data-sym]') && typeof riDestroy === 'function') riDestroy(); ov.remove(); }
+  window.removeEventListener('keydown', _tvFullKey, true);
 }
 function _tdChainFlow(c) {
   var el = document.getElementById('td-chainflow');
