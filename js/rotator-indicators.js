@@ -288,8 +288,9 @@ function _riDraw(host, c) {
   /* The score shares the RSI panel (Daniel, 2026-10-29: "the white
      scoring line should have interaction with rsi ... and crossing should
      be marked"). Both read 0-100, so one scale; a crossing is the day the
-     score moves from under the RSI line to over it (green ✕) or back
-     (red ✕). Shown as a fact on the chart, not a tested signal. */
+     score moves from under the RSI line to over it (red ✕) or back
+     under it (green ✕); colours swapped the same day at Daniel's word, as
+     he reads them. Shown as a fact on the chart, not a tested signal. */
   if (sc.length) {
     var ss = chart.addSeries(LC.LineSeries, { color: text, lineWidth: 1.5, priceLineVisible: false, lastValueVisible: true, title: 'Score' }, 1);
     var sData = sc.map(function (s) { return { time: _riDay(s.snap_date), value: Number(s.score) }; });
@@ -300,7 +301,7 @@ function _riDraw(host, c) {
       var rv = rsiAt[p.time]; if (rv == null) return;
       var d = p.value - rv;
       if (prev != null && d !== 0 && (prev < 0) !== (d < 0))
-        xm.push({ time: p.time, position: 'inBar', color: d > 0 ? green : red, shape: 'circle', size: 0.6, text: '✕' });
+        xm.push({ time: p.time, position: 'inBar', color: d > 0 ? red : green, shape: 'circle', size: 0.6, text: '✕' });
       if (d !== 0) prev = d;
     });
     if (xm.length && LC.createSeriesMarkers) LC.createSeriesMarkers(ss, xm);
