@@ -284,25 +284,28 @@ h2{font-size:clamp(32px,4.4vw,56px);}
 .cue-bar{position:fixed;left:50%;bottom:26px;z-index:16;transform:translate(-50%,0);display:flex;align-items:center;gap:10px;
   transition:opacity .35s ease,transform .35s cubic-bezier(.23,1,.32,1),bottom .35s ease;}
 .cue-bar.off{opacity:0;transform:translate(-50%,14px);pointer-events:none;}
-.scroll-cue{position:relative;display:flex;align-items:center;gap:10px;cursor:pointer;
-  padding:11px 18px 11px 14px;border-radius:999px;border:1px solid rgba(243,186,47,.55);background:rgba(10,15,23,.72);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);
-  color:var(--gold);font:800 12px/1 var(--mono);letter-spacing:.18em;box-shadow:0 10px 34px rgba(0,0,0,.45),0 0 0 0 rgba(243,186,47,.4);
-  animation:cueGlow 2.6s ease-in-out infinite;transition:opacity .35s ease,transform .35s cubic-bezier(.23,1,.32,1),border-color .2s ease;}
-:root.light .scroll-cue{background:rgba(255,255,255,.82);color:var(--gold-ink);border-color:rgba(184,134,11,.55);box-shadow:0 10px 30px rgba(17,24,36,.14);}
-.scroll-cue:hover{border-color:var(--gold);transform:translateY(-2px);}
-.scroll-cue.off{display:none;}
-/* PLAY: the page scrolls itself to Free & Pro; PAUSE stops it, PLAY again
-   carries on from there. Same pill as SCROLL, without the glow. */
-.play-cue{display:flex;align-items:center;gap:9px;cursor:pointer;padding:11px 18px 11px 13px;border-radius:999px;border:1px solid rgba(243,186,47,.55);
+/* PLAY and SCROLL are one pill since 2026-10-28 (Daniel: "visually ...
+   combined into one button", with "a slash on the diagonal" between the
+   two). A left click anywhere plays or pauses the tour; the SCROLL half is
+   the hint, and the middle mouse button on the pill jumps one chapter.
+   Hover fills the pill gold. PAUSE stops the tour, PLAY carries on. */
+.play-cue{position:relative;display:flex;align-items:center;gap:11px;cursor:pointer;padding:11px 18px 11px 14px;border-radius:999px;border:1px solid rgba(243,186,47,.55);
   background:rgba(10,15,23,.72);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);color:var(--gold);font:800 12px/1 var(--mono);letter-spacing:.18em;
-  box-shadow:0 10px 34px rgba(0,0,0,.45);transition:transform .35s cubic-bezier(.23,1,.32,1),border-color .2s ease,background .2s ease;}
+  box-shadow:0 10px 34px rgba(0,0,0,.45);animation:cueGlow 2.6s ease-in-out infinite;
+  transition:transform .35s cubic-bezier(.23,1,.32,1),border-color .2s ease,background .2s ease,color .2s ease;}
 :root.light .play-cue{background:rgba(255,255,255,.82);color:var(--gold-ink);border-color:rgba(184,134,11,.55);box-shadow:0 10px 30px rgba(17,24,36,.14);}
-.play-cue:hover{border-color:var(--gold);transform:translateY(-2px);}
+.play-cue:hover,:root.light .play-cue:hover,.play-cue.playing,:root.light .play-cue.playing{background:linear-gradient(180deg,var(--gold2),var(--gold));color:#1a1203;border-color:var(--gold);}
+.play-cue:hover{transform:translateY(-2px);}
+.play-cue.playing{animation:none;}
 .play-cue svg{width:14px;height:14px;flex:0 0 auto;}
 .play-cue b{font:inherit;}
+.pc-play{display:flex;align-items:center;gap:9px;}
 .play-cue .pl-pause,.play-cue.playing .pl-play{display:none;}
 .play-cue.playing .pl-pause{display:inline;}
-.play-cue.playing,:root.light .play-cue.playing{background:linear-gradient(180deg,var(--gold2),var(--gold));color:#1a1203;border-color:var(--gold);}
+/* The diagonal slash between the two halves. */
+.pc-slash{align-self:stretch;width:1.5px;margin:-4px 2px;background:currentColor;opacity:.45;transform:rotate(18deg);border-radius:1px;}
+.scroll-cue{display:flex;align-items:center;gap:10px;}
+.scroll-cue.off,.play-cue:has(.scroll-cue.off) .pc-slash{display:none;}
 /* Coin card (Daniel, 2026-10-21): during the tour, once the coins have
    settled into the grid, one coin opens into the card the board shows for
    every coin, row by row, then closes back into its place. */
@@ -382,7 +385,7 @@ html:is([lang="ar"],[lang="ur"]) .cc-hilo{right:auto;left:0;}
 @keyframes cueArrow{0%,100%{transform:translateY(-1px)}50%{transform:translateY(3px)}}
 @keyframes cueGlow{0%,100%{box-shadow:0 10px 34px rgba(0,0,0,.45),0 0 0 0 rgba(243,186,47,.35)}50%{box-shadow:0 10px 34px rgba(0,0,0,.45),0 0 0 8px rgba(243,186,47,0)}}
 @keyframes cue{0%{transform:scaleY(0)}60%{transform:scaleY(1);opacity:1}100%{transform:scaleY(1);opacity:0}}
-@media (prefers-reduced-motion:reduce){ .scroll-cue,.scroll-cue i::after,.scroll-cue svg,.live::before,.tour-end,.te-card{animation:none;} }
+@media (prefers-reduced-motion:reduce){ .play-cue,.scroll-cue i::after,.scroll-cue svg,.live::before,.tour-end,.te-card{animation:none;} }
 
 /* ── Score: the exploding coin ── */
 .sd-disc{position:absolute;left:0;top:0;will-change:transform;}
@@ -1073,8 +1076,7 @@ document.addEventListener('click', function (e) {
 </footer>
 
 <div class="cue-bar" id="cueBar">
-<button type="button" class="scroll-cue" id="cue" aria-label="Scroll to the next chapter"><i aria-hidden="true"></i><b>SCROLL</b><svg viewBox="0 0 12 12" aria-hidden="true"><path d="M2 4l4 4 4-4" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
-<button type="button" class="play-cue" id="play" aria-label="Play the tour" aria-pressed="false"><svg class="pl-play" viewBox="0 0 14 14" aria-hidden="true"><path d="M3 1.8v10.4L12 7z" fill="currentColor"/></svg><b class="pl-play">PLAY</b><svg class="pl-pause" viewBox="0 0 14 14" aria-hidden="true"><rect x="2.5" y="2" width="3.2" height="10" rx="1" fill="currentColor"/><rect x="8.3" y="2" width="3.2" height="10" rx="1" fill="currentColor"/></svg><b class="pl-pause">PAUSE</b></button>
+<button type="button" class="play-cue" id="play" aria-label="Play the tour" aria-pressed="false" title="Click to play the tour. Scroll, or press the mouse wheel, to go chapter by chapter."><span class="pc-play"><svg class="pl-play" viewBox="0 0 14 14" aria-hidden="true"><path d="M3 1.8v10.4L12 7z" fill="currentColor"/></svg><b class="pl-play">PLAY</b><svg class="pl-pause" viewBox="0 0 14 14" aria-hidden="true"><rect x="2.5" y="2" width="3.2" height="10" rx="1" fill="currentColor"/><rect x="8.3" y="2" width="3.2" height="10" rx="1" fill="currentColor"/></svg><b class="pl-pause">PAUSE</b></span><span class="pc-slash" aria-hidden="true"></span><span class="scroll-cue" id="cue" aria-hidden="true"><i></i><b>SCROLL</b><svg viewBox="0 0 12 12"><path d="M2 4l4 4 4-4" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></span></button>
 </div>
 <div class="cc-dim" id="ccDim"></div>
 <div class="cc" id="coinCard" aria-hidden="true">
@@ -1284,12 +1286,17 @@ document.addEventListener('click', function (e) {
      2026-10-20: a notch on the wheel jumped a whole chapter and skipped its
      animation). Clicking a word or dragging the wheel still jumps. */
 
-  /* Floating scroll button: next chapter on click; hides near the end. */
+  /* SCROLL is the hint half of the PLAY pill (2026-10-28): a left click
+     plays (below), the middle mouse button jumps one chapter. mousedown is
+     stopped so the browser does not start its own auto-scroll. Hides near
+     the end. */
   var cue = $('cue'), cueBar = $('cueBar'), plansEl = $('plans');
-  cue.addEventListener('click', function () {
+  function nextChapter() {
     var cur = Math.round(wheelTarget()), nx = stops.filter(function (x) { return x.i > cur; })[0];
     if (nx) goTo(nx.i, 1); else plansEl.scrollIntoView({ behavior: S.reduce ? 'auto' : 'smooth' });
-  });
+  }
+  $('play').addEventListener('mousedown', function (e) { if (e.button === 1) e.preventDefault(); });
+  $('play').addEventListener('auxclick', function (e) { if (e.button === 1) { e.preventDefault(); nextChapter(); } });
   function cueVis() {
     var phone = innerWidth <= 860, heroEnd = $('hero').offsetHeight - innerHeight * 0.9;
     var atEnd = scrollY + innerHeight > plansEl.offsetTop + 80, past = phone && scrollY > heroEnd;
