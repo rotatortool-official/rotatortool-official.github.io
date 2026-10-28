@@ -7308,3 +7308,17 @@ a.mob-more-item{text-decoration:none;color:inherit;}
 :root.light .td-heat.h-burn{text-shadow:0 0 8px rgba(5,150,105,.45);}
 /* A heat number inside an ⓘ line is text, not the line's label. */
 .td-ir > b.td-heat{display:inline;min-width:0;font:inherit;font-weight:800;letter-spacing:normal;text-transform:none;}
+
+/* Turn signals inside the Pro summary (_tdIndRead): a label, the group
+   names in colour, the same foldable sign rows as before. */
+.td-sb{display:flex;flex-direction:column;gap:2px;padding-top:6px;border-top:1px dashed var(--bdr);}
+.td-sb > .td-sl-k{margin-bottom:2px;}
+.td-sb-g{font-size:12.5px;font-weight:700;margin:4px 0 0;}
+.td-sb-g.up{color:var(--green);}
+.td-sb-g.dn{color:var(--red);}
+.td-sb .td-turn-row{margin:0;}
+.td-sb-ctx{margin-top:4px;font-size:12.5px;}
+.td-sb-ctx > summary{cursor:pointer;list-style:none;color:var(--muted);}
+.td-sb-ctx > summary::-webkit-details-marker{display:none;}
+.td-sb-ctx > summary::before{content:'\25B8  ';}
+.td-sb-ctx[open] > summary::before{content:'\25BE  ';}

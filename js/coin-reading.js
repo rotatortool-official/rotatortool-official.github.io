@@ -317,7 +317,8 @@ function _tdRow(s, dir) {
 
 function _tdOneOpen(row) {
   if (!row.open) return;
-  document.querySelectorAll('#td-turns details.td-turn-row[open]').forEach(function (d) { if (d !== row) d.open = false; });
+  var box = row.closest('.td-sb') || document.getElementById('td-turns');
+  if (box) box.querySelectorAll('details.td-turn-row[open]').forEach(function (d) { if (d !== row) d.open = false; });
 }
 
 /* Open one of the folded Details sections and bring it into view. */
@@ -730,18 +731,6 @@ function _tdIndRead(c, R, tech, trust) {
   }
   if (bd && typeof bd.layer1 === 'number') mom.push(_tdHeat(Math.round(bd.layer1) + '/40', bd.layer1 / 40 * 100) + ' on the score\'s momentum part');
   if (mom.length) h += '<div class="td-sl"><span class="td-sl-k">Momentum</span><span class="td-sl-v">' + mom.join(' · ') + '</span></div>';
-  /* Turn signals by name, coloured by direction, under the Turn signals group names. */
-  var GRP = { ahead: ['May keep going', 'Cooling'], lagging: ['Turning up', 'Weakening'],
-              middle: ['Pointing up', 'Pointing down'] }[R.st];
-  var nm = function (a) { return a.map(function (x) { return x.title; }).filter(Boolean); };
-  var up = nm(R.S.up), dn = nm(R.S.down), info = nm(R.S.info || []);
-  var sg = [];
-  if (up.length) sg.push('<span class="up">▲ ' + GRP[0] + ':</span> ' + up.map(_esc).join(', '));
-  if (dn.length) sg.push('<span class="dn">▼ ' + GRP[1] + ':</span> ' + dn.map(_esc).join(', '));
-  if (!sg.length) sg.push('none right now');
-  h += '<div class="td-sl"><span class="td-sl-k">Turn signals</span><span class="td-sl-v">' + sg.join('<br>')
-    + (info.length ? '<span class="td-sl-ctx">Also: ' + info.map(_esc).join(', ') + '</span>' : '') + '</span></div>';
-
   /* Supply unlocked and the next 30 days, in the summary itself (Daniel,
      2026-10-28: "shown on the summary itself, so the users don't have to
      click again"). */
@@ -758,6 +747,22 @@ function _tdIndRead(c, R, tech, trust) {
   else sup.push('next 30 days: <b class="up">no unlock</b>');
   if (burn) sup.push('<span class="up">active burn, supply shrinks over time</span>');
   if (sup.length) h += '<div class="td-sl"><span class="td-sl-k">Supply</span><span class="td-sl-v">' + sup.join(' · ') + '</span></div>';
+
+  /* Turn signals: the full sign rows (what, when, detail, source, record,
+     Track from this sign), moved here from the window's own Turn signals
+     section, which is gone (Daniel, 2026-10-28: "the turn signals should
+     not be shown in the free model, only in Pro. If you don't have any, it
+     should not even say the turn signals"). Same group names as before. */
+  var GRP = { ahead: ['Signs it may keep going', 'Cooling signs'], lagging: ['Turn-up signs', 'Weakening signs'],
+              middle: ['Signs pointing up', 'Signs pointing down'] }[R.st];
+  var info = R.S.info || [];
+  if (R.S.up.length || R.S.down.length || info.length) {
+    h += '<div class="td-sb"><span class="td-sl-k">Turn signals</span>'
+      + (R.S.up.length ? '<div class="td-sb-g up">▲ ' + GRP[0] + '</div>' + R.S.up.map(function (x) { return _tdRow(x, 'up'); }).join('') : '')
+      + (R.S.down.length ? '<div class="td-sb-g dn">▼ ' + GRP[1] + '</div>' + R.S.down.map(function (x) { return _tdRow(x, 'down'); }).join('') : '')
+      + (info.length ? '<details class="td-sb-ctx"><summary>Also worth knowing · ' + info.length + '</summary>' + info.map(function (x) { return _tdRow(x, 'info'); }).join('') + '</details>' : '')
+      + '</div>';
+  }
 
   /* ⓘ: the rest, on a click. */
   var more = [];
@@ -840,7 +845,8 @@ function renderCoinReading(c) {
     if (extraEl) extraEl.innerHTML = '';
     return;
   }
-  document.getElementById('td-turns-sec').style.display = '';
+  /* Hidden since 2026-10-28: the signs live in the Pro summary (_tdIndRead). */
+  document.getElementById('td-turns-sec').style.display = 'none';
 
   var R = coinReading(c);
   var S = R.S, st = R.st, nUp = R.nUp, nDown = R.nDown;
