@@ -7322,3 +7322,5 @@ a.mob-more-item{text-decoration:none;color:inherit;}
 .td-sb-ctx > summary::-webkit-details-marker{display:none;}
 .td-sb-ctx > summary::before{content:'\25B8  ';}
 .td-sb-ctx[open] > summary::before{content:'\25BE  ';}
+
+.td-sl-end{font-size:12px;color:var(--muted);margin-top:2px;}

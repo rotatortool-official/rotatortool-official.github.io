@@ -764,7 +764,6 @@ function _tdIndRead(c, R, tech, trust) {
       + '</div>';
   }
 
-  /* ⓘ: the rest, on a click. */
   var more = [];
   {
     if (typeof c.score === 'number') {
@@ -794,14 +793,19 @@ function _tdIndRead(c, R, tech, trust) {
       if (bits.length) { var bt = (bits.length > 1 ? bits.slice(0, -1).join(', ') + ' and ' + bits[bits.length - 1] : bits[0]); more.push(['Futures', _esc(bt.charAt(0).toUpperCase() + bt.slice(1) + ' on Binance.'), 1]); }
     }
   }
-  /* o[2]: the text is already HTML (heat colours), its parts escaped. */
-  var body = more.map(function (o) { return '<span class="td-ir"><b>' + o[0] + '</b> ' + (o[2] ? o[1] : _esc(o[1])) + '</span>'; }).join('')
+  /* Score and Futures shown with the rest, no ⓘ to click (Daniel,
+     2026-10-28: the Pro summary shows it all once Summarize is clicked).
+     Order: Score, Momentum, Supply, Futures, Turn signals. o[2]: the text
+     is already HTML (heat colours), its parts escaped. */
+  var line = function (o) { return '<div class="td-sl"><span class="td-sl-k">' + o[0] + '</span><span class="td-sl-v">' + (o[2] ? o[1] : _esc(o[1])) + '</span></div>'; };
+  var sc = more.filter(function (o) { return o[0] === 'Score'; }).map(line).join('');
+  var fut = more.filter(function (o) { return o[0] === 'Futures'; }).map(line).join('');
+  var at = h.indexOf('<div class="td-sb">');
+  h = sc + (at < 0 ? h + fut : h.slice(0, at) + fut + h.slice(at))
     /* Daniel, 2026-10-28: drop "None of these signs has been tested yet";
        not every sign is ours to test, they are read from the sources we
        have. The line that stays is the plain one. */
-    + '<span class="td-ir td-ir-trust">A reading, not a forecast.</span>';
-  h += '<details class="td-story-more"><summary><span class="td-more-i" aria-hidden="true">i</span> '
-    + 'Score and futures</summary>' + body + '</details>';
+    + '<div class="td-sl-end">A reading, not a forecast.</div>';
   return '<div class="td-story-ind">' + h + '</div>';
 }
 
