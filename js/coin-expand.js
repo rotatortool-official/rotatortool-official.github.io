@@ -92,7 +92,7 @@ function _tdxExpand() {
        one screen down to 1280x720. */
     /* wif: What if, alerts and Try a buy, bottom right, when TradingView
        has the whole Price box (2026-10-28, _tdxTv). */
-    [['mom', 'Momentum'], ['chart', 'Price'], ['sig', ''], ['det', ''], ['wif', ''], ['sum', ''], ['share', '']].forEach(function(a) {
+    [['mom', ''], ['chart', 'Price'], ['sig', ''], ['det', ''], ['wif', ''], ['sum', ''], ['share', '']].forEach(function(a) {
       dash.appendChild(_tdxBox(a[0], a[1]));
     });
     panel.appendChild(dash);
@@ -196,7 +196,8 @@ function _tdxPlace() {
   };
   /* Momentum: key facts, then the bars (RSI has its own Details tab). */
   put('perf', fresh.perf, mom);
-  put('kv', fresh.kv, mom);
+  /* Key facts holds only Daily RSI since 2026-10-28, which the summary has. */
+  if (fresh.kv) fresh.kv.remove();
   put('story', fresh.story, sum);
   put('ov', fresh.ov, pane);
 }
@@ -328,7 +329,10 @@ function _tdxFill() {
   var stLbl = { ahead: 'Ran ahead this week', lagging: 'Lagged this week', middle: 'Middle of the pack' }[st];
   var scC = typeof scoreColor === 'function' ? scoreColor(c.score) : 'var(--text)';
   var pctG = g + b ? Math.round(g / (g + b) * 100) : 50;
-  var ev = sum.querySelector('.tdx-eval') || document.createElement('div');
+  /* The top right is the Rotator summary's since 2026-10-28 (Daniel: "Rotator
+     summary should be displayed in the top-right corner ... next to the
+     chart"); the evaluation heads the left column instead. */
+  var ev = (mom || sum).querySelector('.tdx-eval') || document.createElement('div');
   ev.className = 'tdx-eval';
   ev.innerHTML = '<div class="tdx-card-h">Evaluation</div>'
     + '<div class="tdx-eval-top"><span class="tdx-eval-score" style="color:' + scC + '">' + (c._retired ? '—' : c.score) + '</span><span class="tdx-eval-of">/ 100</span>'
@@ -339,7 +343,7 @@ function _tdxFill() {
              : '<div class="tdx-bal tdx-bal-none"></div>')
     + '<div class="tdx-bal-n"><span class="up"><b>' + g + '</b> <span>pointing up</span></span><span class="dn"><b>' + b + '</b> <span>pointing down</span></span></div>'
     + '<div class="tdx-verdict">' + verdict + '</div>'
-  if (!ev.parentNode) sum.appendChild(ev);
+  var evIn = mom || sum; evIn.insertBefore(ev, evIn.firstChild);   /* first, above Performance */
   /* Data age and the disclaimer ride on the share strip's free right end,
      so the evaluation column keeps its height (promptove/162). */
   var shareB = _tdxSlot('share');
@@ -348,7 +352,9 @@ function _tdxFill() {
     ft.className = 'tdx-foot';
     ft.innerHTML = _tdxFresh(c) + '<div class="tdx-note"><span>A reading of the past, not a forecast.</span> <span>Not financial advice.</span></div>';
   }
-  if (mom) _tdxMomExtra(c, mom);
+  /* RSI and Positioning are lines of the Rotator summary now (Score,
+     Momentum, Supply, Futures); the cards left to unclog the column. */
+  if (mom) [].slice.call(mom.querySelectorAll('.tdx-rsi,.tdx-pos')).forEach(function(el) { el.remove(); });
 
   /* #tdx-chart may sit in the What if box (_tdxTv): look for it anywhere. */
   if (!document.getElementById('tdx-chart')) chart.innerHTML = '<div class="tdp-chart" id="tdx-chart"></div>';

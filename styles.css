@@ -912,10 +912,10 @@ body::before{content:'';position:fixed;inset:0;background:repeating-linear-gradi
 .tdx-wif{grid-area:wif;}
 .td-expanded .tdx-dash:not(.tdx-tvlay) .tdx-wif{display:none;}
 .td-expanded .tdx-dash.tdx-tvlay{grid-template-rows:minmax(0,2fr) minmax(0,1fr) auto;
-  grid-template-columns:minmax(0,.95fr) repeat(3,minmax(0,1fr)) minmax(0,1.6fr);
+  grid-template-columns:minmax(0,1.15fr) repeat(3,minmax(0,1fr)) minmax(0,1.45fr);
   grid-template-areas:"mom chart chart chart sum" "sig det det det wif" "share share share share share";}
 @media(max-width:1500px){
-  .td-expanded .tdx-dash.tdx-tvlay{grid-template-columns:minmax(0,.85fr) repeat(3,minmax(0,1fr)) minmax(0,1.75fr);}
+  .td-expanded .tdx-dash.tdx-tvlay{grid-template-columns:minmax(0,1.1fr) repeat(3,minmax(0,1fr)) minmax(0,1.55fr);}
 }
 /* Laptop heights: tighter text in the briefing / evaluation column, What if
    and Pointing up/down, so they scroll as little as possible. */
@@ -7245,7 +7245,7 @@ a.mob-more-item{text-decoration:none;color:inherit;}
 :root.light .td-more-i{border-color:#835f00;color:#835f00;}
 :root.light .td-story-p2.warn b{color:#a86a0c;}
 .td-story.is-told .td-story-read{opacity:0;animation:tdWordIn .4s ease .5s forwards;}
-.td-expanded .td-story-read{display:none !important;}
+/* Shown in the big card's top right too since 2026-10-28. */
 .td-story:not(.is-thinking) .td-think{display:none;}
 /* "Summarize SOL →" (Daniel, 2026-10-28): the summary loads on this click. */
 .td-story-go{display:flex;flex-direction:column;align-items:flex-start;gap:4px;width:100%;margin-top:4px;padding:11px 14px;cursor:pointer;text-align:left;
@@ -7324,3 +7324,6 @@ a.mob-more-item{text-decoration:none;color:inherit;}
 .td-sb-ctx[open] > summary::before{content:'\25BE  ';}
 
 .td-sl-end{font-size:12px;color:var(--muted);margin-top:2px;}
+/* The big card's "Smaller" and × sit over the top-right box, which holds the
+   Rotator summary since 2026-10-28: room under them so Share stays clickable. */
+@media(min-width:1024px){ .td-expanded .tdx-dash .tdx-sum{padding-top:44px;} }
