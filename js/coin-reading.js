@@ -370,18 +370,18 @@ function _tdKeyFacts(c, tech) {
   var circ = c.circulating_supply, basis = c.max_supply > 0 ? c.max_supply : (c.total_supply > 0 ? c.total_supply : null);
   if (circ && basis) {
     var sp = Math.round((circ / basis) * 100), burn = _tdBurns(c);
-    chip('Supply ' + sp + '% unlocked', '', 'td-supply-sec', 'Circulating supply as a share of ' + (c.max_supply > 0 ? 'max' : 'total') + ' supply' + (burn ? '. Active burn: supply shrinks over time.' : ''),
-      'Supply unlocked', _tdHeat(sp + '%' + (burn ? ' · burns' : ''), burn ? 100 : sp, burn ? 'h-burn' : ''));
+    /* Supply unlocked and Next 30 days left Key facts for the Pro summary
+       (Daniel, 2026-10-28: "only the RSI can stay because it's really easy
+       to find"); the hidden chips stay. */
+    chip('Supply ' + sp + '% unlocked', '', 'td-supply-sec', 'Circulating supply as a share of ' + (c.max_supply > 0 ? 'max' : 'total') + ' supply' + (burn ? '. Active burn: supply shrinks over time.' : ''));
   }
   var u = (typeof _tokenUnlocks !== 'undefined' && c.id && _tokenUnlocks[c.id]) || null;
   var pct = u && u.unlock30d_pct != null ? Number(u.unlock30d_pct) : null;
   var line = (window.RotatorEngine && window.RotatorEngine.UNLOCK_PENDING_PCT != null) ? window.RotatorEngine.UNLOCK_PENDING_PCT : 5;
-  if (pct == null) chip('No unlock schedule', 'muted', 'td-supply-sec', 'No published vesting schedule. That is not the same as no unlock due.',
-    'Next 30 days', 'No unlock schedule');
-  /* Amount and date free for everyone since 2026-10-10 (Daniel: Pro sells personal alerts, not data). */
-  else if (pct > 0) chip('Unlock ' + pct.toFixed(1) + '% in 30D' + (u.next_unlock_at ? ' · ' + String(u.next_unlock_at).slice(5, 10) : ''), pct > line ? 'dn' : 'warn', 'td-supply-sec', '',
-    'Next 30 days', 'Unlock ' + pct.toFixed(1) + '%' + (u.next_unlock_at ? ' · ' + String(u.next_unlock_at).slice(5, 10) : ''));
-  else chip('No unlock in 30D', 'up', 'td-supply-sec', '', 'Next 30 days', 'No unlock');
+  /* Free for everyone from 2026-10-10; in the Pro summary since 2026-10-28 (Daniel). */
+  if (pct == null) chip('No unlock schedule', 'muted', 'td-supply-sec', 'No published vesting schedule. That is not the same as no unlock due.');
+  else if (pct > 0) chip('Unlock ' + pct.toFixed(1) + '% in 30D' + (u.next_unlock_at ? ' · ' + String(u.next_unlock_at).slice(5, 10) : ''), pct > line ? 'dn' : 'warn', 'td-supply-sec', '');
+  else chip('No unlock in 30D', 'up', 'td-supply-sec', '');
   return '<div class="td-facts">' + chips.join('') + '</div>'
     + _tdOverviewHtml(c)
     + _tdPerfHtml(c)
@@ -742,6 +742,23 @@ function _tdIndRead(c, R, tech, trust) {
   h += '<div class="td-sl"><span class="td-sl-k">Turn signals</span><span class="td-sl-v">' + sg.join('<br>')
     + (info.length ? '<span class="td-sl-ctx">Also: ' + info.map(_esc).join(', ') + '</span>' : '') + '</span></div>';
 
+  /* Supply unlocked and the next 30 days, in the summary itself (Daniel,
+     2026-10-28: "shown on the summary itself, so the users don't have to
+     click again"). */
+  var sup = [], circ = c.circulating_supply, basis = c.max_supply > 0 ? c.max_supply : (c.total_supply > 0 ? c.total_supply : null);
+  var all = circ && basis && circ / basis >= 0.995, burn = _tdBurns(c), spc = circ && basis ? Math.round(circ / basis * 100) : null;
+  if (all) sup.push(_tdHeat('All', 100, burn ? 'h-burn' : '') + ' unlocked');
+  else if (spc != null) sup.push(_tdHeat(spc + '%', burn ? 100 : spc, burn ? 'h-burn' : '') + ' of its ' + (c.max_supply > 0 ? 'maximum' : 'total') + ' supply unlocked');
+  var u = (typeof _tokenUnlocks !== 'undefined' && c.id && _tokenUnlocks[c.id]) || null;
+  var up30 = u && u.unlock30d_pct != null ? Number(u.unlock30d_pct) : null;
+  var line = (window.RotatorEngine && window.RotatorEngine.UNLOCK_PENDING_PCT != null) ? window.RotatorEngine.UNLOCK_PENDING_PCT : 5;
+  if (all) { /* nothing left to unlock */ }
+  else if (up30 == null) sup.push('no published unlock schedule');
+  else if (up30 > 0) sup.push('next 30 days: <b class="' + (up30 > line ? 'dn' : 'warn') + '">' + up30.toFixed(1) + '% unlocks</b>' + (u.next_unlock_at ? ' (next on ' + _esc(String(u.next_unlock_at).slice(0, 10)) + ')' : ''));
+  else sup.push('next 30 days: <b class="up">no unlock</b>');
+  if (burn) sup.push('<span class="up">active burn, supply shrinks over time</span>');
+  if (sup.length) h += '<div class="td-sl"><span class="td-sl-k">Supply</span><span class="td-sl-v">' + sup.join(' · ') + '</span></div>';
+
   /* ⓘ: the rest, on a click. */
   var more = [];
   {
@@ -771,20 +788,6 @@ function _tdIndRead(c, R, tech, trust) {
         + (pc == null ? '' : pc >= 0 ? (oi >= 0 ? ' (new money)' : ' (short covering)') : (oi >= 0 ? ' (new shorts)' : ' (unwinding)')));
       if (bits.length) { var bt = (bits.length > 1 ? bits.slice(0, -1).join(', ') + ' and ' + bits[bits.length - 1] : bits[0]); more.push(['Futures', _esc(bt.charAt(0).toUpperCase() + bt.slice(1) + ' on Binance.'), 1]); }
     }
-    var sup = [], circ = c.circulating_supply, basis = c.max_supply > 0 ? c.max_supply : (c.total_supply > 0 ? c.total_supply : null);
-    var all = circ && basis && circ / basis >= 0.995;
-    var burn = _tdBurns(c), spc = circ && basis ? Math.round(circ / basis * 100) : null;
-    if (all) sup.push(_tdHeat('all', 100, burn ? 'h-burn' : '') + ' of its supply is already unlocked');
-    else if (spc != null) sup.push(_tdHeat(spc + '%', burn ? 100 : spc, burn ? 'h-burn' : '') + ' of its ' + (c.max_supply > 0 ? 'maximum' : 'total') + ' supply is already unlocked');
-    var u = (typeof _tokenUnlocks !== 'undefined' && c.id && _tokenUnlocks[c.id]) || null;
-    var up30 = u && u.unlock30d_pct != null ? Number(u.unlock30d_pct) : null;
-    if (all) { /* nothing left to unlock */ }
-    else if (up30 == null) sup.push('it has no published unlock schedule');
-    else if (up30 > 0) sup.push('another ' + up30.toFixed(1) + '% unlocks in the next 30 days' + (u.next_unlock_at ? ' (next on ' + _esc(String(u.next_unlock_at).slice(0, 10)) + ')' : ''));
-    else sup.push('nothing unlocks in the next 30 days');
-    if (burn) sup.push('it has an active burn, so its supply shrinks over time');
-    var st2 = sup.join(', and ');
-    more.push(['Supply', (st2.charAt(0) === '<' ? st2 : st2.charAt(0).toUpperCase() + st2.slice(1)) + '.', 1]);
   }
   /* o[2]: the text is already HTML (heat colours), its parts escaped. */
   var body = more.map(function (o) { return '<span class="td-ir"><b>' + o[0] + '</b> ' + (o[2] ? o[1] : _esc(o[1])) + '</span>'; }).join('')
@@ -793,7 +796,7 @@ function _tdIndRead(c, R, tech, trust) {
        have. The line that stays is the plain one. */
     + '<span class="td-ir td-ir-trust">A reading, not a forecast.</span>';
   h += '<details class="td-story-more"><summary><span class="td-more-i" aria-hidden="true">i</span> '
-    + 'Score, futures and supply</summary>' + body + '</details>';
+    + 'Score and futures</summary>' + body + '</details>';
   return '<div class="td-story-ind">' + h + '</div>';
 }
 
