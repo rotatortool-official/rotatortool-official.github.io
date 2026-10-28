@@ -7210,6 +7210,22 @@ a.mob-more-item{text-decoration:none;color:inherit;}
 .td-story-p2.good b{color:var(--green);}
 .td-story-p2.warn b{color:var(--amber,#f0b90b);}
 .td-story-p2.bad b{color:var(--red);}
+/* Momentum and turn signals in full colour; the rest behind the ⓘ. */
+.td-story-ind{margin-top:10px;display:flex;flex-direction:column;gap:7px;}
+.td-sl{display:grid;grid-template-columns:76px 1fr;gap:8px;align-items:baseline;font-size:13.5px;line-height:1.45;color:var(--text);}
+.td-sl-k{font:700 10.5px/1.6 var(--lp-mono,monospace);letter-spacing:.12em;text-transform:uppercase;color:var(--amber,#f0b90b);}
+.td-sl-v b{font-weight:800;}
+.td-sl-v .up,.td-sl-v b.up{color:var(--green);font-weight:700;}
+.td-sl-v .dn,.td-sl-v b.dn{color:var(--red);font-weight:700;}
+.td-sl-v b.warn{color:var(--amber,#f0b90b);}
+.td-sl-ctx{display:block;font-size:12.5px;color:var(--muted);margin-top:2px;}
+.td-story-more{font-size:13px;line-height:1.5;color:var(--text);}
+.td-story-more > summary{cursor:pointer;list-style:none;display:inline-flex;align-items:center;gap:7px;font-size:12.5px;color:var(--muted);}
+.td-story-more > summary::-webkit-details-marker{display:none;}
+.td-story-more > summary:hover{color:var(--text);}
+.td-more-i{display:inline-grid;place-items:center;width:17px;height:17px;border-radius:50%;border:1.5px solid var(--amber,#f0b90b);color:var(--amber,#f0b90b);font:800 11px/1 Georgia,serif;font-style:italic;}
+.td-story-more[open] > summary{margin-bottom:6px;color:var(--text);}
+.td-ir-trust,.td-ir-lock{color:var(--muted);}
 .td-story-read > .td-story-p3{color:var(--muted);font-size:13px;line-height:1.5;}
 /* One fact per line, a short label first (packed, still text). */
 .td-ir{display:block;padding:3px 0;}
@@ -7225,7 +7241,8 @@ a.mob-more-item{text-decoration:none;color:inherit;}
 .td-story-trust[open] > summary::before{content:'\25BE  ';}
 @media (max-width:760px){ .td-story-read > p{font-size:13.5px;} }
 :root.light .td-story-read > .td-story-p3{color:#4a5a6e;}
-:root.light .td-ir > b{color:#835f00;}
+:root.light .td-ir > b,:root.light .td-sl-k{color:#835f00;}
+:root.light .td-more-i{border-color:#835f00;color:#835f00;}
 :root.light .td-story-p2.warn b{color:#a86a0c;}
 .td-story.is-told .td-story-read{opacity:0;animation:tdWordIn .4s ease .5s forwards;}
 .td-expanded .td-story-read{display:none !important;}
