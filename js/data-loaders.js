@@ -5573,6 +5573,7 @@ function openTileDetail(coinId, evt) {
   }
 
   /* Warnings, the reading and the turn signals at the top (coin-reading.js). */
+  if (typeof tdMiniChart === 'function') tdMiniChart(c);
   if (typeof renderCoinReading === 'function') renderCoinReading(c);
 
   /* Full-screen view for Pro on desktop (js/coin-expand.js). */

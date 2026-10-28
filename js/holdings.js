@@ -825,9 +825,27 @@ function _hcLoad(sym) {
   }).catch(function() { return []; });
 }
 
+/* The coin window's price chart, at the top of the small window for every
+   coin (Daniel, 2026-10-28). Same drawing as the holding chart; a held
+   coin's average line shows here only where its holding chart is allowed
+   (2 free / 10 Pro), and then the chart under "Your position" steps aside. */
+function tdMiniChart(c) {
+  var sec = document.getElementById('td-mini-sec'), box = document.getElementById('td-mini-chart');
+  if (!sec || !box) return;
+  if (!c || c.isStable) { sec.style.display = 'none'; box.innerHTML = ''; return; }
+  sec.style.display = '';
+  box.setAttribute('data-sym', c.sym);
+  if (!_hcCache[c.sym]) box.innerHTML = '<div class="tdp-note">Loading the price chart…</div>';
+  _hcLoad(c.sym).then(function(rows) {
+    if (box.getAttribute('data-sym') !== c.sym) return;
+    _drawHoldingChart(box, c, rows);
+  });
+}
+
 function setHoldingChartRange(days) {
   _hcRange = days;
   if (typeof _tdCoin !== 'undefined' && _tdCoin) {
+    tdMiniChart(_tdCoin);
     if (_tdpHolding(_tdCoin)) _renderHoldingChart(_tdCoin);
     if (typeof tdxRenderChart === 'function') tdxRenderChart();
   }
@@ -843,7 +861,9 @@ function _drawHoldingChart(box, c, rows) {
     box.innerHTML = '<div class="tdp-note">No price history for this coin yet.</div>';
     return;
   }
-  var h = _tdpHolding(c), avg = h && Number(h.avg) > 0 ? Number(h.avg) : null;
+  var h = _tdpHolding(c);
+  if (h && box.id === 'td-mini-chart' && !holdingChartAllowed(c)) h = null;
+  var avg = h && Number(h.avg) > 0 ? Number(h.avg) : null;
   var vals = pts.map(function(p) { return p.v; });
   var vLo = Math.min.apply(null, vals), vHi = Math.max.apply(null, vals);
   /* Scenarios: the board chart, for Pro (see _hcScn below). */

@@ -7183,3 +7183,53 @@ a.mob-more-item{text-decoration:none;color:inherit;}
 @media (hover:none),(max-width:860px){
   *{backdrop-filter:none !important;-webkit-backdrop-filter:none !important;}
 }
+
+/* ── Coin window: chart first, then a "thinking" In short (2026-10-28) ──
+   tdMiniChart() in js/holdings.js; _tdStoryHtml() / _tdStoryThink() in
+   js/coin-reading.js. Chart and animation are in both themes. */
+#td-mini-sec{margin-bottom:10px;}
+#td-mini-sec .tdp-chart{margin-bottom:0;}
+.td-expanded #td-mini-sec{display:none !important;}
+/* A held coin's chart with its average is now the one on top. */
+.tile-detail:not(.td-expanded) #td-edit-hold-sec .tdp-chart:not(:has(.tdp-lock)){display:none;}
+
+.td-story-logo{position:relative;flex:0 0 auto;width:22px;height:22px;display:grid;place-items:center;}
+.td-story-logo img{width:22px;height:22px;border-radius:6px;display:block;}
+.td-story-logo::after{content:"";position:absolute;inset:-4px;border-radius:50%;border:2px solid transparent;opacity:0;}
+.td-story.is-thinking .td-story-logo::after{opacity:1;border-top-color:var(--amber,#f0b90b);border-right-color:rgba(243,186,47,.35);animation:tdThinkSpin .8s linear infinite;}
+.td-story.is-thinking .td-story-logo img{animation:tdThinkPulse 1.1s ease-in-out infinite;}
+.td-story.is-thinking .td-story-p,.td-story.is-thinking .td-story-share{display:none;}
+.td-think-t{font-size:14px;font-weight:700;color:var(--text);margin:2px 0 6px;}
+.td-think ul{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:4px;}
+.td-think li{position:relative;padding-left:18px;font-size:12.5px;color:var(--muted);opacity:.35;transition:opacity .2s;}
+.td-think li::before{content:"";position:absolute;left:3px;top:5px;width:7px;height:7px;border-radius:50%;border:1.5px solid var(--muted);}
+.td-think li.now{opacity:1;color:var(--text);}
+.td-think li.now::before{border-color:var(--amber,#f0b90b);border-right-color:transparent;animation:tdThinkSpin .6s linear infinite;}
+.td-think li.done{opacity:.8;}
+.td-think li.done::before{content:"✓";border:none;width:auto;height:auto;top:0;left:2px;font-size:11px;line-height:1.5;color:var(--green);}
+.td-story.is-told .td-think{display:none;}
+.td-story.is-told .td-story-p span{opacity:0;animation:tdWordIn .35s ease forwards;}
+@keyframes tdThinkSpin{to{transform:rotate(360deg);}}
+@keyframes tdThinkPulse{0%,100%{transform:scale(1);}50%{transform:scale(.88);}}
+@keyframes tdWordIn{from{opacity:0;transform:translateY(3px);}to{opacity:1;transform:none;}}
+@media (prefers-reduced-motion:reduce){.td-story.is-told .td-story-p span{animation:none;opacity:1;}}
+
+/* ── Landing-page hierarchy in the coin window, small and big (light
+   theme first, light-theme-is-the-experimental-board; port to dark on
+   Daniel's word). The landing's order: gold monospace eyebrow → heavy,
+   tight headline → lead (first part bold, the rest muted) → monospace
+   numbers over small monospace labels. Tokens copied from index.html. */
+:root{--lp-mono:ui-monospace,'SF Mono','Cascadia Mono',Menlo,monospace;}
+:root.light{--lp-gold-ink:#835f00;}
+:root.light :is(.td-story-t){font:700 11.5px/1 var(--lp-mono);letter-spacing:.16em;color:var(--lp-gold-ink);}
+:root.light :is(#td-panel .td-section-title,.tdx-card-h){font-family:var(--lp-mono);font-weight:700;letter-spacing:.12em;color:#5f6d82;opacity:1;}
+:root.light #td-panel .tdh-sym{font:800 19px/1.1 var(--lp-mono);letter-spacing:-.01em;}
+:root.light #td-panel .tdh-price{font:800 18px/1.1 var(--lp-mono);letter-spacing:-.02em;}
+:root.light .td-expanded .tdh-sym{font-size:26px;}
+:root.light .td-expanded .tdh-price{font-size:28px;}
+:root.light .td-story-p{color:#4a5a6e;}
+:root.light .td-story-p b{color:#0f1724;font-weight:700;}
+:root.light .td-think-t{font-weight:800;letter-spacing:-.01em;}
+:root.light .td-reading-hd{font-weight:800;letter-spacing:-.015em;}
+:root.light #td-panel .td-kv-v,:root.light #td-panel .tdp-read b{font-family:var(--lp-mono);font-weight:800;letter-spacing:-.01em;}
+:root.light #td-panel .td-kv-k{font-size:12.5px;}
