@@ -7290,3 +7290,21 @@ a.mob-more-item{text-decoration:none;color:inherit;}
 :root.light .td-reading-hd{font-weight:800;letter-spacing:-.015em;}
 :root.light #td-panel .td-kv-v,:root.light #td-panel .tdp-read b{font-family:var(--lp-mono);font-weight:800;letter-spacing:-.01em;}
 :root.light #td-panel .td-kv-k{font-size:12.5px;}
+
+/* Heat colours (_tdHeatCls in js/coin-reading.js): supply unlocked, the
+   score and its parts. Red under 20, orange under 40, neutral to 65,
+   light green to 80, green above; an active burn glows. */
+.td-heat{font-weight:800;}
+.td-heat.h-bad{color:#ea3943;}
+.td-heat.h-low{color:#ff7a45;}
+.td-heat.h-mid{color:var(--text);}
+.td-heat.h-ok{color:#7bd36a;}
+.td-heat.h-good{color:#16c784;}
+.td-heat.h-burn{color:#16c784;text-shadow:0 0 8px rgba(22,199,132,.75),0 0 16px rgba(22,199,132,.35);}
+:root.light .td-heat.h-bad{color:#dc2626;}
+:root.light .td-heat.h-low{color:#c2410c;}
+:root.light .td-heat.h-ok{color:#4d9a3a;}
+:root.light .td-heat.h-good,:root.light .td-heat.h-burn{color:#059669;}
+:root.light .td-heat.h-burn{text-shadow:0 0 8px rgba(5,150,105,.45);}
+/* A heat number inside an ⓘ line is text, not the line's label. */
+.td-ir > b.td-heat{display:inline;min-width:0;font:inherit;font-weight:800;letter-spacing:normal;text-transform:none;}

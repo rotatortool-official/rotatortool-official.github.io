@@ -332,6 +332,22 @@ function _tdOpenFold(secId) {
 /* The key facts, one short chip each, in the order a holder asks:
    how has it done, is it stretched or washed out, what is the trend,
    and is new supply coming. Each chip opens the section with the rest. */
+/* Heat colours for a share out of 100 (Daniel, 2026-10-28): the supply
+   unlocked "near 50% should be neutral, below that should turn orange,
+   and below 20% should turn red", 90% green; "also apply that to the
+   score". Five steps, one scale for the supply %, the score and the
+   score's parts (as a share of their maximum). A coin with an active
+   burn (TOKENOMICS_DB deflation 'full', e.g. BNB) gets green with a glow
+   on its supply: "the tokenomics are really good on that coin". */
+function _tdHeatCls(pct) {
+  return pct < 20 ? 'h-bad' : pct < 40 ? 'h-low' : pct < 65 ? 'h-mid' : pct < 80 ? 'h-ok' : 'h-good';
+}
+function _tdHeat(txt, pct, extra) { return '<b class="td-heat ' + _tdHeatCls(pct) + (extra ? ' ' + extra : '') + '">' + txt + '</b>'; }
+function _tdBurns(c) {
+  var t = typeof TOKENOMICS_DB !== 'undefined' && c && c.id ? TOKENOMICS_DB[c.id] : null;
+  return !!(t && t.deflation === 'full');
+}
+
 function _tdKeyFacts(c, tech) {
   var chips = [], kvs = [];
   /* Each fact is written twice: a chip (.td-facts, hidden since
@@ -352,8 +368,11 @@ function _tdKeyFacts(c, tech) {
       'Daily RSI', rsi.toFixed(0) + rl);
   }
   var circ = c.circulating_supply, basis = c.max_supply > 0 ? c.max_supply : (c.total_supply > 0 ? c.total_supply : null);
-  if (circ && basis) chip('Supply ' + Math.round((circ / basis) * 100) + '% unlocked', '', 'td-supply-sec', 'Circulating supply as a share of ' + (c.max_supply > 0 ? 'max' : 'total') + ' supply',
-    'Supply unlocked', Math.round((circ / basis) * 100) + '%');
+  if (circ && basis) {
+    var sp = Math.round((circ / basis) * 100), burn = _tdBurns(c);
+    chip('Supply ' + sp + '% unlocked', '', 'td-supply-sec', 'Circulating supply as a share of ' + (c.max_supply > 0 ? 'max' : 'total') + ' supply' + (burn ? '. Active burn: supply shrinks over time.' : ''),
+      'Supply unlocked', _tdHeat(sp + '%' + (burn ? ' · burns' : ''), burn ? 100 : sp, burn ? 'h-burn' : ''));
+  }
   var u = (typeof _tokenUnlocks !== 'undefined' && c.id && _tokenUnlocks[c.id]) || null;
   var pct = u && u.unlock30d_pct != null ? Number(u.unlock30d_pct) : null;
   var line = (window.RotatorEngine && window.RotatorEngine.UNLOCK_PENDING_PCT != null) ? window.RotatorEngine.UNLOCK_PENDING_PCT : 5;
@@ -709,7 +728,7 @@ function _tdIndRead(c, R, tech, trust) {
     var r = tech.rsiD, z = r <= 30 ? ['oversold zone', 'dn'] : r >= 85 ? ['overbought', 'warn'] : r >= 70 ? ['gaining momentum', 'up'] : ['normal range', ''];
     mom.push('Daily RSI <b class="' + z[1] + '">' + r.toFixed(0) + '</b>, ' + z[0]);
   }
-  if (bd && typeof bd.layer1 === 'number') mom.push('<b>' + Math.round(bd.layer1) + '/40</b> on the score\'s momentum part');
+  if (bd && typeof bd.layer1 === 'number') mom.push(_tdHeat(Math.round(bd.layer1) + '/40', bd.layer1 / 40 * 100) + ' on the score\'s momentum part');
   if (mom.length) h += '<div class="td-sl"><span class="td-sl-k">Momentum</span><span class="td-sl-v">' + mom.join(' · ') + '</span></div>';
   /* Turn signals by name, coloured by direction, under the Turn signals group names. */
   var GRP = { ahead: ['May keep going', 'Cooling'], lagging: ['Turning up', 'Weakening'],
@@ -727,18 +746,18 @@ function _tdIndRead(c, R, tech, trust) {
   var more = [];
   {
     if (typeof c.score === 'number') {
-      var t = Math.round(c.score) + ' of 100';
+      var t = _tdHeat(Math.round(c.score), c.score) + ' of 100';
       if (bd) {
         var L = [['momentum', bd.layer1, 40], ['macro strength', bd.layer2, 30]];
         if (!bd.partial) L.push(['tokenomics', bd.layer3, 30]);
         L = L.filter(function (l) { return typeof l[1] === 'number'; });
         if (L.length > 1) {
           L.sort(function (x, y) { return y[1] / y[2] - x[1] / x[2]; });
-          var f = function (l) { return l[0] + ' (' + Math.round(l[1]) + '/' + l[2] + ')'; };
+          var f = function (l) { return l[0] + ' (' + _tdHeat(Math.round(l[1]) + '/' + l[2], l[1] / l[2] * 100) + ')'; };
           t += ', strongest in ' + f(L[0]) + ', weakest in ' + f(L[L.length - 1]);
         }
       }
-      more.push(['Score', t + '.']);
+      more.push(['Score', t + '.', 1]);
     }
     var fu = typeof _futuresBySym !== 'undefined' ? _futuresBySym[c.sym] : null;
     if (fu && fu.open_interest_value) {
@@ -750,22 +769,25 @@ function _tdIndRead(c, R, tech, trust) {
       var oi = fu.oi_change_24h_pct != null ? Number(fu.oi_change_24h_pct) : null, pc = fu.price_change_pct_24h != null ? Number(fu.price_change_pct_24h) : null;
       if (oi != null) bits.push('open interest ' + (oi >= 0 ? 'rose ' : 'fell ') + Math.abs(oi).toFixed(1) + '% in 24 hours'
         + (pc == null ? '' : pc >= 0 ? (oi >= 0 ? ' (new money)' : ' (short covering)') : (oi >= 0 ? ' (new shorts)' : ' (unwinding)')));
-      if (bits.length) { var bt = (bits.length > 1 ? bits.slice(0, -1).join(', ') + ' and ' + bits[bits.length - 1] : bits[0]); more.push(['Futures', bt.charAt(0).toUpperCase() + bt.slice(1) + ' on Binance.']); }
+      if (bits.length) { var bt = (bits.length > 1 ? bits.slice(0, -1).join(', ') + ' and ' + bits[bits.length - 1] : bits[0]); more.push(['Futures', _esc(bt.charAt(0).toUpperCase() + bt.slice(1) + ' on Binance.'), 1]); }
     }
     var sup = [], circ = c.circulating_supply, basis = c.max_supply > 0 ? c.max_supply : (c.total_supply > 0 ? c.total_supply : null);
     var all = circ && basis && circ / basis >= 0.995;
-    if (all) sup.push('all of its supply is already unlocked');
-    else if (circ && basis) sup.push(Math.round(circ / basis * 100) + '% of its ' + (c.max_supply > 0 ? 'maximum' : 'total') + ' supply is already unlocked');
+    var burn = _tdBurns(c), spc = circ && basis ? Math.round(circ / basis * 100) : null;
+    if (all) sup.push(_tdHeat('all', 100, burn ? 'h-burn' : '') + ' of its supply is already unlocked');
+    else if (spc != null) sup.push(_tdHeat(spc + '%', burn ? 100 : spc, burn ? 'h-burn' : '') + ' of its ' + (c.max_supply > 0 ? 'maximum' : 'total') + ' supply is already unlocked');
     var u = (typeof _tokenUnlocks !== 'undefined' && c.id && _tokenUnlocks[c.id]) || null;
     var up30 = u && u.unlock30d_pct != null ? Number(u.unlock30d_pct) : null;
     if (all) { /* nothing left to unlock */ }
     else if (up30 == null) sup.push('it has no published unlock schedule');
-    else if (up30 > 0) sup.push('another ' + up30.toFixed(1) + '% unlocks in the next 30 days' + (u.next_unlock_at ? ' (next on ' + String(u.next_unlock_at).slice(0, 10) + ')' : ''));
+    else if (up30 > 0) sup.push('another ' + up30.toFixed(1) + '% unlocks in the next 30 days' + (u.next_unlock_at ? ' (next on ' + _esc(String(u.next_unlock_at).slice(0, 10)) + ')' : ''));
     else sup.push('nothing unlocks in the next 30 days');
+    if (burn) sup.push('it has an active burn, so its supply shrinks over time');
     var st2 = sup.join(', and ');
-    more.push(['Supply', st2.charAt(0).toUpperCase() + st2.slice(1) + '.']);
+    more.push(['Supply', (st2.charAt(0) === '<' ? st2 : st2.charAt(0).toUpperCase() + st2.slice(1)) + '.', 1]);
   }
-  var body = more.map(function (o) { return '<span class="td-ir"><b>' + o[0] + '</b> ' + _esc(o[1]) + '</span>'; }).join('')
+  /* o[2]: the text is already HTML (heat colours), its parts escaped. */
+  var body = more.map(function (o) { return '<span class="td-ir"><b>' + o[0] + '</b> ' + (o[2] ? o[1] : _esc(o[1])) + '</span>'; }).join('')
     /* Daniel, 2026-10-28: drop "None of these signs has been tested yet";
        not every sign is ours to test, they are read from the sources we
        have. The line that stays is the plain one. */
