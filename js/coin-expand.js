@@ -352,9 +352,11 @@ function _tdxFill() {
     ft.className = 'tdx-foot';
     ft.innerHTML = _tdxFresh(c) + '<div class="tdx-note"><span>A reading of the past, not a forecast.</span> <span>Not financial advice.</span></div>';
   }
-  /* RSI and Positioning are lines of the Rotator summary now (Score,
-     Momentum, Supply, Futures); the cards left to unclog the column. */
-  if (mom) [].slice.call(mom.querySelectorAll('.tdx-rsi,.tdx-pos')).forEach(function(el) { el.remove(); });
+  /* RSI is a line of the Rotator summary now, so its card left; the
+     Positioning card with the green/red long-short bar came back (Daniel,
+     2026-10-29: "we build positioning red green bar but somehow it got
+     lost"). */
+  if (mom) { _tdxMomExtra(c, mom); [].slice.call(mom.querySelectorAll('.tdx-rsi')).forEach(function(el) { el.remove(); }); }
 
   /* #tdx-chart may sit in the What if box (_tdxTv): look for it anywhere. */
   if (!document.getElementById('tdx-chart')) chart.innerHTML = '<div class="tdp-chart" id="tdx-chart"></div>';

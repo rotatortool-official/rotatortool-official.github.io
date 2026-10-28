@@ -806,7 +806,11 @@ function _tdIndRead(c, R, tech, trust) {
       var oi = fu.oi_change_24h_pct != null ? Number(fu.oi_change_24h_pct) : null, pc = fu.price_change_pct_24h != null ? Number(fu.price_change_pct_24h) : null;
       if (oi != null) bits.push('open interest ' + (oi >= 0 ? 'rose ' : 'fell ') + Math.abs(oi).toFixed(1) + '% in 24 hours'
         + (pc == null ? '' : pc >= 0 ? (oi >= 0 ? ' (new money)' : ' (short covering)') : (oi >= 0 ? ' (new shorts)' : ' (unwinding)')));
-      if (bits.length) { var bt = (bits.length > 1 ? bits.slice(0, -1).join(', ') + ' and ' + bits[bits.length - 1] : bits[0]); more.push(['Futures', _esc(bt.charAt(0).toUpperCase() + bt.slice(1) + ' on Binance.'), 1]); }
+      /* The same green/red long-short bar as the big card's Positioning card. */
+      var lp = ls > 0 ? Math.round(ls / (1 + ls) * 100) : null;
+      var bar = lp == null ? '' : '<div class="tdx-ls"><div class="tdx-ls-bar"><span class="tdx-ls-l" style="width:' + lp + '%">' + (lp >= 22 ? 'Long ' + lp + '%' : '') + '</span>'
+        + '<span class="tdx-ls-s" style="width:' + (100 - lp) + '%">' + (100 - lp >= 22 ? 'Short ' + (100 - lp) + '%' : '') + '</span></div></div>';
+      if (bits.length) { var bt = (bits.length > 1 ? bits.slice(0, -1).join(', ') + ' and ' + bits[bits.length - 1] : bits[0]); more.push(['Futures', _esc(bt.charAt(0).toUpperCase() + bt.slice(1) + ' on Binance.') + bar, 1]); }
     }
   }
   /* Score and Futures shown with the rest, no ⓘ to click (Daniel,

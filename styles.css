@@ -913,7 +913,7 @@ body::before{content:'';position:fixed;inset:0;background:repeating-linear-gradi
 .td-expanded .tdx-dash:not(.tdx-tvlay) .tdx-wif{display:none;}
 .td-expanded .tdx-dash.tdx-tvlay{grid-template-rows:minmax(0,2fr) minmax(0,1fr) auto;
   grid-template-columns:minmax(0,1.15fr) repeat(3,minmax(0,1fr)) minmax(0,1.45fr);
-  grid-template-areas:"mom chart chart chart sum" "sig det det det wif" "share share share share share";}
+  grid-template-areas:"mom chart chart chart sum" "mom sig det det wif" "share share share share share";}
 @media(max-width:1500px){
   .td-expanded .tdx-dash.tdx-tvlay{grid-template-columns:minmax(0,1.1fr) repeat(3,minmax(0,1fr)) minmax(0,1.55fr);}
 }
@@ -932,7 +932,9 @@ body::before{content:'';position:fixed;inset:0;background:repeating-linear-gradi
 }
 /* Laptop screens (up to 860px tall): Momentum and Pointing up/down do
    not fit one column, so Momentum runs full height again and Pointing
-   up/down sits under the chart, left of the tabs. */
+   up/down sits under the chart, left of the tabs. Since 2026-10-29 the
+   left column (Evaluation, Performance, Positioning) runs full height on
+   every screen, so this rule only repeats the default. */
 @media(max-height:860px){
   .td-expanded .tdx-dash.tdx-tvlay{grid-template-areas:"mom chart chart chart sum" "mom sig det det wif" "share share share share share";}
 }
@@ -7353,3 +7355,10 @@ a.mob-more-item{text-decoration:none;color:inherit;}
 .td-ri-lock-b span{font-size:12.5px;line-height:1.45;color:var(--text);}
 :root.light .td-ri-lock-b{background:rgba(255,255,255,.9);}
 @media (max-width:600px){ .td-mini-tv{height:320px;} .td-mini-ri{height:380px;} }
+
+/* The long/short bar outside the big card too (summary's Futures line, 2026-10-29). */
+.td-story .tdx-ls{margin-top:6px;}
+.td-story .tdx-ls-bar{display:flex;height:20px;border-radius:6px;overflow:hidden;gap:2px;font:700 11px/20px var(--font-ui);}
+.td-story .tdx-ls-bar > span{display:block;min-width:4px;white-space:nowrap;overflow:hidden;color:#fff;}
+.td-story .tdx-ls-l{background:var(--green);padding-left:7px;text-align:left;}
+.td-story .tdx-ls-s{background:var(--red);padding-right:7px;text-align:right;}
