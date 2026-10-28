@@ -4787,6 +4787,12 @@ function openTileDetail(coinId, evt) {
           +'<div class="td-cell-l">RSI 85+</div><div class="td-cell-v dn">+'+bd.rsiExhaustion+'</div></div>'
         : '');
     bdEl.style.gridTemplateColumns = 'repeat(' + (bd.rsiExhaustion > 0 ? 4 : 3) + ',1fr)';
+    /* The three parts are the Pro summary's Score line (Daniel, 2026-10-28:
+       what is inside the Pro button must not be free elsewhere). */
+    if (!_tdIsPro()) {
+      bdEl.innerHTML = _tdProLock('Momentum, macro strength and tokenomics, the three parts of the score, are in the Pro summary.');
+      bdEl.style.gridTemplateColumns = '1fr';
+    }
     bdSec.style.display = '';
 
     /* Honest scope disclosure — shown once, directly under the numbers
@@ -5501,7 +5507,8 @@ function openTileDetail(coinId, evt) {
   var insSec = document.getElementById('td-insight-sec');
   var insEl  = document.getElementById('td-insight-content');
   var crossTile = _tdCrossTile(c);
-  var unlockTile = _tdUnlockTile(c);
+  /* The next 30 days' unlock is a line of the Pro summary (2026-10-28). */
+  var unlockTile = _tdIsPro() ? _tdUnlockTile(c) : '';
   if (insSec && insEl) {
     /* Identity via the shared helpers, so a ticker shared by two coins
        cannot unlock one coin's Insight section from the other. */
@@ -5550,6 +5557,7 @@ function openTileDetail(coinId, evt) {
       insSec.style.display = '';
     } else {
       insSec.style.display = 'none';
+      insEl.innerHTML = '';   /* no leftover from the coin before */
     }
     /* Open the section when there is a fresh cross to see. */
     var insDet = insSec.querySelector('details');
