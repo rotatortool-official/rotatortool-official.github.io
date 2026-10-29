@@ -7740,3 +7740,49 @@ body.has-tabs .tb-dropdown-wrap:has(> #pro-topbar-btn){display:none;}
 /* Every tab looks the same until it is the one you are on (Daniel: the
    outlined My coins read as "selected" when it was not). */
 body.has-tabs .btab-mine{border:0;border-radius:10px;margin-left:0;}
+
+/* ── Support window, same family as the Pro window (Daniel, 2026-10-29) ──
+   Light: warm cream, thin dark outline, lilac buttons, forest-green labels.
+   Dark: charcoal, light hairlines, lilac buttons, mint labels. Same words. */
+body.has-tabs #donate-modal .modal{
+  --bg2:#ffffeb;--bg3:#fffdf2;--text:#1d1c16;--muted:#5f5c4c;--dim:#5f5c4c;--bdr:rgba(29,28,22,.12);--bdr2:rgba(29,28,22,.22);
+  --pro:#034f46;--green:#034f46;--amber:#034f46;--bnb:#034f46;--bnbd:rgba(3,79,70,.08);
+  background:#ffffeb !important;color:#1d1c16;border:1.5px solid #1d1c16 !important;border-radius:30px !important;box-shadow:0 30px 90px rgba(0,0,0,.28) !important;padding:34px 38px !important;}
+:root:not(.light) body.has-tabs #donate-modal .modal{
+  --bg2:#17171a;--bg3:#1f1f23;--text:#f2efe6;--muted:#a9a59a;--dim:#a9a59a;--bdr:rgba(255,255,255,.08);--bdr2:rgba(255,255,255,.14);
+  --pro:#9fe3d0;--green:#9fe3d0;--amber:#9fe3d0;--bnb:#9fe3d0;--bnbd:rgba(159,227,208,.08);
+  background:#17171a !important;color:#f2efe6;border:1px solid rgba(255,255,255,.16) !important;box-shadow:0 30px 90px rgba(0,0,0,.6) !important;}
+body.has-tabs #donate-modal .modal *{text-shadow:none !important;}
+body.has-tabs #donate-modal .modal-x{color:var(--text);background:var(--bg2);border:1.5px solid var(--bdr2);border-radius:50%;}
+body.has-tabs #donate-modal .modal-title{font:400 44px/1.05 'Instrument Serif',Georgia,serif;color:var(--text);letter-spacing:-.01em;margin-bottom:8px;}
+body.has-tabs #donate-modal .modal-sub{font-size:15px;line-height:1.55;color:var(--muted);max-width:620px;margin-bottom:18px;}
+body.has-tabs #donate-modal .sp-split{gap:12px;margin-bottom:14px;}
+body.has-tabs #donate-modal .sp-col,body.has-tabs #donate-modal #donate-modal-goal,body.has-tabs #donate-modal .sup-l > div[style*="background:var(--bg3)"]{
+  background:var(--bg3) !important;border:1.5px solid var(--bdr2) !important;border-radius:24px !important;padding:16px 18px !important;box-shadow:none !important;}
+body.has-tabs #donate-modal .sp-col.sp-pro{background:#f7ebff !important;border-color:#1d1c16 !important;}
+:root:not(.light) body.has-tabs #donate-modal .sp-col.sp-pro{background:#251d2b !important;border-color:rgba(240,215,255,.45) !important;}
+body.has-tabs #donate-modal .sp-h{font-size:15px;font-weight:700;color:var(--text);}
+body.has-tabs #donate-modal .sp-t{font-size:13.5px;line-height:1.5;color:var(--muted);}
+body.has-tabs #donate-modal .sp-k,body.has-tabs #donate-modal .don-builds,body.has-tabs #donate-modal .network-tag,
+body.has-tabs #donate-modal .sup-r > div:not(.addr-box):not(.modal-note):first-child,body.has-tabs #donate-modal .sup-r > div:nth-child(2){
+  color:var(--pro) !important;font-size:11px !important;font-weight:800;letter-spacing:.12em !important;text-transform:uppercase;}
+body.has-tabs #donate-modal .don-line{font-size:13.5px !important;}
+body.has-tabs #donate-modal .addr-box{background:var(--bg3);border:1.5px solid var(--bdr2);border-radius:14px;color:var(--text);font-size:12.5px;padding:10px 12px;word-break:break-all;}
+body.has-tabs #donate-modal button:not(.modal-x),body.has-tabs #donate-modal .community-btn{
+  background:#f0d7ff !important;color:#1d1c16 !important;border:1.5px solid #1d1c16 !important;border-radius:999px !important;box-shadow:none !important;}
+:root:not(.light) body.has-tabs #donate-modal button:not(.modal-x),:root:not(.light) body.has-tabs #donate-modal .community-btn{border-color:#f0d7ff !important;}
+body.has-tabs #donate-modal .community-btn{border-radius:20px !important;}
+body.has-tabs #donate-modal .community-btn-soon{opacity:.55;}
+body.has-tabs #donate-modal .copy-btn{display:inline-block !important;width:auto !important;height:32px !important;min-height:0 !important;line-height:29px !important;padding:0 16px !important;
+  margin:6px 0 14px !important;font-size:13px !important;font-weight:600 !important;letter-spacing:0 !important;text-transform:lowercase;box-sizing:border-box !important;}
+body.has-tabs #donate-modal .copy-btn::first-letter{text-transform:uppercase;}
+body.has-tabs #donate-modal .modal-note{color:var(--muted);font-size:12.5px;}
+body.has-tabs #donate-modal a:not(.community-btn){color:var(--pro) !important;}
+@media (min-width:1000px){
+  body.has-tabs #donate-modal .modal.sup-wide{max-width:1080px;width:calc(100vw - 80px);}
+  body.has-tabs #donate-modal .sup-split{display:grid;grid-template-columns:minmax(0,1.15fr) minmax(0,1fr);gap:0 32px;align-items:start;}
+  body.has-tabs #donate-modal .sup-r{position:sticky;top:0;border:1.5px solid var(--bdr2);border-radius:24px;padding:18px 20px;background:var(--bg3);}
+}
+body.has-tabs #donate-modal .network-tag{display:block !important;background:none !important;border:0 !important;padding:0 !important;margin:16px 0 6px !important;}
+body.has-tabs #donate-modal .sup-r .network-tag:first-of-type{margin-top:6px !important;}
+body.has-tabs #donate-modal .sp-link{padding:6px 14px !important;margin-top:8px;font-size:12.5px !important;font-weight:700;}

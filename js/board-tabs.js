@@ -346,6 +346,7 @@
   if (typeof openModal0 === 'function') window.openModal = function (id) {
     var r = openModal0.apply(this, arguments);
     fcSplit(id); setTimeout(function () { fcSplit(id); }, 500); setTimeout(function () { fcSplit(id); }, 1500);
+    if (id === 'donate-modal') supSplit();
     return r;
   };
 
@@ -366,6 +367,21 @@
   rail.appendChild(pc);
   function proCard() { pc.style.display = (typeof isPro !== 'undefined' && isPro) ? 'none' : ''; }
   proCard(); setInterval(proCard, 4000);
+
+  /* ── Support window on desktop: why to support on the left, how to pay
+     on the right (Daniel, 2026-10-29: "in line with the rest"). The markup
+     is fixed, so it is split once. ── */
+  function supSplit() {
+    var m = document.querySelector('#donate-modal .modal'); if (!m || window.innerWidth < 1000 || m.classList.contains('sup-wide')) return;
+    var body = m.querySelector(':scope > div[style*="overflow-y"]'); if (!body) return;
+    var kids = Array.prototype.slice.call(body.children);
+    var a = kids.findIndex(function (k) { return /^Payment Methods/i.test((k.textContent || '').trim()); });
+    var b = kids.findIndex(function (k) { return /Need help\?/.test(k.textContent || ''); });
+    if (a < 0 || b < a) return;
+    var L = document.createElement('div'), R = document.createElement('div'); L.className = 'sup-l'; R.className = 'sup-r';
+    kids.forEach(function (k, i) { (i >= a && i <= b ? R : L).appendChild(k); });
+    body.appendChild(L); body.appendChild(R); body.classList.add('sup-split'); m.classList.add('sup-wide');
+  }
 
   /* ── Start: the address, else the last tab you used, else Today ── */
   var LEGACY = { 'sec-today': ['today'], 'sec-capital': ['flows'], 'sec-rotation': ['coins', 'best'], 'sec-liq': ['deriv'], 'sec-yours': ['mine'],
