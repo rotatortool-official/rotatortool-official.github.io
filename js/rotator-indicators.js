@@ -326,8 +326,8 @@ function _riDraw(host, c) {
     var rsiAt = {}; rsiData.forEach(function (p) { rsiAt[p.time] = p.value; });
     /* The dot sits where the two lines meet (Daniel, 2026-10-29: "the red
        dot should be on the crossing not after it"): the meeting point is
-       found between the two days, the dot takes that height and the day
-       nearer to it. Drawn as points of a line-less series, because a
+       found between the two days, the dot takes that height and sits on
+       the earlier day. Drawn as points of a line-less series, because a
        series marker can only sit on its own day's value. */
     var xs = [], prev = null;
     sData.forEach(function (p) {
@@ -335,7 +335,9 @@ function _riDraw(host, c) {
       var d = p.value - rv;
       if (prev && d !== 0 && (prev.d < 0) !== (d < 0)) {
         var t = prev.d / (prev.d - d);
-        xs.push({ time: t < 0.5 ? prev.time : p.time, value: prev.v + t * (p.value - prev.v), color: d > 0 ? red : green });
+        /* Always the day before the crossing, never after (Daniel: "a few
+           pixels before, not after the cross"), at the height they meet. */
+        xs.push({ time: prev.time, value: prev.v + t * (p.value - prev.v), color: d > 0 ? red : green });
       }
       if (d !== 0) prev = { d: d, v: p.value, time: p.time };
     });
@@ -347,6 +349,14 @@ function _riDraw(host, c) {
     }
   }
   var panes = chart.panes ? chart.panes() : [];
+  /* The panel's own label, written inside it (Daniel, 2026-10-29). */
+  if (panes[1] && LC.createTextWatermark) {
+    try {
+      var lightT = document.documentElement.classList.contains('light');
+      LC.createTextWatermark(panes[1], { horzAlign: 'left', vertAlign: 'bottom',
+        lines: [{ text: 'Powered by Rotator Insight Engine', color: lightT ? 'rgba(150,100,10,.75)' : 'rgba(243,186,47,.7)', fontSize: 11, fontStyle: 'bold' }] });
+    } catch (e) {}
+  }
   /* The Rotator Insight Engine panel (RSI + score) gets real room and follows
      the chart: same time scale, and its own scale fits what is in view. */
   panes.forEach(function (p, i) { if (p.setStretchFactor) p.setStretchFactor(i === 0 ? 3 : i === 1 ? 2 : 1); });
