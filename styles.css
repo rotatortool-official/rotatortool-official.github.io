@@ -7380,3 +7380,9 @@ a.mob-more-item{text-decoration:none;color:inherit;}
 .td-ins-slot:empty{display:none;}
 .td-ins-slot #td-insight-content{font-size:13px;}
 .td-expanded .td-story .tdx-ls{display:none;}
+
+/* Day | Week candles and the Rotator Insight Engine key (2026-10-29). */
+.ri-int{font:700 10.5px/1 inherit;padding:4px 7px;border-radius:5px;border:1px solid var(--bdr);background:transparent;color:var(--muted);cursor:pointer;}
+.ri-int.on{background:var(--amber,#f0b90b);color:#111;border-color:var(--amber,#f0b90b);}
+.ri-legend .ri-ie{color:var(--muted);}
+.ri-legend .ri-ie b{color:var(--amber,#f0b90b);font-size:11px;}

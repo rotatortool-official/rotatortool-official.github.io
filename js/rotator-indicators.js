@@ -43,6 +43,12 @@ var _riData = {};
    daily candles only (binance_daily_klines holds ~180 days), so the
    frames are how many days are in view. Kept in this browser. */
 var RI_FRAMES = [[30, '1M'], [90, '3M'], [180, '6M']];
+/* Day or week candles (Daniel, 2026-10-29). Weeks are built here from the
+   daily candles (Monday to Sunday, UTC), so ~31 weeks exist; RSI 14 and the
+   score then run on weekly closes. */
+var _riInt = (function () { try { return localStorage.getItem('rot_ri_int') === 'W' ? 'W' : 'D'; } catch (e) { return 'D'; } })();
+function _riWeek(day) { var d = new Date(day + 'T00:00:00Z'), w = (d.getUTCDay() + 6) % 7; d.setUTCDate(d.getUTCDate() - w); return d.toISOString().slice(0, 10); }
+function _riBars(n) { return _riInt === 'W' ? Math.ceil(n / 7) : n; }
 var _riFrame = (function () { try { return Number(localStorage.getItem('rot_ri_frame')) || 90; } catch (e) { return 90; } })();   /* sym -> [klines, events, scores], kept so a chip redraws without fetching */
 
 function _riLib() {
@@ -172,18 +178,26 @@ function _riDraw(host, c) {
   var text = _riCss('--text', '#d6dbe4'), muted = _riCss('--muted', '#8f9aab'), grid = _riCss('--bdr', 'rgba(128,128,128,.18)');
   var green = _riCss('--green', '#16c784'), red = _riCss('--red', '#ea3943'), gold = _riCss('--gold', '#f3ba2f');
   host.innerHTML = '<div class="ri-legend"><b>Rotator indicators</b>'
+    + '<span class="ri-frames ri-ints">' + [['D', 'Day'], ['W', 'Week']].map(function (f) { return '<button type="button" class="ri-int' + (f[0] === _riInt ? ' on' : '') + '" data-i="' + f[0] + '">' + f[1] + '</button>'; }).join('') + '</span>'
     + '<span class="ri-frames">' + RI_FRAMES.map(function (f) { return '<button type="button" class="ri-frame' + (f[0] === _riFrame ? ' on' : '') + '" data-d="' + f[0] + '">' + f[1] + '</button>'; }).join('') + '</span>'
     + ' <span class="up">▲ golden cross</span> <span class="dn">▼ death cross</span> <span class="ri-gold">● RSI back above 30</span>'
-    + ' <span class="ri-score-k">— score</span> <span class="ri-x">✕ score crossed RSI</span>'
+    + ' <span class="ri-ie"><b>Rotator Insight Engine</b> <span class="ri-gold">RSI 14</span> + <span class="ri-score-k">score</span>, ✕ where they cross</span>'
     + '<span class="ri-chips">' + RI_IND.map(function (x) {
       return '<button type="button" class="ri-chip' + (_riOn[x[0]] ? ' on' : '') + '" data-i="' + x[0] + '" aria-pressed="' + (_riOn[x[0]] ? 'true' : 'false') + '">' + x[1] + '</button>';
     }).join('') + '</span></div><div class="ri-chart"></div>';
+  host.querySelectorAll('.ri-int').forEach(function (b) {
+    b.addEventListener('click', function () {
+      _riInt = b.getAttribute('data-i');
+      try { localStorage.setItem('rot_ri_int', _riInt); } catch (e) {}
+      _riDraw(host, c);
+    });
+  });
   host.querySelectorAll('.ri-frame').forEach(function (b) {
     b.addEventListener('click', function () {
       _riFrame = Number(b.getAttribute('data-d'));
       try { localStorage.setItem('rot_ri_frame', String(_riFrame)); } catch (e) {}
       host.querySelectorAll('.ri-frame').forEach(function (x) { x.classList.toggle('on', x === b); });
-      if (_riChart && _riChart._riLen) _riChart.timeScale().setVisibleLogicalRange({ from: Math.max(0, _riChart._riLen - _riFrame), to: _riChart._riLen + 2 });
+      if (_riChart && _riChart._riLen) _riChart.timeScale().setVisibleLogicalRange({ from: Math.max(0, _riChart._riLen - _riBars(_riFrame)), to: _riChart._riLen + 2 });
     });
   });
   host.querySelectorAll('.ri-chip').forEach(function (b) {
@@ -207,15 +221,27 @@ function _riDraw(host, c) {
     var cl = Number(k.close), op = i ? Number(kl[i - 1].close) : cl;
     return { time: _riDay(k.open_time), open: op, high: Math.max(Number(k.high), op, cl), low: Math.min(Number(k.low), op, cl), close: cl };
   });
+  if (_riInt === 'W') {
+    var wk = [], byW = {};
+    candles.forEach(function (k) {
+      var w = _riWeek(k.time), b = byW[w];
+      if (!b) { b = byW[w] = { time: w, open: k.open, high: k.high, low: k.low, close: k.close }; wk.push(b); }
+      else { b.high = Math.max(b.high, k.high); b.low = Math.min(b.low, k.low); b.close = k.close; }
+    });
+    candles = wk;
+  }
+  var _riT = function (day) { return _riInt === 'W' ? _riWeek(day) : day; };
   var cs = chart.addSeries(LC.CandlestickSeries, { upColor: green, downColor: red, borderVisible: false, wickUpColor: green, wickDownColor: red }, 0);
   cs.setData(candles);
   var have = {}; candles.forEach(function (k) { have[k.time] = 1; });
-  var marks = ev.filter(function (e) { return have[_riDay(e.event_date)]; }).map(function (e) {
-    var t = e.event_type;
-    return t === 'golden_cross' ? { time: _riDay(e.event_date), position: 'belowBar', color: green, shape: 'arrowUp', text: 'GC' }
-         : t === 'death_cross' ? { time: _riDay(e.event_date), position: 'aboveBar', color: red, shape: 'arrowDown', text: 'DC' }
-         : { time: _riDay(e.event_date), position: 'belowBar', color: gold, shape: 'circle', text: 'RSI' };
+  var marks = ev.filter(function (e) { return have[_riT(_riDay(e.event_date))]; }).map(function (e) {
+    var t = e.event_type, tm = _riT(_riDay(e.event_date));
+    return t === 'golden_cross' ? { time: tm, position: 'belowBar', color: green, shape: 'arrowUp', text: 'GC' }
+         : t === 'death_cross' ? { time: tm, position: 'aboveBar', color: red, shape: 'arrowDown', text: 'DC' }
+         : { time: tm, position: 'belowBar', color: gold, shape: 'circle', text: 'RSI' };
   });
+  /* One mark per kind per week on weekly candles. */
+  var seenM = {}; marks = marks.filter(function (m) { var k = m.time + m.text; if (seenM[k]) return false; seenM[k] = 1; return true; });
   if (marks.length && LC.createSeriesMarkers) LC.createSeriesMarkers(cs, marks);
 
   /* Overlays on the candles. */
@@ -246,7 +272,7 @@ function _riDraw(host, c) {
 
   /* Panes under the candles: RSI with the score, then MACD / Squeeze when on. */
   var pane = 1;
-  var rsi = chart.addSeries(LC.LineSeries, { color: gold, lineWidth: 1.5, priceLineVisible: false, lastValueVisible: true, title: 'RSI 14' }, pane++);
+  var rsi = chart.addSeries(LC.LineSeries, { color: gold, lineWidth: 1.5, priceLineVisible: false, lastValueVisible: true, title: 'RSI' }, pane++);
   var rsiData = _riRsi(candles.map(function (k) { return { t: k.time, v: k.close }; }));
   rsi.setData(rsiData);
   rsi.createPriceLine({ price: 70, color: red, lineStyle: 2, lineWidth: 1, axisLabelVisible: false });
@@ -293,7 +319,8 @@ function _riDraw(host, c) {
      he reads them. Shown as a fact on the chart, not a tested signal. */
   if (sc.length) {
     var ss = chart.addSeries(LC.LineSeries, { color: text, lineWidth: 1.5, priceLineVisible: false, lastValueVisible: true, title: 'Score' }, 1);
-    var sData = sc.map(function (s) { return { time: _riDay(s.snap_date), value: Number(s.score) }; });
+    var sData = [], byT = {};
+    sc.forEach(function (x) { var t = _riT(_riDay(x.snap_date)); if (!byT[t]) { byT[t] = { time: t, value: 0 }; sData.push(byT[t]); } byT[t].value = Number(x.score); });
     ss.setData(sData);
     var rsiAt = {}; rsiData.forEach(function (p) { rsiAt[p.time] = p.value; });
     var xm = [], prev = null;
@@ -307,7 +334,10 @@ function _riDraw(host, c) {
     if (xm.length && LC.createSeriesMarkers) LC.createSeriesMarkers(ss, xm);
   }
   var panes = chart.panes ? chart.panes() : [];
-  panes.forEach(function (p, i) { if (p.setStretchFactor) p.setStretchFactor(i === 0 ? 3 : i === 1 ? 1.4 : 1); });
+  /* The Rotator Insight Engine panel (RSI + score) gets real room and follows
+     the chart: same time scale, and its own scale fits what is in view. */
+  panes.forEach(function (p, i) { if (p.setStretchFactor) p.setStretchFactor(i === 0 ? 3 : i === 1 ? 2 : 1); });
+  try { chart.priceScale('right', 1).applyOptions({ autoScale: true, scaleMargins: { top: 0.08, bottom: 0.08 } }); } catch (e) {}
   chart._riLen = candles.length;
-  chart.timeScale().setVisibleLogicalRange({ from: Math.max(0, candles.length - _riFrame), to: candles.length + 2 });
+  chart.timeScale().setVisibleLogicalRange({ from: Math.max(0, candles.length - _riBars(_riFrame)), to: candles.length + 2 });
 }
