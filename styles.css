@@ -7807,3 +7807,44 @@ body.has-tabs .score-explain > summary{justify-content:flex-end;padding:0 !impor
 body.has-tabs .score-explain > summary .se-k,body.has-tabs .score-explain > summary .se-line{display:none;}
 body.has-tabs .score-explain[open] > summary .se-line{display:block;text-align:left;}
 body.has-tabs .score-explain[open] > summary{justify-content:space-between;}
+
+/* ── Full breakdown, Wispr Flow's calm (Daniel, 2026-10-29) ──────────
+   Same five boxes and the same sizes (it must stay on one screen,
+   promptove/162); only the look changes: one quiet background, soft
+   rounded boxes with a hairline, small grey labels instead of gold and
+   orange ones, underline tabs instead of a gold pill, the Insight
+   Engine without its gold edge. Red and green stay on the numbers. */
+:root:not(.light) body.has-tabs .tile-detail.td-expanded{background:#111216;}
+body.has-tabs .td-expanded .tdx-dash{gap:12px;}
+body.has-tabs .td-expanded .tdx-box{border-radius:18px;border:1px solid var(--bdr);box-shadow:none !important;}
+:root:not(.light) body.has-tabs .td-expanded .tdx-box{background:#18191e;border-color:rgba(255,255,255,.07);}
+body.has-tabs .td-expanded .tdx-card-h,body.has-tabs .td-expanded .td-story-t,body.has-tabs .td-expanded .td-sl-k,
+body.has-tabs .td-expanded .td-section-title,body.has-tabs .td-expanded .tdx-why-h,body.has-tabs .td-expanded .tile-label,
+body.has-tabs .td-expanded .td-cell-l,body.has-tabs .td-expanded .td-share-label{
+  color:var(--muted) !important;font-size:10.5px;font-weight:700;letter-spacing:.12em;}
+body.has-tabs .td-expanded .tdx-card-h.tdx-good{color:#7fd8b5 !important;}
+body.has-tabs .td-expanded .tdx-card-h.tdx-bad{color:#f08a80 !important;}
+:root.light body.has-tabs .td-expanded .tdx-card-h.tdx-good{color:#047857 !important;}
+:root.light body.has-tabs .td-expanded .tdx-card-h.tdx-bad{color:#b91c1c !important;}
+/* The Insight Engine column: no gold edge, calm reading text. */
+body.has-tabs .td-expanded .td-story{border-left:0 !important;box-shadow:none !important;background:transparent !important;}
+body.has-tabs .td-expanded .td-story-hd{border-bottom:1px solid var(--bdr);padding-bottom:10px;margin-bottom:10px;}
+body.has-tabs .td-expanded .td-story-logo img{filter:saturate(.6);}
+/* Inner cards: hairline, no fill, rounded like Wispr's rows. */
+body.has-tabs .td-expanded .td-card,body.has-tabs .td-expanded .tdx-sig-l,body.has-tabs .td-expanded .tdx-pane .td-cell{
+  border-radius:12px;box-shadow:none !important;}
+:root:not(.light) body.has-tabs .td-expanded .td-card,:root:not(.light) body.has-tabs .td-expanded .tdx-pane .td-cell{background:#1d1e24;border-color:rgba(255,255,255,.07);}
+/* Detail tabs: underline, like Wispr's "Your usage | Your voice". */
+body.has-tabs .td-expanded .tdx-tabs{border-bottom:1px solid var(--bdr);gap:4px;background:none !important;}
+body.has-tabs .td-expanded .tdx-tab{background:none !important;border:0 !important;border-radius:0 !important;color:var(--muted) !important;font-weight:600;padding:8px 12px;box-shadow:none !important;position:relative;}
+body.has-tabs .td-expanded .tdx-tab:hover{color:var(--text) !important;}
+body.has-tabs .td-expanded .tdx-tab.on{color:var(--text) !important;}
+body.has-tabs .td-expanded .tdx-tab.on::after{content:'';position:absolute;left:10px;right:10px;bottom:-1px;height:2px;border-radius:2px;background:var(--text);}
+/* Chart switch: a quiet segmented control instead of a gold button. */
+body.has-tabs .td-expanded .tdx-sw{background:var(--bg3);border-radius:12px;padding:3px;gap:2px;border:1px solid var(--bdr);}
+body.has-tabs .td-expanded .tdx-sw-b{background:none !important;border:0 !important;border-radius:9px !important;color:var(--muted) !important;box-shadow:none !important;}
+body.has-tabs .td-expanded .tdx-sw-b.on{background:var(--bg2) !important;color:var(--text) !important;box-shadow:0 1px 4px rgba(0,0,0,.25) !important;}
+body.has-tabs .td-expanded .tdx-sw-new{background:#f0d7ff !important;color:#1d1c16 !important;}
+body.has-tabs .td-expanded .td-type-badge{background:none !important;border:1px solid var(--bdr2) !important;color:var(--muted) !important;}
+/* Share bar: one quiet line. */
+body.has-tabs .td-expanded .tdx-share{background:transparent !important;border-color:transparent !important;}
