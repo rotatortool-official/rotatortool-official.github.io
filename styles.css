@@ -7848,3 +7848,15 @@ body.has-tabs .td-expanded .tdx-sw-new{background:#f0d7ff !important;color:#1d1c
 body.has-tabs .td-expanded .td-type-badge{background:none !important;border:1px solid var(--bdr2) !important;color:var(--muted) !important;}
 /* Share bar: one quiet line. */
 body.has-tabs .td-expanded .tdx-share{background:transparent !important;border-color:transparent !important;}
+/* The coin window's action buttons in the Pro lilac (Daniel, 2026-10-29:
+   "make it that colour to match"): Run evaluation, Snapshot & Share and
+   the full-breakdown switch. Binance's own trade link keeps its gold. */
+body.has-tabs .tile-detail .td-story-go,body.has-tabs .tile-detail .td-share-card-btn,body.has-tabs .tile-detail .td-expand{
+  background:#f0d7ff !important;border:1.5px solid #1d1c16 !important;color:#1d1c16 !important;box-shadow:none !important;}
+:root:not(.light) body.has-tabs .tile-detail .td-story-go,:root:not(.light) body.has-tabs .tile-detail .td-share-card-btn,:root:not(.light) body.has-tabs .tile-detail .td-expand{border-color:#f0d7ff !important;}
+body.has-tabs .tile-detail .td-story-go{border-radius:16px !important;}
+body.has-tabs .tile-detail .td-share-card-btn,body.has-tabs .tile-detail .td-expand{border-radius:999px !important;}
+body.has-tabs .tile-detail .td-story-go:hover,body.has-tabs .tile-detail .td-share-card-btn:hover,body.has-tabs .tile-detail .td-expand:hover{background:#fff !important;transform:none;}
+body.has-tabs .tile-detail .td-story-go .td-story-go-t{color:#1d1c16 !important;}
+body.has-tabs .tile-detail .td-story-go .td-story-go-s{color:#4a4440 !important;}
+body.has-tabs .tile-detail .td-share-card-btn *,body.has-tabs .tile-detail .td-expand *{color:#1d1c16 !important;}
