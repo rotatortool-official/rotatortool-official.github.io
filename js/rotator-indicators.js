@@ -182,7 +182,7 @@ function _riDraw(host, c) {
     + '<span class="ri-frames">' + RI_FRAMES.map(function (f) { return '<button type="button" class="ri-frame' + (f[0] === _riFrame ? ' on' : '') + '" data-d="' + f[0] + '">' + f[1] + '</button>'; }).join('') + '</span>'
     + ' <span class="up">▲ golden cross</span> <span class="dn">▼ death cross</span> <span class="ri-gold">● RSI back above 30</span>'
     /* Daniel, 2026-10-29: "insight indicator powered by rotator engine". */
-    + ' <span class="ri-ie"><b>Insight indicator</b> <i>powered by Rotator engine</i>: <span class="ri-gold">RSI 14</span> + <span class="ri-score-k">score</span></span> <span class="up">▲ IE</span> <span class="dn">▼ IE</span> <span class="ri-x">score/RSI cross</span>'
+    + ' <span class="ri-ie"><b>Insight indicator</b> <i>powered by Rotator engine</i>: <span class="ri-gold">RSI 14</span> + <span class="ri-score-k">score</span>, ● where they cross</span>'
     + '<span class="ri-chips">' + RI_IND.map(function (x) {
       return '<button type="button" class="ri-chip' + (_riOn[x[0]] ? ' on' : '') + '" data-i="' + x[0] + '" aria-pressed="' + (_riOn[x[0]] ? 'true' : 'false') + '">' + x[1] + '</button>';
     }).join('') + '</span></div><div class="ri-chart"></div>';
@@ -329,31 +329,45 @@ function _riDraw(host, c) {
        found between the two days, the dot takes that height and sits on
        the earlier day. Drawn as points of a line-less series, because a
        series marker can only sit on its own day's value. */
+    /* Score/RSI crossings stay in this panel, never on the candles (Daniel,
+       2026-10-29: only golden and death crosses go on the price chart), and
+       each dot is drawn exactly where the two lines meet: between the two
+       days, at the fraction where score minus RSI reaches zero. A series
+       marker can only sit on a whole day, so the dots are drawn on the
+       panel's canvas (a series primitive) at that point. */
     var xs = [], prev = null;
     sData.forEach(function (p) {
       var rv = rsiAt[p.time]; if (rv == null) return;
       var d = p.value - rv;
       if (prev && d !== 0 && (prev.d < 0) !== (d < 0)) {
         var t = prev.d / (prev.d - d);
-        /* Always the day before the crossing, never after (Daniel: "a few
-           pixels before, not after the cross"), at the height they meet. */
-        xs.push({ time: prev.time, value: prev.v + t * (p.value - prev.v), color: d > 0 ? red : green });
+        xs.push({ t0: prev.time, t1: p.time, f: t, v: prev.v + t * (p.value - prev.v), c: d > 0 ? red : green });
       }
       if (d !== 0) prev = { d: d, v: p.value, time: p.time };
     });
-    /* On the price chart, not in the indicator panel (Daniel, 2026-10-29:
-       "place death cross and golden cross on the chart, not in the rotator
-       insight indicator"): green ▲ under the candle where the score drops
-       below RSI, red ▼ over it where the score climbs above RSI, on the day
-       before the cross. Labelled IE so they are never confused with the
-       moving-average golden and death crosses (GC / DC). Not tested as a
-       signal; facts on the chart. */
-    if (xs.length && csMarks && csMarks.setMarkers) {
-      var ie = xs.map(function (x) {
-        var up = x.color === green;
-        return { time: x.time, position: up ? 'belowBar' : 'aboveBar', color: x.color, shape: up ? 'arrowUp' : 'arrowDown', text: 'IE' };
-      });
-      csMarks.setMarkers(marks.concat(ie).sort(function (m1, m2) { return m1.time < m2.time ? -1 : m1.time > m2.time ? 1 : 0; }));
+    if (xs.length && ss.attachPrimitive) {
+      var dots = { _chart: null, _series: null,
+        attached: function (prm) { this._chart = prm.chart; this._series = prm.series; },
+        detached: function () { this._chart = this._series = null; },
+        updateAllViews: function () {},
+        paneViews: function () {
+          var self = this;
+          return [{ zOrder: function () { return 'top'; }, renderer: function () { return { draw: function (target) {
+            if (!self._chart || !self._series) return;
+            target.useBitmapCoordinateSpace(function (sc) {
+              var ctx = sc.context, hr = sc.horizontalPixelRatio, vr = sc.verticalPixelRatio, ts = self._chart.timeScale();
+              xs.forEach(function (x) {
+                var x0 = ts.timeToCoordinate(x.t0), x1 = ts.timeToCoordinate(x.t1), y = self._series.priceToCoordinate(x.v);
+                if (x0 == null || x1 == null || y == null) return;
+                ctx.beginPath();
+                ctx.arc((x0 + x.f * (x1 - x0)) * hr, y * vr, 4.5 * hr, 0, 2 * Math.PI);
+                ctx.fillStyle = x.c; ctx.fill();
+              });
+            });
+          } }; } }];
+        }
+      };
+      ss.attachPrimitive(dots);
     }
   }
   var panes = chart.panes ? chart.panes() : [];
