@@ -654,7 +654,8 @@ function _tdStoryHtml(c, extra) {
     + '<svg viewBox="0 0 24 24" width="13" height="13" aria-hidden="true"><path fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" d="M12 3v12M7 8l5-5 5 5M5 13v6a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-6"/></svg>'
     + '<span>' + (S.mk ? 'Сподели' : 'Share') + '</span></button></div>'
     + (seen ? '' : '<button type="button" class="td-story-go" onclick="tdStoryRun(this)">'
-      + '<span class="td-story-go-t">' + (S.mk ? 'Накратко за ' : 'Summarize ') + _esc(c.sym) + ' →'
+      /* "Run evaluation" with the Insight Engine's lightning (Daniel, 2026-10-29). */
+      + '<span class="td-story-go-t">⚡ ' + (S.mk ? 'Процени го ' + _esc(c.sym) : 'Run evaluation on ' + _esc(c.sym)) + ' →'
       + '</span>'
       + '<span class="td-story-go-s">' + (S.mk ? 'Rotator ги чита цената, местото, RSI и отклучувањата' : 'Rotator reads its price moves, rank, RSI and unlocks') + '</span></button>'
       + '<div class="td-think" role="status"><div class="td-think-t">' + (S.mk ? 'Го читам ' : 'Reading ') + _esc(c.sym) + '…</div><ul>'
