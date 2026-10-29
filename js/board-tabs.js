@@ -8,7 +8,7 @@
      MONEY FLOWS  capital rotation, ETF, unlocks  sec-capital
      COINS        momentum, the table, record     sec-rotation, sec-coins, sec-record
      DERIVATIVES  liquidations                    sec-liq
-     MY COINS     holdings, alerts, Rotator Tool  sec-yours, sec-swap
+     MY HOLDINGS  portfolio tracker, alerts, Rotator Tool  sec-yours, sec-swap
 
    Addresses: #today, #flows-etf, #mine-tool ... Back works. The old
    #sec-xxx links (landing page, Telegram, posts) still land on their
@@ -40,8 +40,8 @@
     { id: 'today', lead: 'The day in one look: the market, sentiment, and the macro behind it.', name: 'Today', icon: 'sun', mob: 'TODAY', secs: ['sec-today'], items: [
       { k: 'look', el: 'day-brief', n: 'Today in one look', i: 'sun' },
       { k: 'now', el: 'mkt-now', n: 'Market now', i: 'bars' },
-      { k: 'cards', el: 'briefing', n: 'Daily cards', i: 'globe' }
-    ], pages: [['weekly.html', 'Weekly recap', 'cal']] },
+      { k: 'cards', el: 'briefing', n: 'Daily news', i: 'globe' }
+    ], pages: [['https://rotatortool.substack.com/', 'Rotator Weekly (Substack)', 'cal']] },
     { id: 'flows', lead: 'Where money moved: what came in, what left, and supply about to reach the market.', name: 'Money flows', icon: 'rot', mob: 'FLOWS', secs: ['sec-capital'], items: [
       { k: 'rotation', el: 'sec-capital', n: 'Capital rotation', i: 'rot', g: 'Coming in, going out' },
       { k: 'etf', el: 'etf-strip', n: 'ETF flows', i: 'etf', g: 'Coming in, going out' },
@@ -60,7 +60,7 @@
       { k: 'liq', el: 'sec-liq', n: 'Liquidations', i: 'bolt', g: 'Market' },
       { k: 'percoin', el: 'sec-coins', tab: 'coins', n: 'Funding & positioning', i: 'pct', g: 'Per coin', pro: 1, l: 'Open any coin' }
     ] },
-    { id: 'mine', lead: 'What you hold and watch, with the warnings and tools that follow your coins.', name: 'My coins', icon: 'wallet', mob: 'MY COINS', mine: 1, secs: ['sec-yours', 'sec-swap'], items: [
+    { id: 'mine', lead: 'What you hold and watch, with the warnings and tools that follow your coins.', name: 'My holdings', title: 'Portfolio tracker', icon: 'wallet', mob: 'HOLDINGS', mine: 1, secs: ['sec-yours', 'sec-swap'], items: [
       { k: 'alerts', el: 'coin-alerts', n: 'Alerts for your coins', i: 'bell', g: 'Portfolio' },
       { k: 'signal', el: 'sig-box-crypto', n: 'Portfolio Signal', i: 'sig', g: 'Portfolio' },
       { k: 'holdings', el: 'my-holdings-panel', n: 'Holdings & watchlist', i: 'wallet', g: 'Portfolio' },
@@ -135,9 +135,9 @@
       return head + '<a class="tr-it" href="' + itemHref(t, it) + '" data-k="' + it.k + '">' + ic(it.i) + '<span>' + it.n + (it.l ? '<small>' + it.l + '</small>' : '') + '</span>'
         + (it.pro ? '<em class="tr-pro">PRO</em>' : '') + '</a>';
     }).join('') + (t.pages ? '<div class="tr-sep">Full pages</div>' + t.pages.map(function (p) {
-      return '<a class="tr-it" href="' + p[0] + '">' + ic(p[2]) + '<span>' + p[1] + ' ↗</span></a>';
+      return '<a class="tr-it" href="' + p[0] + '"' + (/^https?:/.test(p[0]) ? ' target="_blank" rel="noopener"' : '') + '>' + ic(p[2]) + '<span>' + p[1] + ' ↗</span></a>';
     }).join('') : '');
-    head.innerHTML = '<h1>' + t.name + '</h1><p>' + t.lead + '</p>';
+    head.innerHTML = '<h1>' + (t.title || t.name) + '</h1><p>' + t.lead + '</p>';
     pills.innerHTML = t.items.map(function (it) { return '<a href="' + itemHref(t, it) + '" data-k="' + it.k + '">' + it.n + '</a>'; }).join('');
     list.classList.remove('tr-in'); void list.offsetWidth; list.classList.add('tr-in');
   }

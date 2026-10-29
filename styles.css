@@ -7737,3 +7737,6 @@ body.has-tabs .tb-dropdown-wrap:has(> #pro-topbar-btn){display:none;}
   font-size:13px !important;font-weight:600 !important;letter-spacing:0 !important;text-transform:lowercase;}
 #pro-modal .copy-btn::first-letter{text-transform:uppercase;}
 #pro-modal .pro-pay-addr{font-size:12.5px;word-break:break-all;}
+/* Every tab looks the same until it is the one you are on (Daniel: the
+   outlined My coins read as "selected" when it was not). */
+body.has-tabs .btab-mine{border:0;border-radius:10px;margin-left:0;}
