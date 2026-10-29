@@ -913,7 +913,7 @@ body::before{content:'';position:fixed;inset:0;background:repeating-linear-gradi
 .td-expanded .tdx-dash:not(.tdx-tvlay) .tdx-wif{display:none;}
 .td-expanded .tdx-dash.tdx-tvlay{grid-template-rows:minmax(0,2fr) minmax(0,1fr) auto;
   grid-template-columns:minmax(0,1.15fr) repeat(3,minmax(0,1fr)) minmax(0,1.45fr);
-  grid-template-areas:"mom chart chart chart sum" "mom sig det det wif" "share share share share share";}
+  grid-template-areas:"mom chart chart chart sum" "mom sig det det sum" "share share share share share";}
 @media(max-width:1500px){
   .td-expanded .tdx-dash.tdx-tvlay{grid-template-columns:minmax(0,1.1fr) repeat(3,minmax(0,1fr)) minmax(0,1.55fr);}
 }
@@ -936,7 +936,7 @@ body::before{content:'';position:fixed;inset:0;background:repeating-linear-gradi
    left column (Evaluation, Performance, Positioning) runs full height on
    every screen, so this rule only repeats the default. */
 @media(max-height:860px){
-  .td-expanded .tdx-dash.tdx-tvlay{grid-template-areas:"mom chart chart chart sum" "mom sig det det wif" "share share share share share";}
+  .td-expanded .tdx-dash.tdx-tvlay{grid-template-areas:"mom chart chart chart sum" "mom sig det det sum" "share share share share share";}
 }
 /* What if 2 x 2: What if | price alert, Try a buy | its result. */
 .td-expanded .tdx-wif #tdx-chart > .tdp-scn{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:8px 14px;align-content:start;}
@@ -7386,3 +7386,15 @@ a.mob-more-item{text-decoration:none;color:inherit;}
 .ri-int.on{background:var(--amber,#f0b90b);color:#111;border-color:var(--amber,#f0b90b);}
 .ri-legend .ri-ie{color:var(--muted);}
 .ri-legend .ri-ie b{color:var(--amber,#f0b90b);font-size:11px;}
+
+/* What if & price alerts behind the bell (2026-10-29): the summary column
+   runs the full height; the What if box opens in a window over the card. */
+.td-expanded .tdx-dash.tdx-tvlay > .tdx-wif{display:none;}
+.tdx-bell{display:inline-flex;align-items:center;justify-content:center;padding:6px 9px;margin:0 !important;}
+.tdx-wif-modal{position:fixed;inset:0;z-index:60;display:none;align-items:center;justify-content:center;background:rgba(5,8,12,.55);padding:16px;}
+.tdx-wif-modal.show{display:flex;}
+.tdx-wif-card{width:min(640px,100%);max-height:calc(100% - 32px);overflow:auto;background:var(--bg2);border:1px solid var(--bdr2);border-radius:12px;box-shadow:0 18px 50px rgba(0,0,0,.45);padding:12px 14px;}
+.tdx-wif-hd{display:flex;align-items:center;justify-content:space-between;font:700 12px/1 var(--lp-mono,monospace);letter-spacing:.12em;text-transform:uppercase;color:var(--amber,#f0b90b);margin-bottom:10px;}
+.tdx-wif-x{font-size:22px;line-height:1;background:none;border:none;color:var(--text);cursor:pointer;padding:0 4px;}
+.tdx-wif-card > .tdx-wif{display:block !important;border:none;background:none;padding:0;}
+:root.light .tdx-wif-modal{background:rgba(30,45,60,.35);}

@@ -150,6 +150,15 @@ function _tdxExpand() {
         + '<a class="tdx-tv-link" id="tdx-tv-link" target="_blank" rel="noopener sponsored"></a>'
         + '<span class="tdx-tv-ref">Referral link: if you buy a TradingView plan through it, you get money off and Rotator gets TradingView credit. It costs you nothing extra.</span></div>';
       more.querySelector('a').addEventListener('click', function() { more.open = false; if (typeof tvLinkClick === 'function') tvLinkClick(); });
+      /* What if, price alerts and Try a buy open from a bell (Daniel,
+         2026-10-29: "add one bell icon on the line next to full screen ...
+         this will free the space for the insight engine reading"). */
+      var bell = document.createElement('button');
+      bell.type = 'button'; bell.className = 'tdx-tv-full tdx-bell'; bell.id = 'tdx-bell';
+      bell.title = 'What if and price alerts'; bell.setAttribute('aria-label', 'What if and price alerts');
+      bell.innerHTML = '<svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.7 21a2 2 0 0 1-3.4 0"/></svg>';
+      bell.addEventListener('click', tdxWifOpen);
+      row.appendChild(bell);
       row.appendChild(more);
       cbox.insertBefore(row, cbox.querySelector('.tdx-box-b'));
     }
@@ -230,8 +239,37 @@ function _tdxTabs() {
   _tdxShowTab(keep ? _tdxTab : first);
 }
 
+/* The What if box in its own window over the big card. The box element is
+   moved, not copied, so its alerts and Try a buy keep working, and it
+   stays inside #td-panel so the big card's styles still reach it. */
+function tdxWifOpen() {
+  var panel = document.getElementById('td-panel');
+  if (!panel) return;
+  var m = document.getElementById('tdx-wif-modal');
+  if (!m) {
+    m = document.createElement('div'); m.id = 'tdx-wif-modal'; m.className = 'tdx-wif-modal';
+    m.innerHTML = '<div class="tdx-wif-card" role="dialog" aria-modal="true" aria-label="What if and price alerts">'
+      + '<div class="tdx-wif-hd"><span>🔔 What if &amp; price alerts</span><button type="button" class="tdx-wif-x" aria-label="Close">×</button></div></div>';
+    m.addEventListener('click', function (e) { if (e.target === m) tdxWifClose(); });
+    m.querySelector('.tdx-wif-x').addEventListener('click', tdxWifClose);
+    panel.appendChild(m);
+  }
+  var wifBox = document.querySelector('#tdx-dash .tdx-wif') || m.querySelector('.tdx-wif');
+  if (wifBox && wifBox.parentNode !== m.firstChild) m.firstChild.appendChild(wifBox);
+  m.classList.add('show');
+  window.addEventListener('keydown', _tdxWifKey, true);
+}
+function tdxWifClose() {
+  var m = document.getElementById('tdx-wif-modal');
+  if (m) m.classList.remove('show');
+  window.removeEventListener('keydown', _tdxWifKey, true);
+}
+function _tdxWifKey(e) { if (e.key === 'Escape') { e.stopPropagation(); tdxWifClose(); } }
+
 function _tdxCollapse() {
   var panel = document.getElementById('td-panel');
+  tdxWifClose();
+  var wm = document.getElementById('tdx-wif-modal'); if (wm) wm.remove();
   if (!panel || !panel.classList.contains('td-expanded')) { _tdxLabel(false); return; }
   if (panel.classList.contains('tdx-focus')) tdxFocus(false);
   (_tdxOrder || []).forEach(function(el) { panel.appendChild(el); });
@@ -377,7 +415,7 @@ function _tdxFill() {
    #tdx-chart moves to the What if box at the bottom right. */
 function _tdxTv(slot, c) {
   var tv = document.getElementById('tdx-tv'), dash = document.getElementById('tdx-dash');
-  var box = document.getElementById('tdx-chart'), wif = _tdxSlot('wif');
+  var box = document.getElementById('tdx-chart'), wif = _tdxSlot('wif') || document.querySelector('#tdx-wif-modal .tdx-wif > .tdx-box-b');
   if (!c || c.isStock || c.isStable || typeof _tvEmbed !== 'function') {
     if (tv) tv.remove();
     var riOld = document.getElementById('tdx-ri');
