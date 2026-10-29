@@ -231,12 +231,11 @@
       spyRaf = 0;
       var t = byId[cur]; if (!t) return;
       var line = 160, best = null;
-      t.items.forEach(function (it) {
-        if (it.tab) return;
-        var el = target(it); if (!el) return;
-        if (el.getBoundingClientRect().top <= line) best = it.k;
-      });
-      best = best || t.items[0].k;
+      /* Only parts that are showing count: an empty one (no alerts yet)
+         used to stand in for its whole section and win at the top. */
+      var shown = t.items.filter(function (it) { var el = !it.tab && $(it.el); return el && el.offsetParent !== null && el.offsetHeight > 0; });
+      shown.forEach(function (it) { if ($(it.el).getBoundingClientRect().top <= line) best = it.k; });
+      if (window.scrollY < 10 || !best) best = (shown[0] || t.items[0]).k;
       if (best !== lastK) { lastK = best; mark(best); }
     });
   }, { passive: true });
