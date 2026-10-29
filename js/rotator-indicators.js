@@ -181,7 +181,7 @@ function _riDraw(host, c) {
     + '<span class="ri-frames ri-ints">' + [['D', 'Day'], ['W', 'Week']].map(function (f) { return '<button type="button" class="ri-int' + (f[0] === _riInt ? ' on' : '') + '" data-i="' + f[0] + '">' + f[1] + '</button>'; }).join('') + '</span>'
     + '<span class="ri-frames">' + RI_FRAMES.map(function (f) { return '<button type="button" class="ri-frame' + (f[0] === _riFrame ? ' on' : '') + '" data-d="' + f[0] + '">' + f[1] + '</button>'; }).join('') + '</span>'
     + ' <span class="up">▲ golden cross</span> <span class="dn">▼ death cross</span> <span class="ri-gold">● RSI back above 30</span>'
-    + ' <span class="ri-ie"><b>Rotator Insight Engine</b> <span class="ri-gold">RSI 14</span> + <span class="ri-score-k">score</span>, ✕ where they cross</span>'
+    + ' <span class="ri-ie"><b>Rotator Insight Engine</b> <span class="ri-gold">RSI 14</span> + <span class="ri-score-k">score</span>, ● where they cross</span>'
     + '<span class="ri-chips">' + RI_IND.map(function (x) {
       return '<button type="button" class="ri-chip' + (_riOn[x[0]] ? ' on' : '') + '" data-i="' + x[0] + '" aria-pressed="' + (_riOn[x[0]] ? 'true' : 'false') + '">' + x[1] + '</button>';
     }).join('') + '</span></div><div class="ri-chart"></div>';
@@ -328,7 +328,7 @@ function _riDraw(host, c) {
       var rv = rsiAt[p.time]; if (rv == null) return;
       var d = p.value - rv;
       if (prev != null && d !== 0 && (prev < 0) !== (d < 0))
-        xm.push({ time: p.time, position: 'inBar', color: d > 0 ? red : green, shape: 'circle', size: 0.6, text: '✕' });
+        xm.push({ time: p.time, position: 'inBar', color: d > 0 ? red : green, shape: 'circle', size: 0.8 });   /* no text: the library draws it under the dot, off the lines */
       if (d !== 0) prev = d;
     });
     if (xm.length && LC.createSeriesMarkers) LC.createSeriesMarkers(ss, xm);
