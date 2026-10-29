@@ -7689,3 +7689,45 @@ body.has-tabs #pro-modal .modal-x{color:#1d1c16;background:#ffffeb;border:1.5px 
 #pro-modal a:not(.btn){color:#034f46;}
 #pro-modal .pro-divider{background:rgba(29,28,22,.14) !important;}
 #pro-modal [style*="box-shadow"],#pro-modal [style*="text-shadow"]{box-shadow:none !important;}
+
+/* ── Pro in the dark theme (Daniel, 2026-10-29: the cream suits light; dark
+   can do better). Wispr Flow's dark look: deep charcoal, cards a step
+   lighter with thin light borders, lilac for the buttons, a soft mint for
+   labels (forest green does not read on dark), the serif "Pro" in warm
+   white. Light keeps the cream window above. ── */
+:root:not(.light) body.has-tabs #pro-modal .modal{
+  --bg2:#17171a;--bg3:#1f1f23;--text:#f2efe6;--muted:#a9a59a;--dim:#a9a59a;--bdr:rgba(255,255,255,.08);--bdr2:rgba(255,255,255,.14);
+  --pro:#9fe3d0;--green:#9fe3d0;--amber:#9fe3d0;--bnb:#9fe3d0;--bnbd:rgba(159,227,208,.08);--red:#ff8a7a;
+  background:#17171a !important;color:#f2efe6;border:1px solid rgba(255,255,255,.16) !important;box-shadow:0 30px 90px rgba(0,0,0,.6) !important;}
+:root:not(.light) body.has-tabs #pro-modal .modal-x{color:#f2efe6;background:#1f1f23;border-color:rgba(255,255,255,.22);}
+:root:not(.light) #pro-modal .plb-title{color:#f5f1e3;}
+:root:not(.light) #pro-modal .plb-sub{color:#a9a59a;}
+:root:not(.light) #pro-modal .plb-col{background:#1f1f23;border-color:rgba(255,255,255,.12);}
+:root:not(.light) #pro-modal .plb-col.pro{background:#251d2b;border-color:rgba(240,215,255,.45);}
+:root:not(.light) #pro-modal .plb-col-hd,:root:not(.light) #pro-modal .plb-ledger-hd,:root:not(.light) #pro-modal .refx-title,
+:root:not(.light) #pro-modal .plb-split .plb-c > div:first-child{color:#9fe3d0 !important;}
+:root:not(.light) #pro-modal .plb-col li::before{color:#9fe3d0;}
+:root:not(.light) #pro-modal .plb-col.pro li::before{color:#e3c4ff;}
+:root:not(.light) #pro-modal .plb-ledger,:root:not(.light) #pro-modal .refx-section,:root:not(.light) #pro-modal .plb-split .plb-c > div:nth-child(2){background:#1f1f23 !important;border-color:rgba(255,255,255,.12) !important;}
+:root:not(.light) #pro-modal .refx-bar{background:rgba(255,255,255,.08);}
+:root:not(.light) #pro-modal .refx-bar-fill{background:#9fe3d0 !important;}
+:root:not(.light) #pro-modal button:not(.modal-x),:root:not(.light) #pro-modal .code-btn,:root:not(.light) #pro-modal .refx-copy,:root:not(.light) #pro-modal .refx-ch,:root:not(.light) #pro-modal a.btn,
+:root:not(.light) #pro-modal .pro-places,:root:not(.light) #pro-modal .refx-count{
+  background:#f0d7ff !important;color:#17171a !important;border:1px solid #f0d7ff !important;}
+:root:not(.light) #pro-modal button:not(.modal-x):hover,:root:not(.light) #pro-modal .refx-ch:hover{background:#fff !important;border-color:#fff !important;}
+:root:not(.light) #pro-modal input,:root:not(.light) #pro-modal select,:root:not(.light) #pro-modal textarea,:root:not(.light) #pro-modal .refx-link,:root:not(.light) #pro-modal .code-input{
+  background:#121215 !important;color:#f2efe6 !important;border-color:rgba(255,255,255,.16) !important;}
+:root:not(.light) #pro-modal a:not(.btn){color:#e3c4ff;}
+:root:not(.light) #pro-modal .pro-divider{background:rgba(255,255,255,.1) !important;}
+
+/* The rail's Pro card in dark: Wispr's deep plum card with a light button. */
+:root:not(.light) .rail-pro{background:#2a1f33;color:#f5ecff;border:1px solid rgba(240,215,255,.28);}
+:root:not(.light) .rail-pro .rp-s{color:#cdbfd8;}
+:root:not(.light) .rail-pro .rp-btn{background:#f5ecff;color:#1d1c16;border-color:#f5ecff;}
+:root:not(.light) .rail-pro .rp-btn:hover{background:#fff;}
+
+/* The small ⚡ Pro button: the rail card does its job on desktop. Phones
+   keep their top-bar PRO cell (no rail there). */
+@media (min-width:901px){ body.has-tabs #pro-topbar-btn{display:none !important;} body.has-tabs #pro-topbar-btn{} }
+body.has-tabs .tb-dropdown-wrap:has(> #pro-topbar-btn){display:none;}
+@media (max-width:900px){ body.has-tabs .tb-dropdown-wrap:has(> #pro-topbar-btn){display:revert;} }
