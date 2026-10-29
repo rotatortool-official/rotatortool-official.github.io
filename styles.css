@@ -7786,3 +7786,9 @@ body.has-tabs #donate-modal a:not(.community-btn){color:var(--pro) !important;}
 body.has-tabs #donate-modal .network-tag{display:block !important;background:none !important;border:0 !important;padding:0 !important;margin:16px 0 6px !important;}
 body.has-tabs #donate-modal .sup-r .network-tag:first-of-type{margin-top:6px !important;}
 body.has-tabs #donate-modal .sp-link{padding:6px 14px !important;margin-top:8px;font-size:12.5px !important;font-weight:700;}
+/* Phones: the Settings sheet must be solid (no blur there, and the page
+   showed through it in the iPhone 13 test, 2026-10-29). */
+@media (hover:none),(max-width:860px){
+  body.has-tabs #settings-panel.set-glass.set-glass{background:#10151d !important;backdrop-filter:none !important;-webkit-backdrop-filter:none !important;opacity:1;}
+  :root.light body.has-tabs #settings-panel.set-glass.set-glass{background:#f5f8fc !important;}
+}
