@@ -630,7 +630,7 @@ function sigTile(c, kind) {
       + '<div class="sig-stat"><span class="sig-stat-l">MCAP</span><span class="sig-stat-v am">' + mcapStr + '</span></div>'
       + '<div class="sig-stat"><span class="sig-stat-l">UNLOCK</span><span class="sig-stat-v am">' + unlockStr + '</span></div>'
       + per
-      + '<div class="sig-stat"><span class="sig-stat-l">SCR</span><span class="sig-stat-v '  + scC  + '">' + c.score + '</span></div>'
+      + '<div class="sig-stat"><span class="sig-stat-l">SCR</span><span class="sig-stat-v '  + scC  + '" style="color:' + scoreColor(c.score) + '">' + c.score + '</span></div>'
     + '</div>'
     + (typeof readingLineHtml === 'function' ? readingLineHtml(c) : '')
     + seedNote(c)

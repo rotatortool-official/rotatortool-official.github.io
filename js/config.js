@@ -832,4 +832,24 @@ var PRO_PLANS = [
    (index.html .score-explain) together. */
 var SCORE_HI = 65, SCORE_MD = 40;
 function scoreBand(s) { return s >= SCORE_HI ? 'hi' : s >= SCORE_MD ? 'md' : 'lo'; }
-function scoreColor(s) { return { hi: 'var(--green)', md: 'var(--amber)', lo: 'var(--red)' }[scoreBand(s)]; }
+/* The colour itself is a 14-step heat scale since 2026-10-29 (Daniel:
+   "update the colour of the score across the entire web page", after the
+   score line on the Insight indicator got it): the same three bands, with
+   colder colours under the reds down to -50 and hotter ones over the
+   greens up to 100. scoreHeat() is the raw colour (chart canvases);
+   scoreColor() mixes in a fifth of the theme's text colour so amber and
+   lime stay readable on the light theme. The bands (scoreBand) and their
+   words do not change. */
+var SCORE_HEAT = [[-50, '#4c1d95'], [-20, '#7e22ce'], [0, '#be185d'], [15, '#c0262d'], [28, '#ef4444'], [38, '#ff7a45'], [46, '#ffa53a'],
+  [54, '#f3ba2f'], [60, '#e3d34a'], [66, '#a3d65a'], [74, '#4ccf7f'], [82, '#16c79a'], [90, '#14b8c4'], [100, '#3b82f6']];
+function scoreHeat(s) {
+  var H = SCORE_HEAT, rgb = function (h) { return [1, 3, 5].map(function (i) { return parseInt(h.slice(i, i + 2), 16); }); };
+  var v = Math.max(H[0][0], Math.min(H[H.length - 1][0], Number(s) || 0));
+  for (var i = 1; i < H.length; i++) if (v <= H[i][0]) {
+    var a = rgb(H[i - 1][1]), b = rgb(H[i][1]), t = (v - H[i - 1][0]) / (H[i][0] - H[i - 1][0]);
+    return 'rgb(' + a.map(function (x, k) { return Math.round(x + (b[k] - x) * t); }).join(',') + ')';
+  }
+  return H[H.length - 1][1];
+}
+var _scoreMix = !!(window.CSS && CSS.supports && CSS.supports('color', 'color-mix(in srgb, red 80%, blue)'));
+function scoreColor(s) { var c = scoreHeat(s); return _scoreMix ? 'color-mix(in srgb, ' + c + ' 80%, var(--text))' : c; }

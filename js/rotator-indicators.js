@@ -40,19 +40,9 @@ var _riLibP = null, _riChart = null;
    on the scoring line", then "add colder and hotter colours"): the score's
    bands (below 40 red, 40-64 amber, 65+ green), colder below the reds down
    to -50, hotter above the greens up to 100. Same scale as the landing
-   page's Insight scene. Display only: crossings split by score level were
+   page's Insight scene; the scale is SCORE_HEAT in js/config.js. Display only: crossings split by score level were
    all near 50% in the 2024-26 test (rotator-backtest score-rsi-cross-context). */
-var _RI_HEAT = [[-50, '#4c1d95'], [-20, '#7e22ce'], [0, '#be185d'], [15, '#c0262d'], [28, '#ef4444'], [38, '#ff7a45'], [46, '#ffa53a'],
-  [54, '#f3ba2f'], [60, '#e3d34a'], [66, '#a3d65a'], [74, '#4ccf7f'], [82, '#16c79a'], [90, '#14b8c4'], [100, '#3b82f6']];
-function _riHeat(v) {
-  var H = _RI_HEAT, rgb = function (h) { return [1, 3, 5].map(function (i) { return parseInt(h.slice(i, i + 2), 16); }); };
-  v = Math.max(H[0][0], Math.min(H[H.length - 1][0], Number(v) || 0));
-  for (var i = 1; i < H.length; i++) if (v <= H[i][0]) {
-    var a = rgb(H[i - 1][1]), b = rgb(H[i][1]), t = (v - H[i - 1][0]) / (H[i][0] - H[i - 1][0]);
-    return 'rgb(' + a.map(function (x, k) { return Math.round(x + (b[k] - x) * t); }).join(',') + ')';
-  }
-  return H[H.length - 1][1];
-}
+function _riHeat(v) { return scoreHeat(v); }   /* js/config.js */
 var RI_IND = [['ema', 'EMA 20/50'], ['bb', 'Bollinger'], ['st', 'SuperTrend'], ['macd', 'MACD'], ['sqz', 'Squeeze']];
 var _riOn = (function () { try { return JSON.parse(localStorage.getItem('rot_ri_ind') || '{}') || {}; } catch (e) { return {}; } })();
 var _riData = {};

@@ -756,21 +756,21 @@ html:is([lang="ar"],[lang="ur"]) .td-hint{letter-spacing:0;font-family:var(--ui)
 .ins-leg span{display:inline-flex;align-items:center;gap:6px;white-space:nowrap;}
 .ins-leg i{width:14px;height:3px;border-radius:2px;}
 .ins-leg i.dot{width:8px;height:8px;border-radius:50%;}
-.ev-card{position:absolute;left:50%;z-index:4;width:min(470px,calc(100% - 24px));padding:14px 16px 12px;border-radius:18px;background:var(--bg2);border:1px solid rgba(243,186,47,.45);
+.ev-card{position:absolute;left:50%;z-index:4;width:min(470px,calc(100% - 24px));top:0;padding:14px 16px 12px;border-radius:18px;background:var(--bg2);border:1px solid rgba(243,186,47,.45);
   box-shadow:var(--shadow),0 0 0 6px rgba(243,186,47,.07);opacity:0;}
 .ev-hd{display:flex;align-items:center;gap:9px;font:800 13px/1.2 var(--ui);}
 .ev-hd img{width:22px;height:22px;border-radius:6px;}
 .ev-hd .cc-pro{margin-left:auto;}
-.ev-go{margin-top:10px;display:flex;flex-direction:column;gap:3px;padding:10px 12px;border-radius:12px;background:linear-gradient(180deg,var(--gold2),var(--gold));color:#1a1203;}
+.ev-go{position:absolute;left:0;right:0;top:8px;z-index:1;display:flex;flex-direction:column;gap:3px;padding:10px 12px;border-radius:12px;background:linear-gradient(180deg,var(--gold2),var(--gold));color:#1a1203;}
 .ev-go b{font:800 14px/1.2 var(--ui);}
 .ev-go span{font:600 11.5px/1.3 var(--ui);opacity:.8;}
-.ev-think{margin-top:8px;font:600 12px/1.5 var(--mono);color:var(--muted);}
-.ev-lines{margin-top:6px;}
+.ev-think{position:absolute;left:0;top:10px;font:600 12px/1.5 var(--mono);color:var(--muted);}
+.ev-lines{position:relative;margin-top:6px;}
 .ev-l{display:grid;grid-template-columns:96px minmax(0,1fr);gap:10px;padding:6px 0;border-top:1px solid var(--panel-b);font:500 13px/1.4 var(--ui);color:var(--text);opacity:0;}
 .ev-l .k{font:700 10.5px/1.6 var(--mono);letter-spacing:.1em;text-transform:uppercase;color:var(--gold-ink);}
 .ev-end{margin-top:6px;font:600 11px/1.3 var(--mono);letter-spacing:.06em;color:var(--dim);opacity:0;}
 @media (max-width:860px){ .ev-card{padding:10px 12px 9px;} .ev-l{grid-template-columns:74px minmax(0,1fr);font-size:11.5px;padding:4px 0;} .ev-l .k{font-size:9px;} .ev-go{padding:7px 10px;} .ev-go b{font-size:12.5px;} .ev-go span{display:none;} .ins-leg{font-size:10px;gap:3px 10px;} }
-@media (min-width:861px){ .ev-l{font-size:14px;} .ins-leg{font-size:13px;} }
+@media (min-width:861px){ .ev-card{width:min(640px,calc(100% - 32px));} .ev-l{font-size:14px;} .ins-leg{font-size:13px;} }
 
 /* ── Alerts: a phone with Telegram ── */
 .tgp{position:absolute;left:50%;top:calc(50% + 16px);width:min(310px,82%);height:min(560px,calc(100% - 60px));transform:translate(-50%,-50%);border-radius:38px;padding:12px;background:#11161f;box-shadow:0 0 0 2px #2a3342,var(--shadow);}
@@ -969,7 +969,7 @@ document.addEventListener('click', function (e) {
 <!-- 02 UNDERSTAND: the Rotator Insight Engine (landing preview,
      2026-10-29). Real BTC candles, RSI 14 and scores, 1 Aug - 29 Oct
      2026, inlined; the page reads nothing for this scene. -->
-<section class="scene" id="insight" style="height:360vh">
+<section class="scene" id="insight" style="height:460vh">
   <div class="stage">
     <div class="glow" style="--gx:62%;--gy:42%"></div>
     <div class="grid2">
@@ -978,9 +978,9 @@ document.addEventListener('click', function (e) {
         <h2>Rotator Insight Engine.</h2>
         <div class="steps" data-scene="insight">
           <p class="step" data-at="0">Escolhe qualquer moeda: <strong>o preço dela, com todas as “cruzes douradas” (GC) e “cruzes da morte” (DC) marcadas</strong> — os dias em que a média rápida cruzou a média lenta.</p>
-          <p class="step" data-at=".3">Abaixo disso, o <strong>indicador Insight</strong>: a linha dourada é o RSI 14, e a linha de pontuação <strong>muda de cor conforme a pontuação</strong>: vermelha quando fraca, verde quando forte. Um ponto marca <strong>onde o momentum e a pontuação se cruzam</strong>, pra você ver na hora o quão forte a moeda estava naquele momento.</p>
-          <p class="step" data-at=".5">Aqui, no STRK, <strong>dois dos três pontos apareceram antes de grandes movimentos</strong>, <strong>na direção certa</strong>; o terceiro, não. Entre 2024 e 2026, 5.084 cruzamentos superaram a moeda média em cerca de metade das vezes: um ponto é um lugar pra você dar uma olhada mais de perto, <strong>não um sinal.</strong></p>
-          <p class="step" data-at=".62">Depois, clica em <strong>⚡ Executar avaliação</strong>. Baseada em regras, em segundos: <strong>pontuação, momentum, oferta, futuros e sinais de mudança de tendência</strong>, em linguagem simples.</p>
+          <p class="step" data-at=".22">Abaixo disso, o <strong>indicador Insight</strong>: a linha dourada é o RSI 14, e a linha de pontuação <strong>muda de cor conforme a pontuação</strong>: vermelha quando fraca, verde quando forte. Um ponto marca <strong>onde o momentum e a pontuação se cruzam</strong>, pra você ver na hora o quão forte a moeda estava naquele momento.</p>
+          <p class="step" data-at=".42">Aqui, no STRK, <strong>dois dos três pontos apareceram antes de grandes movimentos</strong>, <strong>na direção certa</strong>; o terceiro, não. Entre 2024 e 2026, 5.084 cruzamentos superaram a moeda média em cerca de metade das vezes: um ponto é um lugar pra você dar uma olhada mais de perto, <strong>não um sinal.</strong></p>
+          <p class="step" data-at=".68">Depois, clica em <strong>⚡ Executar avaliação</strong>. Baseada em regras, em segundos: <strong>pontuação, momentum, oferta, futuros e sinais de mudança de tendência</strong>, em linguagem simples.</p>
         </div>
         <div class="cta-row"><a class="btn btn-gold" href="../board.html#sec-coins">Abrir uma moeda ›</a></div>
       </div>
@@ -1289,7 +1289,7 @@ document.addEventListener('click', function (e) {
     <button type="button" class="te-again" id="tourAgain">Assista ao tour de novo</button>
   </div>
 </div>
-<script src="../js/config.js"></script>
+<script src="../js/config.js?v=20261029y"></script>
 <script src="../js/topic.js"></script>
 <script src="../js/scroll-scene.js?v=4"></script>
 <script>
@@ -1795,7 +1795,7 @@ document.addEventListener('click', function (e) {
       /* Score */
       if (score != null) {
         var band = score >= 65 ? ['var(--green)', 'Mais forte do que a maioria das moedas ultimamente'] : score >= 40 ? ['var(--gold-ink)', 'No meio do pelotão'] : ['var(--red)', 'Tem se saído pior do que a maioria das moedas ultimamente'];
-        $('ccScore').textContent = String(Math.round(score)); $('ccScore').style.color = band[0];
+        $('ccScore').textContent = String(Math.round(score)); $('ccScore').style.color = scoreColor(score);
         $('ccBand').textContent = band[1];
       } else hide($('ccScore').parentNode);
       /* RSI: the board's own lines, 30 and 80. */
@@ -2480,7 +2480,8 @@ document.addEventListener('click', function (e) {
      the ranking to the bottom (top-150 coins only, so the names are known),
      so all three colour bands show. The top one splits into its three
      parts: layer1 momentum (40), layer2 macro (30), layer3 supply (30). */
-  function band(v) { return v >= 65 ? 'var(--green)' : v >= 40 ? 'var(--gold)' : 'var(--red)'; }
+  /* The page-wide 14-step score colour (scoreColor in js/config.js, 2026-10-29). */
+  function band(v) { return scoreColor(v); }
   function coinScores(C) {
     var vis = $('coins-vis');
     TOPIC.get('signal_run_items', { select: 'run_id', order: 'run_id.desc', limit: '1' }).then(function (r) {
@@ -2863,8 +2864,7 @@ document.addEventListener('click', function (e) {
      as the board's Insight indicator (rotator-indicators.js _RI_HEAT).
      A reading aid only: in the 2024-26 test, crossings split by score
      level were all near 50% (results/score-rsi-cross-context.json). */
-  var HEAT = [[-50, '#4c1d95'], [-20, '#7e22ce'], [0, '#be185d'], [15, '#c0262d'], [28, '#ef4444'], [38, '#ff7a45'], [46, '#ffa53a'],
-    [54, '#f3ba2f'], [60, '#e3d34a'], [66, '#a3d65a'], [74, '#4ccf7f'], [82, '#16c79a'], [90, '#14b8c4'], [100, '#3b82f6']];
+  var HEAT = SCORE_HEAT;   /* js/config.js, the page-wide score colours */
   function insight() {
     var vis = $('ins-vis'), R = SNAP.rows, N = R.length, NS = 'http://www.w3.org/2000/svg';
     var day = function (d, y) { return new Date(d + 'T00:00:00Z').toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: y ? 'numeric' : undefined, timeZone: 'UTC' }); };
@@ -2891,9 +2891,9 @@ document.addEventListener('click', function (e) {
     ];
     var card = document.createElement('div'); card.className = 'ev-card';
     card.innerHTML = '<div class="ev-hd"><img src="/icon-192.png" alt="">Rotator Insight Engine<span class="cc-pro">PRO</span></div>'
-      + '<div class="ev-go" id="evGo"><b>⚡ Faça uma avaliação em ' + esc(SNAP.sym) + ' →</b><span>O Rotator analisa as variações de preço, a classificação e o RSI, e desbloqueia</span></div>'
+      + '<div class="ev-lines"><div class="ev-go" id="evGo"><b>⚡ Faça uma avaliação em ' + esc(SNAP.sym) + ' →</b><span>O Rotator analisa as variações de preço, a classificação e o RSI, e desbloqueia</span></div>'
       + '<div class="ev-think" id="evThink"></div>'
-      + '<div class="ev-lines">' + LINES.map(function (l) { return '<div class="ev-l"><span class="k">' + esc(l[0]) + '</span><span class="v"></span></div>'; }).join('') + '</div>'
+      + LINES.map(function (l) { return '<div class="ev-l"><span class="k">' + esc(l[0]) + '</span><span class="v"><span style="opacity:0">' + esc(l[1]) + '</span></span></div>'; }).join('') + '</div>'
       + '<div class="ev-end">Uma análise, não uma previsão.</div>';
     vis.appendChild(card);
     var lineEls = card.querySelectorAll('.ev-l'), endEl = card.querySelector('.ev-end');
@@ -2908,7 +2908,7 @@ document.addEventListener('click', function (e) {
       return { i: i, col: up ? 'var(--green)' : 'var(--red)', right: right,
         t: (right ? '' : 'then ') + TOPIC.pct(best) + ' in ' + (bi - i) + ' day' + (bi - i === 1 ? '' : 's') };
     });
-    var W, H, phone, L, w, Z0 = 56;
+    var W, H, phone, L, w, Z0 = 56, cardH = 0;
     var els = {};
     function build() {
       var h = '<defs><clipPath id="insClip"><rect id="insClipR" x="0" y="0" width="0" height="0"/></clipPath><clipPath id="insClip2"><rect id="insClipR2" x="0" y="0" width="0" height="0"/></clipPath>'
@@ -2948,12 +2948,19 @@ document.addEventListener('click', function (e) {
     var A = function (el, o) { for (var k in o) el.setAttribute(k, typeof o[k] === 'number' ? o[k].toFixed(1) : o[k]); };
     function render(p) {
       steps('insight', p);
-      var rev = seg(p, 0.02, 0.24), z = ease(seg(p, 0.3, 0.46)), ind = ease(seg(p, 0.26, 0.34)), dots = seg(p, 0.42, 0.54);
-      var cin = ease(seg(p, 0.6, 0.65));
+      /* Candles .02-.18, indicator and zoom .2-.34, dots .32-.42, then the
+         zoomed chart stays alone until .66 (Daniel, 2026-10-29: the card
+         came "a split second" after the zoom and hid it). Wide screens: the
+         card slides in under the chart, which moves up to make room; phones
+         have no room, so it lays over a half-dimmed chart. */
+      var rev = seg(p, 0.02, 0.18), z = ease(seg(p, 0.22, 0.34)), ind = ease(seg(p, 0.2, 0.26)), dots = seg(p, 0.32, 0.42);
+      var cin = ease(seg(p, 0.66, 0.71));
+      if (!cardH) cardH = card.offsetHeight;
+      var Av = phone ? H : H - cin * (cardH + 22);
       /* Domain: all 90 days, zooming to the last 34. */
       var d0 = -0.6 + (Z0 - 0.6 + 0.6) * z, d1 = N - 0.4;
       var X = function (i) { return L + (i - d0) / (d1 - d0) * w; };
-      var top = phone ? 44 : 82, ph = H * (phone ? 0.7 - 0.12 * z : 0.62 - 0.2 * z) - top, it = top + ph + (phone ? 26 : 34), ih = H - it - (phone ? 16 : 24);
+      var top = phone ? 44 : 82, ph = Av * (phone ? 0.7 - 0.12 * z : 0.62 - 0.2 * z + 0.06 * cin) - top, it = top + ph + (phone ? 26 : 34), ih = Av - it - (phone ? 16 : 24);
       if (ind < 0.01) ph = H - top - 40;
       /* Price scale: full range, easing to the zoomed range. */
       var lo = Infinity, hi = -Infinity, lz = Infinity, hz = -Infinity;
@@ -3018,14 +3025,13 @@ document.addEventListener('click', function (e) {
         document.getElementById('iaf' + j).style.opacity = String(o);
       });
       leg.style.left = L + 'px'; leg.style.top = (it - (phone ? 22 : 26)) + 'px';
-      leg.style.opacity = String(ind * (1 - cin));
-      els.insChart.style.opacity = String(1 - 0.72 * cin);
+      leg.style.opacity = String(ind * (phone ? 1 - cin : 1));
+      els.insChart.style.opacity = String(phone ? 1 - 0.5 * cin : 1);
       /* The evaluation card. */
       card.style.opacity = String(cin);
-      card.style.top = (H * 0.53) + 'px';
-      card.style.transform = 'translate(-50%,-50%) translateY(' + ((1 - cin) * 24).toFixed(1) + 'px)';
+      card.style.transform = 'translate(-50%,' + (phone ? H * 0.53 - cardH / 2 : H - 14 - cardH).toFixed(1) + 'px) translateY(' + ((1 - cin) * 30).toFixed(1) + 'px)';
       card.style.visibility = cin < 0.01 ? 'hidden' : '';
-      var press = seg(p, 0.66, 0.69), think = seg(p, 0.69, 0.74);
+      var press = seg(p, 0.72, 0.75), think = seg(p, 0.75, 0.79);
       var go = $('evGo');
       go.style.display = press >= 1 ? 'none' : '';
       go.style.transform = 'scale(' + (1 - 0.05 * Math.sin(Math.PI * press)).toFixed(3) + ')';
@@ -3033,16 +3039,18 @@ document.addEventListener('click', function (e) {
       th.style.display = press >= 1 && think < 1 ? '' : 'none';
       th.textContent = 'Leitura ' + SNAP.sym + ' ' + '…'.repeat(1) + ' ' + ['movimentos de preço', 'rank', 'RSI e cruzamentos', 'unlocks'][Math.min(3, Math.floor(think * 4))];
       LINES.forEach(function (l, i) {
-        var t = seg(p, 0.74 + i * 0.042, 0.74 + i * 0.042 + 0.04), el = lineEls[i];
-        el.style.display = press >= 1 ? '' : 'none';
+        var t = seg(p, 0.79 + i * 0.034, 0.79 + i * 0.034 + 0.032), el = lineEls[i];
+        el.style.visibility = press >= 1 ? '' : 'hidden';
         el.style.opacity = t > 0 ? '1' : '0';
-        el.querySelector('.v').textContent = l[1].slice(0, Math.round(l[1].length * t));
+        /* The whole line is laid out from the start, the untyped part
+           invisible, so the card keeps one height while it types. */
+        var n = Math.round(l[1].length * t);
+        el.querySelector('.v').innerHTML = esc(l[1].slice(0, n)) + '<span style="opacity:0">' + esc(l[1].slice(n)) + '</span>';
       });
-      endEl.style.display = press >= 1 ? '' : 'none';
-      endEl.style.opacity = String(seg(p, 0.95, 0.97));
+      endEl.style.opacity = String(seg(p, 0.96, 0.98));
     }
     resize();
-    S.add($('insight'), { render: render, resize: resize });
+    S.add($('insight'), { render: render, resize: function () { resize(); cardH = 0; } });
   }
 
   /* ── 05 ALERTS: Telegram messages slide in ───────────── */

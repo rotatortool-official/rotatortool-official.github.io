@@ -507,7 +507,7 @@ function renderTiles() {
           + (function() { var r = _holderRisk(c); return r ? '<div class="tile-risk" title="' + r + '">⚠ ' + r + '</div>' : ''; })()
           + (c.insight ? '<div class="tile-insight"><div class="insight-pulse ' + c.insight.color + '" data-tip="' + c.insight.tooltip.replace(/"/g, '&quot;') + '" title="' + c.insight.tooltip.replace(/"/g, '&quot;') + '"><span class="insight-dot"></span><span class="insight-lbl">' + c.insight.label + '</span><span class="insight-score">' + c.insight.score + '</span></div></div>' : '')
           + '<div class="tile-foot">' + (pl ? '<span class="tile-pl ' + plC + '">' + pl + '</span>' : '<span></span>')
-          + '<span class="tile-scr ' + scrC + '">' + (c._retired ? '—' : c.score) + '</span></div>'
+          + '<span class="tile-scr ' + scrC + '"' + (c._retired ? '' : ' style="color:' + scoreColor(c.score) + '"') + '>' + (c._retired ? '—' : c.score) + '</span></div>'
           + '</div>';
   });
 
@@ -558,7 +558,7 @@ function renderTiles() {
           + (c._retired || typeof readingLineHtml !== 'function' ? '' : readingLineHtml(c))
           + (c.insight ? '<div class="tile-insight"><div class="insight-pulse ' + c.insight.color + '" data-tip="' + c.insight.tooltip.replace(/"/g, '&quot;') + '" title="' + c.insight.tooltip.replace(/"/g, '&quot;') + '"><span class="insight-dot"></span><span class="insight-lbl">' + c.insight.label + '</span><span class="insight-score">' + c.insight.score + '</span></div></div>' : '')
           + '<div class="tile-foot"><span class="tile-watch-lbl">watching</span>'
-          + '<span class="tile-scr ' + (c._retired ? '' : scoreBand(c.score)) + '">' + (c._retired ? '—' : c.score) + '</span></div>'
+          + '<span class="tile-scr ' + (c._retired ? '' : scoreBand(c.score)) + '"' + (c._retired ? '' : ' style="color:' + scoreColor(c.score) + '"') + '>' + (c._retired ? '—' : c.score) + '</span></div>'
           + '</div>';
   });
 

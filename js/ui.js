@@ -302,7 +302,7 @@ function _ahmRow(coin) {
         ? '<span class="ahm-chip ' + coin.insight.color + '">' + coin.insight.label
           + ' ' + coin.insight.score + '</span>'
         : '')
-    + '<span class="ahm-scr ' + scrC + '">' + (coin.score != null ? coin.score : '—') + '</span>'
+    + '<span class="ahm-scr ' + scrC + '"' + (coin.score != null ? ' style="color:' + scoreColor(coin.score) + '"' : '') + '>' + (coin.score != null ? coin.score : '—') + '</span>'
     + '</div>';
 }
 
@@ -444,7 +444,7 @@ function ahmPreview() {
       + '<div class="ahm-coin-sub">' + _ahmPrice(c.price) + ' · '
       + '<span class="' + (c.p24 >= 0 ? 'up' : 'dn') + '">' + (c.p24 >= 0 ? '+' : '')
       + (c.p24 || 0).toFixed(1) + '% 24h</span></div></div>'
-      + '<span class="ahm-scr ' + scoreBand(c.score) + '">'
+      + '<span class="ahm-scr ' + scoreBand(c.score) + '"' + (c.score != null ? ' style="color:' + scoreColor(c.score) + '"' : '') + '>'
       + (c.score != null ? c.score : '—') + '</span>'
     + '</div>'
     + (rows ? '<div class="ahm-pv-rows">' + rows + '</div>' : '')
