@@ -649,7 +649,7 @@ function _tdStoryHtml(c, extra) {
     : ['Price moves over 24 hours, 7 and 30 days', 'Its place among ' + n + ' coins', 'RSI, golden/death crosses and volume', 'Unlocks and distance from the top'];
   return '<div class="td-story' + (seen ? '' : ' is-idle') + '" data-sym="' + _esc(c.sym) + '">'
     + '<div class="td-story-hd"><span class="td-story-logo" aria-hidden="true"><img src="icon-192.png" alt="" width="22" height="22"></span>'
-    + '<span class="td-story-t">' + (S.mk ? 'Rotator накратко' : 'Rotator summary') + '</span>'
+    + '<span class="td-story-t">' + (S.mk ? 'Rotator Insight Engine' : 'Rotator Insight Engine') + '</span>'
     + '<button type="button" class="td-story-share" onclick="shareCoinStory()">'
     + '<svg viewBox="0 0 24 24" width="13" height="13" aria-hidden="true"><path fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" d="M12 3v12M7 8l5-5 5 5M5 13v6a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-6"/></svg>'
     + '<span>' + (S.mk ? 'Сподели' : 'Share') + '</span></button></div>'
@@ -700,7 +700,7 @@ function tdStoryRun(btn) {
     };
     var line = function (b) { b.classList.add('td-stream'); b.style.animationDelay = at + 'ms'; at += LINE; };
     words(el.querySelector('.td-story-p'));
-    [].forEach.call(el.querySelectorAll('.td-story-read > p, .td-story-ind > .td-sl, .td-story-ind > .td-sb > *, .td-story-ind > .td-sl-end'), function (b) {
+    [].forEach.call(el.querySelectorAll('.td-story-read > p, .td-story-ind > .td-sl, .td-story-ind > .td-sb > *, .td-story-ind > .td-ins-slot, .td-story-ind > .td-sl-end'), function (b) {
       if (b.tagName === 'P') words(b); else line(b);
     });
     var share = el.querySelector('.td-story-share');
@@ -825,12 +825,36 @@ function _tdIndRead(c, R, tech, trust) {
     /* Daniel, 2026-10-28: drop "None of these signs has been tested yet";
        not every sign is ours to test, they are read from the sources we
        have. The line that stays is the plain one. */
-    + '<div class="td-sl-end">A reading, not a forecast.</div>';
+    + '<div class="td-ins-slot"></div><div class="td-sl-end">A reading, not a forecast.</div>';
   return '<div class="td-story-ind">' + h + '</div>';
 }
 
 /* Fill #td-warn, #td-reading, #td-turns and #td-score-extra. */
+/* One Insight Engine (Daniel, 2026-10-29: "call the summarisation rotator
+   insight engine ... port insight engine from card modals into one so we
+   dont have 2 sections"). #td-insight-content, filled by openTileDetail(),
+   moves into the summary's slot; its own fold stays hidden. It goes home
+   before the summary is rebuilt, so it is never thrown away with it. */
+var _tdInsHome = null;
+function _tdInsHomeAgain() {
+  var ins = document.getElementById('td-insight-content');
+  if (!ins) return null;
+  if (!_tdInsHome) _tdInsHome = ins.parentNode;
+  if (ins.parentNode !== _tdInsHome) _tdInsHome.appendChild(ins);
+  return ins;
+}
+function _tdInsIntoStory() {
+  var ins = _tdInsHomeAgain(), slot = document.querySelector('#td-reading .td-ins-slot');
+  var sec = document.getElementById('td-insight-sec');
+  if (!ins || !slot) return;
+  if (ins.textContent.trim()) {
+    slot.innerHTML = '<span class="td-sl-k">Insight</span>';
+    slot.appendChild(ins);
+  }
+  if (sec) sec.style.display = 'none';
+}
 function renderCoinReading(c) {
+  _tdInsHomeAgain();
   var warnEl = document.getElementById('td-warn');
   var readEl = document.getElementById('td-reading');
   var turnsEl = document.getElementById('td-turns');
@@ -904,6 +928,7 @@ function renderCoinReading(c) {
   var story = _tdStoryHtml(c, '<div class="td-story-read">' + flow + '</div>');
   readEl.innerHTML = (story || '<div class="td-reading ' + tone + '">' + readHtml + '</div>')
     + _tdKeyFacts(c, tech);
+  if (story) _tdInsIntoStory();
   _tdLoadPerf(c);
 
   /* ── 3. The signs, grouped, with their records ── */

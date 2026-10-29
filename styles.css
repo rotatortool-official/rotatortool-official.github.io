@@ -7372,3 +7372,11 @@ a.mob-more-item{text-decoration:none;color:inherit;}
 .ri-frame.on{background:var(--bg3);color:var(--text);border-color:var(--text);}
 .ri-legend .ri-score-k{color:var(--text);}
 .ri-legend .ri-x{color:var(--muted);}
+
+/* Rotator Insight Engine (2026-10-29): the old Insight Engine section sits
+   in the summary's slot; the long/short bar is left out of the big card's
+   summary because its Positioning card shows it. */
+.td-ins-slot{display:flex;flex-direction:column;gap:4px;padding-top:6px;border-top:1px dashed var(--bdr);}
+.td-ins-slot:empty{display:none;}
+.td-ins-slot #td-insight-content{font-size:13px;}
+.td-expanded .td-story .tdx-ls{display:none;}

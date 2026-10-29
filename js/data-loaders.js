@@ -5567,15 +5567,17 @@ function openTileDetail(coinId, evt) {
       }
       /* No reading is shown as an em-dash, not as 50/Neutral — the
          display must not invent a sentiment the engine refused to use. */
-      var fgVal = (window.fearGreed && typeof window.fearGreed.value === 'number')
-        ? window.fearGreed.value : null;
+      /* The reading can arrive as text ("51"); a missing one leaves the tile
+         out instead of showing "null" in green (null <= 40 is true). */
+      var fgRaw = window.fearGreed ? window.fearGreed.value : null;
+      var fgVal = fgRaw != null && fgRaw !== '' && isFinite(Number(fgRaw)) ? Number(fgRaw) : null;
       var fgLbl = (window.fearGreed && window.fearGreed.label) || '—';
       var fgGood = fgVal <= 40;
       var fgBad  = fgVal >= 75;
       var fgCls  = fgGood ? 'good' : fgBad ? 'bad' : 'neutral';
       var fgIcon = fgGood ? '✓' : fgBad ? '−' : '—';
       var fgHl   = fgGood ? ' highlight-good' : fgBad ? ' highlight-bad' : '';
-      insHtml += '<div class="signal-tile' + fgHl + '" style="margin-top:2px;">'
+      if (fgVal != null) insHtml += '<div class="signal-tile' + fgHl + '" style="margin-top:2px;">'
         + '<span class="tile-icon ' + fgCls + '">' + fgIcon + '</span>'
         + '<div class="tile-body"><span class="tile-label">FEAR & GREED INDEX</span>'
         + '<span class="tile-value ' + fgCls + '">' + fgVal + ' — ' + fgLbl + '</span></div></div>';
