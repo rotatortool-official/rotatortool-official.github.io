@@ -36,6 +36,23 @@
 
 var RI_LIB = 'https://cdn.jsdelivr.net/npm/lightweight-charts@5.2.1/dist/lightweight-charts.standalone.production.js';
 var _riLibP = null, _riChart = null;
+/* The score line is coloured by its level (Daniel, 2026-10-29: "heatmap
+   on the scoring line", then "add colder and hotter colours"): the score's
+   bands (below 40 red, 40-64 amber, 65+ green), colder below the reds down
+   to -50, hotter above the greens up to 100. Same scale as the landing
+   page's Insight scene. Display only: crossings split by score level were
+   all near 50% in the 2024-26 test (rotator-backtest score-rsi-cross-context). */
+var _RI_HEAT = [[-50, '#4c1d95'], [-20, '#7e22ce'], [0, '#be185d'], [15, '#c0262d'], [28, '#ef4444'], [38, '#ff7a45'], [46, '#ffa53a'],
+  [54, '#f3ba2f'], [60, '#e3d34a'], [66, '#a3d65a'], [74, '#4ccf7f'], [82, '#16c79a'], [90, '#14b8c4'], [100, '#3b82f6']];
+function _riHeat(v) {
+  var H = _RI_HEAT, rgb = function (h) { return [1, 3, 5].map(function (i) { return parseInt(h.slice(i, i + 2), 16); }); };
+  v = Math.max(H[0][0], Math.min(H[H.length - 1][0], Number(v) || 0));
+  for (var i = 1; i < H.length; i++) if (v <= H[i][0]) {
+    var a = rgb(H[i - 1][1]), b = rgb(H[i][1]), t = (v - H[i - 1][0]) / (H[i][0] - H[i - 1][0]);
+    return 'rgb(' + a.map(function (x, k) { return Math.round(x + (b[k] - x) * t); }).join(',') + ')';
+  }
+  return H[H.length - 1][1];
+}
 var RI_IND = [['ema', 'EMA 20/50'], ['bb', 'Bollinger'], ['st', 'SuperTrend'], ['macd', 'MACD'], ['sqz', 'Squeeze']];
 var _riOn = (function () { try { return JSON.parse(localStorage.getItem('rot_ri_ind') || '{}') || {}; } catch (e) { return {}; } })();
 var _riData = {};
@@ -319,9 +336,10 @@ function _riDraw(host, c) {
      under it (green ✕); colours swapped the same day at Daniel's word, as
      he reads them. Shown as a fact on the chart, not a tested signal. */
   if (sc.length) {
-    var ss = chart.addSeries(LC.LineSeries, { color: text, lineWidth: 1.5, priceLineVisible: false, lastValueVisible: true, title: 'Score' }, 1);
+    var ss = chart.addSeries(LC.LineSeries, { color: text, lineWidth: 2.5, priceLineVisible: false, lastValueVisible: true, title: 'Score' }, 1);
     var sData = [], byT = {};
     sc.forEach(function (x) { var t = _riT(_riDay(x.snap_date)); if (!byT[t]) { byT[t] = { time: t, value: 0 }; sData.push(byT[t]); } byT[t].value = Number(x.score); });
+    sData.forEach(function (p) { p.color = _riHeat(p.value); });
     ss.setData(sData);
     var rsiAt = {}; rsiData.forEach(function (p) { rsiAt[p.time] = p.value; });
     /* The dot sits where the two lines meet (Daniel, 2026-10-29: "the red

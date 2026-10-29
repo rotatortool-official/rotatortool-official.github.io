@@ -7370,7 +7370,7 @@ a.mob-more-item{text-decoration:none;color:inherit;}
 .ri-frames{display:inline-flex;gap:2px;margin:0 4px;}
 .ri-frame{font:700 10.5px/1 inherit;padding:4px 7px;border-radius:5px;border:1px solid var(--bdr);background:transparent;color:var(--muted);cursor:pointer;}
 .ri-frame.on{background:var(--bg3);color:var(--text);border-color:var(--text);}
-.ri-legend .ri-score-k{color:var(--text);}
+.ri-legend .ri-score-k{font-weight:700;color:transparent;-webkit-background-clip:text;background-clip:text;background-image:linear-gradient(90deg,#be185d,#ef4444,#ff7a45,#f3ba2f,#a3d65a,#16c79a,#3b82f6);}
 .ri-legend .ri-x{color:var(--muted);}
 
 /* Rotator Insight Engine (2026-10-29): the old Insight Engine section sits
