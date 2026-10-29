@@ -323,6 +323,32 @@
     return r;
   };
 
+  /* ── Chart windows on desktop (Daniel, 2026-10-29: unlocks, ETF flows and
+     the rest "can use the more horizontal layout"): the summary, numbers
+     and chart on the left, the table or the longer sections on the right,
+     in a wider and calmer window. The builders redraw the body on every
+     open, so the split happens after openModal(). ── */
+  var openModal0 = window.openModal;
+  function fcSplit(id) {
+    try {
+      var ov = $(id), modal = ov && ov.querySelector('.modal.etf-modal'), sc = modal && modal.querySelector('.etf-scroll');
+      if (!sc || window.innerWidth < 1100 || sc.classList.contains('fc-split')) return;
+      var kids = Array.prototype.slice.call(sc.children), hasTable = !!sc.querySelector(':scope > table');
+      var right = kids.filter(function (k) { return k.tagName === 'TABLE' || (!hasTable && k.classList.contains('etf-m-sec')); });
+      if (!right.length) return;
+      var L = document.createElement('div'), R = document.createElement('div');
+      L.className = 'fc-l'; R.className = 'fc-r';
+      kids.forEach(function (k) { (right.indexOf(k) >= 0 ? R : L).appendChild(k); });
+      sc.appendChild(L); sc.appendChild(R); sc.classList.add('fc-split'); modal.classList.add('fc-wide');
+    } catch (x) {}
+  }
+  /* Some windows (Bitcoin vs gold) fill a moment after they open: look again. */
+  if (typeof openModal0 === 'function') window.openModal = function (id) {
+    var r = openModal0.apply(this, arguments);
+    fcSplit(id); setTimeout(function () { fcSplit(id); }, 500); setTimeout(function () { fcSplit(id); }, 1500);
+    return r;
+  };
+
   /* ── Start: the address, else the last tab you used, else Today ── */
   var LEGACY = { 'sec-today': ['today'], 'sec-capital': ['flows'], 'sec-rotation': ['coins', 'best'], 'sec-liq': ['deriv'], 'sec-yours': ['mine'],
     'sec-coins': ['coins', 'all'], 'sec-swap': ['mine', 'tool'], 'sec-record': ['coins', 'record'] };
