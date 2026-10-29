@@ -349,6 +349,24 @@
     return r;
   };
 
+  /* ── Home and Pro, Wispr-style (Daniel, 2026-10-29): the logo takes you
+     home (it used to reload the page), a house button sits with the small
+     buttons top right, and the rail's foot holds a Pro card the way Wispr
+     Flow keeps "Upgrade to Pro" at the bottom of its sidebar. ── */
+  var logo = $('logo-c');
+  if (logo) { logo.onclick = function () { location.href = './'; }; logo.title = 'Rotator home'; logo.setAttribute('role', 'link'); }
+  if (right) {
+    var hm = document.createElement('div'); hm.className = 'tb-dropdown-wrap';
+    hm.innerHTML = '<a class="tb-icon-btn bt-home" href="./" title="Rotator home" aria-label="Rotator home"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 11 12 4l9 7"/><path d="M5 10v10h14V10"/><path d="M10 20v-6h4v6"/></svg></a>';
+    right.insertBefore(hm, right.querySelector('.bt-learn') || right.firstChild);
+  }
+  var pc = document.createElement('div'); pc.className = 'rail-pro';
+  pc.innerHTML = '<div class="rp-t">Rotator <b>Pro</b></div><div class="rp-s">Personal alerts on your coins, sent to you on Telegram.</div>'
+    + '<button type="button" class="rp-btn" onclick="openPro()">Get Pro</button>';
+  rail.appendChild(pc);
+  function proCard() { pc.style.display = (typeof isPro !== 'undefined' && isPro) ? 'none' : ''; }
+  proCard(); setInterval(proCard, 4000);
+
   /* ── Start: the address, else the last tab you used, else Today ── */
   var LEGACY = { 'sec-today': ['today'], 'sec-capital': ['flows'], 'sec-rotation': ['coins', 'best'], 'sec-liq': ['deriv'], 'sec-yours': ['mine'],
     'sec-coins': ['coins', 'all'], 'sec-swap': ['mine', 'tool'], 'sec-record': ['coins', 'record'] };
