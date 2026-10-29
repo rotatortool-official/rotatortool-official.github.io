@@ -52,7 +52,7 @@
 (function () {
   try {
     var q = new URLSearchParams(location.search), h = location.hash;
-    var own = /^#(hero|today|capital|momentum|liq|yours|coins|score|tool|record|plans)?$/.test(h);
+    var own = /^#(hero|today|capital|momentum|insight|alerts|calc|plans|liq|yours|coins|score|tool|record|cases|end)?$/.test(h);
     if (q.has('coin') || q.has('donate') || (h && !own)) { location.replace('../board.html' + location.search + h); return; }
     /* Language (Daniel, 2026-10-21: "loads default on portuguese if someone
        from brazil opens it"). On the English page at / only: a pick from the
@@ -722,6 +722,99 @@ html:is([lang="ar"],[lang="ur"]) .td-hint{letter-spacing:0;font-family:var(--ui)
   .rail a{font-size:12px;}
   .grid2{padding-left:150px;}
 }
+/* ══ Landing preview, 2026-10-29: re-arranged story (Find, Understand,
+   Manage, Alerts, Weather, When it mattered, Pro math). ══ */
+.pv-badge{position:fixed;left:12px;bottom:12px;z-index:50;font:800 10px/1 var(--mono);letter-spacing:.14em;color:#1a1203;background:var(--gold);border-radius:999px;padding:6px 10px;opacity:.85;pointer-events:none;}
+
+/* ── Find: the leaderboard sorting itself ── */
+.sc-row.hl{z-index:2;}
+.sc-row.hl::before{content:'';position:absolute;left:-10px;right:-10px;top:3px;bottom:3px;border-radius:12px;background:color-mix(in srgb,var(--gold) 13%,transparent);box-shadow:inset 0 0 0 1.5px var(--gold);z-index:-1;}
+.sc-rank{position:absolute;left:-22px;font:800 11px/1 var(--mono);color:var(--dim);}
+.sc-climb{position:absolute;right:58px;padding:3px 6px;border-radius:6px;background:var(--card);font:800 11px/1 var(--mono);color:var(--gold-ink);white-space:nowrap;opacity:0;}
+@media (max-width:860px){ .sc-rank{display:none;} .sc-climb{right:42px;font-size:9.5px;} }
+
+/* ── Understand: the Insight Engine ── */
+#ins-vis svg.ins-svg{position:absolute;left:0;top:0;overflow:visible;}
+.ins-k{font:700 10px var(--mono);letter-spacing:.1em;fill:var(--dim);}
+.ins-gc{font:800 10.5px var(--mono);}
+.ins-af{font:800 11px var(--mono);}
+@media (min-width:861px){ .ins-af{font-size:12px;} }
+.ins-pw{font:800 10.5px var(--mono);letter-spacing:.04em;fill:var(--gold-ink);opacity:.8;}
+.ins-leg{position:absolute;display:flex;flex-wrap:wrap;gap:4px 14px;font:700 11.5px/1.2 var(--ui);color:var(--muted);}
+.ins-leg b{color:var(--text);}
+.ins-leg span{display:inline-flex;align-items:center;gap:6px;white-space:nowrap;}
+.ins-leg i{width:14px;height:3px;border-radius:2px;}
+.ins-leg i.dot{width:8px;height:8px;border-radius:50%;}
+.ev-card{position:absolute;left:50%;z-index:4;width:min(470px,calc(100% - 24px));padding:14px 16px 12px;border-radius:18px;background:var(--bg2);border:1px solid rgba(243,186,47,.45);
+  box-shadow:var(--shadow),0 0 0 6px rgba(243,186,47,.07);opacity:0;}
+.ev-hd{display:flex;align-items:center;gap:9px;font:800 13px/1.2 var(--ui);}
+.ev-hd img{width:22px;height:22px;border-radius:6px;}
+.ev-hd .cc-pro{margin-left:auto;}
+.ev-go{margin-top:10px;display:flex;flex-direction:column;gap:3px;padding:10px 12px;border-radius:12px;background:linear-gradient(180deg,var(--gold2),var(--gold));color:#1a1203;}
+.ev-go b{font:800 14px/1.2 var(--ui);}
+.ev-go span{font:600 11.5px/1.3 var(--ui);opacity:.8;}
+.ev-think{margin-top:8px;font:600 12px/1.5 var(--mono);color:var(--muted);}
+.ev-lines{margin-top:6px;}
+.ev-l{display:grid;grid-template-columns:96px minmax(0,1fr);gap:10px;padding:6px 0;border-top:1px solid var(--panel-b);font:500 13px/1.4 var(--ui);color:var(--text);opacity:0;}
+.ev-l .k{font:700 10.5px/1.6 var(--mono);letter-spacing:.1em;text-transform:uppercase;color:var(--gold-ink);}
+.ev-end{margin-top:6px;font:600 11px/1.3 var(--mono);letter-spacing:.06em;color:var(--dim);opacity:0;}
+@media (max-width:860px){ .ev-card{padding:10px 12px 9px;} .ev-l{grid-template-columns:74px minmax(0,1fr);font-size:11.5px;padding:4px 0;} .ev-l .k{font-size:9px;} .ev-go{padding:7px 10px;} .ev-go b{font-size:12.5px;} .ev-go span{display:none;} .ins-leg{font-size:10px;gap:3px 10px;} }
+@media (min-width:861px){ .ev-l{font-size:14px;} .ins-leg{font-size:13px;} }
+
+/* ── Alerts: a phone with Telegram ── */
+.tgp{position:absolute;left:50%;top:calc(50% + 16px);width:min(310px,82%);height:min(560px,calc(100% - 60px));transform:translate(-50%,-50%);border-radius:38px;padding:12px;background:#11161f;box-shadow:0 0 0 2px #2a3342,var(--shadow);}
+:root.light .tgp{background:#1c2430;}
+.tgp-in{position:relative;height:100%;border-radius:28px;overflow:hidden;background:#0e1621;display:flex;flex-direction:column;}
+.tgp-hd{display:flex;align-items:center;gap:10px;padding:14px 14px 10px;background:#17212b;color:#fff;}
+.tgp-hd img{width:34px;height:34px;border-radius:50%;}
+.tgp-hd b{display:block;font:700 14px/1.2 var(--ui);}
+.tgp-hd span{display:block;font:500 11.5px/1.2 var(--ui);color:#6c7f92;}
+.tgp-msgs{flex:1;display:flex;flex-direction:column;justify-content:flex-end;gap:8px;padding:12px 10px;overflow:hidden;}
+.tgm{align-self:flex-start;max-width:92%;padding:8px 11px 7px;border-radius:14px 14px 14px 4px;background:#182533;color:#e9eef4;font:500 12.5px/1.42 var(--ui);opacity:0;display:none;}
+.tgm .tgm-h{font-weight:700;margin-bottom:2px;}
+.tgm small{display:block;text-align:right;font:500 10px/1 var(--ui);color:#6c7f92;margin-top:3px;}
+@media (min-width:861px){ .tgm{font-size:13.5px;} }
+
+/* ── When it mattered ── */
+.cases{position:relative;z-index:1;padding:120px 24px 20px;}
+.cases-in,.calc-in{max-width:1120px;margin:0 auto;}
+.sec-hd{max-width:720px;}
+.sec-hd p{color:var(--muted);font-size:18px;margin:14px 0 0;}
+.case-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:16px;margin-top:34px;}
+.case{position:relative;display:flex;flex-direction:column;gap:10px;padding:20px 18px 18px;border-radius:20px;border:1px solid var(--panel-b);background:var(--panel);box-shadow:var(--shadow);}
+.case.todo{border-style:dashed;}
+.todo-tag{align-self:flex-start;font:800 9.5px/1 var(--mono);letter-spacing:.1em;color:#1a1203;background:#ff9f43;border-radius:5px;padding:4px 6px;}
+.case-hd{display:flex;align-items:baseline;justify-content:space-between;gap:10px;}
+.case-hd b{font:800 20px/1 var(--mono);}
+.case-hd span{font:600 12.5px/1.2 var(--mono);color:var(--muted);}
+.case-k{font:700 10px/1 var(--mono);letter-spacing:.12em;text-transform:uppercase;color:var(--dim);margin-bottom:4px;}
+.case p{margin:0;font-size:14.5px;line-height:1.45;color:var(--text);}
+.case .rec{font-size:12.5px;color:var(--muted);padding-top:10px;border-top:1px solid var(--panel-b);}
+.case .rec strong{color:var(--text);}
+.case a.chk{margin-top:auto;font:700 13.5px/1 var(--ui);color:var(--gold-ink);text-decoration:none;}
+.case a.chk:hover{text-decoration:underline;}
+@media (max-width:1000px){ .case-grid{grid-template-columns:1fr 1fr;} }
+@media (max-width:560px){ .case-grid{grid-template-columns:1fr;} .cases{padding:80px 16px 10px;} .sec-hd p{font-size:16px;} }
+
+/* ── Why Pro pays for itself ── */
+.calc{position:relative;z-index:1;padding:100px 24px 0;}
+.calc-card{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:28px;align-items:center;margin-top:30px;padding:30px;border-radius:24px;border:1px solid rgba(42,171,238,.35);
+  background:radial-gradient(80% 90% at 100% 0%,rgba(42,171,238,.13),transparent 65%),var(--panel);box-shadow:var(--shadow);}
+.calc-card label{display:block;font:700 11px/1 var(--mono);letter-spacing:.14em;text-transform:uppercase;color:var(--dim);margin-bottom:10px;}
+.calc-in-box{display:flex;align-items:center;gap:6px;height:58px;padding:0 18px;border-radius:14px;border:1.5px solid var(--panel-b);background:var(--card);}
+.calc-in-box:focus-within{border-color:var(--gold);}
+.calc-in-box span{font:800 26px/1 var(--mono);color:var(--muted);}
+.calc-in-box input{flex:1;min-width:0;border:0;outline:0;background:transparent;color:var(--text);font:800 26px/1 var(--mono);}
+.calc-out{font:600 18px/1.45 var(--ui);color:var(--muted);}
+.calc-out b{display:block;font:800 clamp(30px,4vw,44px)/1.1 var(--mono);color:var(--tg-ink);letter-spacing:-.02em;margin-top:4px;}
+.calc-note{grid-column:1/-1;margin:0;font-size:14px;color:var(--muted);line-height:1.5;}
+@media (max-width:760px){ .calc-card{grid-template-columns:minmax(0,1fr);padding:22px 18px;gap:18px;} .calc{padding:80px 16px 0;} }
+
+@media (min-width:1280px){ .cases,.calc{padding-left:214px;} }
+/* Phones: no endless animations at all (iPhone memory, 2026-10-29). */
+@media (hover:none),(max-width:860px){
+  .co-arr,.pb-bell,.play-cue,.live::before,.cf-bar i,.lq.hl,.scroll-cue i::after,.scroll-cue svg{animation:none !important;}
+}
 </style>
 </head>
 <body>
@@ -759,6 +852,9 @@ document.addEventListener('click', function (e) {
   <a href="#today" data-for="today">आज</a>
   <a href="#capital" data-for="capital">पूंजी</a>
   <a href="#momentum" data-for="momentum">गति</a>
+  <a href="#insight" data-for="insight">INSIGHT ENGINE</a>
+  <a href="#alerts" data-for="alerts">चेतावनी</a>
+  <a href="#calc" data-for="calc">PRO</a>
   <a href="#liq" data-for="liq">तरलिकरण</a>
   <a href="#yours" data-for="yours">आपका</a>
   <a href="#coins" data-for="coins">सिक्के</a>
@@ -776,15 +872,15 @@ document.addEventListener('click', function (e) {
       <div class="hero-copy" id="hero-copy">
         <div class="eyebrow">Binance ट्रेडर्स के लिए मुफ्त टूल</div>
         <h1>देखें कि <span class="grad">पूंजी कहाँ घूमती है।</span></h1>
-        <p class="hero-sub"><strong>पैसा कहाँ जा रहा है, इसकी ऑन-चेन ट्रैकिंग।</strong> आप तय करते हैं कि इसके साथ क्या करना है। कोई वॉलेट नहीं, कोई एक्सचेंज कुंजी नहीं, कोई खाता नहीं।</p>
+        <p class="hero-sub"><strong>Rotator बाजार की भविष्यवाणी नहीं करता। यह आपको दिखाता है कि अभी क्या हो रहा है, इससे पहले कि आप खुद ध्यान दें।</strong> कोई वॉलेट नहीं, कोई एक्सचेंज कुंजी नहीं, कोई खाता नहीं।</p>
         <div class="hero-stats">
           <div><data class="hs-v" id="st-coins" value="262">262</data>बोर्ड पर सिक्के</div>
           <div><div class="hs-v">15 मिनट</div>स्कोर के बीच</div>
           <div><data class="hs-v" value="0">$0</data>बोर्ड का उपयोग करने के लिए</div>
         </div>
         <div class="cta-row" style="display:flex">
-          <a class="btn btn-gold" href="../board.html">डैशबोर्ड खोलें</a>
-          <a class="btn btn-ghost" href="#today">देखें कि यह कैसे काम करता है ↓</a>
+          <a class="btn btn-gold" href="../board.html">बाजार पढ़ें</a>
+          <a class="btn btn-ghost" href="../board.html#sec-yours">मेरे पोर्टफोलियो को ट्रैक करें</a>
         </div>
       </div>
     </div>
@@ -859,156 +955,84 @@ document.addEventListener('click', function (e) {
   </div>
 </section>
 
-<!-- 04 LIQUIDATIONS -->
-<section class="scene" id="liq" style="height:230vh">
+<!-- 02 UNDERSTAND: the Rotator Insight Engine (landing preview,
+     2026-10-29). Real BTC candles, RSI 14 and scores, 1 Aug - 29 Oct
+     2026, inlined; the page reads nothing for this scene. -->
+<section class="scene" id="insight" style="height:360vh">
   <div class="stage">
-    <div class="glow" style="--gx:65%;--gy:55%"></div>
+    <div class="glow" style="--gx:62%;--gy:42%"></div>
     <div class="grid2">
       <div class="copy">
-        <div class="eyebrow"><data class="eb-n" value="04">04</data>लिक्विडेशन</div>
-        <h2>देखें कि व्यापारी कहाँ फँसे।</h2>
-        <div class="steps" data-scene="liq">
-          <p class="step" data-at="0">जब कीमत में तेज़ उतार-चढ़ाव होता है, <strong>उधार ली गई बेटें जबरन बंद कर दी जाती हैं।</strong> Binance हर एक की रिपोर्ट करता है।</p>
-          <p class="step" data-at=".36"><strong>लाल: कीमत गिरने पर लॉन्ग्स खत्म हो गए। हरा: कीमत बढ़ने पर शॉर्ट्स दबाए गए।</strong> बड़ा ब्लॉक, अधिक पैसा।</p>
-          <p class="step" data-at=".62">यह दिखाता है कि भीड़ किस ओर झुकी थी, <strong>और पिछले 24 घंटों में उन्हें इसकी क्या कीमत चुकानी पड़ी</strong>।</p>
+        <div class="eyebrow"><data class="eb-n" value="04">04</data>Insight Engine</div>
+        <h2>Rotator Insight Engine।</h2>
+        <div class="steps" data-scene="insight">
+          <p class="step" data-at="0">किसी भी कॉइन को खोलें: <strong>इसकी कीमत, हर गोल्डन क्रॉस (GC) और डेथ क्रॉस (DC) को चिह्नित करते हुए</strong>, वे दिन जब इसकी फास्ट औसत ने स्लो औसत को पार किया।</p>
+          <p class="step" data-at=".3">इसके नीचे <strong>इनसाइट इंडिकेटर</strong> है: सुनहरी रेखा RSI 14 है, और स्कोर रेखा <strong>स्कोर के अनुसार रंग बदलती है</strong>: कमजोर होने पर लाल, मजबूत होने पर हरा। एक बिंदु दिखाता है <strong>कि मोमेंटम और स्कोर कहाँ क्रॉस करते हैं</strong>, जिससे आप तुरंत देख सकते हैं कि वहाँ कॉइन कितना मजबूत था।</p>
+          <p class="step" data-at=".5">यहाँ STRK पर, <strong>तीन बिंदुओं में से दो बड़े उतार-चढ़ाव से ठीक पहले सही दिशा में आए</strong>; तीसरा नहीं। 2024–26 के दौरान, 5,084 क्रॉसिंग्स ने औसत कॉइन को लगभग आधे समय में पीछे छोड़ दिया: एक बिंदु करीब से देखने की जगह है, <strong>संकेत नहीं।</strong></p>
+          <p class="step" data-at=".62">फिर ⚡<strong> रन इवैल्यूएशन</strong> दबाएँ। नियम-आधारित, सेकंड में: <strong>स्कोर, गति, आपूर्ति, फ्यूचर्स और टर्न सिग्नल</strong>, साधारण शब्दों में।</p>
         </div>
-        <div class="cta-row"><a class="btn btn-gold" href="../board.html#sec-liq">लिक्विडेशन खोलें ›</a></div>
+        <div class="cta-row"><a class="btn btn-gold" href="../board.html#sec-coins">एक कॉइन खोलें ›</a></div>
       </div>
-      <div class="vis"><div class="panel" id="liq-vis">
-        <div class="tag live" style="right:18px;top:16px">पिछले 24 घंटे</div>
+      <div class="vis"><div class="panel" id="ins-vis">
+        <div class="tag" id="ins-tag" style="left:22px;top:18px">चुना गया उदाहरण · दैनिक</div>
       </div></div>
     </div>
   </div>
 </section>
 
-<!-- 05 YOURS -->
-<section class="scene" id="yours" style="height:290vh">
+<!-- 04 STAY INFORMED: Telegram alerts slide in on a phone. -->
+<section class="scene" id="alerts" style="height:280vh">
   <div class="stage">
-    <div class="glow" style="--gx:66%;--gy:45%"></div>
+    <div class="glow" style="--gx:62%;--gy:50%"></div>
     <div class="grid2">
       <div class="copy">
-        <div class="eyebrow"><data class="eb-n" value="05">05</data>आपका</div>
-        <h2>आपके कॉइन्स, आपके लिए निगरानी में।</h2>
-        <div class="steps" data-scene="yours">
-          <p class="step" data-at="0">जो आपके पास है उसे जोड़ें। <strong>कोई वॉलेट नहीं, कोई एक्सचेंज कुंजी नहीं, कोई खाता नहीं।</strong> यह आपके ब्राउज़र में ही रहता है।</p>
-          <p class="step" data-at=".3">एक नज़र में देखें कि आपका पोर्टफोलियो <strong>कैसे बँटा है: प्रत्येक कॉइन में आपकी कितनी राशि है</strong>, लाइव कीमतों पर।</p>
-          <p class="step" data-at=".5">और यह दिखाता है: <strong>पिछले 7 दिनों में, घंटे-दर-घंटे आपके मिक्स का मूल्य</strong>।</p>
-          <p class="step" data-at=".74">चेतावनियाँ आपके कॉइन्स का पीछा करती हैं: <strong>डिलिस्टिंग, बड़े अनलॉक और टर्न संकेत</strong>, बोर्ड पर और Telegram में Pro के साथ।</p>
+        <div class="eyebrow"><data class="eb-n" value="05">05</data>अलर्ट</div>
+        <h2>Telegram में आपके कॉइन्स पर अलर्ट।</h2>
+        <div class="steps" data-scene="alerts">
+          <p class="step" data-at="0">क्या आपके पास मौजूद किसी कॉइन पर <strong>बड़ा अनलॉक 3 दिन दूर है</strong>? Rotator सबसे पहले आपको बताता है।</p>
+          <p class="step" data-at=".26"><strong>क्या Binance डेलिस्टिंग की घोषणा करता है?</strong> आप तुरंत सुनते हैं।</p>
+          <p class="step" data-at=".48"><strong>क्या आपकी कीमत पर पहुँच गया?</strong> आपने जो अलर्ट सेट किया था, वह आ गया।</p>
+          <p class="step" data-at=".7">और हर <strong>सोमवार और गुरुवार,</strong> आपके कॉइन्स पर <strong>एक संक्षिप्त ब्रीफिंग</strong>। बस इतना ही, कोई शोर नहीं।</p>
         </div>
-        <div class="cta-row"><a class="btn btn-gold" href="../board.html#sec-yours">अपने कॉइन जोड़ें ›</a></div>
+        <div class="cta-row"><a class="btn btn-tg" href="../board.html#pro">Pro अलर्ट प्राप्त करें ›</a></div>
       </div>
-      <div class="vis"><div class="panel" id="yours-vis">
-        <div class="tag" style="right:18px;top:16px">उदाहरण होल्डिंग्स · लाइव कीमतें</div>
-        <a class="pro-bell" id="proBell" href="../board.html#pro"><div class="pb-bell" aria-hidden="true">🔔</div><span class="pb-t">Proके साथ <strong>व्यक्तिगत अलर्ट</strong> प्राप्त करें</span></a>
+      <div class="vis"><div class="panel" id="alerts-vis">
+        <div class="tag" style="left:22px;top:18px">उदाहरण संदेश</div>
+        <div class="tgp"><div class="tgp-in">
+          <div class="tgp-hd"><img src="../icon-192.png" alt=""><div><b>Rotator</b><span>बॉट · आपके कॉइन</span></div></div>
+          <div class="tgp-msgs" id="tgMsgs">
+            <div class="tgm"><div class="tgm-h">🔓 3 दिनों में अनलॉक करें</div><div>Coin X शनिवार को अपनी आपूर्ति का 2.4% (≈ $38M) जारी करता है। आप Coin X रखते हैं।</div><small>09:00</small></div>
+            <div class="tgm"><div class="tgm-h">⚠️ लिस्ट से हटाना</div><div>Binance 5 नवंबर को Coin Y को हटा देगा। यदि आप Coin Y धारण करते हैं: उससे पहले अपने विकल्पों की जाँच करें।</div><small>14:12</small></div>
+            <div class="tgm"><div class="tgm-h">🎯 मूल्य अलर्ट</div><div>BTC ने $85,000 को छू लिया, वह कीमत जो आपने निर्धारित की थी।</div><small>18:40</small></div>
+            <div class="tgm"><div class="tgm-h">📊 गुरुवार की ब्रीफिंग</div><div>आपके 3 कॉइन: BTC स्कोर 63, ETH 55, SOL 41। एक अनलॉक बाकी, कोई डिलिस्टिंग नहीं।</div><small>गुरुवार 19:00</small></div>
+          </div>
+        </div></div>
       </div></div>
     </div>
   </div>
 </section>
 
-<!-- 06 COINS (Daniel, 2026-10-20: COINS on the wheel opened the score
-     page; it gets its own scene like the other chapters). Real scores from
-     the newest signal run, the same rows the board reads. -->
-<section class="scene" id="coins" style="height:260vh">
-  <div class="stage">
-    <div class="glow" style="--gx:62%;--gy:45%"></div>
-    <div class="grid2">
-      <div class="copy">
-        <div class="eyebrow"><data class="eb-n" value="06">06</data>सिक्के</div>
-        <h2>हर सिक्के के लिए एक स्कोर।</h2>
-        <div class="steps" data-scene="coins">
-          <p class="step" data-at="0">बोर्ड पर हर कॉइन को <strong>−50 से 100 तक एक नंबर</strong> मिलता है, जिसे हर 15 मिनट में फिर से गणना करके रैंक किया जाता है।</p>
-          <p class="step" data-at=".36">तीन भाग मिलकर बनते हैं: <strong>हर दूसरे कॉइन के खिलाफ गति, बिटकॉइन, सोने और डॉलर के खिलाफ ताकत, और आपूर्ति</strong>: अनलॉक्स, बर्न्स और नए कॉइन।</p>
-          <p class="step" data-at=".68"><strong>65 और उससे ऊपर हरा है, 40 से 64 के बीच एम्बर, 40 से नीचे लाल।</strong> यह बताता है कि किसी कॉइन ने कैसा प्रदर्शन किया है, न कि यह आगे कहाँ जाएगा।</p>
-        </div>
-        <div class="cta-row"><a class="btn btn-gold" href="../board.html#sec-coins">सिक्के खोलें ›</a><a class="btn btn-ghost" href="../how-the-score-works.html">स्कोर कैसे काम करता है</a></div>
-      </div>
-      <div class="vis"><div class="panel" id="coins-vis">
-        <div class="tag live" style="right:18px;top:16px">लाइव स्कोर</div>
-      </div></div>
+<!-- 07 WHY PRO PAYS FOR ITSELF: arithmetic only, no promise, no price. -->
+<section class="calc" id="calc">
+  <div class="calc-in">
+    <div class="sec-hd">
+      <div class="eyebrow"><data class="eb-n" value="06">06</data>Pro गणित</div>
+      <h2>Pro अपने आप ही अपनी लागत वसूल कर लेता है।</h2>
     </div>
-  </div>
-</section>
-
-<!-- 07 SCORE (Daniel, 2026-10-21: "include how the score works in the
-     tour"). The exploding coin from how-the-score-works.html: the score
-     comes apart into its four layers, one at a time. Example numbers. -->
-<section class="scene" id="score" style="height:260vh">
-  <div class="stage">
-    <div class="glow" style="--gx:58%;--gy:50%"></div>
-    <div class="grid2">
-      <div class="copy">
-        <div class="eyebrow"><data class="eb-n" value="07">07</data>स्कोर</div>
-        <h2>स्कोर कैसे काम करता है।</h2>
-        <div class="steps" data-scene="score">
-          <p class="step" data-at="0">स्कोर <strong>एक सिक्का</strong> है जो <strong>चार परतों से बना है।</strong> देखो यह अलग होता है।</p>
-          <p class="step" data-at=".26"><strong>मॉमेंटम</strong> 7, 14 और 30 दिनों में हर दूसरे कॉइन के मुकाबले उस कॉइन को रैंक करता है। फिर इसे <strong>बिटकॉइन, सोना, चांदी और तेल के मुकाबले</strong> मापा जाता है<strong>।</strong></p>
-          <p class="step" data-at=".5"><strong>सप्लाई</strong> ही वह है जो इस पर दबाव डाल सकती है: बड़े अनलॉक और उच्च मुद्रास्फीति स्कोर को नीचे खींचते हैं, यहां तक कि शून्य से भी नीचे। <strong>आकार</strong> एक छोटा, स्थिर कदम जोड़ता है।</p>
-          <p class="step" data-at=".78">उच्च स्कोर का मतलब है कि सिक्का बाकी की तुलना में अधिक मजबूत रहा है। <strong>यह पहले से ही हुई घटना का वर्णन करता है। यह कोई पूर्वानुमान नहीं है।</strong></p>
-        </div>
-        <div class="cta-row"><a class="btn btn-gold" href="../how-the-score-works.html">स्कोर कैसे काम करता है ›</a></div>
+    <div class="calc-card">
+      <div>
+        <label for="calcIn">आपका पोर्टफोलियो</label>
+        <div class="calc-in-box"><span>$</span><input id="calcIn" type="text" inputmode="numeric" autocomplete="off" value="10,000"></div>
       </div>
-      <div class="vis"><div class="panel" id="score-vis">
-        <div class="tag" style="left:26px;top:20px">उदाहरण कॉइन</div>
-        <div class="sd-sum" id="sdSum">22 + 18 − 6 + 0 = <b>34</b></div>
-      </div></div>
-    </div>
-  </div>
-</section>
-
-<!-- 08 ROTATOR TOOL -->
-<section class="scene" id="tool" style="height:300vh">
-  <div class="stage">
-    <div class="glow" style="--gx:55%;--gy:45%"></div>
-    <div class="grid2">
-      <div class="copy">
-        <div class="eyebrow"><data class="eb-n" value="08">08</data>Rotator Tool</div>
-        <h2>स्वैप करने का सबसे अच्छा समय खोजें।</h2>
-        <div class="steps" data-scene="tool">
-          <p class="step" data-at="0"><strong>कॉइन B कमजोर हो रहा है जबकि कॉइन A बढ़ रहा है।</strong> हर हफ्ते एक B कम A खरीदता है।</p>
-          <p class="step" data-at=".36">Rotator Tool वह अनुपात दिखाता है और यह भी बताता है कि यह कब बदलता है। <strong>जब मजबूत कॉइन हावी हो जाता है, तो कमजोर कॉइन को उससे बदलने का यही सबसे अच्छा समय होता है।</strong></p>
-          <p class="step" data-at=".56">अब आपका पैसा बढ़ते कॉइन पर सवार है। <strong>लाल वह है जो B को पकड़े रहने से आपके पास बचा है।</strong></p>
-          <p class="step" data-at=".8">यदि A फिर से नीचे मुड़ता है, तो स्वैप घाटे में चला जाता है (धूसर रेखा)। <strong>यह उपकरण इतिहास दिखाता है; निर्णय आपका है।</strong></p>
-        </div>
-        <div class="cta-row"><a class="btn btn-gold" href="../board.html#sec-swap">अपना सर्वश्रेष्ठ स्वैप खोजें ›</a></div>
-      </div>
-      <div class="vis"><div class="panel" id="tool-vis">
-        <div class="tag" style="left:26px;top:20px">उदाहरण · वास्तविक कीमतें नहीं</div>
-        <a class="pro-bell" id="proBellSwap" href="../board.html#pro"><div class="pb-bell" aria-hidden="true">🔔</div><span class="pb-t">Pro के साथ <strong>स्वैप</strong> अलर्ट <strong>के लिए सर्वोत्तम समय</strong> प्राप्त करें।</span></a>
-      </div></div>
-    </div>
-  </div>
-</section>
-
-<!-- 09 RECORD -->
-<section class="scene" id="record" style="height:250vh">
-  <div class="stage">
-    <div class="glow" style="--gx:70%;--gy:55%"></div>
-    <div class="grid2">
-      <div class="copy">
-        <div class="eyebrow"><data class="eb-n" value="09">09</data>रिकॉर्ड</div>
-        <h2>प्रदर्शित हर परिणाम, अच्छा हो या बुरा।</h2>
-        <div class="steps" data-scene="record">
-          <p class="step" data-at="0">Rotator<strong>बाजार के बीच में मौजूद सिक्के</strong> के लिए अपने संकेतों को ग्रेड करता है<strong>।</strong></p>
-          <p class="step" data-at=".33" id="rec-best">अब तक का सबसे अच्छा संकेत यह है कि यह बाजार को उससे थोड़ी अधिक बार हराता है। <strong>एक छोटा सा लाभ, कोई वादा नहीं।</strong></p>
-          <p class="step" data-at=".62">जनवरी तक कोई भी इंजन में बदलाव नहीं करता; यह जैसा है वैसा ही चलता रहता है। <strong>मार्च 2027 में एक साल के परिणाम तय करेंगे: इसे बनाए रखें, सुधारें या बंद कर दें।</strong></p>
-        </div>
-        <div class="cta-row"><a class="btn btn-gold" href="../track-record.html">पूरा रिकॉर्ड देखें ›</a></div>
-      </div>
-      <div class="vis"><div class="panel" id="rec-vis">
-        <div class="tag" style="left:28px;top:20px">बाज़ार को मात दें, साइन के 7 दिन बाद</div>
-        <div class="bars" id="bars"></div>
-        <div class="tl" id="tl">
-          <div class="tl-track"></div><div class="tl-fill" id="tl-fill"></div>
-          <div class="tl-now" id="tl-now">आज</div>
-        </div>
-      </div></div>
+      <div class="calc-out" aria-live="polite"><div>एक 5% की गिरावट से बचते हुए</div><div><data id="calcX" value="10000">$10,000</data> =</div><b id="calcY">$500</b></div>
+      <p class="calc-note">सरल अंकगणित, कोई वादा नहीं: Rotator आपको यह नहीं बता सकता कि गिरावट आने वाली है। Pro आपको समय पर अनलॉक्स, लिस्ट से हटाने और आपके द्वारा निर्धारित कीमतों के बारे में सूचित करता है, ताकि आप पहले से निर्णय ले सकें।</p>
     </div>
   </div>
 </section>
 
 <!-- FREE AND PRO: the same lists as the board's Pro window (pro-system.js,
      layout B), so the two never disagree. Landing-page ending, 2026-10-20. -->
-<section class="plans" id="plans">
+<section class="plans" id="plans" style="padding-top:60px">
   <div class="plans-in">
     <div class="eyebrow" style="justify-content:center">आपको क्या मिलता है</div>
     <h2>उपयोग करने के लिए निःशुल्क। <span class="grad">जब आप इसे अपने पास भेजना चाहें तो Pro।</span></h2>
@@ -1034,7 +1058,8 @@ document.addEventListener('click', function (e) {
           <li><strong>डिलीस्टिंग और स्वैप-पेयर अलर्ट</strong>, तुरंत</li>
           <li>10 होल्डिंग्स, कोई भी स्वैप जोड़ी</li>
           <li><strong>Rotator के अंदर TradingView चार्ट</strong>, पूर्ण स्क्रीन, ड्राइंग टूल्स के साथ</li>
-          <li><strong>Rotator संकेतक</strong>: चार्ट पर हमारे क्रॉस और RSI फ्लैग्स, Rotator स्कोर के साथ</li>
+          <li><strong>इनसाइट इंडिकेटर</strong>: चार्ट पर RSI 14 और Rotator स्कोर, जहाँ वे क्रॉस करते हैं वहाँ एक बिंदु के साथ</li>
+          <li><strong>Rotator Insight Engine</strong>: ⚡ किसी भी कॉइन का मूल्यांकन साधारण शब्दों में चलाएँ</li>
           <li>ब्राउज़र सूचनाएं</li>
         </ul>
         <p class="plan-note">पहले 10 भुगतान करने वाले तब तक Pro का Rotator के अपने खर्चों का भुगतान करने तक Pro Pro के लिए रख सकते हैं। उसके बाद, Pro एक सदस्यता बन जाता है। आप इसे मुफ्त में भी प्राप्त कर सकते हैं: प्रत्येक आमंत्रित मित्र के लिए 1 सप्ताह, Rotator Weekly की सदस्यता लेने पर 2 सप्ताह।</p>
@@ -1044,14 +1069,161 @@ document.addEventListener('click', function (e) {
   </div>
 </section>
 
-<section class="finale">
+<!-- 04 LIQUIDATIONS -->
+<section class="scene" id="liq" style="height:230vh">
+  <div class="stage">
+    <div class="glow" style="--gx:65%;--gy:55%"></div>
+    <div class="grid2">
+      <div class="copy">
+        <div class="eyebrow"><data class="eb-n" value="07">07</data>लिक्विडेशन</div>
+        <h2>देखें कि व्यापारी कहाँ फँसे।</h2>
+        <div class="steps" data-scene="liq">
+          <p class="step" data-at="0">जब कीमत में तेज़ उतार-चढ़ाव होता है, <strong>उधार ली गई बेटें जबरन बंद कर दी जाती हैं।</strong> Binance हर एक की रिपोर्ट करता है।</p>
+          <p class="step" data-at=".36"><strong>लाल: कीमत गिरने पर लॉन्ग्स खत्म हो गए। हरा: कीमत बढ़ने पर शॉर्ट्स दबाए गए।</strong> बड़ा ब्लॉक, अधिक पैसा।</p>
+          <p class="step" data-at=".62">यह दिखाता है कि भीड़ किस ओर झुकी थी, <strong>और पिछले 24 घंटों में उन्हें इसकी क्या कीमत चुकानी पड़ी</strong>।</p>
+        </div>
+        <div class="cta-row"><a class="btn btn-gold" href="../board.html#sec-liq">लिक्विडेशन खोलें ›</a></div>
+      </div>
+      <div class="vis"><div class="panel" id="liq-vis">
+        <div class="tag live" style="right:18px;top:16px">पिछले 24 घंटे</div>
+      </div></div>
+    </div>
+  </div>
+</section>
+
+<!-- 05 YOURS -->
+<section class="scene" id="yours" style="height:290vh">
+  <div class="stage">
+    <div class="glow" style="--gx:66%;--gy:45%"></div>
+    <div class="grid2">
+      <div class="copy">
+        <div class="eyebrow"><data class="eb-n" value="08">08</data>आपका</div>
+        <h2>आपके कॉइन्स, आपके लिए निगरानी में।</h2>
+        <div class="steps" data-scene="yours">
+          <p class="step" data-at="0">जो आपके पास है उसे जोड़ें। <strong>कोई वॉलेट नहीं, कोई एक्सचेंज कुंजी नहीं, कोई खाता नहीं।</strong> यह आपके ब्राउज़र में ही रहता है।</p>
+          <p class="step" data-at=".3">एक नज़र में देखें कि आपका पोर्टफोलियो <strong>कैसे बँटा है: प्रत्येक कॉइन में आपकी कितनी राशि है</strong>, लाइव कीमतों पर।</p>
+          <p class="step" data-at=".5">और यह दिखाता है: <strong>पिछले 7 दिनों में, घंटे-दर-घंटे आपके मिक्स का मूल्य</strong>।</p>
+          <p class="step" data-at=".74">चेतावनियाँ आपके कॉइन्स का पीछा करती हैं: <strong>डिलिस्टिंग, बड़े अनलॉक और टर्न संकेत</strong>, बोर्ड पर और Telegram में Pro के साथ।</p>
+        </div>
+        <div class="cta-row"><a class="btn btn-gold" href="../board.html#sec-yours">अपने कॉइन जोड़ें ›</a></div>
+      </div>
+      <div class="vis"><div class="panel" id="yours-vis">
+        <div class="tag" style="right:18px;top:16px">उदाहरण होल्डिंग्स · लाइव कीमतें</div>
+        <a class="pro-bell" id="proBell" href="../board.html#pro"><div class="pb-bell" aria-hidden="true">🔔</div><span class="pb-t">Proके साथ <strong>व्यक्तिगत अलर्ट</strong> प्राप्त करें</span></a>
+      </div></div>
+    </div>
+  </div>
+</section>
+
+<!-- 06 COINS (Daniel, 2026-10-20: COINS on the wheel opened the score
+     page; it gets its own scene like the other chapters). Real scores from
+     the newest signal run, the same rows the board reads. -->
+<section class="scene" id="coins" style="height:280vh">
+  <div class="stage">
+    <div class="glow" style="--gx:62%;--gy:45%"></div>
+    <div class="grid2">
+      <div class="copy">
+        <div class="eyebrow"><data class="eb-n" value="09">09</data>सिक्के</div>
+        <h2>हर सिक्के के लिए एक स्कोर।</h2>
+        <div class="steps" data-scene="coins">
+          <p class="step" data-at="0">बोर्ड पर हर कॉइन को <strong>−50 से 100 तक एक नंबर</strong> मिलता है, जिसे हर 15 मिनट में फिर से गणना करके रैंक किया जाता है।</p>
+          <p class="step" data-at=".3">देखें कि सूची खुद ही क्रमबद्ध हो जाती है: <strong>सबसे मजबूत कॉइन शीर्ष पर आ जाते हैं।</strong> यह सबसे नीचे से पहले स्थान तक चढ़ता है।</p>
+          <p class="step" data-at=".56">तीन भाग मिलकर बनते हैं: <strong>हर दूसरे कॉइन के खिलाफ गति, बिटकॉइन, सोने और डॉलर के खिलाफ ताकत, और आपूर्ति।</strong> यह बताता है कि किसी कॉइन ने कैसा प्रदर्शन किया है, न कि वह आगे कहाँ जाएगा।</p>
+        </div>
+        <div class="cta-row"><a class="btn btn-gold" href="../board.html#sec-coins">सिक्के खोलें ›</a><a class="btn btn-ghost" href="../how-the-score-works.html">स्कोर कैसे काम करता है</a></div>
+      </div>
+      <div class="vis"><div class="panel" id="coins-vis">
+        <div class="tag live" style="right:18px;top:16px">लाइव स्कोर</div>
+      </div></div>
+    </div>
+  </div>
+</section>
+
+<!-- 07 SCORE (Daniel, 2026-10-21: "include how the score works in the
+     tour"). The exploding coin from how-the-score-works.html: the score
+     comes apart into its four layers, one at a time. Example numbers. -->
+<section class="scene" id="score" style="height:260vh">
+  <div class="stage">
+    <div class="glow" style="--gx:58%;--gy:50%"></div>
+    <div class="grid2">
+      <div class="copy">
+        <div class="eyebrow"><data class="eb-n" value="10">10</data>स्कोर</div>
+        <h2>स्कोर कैसे काम करता है।</h2>
+        <div class="steps" data-scene="score">
+          <p class="step" data-at="0">स्कोर <strong>एक सिक्का</strong> है जो <strong>चार परतों से बना है।</strong> देखो यह अलग होता है।</p>
+          <p class="step" data-at=".26"><strong>मॉमेंटम</strong> 7, 14 और 30 दिनों में हर दूसरे कॉइन के मुकाबले उस कॉइन को रैंक करता है। फिर इसे <strong>बिटकॉइन, सोना, चांदी और तेल के मुकाबले</strong> मापा जाता है<strong>।</strong></p>
+          <p class="step" data-at=".5"><strong>सप्लाई</strong> ही वह है जो इस पर दबाव डाल सकती है: बड़े अनलॉक और उच्च मुद्रास्फीति स्कोर को नीचे खींचते हैं, यहां तक कि शून्य से भी नीचे। <strong>आकार</strong> एक छोटा, स्थिर कदम जोड़ता है।</p>
+          <p class="step" data-at=".78">उच्च स्कोर का मतलब है कि सिक्का बाकी की तुलना में अधिक मजबूत रहा है। <strong>यह पहले से ही हुई घटना का वर्णन करता है। यह कोई पूर्वानुमान नहीं है।</strong></p>
+        </div>
+        <div class="cta-row"><a class="btn btn-gold" href="../how-the-score-works.html">स्कोर कैसे काम करता है ›</a></div>
+      </div>
+      <div class="vis"><div class="panel" id="score-vis">
+        <div class="tag" style="left:26px;top:20px">उदाहरण कॉइन</div>
+        <div class="sd-sum" id="sdSum">22 + 18 − 6 + 0 = <b>34</b></div>
+      </div></div>
+    </div>
+  </div>
+</section>
+
+<!-- 08 ROTATOR TOOL -->
+<section class="scene" id="tool" style="height:300vh">
+  <div class="stage">
+    <div class="glow" style="--gx:55%;--gy:45%"></div>
+    <div class="grid2">
+      <div class="copy">
+        <div class="eyebrow"><data class="eb-n" value="11">11</data>Rotator Tool</div>
+        <h2>स्वैप करने का सबसे अच्छा समय खोजें।</h2>
+        <div class="steps" data-scene="tool">
+          <p class="step" data-at="0"><strong>कॉइन B कमजोर हो रहा है जबकि कॉइन A बढ़ रहा है।</strong> हर हफ्ते एक B कम A खरीदता है।</p>
+          <p class="step" data-at=".36">Rotator Tool वह अनुपात दिखाता है और यह भी बताता है कि यह कब बदलता है। <strong>जब मजबूत कॉइन हावी हो जाता है, तो कमजोर कॉइन को उससे बदलने का यही सबसे अच्छा समय होता है।</strong></p>
+          <p class="step" data-at=".56">अब आपका पैसा बढ़ते कॉइन पर सवार है। <strong>लाल वह है जो B को पकड़े रहने से आपके पास बचा है।</strong></p>
+          <p class="step" data-at=".8">यदि A फिर से नीचे मुड़ता है, तो स्वैप घाटे में चला जाता है (धूसर रेखा)। <strong>यह उपकरण इतिहास दिखाता है; निर्णय आपका है।</strong></p>
+        </div>
+        <div class="cta-row"><a class="btn btn-gold" href="../board.html#sec-swap">अपना सर्वश्रेष्ठ स्वैप खोजें ›</a></div>
+      </div>
+      <div class="vis"><div class="panel" id="tool-vis">
+        <div class="tag" style="left:26px;top:20px">उदाहरण · वास्तविक कीमतें नहीं</div>
+        <a class="pro-bell" id="proBellSwap" href="../board.html#pro"><div class="pb-bell" aria-hidden="true">🔔</div><span class="pb-t">Pro के साथ <strong>स्वैप</strong> अलर्ट <strong>के लिए सर्वोत्तम समय</strong> प्राप्त करें।</span></a>
+      </div></div>
+    </div>
+  </div>
+</section>
+
+<!-- 09 RECORD -->
+<section class="scene" id="record" style="height:250vh">
+  <div class="stage">
+    <div class="glow" style="--gx:70%;--gy:55%"></div>
+    <div class="grid2">
+      <div class="copy">
+        <div class="eyebrow"><data class="eb-n" value="12">12</data>रिकॉर्ड</div>
+        <h2>प्रदर्शित हर परिणाम, अच्छा हो या बुरा।</h2>
+        <div class="steps" data-scene="record">
+          <p class="step" data-at="0">Rotator<strong>बाजार के बीच में मौजूद सिक्के</strong> के लिए अपने संकेतों को ग्रेड करता है<strong>।</strong></p>
+          <p class="step" data-at=".33" id="rec-best">अब तक का सबसे अच्छा संकेत यह है कि यह बाजार को उससे थोड़ी अधिक बार हराता है। <strong>एक छोटा सा लाभ, कोई वादा नहीं।</strong></p>
+          <p class="step" data-at=".62">जनवरी तक कोई भी इंजन में बदलाव नहीं करता; यह जैसा है वैसा ही चलता रहता है। <strong>मार्च 2027 में एक साल के परिणाम तय करेंगे: इसे बनाए रखें, सुधारें या बंद कर दें।</strong></p>
+        </div>
+        <div class="cta-row"><a class="btn btn-gold" href="../track-record.html">पूरा रिकॉर्ड देखें ›</a></div>
+      </div>
+      <div class="vis"><div class="panel" id="rec-vis">
+        <div class="tag" style="left:28px;top:20px">बाज़ार को मात दें, साइन के 7 दिन बाद</div>
+        <div class="bars" id="bars"></div>
+        <div class="tl" id="tl">
+          <div class="tl-track"></div><div class="tl-fill" id="tl-fill"></div>
+          <div class="tl-now" id="tl-now">आज</div>
+        </div>
+      </div></div>
+    </div>
+  </div>
+</section>
+
+<section class="finale" id="end">
   <div class="card">
     <div class="eyebrow" style="justify-content:center">तैयार?</div>
     <h2>देखें कि <span class="grad">आपके कॉइन</span> कहाँ खड़े हैं।</h2>
     <p>मुफ्त, कोई वॉलेट नहीं, कोई एक्सचेंज कुंजी नहीं, कोई खाता नहीं। अपने पास मौजूद कॉइन्स जोड़ें और बोर्ड बाकी सब कर देगा।</p>
     <div class="cta-row">
-      <a class="btn btn-gold" href="../board.html">डैशबोर्ड खोलें</a>
-      <a class="btn btn-ghost" href="https://t.me/rotatortool" rel="noopener">Telegram चैनल</a>
+      <a class="btn btn-gold" href="../board.html">बाजार पढ़ें</a>
+      <a class="btn btn-ghost" href="../board.html#sec-yours">मेरे पोर्टफोलियो को ट्रैक करें</a>
     </div>
     <div class="news">
       <div class="news-n" translate="no">Rotator Weekly</div><p class="news-t">सोमवार को एक ईमेल जिसमें सप्ताह की सबसे बड़ी हलचलें और डेटा ने क्या दिखाया। सब्सक्राइबर्स को 2 सप्ताह का मुफ्त Pro कोड मिलता है: आपके पास मौजूद कॉइन्स के लिए व्यक्तिगत Telegram अलर्ट।</p>
@@ -1062,7 +1234,7 @@ document.addEventListener('click', function (e) {
 <footer class="foot">
   <nav class="foot-links" aria-label="Rotator से और">
     <a href="../how-the-score-works.html">स्कोर कैसे काम करता है</a>
-    <a href="../track-record.html">ट्रैक रिकॉर्ड</a>
+    <a href="../track-record.html">ट्रैक रिकॉर्ड (बीटा)</a>
     <a href="../board.html#privacy">गोपनीयता</a>
     <a href="../board.html#terms">शर्तें</a>
     <a href="https://t.me/rotatortool" rel="noopener">Telegram</a>
@@ -1292,7 +1464,7 @@ document.addEventListener('click', function (e) {
      plays (below), the middle mouse button jumps one chapter. mousedown is
      stopped so the browser does not start its own auto-scroll. Hides near
      the end. */
-  var cue = $('cue'), cueBar = $('cueBar'), plansEl = $('plans');
+  var cue = $('cue'), cueBar = $('cueBar'), plansEl = $('end');
   function nextChapter() {
     var cur = Math.round(wheelTarget()), nx = stops.filter(function (x) { return x.i > cur; })[0];
     if (nx) goTo(nx.i, 1); else plansEl.scrollIntoView({ behavior: S.reduce ? 'auto' : 'smooth' });
@@ -1330,7 +1502,7 @@ document.addEventListener('click', function (e) {
   var TOUR_PAUSES = {}, TOUR_PAUSE_S = 1;     /* none at the moment: Today turns inside TOUR_SHOW */
   /* Seconds the tour waits on a scene's last picture before it jumps on
      (Daniel, 2026-10-21: the bell "needs to stay one more second"). */
-  var TOUR_HOLD = { hero: 1, momentum: 1, yours: 1, tool: 1 };
+  var TOUR_HOLD = { hero: 1, momentum: 1, insight: 2, alerts: 1, yours: 1, tool: 1 };
   /* A show the tour plays on a scene's last picture, after its hold:
      fn(seconds since it started) draws it and returns true when done.
      The coin card fills in TOUR_SHOW.hero once its data is in. */
@@ -1445,6 +1617,9 @@ document.addEventListener('click', function (e) {
     momentum(list.slice(0, 160));
     yours(C);
     record();
+    insight();
+    alerts();
+    calc();
     today();
     capital();
     liquidations();
@@ -1475,7 +1650,6 @@ document.addEventListener('click', function (e) {
       gx0 = (W - cw * cols) / 2;
       gy0 = H * 0.5 - (Math.ceil((phone ? 24 : els.length) / cols) * ch) / 2 + (phone ? 40 : 50);
     }
-    var t0 = performance.now();
     function render(p) {
       var phone = W < 860;
       var e = ease(seg(p, 0.26, 0.8));
@@ -1485,7 +1659,7 @@ document.addEventListener('click', function (e) {
       var bc = $('board-cap');
       bc.style.opacity = String(seg(p, 0.66, 0.84));
       bc.style.transform = 'translate(-50%,' + ((1 - seg(p, 0.66, 0.84)) * 12).toFixed(1) + 'px) scale(' + (0.97 + 0.05 * seg(p, 0.66, 1)).toFixed(3) + ')';
-      var t = (performance.now() - t0) / 1000;
+      var t = p * 6;
       els.forEach(function (o, i) {
         /* Scattered, drifting, behind the headline (start) → board grid (end). */
         var drift = (1 - e) * 10;
@@ -1502,9 +1676,7 @@ document.addEventListener('click', function (e) {
     }
     resize();
     heroEls = els;
-    var scene = S.add($('hero'), { render: render, resize: resize });
-    /* Gentle drift while the hero sits still at the top. */
-    if (!S.reduce) (function loop() { if (scene.cur < 0.7) render(scene.cur); requestAnimationFrame(loop); })();
+    S.add($('hero'), { render: render, resize: resize });
   }
 
   /* Heat colour for a 7-day move (Daniel, 2026-10-20: "heatmap instead of
@@ -1752,12 +1924,10 @@ document.addEventListener('click', function (e) {
        slow path and breathes a little. Calm while the page scrolls, fuller
        once the visitor stops on this screen. */
     B.forEach(function (o) { o.p1 = rnd() * 6.283; o.p2 = rnd() * 6.283; o.p3 = rnd() * 6.283; o.sp = 0.65 + rnd() * 0.7; });
-    var lava = { amp: 0.35, lastScroll: 0 };
-    window.addEventListener('scroll', function () { lava.lastScroll = performance.now(); }, { passive: true });
     function render(p) {
       steps('momentum', p);
       var e = ease(seg(p, 0.03, 0.48)), h = ease(seg(p, 0.52, 0.8));
-      var tt = performance.now() / 1000, A = S.reduce ? 0 : lava.amp;
+      var tt = p * 40, A = S.reduce ? 0 : 0.6;
       B.forEach(function (o, i) {
         var stag = ease(seg(e * 1.25 - (i % 11) * 0.025, 0, 1));
         o.ox = Math.sin(tt * 0.33 * o.sp + o.p1) * 8 * A * stag;
@@ -1787,16 +1957,7 @@ document.addEventListener('click', function (e) {
       });
       document.querySelectorAll('#mom-vis .tag:not(.live)').forEach(function (t) { t.style.opacity = String(0.3 + 0.7 * e); });
     }
-    var momSc = (resize(), S.add($('momentum'), { render: render, resize: function () { resize(); B.forEach(function (o) { o.el._w = 0; }); [cA, cB].forEach(function (el) { if (el) el._w = 0; }); } }));
-    if (!S.reduce) (function loop() {
-      var r = $('momentum').getBoundingClientRect();
-      if (r.bottom > 0 && r.top < innerHeight) {
-        var idle = performance.now() - lava.lastScroll > 1200;
-        lava.amp += ((idle ? 1 : 0.35) - lava.amp) * 0.02;
-        render(momSc.cur);
-      }
-      requestAnimationFrame(loop);
-    })();
+    resize(); S.add($('momentum'), { render: render, resize: function () { resize(); B.forEach(function (o) { o.el._w = 0; }); [cA, cB].forEach(function (el) { if (el) el._w = 0; }); } });
   }
 
   /* ── 05 YOURS ─────────────────────────────────────────── */
@@ -2302,12 +2463,18 @@ document.addEventListener('click', function (e) {
       if (big.length < 7) return;
       var pick = [];
       for (var k = 0; k < 7; k++) pick.push(big[Math.round(k / 6 * (big.length - 1))]);
-      var rows = pick.map(function (o) {
+      /* The list sorts itself (landing preview, 2026-10-29): the rows come in
+         mixed up, then slide into score order. The top coin starts last and
+         climbs to first place, highlighted. FROM[i] is the slot row i (in
+         final order) starts in. */
+      var FROM = [6, 2, 4, 0, 5, 1, 3];
+      var rows = pick.map(function (o, i) {
         var d = document.createElement('div'); d.className = 'sc-row';
-        d.innerHTML = '<img src="' + esc(o.c.image) + '" alt="" loading="lazy"><span class="sc-sym">' + esc(o.c.symbol.toUpperCase()) + '</span>'
-          + '<div class="sc-trk"><div class="sc-bar"></div></div><span class="sc-num">0</span>';
+        d.innerHTML = '<span class="sc-rank"></span><img src="' + esc(o.c.image) + '" alt="" loading="lazy"><span class="sc-sym">' + esc(o.c.symbol.toUpperCase()) + '</span>'
+          + '<div class="sc-trk"><div class="sc-bar"></div></div><span class="sc-num">0</span>'
+          + (i === 0 ? '<span class="sc-climb">▲ 7वां → 1वां</span>' : '');
         vis.appendChild(d);
-        return { el: d, bar: d.querySelector('.sc-bar'), num: d.querySelector('.sc-num'), o: o };
+        return { el: d, bar: d.querySelector('.sc-bar'), num: d.querySelector('.sc-num'), rank: d.querySelector('.sc-rank'), climb: d.querySelector('.sc-climb'), o: o, from: FROM[i], to: i };
       });
       var top = pick[0], bd = top.b;
       var parts = [['गति', Number(bd.layer1) || 0, 40], ['मैक्रो', Number(bd.layer2) || 0, 30], ['आपूर्ति', Number(bd.layer3) || 0, 30]];
@@ -2321,40 +2488,44 @@ document.addEventListener('click', function (e) {
       function resize() {
         W = vis.clientWidth; H = vis.clientHeight; phone = W < 520;
         rh = phone ? 30 : 44; y0 = phone ? 46 : 60;
-        rows.forEach(function (r, i) { r.el.style.top = (y0 + i * rh) + 'px'; r.el.style.height = rh + 'px'; });
+        rows.forEach(function (r) { r.el.style.height = rh + 'px'; });
         pc.style.top = (y0 + 7 * rh + (phone ? 10 : 22)) + 'px';
       }
-      /* One thing at a time, like the other scenes (Daniel, 2026-10-20):
-         the rows arrive in turn, then the card, then each part, then the
-         total, then the colours row by row from the top. */
+      /* Rows arrive in their mixed-up slots (0-.24), the list sorts
+         (.3-.5), the scores take their colours, then the top coin's three
+         parts (.56-.8) and its total. */
       var pEls = pc.querySelectorAll('.sc-part'), sumEl = pc.querySelector('.sc-sum');
       function render(p) {
         steps('coins', p);
-        var pt = ease(seg(p, 0.36, 0.42)), done = seg(p, 0.66, 0.92);
+        var so = ease(seg(p, 0.3, 0.5)), col = seg(p, 0.48, 0.52), pt = ease(seg(p, 0.56, 0.62));
         rows.forEach(function (r, i) {
-          var g = ease(seg(p, 0.02 + i * 0.045, 0.1 + i * 0.045));
-          var c = seg(p, 0.68 + i * 0.03, 0.72 + i * 0.03);
-          r.el.style.opacity = String(g * (i === 0 ? 1 : 1 - 0.45 * pt * (1 - done)));
+          var g = ease(seg(p, 0.02 + r.from * 0.03, 0.1 + r.from * 0.03));
+          var slot = r.from + (r.to - r.from) * so;
+          r.el.style.opacity = String(g * (i === 0 ? 1 : 1 - 0.45 * pt));
+          r.el.style.top = (y0 + slot * rh).toFixed(1) + 'px';
           r.el.style.transform = 'translate3d(' + ((1 - g) * 40).toFixed(1) + 'px,0,0)';
+          r.el.classList.toggle('hl', i === 0 && so > 0.05);
+          r.rank.textContent = String(Math.round(slot) + 1);
+          if (r.climb) r.climb.style.opacity = String(Math.min(seg(p, 0.32, 0.4), 1 - seg(p, 0.52, 0.58)));
           var v = r.o.v * g;
           r.bar.style.width = (Math.max(0, (v + 50) / 150) * 100).toFixed(2) + '%';
-          r.bar.style.background = c > 0.5 ? band(r.o.v) : 'var(--dim)';
-          r.bar.style.opacity = String(0.6 + 0.4 * c);
+          r.bar.style.background = col > 0.5 ? band(r.o.v) : 'var(--dim)';
+          r.bar.style.opacity = String(0.6 + 0.4 * col);
           r.num.textContent = String(Math.round(v));
-          r.num.style.color = c > 0.5 ? band(r.o.v) : 'var(--text)';
+          r.num.style.color = col > 0.5 ? band(r.o.v) : 'var(--text)';
         });
         pc.style.opacity = String(pt);
         pc.style.transform = 'translate3d(0,' + ((1 - pt) * 18).toFixed(1) + 'px,0)';
         parts.forEach(function (q, i) {
-          var a = ease(seg(p, 0.42 + i * 0.065, 0.45 + i * 0.065)), g = ease(seg(p, 0.43 + i * 0.065, 0.49 + i * 0.065));
+          var a = ease(seg(p, 0.6 + i * 0.06, 0.63 + i * 0.06)), g = ease(seg(p, 0.61 + i * 0.06, 0.67 + i * 0.06));
           pEls[i].style.opacity = String(a);
           $('scp' + i).style.width = (Math.max(0, q[1]) / q[2] * 100 * g).toFixed(2) + '%';
           $('scv' + i).textContent = Math.round(q[1] * g) + ' / ' + q[2];
         });
-        var sg = ease(seg(p, 0.62, 0.66));
+        var sg = ease(seg(p, 0.8, 0.84));
         sumEl.style.opacity = String(sg);
         sumEl.style.transform = 'translateY(' + ((1 - sg) * 6).toFixed(1) + 'px)';
-        $('scs').style.color = seg(p, 0.68, 0.72) > 0.5 ? band(top.v) : 'var(--text)';
+        $('scs').style.color = sg > 0.5 ? band(top.v) : 'var(--text)';
       }
       resize();
       S.add($('coins'), { render: render, resize: resize });
@@ -2634,6 +2805,241 @@ document.addEventListener('click', function (e) {
       PTS.forEach(function (pt) { pt.el.classList.toggle('done', fill >= pt.f - 0.001 && t > 0.5); });
     }
     S.add($('record'), { render: render });
+  }
+  /* ── 04 INSIGHT ENGINE: the Rotator Insight Engine ────────────── */
+  /* Landing preview, 2026-10-29. A real 90-day snapshot, inlined so
+     the scene reads nothing: rows = [date, open, high, low, close, RSI 14,
+     score]; cx = score/RSI crossings [day index, fraction to the next day,
+     up/down]; ev = golden (GC) / death (DC) crosses [day index, kind].
+     The price chart draws in with its crosses, then zooms into the last
+     weeks where the Insight indicator (RSI 14 gold, score white) shows its
+     dots, then the evaluation card streams its lines. The dots are where
+     momentum and the score cross, never buy or sell: the 2024-26 test
+     found them a coin flip (rotator-backtest/score-rsi-cross-test.js).
+     The coin is a picked example (Daniel, 2026-10-29: "after crosses
+     happened and prices moved the right way"): STRK, two of its three dots
+     came before big moves the right way, the third did not, and the page
+     shows all three with the overall record beside them. Colours as on
+     the board (rotator-indicators.js): score climbs above RSI = red, score
+     drops under RSI = green. SNAP.sup is the coin's supply line. */
+  var SNAP = {"sym":"STRK","from":"2026-08-01","to":"2026-10-29","rows":[["2026-08-01",0.02553,0.02581,0.02405,0.0242,29.8,null],["2026-08-02",0.0242,0.02608,0.02394,0.02569,38,null],["2026-08-03",0.02569,0.02596,0.02431,0.02452,34.6,null],["2026-08-04",0.02452,0.0262,0.02446,0.0256,39.9,null],["2026-08-05",0.0256,0.02615,0.02515,0.02532,39,null],["2026-08-06",0.02532,0.02646,0.02531,0.02579,41.4,null],["2026-08-07",0.02579,0.02593,0.02461,0.02475,37.9,null],["2026-08-08",0.02475,0.02567,0.02462,0.0251,39.7,null],["2026-08-09",0.0251,0.0254,0.02341,0.02345,34.5,null],["2026-08-10",0.02345,0.02498,0.02292,0.02408,37.9,null],["2026-08-11",0.02408,0.02454,0.0226,0.02316,35.1,null],["2026-08-12",0.02316,0.02348,0.02217,0.02267,33.6,null],["2026-08-13",0.02267,0.02358,0.02259,0.02294,35.2,null],["2026-08-14",0.02294,0.02311,0.02235,0.02303,35.8,null],["2026-08-15",0.02303,0.02341,0.0229,0.02305,35.9,null],["2026-08-16",0.02305,0.02358,0.0228,0.02347,38.7,null],["2026-08-17",0.02347,0.02367,0.02286,0.02303,36.9,null],["2026-08-18",0.02303,0.02311,0.02222,0.02247,34.6,null],["2026-08-19",0.02247,0.02453,0.02241,0.02411,45.1,null],["2026-08-20",0.02411,0.02628,0.02405,0.02566,52.8,null],["2026-08-21",0.02566,0.02906,0.02562,0.02896,64.3,null],["2026-08-22",0.02896,0.03075,0.02587,0.02732,56.9,null],["2026-08-23",0.02732,0.03016,0.02584,0.02846,60.3,null],["2026-08-24",0.02846,0.0285,0.02685,0.02703,54.5,null],["2026-08-25",0.02703,0.02795,0.02528,0.02565,49.5,null],["2026-08-26",0.02565,0.02633,0.0247,0.02623,51.5,null],["2026-08-27",0.02623,0.0273,0.02553,0.02665,52.9,null],["2026-08-28",0.02665,0.02684,0.02424,0.02467,45.9,null],["2026-08-29",0.02467,0.02569,0.02427,0.02532,48.3,null],["2026-08-30",0.02532,0.02678,0.02432,0.02471,46.3,null],["2026-08-31",0.02471,0.02614,0.02463,0.02603,51.2,null],["2026-09-01",0.02603,0.02729,0.02589,0.02697,54.4,null],["2026-09-02",0.02697,0.0273,0.0258,0.02669,53.3,null],["2026-09-03",0.02669,0.02817,0.02618,0.02767,56.6,null],["2026-09-04",0.02767,0.02777,0.02545,0.02599,50,null],["2026-09-05",0.02599,0.03099,0.02593,0.03011,61.8,null],["2026-09-06",0.03011,0.03229,0.0295,0.03192,65.7,null],["2026-09-07",0.03192,0.03251,0.03037,0.03125,63.1,null],["2026-09-08",0.03125,0.03214,0.0295,0.03055,60.5,null],["2026-09-09",0.03055,0.03434,0.03018,0.03126,62.2,null],["2026-09-10",0.03126,0.03147,0.02789,0.02796,51.1,null],["2026-09-11",0.02796,0.03048,0.02769,0.02865,53,null],["2026-09-12",0.02865,0.02946,0.02861,0.0289,53.7,null],["2026-09-13",0.0289,0.02928,0.02771,0.02799,50.7,null],["2026-09-14",0.02799,0.0302,0.02785,0.02884,53.3,null],["2026-09-15",0.02884,0.02891,0.02646,0.02665,46.5,null],["2026-09-16",0.02665,0.02801,0.02608,0.02791,50.4,null],["2026-09-17",0.02791,0.02912,0.02738,0.02899,53.6,null],["2026-09-18",0.02899,0.04527,0.02876,0.04425,76.3,null],["2026-09-19",0.04425,0.04806,0.03766,0.04471,76.7,null],["2026-09-20",0.04471,0.0509,0.04303,0.04846,79.5,null],["2026-09-21",0.04846,0.05074,0.04264,0.04378,68.4,null],["2026-09-22",0.04378,0.04388,0.0405,0.0425,65.7,null],["2026-09-23",0.0425,0.04325,0.03819,0.03832,57.7,null],["2026-09-24",0.03832,0.04072,0.03803,0.03911,58.7,null],["2026-09-25",0.03911,0.04215,0.03883,0.04123,61.4,null],["2026-09-26",0.04123,0.04368,0.03963,0.04052,60,null],["2026-09-27",0.04052,0.04228,0.03982,0.04207,62,null],["2026-09-28",0.04207,0.04212,0.03862,0.04181,61.5,null],["2026-09-29",0.04181,0.04449,0.03981,0.04188,61.6,null],["2026-09-30",0.04188,0.04361,0.04101,0.04315,63.5,null],["2026-10-01",0.04315,0.045,0.04111,0.04184,60.2,null],["2026-10-02",0.04184,0.04507,0.04073,0.04297,62,null],["2026-10-03",0.04297,0.05571,0.04253,0.05428,74.6,null],["2026-10-04",0.05428,0.06086,0.05176,0.05871,77.7,null],["2026-10-05",0.05871,0.0597,0.05135,0.05285,66.2,null],["2026-10-06",0.05285,0.05331,0.05067,0.05168,64.1,65],["2026-10-07",0.05168,0.05228,0.04825,0.04907,59.7,63],["2026-10-08",0.04907,0.0625,0.04797,0.05557,66,67],["2026-10-09",0.05557,0.07716,0.05534,0.0731,76.6,70],["2026-10-10",0.0731,0.10818,0.06901,0.10324,85.2,70],["2026-10-11",0.10324,0.1265,0.10052,0.12316,88.3,70],["2026-10-12",0.12316,0.12494,0.082,0.08505,61.9,70],["2026-10-13",0.08505,0.09337,0.08222,0.08522,61.9,70],["2026-10-14",0.08522,0.08661,0.07514,0.07699,57.6,70],["2026-10-15",0.07699,0.09874,0.0718,0.08667,61.1,70],["2026-10-16",0.08667,0.08864,0.07161,0.07413,54.9,51],["2026-10-17",0.07413,0.07479,0.0631,0.06453,50.6,28],["2026-10-18",0.06453,0.06495,0.05833,0.06045,48.9,23],["2026-10-19",0.06045,0.06205,0.05631,0.05768,47.7,22],["2026-10-20",0.05768,0.05984,0.05474,0.05722,47.5,21],["2026-10-21",0.05722,0.06601,0.05515,0.05737,47.6,23],["2026-10-22",0.05737,0.05811,0.05258,0.05327,45.5,17],["2026-10-23",0.05327,0.05383,0.0483,0.04949,43.7,12],["2026-10-24",0.04949,0.04954,0.04614,0.04703,42.5,12],["2026-10-25",0.04703,0.04762,0.0445,0.04576,41.8,12],["2026-10-26",0.04576,0.04742,0.04419,0.04723,42.9,13],["2026-10-27",0.04723,0.04766,0.04546,0.04625,42.3,16],["2026-10-28",0.04625,0.04845,0.04541,0.04707,43,12],["2026-10-29",0.04707,0.04801,0.04493,0.04778,43.6,null]],"cx":[[68,0.132,"down"],[71,0.693,"up"],[75,0.695,"down"]],"ev":[[64,"GC"]],"sup":"अगला अनलॉक 14 नवंबर को: आपूर्ति का 3.2%, अगले 30 दिनों में एकमात्र।"};
+  /* The score line is coloured by its own level (Daniel, 2026-10-29: "add
+     heatmap on the scoring line ... a crossing when the score is red to
+     orange is a different story than when it is green, above 70"). The
+     colour follows the score's bands (below 40 red, 40-64 amber, 65+
+     green), with colder colours under the reds and hotter ones over the
+     greens (Daniel, same day: "add colder and hotter colours"). Same scale
+     as the board's Insight indicator (rotator-indicators.js _RI_HEAT).
+     A reading aid only: in the 2024-26 test, crossings split by score
+     level were all near 50% (results/score-rsi-cross-context.json). */
+  var HEAT = [[-50, '#4c1d95'], [-20, '#7e22ce'], [0, '#be185d'], [15, '#c0262d'], [28, '#ef4444'], [38, '#ff7a45'], [46, '#ffa53a'],
+    [54, '#f3ba2f'], [60, '#e3d34a'], [66, '#a3d65a'], [74, '#4ccf7f'], [82, '#16c79a'], [90, '#14b8c4'], [100, '#3b82f6']];
+  function insight() {
+    var vis = $('ins-vis'), R = SNAP.rows, N = R.length, NS = 'http://www.w3.org/2000/svg';
+    var day = function (d, y) { return new Date(d + 'T00:00:00Z').toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: y ? 'numeric' : undefined, timeZone: 'UTC' }); };
+    $('ins-tag').textContent = 'चुना गया उदाहरण · ' + SNAP.sym + ' · ' + day(SNAP.from) + ' – ' + day(SNAP.to, 1);
+    var sv = document.createElementNS(NS, 'svg'); sv.setAttribute('class', 'ins-svg'); vis.appendChild(sv);
+    var leg = document.createElement('div'); leg.className = 'ins-leg';
+    leg.innerHTML = '<span><b>Insight indicator</b></span><span><i style="background:var(--gold)"></i>RSI 14</span><span><i class="ins-sc" style="width:26px;background:linear-gradient(90deg,' + HEAT.map(function (h) { return h[1] + ' ' + ((h[0] + 50) / 1.5).toFixed(1) + '%'; }).join(',') + ')"></i>Rotator स्कोर</span>'
+      + '<span><i class="dot" style="background:var(--green)"></i><i class="dot" style="background:var(--red)"></i>जहाँ वे कटते हैं</span>';
+    vis.appendChild(leg);
+    /* The card's lines, from the snapshot itself. */
+    var last = R[N - 1], sc = null;
+    for (var k = N - 1; k >= 0 && sc == null; k--) if (R[k][6] != null) sc = { v: R[k][6], d: R[k][0] };
+    var ch = function (n) { return (R[N - 1][4] / R[N - 1 - n][4] - 1) * 100; };
+    var gc = SNAP.ev.filter(function (e) { return e[1] === 'GC'; }).pop(), dc = SNAP.ev.filter(function (e) { return e[1] === 'DC'; }).pop();
+    var rsi = last[5], rsiW = rsi >= 80 ? 'अति-खरीदा, गर्म चल रहा' : rsi >= 70 ? 'गरमाहट आ रही है' : rsi <= 30 ? 'अति-विक्रय, भारी बिक्री' : 'सामान्य सीमा में';
+    var scW = sc.v >= 65 ? 'हाल ही में अधिकांश कॉइनों से अधिक मजबूत' : sc.v >= 40 ? 'समूह के बीच' : 'हाल ही में अधिकांश कॉइनों से कमजोर';
+    var LINES = [
+      ['स्कोर', sc.v + ' 100 में से ' + day(sc.d) + ': ' + scW + '.'],
+      ['गति', 'RSI 14 पर ' + Math.round(rsi) + ', ' + rsiW + '. Price ' + TOPIC.pct(ch(7)) + ' 7 दिनों में, ' + TOPIC.pct(ch(30)) + ' में 30.'],
+      ['आपूर्ति', SNAP.sup],
+      ['फ्यूचर्स', 'Binance फ्यूचर्स से लॉन्ग/शॉर्ट अनुपात और फंडिंग, बोर्ड पर लाइव पढ़ें।'],
+      ['टर्न सिग्नल', (gc ? 'गोल्डन क्रॉस चालू ' + day(R[gc[0]][0]) + '. ' : '') + (dc ? 'डेथ क्रॉस ऑन ' + day(R[dc[0]][0]) + '. ' : '')
+        + 'स्कोर और आरएसआई क्रॉस हुए ' + SNAP.cx.length + ' बार से ' + day(R[SNAP.cx[0][0] + 1][0]) + ': करीब से देखने की जगह, कोई कॉल नहीं।']
+    ];
+    var card = document.createElement('div'); card.className = 'ev-card';
+    card.innerHTML = '<div class="ev-hd"><img src="/icon-192.png" alt="">Rotator Insight Engine<span class="cc-pro">PRO</span></div>'
+      + '<div class="ev-go" id="evGo"><b>⚡ पर मूल्यांकन चलाएँ ' + esc(SNAP.sym) + ' →</b><span>Rotator इसकी कीमत की चालें, रैंक, RSI पढ़ता है और अनलॉक करता है</span></div>'
+      + '<div class="ev-think" id="evThink"></div>'
+      + '<div class="ev-lines">' + LINES.map(function (l) { return '<div class="ev-l"><span class="k">' + esc(l[0]) + '</span><span class="v"></span></div>'; }).join('') + '</div>'
+      + '<div class="ev-end">एक रीडिंग है, पूर्वानुमान नहीं।</div>';
+    vis.appendChild(card);
+    var lineEls = card.querySelectorAll('.ev-l'), endEl = card.querySelector('.ev-end');
+    /* What the price did after each dot: from the close the day the lines
+       crossed, the best move the right way within 7 days (green: up, red:
+       down), or the 7-day move when there was none. */
+    var AFTER = SNAP.cx.map(function (c) {
+      var i = c[0] + 1, a = R[i][4], up = c[2] === 'down', best = null, bi = i;
+      for (var j = i + 1; j <= Math.min(N - 1, i + 7); j++) { var m = (R[j][4] / a - 1) * 100; if (best == null || (up ? m > best : m < best)) { best = m; bi = j; } }
+      var right = up ? best > 3 : best < -3, e = Math.min(N - 1, i + 7);
+      if (!right) { best = (R[e][4] / a - 1) * 100; bi = e; }
+      return { i: i, col: up ? 'var(--green)' : 'var(--red)', right: right,
+        t: (right ? '' : 'then ') + TOPIC.pct(best) + ' in ' + (bi - i) + ' day' + (bi - i === 1 ? '' : 's') };
+    });
+    var W, H, phone, L, w, Z0 = 56;
+    var els = {};
+    function build() {
+      var h = '<defs><clipPath id="insClip"><rect id="insClipR" x="0" y="0" width="0" height="0"/></clipPath><clipPath id="insClip2"><rect id="insClipR2" x="0" y="0" width="0" height="0"/></clipPath>'
+        + '<linearGradient id="insHeat" gradientUnits="userSpaceOnUse" x1="0" x2="0" y1="0" y2="1">' + HEAT.map(function (q) { return '<stop offset="' + ((q[0] + 50) / 150).toFixed(4) + '" stop-color="' + q[1] + '"/>'; }).join('') + '</linearGradient></defs><g id="insChart"><g clip-path="url(#insClip)">';
+      R.forEach(function (r, i) {
+        var up = r[4] >= r[1], col = up ? 'var(--green)' : 'var(--red)';
+        h += '<line id="iw' + i + '" stroke="' + col + '" stroke-width="1"/><rect id="ib' + i + '" fill="' + col + '"/>';
+      });
+      SNAP.ev.forEach(function (e, j) {
+        var g = e[1] === 'GC';
+        h += '<g id="iev' + j + '"><path d="' + (g ? 'M0 0 l-6 10 h12 z' : 'M0 0 l-6 -10 h12 z') + '" fill="' + (g ? 'var(--green)' : 'var(--red)') + '"/>'
+          + '<text class="ins-gc" y="' + (g ? 24 : -14) + '" text-anchor="middle" fill="' + (g ? 'var(--green)' : 'var(--red)') + '">' + e[1] + '</text></g>';
+      });
+      h += '</g><text class="ins-k" id="insPx" x="0" y="0"></text>'
+        + '<g id="insInd"><rect id="insBox" rx="10" fill="var(--card)" stroke="var(--panel-b)"/>'
+        + '<line id="ins70" stroke="var(--panel-b)" stroke-dasharray="4 5"/><line id="ins30" stroke="var(--panel-b)" stroke-dasharray="4 5"/>'
+        + '<text class="ins-k" id="ins70t">70</text><text class="ins-k" id="ins30t">30</text>'
+        + '<g clip-path="url(#insClip2)"><path id="insRsi" fill="none" stroke="var(--gold)" stroke-width="2.4" stroke-linejoin="round"/>'
+        + '<path id="insSc" fill="none" stroke="url(#insHeat)" stroke-width="3.2" stroke-linejoin="round" stroke-linecap="round"/></g>';
+      SNAP.cx.forEach(function (c, j) { h += '<circle id="icx' + j + '" r="6" fill="' + (c[2] === 'up' ? 'var(--red)' : 'var(--green)') + '" stroke="var(--card)" stroke-width="2.5"/>'; });
+      h += '<text class="ins-pw" id="insPw" text-anchor="end">Powered by Rotator Insight Engine</text></g>';
+      AFTER.forEach(function (a, j) {
+        h += '<g id="iaf' + j + '"><line id="iafl' + j + '" stroke="' + a.col + '" stroke-width="1.2" stroke-dasharray="3 4"/>'
+          + '<rect id="iafb' + j + '" rx="7" fill="var(--card)" stroke="' + a.col + '" stroke-width="1.2"/>'
+          + '<text id="iaft' + j + '" class="ins-af" text-anchor="middle" fill="' + (a.right ? a.col : 'var(--muted)') + '">' + a.t + '</text></g>';
+      });
+      h += '</g>';
+      sv.innerHTML = h;
+      ['insClipR', 'insClipR2', 'insChart', 'insPx', 'insInd', 'insBox', 'ins70', 'ins30', 'ins70t', 'ins30t', 'insRsi', 'insSc', 'insPw'].forEach(function (id) { els[id] = document.getElementById(id); });
+    }
+    build();
+    function resize() {
+      W = vis.clientWidth; H = vis.clientHeight; phone = W < 520;
+      L = phone ? 12 : 22; w = W - L * 2 - (phone ? 34 : 54);
+      sv.setAttribute('width', W); sv.setAttribute('height', H);
+    }
+    var A = function (el, o) { for (var k in o) el.setAttribute(k, typeof o[k] === 'number' ? o[k].toFixed(1) : o[k]); };
+    function render(p) {
+      steps('insight', p);
+      var rev = seg(p, 0.02, 0.24), z = ease(seg(p, 0.3, 0.46)), ind = ease(seg(p, 0.26, 0.34)), dots = seg(p, 0.42, 0.54);
+      var cin = ease(seg(p, 0.6, 0.65));
+      /* Domain: all 90 days, zooming to the last 34. */
+      var d0 = -0.6 + (Z0 - 0.6 + 0.6) * z, d1 = N - 0.4;
+      var X = function (i) { return L + (i - d0) / (d1 - d0) * w; };
+      var top = phone ? 44 : 82, ph = H * (phone ? 0.7 - 0.12 * z : 0.62 - 0.2 * z) - top, it = top + ph + (phone ? 26 : 34), ih = H - it - (phone ? 16 : 24);
+      if (ind < 0.01) ph = H - top - 40;
+      /* Price scale: full range, easing to the zoomed range. */
+      var lo = Infinity, hi = -Infinity, lz = Infinity, hz = -Infinity;
+      R.forEach(function (r, i) { lo = Math.min(lo, r[3]); hi = Math.max(hi, r[2]); if (i >= Z0) { lz = Math.min(lz, r[3]); hz = Math.max(hz, r[2]); } });
+      lo += (lz - lo) * z; hi += (hz - hi) * z;
+      var pad = (hi - lo) * 0.08, Y = function (v) { return top + ph - (v - lo + pad) / (hi - lo + 2 * pad) * ph; };
+      var bw = Math.max(1.5, w / (d1 - d0) * 0.62);
+      R.forEach(function (r, i) {
+        var x = X(i), y1 = Y(Math.max(r[1], r[4])), y2 = Y(Math.min(r[1], r[4]));
+        A(document.getElementById('iw' + i), { x1: x, x2: x, y1: Y(r[2]), y2: Y(r[3]) });
+        A(document.getElementById('ib' + i), { x: x - bw / 2, y: y1, width: bw, height: Math.max(1, y2 - y1) });
+      });
+      A(els.insClipR, { x: L - 4, y: 0, width: Math.max(0, (w + 8) * (z > 0 ? 1 : rev)), height: top + ph + 30 });
+      SNAP.ev.forEach(function (e, j) {
+        var r = R[e[0]], g = e[1] === 'GC', on = seg(rev * N - e[0], 0, 3);
+        var el = document.getElementById('iev' + j);
+        el.setAttribute('transform', 'translate(' + X(e[0]).toFixed(1) + ' ' + (g ? Y(r[3]) + 6 : Y(r[2]) - 6).toFixed(1) + ') scale(' + (0.6 + 0.4 * on).toFixed(2) + ')');
+        el.style.opacity = String(on);
+      });
+      els.insPx.textContent = TOPIC.price(R[N - 1][4]);
+      A(els.insPx, { x: L + w + 6, y: Y(R[N - 1][4]) + 4 });
+      els.insPx.style.opacity = String(rev);
+      /* The Insight indicator. */
+      els.insInd.style.opacity = String(ind);
+      A(els.insBox, { x: L - 6, y: it - 6, width: w + 12, height: ih + 12 });
+      var IY = function (v) { return it + ih - v / 100 * ih; };
+      A(els.ins70, { x1: L, x2: L + w, y1: IY(70), y2: IY(70) }); A(els.ins30, { x1: L, x2: L + w, y1: IY(30), y2: IY(30) });
+      A(els.ins70t, { x: L + w + 10, y: IY(70) + 4 }); A(els.ins30t, { x: L + w + 10, y: IY(30) + 4 });
+      A(els.insClipR2, { x: L - 2, y: it - 4, width: w + 4, height: ih + 8 });
+      var rp = '', sp = '';
+      R.forEach(function (r, i) {
+        if (r[5] != null) rp += (rp ? ' L' : 'M') + X(i).toFixed(1) + ' ' + IY(r[5]).toFixed(1);
+        if (r[6] != null) sp += (sp ? ' L' : 'M') + X(i).toFixed(1) + ' ' + IY(r[6]).toFixed(1);
+      });
+      els.insRsi.setAttribute('d', rp); els.insSc.setAttribute('d', sp);
+      A(document.getElementById('insHeat'), { y1: IY(-50), y2: IY(100) });
+      els.insSc.style.opacity = String(seg(p, 0.34, 0.42));
+      SNAP.cx.forEach(function (c, j) {
+        var a = R[c[0]], b = R[c[0] + 1], v = a[5] + (b[5] - a[5]) * c[1], o = ease(seg(dots * SNAP.cx.length - j, 0, 1));
+        A(document.getElementById('icx' + j), { cx: X(c[0] + c[1]), cy: IY(v), r: 6 * o });
+      });
+      A(els.insPw, { x: L + w - 4, y: it + ih - 8 });
+      /* Each label beside its line, right side first, a row lower when it
+         would cover an earlier one. */
+      var boxes = [];
+      AFTER.forEach(function (a, j) {
+        var c = SNAP.cx[j], x = X(c[0] + c[1]), o = ease(seg(dots * SNAP.cx.length - j - 0.3, 0, 1)) * ind;
+        var tw = a.t.length * (phone ? 6.4 : 7) + 14, bx = null, ty = 0;
+        for (var row = 0; row < 4 && bx == null; row++) [x + 6, x - 6 - tw].forEach(function (cx0) {
+          if (bx != null || cx0 < L || cx0 + tw > L + w) return;
+          var y0 = top + 6 + row * 26;
+          if (boxes.some(function (q) { return cx0 < q[0] + q[2] + 4 && q[0] < cx0 + tw + 4 && Math.abs(q[1] - y0) < 24; })) return;
+          bx = cx0; ty = y0;
+        });
+        if (bx == null) { bx = clamp(x - tw / 2, L, L + w - tw); ty = top + 6 + 4 * 26; }
+        boxes.push([bx, ty, tw]);
+        var tx = bx + tw / 2; ty += 10;
+        var t = document.getElementById('iaft' + j), b = document.getElementById('iafb' + j);
+        A(t, { x: tx, y: ty + 4 });
+        A(b, { x: bx, y: ty - 10, width: tw, height: 20 });
+        A(document.getElementById('iafl' + j), { x1: x, x2: x, y1: ty + 10, y2: it + ih });
+        document.getElementById('iaf' + j).style.opacity = String(o);
+      });
+      leg.style.left = L + 'px'; leg.style.top = (it - (phone ? 22 : 26)) + 'px';
+      leg.style.opacity = String(ind * (1 - cin));
+      els.insChart.style.opacity = String(1 - 0.72 * cin);
+      /* The evaluation card. */
+      card.style.opacity = String(cin);
+      card.style.top = (H * 0.53) + 'px';
+      card.style.transform = 'translate(-50%,-50%) translateY(' + ((1 - cin) * 24).toFixed(1) + 'px)';
+      card.style.visibility = cin < 0.01 ? 'hidden' : '';
+      var press = seg(p, 0.66, 0.69), think = seg(p, 0.69, 0.74);
+      var go = $('evGo');
+      go.style.display = press >= 1 ? 'none' : '';
+      go.style.transform = 'scale(' + (1 - 0.05 * Math.sin(Math.PI * press)).toFixed(3) + ')';
+      var th = $('evThink');
+      th.style.display = press >= 1 && think < 1 ? '' : 'none';
+      th.textContent = 'पढ़ना ' + SNAP.sym + ' ' + '…'.repeat(1) + ' ' + ['कीमतों में उतार-चढ़ाव', 'rank', 'आरएसआई और क्रॉस', 'unlocks'][Math.min(3, Math.floor(think * 4))];
+      LINES.forEach(function (l, i) {
+        var t = seg(p, 0.74 + i * 0.042, 0.74 + i * 0.042 + 0.04), el = lineEls[i];
+        el.style.display = press >= 1 ? '' : 'none';
+        el.style.opacity = t > 0 ? '1' : '0';
+        el.querySelector('.v').textContent = l[1].slice(0, Math.round(l[1].length * t));
+      });
+      endEl.style.display = press >= 1 ? '' : 'none';
+      endEl.style.opacity = String(seg(p, 0.95, 0.97));
+    }
+    resize();
+    S.add($('insight'), { render: render, resize: resize });
+  }
+
+  /* ── 05 ALERTS: Telegram messages slide in ───────────── */
+  function alerts() {
+    var M = Array.prototype.slice.call(document.querySelectorAll('#tgMsgs .tgm')), AT = [0.04, 0.3, 0.52, 0.74];
+    function render(p) {
+      steps('alerts', p);
+      M.forEach(function (m, i) {
+        var a = ease(seg(p, AT[i], AT[i] + 0.06));
+        m.style.display = a > 0 ? 'block' : 'none';
+        m.style.opacity = String(a);
+        m.style.transform = 'translateY(' + ((1 - a) * 22).toFixed(1) + 'px) scale(' + (0.96 + 0.04 * a).toFixed(3) + ')';
+      });
+    }
+    S.add($('alerts'), { render: render });
+  }
+
+  /* ── 06 WHY PRO PAYS FOR ITSELF ─────────────────────────────── */
+  /* Arithmetic only: 5% of what the visitor types. No price, no promise. */
+  function calc() {
+    var inp = $('calcIn'), fmt = function (v) { return '$' + Math.round(v).toLocaleString('en-US'); };
+    function upd() {
+      var v = Number(String(inp.value).replace(/[^0-9.]/g, '')) || 0;
+      $('calcX').textContent = fmt(v); $('calcY').textContent = fmt(v * 0.05);
+    }
+    inp.addEventListener('input', upd);
+    inp.addEventListener('blur', function () { var v = Number(String(inp.value).replace(/[^0-9.]/g, '')) || 0; inp.value = v ? Math.round(v).toLocaleString('en-US') : ''; upd(); });
+    upd();
   }
 })();
 </script>

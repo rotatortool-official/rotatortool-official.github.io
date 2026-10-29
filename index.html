@@ -771,7 +771,7 @@ html:is([lang="ar"],[lang="ur"]) .td-hint{letter-spacing:0;font-family:var(--ui)
 .tgp-hd span{display:block;font:500 11.5px/1.2 var(--ui);color:#6c7f92;}
 .tgp-msgs{flex:1;display:flex;flex-direction:column;justify-content:flex-end;gap:8px;padding:12px 10px;overflow:hidden;}
 .tgm{align-self:flex-start;max-width:92%;padding:8px 11px 7px;border-radius:14px 14px 14px 4px;background:#182533;color:#e9eef4;font:500 12.5px/1.42 var(--ui);opacity:0;display:none;}
-.tgm b{display:block;font-weight:700;margin-bottom:2px;}
+.tgm .tgm-h{font-weight:700;margin-bottom:2px;}
 .tgm small{display:block;text-align:right;font:500 10px/1 var(--ui);color:#6c7f92;margin-top:3px;}
 @media (min-width:861px){ .tgm{font-size:13.5px;} }
 
@@ -1001,10 +1001,10 @@ document.addEventListener('click', function (e) {
         <div class="tgp"><div class="tgp-in">
           <div class="tgp-hd"><img src="icon-192.png" alt=""><div><b>Rotator</b><span>bot · your coins</span></div></div>
           <div class="tgp-msgs" id="tgMsgs">
-            <div class="tgm"><b>🔓 Unlock in 3 days</b>Coin X releases 2.4% of its supply on Saturday (≈ $38M). You hold Coin X.<small>09:00</small></div>
-            <div class="tgm"><b>⚠️ Delisting</b>Binance will remove Coin Y on 5 Nov. You hold Coin Y: check your options before then.<small>14:12</small></div>
-            <div class="tgm"><b>🎯 Price alert</b>BTC reached $85,000, the price you set.<small>18:40</small></div>
-            <div class="tgm"><b>📊 Thursday briefing</b>Your 3 coins: BTC score 63, ETH 55, SOL 41. One unlock ahead, no delistings.<small>Thu 19:00</small></div>
+            <div class="tgm"><div class="tgm-h">🔓 Unlock in 3 days</div><div>Coin X releases 2.4% of its supply on Saturday (≈ $38M). You hold Coin X.</div><small>09:00</small></div>
+            <div class="tgm"><div class="tgm-h">⚠️ Delisting</div><div>Binance will remove Coin Y on 5 Nov. You hold Coin Y: check your options before then.</div><small>14:12</small></div>
+            <div class="tgm"><div class="tgm-h">🎯 Price alert</div><div>BTC reached $85,000, the price you set.</div><small>18:40</small></div>
+            <div class="tgm"><div class="tgm-h">📊 Thursday briefing</div><div>Your 3 coins: BTC score 63, ETH 55, SOL 41. One unlock ahead, no delistings.</div><small>Thu 19:00</small></div>
           </div>
         </div></div>
       </div></div>
@@ -1024,7 +1024,7 @@ document.addEventListener('click', function (e) {
         <label for="calcIn">Your portfolio</label>
         <div class="calc-in-box"><span>$</span><input id="calcIn" type="text" inputmode="numeric" autocomplete="off" value="10,000"></div>
       </div>
-      <div class="calc-out" aria-live="polite">Avoiding one 5% drop on <span id="calcX">$10,000</span> =<b id="calcY">$500</b></div>
+      <div class="calc-out" aria-live="polite"><div>Avoiding one 5% drop on</div><div><data id="calcX" value="10000">$10,000</data> =</div><b id="calcY">$500</b></div>
       <p class="calc-note">Simple arithmetic, not a promise: Rotator can't tell you a drop is coming. Pro tells you in time about unlocks, delistings and the prices you set, so you can decide early.</p>
     </div>
   </div>
@@ -2859,7 +2859,7 @@ document.addEventListener('click', function (e) {
         + 'Score and RSI crossed ' + SNAP.cx.length + ' times since ' + day(R[SNAP.cx[0][0] + 1][0]) + ': a place to look closer, not a call.']
     ];
     var card = document.createElement('div'); card.className = 'ev-card';
-    card.innerHTML = '<div class="ev-hd"><img src="icon-192.png" alt="">Rotator Insight Engine<span class="cc-pro">PRO</span></div>'
+    card.innerHTML = '<div class="ev-hd"><img src="/icon-192.png" alt="">Rotator Insight Engine<span class="cc-pro">PRO</span></div>'
       + '<div class="ev-go" id="evGo"><b>⚡ Run evaluation on ' + esc(SNAP.sym) + ' →</b><span>Rotator reads its price moves, rank, RSI and unlocks</span></div>'
       + '<div class="ev-think" id="evThink"></div>'
       + '<div class="ev-lines">' + LINES.map(function (l) { return '<div class="ev-l"><span class="k">' + esc(l[0]) + '</span><span class="v"></span></div>'; }).join('') + '</div>'
