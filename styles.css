@@ -7400,3 +7400,208 @@ a.mob-more-item{text-decoration:none;color:inherit;}
 :root.light .tdx-wif-modal{background:rgba(30,45,60,.35);}
 
 .ri-legend .ri-ie i{font-style:normal;font-size:10px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);}
+
+/* ── Board tabs (Daniel, 2026-10-29, promptove/168; js/board-tabs.js) ──
+   Five big buttons in the top bar show one part of the board at a time;
+   the rail lists that part's pieces; phones get the tabs in the bottom bar
+   and the pieces as a pill row. */
+.rsec.tab-off{display:none !important;}
+body.has-tabs .rail .rail-item,body.has-tabs .rail .rail-academy,body.has-tabs .rail .rail-support:not(.rail-home){display:none;}
+body.has-tabs #top-sec{display:none;}
+.btabs{display:flex;align-items:center;gap:2px;margin-left:8px;}
+.btab{position:relative;display:flex;align-items:center;gap:7px;height:36px;padding:0 13px;border-radius:10px;font:700 13px/1 inherit;color:var(--muted);text-decoration:none;white-space:nowrap;transition:background .15s,color .15s;}
+.btab svg{width:16px;height:16px;flex:none;}
+.btab:hover{color:var(--text);background:var(--bg3);}
+.btab.on{color:var(--bnb);background:var(--bnbd);}
+.btab.on::after{content:'';position:absolute;left:13px;right:13px;bottom:-6px;height:2px;border-radius:2px;background:var(--bnb);}
+.btab-mine{border:1px solid var(--bnb);border-radius:999px;margin-left:6px;}
+@media (max-width:1380px){ .btab svg{display:none;} .btab{padding:0 10px;} }
+@media (max-width:1650px){ body.has-tabs #fng-banner,body.has-tabs #scale-banner{display:none !important;} }
+@media (max-width:700px) and (orientation:portrait){ .btabs{display:none;} }
+
+/* Learn: a sliding glass panel under its round button. */
+.bt-learn{position:relative;}
+.bt-slide{position:absolute;right:0;top:calc(100% + 8px);z-index:400;width:260px;padding:10px;border-radius:14px;
+  background:color-mix(in srgb,var(--bg2) 72%,transparent);border:1px solid var(--bdr2);box-shadow:0 18px 50px rgba(0,0,0,.35);
+  backdrop-filter:blur(18px) saturate(170%);-webkit-backdrop-filter:blur(18px) saturate(170%);
+  visibility:hidden;opacity:0;transform:translateY(-8px) scale(.98);transform-origin:top right;
+  transition:opacity .2s ease,transform .25s cubic-bezier(.2,.9,.3,1.2),visibility 0s .25s;}
+.bt-learn.open .bt-slide{visibility:visible;opacity:1;transform:none;transition:opacity .2s ease,transform .25s cubic-bezier(.2,.9,.3,1.2);}
+.bt-slide-h{font:800 10.5px/1 var(--mono,ui-monospace,monospace);letter-spacing:.14em;text-transform:uppercase;color:var(--muted);margin:4px 8px 8px;}
+.bt-slide-it{display:flex;align-items:center;gap:10px;padding:9px 8px;border-radius:9px;color:var(--text);text-decoration:none;font-size:13px;font-weight:600;}
+.bt-slide-it svg{width:16px;height:16px;color:var(--bnb);flex:none;}
+.bt-slide-it:hover{background:var(--bg3);}
+@media (hover:none),(max-width:860px){ .bt-slide{backdrop-filter:none;-webkit-backdrop-filter:none;background:var(--bg2);} }
+
+/* The rail: the tab's pieces. */
+.tr-list{display:flex;flex-direction:column;gap:1px;padding:4px 10px 12px;}
+.tr-list.tr-in{animation:trIn .25s ease;}
+@keyframes trIn{from{opacity:0;transform:translateX(-6px)}to{opacity:1;transform:none}}
+.tr-h{display:flex;align-items:center;gap:8px;margin:8px 6px 10px;font-size:11px;font-weight:800;letter-spacing:.14em;text-transform:uppercase;color:var(--bnb);}
+.tr-h svg{width:15px;height:15px;}
+.tr-sep{margin:12px 6px 5px;font-size:9.5px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);opacity:.75;}
+.tr-it{position:relative;display:flex;align-items:center;gap:10px;padding:8px 8px;border-radius:8px;color:var(--muted);text-decoration:none;font-size:12.5px;font-weight:600;line-height:1.2;}
+.tr-it svg{width:15px;height:15px;flex:none;}
+.tr-it small{display:block;font-size:10px;font-weight:500;opacity:.75;margin-top:2px;}
+.tr-it:hover{background:var(--bg3);color:var(--text);}
+.tr-it.on{background:var(--bg3);color:var(--text);}
+.tr-it.on::before{content:'';position:absolute;left:0;top:7px;bottom:7px;width:3px;border-radius:3px;background:var(--bnb);}
+.tr-it.on svg{color:var(--bnb);}
+.tr-pro{margin-left:auto;font-style:normal;font-size:8.5px;font-weight:800;letter-spacing:.06em;padding:2px 4px;border-radius:4px;background:var(--bnb);color:#1a1203;}
+
+/* Phones and narrow windows (no rail): the pieces as a pill row. */
+.tab-pills{display:none;}
+@media (max-width:900px){
+  .tab-pills{display:flex;gap:6px;overflow-x:auto;position:sticky;top:var(--tb-h,52px);z-index:90;padding:8px 10px;background:var(--bg2);border-bottom:1px solid var(--bdr);scrollbar-width:none;}
+  .tab-pills::-webkit-scrollbar{display:none;}
+  .tab-pills a{flex:none;padding:6px 11px;border-radius:999px;border:1px solid var(--bdr2);font-size:12px;font-weight:600;color:var(--muted);text-decoration:none;white-space:nowrap;}
+  .tab-pills a.on{background:var(--bnb);border-color:var(--bnb);color:#1a1203;}
+}
+#mob-nav .mob-nav-btn[data-tab] svg{width:20px;height:20px;}
+body.has-tabs .rail-home{margin-top:auto;margin-bottom:0;border-bottom:0;border-top:1px solid var(--bdr);padding-top:12px;}
+@media (max-width:1380px){ body.has-tabs .topbar-r .ts{display:none;} }
+/* The rail lists pieces with longer names than the old section words. */
+@media (min-width:901px){ body.has-tabs .root{grid-template-columns:196px minmax(0,1fr);} }
+/* Daniel, 2026-10-29: rail hard left, small buttons hard right, the
+   middle takes the rest (the 1600px cap above centred everything). */
+body.has-tabs .root,body.has-tabs .topbar{max-width:none;}
+/* The tabs read like Binance's top bar: white and bold, gold when on. */
+.btab{font-size:14px;font-weight:800;color:var(--text);letter-spacing:.005em;}
+.btab:hover{color:var(--bnb);}
+/* Tabs right after the logo, small buttons pushed to the far right (Binance). */
+@media (min-width:701px){ body.has-tabs .topbar{justify-content:flex-start;} body.has-tabs .topbar-r{margin-left:auto;} }
+
+/* ── Calmer hierarchy (Daniel, 2026-10-29, after Wispr Flow's Insights
+   page): the rail stays at the left edge and the buttons at the right,
+   but the reading column is centred and capped, so the eye stays in the
+   middle; each tab opens with a page title; each part of a tab sits in
+   its own card; windows open centred over a soft dim. */
+.tab-head{display:none;}
+@media (min-width:901px){
+  body.has-tabs .page{padding:0 36px 70px;}
+  body.has-tabs .page > .rsec,body.has-tabs .tab-head{width:100%;max-width:1180px;margin-left:auto;margin-right:auto;}
+  body.has-tabs .tab-head{display:block;padding:34px 0 14px;}
+  .tab-head h1{margin:0;font-size:30px;font-weight:800;letter-spacing:-.015em;color:var(--text);line-height:1.15;}
+  .tab-head p{margin:7px 0 0;font-size:14px;color:var(--muted);max-width:640px;line-height:1.5;}
+  body.has-tabs .rsec + .rsec{border-top:0;margin-top:40px;}
+  /* One-section tabs: the page title already names it. */
+  body.has-tabs[data-tab="today"] #sec-today > .rsec-hdr,
+  body.has-tabs[data-tab="flows"] #sec-capital > .rsec-hdr,
+  body.has-tabs[data-tab="deriv"] #sec-liq > .rsec-hdr{display:none;}
+  body.has-tabs .rsec-hdr{padding:6px 0 14px;}
+  /* Money flows and Derivatives: each part is a card with air around it. */
+  body.has-tabs #sec-capital > .cap-btc,
+  body.has-tabs #sec-capital > .etf-strip,
+  body.has-tabs #sec-liq > .liq-body{
+    border:1px solid var(--bdr2);border-radius:16px;overflow:hidden;background:var(--bg2);
+    margin:0 0 22px;box-shadow:0 6px 22px rgba(0,0,0,.10);
+  }
+  body.has-tabs #sec-capital > .etf-strip .bf-group{padding:14px 18px 10px;font-size:12.5px;letter-spacing:.12em;}
+  body.has-tabs #sec-capital > .cap-note{margin:0 4px 10px;}
+}
+/* Windows: centred, a soft dim instead of a dark blur, a gentle rise. */
+body.has-tabs .overlay{background:rgba(4,8,14,.46);backdrop-filter:none;-webkit-backdrop-filter:none;}
+:root.light body.has-tabs .overlay{background:rgba(15,23,36,.26);}
+body.has-tabs .overlay[style*="flex"] > .modal,body.has-tabs .overlay.show > .modal{animation:ovIn .22s ease;}
+body.has-tabs .modal{border:1px solid var(--bdr2);border-radius:18px;}
+@keyframes ovIn{from{opacity:0;transform:translateY(10px) scale(.985)}to{opacity:1;transform:none}}
+
+/* Settings and the small-button drop-downs in the preview's glass look
+   (Daniel, 2026-10-29). js/board-tabs.js adds .set-glass / .set-seg. */
+body.has-tabs #settings-panel.set-glass,body.has-tabs .tb-dropdown{
+  width:320px !important;padding:14px !important;border-radius:16px !important;
+  background:color-mix(in srgb,var(--bg2) 74%,transparent) !important;border:1px solid var(--bdr2) !important;
+  box-shadow:0 20px 60px rgba(0,0,0,.38),inset 0 1px 0 rgba(255,255,255,.06) !important;
+  backdrop-filter:blur(18px) saturate(170%);-webkit-backdrop-filter:blur(18px) saturate(170%);}
+body.has-tabs #settings-panel.set-glass::before{display:none;}
+#settings-panel.set-in{animation:setIn .25s cubic-bezier(.2,.9,.3,1.2);transform-origin:top right;}
+@keyframes setIn{from{opacity:0;transform:translateY(-10px) scale(.98)}to{opacity:1;transform:none}}
+#settings-panel.set-glass .setting-row.set-seg{display:block;padding:4px 0 12px;border:0;}
+#settings-panel.set-glass .set-seg .setting-label{font:800 10.5px/1 ui-monospace,'SF Mono',Menlo,monospace;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);margin:0 2px 8px;}
+#settings-panel.set-glass .set-seg .setting-sub{display:none;}
+#settings-panel.set-glass .set-seg .lang-sel-modal{display:flex;flex-wrap:wrap;gap:2px;padding:3px;border-radius:14px;background:var(--bg3);width:100%;}
+#settings-panel.set-glass .set-seg .lang-btn-modal{flex:1 1 0;min-width:56px;height:32px;border:0;border-radius:11px;background:none;color:var(--muted);font-weight:700;font-size:12.5px;cursor:pointer;}
+#settings-panel.set-glass .set-seg .lang-btn-modal:hover{color:var(--text);}
+#settings-panel.set-glass .set-seg .lang-btn-modal.active{background:var(--bg2);color:var(--text);box-shadow:0 2px 8px rgba(0,0,0,.22);}
+#settings-panel.set-glass .setting-row:not(.set-seg){border-radius:10px;}
+@media (hover:none),(max-width:860px){ body.has-tabs #settings-panel.set-glass,body.has-tabs .tb-dropdown{backdrop-filter:none;-webkit-backdrop-filter:none;background:var(--bg2) !important;} }
+
+/* Pro window on desktop: wide and short, three columns (js/board-tabs.js). */
+@media (min-width:1000px){
+  body.has-tabs #pro-modal .modal.pro-wide{max-width:1260px;width:calc(100vw - 80px);padding:30px 34px;}
+  .plb.plb-split{display:grid;grid-template-columns:1.2fr 1fr 1fr;gap:0 30px;align-items:start;}
+  .plb.plb-split > div{min-width:0;}
+  .plb-split .plb-c{position:sticky;top:0;}
+  .plb-split .plb-b > :first-child,.plb-split .plb-c > :first-child{margin-top:0;}
+}
+@media (min-width:1000px) and (max-width:1399px){
+  .plb.plb-split{grid-template-columns:1fr 1fr;grid-template-areas:"a c" "b c";}
+  .plb-split .plb-a{grid-area:a;} .plb-split .plb-b{grid-area:b;margin-top:18px;} .plb-split .plb-c{grid-area:c;}
+}
+
+/* ── One type scale, after Wispr Flow (Daniel, 2026-10-29) ──────────
+   page title 26 · card headline 18 · body 14 · secondary 13 ·
+   small 12 · kicker 11 caps. Every tab's title lands on the same spot. */
+@media (min-width:901px){
+  body.has-tabs .tab-head{padding:30px 0 18px;min-height:112px;box-sizing:border-box;}
+  .tab-head h1{font-size:26px;font-weight:700;letter-spacing:-.01em;}
+  .tab-head p{font-size:14px;margin-top:6px;}
+  body.has-tabs .rsec-hdr{padding:4px 0 12px;}
+  body.has-tabs .rsec-label{font-size:13px;font-weight:800;letter-spacing:.12em;}
+  body.has-tabs .rsec-label::before{height:13px;width:3px;}
+  body.has-tabs .rsec-meta{font-size:13px;}
+  body.has-tabs .bf-k,body.has-tabs .bf-group{font-size:11px;letter-spacing:.12em;}
+}
+/* Bitcoin vs the rest: two even columns that start on the same line,
+   one size per role, the chart notes no longer floating mid-height. */
+body.has-tabs #cap-btc{grid-template-columns:minmax(0,1fr) minmax(0,1.05fr);gap:0 36px;padding:22px 26px 20px;align-items:start;position:relative;}
+body.has-tabs #cap-btc .cap-main,body.has-tabs #cap-btc .cap-side{width:auto;}
+body.has-tabs #cap-btc .cap-side{margin-top:28px;}
+body.has-tabs #cap-btc .cap-verdict{font-size:18px;line-height:1.35;margin:6px 0 8px;}
+body.has-tabs #cap-btc .cap-story{font-size:14px;line-height:1.55;margin:0 0 14px;color:var(--muted);}
+body.has-tabs #cap-btc .cap-nf{font-size:12px;}
+body.has-tabs #cap-btc .cap-row{grid-template-columns:62px 110px minmax(0,1fr);font-size:13px;padding:9px 0;}
+body.has-tabs #cap-btc .cap-lbl{font-size:12px;font-weight:700;letter-spacing:.04em;color:var(--muted);text-transform:uppercase;}
+body.has-tabs #cap-btc .cap-txt{font-size:13px;line-height:1.45;}
+body.has-tabs #cap-btc .cap-txt b{font-size:13px;}
+body.has-tabs #cap-btc .cap-chart{height:150px;}
+body.has-tabs #cap-btc .cap-axis{font-size:11px;margin-top:4px;}
+body.has-tabs #cap-btc .cap-legend{font-size:12.5px;line-height:1.5;margin-top:12px;}
+body.has-tabs #cap-btc .cap-legend div{align-items:center;margin-bottom:4px;}
+body.has-tabs #cap-btc .cap-legend p{font-size:12.5px;margin-top:8px;}
+@media (max-width:900px){ body.has-tabs #cap-btc{grid-template-columns:1fr;} body.has-tabs #cap-btc .cap-side{margin-top:16px;} }
+
+/* ── Pro window, restyled (same words): the Wispr scale, soft cards. ── */
+body.has-tabs #pro-modal .modal{background:var(--bg2);}
+.plb-title{font-size:26px;font-weight:700;letter-spacing:-.01em;margin-bottom:6px;}
+.plb-sub{font-size:14px;line-height:1.55;max-width:560px;margin-bottom:18px;}
+.plb-cols{gap:12px;margin-bottom:16px;}
+.plb-col{border-radius:14px;padding:16px 18px;}
+.plb-col-hd,.plb-ledger-hd,.refx-title,.plb-ways{font-size:11px;font-weight:800;letter-spacing:.12em;text-transform:uppercase;}
+.plb-col-hd{margin-bottom:10px;}
+.plb-col ul{font-size:13.5px;line-height:1.5;}
+.plb-col li{padding:5px 0 5px 20px;}
+.plb-ledger{border:1px solid var(--bdr2);border-radius:14px;padding:14px 16px;background:var(--bg3);font-size:13px;margin-bottom:14px;}
+.plb-ledger-hd{color:var(--muted);margin-bottom:8px;}
+.plb-row{font-family:inherit;border-bottom:1px solid var(--bdr);padding:6px 0;}
+.plb-row:last-of-type{border-bottom:0;}
+.plb-note{font-size:13px;}
+.plb-price{font-size:13.5px;line-height:1.55;margin-bottom:14px;}
+.plb-price .pro-places{border-radius:999px;}
+.plb-ways{border-top:0;padding-top:0;line-height:1.6;color:var(--muted);text-transform:none;letter-spacing:0;font-weight:500;font-size:13px;}
+.refx-section{border-radius:14px !important;padding:16px 18px !important;}
+.refx-sub{font-size:13px;}
+.refx-link,.refx-copy,.refx-ch{border-radius:10px !important;}
+.plb-split .plb-c > div:first-child{font-size:11px !important;font-weight:800;letter-spacing:.12em;color:var(--muted) !important;margin:0 0 8px !important;}
+.plb-split .plb-c > div:nth-child(2){border:1px solid var(--bdr2);border-radius:14px;padding:16px 18px;background:var(--bg3);font-size:13px;}
+.plb-split .plb-c button,.plb-split .plb-c input,.plb-split .plb-c select{border-radius:10px !important;}
+.plb-split .plb-b > div:not(.plb-ledger):not(.plb-price):not(.plb-ways):not(.refx-section):not(.pro-divider){font-size:13px;}
+/* Space only between sections that are showing, so every tab's first
+   card starts on the same line (hidden sections still count as siblings). */
+body.has-tabs .rsec + .rsec{margin-top:0;}
+body.has-tabs .rsec:not(.tab-off) ~ .rsec:not(.tab-off){margin-top:40px;}
+body.has-tabs #scale-banner{display:none !important;}
+@media (min-width:1400px){
+  body.has-tabs #pro-modal .modal.pro-wide{max-width:1340px;}
+  .plb.plb-split{grid-template-columns:1.65fr 1fr 1fr;}
+}

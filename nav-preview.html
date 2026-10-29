@@ -1,0 +1,331 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex">
+<title>Rotator menu preview</title>
+<!-- Menu preview (Daniel, 2026-10-29, promptove/168). Version 2, Daniel:
+     "if we have nav bar on the left the floating menu is not needed".
+     The 5 big top buttons each load their own list into the left rail;
+     the small round buttons on the right (Learn, radio, support, settings,
+     Pro) open sliding glass panels. Phones: the bottom bar and a pill row.
+     A look-only mock: the sections are placeholders. Not linked from
+     anywhere; wire into board.html once the look is set. -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#04060a;--bg2:#0a0f17;--panel:rgba(255,255,255,.035);--panel-b:rgba(255,255,255,.08);
+  --text:#eef2f7;--muted:#8d98ab;--dim:#7a8597;
+  --gold:#f3ba2f;--gold2:#ffd76a;--gold-ink:#f3ba2f;--green:#16c79a;--red:#ff4d63;--blue:#4c8dff;
+  --shadow:0 20px 60px rgba(0,0,0,.45);--card:#0c121c;--menu:#111925;--hov:rgba(255,255,255,.06);
+  --glass:rgba(22,30,44,.62);--rim:rgba(255,255,255,.14);
+  --ui:'Inter',system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;
+  --mono:ui-monospace,'SF Mono','Cascadia Mono',Menlo,monospace;
+}
+:root.light{
+  --bg:#eef3f9;--bg2:#e3ebf5;--panel:rgba(255,255,255,.72);--panel-b:rgba(17,24,36,.09);
+  --text:#0f1724;--muted:#4a5a6e;--dim:#5f6d82;
+  --gold:#b8860b;--gold2:#d9a521;--gold-ink:#835f00;--green:#059669;--red:#dc2626;--blue:#1f6fd1;
+  --shadow:0 18px 50px rgba(17,24,36,.14);--card:#ffffff;--menu:#ffffff;--hov:rgba(17,24,36,.05);
+  --glass:rgba(255,255,255,.6);--rim:rgba(255,255,255,.9);
+}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--bg);color:var(--text);font:15px/1.5 var(--ui);-webkit-font-smoothing:antialiased;}
+a{color:inherit;text-decoration:none}
+button{font:inherit;color:inherit;background:none;border:0;cursor:pointer;padding:0}
+:focus-visible{outline:2px solid var(--gold-ink);outline-offset:2px;border-radius:8px}
+svg.i{width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round;flex:none}
+
+/* ── Top bar: the 5 big buttons ── */
+.bar{position:sticky;top:0;z-index:50;height:62px;display:flex;align-items:center;gap:6px;padding:0 18px;background:var(--bg);border-bottom:1px solid var(--panel-b);}
+.logo{display:flex;align-items:center;gap:8px;font:800 14px/1 var(--mono);letter-spacing:.14em;color:var(--gold-ink);margin-right:14px;white-space:nowrap}
+.logo i{width:10px;height:10px;border-radius:50%;border:2px solid var(--gold);display:block}
+.tabs{display:flex;align-items:center;gap:4px;height:100%}
+.tab{position:relative;display:flex;align-items:center;gap:7px;height:40px;padding:0 14px;border-radius:11px;font:700 14px/1 var(--ui);color:var(--muted);white-space:nowrap;transition:background .15s,color .15s}
+.tab:hover{color:var(--text);background:var(--hov)}
+.tab.cur{color:var(--gold-ink);background:color-mix(in srgb,var(--gold) 12%,transparent)}
+.tab.cur::after{content:'';position:absolute;left:14px;right:14px;bottom:-11px;height:2px;border-radius:2px;background:var(--gold)}
+.tab.mine{border:1px solid color-mix(in srgb,var(--gold) 50%,transparent);border-radius:999px;margin-left:6px}
+/* Narrower laptops: the words stay, the icons go, so Get Pro never falls off. */
+@media (max-width:1200px){ .tab>svg{display:none} .tab{padding:0 11px} .logo{margin-right:6px} .bar{gap:4px} }
+
+/* ── Small round buttons and their sliding glass panels ── */
+.right{margin-left:auto;display:flex;align-items:center;gap:6px}
+.mini{position:relative}
+.mini>button{width:38px;height:38px;border-radius:50%;display:grid;place-items:center;border:1px solid var(--panel-b);background:var(--panel);color:var(--muted);transition:color .15s,border-color .15s}
+.mini>button:hover,.mini.open>button{color:var(--gold-ink);border-color:color-mix(in srgb,var(--gold) 55%,transparent)}
+.mini.pro>button{width:auto;padding:0 15px;border-radius:999px;border:0;background:linear-gradient(180deg,var(--gold2),var(--gold));color:#1a1203;font:800 13px/1 var(--ui)}
+.slide{position:absolute;right:0;top:50px;z-index:60;width:300px;padding:14px;border-radius:16px;
+  background:var(--glass);border:1px solid var(--rim);box-shadow:var(--shadow),inset 0 1px 0 var(--rim);
+  backdrop-filter:blur(18px) saturate(170%);-webkit-backdrop-filter:blur(18px) saturate(170%);
+  visibility:hidden;opacity:0;transform:translateY(-10px) scale(.98);transform-origin:top right;transition:opacity .2s ease,transform .25s cubic-bezier(.2,.9,.3,1.2),visibility 0s .25s}
+.mini.open .slide{visibility:visible;opacity:1;transform:none;transition:opacity .2s ease,transform .25s cubic-bezier(.2,.9,.3,1.2)}
+.slide h5{margin:2px 4px 10px;font:800 11px/1 var(--mono);letter-spacing:.14em;color:var(--dim);text-transform:uppercase}
+.slide p{margin:0 4px 12px;font-size:13px;color:var(--muted)}
+.it{display:flex;gap:12px;align-items:flex-start;padding:9px 8px;border-radius:10px}
+.it:hover{background:var(--hov)}
+.it .ic{width:34px;height:34px;border-radius:9px;display:grid;place-items:center;background:var(--hov);color:var(--gold-ink);flex:none}
+.it b{display:flex;align-items:center;gap:6px;font:600 14px/1.25 var(--ui)}
+.it span{display:block;font:400 12.5px/1.35 var(--ui);color:var(--muted);margin-top:2px}
+.seg{display:flex;padding:3px;border-radius:999px;background:var(--hov);margin:0 4px 14px}
+.seg button{flex:1;height:30px;border-radius:999px;font:700 12px/1 var(--ui);color:var(--muted)}
+.seg button.on{background:var(--card);color:var(--text);box-shadow:0 2px 8px rgba(0,0,0,.18)}
+.row{display:flex;justify-content:space-between;align-items:center;margin:0 4px 8px;font:600 13px/1 var(--ui)}
+.radio{display:flex;align-items:center;gap:12px;margin:0 4px 12px}
+.radio .play{width:44px;height:44px;border-radius:50%;display:grid;place-items:center;background:linear-gradient(180deg,var(--gold2),var(--gold));color:#1a1203}
+.radio b{display:block;font:700 14px/1.2 var(--ui)} .radio span{font-size:12px;color:var(--muted)}
+input[type=range]{width:100%;accent-color:var(--gold)}
+.wide{display:flex;justify-content:center;align-items:center;gap:6px;width:100%;height:40px;border-radius:999px;font:800 13.5px/1 var(--ui);background:linear-gradient(180deg,var(--gold2),var(--gold));color:#1a1203}
+.ghost{background:var(--hov);color:var(--text);margin-top:8px}
+.pro-list{margin:0 4px 14px;padding:0;list-style:none;font-size:13.5px}
+.pro-list li{display:flex;gap:8px;padding:5px 0} .pro-list li::before{content:'✓';color:var(--green);font-weight:800}
+.badge{font:800 9.5px/1 var(--mono);letter-spacing:.06em;padding:3px 5px;border-radius:4px;background:var(--gold);color:#1a1203}
+
+/* ── Inside a tab: the rail (desktop), the pill row (phone) ── */
+.wrap{display:flex;max-width:1280px;margin:0 auto}
+.rail{position:sticky;top:62px;align-self:flex-start;width:236px;height:calc(100vh - 62px);overflow:auto;padding:18px 12px;border-right:1px solid var(--panel-b);flex:none}
+.rail h3{display:flex;align-items:center;gap:8px;margin:0 10px 12px;font:800 11px/1 var(--mono);letter-spacing:.16em;color:var(--gold-ink)}
+.rail a{display:flex;align-items:center;gap:10px;padding:9px 10px;border-radius:9px;font:600 13.5px/1.2 var(--ui);color:var(--muted);position:relative}
+.rail a:hover{background:var(--hov);color:var(--text)}
+.rail a.on{color:var(--text);background:var(--hov)}
+.rail a.on::before{content:'';position:absolute;left:0;top:8px;bottom:8px;width:3px;border-radius:3px;background:var(--gold)}
+.rail .sep{margin:16px 10px 8px;font:700 10px/1 var(--mono);letter-spacing:.14em;color:var(--dim);text-transform:uppercase}
+.rail-in{animation:rIn .25s ease}
+@keyframes rIn{from{opacity:0;transform:translateX(-8px)}to{opacity:1;transform:none}}
+main{flex:1;min-width:0;padding:22px 26px 120px}
+.pills{display:none}
+h1{margin:0 0 4px;font:800 28px/1.15 var(--ui);letter-spacing:-.02em}
+.lead{margin:0 0 22px;color:var(--muted)}
+.sec{scroll-margin-top:120px;border:1px solid var(--panel-b);background:var(--card);border-radius:16px;padding:18px 20px;margin-bottom:16px;min-height:220px}
+.sec h2{margin:0;font:800 13px/1 var(--mono);letter-spacing:.14em;text-transform:uppercase;display:flex;gap:8px;align-items:center}
+.sec p{margin:6px 0 14px;color:var(--muted);font-size:13.5px}
+.ph{height:130px;border-radius:12px;border:1px dashed var(--panel-b);display:grid;place-items:center;color:var(--dim);font:600 12px/1 var(--mono);letter-spacing:.1em;text-align:center;padding:0 10px}
+.next{display:flex;justify-content:space-between;gap:10px;margin-top:6px}
+.next a{flex:1;border:1px solid var(--panel-b);border-radius:12px;padding:12px 14px;font-size:13px;color:var(--muted)}
+.next a b{display:block;color:var(--text);font-size:14px;margin-top:2px}
+.next a:last-child{text-align:right}
+.next a:hover{border-color:var(--gold)}
+
+/* ── Phone: big buttons go to the bottom bar; small ones stay on top ── */
+.mob{display:none}
+@media (max-width:1000px){
+  .bar{padding:0 12px;gap:4px}
+  .tabs,.mini.hide-m{display:none}
+  .mini.pro>button{padding:0 12px}
+  .slide{position:fixed;left:10px;right:10px;top:68px;width:auto}
+  .rail{display:none}
+  main{padding:14px 14px 110px}
+  .pills{display:flex;gap:6px;overflow-x:auto;position:sticky;top:62px;z-index:20;margin:0 -14px 14px;padding:10px 14px;background:var(--bg);border-bottom:1px solid var(--panel-b);scrollbar-width:none}
+  .pills::-webkit-scrollbar{display:none}
+  .pills a{flex:none;padding:7px 12px;border-radius:999px;border:1px solid var(--panel-b);font:600 12.5px/1 var(--ui);color:var(--muted);white-space:nowrap}
+  .pills a.on{background:var(--gold);border-color:var(--gold);color:#1a1203}
+  h1{font-size:22px}
+  .mob{display:flex;position:fixed;left:0;right:0;bottom:0;z-index:55;height:64px;padding:0 4px env(safe-area-inset-bottom);
+    background:var(--menu);border-top:1px solid var(--panel-b);justify-content:space-around;align-items:center}
+  .mob a{display:flex;flex-direction:column;align-items:center;gap:4px;font:700 9px/1 var(--mono);letter-spacing:.04em;color:var(--muted);min-width:56px}
+  .mob a.on{color:var(--gold-ink)}
+}
+/* Phones drop backdrop blur (iPhone memory, 2026-10-24): solid panels. */
+@media (hover:none),(max-width:860px){ .slide{backdrop-filter:none;-webkit-backdrop-filter:none;background:var(--menu)} }
+</style>
+</head>
+<body>
+<header class="bar">
+  <a class="logo" href="./" title="Rotator home"><i></i>ROTATOR</a>
+  <nav class="tabs" id="tabs" aria-label="Main"></nav>
+  <div class="right" id="minis"></div>
+</header>
+<div class="wrap">
+  <aside class="rail" id="rail" aria-label="In this tab"></aside>
+  <main id="main"></main>
+</div>
+<nav class="mob" id="mob" aria-label="Main"></nav>
+
+<script>
+var IC = {
+  sun:'<circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/>',
+  bars:'<path d="M4 19V9M10 19V5M16 19v-7M22 19H2"/>', news:'<path d="M4 5h13v14H6a2 2 0 0 1-2-2zM17 9h3v8a2 2 0 0 1-2 2"/><path d="M8 9h5M8 13h5"/>',
+  gauge:'<path d="M4 16a8 8 0 1 1 16 0"/><path d="M12 16l4-5"/>', cal:'<rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/>',
+  globe:'<circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3a14 14 0 0 1 0 18M12 3a14 14 0 0 0 0 18"/>',
+  rot:'<circle cx="6" cy="12" r="3"/><circle cx="18" cy="12" r="3"/><path d="M9 12h6"/>', etf:'<path d="M3 21h18M5 21V10l7-5 7 5v11M9 21v-6h6v6"/>',
+  coin:'<circle cx="12" cy="12" r="8"/><path d="M12 8v8M9.5 10.5h4a1.5 1.5 0 0 1 0 3h-3"/>', chain:'<path d="M10 14a4 4 0 0 0 5.7 0l3-3a4 4 0 0 0-5.7-5.7l-1 1"/><path d="M14 10a4 4 0 0 0-5.7 0l-3 3a4 4 0 0 0 5.7 5.7l1-1"/>',
+  lock:'<rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/>', fire:'<path d="M12 3c3 4 6 6 6 10a6 6 0 0 1-12 0c0-3 2-4 3-7 1 2 2 3 3 3 0-2 0-4 0-6z"/>',
+  up:'<path d="M3 17l6-6 4 4 8-8"/><path d="M14 7h7v7"/>', turn:'<path d="M17 2.1 21 6l-4 3.9"/><path d="M3 12a9 9 0 0 1 9-9h9"/><path d="M7 21.9 3 18l4-3.9"/><path d="M21 12a9 9 0 0 1-9 9H3"/>',
+  list:'<path d="M3 6h18M3 12h18M3 18h18"/>', cross:'<path d="M3 17c5 0 6-10 18-10"/><path d="M3 7c6 0 8 10 18 10"/>', stock:'<path d="M4 20V4M4 20h16"/><path d="M8 16v-5M12 16V8M16 16v-3"/>',
+  bolt:'<path d="M13 2 4 14h7l-1 8 9-12h-7l1-8z"/>', pct:'<path d="M19 5 5 19"/><circle cx="7" cy="7" r="2.5"/><circle cx="17" cy="17" r="2.5"/>',
+  oi:'<path d="M12 3v18M5 8h14M7 16h10"/>', ls:'<path d="M4 12h16M8 8l-4 4 4 4M16 8l4 4-4 4"/>',
+  wallet:'<path d="M20 7h-9"/><path d="M14 17H5"/><circle cx="17" cy="17" r="3"/><circle cx="7" cy="7" r="3"/>', bell:'<path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9M10 21a2 2 0 0 0 4 0"/>',
+  sig:'<path d="M2 12h4l3-8 4 16 3-8h6"/>', chart:'<path d="M3 3v18h18"/><path d="M7 15l4-4 3 3 6-7"/>', what:'<circle cx="12" cy="12" r="9"/><path d="M9.5 9a2.5 2.5 0 1 1 3.5 2.3c-.6.3-1 .9-1 1.7M12 17h.01"/>',
+  swap:'<path d="M7 16V4m0 0L4 7m3-3 3 3"/><path d="M17 8v12m0 0 3-3m-3 3-3-3"/>', target:'<circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="5"/><circle cx="12" cy="12" r="1"/>',
+  clock:'<path d="M12 8v4l3 2"/><circle cx="12" cy="12" r="9"/>', book:'<path d="M4 4h6a3 3 0 0 1 3 3v13a2 2 0 0 0-2-2H4zM20 4h-6a3 3 0 0 0-3 3"/><path d="M20 4v14h-7"/>',
+  play:'<path d="M8 5l11 7-11 7z"/>', log:'<path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01"/>',
+  gear:'<circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/>',
+  music:'<path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/>', cup:'<path d="M17 8h1a4 4 0 0 1 0 8h-1"/><path d="M3 8h14v9a4 4 0 0 1-4 4H7a4 4 0 0 1-4-4z"/><path d="M6 2v3M10 2v3M14 2v3"/>',
+  tg:'<path d="M21 4 3 11l6 2 2 6 3-4 5 4z"/><path d="m9 13 8-6"/>', video:'<rect x="3" y="6" width="13" height="12" rx="2"/><path d="m16 10 5-3v10l-5-3"/>'
+};
+function ic(k) { return '<svg class="i" viewBox="0 0 24 24" aria-hidden="true">' + IC[k] + '</svg>'; }
+
+/* The 5 big buttons and what each loads into the rail (promptove/168).
+   page = a separate page (opens it instead of a board section). */
+var CATS = [
+  { id: 'today', name: 'Today', icon: 'sun', lead: 'The day in one look: macro, sentiment and the news behind unusual moves.', items: [
+    { id: 'look', n: 'Today in one look', l: 'Three plain lines on where the market stands', i: 'sun' },
+    { id: 'now', n: 'Market now', l: 'BTC, its 200-day trend, coins beating BTC', i: 'bars' },
+    { id: 'fg', n: 'Fear & Greed', l: 'How scared or greedy the market is today', i: 'gauge' },
+    { id: 'cards', n: 'Daily cards', l: 'Rates, gold, oil, the dollar, stocks, hash rate', i: 'globe' },
+    { id: 'news', n: 'Headlines', l: 'The news behind moves bigger than usual', i: 'news' },
+    { id: 'weekly', n: 'Weekly recap', l: 'The week on one page', i: 'cal', page: 'weekly.html' }
+  ]},
+  { id: 'flows', name: 'Money flows', icon: 'rot', lead: 'Where capital moved: what came in, what left, and supply about to hit the market.', items: [
+    { id: 'rotation', n: 'Capital rotation', l: 'Where money moved this week', i: 'rot', grp: 'Coming in, going out' },
+    { id: 'etf', n: 'ETF flows', l: 'US spot Bitcoin and Ether ETF money, daily', i: 'etf', grp: 'Coming in, going out' },
+    { id: 'stables', n: 'Stablecoins by chain', l: 'Which chains are getting the dollars', i: 'chain', grp: 'Coming in, going out' },
+    { id: 'tvl', n: 'DeFi TVL', l: 'Money locked in DeFi, and its trend', i: 'coin', grp: 'Coming in, going out' },
+    { id: 'unlocks', n: 'Token unlocks', l: 'Coins with a big unlock coming up', i: 'lock', grp: 'Supply pressure' },
+    { id: 'buybacks', n: 'Buybacks & supply', l: 'Who burns, who prints', i: 'fire', grp: 'Supply pressure' },
+    { id: 'etfpage', n: 'Bitcoin ETF page', l: 'Every day of flows', i: 'etf', page: 'bitcoin-etf-flows.html' },
+    { id: 'unlockpage', n: 'Unlocks calendar', l: 'Every unlock, by date', i: 'cal', page: 'token-unlocks.html' }
+  ]},
+  { id: 'coins', name: 'Coins', icon: 'list', lead: 'Every tracked coin: who leads, who is turning, and the full table.', items: [
+    { id: 'momentum', n: 'Momentum', l: 'Best and worst right now', i: 'up', grp: 'Movers' },
+    { id: 'hot', n: "What's hot", l: 'Coins drawing attention today', i: 'fire', grp: 'Movers' },
+    { id: 'turns', n: 'Turn signs', l: 'Coins whose trend may be turning', i: 'turn', grp: 'Movers' },
+    { id: 'all', n: 'All coins', l: 'The full leaderboard with scores', i: 'list', grp: 'Lists' },
+    { id: 'bstocks', n: 'bStocks', l: 'Tokenized stocks with a business check', i: 'stock', grp: 'Lists' },
+    { id: 'cross', n: 'Golden & death cross', l: 'What the crosses did before', i: 'cross', page: 'golden-cross.html' }
+  ]},
+  { id: 'deriv', name: 'Derivatives', icon: 'bolt', lead: 'Futures traders: who got forced out, who pays to hold, and how crowded each side is.', items: [
+    { id: 'liq', n: 'Liquidations', l: 'Positions Binance force-closed, by hour', i: 'bolt', grp: 'Market' },
+    { id: 'funding', n: 'Funding', l: 'Who pays to hold longs or shorts', i: 'pct', grp: 'Per coin', badge: 'PRO' },
+    { id: 'oi', n: 'Open interest', l: 'How much money sits in futures', i: 'oi', grp: 'Per coin', badge: 'PRO' },
+    { id: 'ls', n: 'Long / short', l: 'How crowded each side is', i: 'ls', grp: 'Per coin', badge: 'PRO' }
+  ]},
+  { id: 'mine', name: 'My coins', icon: 'wallet', mine: true, lead: 'What you hold and watch, with warnings and tools that follow your coins.', items: [
+    { id: 'holdings', n: 'Holdings & watchlist', l: 'Track what you hold and watch', i: 'wallet', grp: 'Portfolio' },
+    { id: 'alerts', n: 'Alerts for your coins', l: 'Warnings that follow your coins', i: 'bell', grp: 'Portfolio' },
+    { id: 'signal', n: 'Portfolio Signal', l: 'Your mix in one reading', i: 'sig', grp: 'Portfolio' },
+    { id: 'chart', n: 'Your coins on one chart', l: 'Each holding against the others', i: 'chart', grp: 'Portfolio' },
+    { id: 'whatif', n: 'What-if trades', l: 'If you had bought when the sign appeared', i: 'what', grp: 'Portfolio' },
+    { id: 'tool', n: 'Rotator Tool', l: 'Pair ratio: when to swap one coin for another', i: 'swap', grp: 'Tools' },
+    { id: 'pricealerts', n: 'Price & crossover alerts', l: 'A Telegram message when your level hits', i: 'bell', grp: 'Tools', badge: 'PRO' },
+    { id: 'opps', n: 'Rotation opportunities', l: 'Swaps worth a look in your coins', i: 'target', grp: 'Tools' }
+  ]}
+];
+var LEARN = [
+  { n: 'Track record', l: 'What held up, and what did not', i: 'clock', page: 'track-record.html' },
+  { n: 'How the score works', l: 'The score in plain words', i: 'book', page: 'how-the-score-works.html' },
+  { n: 'Engine changelog', l: 'Every change to the engine', i: 'log', page: 'engine-changelog.html' },
+  { n: 'Tour', l: 'Two minutes around the board', i: 'play', page: 'tour.html' },
+  { n: 'Gemidzija videos', l: 'Free crypto lessons, in Macedonian', i: 'video', page: 'https://cryptogemidzija.mk/academy.html' }
+];
+var byId = {}; CATS.forEach(function (c) { byId[c.id] = c; });
+var $ = function (id) { return document.getElementById(id); };
+function href(c, it) { return it.page || '#' + c.id + '-' + it.id; }
+function itemHTML(it, h) {
+  return '<a class="it" href="' + h + '"' + (/^https?:/.test(h) ? ' target="_blank" rel="noopener"' : '') + '><span class="ic">' + ic(it.i) + '</span><div><b>' + it.n
+    + (it.badge ? ' <em class="badge">' + it.badge + '</em>' : '') + '</b><span>' + it.l + '</span></div></a>';
+}
+
+/* ── Big buttons: a click loads that tab's list into the rail ── */
+$('tabs').innerHTML = CATS.map(function (c) {
+  return '<a class="tab' + (c.mine ? ' mine' : '') + '" href="#' + c.id + '" data-cat="' + c.id + '">' + ic(c.icon) + c.name + '</a>';
+}).join('');
+
+/* ── Small buttons: each opens a sliding glass panel ── */
+var MINIS = [
+  { id: 'learn', icon: 'book', t: 'Learn', hideM: true, body: function () { return '<h5>Learn</h5>' + LEARN.map(function (it) { return itemHTML(it, it.page); }).join(''); } },
+  { id: 'radio', icon: 'music', t: 'Radio', hideM: true, body: function () {
+      return '<h5>Radio</h5><div class="radio"><button class="play" id="rPlay" aria-label="Play">' + ic('play') + '</button><div><b>Blink Ortodox</b><span>Poetry and dark folk, while you read</span></div></div>'
+        + '<div class="row">Volume</div><div style="margin:0 4px"><input type="range" min="0" max="100" value="60" aria-label="Volume"></div>'; } },
+  { id: 'support', icon: 'cup', t: 'Support', hideM: true, body: function () {
+      return '<h5>Support</h5><p>Rotator is free and has no ads. A coffee keeps the data running.</p><a class="wide" href="board.html?donate">' + ic('cup') + 'Buy Rotator a coffee</a>'
+        + '<a class="wide ghost" href="https://cryptogemidzija.mk/academy.html" target="_blank" rel="noopener">' + ic('video') + 'Gemidzija videos</a>'; } },
+  { id: 'settings', icon: 'gear', t: 'Settings', body: function () {
+      return '<h5>Theme</h5><div class="seg" data-set="theme"><button data-v="auto" class="on">Auto</button><button data-v="light">Light</button><button data-v="dark">Dark</button></div>'
+        + '<h5>Units</h5><div class="seg" data-set="units"><button data-v="metric" class="on">Metric</button><button data-v="imperial">Imperial</button></div>'
+        + '<h5>Language</h5><div class="seg" data-set="lang"><button data-v="en" class="on">English</button><button data-v="mk">Македонски</button><button data-v="more">More…</button></div>'
+        + '<div class="mob-only"><h5>More</h5>' + LEARN.slice(0, 3).map(function (it) { return itemHTML(it, it.page); }).join('') + '</div>'; } },
+  { id: 'pro', icon: 'tg', t: 'Get Pro', pro: true, body: function () {
+      return '<h5>Rotator Pro</h5><ul class="pro-list"><li>Personal alerts on your coins, on Telegram</li><li>Price and crossover alerts</li><li>Derivatives and the full coin breakdown</li></ul>'
+        + '<a class="wide" href="board.html#pro">' + ic('tg') + 'Get Pro alerts</a>'; } }
+];
+$('minis').innerHTML = MINIS.map(function (m) {
+  return '<div class="mini' + (m.pro ? ' pro' : '') + (m.hideM ? ' hide-m' : '') + '" data-mini="' + m.id + '"><button type="button" aria-expanded="false" title="' + m.t + '">'
+    + (m.pro ? m.t : ic(m.icon)) + '</button><div class="slide" role="dialog" aria-label="' + m.t + '">' + m.body() + '</div></div>';
+}).join('');
+var openMini = null;
+function setMini(m) {
+  if (openMini) { openMini.classList.remove('open'); openMini.firstChild.setAttribute('aria-expanded', 'false'); }
+  openMini = m === openMini ? null : m;
+  if (openMini) { openMini.classList.add('open'); openMini.firstChild.setAttribute('aria-expanded', 'true'); }
+}
+document.querySelectorAll('.mini').forEach(function (m) { m.firstChild.addEventListener('click', function (e) { e.stopPropagation(); setMini(m); }); });
+document.addEventListener('click', function (e) { if (openMini && !openMini.contains(e.target)) setMini(openMini); });
+document.addEventListener('keydown', function (e) { if (e.key === 'Escape' && openMini) setMini(openMini); });
+document.querySelectorAll('.seg').forEach(function (s) {
+  s.addEventListener('click', function (e) {
+    var b = e.target.closest('button'); if (!b) return;
+    s.querySelectorAll('button').forEach(function (x) { x.classList.toggle('on', x === b); });
+    if (s.dataset.set === 'theme') {
+      var light = b.dataset.v === 'light' || (b.dataset.v === 'auto' && matchMedia('(prefers-color-scheme: light)').matches);
+      document.documentElement.classList.toggle('light', light);
+    }
+  });
+});
+var playing = false;
+document.addEventListener('click', function (e) {
+  var p = e.target.closest('#rPlay'); if (!p) return;
+  playing = !playing; p.innerHTML = playing ? '<svg class="i" viewBox="0 0 24 24"><path d="M8 5v14M16 5v14"/></svg>' : ic('play');
+});
+
+/* ── A tab: rail list, pill row, placeholder sections, previous / next ── */
+var cur = null;
+function show(catId, itemId) {
+  var c = byId[catId] || byId.today, items = c.items.filter(function (it) { return !it.page; }), pages = c.items.filter(function (it) { return it.page; });
+  if (cur !== c.id) {
+    cur = c.id;
+    document.querySelectorAll('.tab, .mob a').forEach(function (t) { t.classList.toggle('cur', t.dataset.cat === c.id); t.classList.toggle('on', t.dataset.cat === c.id); });
+    var grp = null;
+    $('rail').innerHTML = '<div class="rail-in"><h3>' + ic(c.icon) + c.name.toUpperCase() + '</h3>' + items.map(function (it) {
+      var head = it.grp && it.grp !== grp ? '<div class="sep">' + it.grp + '</div>' : ''; grp = it.grp;
+      return head + '<a href="' + href(c, it) + '" data-it="' + it.id + '">' + ic(it.i) + it.n + (it.badge ? ' <em class="badge">' + it.badge + '</em>' : '') + '</a>';
+    }).join('') + (pages.length ? '<div class="sep">Full pages</div>' + pages.map(function (it) { return '<a href="' + it.page + '">' + ic(it.i) + it.n + ' ↗</a>'; }).join('') : '') + '</div>';
+    var k = CATS.indexOf(c), prev = CATS[(k + CATS.length - 1) % CATS.length], next = CATS[(k + 1) % CATS.length];
+    $('main').innerHTML = '<div class="pills">' + items.map(function (it) { return '<a href="' + href(c, it) + '" data-it="' + it.id + '">' + it.n + '</a>'; }).join('') + '</div>'
+      + '<h1>' + c.name + '</h1><p class="lead">' + c.lead + '</p>'
+      + items.map(function (it) {
+        return '<section class="sec" id="' + c.id + '-' + it.id + '"><h2>' + ic(it.i) + it.n + (it.badge ? ' <em class="badge">' + it.badge + '</em>' : '') + '</h2><p>' + it.l + '</p><div class="ph">THE LIVE BOARD SECTION GOES HERE</div></section>';
+      }).join('')
+      + '<div class="next"><a href="#' + prev.id + '">← Previous<b>' + prev.name + '</b></a><a href="#' + next.id + '">Next →<b>' + next.name + '</b></a></div>';
+    spy();
+    window.scrollTo(0, 0);
+  }
+  mark(itemId || items[0].id);
+  if (itemId) { var el = $(c.id + '-' + itemId); if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' }); }
+}
+function mark(id) {
+  document.querySelectorAll('#rail a[data-it], .pills a').forEach(function (a) { a.classList.toggle('on', a.dataset.it === id); });
+  var p = document.querySelector('.pills a.on'); if (p && p.parentNode.scrollWidth > p.parentNode.clientWidth) p.parentNode.scrollTo({ left: p.offsetLeft - 40, behavior: 'smooth' });
+}
+var io = null;
+function spy() {
+  if (io) io.disconnect();
+  io = new IntersectionObserver(function (en) {
+    en.forEach(function (e) { if (e.isIntersecting) mark(e.target.id.split('-').slice(1).join('-')); });
+  }, { rootMargin: '-130px 0px -60% 0px' });
+  document.querySelectorAll('.sec').forEach(function (s) { io.observe(s); });
+}
+function route() { var h = location.hash.slice(1).split('-'); show(h[0], h.slice(1).join('-') || null); }
+window.addEventListener('hashchange', route);
+
+/* ── Phone: the 5 big buttons sit in the bottom bar ── */
+var MOB = { today: 'TODAY', flows: 'FLOWS', coins: 'COINS', deriv: 'DERIV', mine: 'MY COINS' };
+$('mob').innerHTML = CATS.map(function (c) { return '<a href="#' + c.id + '" data-cat="' + c.id + '">' + ic(c.icon) + MOB[c.id] + '</a>'; }).join('');
+document.querySelectorAll('.mob-only').forEach(function (el) { if (innerWidth > 1000) el.remove(); });
+route();
+</script>
+</body>
+</html>

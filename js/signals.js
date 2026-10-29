@@ -415,7 +415,7 @@ function renderCapitalBtc() {
     legend: [
       'Gold line: the 5 biggest coins after Bitcoin, such as ETH and XRP.',
       'Blue line: the small coins, places 101 to 250 by size.',
-      'Each line shows how the coins did against Bitcoin over the last 30 days, since 1 April. Above the dashed line they did better than Bitcoin, below it they did worse. When blue is above gold, money is reaching the small coins. When gold is above blue, money stays with the big coins.'
+      'Each point shows how the coins did against Bitcoin in the 30 days before that day; the lines start on 1 April. Above the dashed line they did better than Bitcoin, below it they did worse. When blue is above gold, money is reaching the small coins. When gold is above blue, money stays with the big coins.'
     ]
   };
   function row(key, label) {
