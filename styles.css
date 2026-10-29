@@ -7792,3 +7792,18 @@ body.has-tabs #donate-modal .sp-link{padding:6px 14px !important;margin-top:8px;
   body.has-tabs #settings-panel.set-glass.set-glass{background:#10151d !important;backdrop-filter:none !important;-webkit-backdrop-filter:none !important;opacity:1;}
   :root.light body.has-tabs #settings-panel.set-glass.set-glass{background:#f5f8fc !important;}
 }
+
+/* ── Coins leaderboard head (Daniel, 2026-10-29): the title on its own
+   line with the update time, the categories on a full-width row under it;
+   the SCORE strip repeated the ⓘ on the SCORE column, so only its
+   "How is it calculated?" stays, as a slim link that still opens the
+   animated score panel. ── */
+body.has-tabs .tbl-head.tbl-head-merged{display:grid;grid-template-columns:minmax(0,1fr) auto;grid-template-areas:"t m" "c c";align-items:center;gap:10px 16px;height:auto;min-height:0;padding:14px 16px 12px;}
+body.has-tabs .tbl-head-merged .ptitle{grid-area:t;margin:0;}
+body.has-tabs .tbl-head-merged .tbl-head-meta{grid-area:m;text-align:right;}
+body.has-tabs .tbl-head-merged .cat-bar.cat-bar-inline{grid-area:c;flex-wrap:wrap;overflow:visible;margin:0;gap:6px;}
+body.has-tabs .score-explain{margin:6px 16px 8px;border:0 !important;background:none !important;}
+body.has-tabs .score-explain > summary{justify-content:flex-end;padding:0 !important;background:none !important;border:0 !important;}
+body.has-tabs .score-explain > summary .se-k,body.has-tabs .score-explain > summary .se-line{display:none;}
+body.has-tabs .score-explain[open] > summary .se-line{display:block;text-align:left;}
+body.has-tabs .score-explain[open] > summary{justify-content:space-between;}
