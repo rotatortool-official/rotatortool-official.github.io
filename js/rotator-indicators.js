@@ -182,7 +182,7 @@ function _riDraw(host, c) {
     + '<span class="ri-frames">' + RI_FRAMES.map(function (f) { return '<button type="button" class="ri-frame' + (f[0] === _riFrame ? ' on' : '') + '" data-d="' + f[0] + '">' + f[1] + '</button>'; }).join('') + '</span>'
     + ' <span class="up">▲ golden cross</span> <span class="dn">▼ death cross</span> <span class="ri-gold">● RSI back above 30</span>'
     /* Daniel, 2026-10-29: "insight indicator powered by rotator engine". */
-    + ' <span class="ri-ie"><b>Insight indicator</b> <i>powered by Rotator engine</i>: <span class="ri-gold">RSI 14</span> + <span class="ri-score-k">score</span>, ● where they cross</span>'
+    + ' <span class="ri-ie"><b>Insight indicator</b> <i>powered by Rotator engine</i>: <span class="ri-gold">RSI 14</span> + <span class="ri-score-k">score</span></span> <span class="up">▲ IE</span> <span class="dn">▼ IE</span> <span class="ri-x">score/RSI cross</span>'
     + '<span class="ri-chips">' + RI_IND.map(function (x) {
       return '<button type="button" class="ri-chip' + (_riOn[x[0]] ? ' on' : '') + '" data-i="' + x[0] + '" aria-pressed="' + (_riOn[x[0]] ? 'true' : 'false') + '">' + x[1] + '</button>';
     }).join('') + '</span></div><div class="ri-chart"></div>';
@@ -243,7 +243,7 @@ function _riDraw(host, c) {
   });
   /* One mark per kind per week on weekly candles. */
   var seenM = {}; marks = marks.filter(function (m) { var k = m.time + m.text; if (seenM[k]) return false; seenM[k] = 1; return true; });
-  if (marks.length && LC.createSeriesMarkers) LC.createSeriesMarkers(cs, marks);
+  var csMarks = LC.createSeriesMarkers ? LC.createSeriesMarkers(cs, marks) : null;
 
   /* Overlays on the candles. */
   var closes = candles.map(function (k) { return k.close; });
@@ -341,11 +341,19 @@ function _riDraw(host, c) {
       }
       if (d !== 0) prev = { d: d, v: p.value, time: p.time };
     });
-    if (xs.length) {
-      var xAt = {}; xs.forEach(function (x) { xAt[x.time] = x; });
-      var xSer = chart.addSeries(LC.LineSeries, { lineVisible: false, pointMarkersVisible: true, pointMarkersRadius: 4.5,
-        priceLineVisible: false, lastValueVisible: false, crosshairMarkerVisible: false, color: red }, 1);
-      xSer.setData(candles.map(function (b) { var x = xAt[b.time]; return x ? { time: b.time, value: x.value, color: x.color } : { time: b.time }; }));
+    /* On the price chart, not in the indicator panel (Daniel, 2026-10-29:
+       "place death cross and golden cross on the chart, not in the rotator
+       insight indicator"): green ▲ under the candle where the score drops
+       below RSI, red ▼ over it where the score climbs above RSI, on the day
+       before the cross. Labelled IE so they are never confused with the
+       moving-average golden and death crosses (GC / DC). Not tested as a
+       signal; facts on the chart. */
+    if (xs.length && csMarks && csMarks.setMarkers) {
+      var ie = xs.map(function (x) {
+        var up = x.color === green;
+        return { time: x.time, position: up ? 'belowBar' : 'aboveBar', color: x.color, shape: up ? 'arrowUp' : 'arrowDown', text: 'IE' };
+      });
+      csMarks.setMarkers(marks.concat(ie).sort(function (m1, m2) { return m1.time < m2.time ? -1 : m1.time > m2.time ? 1 : 0; }));
     }
   }
   var panes = chart.panes ? chart.panes() : [];
