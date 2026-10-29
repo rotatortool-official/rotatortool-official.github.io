@@ -721,9 +721,9 @@ Object.assign(MK_TEXT, {
   P(/^Shorts are paying longs\. Shown per 8h funding interval; roughly ([^ ]+) annualised\. Not part of the score\.$/, function (m) { return 'Шорт позициите им плаќаат на лонг. Прикажано по 8-часовен интервал на фандинг; околу ' + m[1] + ' годишно. Не е дел од резултатот.'; });
   P(/^Total value of open perpetual positions on Binance\. Updated (\d+) min ago\.$/, function (m) { return 'Вкупна вредност на отворените перпетуал позиции на Binance. Ажурирано пред ' + m[1] + ' мин.'; });
   P(/^Aggressive buy\/sell flow is (unremarkable|heavy on the buy side|heavy on the sell side) compared with the rest of the market right now\. Ranked against (\d+) perpetuals, median ([\d.]+) — the market as a whole sits below 1\.0, so 1\.0 is not the neutral point\. Not part of the score\.$/,
-    function (m) { return 'Агресивниот тек на купување/продажба ' + { 'unremarkable': 'е вообичаен', 'heavy on the buy side': 'е силен на страната на купување', 'heavy on the sell side': 'е силен на страната на продажба' }[m[1]] + ' во споредба со остатокот од пазарот. Рангирано наспроти ' + m[2] + ' перпетуали, медијана ' + m[3] + ' — пазарот како целина е под 1,0, па 1,0 не е неутралната точка. Не е дел од резултатот.'; });
+    function (m) { return 'Агресивниот тек на купување/продажба ' + { 'unremarkable': 'е вообичаен', 'heavy on the buy side': 'е силен на страната на купување', 'heavy on the sell side': 'е силен на страната на продажба' }[m[1]] + ' во споредба со остатокот од пазарот. Рангирано наспроти ' + m[2] + ' перпетуали, просечно ' + m[3] + ' — пазарот како целина е под 1,0, па 1,0 не е неутралната точка. Не е дел од резултатот.'; });
   P(/^How far the perpetual trades from the spot index it settles against\. Premium means the perp is above spot\. Ranked against (\d+) perpetuals, median ([^ ]+) — most of the market sits slightly below spot, so 0 is not the neutral point\. Not part of the score\.$/,
-    function (m) { return 'Колку перпетуалот тргува подалеку од спот индексот според кој се порамнува. Премија значи дека перпетуалот е над спот. Рангирано наспроти ' + m[1] + ' перпетуали, медијана ' + m[2] + ' — поголемиот дел од пазарот е малку под спот, па 0 не е неутралната точка. Не е дел од резултатот.'; });
+    function (m) { return 'Колку перпетуалот тргува подалеку од спот индексот според кој се порамнува. Премија значи дека перпетуалот е над спот. Рангирано наспроти ' + m[1] + ' перпетуали, просечно ' + m[2] + ' — поголемиот дел од пазарот е малку под спот, па 0 не е неутралната точка. Не е дел од резултатот.'; });
   P(/^No historically-calibrated stretched\/oversold bands exist for ([A-Z0-9]+) yet\. Only Bitcoin Mayer Multiple has been validated against its own multi-year history\.$/, function (m) { return 'Сè уште нема историски калибрирани опсези за истегнато/препродадено за ' + m[1] + '. Само Mayer Multiple на Bitcoin е потврден наспроти сопствената повеќегодишна историја.'; });
   P(/^n\/a for ([A-Z0-9]+)$/, function (m) { return 'н/п за ' + m[1]; });
   P(/^(Golden|Death) cross — the 60-day average is (above|below) the 125-day average\. (Crossed today|Crossed (\d+) days? ago|The cross happened before the stored window, so its date is not known)\. Descriptive of past price only\.$/,
@@ -2201,3 +2201,57 @@ Object.assign(MK_TEXT, {
 MK_PATTERNS.push([/^(\d+) friends?$/, function (m) { return m[1] + (m[1] === '1' ? ' пријател' : ' пријатели'); }]);   // Pro weeks 2026-10-27
 MK_PATTERNS.push([/^(\d+) (friend has|friends have) joined\. Each one adds 1 week of Pro once the 1-hour check has passed: refresh the page to check\.$/, function (m) { return m[1] + (m[1] === '1' ? ' пријател се приклучи' : ' пријатели се приклучија') + '. Секој додава 1 недела Pro откако ќе помине проверката од 1 час: освежете ја страницата за да проверите.'; }]);
 MK_PATTERNS.push([/^Pro is active until (\d+) (\w+)$/, function (m) { return 'Pro е активен до ' + m[1] + ' ' + m[2]; }]);
+
+/* Board tabs and the gaps found with __mkMissing (2026-10-29): DeepL drafts,
+   set to copy/glossary-mk.md (позиции, знак за свртување, лонг/шорт,
+   фандинг, Rotator in Latin). */
+Object.assign(MK_TEXT, {
+  'Theme': 'Тема', 'Auto': 'Автоматски', 'Light': 'Светла', 'Dark': 'Темна',
+  'Today': 'Денес', 'Money flows': 'Текови на пари', 'Coins': 'Монети', 'My holdings': 'Мои позиции',
+  'Learn': 'Научи', 'Engine changelog': 'Промени во моторот', 'Tour': 'Обиколка',
+  'Today in one look': 'Денес на прв поглед', 'Market now': 'Пазарот сега', 'Daily news': 'Дневни вести', 'Full pages': 'Посебни страници',
+  'Personal alerts on your coins, sent to you on Telegram.': 'Лични известувања за вашите монети, испратени до вас на Telegram.',
+  'Get Pro': 'Земете Pro',
+  'The day in one look: the market, sentiment, and the macro behind it.': 'Денот на прв поглед: пазарот, расположението и макроекономијата зад него.',
+  'Coming in, going out': 'Влегува, излегува', 'Capital rotation': 'Ротација на капитал', 'Stablecoins by chain': 'Стејблкоини по синџир',
+  'Supply pressure': 'Притисок на понудата', 'Token unlocks': 'Отклучувања на токени',
+  'Bitcoin ETF page ↗': 'Страница за Bitcoin ETF ↗', 'Unlocks calendar ↗': 'Календар на отклучувања ↗',
+  'Golden & death cross ↗': 'Златен крст и крст на смртта ↗', 'Rotator Weekly (Substack) ↗': 'Rotator Weekly (Substack) ↗',
+  'Where money moved: what came in, what left, and supply about to reach the market.': 'Каде се движеа парите: што влезе, што излезе и понудата што наскоро стигнува на пазарот.',
+  'Movers': 'Најголеми движења', 'Turn signs': 'Знаци за свртување', "What's hot": 'Што е актуелно',
+  'Momentum: best': 'Моментум: најдобри', 'Momentum: worst': 'Моментум: најлоши', 'Lists': 'Списоци', 'All coins': 'Сите монети', 'Record': 'Евиденција',
+  'Every tracked coin: who leads, who may be turning, and the full table.': 'Секоја следена монета: која води, која можеби се свртува, и целата табела.',
+  'Liquidations': 'Ликвидации', 'Per coin': 'По монета', 'Funding & positioning': 'Фандинг и позиционирање', 'Open any coin': 'Отворете која било монета',
+  'Futures traders: who got forced out of their positions, and when.': 'Трговци со фјучерси: кој беше принудно исфрлен од позициите, и кога.',
+  'Portfolio': 'Портфолио', 'Holdings & watchlist': 'Позиции и листа за следење', 'Your coins on one chart': 'Вашите монети на еден графикон',
+  'What-if trades': 'Што ако тргувања', 'Tools': 'Алатки', 'Rotation opportunities': 'Можности за ротација', 'Portfolio tracker': 'Следење на портфолиото',
+  'What you hold and watch, with the warnings and tools that follow your coins.': 'Она што го држите и следите, со предупредувањата и алатките што ги следат вашите монети.',
+  'Chart on TradingView': 'Графикон на TradingView', 'Other': 'Друго',
+  'mostly longs': 'претежно лонг', 'mostly shorts': 'претежно шорт', 'Longs': 'Лонг', 'Shorts': 'Шорт', 'Biggest order': 'Најголема нарачка', 'Share': 'Сподели',
+  'A liquidation is when the exchange force-closes a borrowed position because the price moved against it. Red: mostly longs were wiped out (the price fell). Green: mostly shorts (the price rose).':
+    'Ликвидација е кога берзата принудно затвора позајмена позиција затоа што цената тргнала спротивно. Црвено: исфрлени се претежно лонг позиции (цената падна). Зелено: претежно шорт (цената порасна).',
+  'Source: Binance futures public liquidation stream. Binance only, and a lower bound: the stream sends at most one liquidation per coin per second.':
+    'Извор: јавниот тек на ликвидации на Binance фјучерси. Само Binance, и долна граница: текот праќа најмногу една ликвидација по монета во секунда.',
+  'Unavailable': 'Недостапно', 'Select…': 'Изберете…', 'how it works': 'како функционира', 'how Rotator works': 'како работи Rotator',
+  'Fetching prices…': 'Се вчитуваат цените…', 'Loading 7d chart…': 'Се вчитува 7-дневниот графикон…',
+  'Your money:': 'Вашите пари:', 'in the middle.': 'во средината.',
+  'Coins that have lagged amplify what the market does next:': 'Монетите што заостанале го засилуваат она што пазарот ќе го направи следно:',
+  'against the market when it rises,': 'во однос на пазарот кога расте,', 'when it falls. Which comes next is your call, not ours.': 'кога паѓа. Што ќе дојде следно е ваша одлука, не наша.',
+  'Middle': 'Средина', 'Ahead': 'Напред', 'Lagging': 'Заостанува',
+  'Ring colour = this week’s move, fall to rise': 'Боја на прстенот = движењето оваа недела, од пад до раст',
+  'Thick ring = has a tested sign': 'Дебел прстен = има тестиран знак', 'Bigger = stronger: more signs, a tested sign counts double': 'Поголемо = посилно: повеќе знаци, тестиран знак се брои двојно',
+  'STRONG EVIDENCE': 'СИЛНИ ДОКАЗИ', 'On the record —': 'Во евиденцијата —', 'TradingView charts inside Rotator': 'TradingView графикони во Rotator',
+  ': the big coin card and full screen, with drawing tools and indicators': ': големата картичка на монетата и цел екран, со алатки за цртање и индикатори',
+  ': our golden cross, death cross and RSI comeback flags on the price chart, with RSI and the Rotator score': ': нашите знаменца за златен крст, крст на смртта и RSI враќање на графиконот на цената, со RSI и резултатот на Rotator',
+  'Post': 'Објави', 'Liquidated': 'Ликвидирано', 'at least': 'најмалку', 'BALANCED': 'УРАМНОТЕЖЕНО', 'Support Rotator': 'Поддржете го Rotator'
+});
+MK_PATTERNS.push([/^STEP (\d+) OF (\d+)$/, function (m) { return 'ЧЕКОР ' + m[1] + ' ОД ' + m[2]; }]);
+MK_PATTERNS.push([/^since (\d\d:\d\d) UTC$/, function (m) { return 'од ' + m[1] + ' UTC'; }]);
+MK_PATTERNS.push([/^at (\$[\d,.]+)$/, function (m) { return 'по ' + m[1]; }]);
+MK_PATTERNS.push([/^(\d+) coins$/, function (m) { return m[1] + ' монети'; }]);
+MK_PATTERNS.push([/^(Monday|Tuesday|Wednesday|Thursday|Friday|Saturday|Sunday) (\d{1,2}) (January|February|March|April|May|June|July|August|September|October|November|December)$/, function (m) {
+  var D = { Monday: 'понеделник', Tuesday: 'вторник', Wednesday: 'среда', Thursday: 'четврток', Friday: 'петок', Saturday: 'сабота', Sunday: 'недела' };
+  var M = { January: 'јануари', February: 'февруари', March: 'март', April: 'април', May: 'мај', June: 'јуни', July: 'јули', August: 'август', September: 'септември', October: 'октомври', November: 'ноември', December: 'декември' };
+  return D[m[1]] + ' ' + m[2] + ' ' + M[m[3]];
+}]);
+MK_TEXT['— received per 1 —'] = '— добиени за 1 —';
