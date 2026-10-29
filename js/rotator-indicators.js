@@ -323,15 +323,27 @@ function _riDraw(host, c) {
     sc.forEach(function (x) { var t = _riT(_riDay(x.snap_date)); if (!byT[t]) { byT[t] = { time: t, value: 0 }; sData.push(byT[t]); } byT[t].value = Number(x.score); });
     ss.setData(sData);
     var rsiAt = {}; rsiData.forEach(function (p) { rsiAt[p.time] = p.value; });
-    var xm = [], prev = null;
+    /* The dot sits where the two lines meet (Daniel, 2026-10-29: "the red
+       dot should be on the crossing not after it"): the meeting point is
+       found between the two days, the dot takes that height and the day
+       nearer to it. Drawn as points of a line-less series, because a
+       series marker can only sit on its own day's value. */
+    var xs = [], prev = null;
     sData.forEach(function (p) {
       var rv = rsiAt[p.time]; if (rv == null) return;
       var d = p.value - rv;
-      if (prev != null && d !== 0 && (prev < 0) !== (d < 0))
-        xm.push({ time: p.time, position: 'inBar', color: d > 0 ? red : green, shape: 'circle', size: 0.8 });   /* no text: the library draws it under the dot, off the lines */
-      if (d !== 0) prev = d;
+      if (prev && d !== 0 && (prev.d < 0) !== (d < 0)) {
+        var t = prev.d / (prev.d - d);
+        xs.push({ time: t < 0.5 ? prev.time : p.time, value: prev.v + t * (p.value - prev.v), color: d > 0 ? red : green });
+      }
+      if (d !== 0) prev = { d: d, v: p.value, time: p.time };
     });
-    if (xm.length && LC.createSeriesMarkers) LC.createSeriesMarkers(ss, xm);
+    if (xs.length) {
+      var xAt = {}; xs.forEach(function (x) { xAt[x.time] = x; });
+      var xSer = chart.addSeries(LC.LineSeries, { lineVisible: false, pointMarkersVisible: true, pointMarkersRadius: 4.5,
+        priceLineVisible: false, lastValueVisible: false, crosshairMarkerVisible: false, color: red }, 1);
+      xSer.setData(candles.map(function (b) { var x = xAt[b.time]; return x ? { time: b.time, value: x.value, color: x.color } : { time: b.time }; }));
+    }
   }
   var panes = chart.panes ? chart.panes() : [];
   /* The Rotator Insight Engine panel (RSI + score) gets real room and follows
@@ -339,5 +351,20 @@ function _riDraw(host, c) {
   panes.forEach(function (p, i) { if (p.setStretchFactor) p.setStretchFactor(i === 0 ? 3 : i === 1 ? 2 : 1); });
   try { chart.priceScale('right', 1).applyOptions({ autoScale: true, scaleMargins: { top: 0.08, bottom: 0.08 } }); } catch (e) {}
   chart._riLen = candles.length;
-  chart.timeScale().setVisibleLogicalRange({ from: Math.max(0, candles.length - _riBars(_riFrame)), to: candles.length + 2 });
+  /* The time frame is set again whenever the box gets its real width: drawn
+     while hidden (0 px wide), the chart kept a squeezed zoom with every
+     candle in a thin strip at the right edge (Daniel, 2026-10-29). */
+  var fitFrame = function () {
+    if (_riChart !== chart || !box.clientWidth) return;
+    try { chart.timeScale().setVisibleLogicalRange({ from: Math.max(0, candles.length - _riBars(_riFrame)), to: candles.length + 2 }); } catch (e) {}
+  };
+  fitFrame();
+  if (window.ResizeObserver) {
+    var lastW = box.clientWidth;
+    var ro = new ResizeObserver(function () {
+      if (_riChart !== chart) { ro.disconnect(); return; }
+      if (box.clientWidth && Math.abs(box.clientWidth - lastW) > 40) { lastW = box.clientWidth; fitFrame(); }
+    });
+    ro.observe(box);
+  } else setTimeout(fitFrame, 300);
 }
