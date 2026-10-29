@@ -7398,3 +7398,5 @@ a.mob-more-item{text-decoration:none;color:inherit;}
 .tdx-wif-x{font-size:22px;line-height:1;background:none;border:none;color:var(--text);cursor:pointer;padding:0 4px;}
 .tdx-wif-card > .tdx-wif{display:block !important;border:none;background:none;padding:0;}
 :root.light .tdx-wif-modal{background:rgba(30,45,60,.35);}
+
+.ri-legend .ri-ie i{font-style:normal;font-size:10px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);}

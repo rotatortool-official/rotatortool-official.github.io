@@ -181,7 +181,8 @@ function _riDraw(host, c) {
     + '<span class="ri-frames ri-ints">' + [['D', 'Day'], ['W', 'Week']].map(function (f) { return '<button type="button" class="ri-int' + (f[0] === _riInt ? ' on' : '') + '" data-i="' + f[0] + '">' + f[1] + '</button>'; }).join('') + '</span>'
     + '<span class="ri-frames">' + RI_FRAMES.map(function (f) { return '<button type="button" class="ri-frame' + (f[0] === _riFrame ? ' on' : '') + '" data-d="' + f[0] + '">' + f[1] + '</button>'; }).join('') + '</span>'
     + ' <span class="up">▲ golden cross</span> <span class="dn">▼ death cross</span> <span class="ri-gold">● RSI back above 30</span>'
-    + ' <span class="ri-ie"><b>Rotator Insight Engine</b> <span class="ri-gold">RSI 14</span> + <span class="ri-score-k">score</span>, ● where they cross</span>'
+    /* Daniel, 2026-10-29: "insight indicator powered by rotator engine". */
+    + ' <span class="ri-ie"><b>Insight indicator</b> <i>powered by Rotator engine</i>: <span class="ri-gold">RSI 14</span> + <span class="ri-score-k">score</span>, ● where they cross</span>'
     + '<span class="ri-chips">' + RI_IND.map(function (x) {
       return '<button type="button" class="ri-chip' + (_riOn[x[0]] ? ' on' : '') + '" data-i="' + x[0] + '" aria-pressed="' + (_riOn[x[0]] ? 'true' : 'false') + '">' + x[1] + '</button>';
     }).join('') + '</span></div><div class="ri-chart"></div>';
