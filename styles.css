@@ -7731,3 +7731,9 @@ body.has-tabs #pro-modal .modal-x{color:#1d1c16;background:#ffffeb;border:1.5px 
 @media (min-width:901px){ body.has-tabs #pro-topbar-btn{display:none !important;} body.has-tabs #pro-topbar-btn{} }
 body.has-tabs .tb-dropdown-wrap:has(> #pro-topbar-btn){display:none;}
 @media (max-width:900px){ body.has-tabs .tb-dropdown-wrap:has(> #pro-topbar-btn){display:revert;} }
+/* Copy buttons in the Pro window, small like Wispr's "Connect"
+   (Daniel, 2026-10-29: "a third of the size"). */
+#pro-modal .copy-btn{display:inline-block !important;width:auto !important;height:32px !important;min-height:0 !important;line-height:29px !important;padding-top:0 !important;padding-bottom:0 !important;box-sizing:border-box !important;padding:0 16px !important;margin:6px 0 14px !important;
+  font-size:13px !important;font-weight:600 !important;letter-spacing:0 !important;text-transform:lowercase;}
+#pro-modal .copy-btn::first-letter{text-transform:uppercase;}
+#pro-modal .pro-pay-addr{font-size:12.5px;word-break:break-all;}
