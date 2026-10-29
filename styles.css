@@ -5000,6 +5000,9 @@ header{background:var(--bg2);}
   75%{transform:translate(-4px,-2px) scale(1.03);}
 }
 @media (prefers-reduced-motion: reduce){ .tw-bub-f{animation:none;} }
+/* WebKit and phones: no drift, it leaked memory (_twBubbles, 2026-10-29). */
+.tw-still .tw-bub-f{animation:none;}
+@media (hover:none),(max-width:860px){ .tw-bub-f{animation:none;} }
 .tw-bub-bg{fill:#fff;}
 .tw-bub.ahead .tw-bub-bg{fill:rgba(5,150,105,.16);}
 .tw-bub.lag .tw-bub-bg{fill:rgba(220,38,38,.13);}

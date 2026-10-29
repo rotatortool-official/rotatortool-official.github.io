@@ -229,7 +229,15 @@ function _twBubbles(R) {
       + '<text x="' + x + '" y="' + (p.y + p.rad + fs * 0.34).toFixed(1) + '" text-anchor="middle" font-size="' + fs + '">' + _esc(c.sym) + '</text></g></g>';
   });
   svg += '</svg>';
-  return '<div class="tw-bub-wrap">' + svg
+  /* No drift where WebKit draws the page (Daniel, 2026-10-29: the iPhone
+     kept reloading). Moving 29 SVG groups that each hold a clipped coin
+     logo leaked ~8 MB a second in Playwright WebKit (iPhone 13) and
+     nothing when paused; every iPhone browser is WebKit, and so is Safari
+     on a Mac. Chrome, Edge and Brave on a computer keep the drift. */
+  var ua = navigator.userAgent || '';
+  var still = (/AppleWebKit/.test(ua) && !/Chrome|Chromium|Edg|OPR/.test(ua))
+    || (window.matchMedia && window.matchMedia('(hover:none),(max-width:860px)').matches);
+  return '<div class="tw-bub-wrap' + (still ? ' tw-still' : '') + '">' + svg
     + '<div class="tw-bub-key">'
     + '<span class="k-heat-row"><i class="k-heat"></i>Ring colour = this week&rsquo;s move, fall to rise</span>'
     + '<span><i class="k-tested"></i>Thick ring = has a tested sign</span><span>Bigger = stronger: more signs, a tested sign counts double</span></div></div>';
