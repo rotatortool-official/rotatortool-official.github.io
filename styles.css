@@ -5003,6 +5003,14 @@ header{background:var(--bg2);}
 /* WebKit and phones: no drift, it leaked memory (_twBubbles, 2026-10-29). */
 .tw-still .tw-bub-f{animation:none;}
 @media (hover:none),(max-width:860px){ .tw-bub-f{animation:none;} }
+/* Pop-in when the Coins tab opens (Daniel, 2026-10-30: the wrong-size flash
+   "we can make it feature if we animate the transition"). Bubbles grow in
+   left to right, a little staggered (--pop from _twBubbles). One short run,
+   not a loop, so it is kept on phones too; `backwards` so the hover zoom
+   works again once it ends. */
+.tw-pop .tw-bub{animation:twPop .5s cubic-bezier(.34,1.56,.64,1) var(--pop,0ms) backwards;}
+@keyframes twPop{ from{transform:scale(.15);opacity:0;} 60%{opacity:1;} }
+@media (prefers-reduced-motion: reduce){ .tw-pop .tw-bub{animation:none;} }
 .tw-bub-bg{fill:#fff;}
 .tw-bub.ahead .tw-bub-bg{fill:rgba(5,150,105,.16);}
 .tw-bub.lag .tw-bub-bg{fill:rgba(220,38,38,.13);}

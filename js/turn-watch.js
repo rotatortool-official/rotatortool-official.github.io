@@ -139,12 +139,19 @@ function _twHeat(v) {
   }
   return 'rgb(14,159,110)';
 }
-var _twBubW = 0;
+var _twBubW = 0, _twPopNext = false;
 function _twBubbles(R) {
   var pts = R.down.slice(0, 20).map(function (r) { return { r: r, top: true }; })
     .concat(R.up.slice(0, 20).map(function (r) { return { r: r, top: false }; }));
   if (!pts.length) return '';
   var host = document.getElementById('turn-scan');
+  /* Hidden tab (Daniel, 2026-10-30: "it loads big bubbles and then it goes
+     back to normal size"): a hidden section measures 0px, so the map was
+     drawn 300 wide and stretched to the full width (bubbles 2-3x) until the
+     tab switch's resize redrew it. Draw nothing while hidden; _twWatchSize
+     draws it at the real width the moment the tab shows, with a pop-in. */
+  if (host && host.clientWidth < 50 && typeof ResizeObserver !== 'undefined') { _twBubW = 0; return '<div class="tw-bub-wrap"></div>'; }
+  var pop = _twPopNext; _twPopNext = false;
   var W = Math.max(300, Math.min(900, (host && host.clientWidth - 28) || 600));
   _twBubW = W;
   var phone = W < 520, padX = phone ? 10 : 24, lab = 22;
@@ -215,7 +222,7 @@ function _twBubbles(R) {
     var c = p.r.c, held = (typeof isHeldCoin === 'function') && isHeldCoin(c);
     var x = p.x.toFixed(1), y = p.y.toFixed(1), tw = c.sym.length * fs * 0.64 + 8;
     var tip = c.sym + ': score ' + Math.round(c.score) + ', 7D ' + _twPct(c.p7) + ' · ' + p.r.signs.map(function (s) { return s.title; }).join(', ');
-    svg += '<g class="tw-bub ' + (p.top ? 'ahead' : 'lag') + (p.r.tested ? ' tested' : '') + (held ? ' held' : '') + '" style="--heat:' + _twHeat(c.p7) + '" tabindex="0" role="button"'
+    svg += '<g class="tw-bub ' + (p.top ? 'ahead' : 'lag') + (p.r.tested ? ' tested' : '') + (held ? ' held' : '') + '" style="--heat:' + _twHeat(c.p7) + (pop ? ';--pop:' + Math.round(p.x / W * 260 + (k % 5) * 25) + 'ms' : '') + '" tabindex="0" role="button"'
       + ' onclick="openTileDetail(\'' + c.id + '\', event)" onkeydown="if(event.key===\'Enter\')openTileDetail(\'' + c.id + '\', event)">'
       + '<title>' + _esc(tip) + '</title>'
       /* Lava-lamp drift (Daniel, 2026-10-20, as on the home page): each
@@ -237,12 +244,31 @@ function _twBubbles(R) {
   var ua = navigator.userAgent || '';
   var still = (/AppleWebKit/.test(ua) && !/Chrome|Chromium|Edg|OPR/.test(ua))
     || (window.matchMedia && window.matchMedia('(hover:none),(max-width:860px)').matches);
-  return '<div class="tw-bub-wrap' + (still ? ' tw-still' : '') + '">' + svg
+  return '<div class="tw-bub-wrap' + (still ? ' tw-still' : '') + (pop ? ' tw-pop' : '') + '">' + svg
     + '<div class="tw-bub-key">'
     + '<span class="k-heat-row"><i class="k-heat"></i>Ring colour = this week&rsquo;s move, fall to rise</span>'
     + '<span><i class="k-tested"></i>Thick ring = has a tested sign</span><span>Bigger = stronger: more signs, a tested sign counts double</span></div></div>';
 }
+/* Redraw at the real width: when the Coins tab shows (with the pop-in,
+   so opening the tab is a small moment, Daniel 2026-10-30) and when the
+   window gets much wider or narrower. ResizeObserver reports before the
+   first paint, so the stretched map is never seen; the redraw waits one
+   frame to stay out of the observer's own loop. */
+var _twRO = null, _twSeenW = -1;
+function _twWatchSize(host) {
+  if (_twRO || !host || typeof ResizeObserver === 'undefined') return;
+  _twRO = new ResizeObserver(function () {
+    var w = host.clientWidth, was = _twSeenW;
+    _twSeenW = w;
+    if (w < 50) return;
+    var shown = was < 50;
+    if (!shown && !(_twBubW && Math.abs((w - 28) - _twBubW) > 40)) return;
+    requestAnimationFrame(function () { _twPopNext = shown; renderTurnScan(); });
+  });
+  _twRO.observe(host);
+}
 window.addEventListener('resize', function () {
+  if (_twRO) return;
   clearTimeout(_twBubbles._t);
   _twBubbles._t = setTimeout(function () {
     var host = document.getElementById('turn-scan');
@@ -253,6 +279,7 @@ window.addEventListener('resize', function () {
 function renderTurnScan() {
   var host = document.getElementById('turn-scan');
   if (!host) return;
+  _twWatchSize(host);
   var R = _twScan();
   var E = (typeof ROTATOR_EVIDENCE !== 'undefined' && ROTATOR_EVIDENCE.turnSignals) || null;
   var trust = E && E.rsiQuickReclaim
