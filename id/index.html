@@ -266,6 +266,33 @@ h2{font-size:clamp(32px,4.4vw,56px);}
 .hero-sub{font-size:clamp(17px,2vw,21px);color:var(--muted);margin:18px 0 0;max-width:600px;}
 .hero-stats{display:flex;gap:28px;margin-top:26px;font:600 13px/1.3 var(--ui);color:var(--muted);}
 .hero-stats .hs-v{display:block;font:800 26px/1.1 var(--mono);color:var(--text);letter-spacing:-.02em;}
+/* Check your coin (2026-10-30): the hero answers about the visitor's own coin. */
+.hero-copy{width:100%;}
+.ask{position:relative;z-index:3;width:100%;margin-top:24px;max-width:520px;background:var(--card);border:1px solid var(--panel-b);border-radius:18px;padding:16px;box-shadow:var(--shadow);}
+.ask-l{font:700 12px/1 var(--mono);letter-spacing:.12em;text-transform:uppercase;color:var(--gold-ink);}
+.ask-row{display:flex;gap:8px;margin-top:10px;}
+.ask-row input{flex:1;min-width:0;font:700 18px/1 var(--mono);color:var(--text);background:var(--bg);border:1px solid var(--panel-b);border-radius:999px;padding:12px 16px;text-transform:uppercase;}
+.ask-row input::placeholder{color:var(--muted);text-transform:none;font-weight:500;}
+.ask-row .btn{padding:12px 18px;border:0;cursor:pointer;}
+.ask-chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px;}
+.ask-chips button{font:700 12px/1 var(--mono);color:var(--text);background:none;border:1px solid var(--panel-b);border-radius:999px;padding:7px 11px;cursor:pointer;}
+.ask-chips button:hover{border-color:var(--gold-ink);}
+.ans{margin-top:14px;border-top:1px solid var(--panel-b);padding-top:14px;animation:ansIn .35s ease-out;}
+@keyframes ansIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+.ans-h{display:flex;align-items:center;gap:10px;}
+.ans-h img{width:34px;height:34px;border-radius:50%;}
+.ans-h b{font:800 20px/1 var(--mono);}
+.ans-h .ans-p{margin-left:auto;text-align:right;font:700 14px/1.3 var(--mono);}
+.ans-sc{margin-top:12px;}
+.ans-bar{height:8px;border-radius:99px;background:var(--panel-b);overflow:hidden;margin-top:6px;}
+.ans-bar i{display:block;height:100%;border-radius:99px;}
+.ans-li{margin:10px 0 0;padding:0;list-style:none;font-size:14.5px;line-height:1.45;color:var(--muted);}
+.ans-li li{margin-top:5px;} .ans-li strong{color:var(--text);}
+.ans-cta{display:flex;flex-wrap:wrap;gap:8px;margin-top:14px;}
+.ans-note{font-size:11.5px;color:var(--muted);margin-top:8px;}
+.hero-more{display:inline-block;margin-top:14px;font:700 14px/1 var(--ui);color:var(--muted);text-decoration:none;}
+.hero-more:hover{color:var(--text);}
+.wall{transition:opacity .4s;} #hero.asked .wall{opacity:.12;} @media (max-width:860px){ body.asked .cue-bar{display:none;} }
 .wall{position:absolute;inset:0;z-index:1;pointer-events:none;}
 .coin{position:absolute;left:0;top:0;will-change:transform,opacity;}
 .coin .in{display:flex;align-items:center;gap:8px;border-radius:999px;padding:5px;background:var(--panel);border:1px solid var(--panel-b);box-shadow:0 8px 24px rgba(0,0,0,.25);backdrop-filter:blur(6px);}
@@ -884,15 +911,17 @@ document.addEventListener('click', function (e) {
         <div class="eyebrow">Alat gratis untuk para trader Binance</div>
         <h1>Lihat ke mana <span class="grad">modal mengalir.</span></h1>
         <p class="hero-sub"><strong>Rotator tidak memprediksi pasar. Alat ini menunjukkan kepada Anda apa yang sedang terjadi saat ini, sebelum Anda menyadarinya sendiri.</strong> Tanpa dompet, tanpa kunci bursa, tanpa akun.</p>
-        <div class="hero-stats">
-          <div><data class="hs-v" id="st-coins" value="262">262</data>koin yang terdaftar</div>
-          <div><div class="hs-v">15 menit</div>di antara skor</div>
-          <div><data class="hs-v" value="0">$0</data>untuk menggunakan papan</div>
-        </div>
-        <div class="cta-row" style="display:flex">
-          <a class="btn btn-gold" href="../board.html">Baca pasar</a>
-          <a class="btn btn-ghost" href="../board.html#sec-yours">Lacak portofolio saya</a>
-        </div>
+        <form class="ask" id="ask" autocomplete="off">
+          <div class="ask-l">Periksa koin yang Anda miliki</div>
+          <div class="ask-row">
+            <input id="ask-in" list="ask-list" placeholder="Ketik nama koin: SOL, PEPE…" aria-label="Simbol koin" maxlength="12">
+            <button class="btn btn-gold" type="submit">Lihat</button>
+          </div>
+          <datalist id="ask-list"></datalist>
+          <div class="ask-chips" id="ask-chips"><button type="button">BTC</button><button type="button">ETH</button><button type="button">SOL</button><button type="button">XRP</button><button type="button">BNB</button><button type="button">DOGE</button></div>
+          <div class="ans" id="ans" hidden></div>
+        </form>
+        <a class="hero-more" href="../board.html">Atau baca analisis pasar selengkapnya: <data id="st-coins" value="262">262</data> koin, setiap 15 menit →</a>
       </div>
     </div>
     <div class="board-cap" id="board-cap"><b>Analisis token mendalam.</b> Harga, momentum, dan arus dana on-chain, didukung oleh data setiap 15 menit. Alat ini menandai token yang sudah terlalu naik dan berpotensi mengalami pembalikan arah.</div>
@@ -1290,7 +1319,7 @@ document.addEventListener('click', function (e) {
   </div>
 </div>
 <script src="../js/config.js?v=20261029y"></script>
-<script src="../js/topic.js"></script>
+<script src="../js/topic.js?v=20261030c"></script>
 <script src="../js/scroll-scene.js?v=4"></script>
 <script>
 (function () {
@@ -3080,6 +3109,78 @@ document.addEventListener('click', function (e) {
     inp.addEventListener('blur', function () { var v = Number(String(inp.value).replace(/[^0-9.]/g, '')) || 0; inp.value = v ? Math.round(v).toLocaleString('en-US') : ''; upd(); });
     upd();
   }
+})();
+</script>
+<script>
+/* Check your coin (2026-10-30): one coin, answered from the board's own live
+   rows (score run, unlocks, this week's signs). Context, never a call. */
+(function () {
+  var form = document.getElementById('ask'); if (!form || typeof TOPIC === 'undefined') return;
+  var inp = document.getElementById('ask-in'), ans = document.getElementById('ans'), data = null;
+  function load() {
+    if (data) return data;
+    data = Promise.all([
+      TOPIC.coins(),
+      TOPIC.get('signal_run_items', { select: 'run_id', order: 'run_id.desc', limit: '1' }).then(function (r) {
+        var id = r && r[0] && r[0].run_id; return id == null ? null : TOPIC.get('signal_run_items', { run_id: 'eq.' + id, select: 'coin_id,score' });
+      }),
+      TOPIC.get('token_unlocks', { select: 'coin_id,next_unlock_at,next_unlock_pct', limit: '1000' }),
+      TOPIC.get('coin_events', { event_date: 'gte.' + TOPIC.isoDay(-7), select: 'base_asset,event_type,event_date', order: 'event_date.desc', limit: '600' })
+    ]).then(function (r) {
+      var sc = {}, all = [], unl = {}, ev = {};
+      (r[1] || []).forEach(function (x) { if (x.score != null) { sc[x.coin_id] = Number(x.score); all.push(Number(x.score)); } });
+      (r[2] || []).forEach(function (u) { unl[u.coin_id] = u; });
+      (r[3] || []).forEach(function (e) { if (!ev[e.base_asset]) ev[e.base_asset] = e; });
+      var dl = document.getElementById('ask-list');
+      if (dl) dl.innerHTML = r[0].list.filter(function (c) { return sc[c.id] != null; }).slice(0, 200)
+        .map(function (c) { return '<option value="' + TOPIC.esc(c.symbol.toUpperCase()) + '">' + TOPIC.esc(c.name) + '</option>'; }).join('');
+      return { coins: r[0], sc: sc, all: all, unl: unl, ev: ev };
+    });
+    return data;
+  }
+  var SIGN = { golden_cross: 'Golden cross, di mana rata-rata bergerak cepat melampaui rata-rata bergerak lambat', death_cross: '"death cross", rata-rata cepatnya turun di bawah rata-rata lambatnya',
+    rsi_overbought: 'sedang naik tajam, RSI di atas 80', rsi_oversold: 'Harga anjlok tajam, RSI di bawah 30', rsi_reclaim: 'RSI kembali naik di atas 30',
+    futures_long_crowded: 'Posisi long futures terus menumpuk', futures_short_crowded: 'posisi short futures menumpuk' };
+  function show(q) {
+    q = String(q || '').trim().toUpperCase().replace(/[^A-Z0-9]/g, ''); if (!q) return;
+    inp.value = q; ans.hidden = false; document.getElementById('hero').classList.add('asked'); document.body.classList.add('asked'); ans.innerHTML = '<div class="ans-note">Memuat data terbaru…</div>';
+    load().then(function (d) {
+      var c = d.coins.bySym[q] || d.coins.byId[q.toLowerCase()];
+      var s = c ? d.sc[c.id] : null;
+      if (!c || s == null) {
+        /* Whole phrases with the value after a colon: translate.js translates
+           each script string alone, so no sentence is split around a value. */
+        ans.innerHTML = '<div class="ans-note">' + 'Rotator tidak melacak koin ini:' + ' <b>' + TOPIC.esc(q) + '</b>. ' + 'Rotator memantau koin-koin yang diperdagangkan di Binance.'
+          + ' <a href="/board.html">' + 'Lihat semuanya' + '</a></div>';
+        return;
+      }
+      TOPIC.count('coin_check');
+      var sym = c.symbol.toUpperCase(), below = d.all.filter(function (v) { return v < s; }).length;
+      var pctl = Math.round(below / Math.max(1, d.all.length - 1) * 100);
+      var col = typeof scoreColor === 'function' ? scoreColor(s) : 'var(--gold)';
+      var p7 = c.price_change_percentage_7d_in_currency;
+      var lines = [pctl >= 99 ? '<strong>' + 'Koin terkuat saat ini.' + '</strong>'
+        : pctl <= 1 ? '<strong>' + 'Koin terlemah saat ini.' + '</strong>'
+        : 'Lebih unggul daripada persentase koin ini:' + ' <strong>' + pctl + '%</strong>'];
+      var u = d.unl[c.id], at = u && u.next_unlock_at ? Date.parse(u.next_unlock_at) : NaN;
+      if (!isNaN(at) && at > Date.now() && at < Date.now() + 30 * 86400000 && Number(u.next_unlock_pct) >= 0.05)
+        lines.push('Pembukaan berikutnya, tanggal, dan persentase pasokan:' + ' <strong>' + TOPIC.day(u.next_unlock_at) + ', ' + Number(u.next_unlock_pct).toFixed(2) + '%</strong>');
+      else lines.push('Tidak ada pembukaan besar dalam 30 hari ke depan.');
+      var e = d.ev[sym];
+      if (e && SIGN[e.event_type]) lines.push('Minggu ini:' + ' ' + SIGN[e.event_type] + ' (' + TOPIC.day(e.event_date) + ')');
+      ans.innerHTML = '<div class="ans-h"><img src="' + TOPIC.esc(c.image) + '" alt=""><b>' + TOPIC.esc(sym) + '</b>'
+        + '<span class="ans-p">' + TOPIC.price(c.current_price) + '<br><span class="' + (p7 >= 0 ? 'up' : 'dn') + '">' + TOPIC.pct(p7) + ' 7d</span></span></div>'
+        + '<div class="ans-sc"><span style="font:800 15px/1 var(--mono)">Skor Rotator <span style="color:' + col + '">' + Math.round(s) + '</span>/100</span>'
+        + '<div class="ans-bar"><i style="width:' + Math.max(3, Math.min(100, (s + 50) / 1.5)) + '%;background:' + col + '"></i></div></div>'
+        + '<ul class="ans-li"><li>' + lines.join('</li><li>') + '</li></ul>'
+        + '<div class="ans-cta"><a class="btn btn-gold" href="/board.html?coin=' + encodeURIComponent(sym) + '&amp;watch=1" onclick="TOPIC.count(\'coin_watch_click\')">' + '🔔 Pantau koin ini untuk saya' + '</a>'
+        + '<a class="btn btn-ghost" href="' + TOPIC.boardLink(sym, '/') + '">Analisis lengkap</a></div>'
+        + '<div class="ans-note">Apa yang sedang terjadi saat ini, bukan prediksi. Gratis, tanpa perlu membuat akun.</div>';
+    });
+  }
+  form.addEventListener('submit', function (e) { e.preventDefault(); show(inp.value); });
+  inp.addEventListener('focus', load, { once: true });
+  document.getElementById('ask-chips').addEventListener('click', function (e) { var b = e.target.closest('button'); if (b) show(b.textContent); });
 })();
 </script>
 </body>

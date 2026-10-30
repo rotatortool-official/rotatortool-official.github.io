@@ -3143,12 +3143,15 @@ document.addEventListener('click', function (e) {
     futures_long_crowded: 'futures longs piling up', futures_short_crowded: 'futures shorts piling up' };
   function show(q) {
     q = String(q || '').trim().toUpperCase().replace(/[^A-Z0-9]/g, ''); if (!q) return;
-    inp.value = q; ans.hidden = false; document.getElementById('hero').classList.add('asked'); document.body.classList.add('asked'); ans.innerHTML = '<div class="ans-note">Reading the board…</div>';
+    inp.value = q; ans.hidden = false; document.getElementById('hero').classList.add('asked'); document.body.classList.add('asked'); ans.innerHTML = '<div class="ans-note">Loading the latest data…</div>';
     load().then(function (d) {
       var c = d.coins.bySym[q] || d.coins.byId[q.toLowerCase()];
       var s = c ? d.sc[c.id] : null;
       if (!c || s == null) {
-        ans.innerHTML = '<div class="ans-note">' + TOPIC.esc(q) + ' is not on the board. Rotator follows the coins traded on Binance: try another, or <a href="board.html">see them all</a>.</div>';
+        /* Whole phrases with the value after a colon: translate.js translates
+           each script string alone, so no sentence is split around a value. */
+        ans.innerHTML = '<div class="ans-note">' + 'Rotator does not track this coin:' + ' <b>' + TOPIC.esc(q) + '</b>. ' + 'Rotator follows the coins traded on Binance.'
+          + ' <a href="/board.html">' + 'See them all' + '</a></div>';
         return;
       }
       TOPIC.count('coin_check');
@@ -3156,21 +3159,22 @@ document.addEventListener('click', function (e) {
       var pctl = Math.round(below / Math.max(1, d.all.length - 1) * 100);
       var col = typeof scoreColor === 'function' ? scoreColor(s) : 'var(--gold)';
       var p7 = c.price_change_percentage_7d_in_currency;
-      var lines = [pctl >= 99 ? '<strong>Top of the board</strong> right now.' : pctl <= 1 ? '<strong>Bottom of the board</strong> right now.' : pctl >= 50 ? '<strong>Stronger than ' + pctl + '%</strong> of the board right now.'
-                              : '<strong>Weaker than ' + (100 - pctl) + '%</strong> of the board right now.'];
+      var lines = [pctl >= 99 ? '<strong>' + 'The strongest coin right now.' + '</strong>'
+        : pctl <= 1 ? '<strong>' + 'The weakest coin right now.' + '</strong>'
+        : 'Stronger than this percentage of coins:' + ' <strong>' + pctl + '%</strong>'];
       var u = d.unl[c.id], at = u && u.next_unlock_at ? Date.parse(u.next_unlock_at) : NaN;
       if (!isNaN(at) && at > Date.now() && at < Date.now() + 30 * 86400000 && Number(u.next_unlock_pct) >= 0.05)
-        lines.push('<strong>Unlock on ' + TOPIC.day(u.next_unlock_at) + '</strong>: ' + Number(u.next_unlock_pct).toFixed(2) + '% of supply comes to market.');
+        lines.push('Next unlock, date and share of supply:' + ' <strong>' + TOPIC.day(u.next_unlock_at) + ', ' + Number(u.next_unlock_pct).toFixed(2) + '%</strong>');
       else lines.push('No big unlock in the next 30 days.');
       var e = d.ev[sym];
-      if (e && SIGN[e.event_type]) lines.push('This week (' + TOPIC.day(e.event_date) + '): ' + SIGN[e.event_type] + '.');
+      if (e && SIGN[e.event_type]) lines.push('This week:' + ' ' + SIGN[e.event_type] + ' (' + TOPIC.day(e.event_date) + ')');
       ans.innerHTML = '<div class="ans-h"><img src="' + TOPIC.esc(c.image) + '" alt=""><b>' + TOPIC.esc(sym) + '</b>'
         + '<span class="ans-p">' + TOPIC.price(c.current_price) + '<br><span class="' + (p7 >= 0 ? 'up' : 'dn') + '">' + TOPIC.pct(p7) + ' 7d</span></span></div>'
         + '<div class="ans-sc"><span style="font:800 15px/1 var(--mono)">Rotator score <span style="color:' + col + '">' + Math.round(s) + '</span>/100</span>'
         + '<div class="ans-bar"><i style="width:' + Math.max(3, Math.min(100, (s + 50) / 1.5)) + '%;background:' + col + '"></i></div></div>'
         + '<ul class="ans-li"><li>' + lines.join('</li><li>') + '</li></ul>'
-        + '<div class="ans-cta"><a class="btn btn-gold" href="board.html?coin=' + encodeURIComponent(sym) + '&amp;watch=1" onclick="TOPIC.count(\'coin_watch_click\')">🔔 Watch ' + TOPIC.esc(sym) + ' for me</a>'
-        + '<a class="btn btn-ghost" href="' + TOPIC.boardLink(sym) + '">Full analysis</a></div>'
+        + '<div class="ans-cta"><a class="btn btn-gold" href="/board.html?coin=' + encodeURIComponent(sym) + '&amp;watch=1" onclick="TOPIC.count(\'coin_watch_click\')">' + '🔔 Track this coin for me' + '</a>'
+        + '<a class="btn btn-ghost" href="' + TOPIC.boardLink(sym, '/') + '">Full analysis</a></div>'
         + '<div class="ans-note">What is happening now, not a forecast. Free, no account.</div>';
     });
   }
