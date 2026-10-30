@@ -7354,7 +7354,7 @@ a.mob-more-item{text-decoration:none;color:inherit;}
 .td-mini-tv:has(.td-tv-blocked){height:auto;}
 .td-mini-tvbar{align-items:center;gap:8px;margin-top:6px;}
 .td-mini-tvbar:not([hidden]){display:flex;}
-.td-mini-tvbar .tdx-more{margin-left:auto;}
+.td-mini-tvbar .tdx-more,.td-mini-tvbar .td-tv-reflink{margin-left:auto;}
 .td-tv-full-lock{color:var(--amber,#f0b90b);border-color:rgba(243,186,47,.55);}
 .td-mini-riw{position:relative;}
 .td-mini-ri{height:420px;display:flex;flex-direction:column;}

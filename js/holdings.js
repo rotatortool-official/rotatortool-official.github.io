@@ -922,14 +922,17 @@ function tdChartTab(tab) {
   tv.hidden = bar.hidden = tab !== 'tv';
   riw.hidden = tab !== 'ri';
   if (tab === 'tv') {
-    /* Full screen (Pro) and, one level down in the ⋯ menu, the referral link. */
+    /* Full screen (Pro) and the referral link, visible in the bar since
+       2026-10-30 (Daniel): in the ⋯ menu it had 0 clicks against 201 chart
+       opens. The full referral note stays on hover. */
     /* One Pro mark per window is enough (Daniel, 2026-10-28: "so many pro
        buttons"): free users get no locked Full screen button here. */
+    var tvRefNote = mk ? 'Линк за препорака: ако купите план на TradingView, добивате попуст, а Rotator добива кредит на TradingView.'
+      : 'Referral link: if you buy a TradingView plan, you get money off and Rotator gets TradingView credit. It costs you nothing extra.';
     bar.innerHTML = (pro ? '<button type="button" class="td-tv-full" onclick="tvFullscreen()">⛶ ' + (mk ? 'Цел екран' : 'Full screen') + '</button>' : '')
-      + '<details class="tdx-more"><summary title="More" aria-label="More">⋯</summary><div class="tdx-more-m">'
+      + '<span class="td-tv-reflink" title="' + tvRefNote + '">'
       + '<a class="tdx-tv-link" href="' + _tvLink() + '" target="_blank" rel="noopener sponsored" onclick="tvLinkClick()">' + (mk ? 'Регистрирајте се на TradingView' : 'Sign up on TradingView') + ' ↗</a>'
-      + '<span class="tdx-tv-ref">' + (mk ? 'Линк за препорака: ако купите план на TradingView, добивате попуст, а Rotator добива кредит на TradingView.'
-        : 'Referral link: if you buy a TradingView plan, you get money off and Rotator gets TradingView credit. It costs you nothing extra.') + '</span></div></details>';
+      + ' <span class="tdx-tv-ref">· ' + (mk ? 'линк за препорака' : 'referral') + '</span></span>';
     if (tv.getAttribute('data-sym') !== c.sym && typeof _tvEmbed === 'function' && _tdPhone() && _tvLoads >= TV_PHONE_MAX) {
       /* Phone budget used up: one tap opens this chart on its own page, so
          the board itself stays loaded (each chart costs ~85 MB in WebKit). */
