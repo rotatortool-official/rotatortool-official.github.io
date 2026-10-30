@@ -327,7 +327,9 @@ function offerAlertsFor(c) {
   var card = document.createElement('div');
   card.className = 'alert-offer';
   card.setAttribute('role', 'dialog');
-  card.style.cssText = 'position:fixed;left:50%;bottom:20px;transform:translateX(-50%);width:min(420px,calc(100vw - 32px));box-sizing:border-box;background:var(--card,#1a2030);border:1px solid var(--pro,#a78bfa);border-radius:8px;padding:14px 16px;z-index:900;box-shadow:0 6px 30px rgba(0,0,0,.35);font-size:13px;line-height:1.5;color:var(--text,#e6e9ef);';
+  /* Phones: above the bottom tab bar. */
+  var low = typeof _tdPhone === 'function' && _tdPhone() ? 'calc(72px + env(safe-area-inset-bottom, 0px))' : '20px';
+  card.style.cssText = 'position:fixed;left:50%;bottom:' + low + ';transform:translateX(-50%);width:min(420px,calc(100vw - 32px));box-sizing:border-box;background:var(--card,#1a2030);border:1px solid var(--pro,#a78bfa);border-radius:8px;padding:14px 16px;z-index:900;box-shadow:0 6px 30px rgba(0,0,0,.35);font-size:13px;line-height:1.5;color:var(--text,#e6e9ef);';
   card.innerHTML = '<div style="font-weight:700;color:var(--pro,#a78bfa);margin-bottom:4px;">🔔 ' + t.head + '</div>'
     + '<div style="color:var(--muted,#8f9aab);margin-bottom:10px;">' + t.sub + '</div>'
     + '<div style="display:flex;gap:8px;justify-content:flex-end;">'

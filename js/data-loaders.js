@@ -5679,6 +5679,9 @@ else _handleDonateDeepLink();
 
 /* ── Deep link: open coin detail from ?coin= URL param ──────── */
 var _pendingDeepLinkCoin = null;
+/* ?coin=SOL&watch=1 (landing's 'Watch it for me', 2026-10-30): add the coin
+   to holdings and show My holdings instead of the coin window. */
+var _pendingDeepLinkWatch = false;
 
 /* Call early to capture param before anything cleans the URL */
 (function() {
@@ -5686,6 +5689,7 @@ var _pendingDeepLinkCoin = null;
     var params = new URLSearchParams(window.location.search);
     var coinParam = params.get('coin');
     if (coinParam) _pendingDeepLinkCoin = coinParam;
+    _pendingDeepLinkWatch = params.get('watch') === '1';
   } catch(e) {}
 })();
 
@@ -5696,7 +5700,7 @@ function _handleCoinDeepLink() {
   try {
     /* Clean URL without reloading */
     var params = new URLSearchParams(window.location.search);
-    params.delete('coin');
+    params.delete('coin'); params.delete('watch');
     var remaining = params.toString();
     var cleanUrl = window.location.pathname + (remaining ? '?' + remaining : '');
     window.history.replaceState({}, '', cleanUrl);
@@ -5705,7 +5709,19 @@ function _handleCoinDeepLink() {
     var c = coins.find(function(x) {
       return x.sym === sym || x.id === coinParam.toLowerCase();
     });
-    if (c) {
+    if (c && _pendingDeepLinkWatch) {
+      setTimeout(function() {
+        if (typeof dismissTutorial === 'function') { try { dismissTutorial(); } catch(e) {} }
+        if (!holdings.some(function(h) { return holdingMatches(h, c); })) {
+          var sel = document.getElementById('coin-sel');
+          if (sel && ![].some.call(sel.options, function(o) { return o.value === c.id; })) {
+            var o = document.createElement('option'); o.value = c.id; o.textContent = c.sym; sel.appendChild(o);
+          }
+          if (sel) { sel.value = c.id; addHolding(); }
+        }
+        if (window.BoardTabs) BoardTabs.go('mine');
+      }, 800);
+    } else if (c) {
       /* Delay enough for tutorial/consent overlays to settle */
       setTimeout(function() {
         /* Dismiss tutorial if it's active so the panel is visible */
