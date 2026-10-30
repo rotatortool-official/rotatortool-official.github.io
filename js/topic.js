@@ -103,6 +103,15 @@ var TOPIC = (function () {
 
   function set(id, html) { var el = document.getElementById(id); if (el) el.innerHTML = html; }
 
-  return { get: get, cache: cache, coins: coins, esc: esc, usd: usd, usdM: usdM, price: price,
+  /* Count one use of a feature (count_feature allowlist, 2026-10-30). */
+  function count(feature) {
+    try {
+      fetch(URL + 'rpc/count_feature', { method: 'POST', keepalive: true,
+        headers: { apikey: KEY, Authorization: 'Bearer ' + KEY, 'Content-Type': 'application/json' },
+        body: JSON.stringify({ p_feature: feature }) }).catch(function () {});
+    } catch (e) {}
+  }
+
+  return { count: count, get: get, cache: cache, coins: coins, esc: esc, usd: usd, usdM: usdM, price: price,
            pct: pct, day: day, isoDay: isoDay, boardLink: boardLink, set: set };
 })();

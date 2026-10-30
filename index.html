@@ -1319,7 +1319,7 @@ document.addEventListener('click', function (e) {
   </div>
 </div>
 <script src="js/config.js?v=20261029y"></script>
-<script src="js/topic.js"></script>
+<script src="js/topic.js?v=20261030c"></script>
 <script src="js/scroll-scene.js?v=4"></script>
 <script>
 (function () {
@@ -3151,6 +3151,7 @@ document.addEventListener('click', function (e) {
         ans.innerHTML = '<div class="ans-note">' + TOPIC.esc(q) + ' is not on the board. Rotator follows the coins traded on Binance: try another, or <a href="board.html">see them all</a>.</div>';
         return;
       }
+      TOPIC.count('coin_check');
       var sym = c.symbol.toUpperCase(), below = d.all.filter(function (v) { return v < s; }).length;
       var pctl = Math.round(below / Math.max(1, d.all.length - 1) * 100);
       var col = typeof scoreColor === 'function' ? scoreColor(s) : 'var(--gold)';
@@ -3168,7 +3169,7 @@ document.addEventListener('click', function (e) {
         + '<div class="ans-sc"><span style="font:800 15px/1 var(--mono)">Rotator score <span style="color:' + col + '">' + Math.round(s) + '</span>/100</span>'
         + '<div class="ans-bar"><i style="width:' + Math.max(3, Math.min(100, (s + 50) / 1.5)) + '%;background:' + col + '"></i></div></div>'
         + '<ul class="ans-li"><li>' + lines.join('</li><li>') + '</li></ul>'
-        + '<div class="ans-cta"><a class="btn btn-gold" href="board.html?coin=' + encodeURIComponent(sym) + '&amp;watch=1">🔔 Watch ' + TOPIC.esc(sym) + ' for me</a>'
+        + '<div class="ans-cta"><a class="btn btn-gold" href="board.html?coin=' + encodeURIComponent(sym) + '&amp;watch=1" onclick="TOPIC.count(\'coin_watch_click\')">🔔 Watch ' + TOPIC.esc(sym) + ' for me</a>'
         + '<a class="btn btn-ghost" href="' + TOPIC.boardLink(sym) + '">Full analysis</a></div>'
         + '<div class="ans-note">What is happening now, not a forecast. Free, no account.</div>';
     });
