@@ -34,7 +34,7 @@ en: {
     { q: "Is this financial advice?",
       a: "No. Rotator is an informational tool. Every score and signal is based on past data, and past performance never guarantees future results. Do your own research and consult a qualified financial advisor before any investment decision." },
     { q: "How do I unlock Pro?",
-      a: "The first 10 who pay keep Pro for as long as Rotator pays its own costs: their contributions cover the domain and the first year of servers. After that, Pro becomes a subscription, so Rotator can keep running. Send $20 or more in USDT, BNB or ETH and submit the transaction hash: it is checked automatically and Pro activates in seconds. You can also invite 5 friends with your personal link from the Pro window: a friend counts once Rotator has fully loaded for them, and is confirmed 1 hour after their visit. Or redeem a Pro code." },
+      a: "The first 10 who pay keep Pro for as long as Rotator pays its own costs: their contributions cover the domain and the first year of servers. After that, Pro becomes a subscription, so Rotator can keep running. Send $20 or more in USDT, BNB or ETH and submit the transaction hash: it is checked automatically and Pro activates in seconds. You can also invite friends with your personal link from the Pro window: each friend adds 1 week of Pro, up to 8 weeks ahead. A friend counts once Rotator has fully loaded for them, and is confirmed 1 hour after their visit. Rotator Weekly subscribers get a 2-week Pro code, or redeem any Pro code you have." },
     { q: "Is my data safe? Do you store it?",
       a: "Your quantities, prices paid and preferences stay in your own browser. There are no accounts and no logins. Once a day the page records which coins are held, as coin names only, with no quantity and nothing that identifies you, and we count how often each feature is used, as totals only." },
     { q: "Where does the data come from?",
@@ -61,7 +61,7 @@ en: {
 
   /* Unlock Pro tile */
   pro_tile_title: 'Unlock Pro',
-  pro_tile_sub: 'Free with 5 invites or a code,<br>or a one-time early-supporter contribution.',
+  pro_tile_sub: 'Free: 1 week for each friend you invite, or a code.<br>Or a one-time early-supporter contribution.',
   pro_tile_btn: 'UNLOCK PRO \u2192',
   pro_feat_1: '10 crypto + 5 forex + 5 stocks',
   pro_feat_2: 'Full rotation signals',
@@ -177,7 +177,7 @@ mk: {
 
   /* Unlock Pro tile */
   pro_tile_title: 'Отклучи Pro',
-  pro_tile_sub: 'Бесплатно со 5 покани или код,<br>или со еднократен придонес за раните поддржувачи.',
+  pro_tile_sub: 'Бесплатно: 1 недела за секој пријател што ќе го поканите, или со код.<br>Или еднократен придонес за раните поддржувачи.',
   pro_tile_btn: 'ОТКЛУЧИ PRO →',
   pro_feat_1: '10 \u043A\u0440\u0438\u043F\u0442\u043E + 5 \u0444\u043E\u0440\u0435\u043A\u0441 + 5 \u0430\u043A\u0446\u0438\u0438',
   pro_feat_2: '\u041F\u043E\u043B\u043D\u0438 \u0441\u0438\u0433\u043D\u0430\u043B\u0438 \u0437\u0430 \u0440\u043E\u0442\u0430\u0446\u0438\u0458\u0430',
@@ -264,7 +264,7 @@ mk: {
       note: 'Целата евиденција е на посебна страница.' },
     { title: '⚡ Pro — ваши лични известувања',
       p: ['Сите податоци се бесплатни. **Pro** ви ги праќа на Telegram: преглед секој понеделник и четврток за вашите монети и предупредување пред отклучување на монета што ја држите.'],
-      note: 'Од $20 во крипто, пет пријатели што ќе се приклучат или Pro код.' },
+      note: 'Од $20 во крипто, 1 недела за секој пријател што ќе се приклучи, или Pro код (претплатниците на Rotator Weekly добиваат 2 недели).' },
     { title: 'Користете го Rotator како апликација',
       p: ['Кликнете на **иконата за преземање** за да го инсталирате Rotator. Се отвора во свој прозорец, како секоја апликација.',
           'Допрете **ПОВЕЌЕ → Инсталирај апликација** за Rotator да биде на почетниот екран.'],

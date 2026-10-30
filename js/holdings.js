@@ -306,6 +306,44 @@ function addHolding() {
   document.getElementById('inp-qty').value   = '';
   document.getElementById('inp-avg').value   = '';
   renderAll();
+  if (isFirst && !isPro) setTimeout(function() { offerAlertsFor(c); }, 900);
+}
+
+/* ── Pro offer after the first coin (Daniel 2026-10-30) ──────────
+   The moment someone adds a coin is when alerts for it matter most, so
+   free users see one small card then, once per browser. */
+function offerAlertsFor(c) {
+  try { if (localStorage.getItem('rot_alert_offer_seen')) return; localStorage.setItem('rot_alert_offer_seen', '1'); } catch (e) { return; }
+  var mk = false;
+  try { mk = localStorage.getItem('rot_lang') === 'mk'; } catch (e) {}
+  var sym = String(c.sym || '').toUpperCase().replace(/[^A-Z0-9]/g, '');
+  var t = mk
+    ? { head: 'Сакате известувања на Telegram за ' + sym + '?',
+        sub: 'Pro ви праќа пораки за вашите монети: преглед во понеделник и четврток, предупредување пред отклучување и известувања за цена што ги поставувате. 1 бесплатна недела за секој пријател што ќе го поканите.',
+        go: 'Погледнете Pro', no: 'Не сега' }
+    : { head: 'Get Telegram alerts for ' + sym + '?',
+        sub: 'Pro messages you about your own coins: a Monday and Thursday briefing, a warning before an unlock, and price alerts you set. 1 free week for each friend you invite.',
+        go: 'See Pro', no: 'Not now' };
+  var card = document.createElement('div');
+  card.className = 'alert-offer';
+  card.setAttribute('role', 'dialog');
+  card.style.cssText = 'position:fixed;left:50%;bottom:20px;transform:translateX(-50%);width:min(420px,calc(100vw - 32px));box-sizing:border-box;background:var(--card,#1a2030);border:1px solid var(--pro,#a78bfa);border-radius:8px;padding:14px 16px;z-index:900;box-shadow:0 6px 30px rgba(0,0,0,.35);font-size:13px;line-height:1.5;color:var(--text,#e6e9ef);';
+  card.innerHTML = '<div style="font-weight:700;color:var(--pro,#a78bfa);margin-bottom:4px;">🔔 ' + t.head + '</div>'
+    + '<div style="color:var(--muted,#8f9aab);margin-bottom:10px;">' + t.sub + '</div>'
+    + '<div style="display:flex;gap:8px;justify-content:flex-end;">'
+    + '<button type="button" data-a="no" style="background:none;border:1px solid var(--border,#2a3244);color:var(--muted,#8f9aab);border-radius:6px;padding:6px 12px;cursor:pointer;">' + t.no + '</button>'
+    + '<button type="button" data-a="go" style="background:var(--pro,#a78bfa);border:0;color:#111;font-weight:700;border-radius:6px;padding:6px 12px;cursor:pointer;">' + t.go + '</button></div>';
+  card.addEventListener('click', function(e) {
+    var a = e.target && e.target.getAttribute('data-a');
+    if (!a) return;
+    card.remove();
+    if (a === 'go') {
+      if (typeof supaCountFeature === 'function') supaCountFeature('alert_offer_open');
+      if (typeof openPro === 'function') openPro();
+    }
+  });
+  document.body.appendChild(card);
+  if (typeof supaCountFeature === 'function') supaCountFeature('alert_offer_shown');
 }
 
 /* ── One more buy of a coin already held (DCA) ───────────────────

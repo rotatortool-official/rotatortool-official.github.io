@@ -536,6 +536,8 @@ Object.assign(MK_TEXT, {
   'to choose your own coins (free with 5 invites)': 'за да ги изберете вашите монети (бесплатно со 5 покани)',
   'for a personal alert when this pair reaches your target, on the bell and Telegram (free with 5 invites)': 'за лично известување кога овој пар ќе ја стигне вашата цел, на ѕвончето и на Telegram (бесплатно со 5 покани)',
   'Insight Engine is a Pro feature, free with 5 invites or a code': 'Insight Engine е Pro функција, бесплатно со 5 покани или код',
+  'Unlock Pro: 1 free week for each friend you invite': 'Отклучете Pro: 1 бесплатна недела за секој пријател што ќе го поканите',
+  'for a personal alert when this pair reaches your target, on the bell and Telegram (1 free week for each friend you invite)': 'за лично известување кога овој пар ќе ја достигне вашата цел, на ѕвончето и Telegram (1 бесплатна недела за секој пријател што ќе го поканите)',
   'Unlock Pro, free with 5 invites': 'Отклучете Pro, бесплатно со 5 покани',
   'Unlock all signals with Pro, free with 5 invites': 'Отклучете ги сите сигнали со Pro, бесплатно со 5 покани',
   'The Telegram channel posts the daily market pulse, free for everyone.': 'Telegram каналот го објавува дневниот пазарен пулс, бесплатно за сите.',
