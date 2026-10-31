@@ -3116,7 +3116,7 @@ document.addEventListener('click', function (e) {
    rows (score run, unlocks, this week's signs). Context, never a call. */
 (function () {
   var form = document.getElementById('ask'); if (!form || typeof TOPIC === 'undefined') return;
-  var inp = document.getElementById('ask-in'), ans = document.getElementById('ans'), data = null;
+  var inp = document.getElementById('ask-in'), ans = document.getElementById('ans'), data = null, bot = '';
   function load() {
     if (data) return data;
     data = Promise.all([
@@ -3125,8 +3125,10 @@ document.addEventListener('click', function (e) {
         var id = r && r[0] && r[0].run_id; return id == null ? null : TOPIC.get('signal_run_items', { run_id: 'eq.' + id, select: 'coin_id,score' });
       }),
       TOPIC.get('token_unlocks', { select: 'coin_id,next_unlock_at,next_unlock_pct', limit: '1000' }),
-      TOPIC.get('coin_events', { event_date: 'gte.' + TOPIC.isoDay(-7), select: 'base_asset,event_type,event_date', order: 'event_date.desc', limit: '600' })
+      TOPIC.get('coin_events', { event_date: 'gte.' + TOPIC.isoDay(-7), select: 'base_asset,event_type,event_date', order: 'event_date.desc', limit: '600' }),
+      TOPIC.cache('telegram_bot_info')
     ]).then(function (r) {
+      bot = r[4] && r[4].data && r[4].data.username || '';
       var sc = {}, all = [], unl = {}, ev = {};
       (r[1] || []).forEach(function (x) { if (x.score != null) { sc[x.coin_id] = Number(x.score); all.push(Number(x.score)); } });
       (r[2] || []).forEach(function (u) { unl[u.coin_id] = u; });
@@ -3173,7 +3175,13 @@ document.addEventListener('click', function (e) {
         + '<div class="ans-sc"><span style="font:800 15px/1 var(--mono)">Rotator স্কোর <span style="color:' + col + '">' + Math.round(s) + '</span>/100</span>'
         + '<div class="ans-bar"><i style="width:' + Math.max(3, Math.min(100, (s + 50) / 1.5)) + '%;background:' + col + '"></i></div></div>'
         + '<ul class="ans-li"><li>' + lines.join('</li><li>') + '</li></ul>'
-        + '<div class="ans-cta"><a class="btn btn-gold" href="/board.html?coin=' + encodeURIComponent(sym) + '&amp;watch=1" onclick="TOPIC.count(\'coin_watch_click\')">' + '🔔 এই কয়েনটি আমার জন্য ট্র্যাক করুন' + '</a>'
+        /* Telegram straight from the check (2026-10-30): the bot answers with
+           this coin and the Pro offer (telegram-webhook watchReply). Without
+           the bot's name, the board's watch link as before. */
+        + '<div class="ans-cta">' + (bot
+          ? '<a class="btn btn-gold" href="https://t.me/' + encodeURIComponent(bot) + '?start=w_' + encodeURIComponent(sym.slice(0, 15))
+            + (document.documentElement.lang === 'mk' ? '_mk' : '') + '" target="_blank" rel="noopener" onclick="TOPIC.count(\'coin_tg_click\')">' + '🔔 Telegram-এ অ্যালার্ট' + '</a>'
+          : '<a class="btn btn-gold" href="/board.html?coin=' + encodeURIComponent(sym) + '&amp;watch=1" onclick="TOPIC.count(\'coin_watch_click\')">' + '🔔 এই কয়েনটি আমার জন্য ট্র্যাক করুন' + '</a>')
         + '<a class="btn btn-ghost" href="' + TOPIC.boardLink(sym, '/') + '">পূর্ণ বিশ্লেষণ</a></div>'
         + '<div class="ans-note">এখন যা ঘটছে, পূর্বাভাস নয়। বিনামূল্যে, কোনো অ্যাকাউন্টের প্রয়োজন নেই।</div>';
     });
