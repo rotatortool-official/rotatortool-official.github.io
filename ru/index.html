@@ -3187,6 +3187,12 @@ document.addEventListener('click', function (e) {
     });
   }
   form.addEventListener('submit', function (e) { e.preventDefault(); show(inp.value); });
+  /* ?check=SOL (2026-10-31, Daniel: video descriptions): the visitor from a
+     video or reel lands with that coin already answered. */
+  try {
+    var pre = new URLSearchParams(location.search).get('check');
+    if (pre) show(pre);
+  } catch (e) {}
   inp.addEventListener('focus', load, { once: true });
   document.getElementById('ask-chips').addEventListener('click', function (e) { var b = e.target.closest('button'); if (b) show(b.textContent); });
 })();
