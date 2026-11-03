@@ -287,7 +287,8 @@ h2{font-size:clamp(32px,4.4vw,56px);}
 .ans-bar{height:8px;border-radius:99px;background:var(--panel-b);overflow:hidden;margin-top:6px;}
 .ans-bar i{display:block;height:100%;border-radius:99px;}
 .ans-li{margin:10px 0 0;padding:0;list-style:none;font-size:14.5px;line-height:1.45;color:var(--muted);}
-.ans-li li{margin-top:5px;} .ans-li strong{color:var(--text);}
+.ans-li li{margin-top:5px;} .ans-li strong{color:var(--text);white-space:nowrap;}
+.ans-li strong.up{color:var(--green);} .ans-li strong.dn{color:var(--red);}
 .ans-cta{display:flex;flex-wrap:wrap;gap:8px;margin-top:14px;}
 .ans-note{font-size:11.5px;color:var(--muted);margin-top:8px;}
 .hero-more{display:inline-block;margin-top:14px;font:700 14px/1 var(--ui);color:var(--muted);text-decoration:none;}
@@ -3146,9 +3147,16 @@ document.addEventListener('click', function (e) {
       }),
       TOPIC.get('token_unlocks', { select: 'coin_id,next_unlock_at,next_unlock_pct', limit: '1000' }),
       TOPIC.get('coin_events', { event_date: 'gte.' + TOPIC.isoDay(-7), select: 'base_asset,event_type,event_date', order: 'event_date.desc', limit: '600' }),
-      TOPIC.cache('telegram_bot_info')
+      TOPIC.cache('telegram_bot_info'),
+      TOPIC.cache('etf_flows_summary'),
+      TOPIC.cache('chain_flows_summary')
     ]).then(function (r) {
       bot = r[4] && r[4].data && r[4].data.username || '';
+      /* Step 3 (2026-11-03): money that moved for this coin. ETF flows exist
+         for BTC and ETH only; a chain's stablecoins count for that chain's own
+         coin (the summary names it in `sym`). Other coins get no money line. */
+      var etf = r[5] && r[5].data || {}, chains = {};
+      ((r[6] && r[6].data && r[6].data.chains) || []).forEach(function (x) { if (x && x.sym) chains[String(x.sym).toUpperCase()] = x; });
       var sc = {}, all = [], unl = {}, ev = {};
       (r[1] || []).forEach(function (x) { if (x.score != null) { sc[x.coin_id] = Number(x.score); all.push(Number(x.score)); } });
       (r[2] || []).forEach(function (u) { unl[u.coin_id] = u; });
@@ -3156,7 +3164,7 @@ document.addEventListener('click', function (e) {
       var dl = document.getElementById('ask-list');
       if (dl) dl.innerHTML = r[0].list.filter(function (c) { return sc[c.id] != null; }).slice(0, 200)
         .map(function (c) { return '<option value="' + TOPIC.esc(c.symbol.toUpperCase()) + '">' + TOPIC.esc(c.name) + '</option>'; }).join('');
-      return { coins: r[0], sc: sc, all: all, unl: unl, ev: ev };
+      return { coins: r[0], sc: sc, all: all, unl: unl, ev: ev, etf: etf, chains: chains };
     });
     return data;
   }
@@ -3192,6 +3200,17 @@ document.addEventListener('click', function (e) {
       else lines.push('No big unlock in the next 30 days.');
       var e = d.ev[sym];
       if (e && SIGN[e.event_type]) lines.push('This week:' + ' ' + SIGN[e.event_type] + ' (' + TOPIC.day(e.event_date) + ')');
+      var money = 0, ef = d.etf[sym], ch = d.chains[sym];
+      if (ef && ef.sum5 != null) {
+        money++;
+        lines.push('💵 ' + 'US spot ETFs, last 5 trading days:' + ' <strong class="' + (ef.sum5 >= 0 ? 'up' : 'dn') + '">' + TOPIC.usdM(ef.sum5, { plus: true }) + '</strong>');
+      }
+      if (ch && ch.d7 != null) {
+        money++;
+        lines.push('💵 ' + 'Stablecoins on its own chain, last 7 days:' + ' <strong class="' + (ch.d7 >= 0 ? 'up' : 'dn') + '">' + TOPIC.usd(ch.d7, { plus: true })
+          + (ch.p7 != null ? ' (' + TOPIC.pct(ch.p7) + ')' : '') + '</strong>');
+      }
+      if (money) lines.push('<span class="ans-note">' + 'Money that already moved, not where the price goes next.' + '</span>');
       ans.innerHTML = '<div class="ans-h"><img src="' + TOPIC.esc(c.image) + '" alt=""><b>' + TOPIC.esc(sym) + '</b>'
         + '<span class="ans-p">' + TOPIC.price(c.current_price) + '<br><span class="' + (p7 >= 0 ? 'up' : 'dn') + '">' + TOPIC.pct(p7) + ' 7d</span></span></div>'
         + '<div class="ans-sc"><span style="font:800 15px/1 var(--mono)">Rotator score <span style="color:' + col + '">' + Math.round(s) + '</span>/100</span>'
