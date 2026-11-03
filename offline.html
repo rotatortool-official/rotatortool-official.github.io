@@ -1,0 +1,49 @@
+<!doctype html>
+<html lang="en" data-saved="0">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<title>Offline · Rotator</title>
+<script src="/js/theme-mode.js"></script>
+<!-- Served by sw.js when there is no connection (2026-11-03). sw.js sets
+     data-saved="1" when it holds a complete saved board to open. -->
+<style>
+  :root{--bg:#0b0e13;--text:#e6e9ef;--muted:#8b93a1;--line:#252b36;--bnb:#f3ba2f;}
+  :root.light{--bg:#f6f4ee;--text:#1c2027;--muted:#5d6470;--line:#d9d4c7;--bnb:#a07818;}
+  *{box-sizing:border-box;}
+  body{margin:0;min-height:100vh;display:flex;align-items:center;justify-content:center;background:var(--bg);color:var(--text);font:16px/1.6 system-ui,-apple-system,"Segoe UI",sans-serif;padding:24px 16px;}
+  .box{max-width:420px;text-align:center;}
+  .logo{font-weight:800;letter-spacing:.14em;font-size:14px;color:var(--bnb);margin-bottom:18px;}
+  h1{font-size:22px;margin:0 0 10px;}
+  p{color:var(--muted);margin:0 0 18px;font-size:15px;}
+  button,a.btn{display:inline-block;min-height:44px;padding:11px 22px;border-radius:8px;font:inherit;font-weight:700;cursor:pointer;text-decoration:none;}
+  button{background:var(--bnb);color:#111;border:0;}
+  a.btn{border:1px solid var(--line);color:var(--text);margin-top:10px;}
+  [data-saved="0"] .saved{display:none;}
+</style>
+</head>
+<body>
+  <div class="box">
+    <div class="logo">ROTATOR</div>
+    <h1 id="t">You are offline</h1>
+    <p id="s">Rotator needs a connection to load. Your coins, watchlist and Pro stay saved in this browser.</p>
+    <button type="button" id="retry" onclick="location.reload()">Retry</button>
+    <div class="saved"><a class="btn" id="open" href="/board.html">Open the saved board</a></div>
+  </div>
+<script>
+  /* Plain-word Macedonian for visitors who picked it on the board. */
+  try {
+    if (localStorage.getItem('rot_lang') === 'mk') {
+      document.documentElement.lang = 'mk';
+      document.title = 'Без интернет · Rotator';
+      document.getElementById('t').textContent = 'Нема интернет';
+      document.getElementById('s').textContent = 'На Rotator му треба интернет за да се вчита. Вашите монети, листата за следење и Pro остануваат зачувани во овој прелистувач.';
+      document.getElementById('retry').textContent = 'Обиди се пак';
+      document.getElementById('open').textContent = 'Отвори ја зачуваната табла';
+    }
+  } catch (e) {}
+  window.addEventListener('online', function () { location.reload(); });
+</script>
+</body>
+</html>

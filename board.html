@@ -2075,6 +2075,34 @@
   if ('serviceWorker' in navigator) {
     navigator.serviceWorker.register('/sw.js').catch(function() {});
   }
+  /* Offline copy (sw.js, 2026-11-03): the worker serves its saved board with
+     <meta name="rotator-saved-at">. Say how old it is, that nothing on it is
+     live, and offer Retry. */
+  (function () {
+    var m = document.querySelector('meta[name="rotator-saved-at"]');
+    var at = m && Number(m.content);
+    if (!at) return;
+    var mk = false; try { mk = localStorage.getItem('rot_lang') === 'mk'; } catch (e) {}
+    var min = Math.max(0, Math.round((Date.now() - at) / 60000));
+    var ago = min < 2 ? (mk ? 'пред малку' : 'just now')
+      : min < 120 ? (mk ? 'пред ' + min + ' мин.' : min + ' min ago')
+      : min < 2880 ? (mk ? 'пред ' + Math.round(min / 60) + ' ч.' : Math.round(min / 60) + ' h ago')
+      : (mk ? 'пред ' + Math.round(min / 1440) + ' дена' : Math.round(min / 1440) + ' days ago');
+    var when = new Date(at).toLocaleString(mk ? 'mk-MK' : undefined, { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' });
+    var bar = document.createElement('div');
+    bar.id = 'rot-offline-bar'; bar.setAttribute('role', 'status');
+    bar.style.cssText = 'position:fixed;left:0;right:0;bottom:0;z-index:2000;display:flex;gap:12px;align-items:center;justify-content:center;flex-wrap:wrap;padding:10px 16px calc(10px + env(safe-area-inset-bottom));background:var(--bg2,#151a22);border-top:2px solid var(--amber,#f0a030);color:var(--text,#e6e9ef);font-size:13px;line-height:1.5;text-align:center;';
+    var t = document.createElement('span');
+    t.textContent = mk
+      ? 'Нема интернет: ова е таблата зачувана ' + ago + ' (' + when + '). Цените, резултатите и графиконите не се во живо. Вашите монети и листата за следење се зачувани.'
+      : 'Offline: this is the board saved ' + ago + ' (' + when + '). Prices, scores and charts are not live. Your coins and watchlist are safe.';
+    var b = document.createElement('button');
+    b.type = 'button'; b.textContent = mk ? 'Обиди се пак' : 'Retry';
+    b.style.cssText = 'min-height:40px;padding:8px 18px;border-radius:8px;border:0;background:var(--amber,#f0a030);color:#111;font:inherit;font-weight:700;cursor:pointer;';
+    b.onclick = function () { location.reload(); };
+    bar.appendChild(t); bar.appendChild(b);
+    document.body.appendChild(bar);
+  })();
   </script>
 </body>
 </html>
