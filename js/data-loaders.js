@@ -1646,7 +1646,12 @@ async function doLoad() {
        screen flashed past before its message could be read. It stays
        up until 2.5s after the page started, and never adds time when
        the data itself took longer. */
-    await sleep(Math.max(320, 2500 - performance.now()));
+    /* Not for a coin link (review 2026-10-31, Daniel 2026-11-03): someone
+       who tapped a post about one coin came for that coin, so ?coin= gets
+       only the short minimum. _pendingDeepLinkCoin is read at script load,
+       before anything cleans the address. */
+    var _coinVisit = !!_pendingDeepLinkCoin;
+    await sleep(Math.max(320, (_coinVisit ? 320 : 2500) - performance.now()));
     document.getElementById('loader').classList.add('gone');
     startAutoRefresh();
     /* Activate referral: proves this user actually loaded data (anti-abuse) */

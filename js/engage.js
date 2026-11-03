@@ -250,7 +250,16 @@
     document.addEventListener('keydown', onKey);
     ov.addEventListener('click', function (e) { if (e.target === ov) close(); });
     ov.querySelector('.ep-x').onclick = close;
-    ov.querySelector('.ai-add').onclick = function () { close(); if (typeof railGo === 'function') railGo('sec-yours'); };
+    /* Opens the coin picker itself (review 2026-10-31: it only scrolled to an
+       empty My coins). Watch mode, since alerts need no quantity; the open
+       coin window's coin is picked already. */
+    ov.querySelector('.ai-add').onclick = function () {
+      var c = typeof _tdCoin !== 'undefined' && _tdCoin;
+      close();
+      if (typeof openAddHoldingsModal !== 'function') { if (typeof railGo === 'function') railGo('sec-yours'); return; }
+      openAddHoldingsModal('watchlist');
+      if (c && typeof ahmSelect === 'function') setTimeout(function () { ahmSelect(c.id); }, 80);
+    };
     ov.querySelector('.ai-bot').onclick = function () {
       if (window.Analytics) Analytics.track('Alerts Intro Bot Click', { pro: pro });
       if (pro && typeof _twTgConnect === 'function') { close(); _twTgConnect(); return; }
