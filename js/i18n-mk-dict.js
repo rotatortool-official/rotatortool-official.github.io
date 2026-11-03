@@ -480,6 +480,10 @@ Object.assign(MK_TEXT, {
   'Search for a coin, enter your quantity and average buy price.': 'Пребарајте монета, внесете ја количината и просечната набавна цена.',
   'Search and select a coin, then enter quantity and average buy price.': 'Пребарајте и изберете монета, а потоа внесете количина и просечна набавна цена.',
   'Search coin name or symbol…': 'Пребарајте име или симбол на монета…',
+  'Your list lives in this browser. To move it to another browser or phone, save it to a file and load it there. The file stays on your device.':
+    'Вашата листа е зачувана во овој прелистувач. За да ја префрлите на друг прелистувач или телефон, зачувајте ја во датотека и вчитајте ја таму. Датотеката останува на вашиот уред.',
+  'Save my list to a file': 'Зачувај ја листата во датотека',
+  'Load a list': 'Вчитај листа',
   "Saved only in this browser. Your quantity and price never reach Rotator's server.":
     'Се чува само во овој прелистувач. Количината и цената никогаш не стигнуваат до серверот на Rotator.',
   'Avg Buy Price ($)': 'Просечна набавна цена ($)', 'Avg buy price ($)': 'Просечна набавна цена ($)',
