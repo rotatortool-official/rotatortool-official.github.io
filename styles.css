@@ -5193,6 +5193,11 @@ details.td-reading-trust[open] > summary::before{content:'▾ ';}
 .tw-chip b{font-family:var(--font-mono);font-size:10px;margin-left:3px;}
 .tw-chip b.up{color:var(--green);} .tw-chip b.dn{color:var(--red);}
 .paper-trades{margin-top:10px;}
+/* My list as a file (2026-11-03): a quiet line under the coins, not a box. */
+.list-file{display:flex;flex-wrap:wrap;align-items:center;gap:6px 12px;margin-top:10px;font-size:12px;color:var(--muted);line-height:1.5;}
+.list-file-acts{display:flex;flex-wrap:wrap;gap:8px;}
+.list-file button{background:none;border:1px solid var(--bdr2);border-radius:4px;color:var(--text);font:600 12px/1 var(--ui,inherit);padding:7px 10px;cursor:pointer;min-height:32px;}
+.list-file button:hover{border-color:var(--gold);}
 .paper-hd{display:flex;justify-content:space-between;font-size:12px;font-weight:700;letter-spacing:.1em;color:var(--pro);margin-bottom:6px;font-family:var(--font-ui);}
 .paper-n{color:var(--muted);letter-spacing:.04em;}
 .paper-empty{font-size:12px;color:var(--muted);line-height:1.5;font-family:var(--font-ui);border:1px dashed var(--bdr2);border-radius:8px;padding:9px 12px;}
@@ -6889,7 +6894,7 @@ a.mob-more-item{text-decoration:none;color:inherit;}
    Both themes since Daniel's OK the same day. */
 .yours-left{display:contents;}
 @media(min-width:1100px){
-  #sec-yours .sidebar{grid-template-columns:260px minmax(0,1fr);grid-template-rows:auto auto auto 1fr auto;gap:12px 16px;}
+  #sec-yours .sidebar{grid-template-columns:260px minmax(0,1fr);grid-template-rows:auto auto auto 1fr auto auto;gap:12px 16px;}
   #sec-yours .yours-left{display:flex;flex-direction:column;gap:12px;grid-column:1;grid-row:1 / 5;min-width:0;}
   #sec-yours .yours-left .sig-box{order:-1;}
   /* Bounded, so 5-10 coins' alerts scroll inside instead of stretching the column. */
@@ -6906,6 +6911,7 @@ a.mob-more-item{text-decoration:none;color:inherit;}
   #sec-yours .hold-chart .hm-plot{height:190px;}
   #sec-yours .paper-trades{grid-column:2;grid-row:4;margin:0;min-width:0;align-self:start;}
   #sec-yours .signal-dyor{grid-column:1 / -1;grid-row:5;margin:0;}
+  #sec-yours .list-file{grid-column:2;grid-row:6;margin:0;}
 }
 
 /* ── Coin window full screen (Pro, desktop; 2026-10-21) ────────────

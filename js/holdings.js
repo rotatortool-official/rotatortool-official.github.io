@@ -39,6 +39,71 @@ var sparkStop  = {};
 function loadH()  { try { return JSON.parse(localStorage.getItem('rot_h5') || '[]'); } catch(e) { return []; } }
 function saveH()  { try { localStorage.setItem('rot_h5', JSON.stringify(holdings)); } catch(e) {} }
 
+/* ── My list as a file (review 2026-10-31) ────────────────────────
+   Holdings, watched coins and saved swap pairs, written to a file the
+   visitor keeps, and read back in another browser. Only coin ids,
+   tickers, quantities and buy prices: no browser id, no recovery key,
+   nothing sent anywhere. Loading ADDS what is missing and never
+   overwrites a coin already in the list. */
+function _listMk() { try { return localStorage.getItem('rot_lang') === 'mk'; } catch (e) { return false; } }
+function listSaveFile() {
+  var pairs = [];
+  try { pairs = JSON.parse(localStorage.getItem('rot_ratio_saved') || '[]'); } catch (e) {}
+  var data = { app: 'rotator-list', v: 1, saved: new Date().toISOString(),
+    holdings: holdings.map(function(h) { return { id: h.id, sym: h.sym, qty: h.qty, avg: h.avg }; }),
+    watchlist: watchlist.slice(),
+    pairs: (Array.isArray(pairs) ? pairs : []).map(function(p) { return { from: p.from, to: p.to, target: p.target }; }) };
+  var a = document.createElement('a');
+  a.href = URL.createObjectURL(new Blob([JSON.stringify(data, null, 1)], { type: 'application/json' }));
+  a.download = 'rotator-my-list-' + data.saved.slice(0, 10) + '.json';
+  document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(function() { URL.revokeObjectURL(a.href); }, 4000);
+}
+function listLoadFile(input) {
+  var f = input && input.files && input.files[0];
+  if (!f) return;
+  var mk = _listMk();
+  var bad = function() { alert(mk ? 'Ова не е датотека со листа од Rotator.' : 'This is not a Rotator list file.'); };
+  var r = new FileReader();
+  r.onload = function() {
+    input.value = '';
+    var d; try { d = JSON.parse(r.result); } catch (e) { return bad(); }
+    if (!d || d.app !== 'rotator-list' || !Array.isArray(d.holdings)) return bad();
+    var str = function(v, n) { return typeof v === 'string' && v.length <= n ? v : null; };
+    var num = function(v) { return typeof v === 'number' && isFinite(v) && v >= 0 ? v : 0; };
+    var added = 0;
+    d.holdings.forEach(function(h) {
+      var x = { id: str(h && h.id, 80), sym: str(h && h.sym, 20), qty: num(h && h.qty), avg: num(h && h.avg) };
+      if (!x.sym && !x.id) return;
+      if (!x.id) delete x.id;
+      if (holdings.some(function(o) { return (x.id && o.id === x.id) || (!x.id && o.sym === x.sym); })) return;
+      holdings.push(x); added++;
+    });
+    (Array.isArray(d.watchlist) ? d.watchlist : []).forEach(function(w) {
+      if (str(w, 80) && watchlist.indexOf(w) < 0) { watchlist.push(w); added++; }
+    });
+    try {
+      var cur = JSON.parse(localStorage.getItem('rot_ratio_saved') || '[]');
+      if (!Array.isArray(cur)) cur = [];
+      (Array.isArray(d.pairs) ? d.pairs : []).forEach(function(p) {
+        if (!p || !str(p.from, 80) || !str(p.to, 80)) return;
+        if (cur.some(function(c) { return c.from === p.from && c.to === p.to; })) return;
+        var q = { from: p.from, to: p.to }; if (typeof p.target === 'number' && isFinite(p.target)) q.target = p.target;
+        cur.push(q); added++;
+      });
+      localStorage.setItem('rot_ratio_saved', JSON.stringify(cur));
+    } catch (e) {}
+    saveH(); if (typeof saveWatchlist === 'function') saveWatchlist();
+    if (typeof upgradeHoldingKeys === 'function') { try { upgradeHoldingKeys(); } catch (e) {} }
+    if (typeof RatioTracker !== 'undefined' && RatioTracker.reloadSaved) RatioTracker.reloadSaved();
+    if (typeof coins !== 'undefined' && coins.length && typeof renderAll === 'function') renderAll();
+    alert(added ? (mk ? 'Додадено од датотеката: ' + added + '.' : 'Added from the file: ' + added + '.')
+                : (mk ? 'Сè од датотеката веќе е во вашата листа.' : 'Everything in the file is already in your list.'));
+  };
+  r.onerror = bad;
+  r.readAsText(f);
+}
+
 /* ── Identity, in one place ──────────────────────────────────────
    Every "is this coin the one in this entry?" question in the app goes
    through these, so there is exactly one answer to it.

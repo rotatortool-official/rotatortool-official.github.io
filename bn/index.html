@@ -291,6 +291,10 @@ h2{font-size:clamp(32px,4.4vw,56px);}
 .ans-li strong.up{color:var(--green);} .ans-li strong.dn{color:var(--red);}
 .ans-cta{display:flex;flex-wrap:wrap;gap:8px;margin-top:14px;}
 .ans-note{font-size:11.5px;color:var(--muted);margin-top:8px;}
+.ans-why{margin-top:8px;font-size:12px;color:var(--muted);}
+.ans-why summary{cursor:pointer;list-style:none;font-weight:600;}
+.ans-why summary::-webkit-details-marker{display:none;}
+.ans-why p{margin:6px 0 0;line-height:1.55;}
 .hero-more{display:inline-block;margin-top:14px;font:700 14px/1 var(--ui);color:var(--muted);text-decoration:none;}
 .hero-more:hover{color:var(--text);}
 /* Coin brief step 1 (2026-11-03): the coin's Pro alerts, then the second-coin compare. */
@@ -3216,6 +3220,14 @@ document.addEventListener('click', function (e) {
         + '<div class="ans-sc"><span style="font:800 15px/1 var(--mono)">Rotator স্কোর <span style="color:' + col + '">' + Math.round(s) + '</span>/100</span>'
         + '<div class="ans-bar"><i style="width:' + Math.max(3, Math.min(100, (s + 50) / 1.5)) + '%;background:' + col + '"></i></div></div>'
         + '<ul class="ans-li"><li>' + lines.join('</li><li>') + '</li></ul>'
+        /* What the numbers are (review 2026-10-31: score, the %, and the
+           board's relative strength read as three answers). A tap, so the
+           result stays short. Whole sentences for translate.js. */
+        + '<details class="ans-why"><summary>' + 'ⓘ এই সংখ্যাগুলো কী বোঝায়' + '</summary><p>'
+        + 'Rotator স্কোর হল কয়েনের একটি সার্বিক পরিমাপ: এর ৭ থেকে ৩০ দিনের মূল্য ওঠানামা, বিটকয়েন, স্বর্ণ এবং বাজারের বাকি অংশের তুলনায় এর পারফরম্যান্স, এবং এর আনলকসমূহ। এর পরিসর -৫০ থেকে ১০০ পর্যন্ত।' + ' '
+        + 'এই শতাংশ সেই স্কোরটিকে Rotator যে সব কয়েন অনুসরণ করে, তাদের প্রত্যেকটির সাথে তুলনা করে।' + ' '
+        + 'বোর্ডের ভিতরে আপনি পৃথকভাবে বিভিন্ন অংশও দেখতে পাবেন, যেমন রিলেটিভ স্ট্রেন্থ, তাই সেই সংখ্যাগুলো স্কোর থেকে আলাদা।'
+        + '</p></details>'
         /* Step 2 (2026-11-03, Daniel: "a small glimpse into past 3 huge unlocks
            that happened in last month and their chart"): opens on a tap, so
            nothing loads until asked (view unlocks_recent_top + 3 coins' candles). */

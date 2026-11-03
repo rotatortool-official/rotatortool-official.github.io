@@ -44,7 +44,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Rotator">
 
-  <link rel="stylesheet" href="styles.css?v=20261030tv">
+  <link rel="stylesheet" href="styles.css?v=20261103lf">
   <script src="js/theme-mode.js"></script>
 
   <!-- Umami Cloud analytics (privacy-friendly, no cookies). Replace data-website-id after signup at cloud.umami.is. -->
@@ -1384,6 +1384,15 @@
         <div class="hold-chart" id="hold-chart"></div>
         <!-- PAPER TRADES — "what if I had bought when the sign appeared", renderPaperTrades() in js/paper-trades.js -->
         <div class="paper-trades" id="paper-trades"></div>
+        <!-- MY LIST AS A FILE (review 2026-10-31): the list lives in this
+             browser, so moving it to Brave, a phone or out of Instagram's
+             browser needs a way across. A file the visitor keeps; nothing
+             goes to Rotator. listSaveFile()/listLoadFile() in js/holdings.js. -->
+        <div class="list-file">
+          <span>Your list lives in this browser. To move it to another browser or phone, save it to a file and load it there. The file stays on your device.</span>
+          <span class="list-file-acts"><button type="button" onclick="listSaveFile()">Save my list to a file</button><button type="button" onclick="document.getElementById('list-file-in').click()">Load a list</button></span>
+          <input type="file" id="list-file-in" accept=".json,application/json" hidden onchange="listLoadFile(this)">
+        </div>
       </div>
     </div>
     </div><!-- /cb-holdings -->
@@ -2008,9 +2017,9 @@
   <!-- The Macedonian dictionary only when MK is the saved choice (2026-10-11):
        ~270 KB that English visitors no longer download. A switch to MK on
        the page loads it from js/i18n-mk.js. -->
-  <script>try { if (localStorage.getItem('rot_lang') === 'mk') document.write('<script src="js/i18n-mk-dict.js?v=20261030a"><\/script><script src="js/i18n-mk-legal.js"><\/script>'); } catch (e) {}</script>
+  <script>try { if (localStorage.getItem('rot_lang') === 'mk') document.write('<script src="js/i18n-mk-dict.js?v=20261103lf"><\/script><script src="js/i18n-mk-legal.js"><\/script>'); } catch (e) {}</script>
   <script src="js/signals.js?v=20261029z"></script>
-  <script src="js/holdings.js?v=20261030w"></script>
+  <script src="js/holdings.js?v=20261103lf"></script>
   <script src="js/share-brand.js"></script>
 <script src="js/ratio.js?v=20261103cc"></script>
   <script src="js/tutorial.js"></script>
