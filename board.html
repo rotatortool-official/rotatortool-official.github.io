@@ -44,7 +44,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Rotator">
 
-  <link rel="stylesheet" href="styles.css?v=20261103sh">
+  <link rel="stylesheet" href="styles.css?v=20261103cb">
   <script src="js/theme-mode.js"></script>
 
   <!-- Umami Cloud analytics (privacy-friendly, no cookies). Replace data-website-id after signup at cloud.umami.is. -->
@@ -816,22 +816,22 @@
     <!-- USDT TRC20 -->
     <div class="network-tag">⬡ USDT · TRC20 (Tron)</div>
     <div class="addr-box">TGt3FQmv8AFPqbj6PnQGUAmemV9gDNm4bt</div>
-    <button class="copy-btn" id="copy-trc20-btn" onclick="copyAddr('TGt3FQmv8AFPqbj6PnQGUAmemV9gDNm4bt','copy-trc20-btn');showTipScreen()">COPY ADDRESS</button>
+    <button class="copy-btn" id="copy-trc20-btn" onclick="copyAddr('TGt3FQmv8AFPqbj6PnQGUAmemV9gDNm4bt','copy-trc20-btn',showTipScreen)">COPY ADDRESS</button>
 
     <!-- BEP20 (BSC) -->
     <div class="network-tag" style="margin-top:10px;">⬡ USDT / BNB · BEP20 (BSC)</div>
     <div class="addr-box">0x507772f8714bca8e73a7984446edb59fea9bfba3</div>
-    <button class="copy-btn" id="copy-bep20-btn" onclick="copyAddr('0x507772f8714bca8e73a7984446edb59fea9bfba3','copy-bep20-btn');showTipScreen()">COPY ADDRESS</button>
+    <button class="copy-btn" id="copy-bep20-btn" onclick="copyAddr('0x507772f8714bca8e73a7984446edb59fea9bfba3','copy-bep20-btn',showTipScreen)">COPY ADDRESS</button>
 
     <!-- ERC20 (Ethereum) -->
     <div class="network-tag" style="margin-top:10px;">⬡ USDT / ETH · ERC20 (Ethereum)</div>
     <div class="addr-box">0x507772f8714bca8e73a7984446edb59fea9bfba3</div>
-    <button class="copy-btn" id="copy-erc20-btn" onclick="copyAddr('0x507772f8714bca8e73a7984446edb59fea9bfba3','copy-erc20-btn');showTipScreen()">COPY ADDRESS</button>
+    <button class="copy-btn" id="copy-erc20-btn" onclick="copyAddr('0x507772f8714bca8e73a7984446edb59fea9bfba3','copy-erc20-btn',showTipScreen)">COPY ADDRESS</button>
 
     <!-- Binance Pay -->
     <div class="network-tag" style="margin-top:10px;">⬡ Binance Pay</div>
     <div class="addr-box">364154350</div>
-    <button class="copy-btn" id="copy-binance-btn" onclick="copyAddr('364154350','copy-binance-btn');showTipScreen()">COPY BINANCE ID</button>
+    <button class="copy-btn" id="copy-binance-btn" onclick="copyAddr('364154350','copy-binance-btn',showTipScreen)">COPY BINANCE ID</button>
 
     <div class="modal-note" style="margin-top:10px;">⚠ Always double-check the network before sending.<br>Wrong network = permanent loss.</div>
     <div style="font-size:12px;color:var(--muted);text-align:center;margin-top:6px;">Need help? <a href="mailto:rotatortool@gmail.com" style="color:var(--bnb);text-decoration:none;">rotatortool@gmail.com</a></div>
@@ -2019,7 +2019,7 @@
   <script src="js/config.js?v=20261029y"></script>
   <script src="js/analytics.js"></script>
   <script src="js/api-pool.js"></script>
-  <script src="js/pro-system.js?v=20261103cp"></script>
+  <script src="js/pro-system.js?v=20261103cb"></script>
   <script src="js/supabase.js"></script>
   <script src="js/signal-assistant.js"></script>
   <script src="js/tx-verify.js"></script>
@@ -2028,7 +2028,7 @@
   <!-- The Macedonian dictionary only when MK is the saved choice (2026-10-11):
        ~270 KB that English visitors no longer download. A switch to MK on
        the page loads it from js/i18n-mk.js. -->
-  <script>try { if (localStorage.getItem('rot_lang') === 'mk') document.write('<script src="js/i18n-mk-dict.js?v=20261103sg"><\/script><script src="js/i18n-mk-legal.js"><\/script>'); } catch (e) {}</script>
+  <script>try { if (localStorage.getItem('rot_lang') === 'mk') document.write('<script src="js/i18n-mk-dict.js?v=20261103cb"><\/script><script src="js/i18n-mk-legal.js"><\/script>'); } catch (e) {}</script>
   <script src="js/signals.js?v=20261103cp"></script>
   <script src="js/holdings.js?v=20261103cp"></script>
   <script src="js/share-brand.js"></script>

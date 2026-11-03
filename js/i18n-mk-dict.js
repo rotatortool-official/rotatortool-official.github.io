@@ -582,6 +582,7 @@ Object.assign(MK_TEXT, {
   'COPY': 'КОПИРАЈ', 'SHARE ROTATOR WITH FRIENDS': 'СПОДЕЛЕТЕ ГО ROTATOR СО ПРИЈАТЕЛИ',
   'Rotator stays independent because supporters like you spread the word. Share the love:': 'Rotator останува независен затоа што поддржувачи како вас го шират гласот. Споделете ја љубовта:',
   'COPY REFERRAL LINK': 'КОПИРАЈ ЛИНК ЗА ПРЕПОРАКА', 'COPY ADDRESS': 'КОПИРАЈ АДРЕСА', '✓ COPIED!': '✓ КОПИРАНО!',
+  'Could not copy. The text is selected: copy it by hand.': 'Не успеа да се копира. Текстот е означен: копирајте го рачно.',
   'Share your link. When 5 more friends open Rotator through it, the full features unlock.': 'Споделете го вашиот линк. Кога уште 5 пријатели ќе го отворат Rotator преку него, се отклучуваат сите функции.',
   'INVITE 5 FRIENDS → UNLOCK PRO FREE': 'ПОКАНЕТЕ 5 ПРИЈАТЕЛИ → ОТКЛУЧЕТЕ PRO БЕСПЛАТНО',
   'Ask about the current scores. Answers come only from the latest run, never invented.': 'Прашајте за тековните резултати. Одговорите доаѓаат само од последното пресметување, никогаш измислени.',

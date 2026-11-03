@@ -210,6 +210,7 @@ body::before{content:'';position:fixed;inset:0;background:repeating-linear-gradi
 .copy-btn{width:100%;padding:11px;background:rgba(243,186,47,.1);border:1px solid rgba(243,186,47,.3);color:var(--bnb);font-family:inherit;font-size:13px;letter-spacing:.1em;cursor:pointer;border-radius:3px;transition:all .15s;font-weight:600;min-height:44px;}
 .copy-btn:hover{background:rgba(243,186,47,.18);border-color:var(--bnb);}
 .copy-btn.ok{background:var(--gd);border-color:var(--green);color:var(--green);}
+.copy-hint{font-size:12px;line-height:1.5;color:var(--amber);margin:6px 0 2px;text-align:left;}
 .modal-note{font-size:12px;color:var(--muted);margin-top:12px;line-height:1.9;text-align:center;font-family:var(--font-ui);}
 
 /* pro unlock modal */
