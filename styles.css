@@ -1563,6 +1563,9 @@ td.qa-cell{text-align:center;width:28px;padding:0 4px !important;}
 .footer-links{display:flex;gap:14px;flex-wrap:nowrap;justify-content:center;}
 .footer-link{font-size:12px;color:var(--muted);text-decoration:none;letter-spacing:.08em;cursor:pointer;transition:color .15s;font-family:var(--font-ui);}
 .footer-link:hover{color:var(--text);}
+.footer-guides{flex-wrap:wrap;gap:6px 14px;}
+/* Guides row (promptove/172): hidden where the footer is one line. */
+@media(max-width:900px){.footer-guides{display:none !important;}}
 .footer-news{margin:0 0 12px;text-align:center;font-size:13px;font-family:var(--font-ui);}
 .footer-news a{color:var(--muted);text-decoration:none;}
 .footer-news a:hover{color:var(--text);}
@@ -6074,6 +6077,10 @@ a.mob-more-item{text-decoration:none;color:inherit;}
   .footer-links{flex-wrap:wrap !important;justify-content:center !important;overflow:visible !important;gap:2px 4px !important;}
   .footer-link{display:inline-block;padding:9px 6px;font-size:11px !important;}
   .footer-copy{white-space:normal !important;text-align:center;}
+}
+/* The wrapped portrait footer has room for the guides row again. */
+@media (max-width:700px) and (orientation:portrait){
+  .site-footer .footer-guides{display:flex !important;}
 }
 
 /* ── TODAY as rows on phones, both themes (light 2026-10-11, dark the same day) ───────────
