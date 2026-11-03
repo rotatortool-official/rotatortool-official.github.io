@@ -44,7 +44,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Rotator">
 
-  <link rel="stylesheet" href="styles.css?v=20261103cp">
+  <link rel="stylesheet" href="styles.css?v=20261103sh">
   <script src="js/theme-mode.js"></script>
 
   <!-- Umami Cloud analytics (privacy-friendly, no cookies). Replace data-website-id after signup at cloud.umami.is. -->
@@ -164,6 +164,7 @@
       <div class="faq-item">
         <div class="faq-q">5. What is tested, and what is not</div>
         <div class="faq-a">Across 771 days of history, moving from a high-scoring coin into a low one did not beat picking two coins at random. So Rotator shows where coins score against each other as information, not as calls. The current engine is graded against the median coin, the one in the middle, where chance is 50%. Its first 30-day results arrive from 11 October, and the record shows every result, good or bad.</div>
+        <div class="faq-a td-score-how"><a class="score-how" href="crypto-rotation-strategies.html">Every rotation rule we tested</a> ›</div>
       </div>
     </div>
     <div style="margin-top:16px;padding:12px 14px;background:var(--bg3);border:1px solid var(--bdr2);border-radius:4px;font-size:12px;color:var(--muted);line-height:1.8;text-align:center;">
@@ -1842,6 +1843,16 @@
     <a class="footer-link" href="mailto:rotatortool@gmail.com" onclick="(function(e){var em='rotatortool@gmail.com';var ok=false;try{if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(em);ok=true;}}catch(_){} setTimeout(function(){if(!document.hidden){alert('Contact us at:\n\n'+em+(ok?'\n\n(email address copied to clipboard)':''));}},350);})(event);">CONTACT</a>
     <a class="footer-link" href="#" role="button" onclick="event.preventDefault();openModal('donate-modal');return false;">SUPPORT US</a>
   </div>
+  <!-- Guides (promptove/172): the search pages, linked from the board so
+       they are not orphans. Desktop only; the phone footer is one line. -->
+  <nav class="footer-links footer-guides" aria-label="Guides">
+    <a class="footer-link" href="crypto-capital-rotation.html">CAPITAL ROTATION</a>
+    <a class="footer-link" href="crypto-rotation-strategies.html">ROTATION STRATEGIES</a>
+    <a class="footer-link" href="bitcoin-etf-flows.html">BITCOIN ETF FLOWS</a>
+    <a class="footer-link" href="token-unlocks.html">TOKEN UNLOCKS</a>
+    <a class="footer-link" href="golden-cross.html">GOLDEN CROSSES</a>
+    <a class="footer-link" href="track-record.html">TRACK RECORD</a>
+  </nav>
   <div class="footer-copy">© 2026 ROTATOR · NOT FINANCIAL ADVICE · <span style="color:var(--red);">DYOR</span></div>
   <!-- Said once here instead of under every card (2026-10-14); the
        per-card notes it replaces are hidden. -->
@@ -2017,7 +2028,7 @@
   <!-- The Macedonian dictionary only when MK is the saved choice (2026-10-11):
        ~270 KB that English visitors no longer download. A switch to MK on
        the page loads it from js/i18n-mk.js. -->
-  <script>try { if (localStorage.getItem('rot_lang') === 'mk') document.write('<script src="js/i18n-mk-dict.js?v=20261103cp"><\/script><script src="js/i18n-mk-legal.js"><\/script>'); } catch (e) {}</script>
+  <script>try { if (localStorage.getItem('rot_lang') === 'mk') document.write('<script src="js/i18n-mk-dict.js?v=20261103sg"><\/script><script src="js/i18n-mk-legal.js"><\/script>'); } catch (e) {}</script>
   <script src="js/signals.js?v=20261103cp"></script>
   <script src="js/holdings.js?v=20261103cp"></script>
   <script src="js/share-brand.js"></script>
