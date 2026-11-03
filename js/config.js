@@ -609,8 +609,6 @@ var STABLECOINS = {
   'usdd':            { sym: 'USDD', apr: 5.5,  platform: 'JustLend (Tron)' }
 };
 
-function isStablecoin(coinId) { return STABLECOINS.hasOwnProperty(coinId); }
-
 /* Forex pairs removed — site is crypto (+ bStocks) only going forward.
    See rotator-bstocks-migration-plan.md. loadForex()/calcForexScore()/
    #forex-panel/FOREX nav tab removed in the same pass as this file. */

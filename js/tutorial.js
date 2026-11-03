@@ -465,12 +465,6 @@ function _tutReveal(step) {
   }
 }
 
-function tutGoNext() {
-  tutStep_++;
-  if (tutStep_ >= TUT_STEPS.length) { endTutorial(); return; }
-  tutRender();
-}
-
 function tutStep(dir) {
   /* The phone suggestion's "Start here anyway" is the Next button. */
   if (_tutGate) { var go = _tutGate; _tutGate = null; if (dir > 0) go(); return; }
