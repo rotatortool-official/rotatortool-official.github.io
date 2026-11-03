@@ -69,7 +69,7 @@ var TUT_STEPS = [
     "target": "#sec-capital",
     "spot": ["#cap-btc", "#sec-capital"],
     "goto": "sec-capital",
-    "title": "Capital rotation — where money moved",
+    "title": "Money flows — where money moved",
     "p": [
       "Bitcoin against the other coins, money into and out of the Bitcoin and Ether ETFs, stablecoins moving between chains, and coin supply: upcoming unlocks, buybacks and burns. Tap any part for the details."
     ],
@@ -94,7 +94,7 @@ var TUT_STEPS = [
     "spot": ["#cb-holdings", "#sec-yours"],
     "goto": "sec-yours",
     "open": "holdings",
-    "title": "Yours — what you hold",
+    "title": "My holdings — what you hold",
     "p": [
       "Add a coin with its amount and price. It stays in this browser, with **no account**.",
       "You see your profit or loss, the coin's score, and an **amber warning** before a delisting or a big unlock."

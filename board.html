@@ -44,7 +44,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Rotator">
 
-  <link rel="stylesheet" href="styles.css?v=20261103ml">
+  <link rel="stylesheet" href="styles.css?v=20261103cp">
   <script src="js/theme-mode.js"></script>
 
   <!-- Umami Cloud analytics (privacy-friendly, no cookies). Replace data-website-id after signup at cloud.umami.is. -->
@@ -147,7 +147,7 @@
     <div class="faq-list">
       <div class="faq-item">
         <div class="faq-q">1. The score</div>
-        <div class="faq-a">Every 15 minutes Rotator scores about 250 coins and tokenized stocks, from −50 to 100. The score mixes how a coin moved over 7, 14 and 30 days, how it did against Bitcoin, gold and oil, and its supply: big unlocks and high inflation pull it down. A high score means the coin has been stronger than the rest. It describes what already happened. It is not a forecast.<br><a class="score-how" href="how-the-score-works.html">How the score works</a> ›</div>
+        <div class="faq-a">Every 15 minutes Rotator scores about 250 coins and tokenized stocks, from −50 to 100. The score mixes how a coin moved over 7, 14 and 30 days, how it did against Bitcoin, gold and oil, and its supply: a lot of supply still to come and a high unlock risk pull it down. An unlock due in the next 30 days does not change the score; it keeps the coin off the lists of new entries until it has passed. A high score means the coin has been stronger than the rest. It describes what already happened. It is not a forecast.<br><a class="score-how" href="how-the-score-works.html">How the score works</a> ›</div>
       </div>
       <div class="faq-item">
         <div class="faq-q">2. The market's direction</div>
@@ -1189,7 +1189,7 @@
     <!-- CAPITAL ROTATION (2026-10-11, Daniel) -->
     <button class="rail-item" id="rail-capital" data-sec="sec-capital" onclick="railGo('sec-capital')" title="CAPITAL ROTATION">
       <span class="rail-mark"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="6" cy="12" r="3"/><circle cx="18" cy="12" r="3"/><path d="M9 9.5c1.8-1.4 4.2-1.4 6 0"/><path d="M15 14.5c-1.8 1.4-4.2 1.4-6 0"/><path d="m14 8 1 1.5-1.6.6"/><path d="m10 16-1-1.5 1.6-.6"/></svg></span>
-      <span class="rail-text"><span class="rail-label">CAPITAL</span><span class="rail-sub">where money moved</span></span>
+      <span class="rail-text"><span class="rail-label">MONEY FLOWS</span><span class="rail-sub">where money moved</span></span>
     </button>
     <button class="rail-item" id="rail-momentum" data-sec="sec-rotation" onclick="railGo('sec-rotation')" title="MOMENTUM">
       <span class="rail-mark"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M17 2.1 21 6l-4 3.9"/><path d="M3 12a9 9 0 0 1 9-9h9"/><path d="M7 21.9 3 18l4-3.9"/><path d="M21 12a9 9 0 0 1-9 9H3"/></svg></span>
@@ -1201,7 +1201,7 @@
     </button>
     <button class="rail-item" id="rail-yours" data-sec="sec-yours" onclick="railGo('sec-yours')" title="YOURS">
       <span class="rail-mark"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M20 7h-9"/><path d="M14 17H5"/><circle cx="17" cy="17" r="3"/><circle cx="7" cy="7" r="3"/></svg></span>
-      <span class="rail-text"><span class="rail-label">YOURS</span><span class="rail-sub" id="rail-sub-yours">holdings and warnings</span></span>
+      <span class="rail-text"><span class="rail-label">MY HOLDINGS</span><span class="rail-sub" id="rail-sub-yours">holdings and warnings</span></span>
     </button>
     <button class="rail-item" id="rail-coins" data-sec="sec-coins" onclick="railGo('sec-coins')" title="COINS">
       <span class="rail-mark"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M3 12h18"/><path d="M3 18h18"/></svg></span>
@@ -1336,7 +1336,7 @@
     <div class="liq-body" id="liq-body"></div>
   </section>
   <section class="rsec" id="sec-yours">
-    <div class="rsec-hdr"><span class="rsec-label">YOURS</span><span class="rsec-meta" id="rsec-meta-yours">track what you hold and watch; warnings and notifications follow your coins</span></div>
+    <div class="rsec-hdr"><span class="rsec-label">MY HOLDINGS</span><span class="rsec-meta" id="rsec-meta-yours">track what you hold and watch; warnings and notifications follow your coins</span></div>
   <div class="sidebar">
     <!-- Left column on the light desktop layout (2026-10-21): the signal
          with the alerts under it. display:contents everywhere else, so the
@@ -1347,7 +1347,7 @@
     <!-- PORTFOLIO SIGNAL: direct sidebar child — zero gap guaranteed -->
     <div class="sig-box" id="sig-box-crypto">
       <h2 class="sig-title">◈ Portfolio Signal</h2>
-      <div id="sig-content"><div style="font-size:12px;color:var(--muted);font-family:var(--font-ui);">Add holdings to see your signal.</div></div>
+      <div id="sig-content"><div style="font-size:12px;color:var(--muted);font-family:var(--font-ui);">The combined score of your coins shows here once you add one.</div></div>
     </div>
     </div>
 
@@ -1456,7 +1456,7 @@
         <ul>
           <li><b>Momentum, up to 40.</b> Where the coin ranks against every other coin over 7, 14 and 30 days, counted 25%, 30% and 45%.</li>
           <li><b>Macro strength, up to 30.</b> How it did over 7 days against BTC, gold, silver, oil, the dollar and the rest of the altcoin market.</li>
-          <li><b>Tokenomics, up to 30.</b> New supply, burns and unlocks. Heavy unlocks or high inflation take points away, which is why a score can fall below 0.</li>
+          <li><b>Tokenomics, up to 30.</b> Supply still to come, burns and unlock risk. A lot of supply still to come or a high unlock risk takes points away, which is why a score can fall below 0. An unlock in the next 30 days takes no points.</li>
         </ul>
         <p>Then two small steps:</p>
         <ul>
@@ -1488,7 +1488,7 @@
             <th class="r sorted" id="th-7" onclick="setSort(7)" data-tip="Price change over 7 days. Click to sort.">7D%</th>
             <th class="r" id="th-14" onclick="setSort(14)" data-tip="Price change over 14 days. Click to sort.">14D%</th>
             <th class="r" id="th-30" onclick="setSort(30)" data-tip="Price change over 30 days. Click to sort.">30D%</th>
-            <th class="r" id="th-score" onclick="setSort(0)" data-tip="Score from −50 to 100: momentum against every other coin, strength against BTC, gold and oil, and tokenomics. Higher = stronger so far. bStock rows show a partial momentum-only score (max 70) — see STOCKS tab tooltip.">SCORE <button type="button" class="info-i" aria-label="Momentum (up to 40) ranks 7D, 14D and 30D at 25%, 30% and 45%. Macro strength up to 30. Tokenomics up to 30, and below zero for heavy unlocks or high inflation. bStocks: momentum-only partial score, no tokenomics applies.">ⓘ</button></th>
+            <th class="r" id="th-score" onclick="setSort(0)" data-tip="Score from −50 to 100: momentum against every other coin, strength against BTC, gold and oil, and tokenomics. Higher = stronger so far. bStock rows show a partial momentum-only score (max 70) — see STOCKS tab tooltip.">SCORE <button type="button" class="info-i" aria-label="Momentum (up to 40) ranks 7D, 14D and 30D at 25%, 30% and 45%. Macro strength up to 30. Tokenomics up to 30, and below zero for a lot of supply still to come or a high unlock risk (an unlock in the next 30 days takes no points). bStocks: momentum-only partial score, no tokenomics applies.">ⓘ</button></th>
           </tr>
         </thead>
         <tbody id="tbody"></tbody>
@@ -1869,7 +1869,7 @@
   </button>
   <button type="button" class="mob-nav-btn mob-nav-land" id="mn-capital" data-sec="sec-capital" onclick="mobGo('sec-capital')">
     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="6" cy="12" r="3"/><circle cx="18" cy="12" r="3"/><path d="M9 9.5c1.8-1.4 4.2-1.4 6 0"/><path d="M15 14.5c-1.8 1.4-4.2 1.4-6 0"/></svg>
-    <span>CAPITAL</span>
+    <span>FLOWS</span>
   </button>
   <button type="button" class="mob-nav-btn mob-nav-land" id="mn-coins" data-sec="sec-coins" onclick="mobGo('sec-coins')">
     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 6h18"/><path d="M3 12h18"/><path d="M3 18h18"/></svg>
@@ -1893,7 +1893,7 @@
 
   <button type="button" class="mob-nav-btn" id="mn-yours" data-sec="sec-yours" onclick="mobGo('sec-yours')">
     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 7h-9"/><path d="M14 17H5"/><circle cx="17" cy="17" r="3"/><circle cx="7" cy="7" r="3"/></svg>
-    <span>YOURS</span>
+    <span>HOLDINGS</span>
   </button>
   <button type="button" class="mob-nav-btn" id="mn-more" onclick="mobNavMore()" aria-haspopup="true" aria-expanded="false" aria-controls="mob-more-menu">
     <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><circle cx="12" cy="5" r="2"/><circle cx="12" cy="12" r="2"/><circle cx="12" cy="19" r="2"/></svg>
@@ -2008,23 +2008,23 @@
   <script src="js/config.js?v=20261029y"></script>
   <script src="js/analytics.js"></script>
   <script src="js/api-pool.js"></script>
-  <script src="js/pro-system.js?v=20261103po"></script>
+  <script src="js/pro-system.js?v=20261103cp"></script>
   <script src="js/supabase.js"></script>
   <script src="js/signal-assistant.js"></script>
   <script src="js/tx-verify.js"></script>
-  <script src="js/i18n.js?v=20261103po"></script>
+  <script src="js/i18n.js?v=20261103cp"></script>
   <script src="js/i18n-mk.js"></script>
   <!-- The Macedonian dictionary only when MK is the saved choice (2026-10-11):
        ~270 KB that English visitors no longer download. A switch to MK on
        the page loads it from js/i18n-mk.js. -->
-  <script>try { if (localStorage.getItem('rot_lang') === 'mk') document.write('<script src="js/i18n-mk-dict.js?v=20261103po"><\/script><script src="js/i18n-mk-legal.js"><\/script>'); } catch (e) {}</script>
-  <script src="js/signals.js?v=20261029z"></script>
-  <script src="js/holdings.js?v=20261103po"></script>
+  <script>try { if (localStorage.getItem('rot_lang') === 'mk') document.write('<script src="js/i18n-mk-dict.js?v=20261103cp"><\/script><script src="js/i18n-mk-legal.js"><\/script>'); } catch (e) {}</script>
+  <script src="js/signals.js?v=20261103cp"></script>
+  <script src="js/holdings.js?v=20261103cp"></script>
   <script src="js/share-brand.js"></script>
 <script src="js/ratio.js?v=20261103po"></script>
-  <script src="js/tutorial.js?v=20261103po"></script>
+  <script src="js/tutorial.js?v=20261103cp"></script>
   <script src="js/visuals.js"></script>
-  <script src="js/ui.js?v=20261029y"></script>
+  <script src="js/ui.js?v=20261103cp"></script>
   <script src="js/signal-history.js"></script>
   <script src="js/global-movers.js"></script>
   <script src="js/data-loaders.js?v=20261103ml"></script>
@@ -2043,7 +2043,7 @@
   </script>
   <script src="js/coin-expand.js?v=20261103po"></script>
   <script src="js/rotator-indicators.js?v=20261029y"></script>
-  <script src="js/turn-watch.js?v=20261103po"></script>
+  <script src="js/turn-watch.js?v=20261103cp"></script>
   <script src="js/paper-trades.js"></script>
   <script src="js/engage.js?v=20261103po"></script>
   <script src="js/board-tabs.js?v=20261103po"></script>

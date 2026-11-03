@@ -791,7 +791,7 @@ function renderSignal(hc) {
   if (!hc || !hc.length) {
     /* Holding only coins that left the weekly list is not "no holdings". */
     el.innerHTML = '<div style="font-size:12px;color:var(--muted);">'
-      + (holdings.length ? 'None of your coins is in the top 250 now, so there is no signal.' : 'Add a coin you hold to see how your holdings score together.')
+      + (holdings.length ? 'None of your coins is in the top 250 now, so there is no signal.' : 'The combined score of your coins shows here once you add one.')
       + '</div>';
     return;
   }
@@ -1206,7 +1206,7 @@ function _hcPaRow(c, s) {
           + '<button type="button" class="tdp-pa-x" aria-label="Remove alert" data-pa="' + _hpEsc(a.dir + '|' + a.price) + '">×</button></span>';
       }).join('') + '</div>' : '')
     + '<div class="tdp-pa-note" title="Checked every hour at the latest price, so it can arrive up to an hour late.">'
-      + (linked ? 'Checked every hour; on the bell and on Telegram.' : 'Checked every hour; on the bell, and on Telegram once linked in YOURS.') + '</div>'
+      + (linked ? 'Checked every hour; on the bell and on Telegram.' : 'Checked every hour; on the bell, and on Telegram once linked in My holdings.') + '</div>'
     + '</div>';
 }
 function _hcPaWire(box, c, s, redraw) {

@@ -183,7 +183,7 @@ body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:0;opa
   .top .btn-sm{padding-left:11px;padding-right:11px;} .top > div{gap:6px !important;}
   .top .theme-btn{width:36px;overflow:hidden;justify-content:flex-start;} }
 /* Arabic: the words read right to left; the charts keep their direction. */
-html:is([lang="ar"],[lang="ur"]) :is(.hero-copy,.copy,.board-cap,.plans-in,.finale,.foot){direction:rtl;}
+html:is([lang="ar"],[lang="ur"]) :is(.hero-copy,.copy,.board-cap,.plans-in,.calc-in,.finale,.foot){direction:rtl;}
 .btn-tg{color:#fff;background:linear-gradient(180deg,#1a8acb,#126aa3);box-shadow:0 8px 28px rgba(42,171,238,.32);}
 
 /* Chapter rail on the left, like the board's sidebar. */
@@ -701,6 +701,10 @@ html:is([lang="ar"],[lang="ur"]) .td-hint{letter-spacing:0;font-family:var(--ui)
 .plan li strong{color:var(--text);font-weight:600;}
 .plan li::before{content:'';position:absolute;left:0;top:3px;width:16px;height:16px;border-radius:50%;background:rgba(243,186,47,.16);box-shadow:inset 0 0 0 1px var(--gold);}
 .plan li::after{content:'';position:absolute;left:5px;top:7px;width:5px;height:8px;border:solid var(--gold);border-width:0 2px 2px 0;transform:rotate(45deg);}
+/* Screen-reader text: the real value of a number that counts up on scroll. */
+.sr{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap;border:0;}
+.plan li.plan-sub{margin-top:-6px;font-size:.88em;}
+.plan li.plan-sub::before,.plan li.plan-sub::after{content:none;}
 .plan.pro li::before{background:rgba(42,171,238,.16);box-shadow:inset 0 0 0 1px var(--tg);}
 .plan.pro li::after{border-color:var(--tg);}
 .plan-note{font-size:13px;color:var(--muted);margin:-6px 0 18px;line-height:1.5;}
@@ -869,17 +873,15 @@ html:is([lang="ar"],[lang="ur"]) .td-hint{letter-spacing:0;font-family:var(--ui)
 @media (max-width:1000px){ .case-grid{grid-template-columns:1fr 1fr;} }
 @media (max-width:560px){ .case-grid{grid-template-columns:1fr;} .cases{padding:80px 16px 10px;} .sec-hd p{font-size:16px;} }
 
-/* ── Why Pro pays for itself ── */
+/* ── What Pro alerts are for ── */
 .calc{position:relative;z-index:1;padding:100px 24px 0;}
 .calc-card{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:28px;align-items:center;margin-top:30px;padding:30px;border-radius:24px;border:1px solid rgba(42,171,238,.35);
   background:radial-gradient(80% 90% at 100% 0%,rgba(42,171,238,.13),transparent 65%),var(--panel);box-shadow:var(--shadow);}
-.calc-card label{display:block;font:700 11px/1 var(--mono);letter-spacing:.14em;text-transform:uppercase;color:var(--dim);margin-bottom:10px;}
-.calc-in-box{display:flex;align-items:center;gap:6px;height:58px;padding:0 18px;border-radius:14px;border:1.5px solid var(--panel-b);background:var(--card);}
-.calc-in-box:focus-within{border-color:var(--gold);}
-.calc-in-box span{font:800 26px/1 var(--mono);color:var(--muted);}
-.calc-in-box input{flex:1;min-width:0;border:0;outline:0;background:transparent;color:var(--text);font:800 26px/1 var(--mono);}
-.calc-out{font:600 18px/1.45 var(--ui);color:var(--muted);}
-.calc-out b{display:block;font:800 clamp(30px,4vw,44px)/1.1 var(--mono);color:var(--tg-ink);letter-spacing:-.02em;margin-top:4px;}
+.calc-list{grid-column:1/-1;list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:18px 28px;}
+.calc-list li{display:flex;flex-direction:column;gap:4px;padding-inline-start:14px;border-inline-start:2px solid var(--gold);}
+.ca-k{font:800 12px/1.2 var(--mono);letter-spacing:.12em;text-transform:uppercase;color:var(--gold-ink);}
+.ca-v{font-size:15.5px;line-height:1.45;color:var(--text);}
+@media (max-width:760px){ .calc-list{grid-template-columns:minmax(0,1fr);} }
 .calc-note{grid-column:1/-1;margin:0;font-size:14px;color:var(--muted);line-height:1.5;}
 @media (max-width:760px){ .calc-card{grid-template-columns:minmax(0,1fr);padding:22px 18px;gap:18px;} .calc{padding:80px 16px 0;} }
 
@@ -929,13 +931,13 @@ document.addEventListener('click', function (e) {
 <nav class="rail" aria-label="Chapitres" id="rail">
   <a href="#hero" data-for="hero">COMMENCER</a>
   <a href="#today" data-for="today">AUJOURD&#x27;HUI</a>
-  <a href="#capital" data-for="capital">CAPITAL</a>
+  <a href="#capital" data-for="capital">FLUX D&#x27;ARGENT</a>
   <a href="#momentum" data-for="momentum">MOMENTUM</a>
   <a href="#insight" data-for="insight">INSIGHT ENGINE</a>
   <a href="#alerts" data-for="alerts">ALERTES</a>
   <a href="#calc" data-for="calc">PRO</a>
   <a href="#liq" data-for="liq">LIQUIDATIONS</a>
-  <a href="#yours" data-for="yours">À TOI</a>
+  <a href="#yours" data-for="yours">MES PORTEFEUILLES</a>
   <a href="#coins" data-for="coins">CRYPTOS</a>
   <a href="#score" data-for="score">NOTE</a>
   <a href="#tool" data-for="tool">L&#x27;OUTIL ROTATOR</a>
@@ -999,14 +1001,14 @@ document.addEventListener('click', function (e) {
     <div class="glow" style="--gx:30%;--gy:40%"></div>
     <div class="grid2">
       <div class="copy">
-        <div class="eyebrow"><data class="eb-n" value="02">02</data>Capital</div>
+        <div class="eyebrow"><data class="eb-n" value="02">02</data>Les flux financiers</div>
         <h2>Suis l&#x27;argent.</h2>
         <div class="steps" data-scene="capital">
           <p class="step" data-at="0"><strong>Flux d&#x27;argent entrant et sortant des ETF Bitcoin américains</strong>, chaque jour de cotation. Le vert, c&#x27;est l&#x27;argent qui rentre ; le rouge, c&#x27;est celui qui sort.</p>
           <p class="step" data-at=".4">Puis, <strong>des dollars qui circulent entre les blockchains.</strong> Les stablecoins qui arrivent sur une chaîne, c&#x27;est de l&#x27;argent prêt à être dépensé.</p>
           <p class="step" data-at=".8">Où l&#x27;argent a circulé, <strong>pas où il va ensuite.</strong> Du contexte sur les cryptos, jamais de conseils d&#x27;investissement.</p>
         </div>
-        <div class="cta-row"><a class="btn btn-gold" href="../board.html#sec-capital">Ouvrir Capital ›</a></div>
+        <div class="cta-row"><a class="btn btn-gold" href="../board.html#sec-capital">Voir les flux financiers ›</a></div>
       </div>
       <div class="vis"><div class="panel" id="cap-vis">
         <div class="tag" style="left:26px;top:20px">ETF Bitcoin au comptant aux États-Unis · flux nets quotidiens</div>
@@ -1093,20 +1095,23 @@ document.addEventListener('click', function (e) {
   </div>
 </section>
 
-<!-- 07 WHY PRO PAYS FOR ITSELF: arithmetic only, no promise, no price. -->
+<!-- 07 WHAT PRO ALERTS ARE FOR: what each alert reacts to and when it
+     arrives. No money figures: an alert is information, not a saving
+     (consistency pass 2026-11-03, replaced the "pays for itself" calculator). -->
 <section class="calc" id="calc">
   <div class="calc-in">
     <div class="sec-hd">
-      <div class="eyebrow"><data class="eb-n" value="06">06</data>Maths Pro</div>
-      <h2>Pourquoi la version Pro, ça vaut le coup.</h2>
+      <div class="eyebrow"><data class="eb-n" value="06">06</data>Alertes Pro</div>
+      <h2>À quoi servent les alertes « Pro » ?</h2>
     </div>
     <div class="calc-card">
-      <div>
-        <label for="calcIn">Ton portefeuille</label>
-        <div class="calc-in-box"><span>$</span><input id="calcIn" type="text" inputmode="numeric" autocomplete="off" value="10,000"></div>
-      </div>
-      <div class="calc-out" aria-live="polite"><div>Éviter une baisse de 5 % sur</div><div><data id="calcX" value="10000">$10,000</data> =</div><b id="calcY">$500</b></div>
-      <p class="calc-note">Du simple calcul, pas une promesse : Rotator ne peut pas te dire qu&#x27;une baisse va arriver. La version Pro te prévient à temps des déblocages, des retraits de cotation et des prix que tu as fixés, pour que tu puisses prendre ta décision à l&#x27;avance.</p>
+      <ul class="calc-list">
+        <li><div class="ca-k">Unlocks</div><div class="ca-v">Au moins 3 jours avant qu&#x27;un nouvel apport d&#x27;une cryptomonnaie que tu détiens ou que tu suis n&#x27;arrive sur le marché.</div></li>
+        <li><div class="ca-k">Retraits de cotation</div><div class="ca-v">Dans l&#x27;heure qui suit l&#x27;annonce par Binance de la radiation ou de l&#x27;arrêt des échanges d&#x27;une cryptomonnaie que tu détiens ou que tu suis.</div></li>
+        <li><div class="ca-k">Tes cours</div><div class="ca-v">Dans l&#x27;heure qui suit le moment où une cryptomonnaie atteint le prix que tu as défini.</div></li>
+        <li><div class="ca-k">Tes paires</div><div class="ca-v">Dans l&#x27;heure qui suit le moment où le ratio d&#x27;une paire enregistrée atteint le chiffre que tu as défini, entre dans le quart supérieur de sa fourchette sur 30 jours, ou lorsqu&#x27;une cryptomonnaie prend l&#x27;avantage sur l&#x27;autre.</div></li>
+      </ul>
+      <p class="calc-note">Une alerte t&#x27;indique qu&#x27;il s&#x27;est passé quelque chose avec une cryptomonnaie que tu suis, pour que tu puisses la consulter rapidement. Elle ne te dit pas quoi faire, et elle ne peut ni te faire gagner ni te faire économiser de l&#x27;argent toute seule.</p>
     </div>
   </div>
 </section>
@@ -1123,7 +1128,7 @@ document.addEventListener('click', function (e) {
         <div class="plan-hd"><div class="ph-k">Gratuit</div><div class="ph-v">$0</div><div class="ph-d">Sur le site, pas besoin de compte</div></div>
         <ul>
           <li>Chaque score, signal et tuile</li>
-          <li>Aujourd’hui, Capital, Momentum et Liquidations</li>
+          <li>Aujourd’hui : flux de capitaux, dynamique et liquidations</li>
           <li>Unlocks, rachats et burns</li>
           <li>Alertes exchange et unlock sur tes cryptos</li>
           <li>2 cryptos en portefeuille et le Rotator Tool</li>
@@ -1137,6 +1142,7 @@ document.addEventListener('click', function (e) {
           <li><strong>Briefing Telegram personnel</strong> sur tes cryptos, le lundi et le jeudi</li>
           <li><strong>Avertissement de déblocage</strong>, dans plus de 3 jours</li>
           <li><strong>Alertes de retrait de cotation, de prix et de changement de paire</strong>, en moins d&#x27;une heure</li>
+          <li class="plan-sub">Une alerte de paire est envoyée lorsque le ratio atteint la valeur que tu as choisie, qu&#x27;il entre dans le quart supérieur de sa fourchette sur 30 jours, ou qu&#x27;une cryptomonnaie prend l&#x27;avantage sur l&#x27;autre sur 7, 30 ou 60 jours.</li>
           <li>10 cryptos en portefeuille, toute paire d’échange</li>
           <li><strong>Graphiques TradingView intégrés à Rotator</strong>, en plein écran, avec des outils de dessin</li>
           <li><strong>Indicateurs d&#x27;analyse</strong> : le RSI 14 et le score Rotator sur le graphique, avec un point là où ils se croisent</li>
@@ -1178,7 +1184,7 @@ document.addEventListener('click', function (e) {
     <div class="glow" style="--gx:66%;--gy:45%"></div>
     <div class="grid2">
       <div class="copy">
-        <div class="eyebrow"><data class="eb-n" value="08">08</data>Amicalement</div>
+        <div class="eyebrow"><data class="eb-n" value="08">08</data>Mes avoirs</div>
         <h2>Tes cryptos, surveillées pour toi.</h2>
         <div class="steps" data-scene="yours">
           <p class="step" data-at="0">Ajoute ce que tu possèdes. <strong>Pas besoin de portefeuille, de clé d&#x27;échange ni de compte.</strong> Tout reste dans ton navigateur.</p>
@@ -1233,7 +1239,8 @@ document.addEventListener('click', function (e) {
         <div class="steps" data-scene="score">
           <p class="step" data-at="0">Le score, c&#x27;est <strong>une pièce composée de quatre couches.</strong> Regarde-la se désagréger.</p>
           <p class="step" data-at=".26"><strong>Le « Momentum »</strong> classe la cryptomonnaie par rapport à toutes les autres sur 7, 14 et 30 jours. Ensuite, elle est comparée <strong>au Bitcoin, à l&#x27;or, à l&#x27;argent et au pétrole.</strong></p>
-          <p class="step" data-at=".5">C&#x27;est <strong>l&#x27;offre</strong> qui pourrait peser sur le cours : des déblocages importants et une forte inflation font baisser le score, voire le font passer en dessous de zéro. <strong>La taille</strong> ajoute un petit cran fixe.</p>
+          <p class="step" data-at=".5">C&#x27;est <strong>l&#x27;offre</strong> qui pourrait peser sur le cours : une offre importante à venir et un risque élevé de déblocage font baisser la note, voire la font passer en dessous de zéro. <strong>La taille</strong> ajoute un petit cran fixe.</p>
+          <p class="step" data-at=".64">Un déblocage prévu dans les 30 prochains jours ne change pas le score. <strong>Ça empêche la cryptomonnaie d&#x27;apparaître dans les listes des nouvelles entrées jusqu&#x27;à ce que ce délai soit écoulé.</strong></p>
           <p class="step" data-at=".78">Un score élevé signifie que la cryptomonnaie s&#x27;est mieux comportée que les autres. <strong>Ça décrit ce qui s&#x27;est déjà passé. Ce n&#x27;est pas une prévision.</strong></p>
         </div>
         <div class="cta-row"><a class="btn btn-gold" href="../how-the-score-works.html">Comment fonctionne le score ? ›</a></div>
@@ -1253,18 +1260,18 @@ document.addEventListener('click', function (e) {
     <div class="grid2">
       <div class="copy">
         <div class="eyebrow"><data class="eb-n" value="11">11</data>Rotator Tool</div>
-        <h2>Trouve le meilleur moment pour échanger.</h2>
+        <h2>Découvre quand une cryptomonnaie commence à prendre le dessus sur une autre.</h2>
         <div class="steps" data-scene="tool">
           <p class="step" data-at="0"><strong>La cryptomonnaie B est en baisse tandis que la cryptomonnaie A est en hausse.</strong> Chaque semaine, un B permet d&#x27;acheter moins de A.</p>
-          <p class="step" data-at=".36">L&#x27;Rotator Tool affiche ce ratio et t&#x27;indique quand il bascule. <strong>Quand la cryptomonnaie la plus forte prend le dessus, c&#x27;est le moment idéal pour échanger la plus faible contre celle-ci.</strong></p>
+          <p class="step" data-at=".36">L&#x27;Rotator Tool affiche ce ratio au fil du temps et sa position par rapport à sa fourchette sur 30 jours. <strong>Il montre quand la cryptomonnaie la plus forte a pris le dessus ; il ne peut pas te dire si cette tendance va durer.</strong></p>
           <p class="step" data-at=".56">Ton argent mise désormais sur la cryptomonnaie en pleine ascension. <strong>Le rouge, c&#x27;est ce qu&#x27;il te reste si tu gardes du B.</strong></p>
           <p class="step" data-at=".8">Si A repart à la baisse, l&#x27;opération de swap est perdante (la ligne grise). <strong>L&#x27;outil affiche l&#x27;historique ; c&#x27;est à toi de décider.</strong></p>
         </div>
-        <div class="cta-row"><a class="btn btn-gold" href="../board.html#sec-swap">Trouve ton meilleur échange ›</a></div>
+        <div class="cta-row"><a class="btn btn-gold" href="../board.html#sec-swap">Comparer deux cryptos ›</a></div>
       </div>
       <div class="vis"><div class="panel" id="tool-vis">
         <div class="tag" style="left:26px;top:20px">Exemple · prix fictifs</div>
-        <a class="pro-bell" id="proBellSwap" href="../board.html#pro"><div class="pb-bell" aria-hidden="true">🔔</div><span class="pb-t">Reçois des alertes sur <strong>le meilleur moment pour échanger</strong> avec la version Pro</span></a>
+        <a class="pro-bell" id="proBellSwap" href="../board.html#pro"><div class="pb-bell" aria-hidden="true">🔔</div><span class="pb-t">Reçois <strong>des alertes sur les paires d&#x27;échange</strong> avec la version Pro</span></a>
       </div></div>
     </div>
   </div>
@@ -1700,7 +1707,6 @@ document.addEventListener('click', function (e) {
     record();
     insight();
     alerts();
-    calc();
     today();
     capital();
     liquidations();
@@ -2059,7 +2065,7 @@ document.addEventListener('click', function (e) {
     svg += '</svg>';
     var dw = document.createElement('div'); dw.className = 'donut-wrap';
     dw.style.transform = 'none';
-    dw.innerHTML = svg + '<div class="donut-c"><b id="yt">$0</b><span>total (exemple)</span></div>';
+    dw.innerHTML = svg + '<div class="donut-c"><b id="yt" aria-hidden="true">$0</b><span class="sr">$' + Math.round(total).toLocaleString('en-US') + '</span><span>total (exemple)</span></div>';
     vis.appendChild(dw);
     rows.forEach(function (r) {
       var d = document.createElement('div'); d.className = 'fly';
@@ -2136,7 +2142,7 @@ document.addEventListener('click', function (e) {
         var g = ease(seg(grow * 1.2 - i * 0.1, 0, 1));
         document.getElementById('sl' + i).setAttribute('stroke-dasharray', (r.len * g).toFixed(2) + ' ' + CIRC);
       });
-      $('yt').textContent = grow > 0.999 ? '$' + Math.round(total).toLocaleString('en-US') : TOPIC.usd(total * grow);
+      $('yt').textContent = grow > 0.999 || S.reduce ? '$' + Math.round(total).toLocaleString('en-US') : TOPIC.usd(total * grow);
       if (series && pts.length) {
         yc.style.opacity = String(Math.min(1, ch * 3));
         ycl.style.opacity = String(Math.min(1, ch * 3));
@@ -2572,8 +2578,9 @@ document.addEventListener('click', function (e) {
       var FROM = [6, 2, 4, 0, 5, 1, 3];
       var rows = pick.map(function (o, i) {
         var d = document.createElement('div'); d.className = 'sc-row';
-        d.innerHTML = '<span class="sc-rank"></span><img src="' + esc(o.c.image) + '" alt="" loading="lazy"><span class="sc-sym">' + esc(o.c.symbol.toUpperCase()) + '</span>'
-          + '<div class="sc-trk"><div class="sc-bar"></div></div><span class="sc-num">0</span>'
+        d.innerHTML = '<span class="sc-rank" aria-hidden="true"></span><img src="' + esc(o.c.image) + '" alt="" loading="lazy"><span class="sc-sym" aria-hidden="true">' + esc(o.c.symbol.toUpperCase()) + '</span>'
+          + '<div class="sc-trk"><div class="sc-bar"></div></div><span class="sc-num" aria-hidden="true">0</span>'
+          + '<span class="sr">' + esc(o.c.symbol.toUpperCase()) + ': note ' + o.v + '</span>'
           + (i === 0 ? '<span class="sc-climb">▲ 7e → 1er</span>' : '');
         vis.appendChild(d);
         return { el: d, bar: d.querySelector('.sc-bar'), num: d.querySelector('.sc-num'), rank: d.querySelector('.sc-rank'), climb: d.querySelector('.sc-climb'), o: o, from: FROM[i], to: i };
@@ -2583,7 +2590,7 @@ document.addEventListener('click', function (e) {
       var sum = parts[0][1] + parts[1][1] + parts[2][1];
       var pc = document.createElement('div'); pc.className = 'sc-parts';
       pc.innerHTML = '<small>Comment ' + esc(top.c.symbol.toUpperCase()) + ' obtient son score</small>'
-        + parts.map(function (q, i) { return '<div class="sc-part"><span>' + q[0] + '</span><div class="sc-trk"><div class="sc-bar" id="scp' + i + '"></div></div><b id="scv' + i + '">0 / ' + q[2] + '</b></div>'; }).join('')
+        + parts.map(function (q, i) { return '<div class="sc-part"><span>' + q[0] + '</span><div class="sc-trk"><div class="sc-bar" id="scp' + i + '"></div></div><b id="scv' + i + '" aria-hidden="true">0 / ' + q[2] + '</b><span class="sr">' + q[1] + ' / ' + q[2] + '</span></div>'; }).join('')
         + '<div class="sc-sum"><span>' + (top.v !== sum ? 'Score, après ajustement de taille' : 'Score') + '</span><b id="scs">' + top.v + '</b></div>';
       vis.appendChild(pc);
       var W, H, phone, rh, y0;
@@ -2609,7 +2616,7 @@ document.addEventListener('click', function (e) {
           r.el.classList.toggle('hl', i === 0 && so > 0.05);
           r.rank.textContent = String(Math.round(slot) + 1);
           if (r.climb) r.climb.style.opacity = String(Math.min(seg(p, 0.32, 0.4), 1 - seg(p, 0.52, 0.58)));
-          var v = r.o.v * g;
+          var v = r.o.v * (S.reduce ? 1 : g);
           r.bar.style.width = (Math.max(0, (v + 50) / 150) * 100).toFixed(2) + '%';
           r.bar.style.background = col > 0.5 ? band(r.o.v) : 'var(--dim)';
           r.bar.style.opacity = String(0.6 + 0.4 * col);
@@ -2619,7 +2626,7 @@ document.addEventListener('click', function (e) {
         pc.style.opacity = String(pt);
         pc.style.transform = 'translate3d(0,' + ((1 - pt) * 18).toFixed(1) + 'px,0)';
         parts.forEach(function (q, i) {
-          var a = ease(seg(p, 0.6 + i * 0.06, 0.63 + i * 0.06)), g = ease(seg(p, 0.61 + i * 0.06, 0.67 + i * 0.06));
+          var a = ease(seg(p, 0.6 + i * 0.06, 0.63 + i * 0.06)), g = S.reduce ? 1 : ease(seg(p, 0.61 + i * 0.06, 0.67 + i * 0.06));
           pEls[i].style.opacity = String(a);
           $('scp' + i).style.width = (Math.max(0, q[1]) / q[2] * 100 * g).toFixed(2) + '%';
           $('scv' + i).textContent = Math.round(q[1] * g) + ' / ' + q[2];
@@ -2770,7 +2777,7 @@ document.addEventListener('click', function (e) {
     leg.innerHTML = '<span><i style="background:var(--blue)"></i>Crypto B, en baisse</span><span><i style="background:var(--gold)"></i>Crypto A, en hausse</span><span><i style="background:var(--red)"></i>Sans échange</span>';
     vis.appendChild(leg);
     var pill = document.createElement('div'); pill.className = 'sw-pill'; vis.appendChild(pill);
-    var best = document.createElement('div'); best.className = 'sw-best'; best.textContent = 'Le meilleur moment pour échanger'; vis.appendChild(best);
+    var best = document.createElement('div'); best.className = 'sw-best'; best.textContent = 'A prend les devants'; vis.appendChild(best);
     var svgNS = 'http://www.w3.org/2000/svg', sv = document.createElementNS(svgNS, 'svg'); sv.setAttribute('class', 'swap-svg'); vis.appendChild(sv);
     var pbEl = $('proBellSwap');
     var W, H, phone, ch, base, posA, posB, LO = 84, HI = 166;
@@ -2870,7 +2877,7 @@ document.addEventListener('click', function (e) {
     var LO = 40, HI = 60;
     var bars = $('bars');
     bars.innerHTML = B.map(function (b, i) {
-      return '<div class="bar-row"><div class="bar-lbl">' + b.k + (b.n ? ' <span style="opacity:.7">· ' + b.n + '</span>' : '') + '<b id="bv' + i + '">0%</b></div>'
+      return '<div class="bar-row"><div class="bar-lbl">' + b.k + (b.n ? ' <span style="opacity:.7">· ' + b.n + '</span>' : '') + '<b id="bv' + i + '" aria-hidden="true">0%</b><span class="sr">' + b.v.toFixed(1) + '%</span></div>'
         + '<div class="bar"><i id="bi' + i + '" style="background:' + b.col + '"></i></div></div>';
     }).join('') + '<div class="fifty" id="fifty"><span>50 % · HASARD</span></div><div class="tag" style="position:static;margin-top:24px">Échelle de 40 % à 60 %</div>';
     $('fifty').style.left = ((50 - LO) / (HI - LO) * 100) + '%';
@@ -2894,7 +2901,7 @@ document.addEventListener('click', function (e) {
     function render(p) {
       steps('record', p);
       B.forEach(function (b, i) {
-        var g = ease(seg(p, 0.06 + i * 0.07, 0.36 + i * 0.07));
+        var g = S.reduce ? 1 : ease(seg(p, 0.06 + i * 0.07, 0.36 + i * 0.07));
         var w = clamp((b.v - LO) / (HI - LO), 0, 1) * 100 * g;
         $('bi' + i).style.width = w.toFixed(2) + '%';
         $('bv' + i).textContent = (LO + (b.v - LO) * g).toFixed(1) + '%';
@@ -3138,18 +3145,6 @@ document.addEventListener('click', function (e) {
     S.add($('alerts'), { render: render });
   }
 
-  /* ── 06 WHY PRO PAYS FOR ITSELF ─────────────────────────────── */
-  /* Arithmetic only: 5% of what the visitor types. No price, no promise. */
-  function calc() {
-    var inp = $('calcIn'), fmt = function (v) { return '$' + Math.round(v).toLocaleString('en-US'); };
-    function upd() {
-      var v = Number(String(inp.value).replace(/[^0-9.]/g, '')) || 0;
-      $('calcX').textContent = fmt(v); $('calcY').textContent = fmt(v * 0.05);
-    }
-    inp.addEventListener('input', upd);
-    inp.addEventListener('blur', function () { var v = Number(String(inp.value).replace(/[^0-9.]/g, '')) || 0; inp.value = v ? Math.round(v).toLocaleString('en-US') : ''; upd(); });
-    upd();
-  }
 })();
 </script>
 <script>

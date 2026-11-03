@@ -183,7 +183,7 @@ body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:0;opa
   .top .btn-sm{padding-left:11px;padding-right:11px;} .top > div{gap:6px !important;}
   .top .theme-btn{width:36px;overflow:hidden;justify-content:flex-start;} }
 /* Arabic: the words read right to left; the charts keep their direction. */
-html:is([lang="ar"],[lang="ur"]) :is(.hero-copy,.copy,.board-cap,.plans-in,.finale,.foot){direction:rtl;}
+html:is([lang="ar"],[lang="ur"]) :is(.hero-copy,.copy,.board-cap,.plans-in,.calc-in,.finale,.foot){direction:rtl;}
 .btn-tg{color:#fff;background:linear-gradient(180deg,#1a8acb,#126aa3);box-shadow:0 8px 28px rgba(42,171,238,.32);}
 
 /* Chapter rail on the left, like the board's sidebar. */
@@ -701,6 +701,10 @@ html:is([lang="ar"],[lang="ur"]) .td-hint{letter-spacing:0;font-family:var(--ui)
 .plan li strong{color:var(--text);font-weight:600;}
 .plan li::before{content:'';position:absolute;left:0;top:3px;width:16px;height:16px;border-radius:50%;background:rgba(243,186,47,.16);box-shadow:inset 0 0 0 1px var(--gold);}
 .plan li::after{content:'';position:absolute;left:5px;top:7px;width:5px;height:8px;border:solid var(--gold);border-width:0 2px 2px 0;transform:rotate(45deg);}
+/* Screen-reader text: the real value of a number that counts up on scroll. */
+.sr{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap;border:0;}
+.plan li.plan-sub{margin-top:-6px;font-size:.88em;}
+.plan li.plan-sub::before,.plan li.plan-sub::after{content:none;}
 .plan.pro li::before{background:rgba(42,171,238,.16);box-shadow:inset 0 0 0 1px var(--tg);}
 .plan.pro li::after{border-color:var(--tg);}
 .plan-note{font-size:13px;color:var(--muted);margin:-6px 0 18px;line-height:1.5;}
@@ -869,17 +873,15 @@ html:is([lang="ar"],[lang="ur"]) .td-hint{letter-spacing:0;font-family:var(--ui)
 @media (max-width:1000px){ .case-grid{grid-template-columns:1fr 1fr;} }
 @media (max-width:560px){ .case-grid{grid-template-columns:1fr;} .cases{padding:80px 16px 10px;} .sec-hd p{font-size:16px;} }
 
-/* ── Why Pro pays for itself ── */
+/* ── What Pro alerts are for ── */
 .calc{position:relative;z-index:1;padding:100px 24px 0;}
 .calc-card{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:28px;align-items:center;margin-top:30px;padding:30px;border-radius:24px;border:1px solid rgba(42,171,238,.35);
   background:radial-gradient(80% 90% at 100% 0%,rgba(42,171,238,.13),transparent 65%),var(--panel);box-shadow:var(--shadow);}
-.calc-card label{display:block;font:700 11px/1 var(--mono);letter-spacing:.14em;text-transform:uppercase;color:var(--dim);margin-bottom:10px;}
-.calc-in-box{display:flex;align-items:center;gap:6px;height:58px;padding:0 18px;border-radius:14px;border:1.5px solid var(--panel-b);background:var(--card);}
-.calc-in-box:focus-within{border-color:var(--gold);}
-.calc-in-box span{font:800 26px/1 var(--mono);color:var(--muted);}
-.calc-in-box input{flex:1;min-width:0;border:0;outline:0;background:transparent;color:var(--text);font:800 26px/1 var(--mono);}
-.calc-out{font:600 18px/1.45 var(--ui);color:var(--muted);}
-.calc-out b{display:block;font:800 clamp(30px,4vw,44px)/1.1 var(--mono);color:var(--tg-ink);letter-spacing:-.02em;margin-top:4px;}
+.calc-list{grid-column:1/-1;list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:18px 28px;}
+.calc-list li{display:flex;flex-direction:column;gap:4px;padding-inline-start:14px;border-inline-start:2px solid var(--gold);}
+.ca-k{font:800 12px/1.2 var(--mono);letter-spacing:.12em;text-transform:uppercase;color:var(--gold-ink);}
+.ca-v{font-size:15.5px;line-height:1.45;color:var(--text);}
+@media (max-width:760px){ .calc-list{grid-template-columns:minmax(0,1fr);} }
 .calc-note{grid-column:1/-1;margin:0;font-size:14px;color:var(--muted);line-height:1.5;}
 @media (max-width:760px){ .calc-card{grid-template-columns:minmax(0,1fr);padding:22px 18px;gap:18px;} .calc{padding:80px 16px 0;} }
 
@@ -929,13 +931,13 @@ document.addEventListener('click', function (e) {
 <nav class="rail" aria-label="Bölümler" id="rail">
   <a href="#hero" data-for="hero">BAŞLA</a>
   <a href="#today" data-for="today">BUGÜN</a>
-  <a href="#capital" data-for="capital">BÜYÜK HARF</a>
+  <a href="#capital" data-for="capital">PARA AKIŞLARI</a>
   <a href="#momentum" data-for="momentum">MOMENTUM</a>
   <a href="#insight" data-for="insight">INSIGHT ENGINE</a>
   <a href="#alerts" data-for="alerts">UYARILAR</a>
   <a href="#calc" data-for="calc">PRO</a>
   <a href="#liq" data-for="liq">LİKİDASYONLAR</a>
-  <a href="#yours" data-for="yours">SİZİN</a>
+  <a href="#yours" data-for="yours">SAHİP OLDUĞUM VARLIKLAR</a>
   <a href="#coins" data-for="coins">COINS</a>
   <a href="#score" data-for="score">PUAN</a>
   <a href="#tool" data-for="tool">ROTATOR ARAÇ</a>
@@ -999,14 +1001,14 @@ document.addEventListener('click', function (e) {
     <div class="glow" style="--gx:30%;--gy:40%"></div>
     <div class="grid2">
       <div class="copy">
-        <div class="eyebrow"><data class="eb-n" value="02">02</data>Sermaye</div>
+        <div class="eyebrow"><data class="eb-n" value="02">02</data>Para akışı</div>
         <h2>Paranın izini sürün.</h2>
         <div class="steps" data-scene="capital">
           <p class="step" data-at="0">Her işlem gününde<strong> ABD Bitcoin ETF&#x27;lerine giren ve çıkan para</strong>. Yeşil renkli olanlar girdi, kırmızı renkli olanlar çıktı.</p>
           <p class="step" data-at=".4">Ardından, <strong>blok zincirleri arasında dolaşan dolarlar.</strong> Bir zincire gelen stabilcoinler, satın almaya hazır olan paradır.</p>
           <p class="step" data-at=".8">Paranın nereye gittiği, <strong>sonra nereye gideceği değil.</strong> Coinler için bağlam, asla bir tavsiye değil.</p>
         </div>
-        <div class="cta-row"><a class="btn btn-gold" href="../board.html#sec-capital">Sermaye’yi aç ›</a></div>
+        <div class="cta-row"><a class="btn btn-gold" href="../board.html#sec-capital">Para akışlarını aç ›</a></div>
       </div>
       <div class="vis"><div class="panel" id="cap-vis">
         <div class="tag" style="left:26px;top:20px">ABD spot Bitcoin ETF&#x27;leri · günlük net akış</div>
@@ -1093,20 +1095,23 @@ document.addEventListener('click', function (e) {
   </div>
 </section>
 
-<!-- 07 WHY PRO PAYS FOR ITSELF: arithmetic only, no promise, no price. -->
+<!-- 07 WHAT PRO ALERTS ARE FOR: what each alert reacts to and when it
+     arrives. No money figures: an alert is information, not a saving
+     (consistency pass 2026-11-03, replaced the "pays for itself" calculator). -->
 <section class="calc" id="calc">
   <div class="calc-in">
     <div class="sec-hd">
-      <div class="eyebrow"><data class="eb-n" value="06">06</data>Profesyonel matematik</div>
-      <h2>Pro&#x27;un kendini amorti etmesinin nedeni.</h2>
+      <div class="eyebrow"><data class="eb-n" value="06">06</data>Pro uyarıları</div>
+      <h2>Pro uyarılarının amacı nedir?</h2>
     </div>
     <div class="calc-card">
-      <div>
-        <label for="calcIn">Portföyünüz</label>
-        <div class="calc-in-box"><span>$</span><input id="calcIn" type="text" inputmode="numeric" autocomplete="off" value="10,000"></div>
-      </div>
-      <div class="calc-out" aria-live="polite"><div>%5&#x27;lik bir düşüşü önlemek için</div><div><data id="calcX" value="10000">$10,000</data> =</div><b id="calcY">$500</b></div>
-      <p class="calc-note">Basit bir hesaplama, bir vaat değil: Rotator, bir fiyat düşüşünün geleceğini size söyleyemez. Pro, kilit açma işlemlerini, listeden çıkarılmaları ve belirlediğiniz fiyatları zamanında size bildirir, böylece erken karar verebilirsiniz.</p>
+      <ul class="calc-list">
+        <li><div class="ca-k">Kilit açılımları</div><div class="ca-v">Sahip olduğunuz veya takip ettiğiniz bir kripto paranın yeni arzı piyasaya çıkmadan 3 veya daha fazla gün önce.</div></li>
+        <li><div class="ca-k">Listeden Çıkarılanlar</div><div class="ca-v">Binance, sahip olduğunuz veya takip ettiğiniz bir kripto parayı listeden çıkaracağını veya işlemlerini durduracağını açıkladıktan sonraki bir saat içinde.</div></li>
+        <li><div class="ca-k">Fiyatlarınız</div><div class="ca-v">Bir kripto paranın belirlediğiniz fiyata ulaşmasından sonraki bir saat içinde.</div></li>
+        <li><div class="ca-k">Çiftleriniz</div><div class="ca-v">Kaydedilen bir paritenin oranı belirlediğiniz rakama ulaştığında, 30 günlük aralığının en üst çeyreğine girdiğinde veya bir kripto paranın diğerinden öne geçtiğinde, bir saat içinde.</div></li>
+      </ul>
+      <p class="calc-note">Bir uyarı, takip ettiğiniz bir kripto paraya bir şey olduğunu bildirir, böylece durumu erkenden görebilirsiniz. Ne yapmanız gerektiğini söylemez ve kendi başına para kazanmanızı veya tasarruf etmenizi sağlayamaz.</p>
     </div>
   </div>
 </section>
@@ -1123,7 +1128,7 @@ document.addEventListener('click', function (e) {
         <div class="plan-hd"><div class="ph-k">Ücretsiz</div><div class="ph-v">$0</div><div class="ph-d">Sitede hesap açmaya gerek yok</div></div>
         <ul>
           <li>Her puan, sinyal ve kutucuk</li>
-          <li>Bugün: Sermaye, Momentum ve Likidasyonlar</li>
+          <li>Bugün: Para Akışı, Momentum ve Likidasyonlar</li>
           <li>Kilit açılımları, geri alımlar ve yakımlar</li>
           <li>Coinleriniz için borsa ve kilit açılımı uyarıları</li>
           <li>2 varlık ve Rotator Tool</li>
@@ -1137,6 +1142,7 @@ document.addEventListener('click', function (e) {
           <li>Pazartesi ve Perşembe günleri, coin&#x27;lerinizle ilgili <strong>kişisel Telegram bilgilendirmeleri</strong></li>
           <li><strong>Kilit açılımı uyarısı</strong>, 3+ gün önceden</li>
           <li>Bir saat içinde <strong>listeden çıkarma, fiyat ve takas çifti uyarıları</strong></li>
+          <li class="plan-sub">Oran belirlediğiniz rakama ulaştığında, 30 günlük aralığının en üst çeyreğine girdiğinde veya 7, 30 ya da 60 gün içinde bir kripto paranın diğerine göre öne geçtiğinde bir çift uyarısı gönderilir.</li>
           <li>10 varlık, herhangi bir takas çifti</li>
           <li><strong>Rotator içindeki TradingView grafikleri</strong>, tam ekran ve çizim araçlarıyla birlikte</li>
           <li><strong>Analiz göstergesi</strong>: Grafikte RSI 14 ve Rotator puanı; kesiştiği noktada bir nokta bulunuyor</li>
@@ -1178,7 +1184,7 @@ document.addEventListener('click', function (e) {
     <div class="glow" style="--gx:66%;--gy:45%"></div>
     <div class="grid2">
       <div class="copy">
-        <div class="eyebrow"><data class="eb-n" value="08">08</data>Saygılarımla</div>
+        <div class="eyebrow"><data class="eb-n" value="08">08</data>Portföyüm</div>
         <h2>Kripto paralarınız, sizin için takip ediliyor.</h2>
         <div class="steps" data-scene="yours">
           <p class="step" data-at="0">Elinizde ne varsa ekleyin. <strong>Cüzdan, borsa anahtarı veya hesap gerekmez.</strong> Her şey tarayıcınızda kalır.</p>
@@ -1233,7 +1239,8 @@ document.addEventListener('click', function (e) {
         <div class="steps" data-scene="score">
           <p class="step" data-at="0">Skor, <strong>dört katmandan oluşan bir madeni</strong> paradır<strong>.</strong> Nasıl parçalandığını izleyin.</p>
           <p class="step" data-at=".26"><strong>Momentum</strong>, 7, 14 ve 30 günlük dönemlerde söz konusu kripto parayı diğer tüm kripto paralarla karşılaştırarak sıralar. Ardından <strong>Bitcoin, altın, gümüş ve petrol ile</strong> karşılaştırılarak değerlendirilir<strong>.</strong></p>
-          <p class="step" data-at=".5"><strong>Arz</strong>, fiyatı aşağı çekebilecek bir faktördür: büyük miktarda kilit açma işlemleri ve yüksek enflasyon, puanı sıfırın altına bile düşürebilir. <strong>Hacim ise</strong> küçük, sabit bir artış sağlar.</p>
+          <p class="step" data-at=".5"><strong>Arz</strong>, fiyatı aşağı çekebilecek bir faktördür: Hala piyasaya girecek çok fazla arz olması ve yüksek kilit açılma riski, puanı düşürür; hatta sıfırın altına bile inebilir. <strong>Hacim ise</strong> küçük, sabit bir artış sağlar.</p>
+          <p class="step" data-at=".64">Önümüzdeki 30 gün içinde gerçekleşecek bir kilit açma işlemi puanı etkilemez. <strong>Bu işlem tamamlanana kadar coin, yeni girişler listesinde yer almaz.</strong></p>
           <p class="step" data-at=".78">Yüksek bir puan, o kripto paranın diğerlerine göre daha güçlü olduğunu gösterir. <strong>Bu, geçmişte gerçekleşenleri yansıtır. Bir tahmin değildir.</strong></p>
         </div>
         <div class="cta-row"><a class="btn btn-gold" href="../how-the-score-works.html">Puanlama sistemi nasıl işliyor? ›</a></div>
@@ -1253,18 +1260,18 @@ document.addEventListener('click', function (e) {
     <div class="grid2">
       <div class="copy">
         <div class="eyebrow"><data class="eb-n" value="11">11</data>Rotator Tool</div>
-        <h2>Takas yapmak için en uygun zamanı bulun.</h2>
+        <h2>Bir kripto paranın diğerini geride bırakmaya başladığı anı görün.</h2>
         <div class="steps" data-scene="tool">
           <p class="step" data-at="0"><strong>A kripto parası yükselirken B kripto parası değer kaybediyor.</strong> Her hafta bir B, daha az A satın alıyor.</p>
-          <p class="step" data-at=".36">Rotator Tool bu oranı ve ne zaman döndüğünü gösterir. <strong>Güçlü coin öne geçtiğinde, zayıf olanı onunla takas etmenin en iyi zamanıdır.</strong></p>
+          <p class="step" data-at=".36">Rotator Toolu, bu oranı zaman içinde ve 30 günlük aralığı içinde nerede yer aldığını gösterir. <strong>Hangi kripto paranın daha güçlü olduğunu ve hakimiyeti ele geçirdiğini gösterir; ancak bu hareketin ne kadar süreceğini söyleyemez.</strong></p>
           <p class="step" data-at=".56">Paranız artık yükselişteki kripto paraya yatırıldı. <strong>Kırmızı renk, B&#x27;yi elinizde tutmanın size bıraktığı sonuçtur.</strong></p>
           <p class="step" data-at=".8">A tekrar aşağıya dönerse, swap işlemi zarara uğrar (gri çizgi). <strong>Araç geçmişi gösterir; karar sizin.</strong></p>
         </div>
-        <div class="cta-row"><a class="btn btn-gold" href="../board.html#sec-swap">En uygun takas fırsatını bulun ›</a></div>
+        <div class="cta-row"><a class="btn btn-gold" href="../board.html#sec-swap">İki kripto parayı karşılaştırın ›</a></div>
       </div>
       <div class="vis"><div class="panel" id="tool-vis">
         <div class="tag" style="left:26px;top:20px">Örnek · gerçek fiyatlar değildir</div>
-        <a class="pro-bell" id="proBellSwap" href="../board.html#pro"><div class="pb-bell" aria-hidden="true">🔔</div><span class="pb-t">Pro ile <strong>takas için en uygun zamanı bildiren</strong> uyarıları alın</span></a>
+        <a class="pro-bell" id="proBellSwap" href="../board.html#pro"><div class="pb-bell" aria-hidden="true">🔔</div><span class="pb-t">Pro ile <strong>swap çifti uyarıları</strong> alın</span></a>
       </div></div>
     </div>
   </div>
@@ -1700,7 +1707,6 @@ document.addEventListener('click', function (e) {
     record();
     insight();
     alerts();
-    calc();
     today();
     capital();
     liquidations();
@@ -2059,7 +2065,7 @@ document.addEventListener('click', function (e) {
     svg += '</svg>';
     var dw = document.createElement('div'); dw.className = 'donut-wrap';
     dw.style.transform = 'none';
-    dw.innerHTML = svg + '<div class="donut-c"><b id="yt">$0</b><span>örnek toplam</span></div>';
+    dw.innerHTML = svg + '<div class="donut-c"><b id="yt" aria-hidden="true">$0</b><span class="sr">$' + Math.round(total).toLocaleString('en-US') + '</span><span>örnek toplam</span></div>';
     vis.appendChild(dw);
     rows.forEach(function (r) {
       var d = document.createElement('div'); d.className = 'fly';
@@ -2136,7 +2142,7 @@ document.addEventListener('click', function (e) {
         var g = ease(seg(grow * 1.2 - i * 0.1, 0, 1));
         document.getElementById('sl' + i).setAttribute('stroke-dasharray', (r.len * g).toFixed(2) + ' ' + CIRC);
       });
-      $('yt').textContent = grow > 0.999 ? '$' + Math.round(total).toLocaleString('en-US') : TOPIC.usd(total * grow);
+      $('yt').textContent = grow > 0.999 || S.reduce ? '$' + Math.round(total).toLocaleString('en-US') : TOPIC.usd(total * grow);
       if (series && pts.length) {
         yc.style.opacity = String(Math.min(1, ch * 3));
         ycl.style.opacity = String(Math.min(1, ch * 3));
@@ -2572,8 +2578,9 @@ document.addEventListener('click', function (e) {
       var FROM = [6, 2, 4, 0, 5, 1, 3];
       var rows = pick.map(function (o, i) {
         var d = document.createElement('div'); d.className = 'sc-row';
-        d.innerHTML = '<span class="sc-rank"></span><img src="' + esc(o.c.image) + '" alt="" loading="lazy"><span class="sc-sym">' + esc(o.c.symbol.toUpperCase()) + '</span>'
-          + '<div class="sc-trk"><div class="sc-bar"></div></div><span class="sc-num">0</span>'
+        d.innerHTML = '<span class="sc-rank" aria-hidden="true"></span><img src="' + esc(o.c.image) + '" alt="" loading="lazy"><span class="sc-sym" aria-hidden="true">' + esc(o.c.symbol.toUpperCase()) + '</span>'
+          + '<div class="sc-trk"><div class="sc-bar"></div></div><span class="sc-num" aria-hidden="true">0</span>'
+          + '<span class="sr">' + esc(o.c.symbol.toUpperCase()) + ': puan ' + o.v + '</span>'
           + (i === 0 ? '<span class="sc-climb">▲ 7. → 1.</span>' : '');
         vis.appendChild(d);
         return { el: d, bar: d.querySelector('.sc-bar'), num: d.querySelector('.sc-num'), rank: d.querySelector('.sc-rank'), climb: d.querySelector('.sc-climb'), o: o, from: FROM[i], to: i };
@@ -2583,7 +2590,7 @@ document.addEventListener('click', function (e) {
       var sum = parts[0][1] + parts[1][1] + parts[2][1];
       var pc = document.createElement('div'); pc.className = 'sc-parts';
       pc.innerHTML = '<small> ' + esc(top.c.symbol.toUpperCase()) + ' puanını nasıl alır</small>'
-        + parts.map(function (q, i) { return '<div class="sc-part"><span>' + q[0] + '</span><div class="sc-trk"><div class="sc-bar" id="scp' + i + '"></div></div><b id="scv' + i + '">0 / ' + q[2] + '</b></div>'; }).join('')
+        + parts.map(function (q, i) { return '<div class="sc-part"><span>' + q[0] + '</span><div class="sc-trk"><div class="sc-bar" id="scp' + i + '"></div></div><b id="scv' + i + '" aria-hidden="true">0 / ' + q[2] + '</b><span class="sr">' + q[1] + ' / ' + q[2] + '</span></div>'; }).join('')
         + '<div class="sc-sum"><span>' + (top.v !== sum ? 'Boyut ayarlamasından sonra elde edilen sonuç' : 'Puan') + '</span><b id="scs">' + top.v + '</b></div>';
       vis.appendChild(pc);
       var W, H, phone, rh, y0;
@@ -2609,7 +2616,7 @@ document.addEventListener('click', function (e) {
           r.el.classList.toggle('hl', i === 0 && so > 0.05);
           r.rank.textContent = String(Math.round(slot) + 1);
           if (r.climb) r.climb.style.opacity = String(Math.min(seg(p, 0.32, 0.4), 1 - seg(p, 0.52, 0.58)));
-          var v = r.o.v * g;
+          var v = r.o.v * (S.reduce ? 1 : g);
           r.bar.style.width = (Math.max(0, (v + 50) / 150) * 100).toFixed(2) + '%';
           r.bar.style.background = col > 0.5 ? band(r.o.v) : 'var(--dim)';
           r.bar.style.opacity = String(0.6 + 0.4 * col);
@@ -2619,7 +2626,7 @@ document.addEventListener('click', function (e) {
         pc.style.opacity = String(pt);
         pc.style.transform = 'translate3d(0,' + ((1 - pt) * 18).toFixed(1) + 'px,0)';
         parts.forEach(function (q, i) {
-          var a = ease(seg(p, 0.6 + i * 0.06, 0.63 + i * 0.06)), g = ease(seg(p, 0.61 + i * 0.06, 0.67 + i * 0.06));
+          var a = ease(seg(p, 0.6 + i * 0.06, 0.63 + i * 0.06)), g = S.reduce ? 1 : ease(seg(p, 0.61 + i * 0.06, 0.67 + i * 0.06));
           pEls[i].style.opacity = String(a);
           $('scp' + i).style.width = (Math.max(0, q[1]) / q[2] * 100 * g).toFixed(2) + '%';
           $('scv' + i).textContent = Math.round(q[1] * g) + ' / ' + q[2];
@@ -2770,7 +2777,7 @@ document.addEventListener('click', function (e) {
     leg.innerHTML = '<span><i style="background:var(--blue)"></i>Coin B, değer kaybediyor</span><span><i style="background:var(--gold)"></i>A Coin, yükselişte</span><span><i style="background:var(--red)"></i>Takas yapılmadı</span>';
     vis.appendChild(leg);
     var pill = document.createElement('div'); pill.className = 'sw-pill'; vis.appendChild(pill);
-    var best = document.createElement('div'); best.className = 'sw-best'; best.textContent = 'Takas yapmak için en uygun zaman'; vis.appendChild(best);
+    var best = document.createElement('div'); best.className = 'sw-best'; best.textContent = 'A başı çekiyor'; vis.appendChild(best);
     var svgNS = 'http://www.w3.org/2000/svg', sv = document.createElementNS(svgNS, 'svg'); sv.setAttribute('class', 'swap-svg'); vis.appendChild(sv);
     var pbEl = $('proBellSwap');
     var W, H, phone, ch, base, posA, posB, LO = 84, HI = 166;
@@ -2870,7 +2877,7 @@ document.addEventListener('click', function (e) {
     var LO = 40, HI = 60;
     var bars = $('bars');
     bars.innerHTML = B.map(function (b, i) {
-      return '<div class="bar-row"><div class="bar-lbl">' + b.k + (b.n ? ' <span style="opacity:.7">· ' + b.n + '</span>' : '') + '<b id="bv' + i + '">0%</b></div>'
+      return '<div class="bar-row"><div class="bar-lbl">' + b.k + (b.n ? ' <span style="opacity:.7">· ' + b.n + '</span>' : '') + '<b id="bv' + i + '" aria-hidden="true">0%</b><span class="sr">' + b.v.toFixed(1) + '%</span></div>'
         + '<div class="bar"><i id="bi' + i + '" style="background:' + b.col + '"></i></div></div>';
     }).join('') + '<div class="fifty" id="fifty"><span>%50 · ŞANS</span></div><div class="tag" style="position:static;margin-top:24px">Ölçek %40 ile %60 arası</div>';
     $('fifty').style.left = ((50 - LO) / (HI - LO) * 100) + '%';
@@ -2894,7 +2901,7 @@ document.addEventListener('click', function (e) {
     function render(p) {
       steps('record', p);
       B.forEach(function (b, i) {
-        var g = ease(seg(p, 0.06 + i * 0.07, 0.36 + i * 0.07));
+        var g = S.reduce ? 1 : ease(seg(p, 0.06 + i * 0.07, 0.36 + i * 0.07));
         var w = clamp((b.v - LO) / (HI - LO), 0, 1) * 100 * g;
         $('bi' + i).style.width = w.toFixed(2) + '%';
         $('bv' + i).textContent = (LO + (b.v - LO) * g).toFixed(1) + '%';
@@ -3138,18 +3145,6 @@ document.addEventListener('click', function (e) {
     S.add($('alerts'), { render: render });
   }
 
-  /* ── 06 WHY PRO PAYS FOR ITSELF ─────────────────────────────── */
-  /* Arithmetic only: 5% of what the visitor types. No price, no promise. */
-  function calc() {
-    var inp = $('calcIn'), fmt = function (v) { return '$' + Math.round(v).toLocaleString('en-US'); };
-    function upd() {
-      var v = Number(String(inp.value).replace(/[^0-9.]/g, '')) || 0;
-      $('calcX').textContent = fmt(v); $('calcY').textContent = fmt(v * 0.05);
-    }
-    inp.addEventListener('input', upd);
-    inp.addEventListener('blur', function () { var v = Number(String(inp.value).replace(/[^0-9.]/g, '')) || 0; inp.value = v ? Math.round(v).toLocaleString('en-US') : ''; upd(); });
-    upd();
-  }
 })();
 </script>
 <script>
