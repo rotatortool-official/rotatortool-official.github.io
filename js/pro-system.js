@@ -662,10 +662,8 @@ function checkProCode() {
 }
 
 function copyRefLink() {
-  var link = getMyReferralLink(), btn = document.getElementById('copy-ref-btn');
-  var done = function() { btn.textContent = '✓ COPIED!'; btn.classList.add('ok'); setTimeout(function() { btn.textContent = 'COPY REFERRAL LINK'; btn.classList.remove('ok'); }, 2500); };
-  if (navigator.clipboard) { navigator.clipboard.writeText(link).then(done).catch(done); }
-  else { var t = document.createElement('textarea'); t.value = link; document.body.appendChild(t); t.select(); document.execCommand('copy'); document.body.removeChild(t); done(); }
+  var btn = document.getElementById('copy-ref-btn');
+  rotCopy(getMyReferralLink(), btn, btn && btn.previousElementSibling);
   if (window.Analytics) Analytics.track('Share', { source: 'referral', channel: 'copy' });
 }
 
@@ -704,15 +702,26 @@ function incrementDonationCount() {
   try { var n = parseInt(localStorage.getItem('rot_donation_est') || '0') + 1; localStorage.setItem('rot_donation_est', String(n)); } catch(e) {}
 }
 
+/* Visit days in rot_visit_days since 2026-11-03: rot_visits is engage.js's
+   per-session count (a plain number), and the two formats overwrote each
+   other (outside audit). The first read takes an old object from rot_visits;
+   a broken value starts again from zero. */
+function _readVisitDays() {
+  function parse(s) {
+    try { var o = JSON.parse(s); return o && typeof o === 'object' && typeof o.lastDay === 'string' ? o : null; } catch (e) { return null; }
+  }
+  var own = localStorage.getItem('rot_visit_days');
+  return (own != null ? parse(own) : parse(localStorage.getItem('rot_visits'))) || { total: 0, lastDay: '', dailyStreak: 0 };
+}
 function getVisitStats() {
   try {
     var today = new Date().toISOString().slice(0, 10);
-    var data  = JSON.parse(localStorage.getItem('rot_visits') || '{"total":0,"lastDay":"","dailyStreak":0}');
+    var data  = _readVisitDays();
     if (data.lastDay !== today) {
-      data.total = (data.total || 0) + 1;
-      data.dailyStreak = (data.lastDay === getPrevDay(today)) ? (data.dailyStreak || 0) + 1 : 1;
+      data.total = (Number(data.total) || 0) + 1;
+      data.dailyStreak = (data.lastDay === getPrevDay(today)) ? (Number(data.dailyStreak) || 0) + 1 : 1;
       data.lastDay = today;
-      localStorage.setItem('rot_visits', JSON.stringify(data));
+      localStorage.setItem('rot_visit_days', JSON.stringify(data));
     }
     return data;
   } catch(e) { return {total:1, dailyStreak:1}; }
@@ -738,12 +747,70 @@ function renderDonationBar(containerId) {
     + '</div>';
 }
 
-/* Clipboard helper used for donation address copy */
-function copyAddr(addr, btnId) {
-  var btn  = document.getElementById(btnId);
-  var copy = function() { btn.textContent = '✓ COPIED!'; btn.classList.add('ok'); setTimeout(function() { btn.textContent = 'COPY ADDRESS'; btn.classList.remove('ok'); }, 2500); };
-  if (navigator.clipboard) { navigator.clipboard.writeText(addr).then(copy).catch(copy); }
-  else { var t = document.createElement('textarea'); t.value = addr; document.body.appendChild(t); t.select(); document.execCommand('copy'); document.body.removeChild(t); copy(); }
+/* Copy text, and say "COPIED" only when the copy really happened (outside
+   audit 2026-11-03: a refused clipboard write and a failed execCommand both
+   showed "✓ COPIED!", on the payment addresses too). When it fails, the
+   text is selected in `field` and a line under the button asks the reader
+   to copy it by hand. The button's own label comes back afterwards, also
+   after quick repeated clicks (it used to come back as "COPY ADDRESS" on
+   the Binance ID and "COPY REFERRAL LINK" on a "COPY" button).
+   onCopied runs only after a real copy. */
+function rotCopy(text, btn, field, onCopied) {
+  if (!btn) return;
+  function legacy() {
+    var t = document.createElement('textarea'), ok = false;
+    t.value = text; t.setAttribute('readonly', '');
+    t.style.cssText = 'position:fixed;left:-9999px;top:0;opacity:0;';
+    document.body.appendChild(t); t.select();
+    try { ok = document.execCommand('copy') === true; } catch (e) {}
+    document.body.removeChild(t);
+    return ok;
+  }
+  function selectField() {
+    if (!field) return;
+    try {
+      if (typeof field === 'function') return field();
+      if (field.tagName === 'INPUT' || field.tagName === 'TEXTAREA') { field.focus(); field.select(); return; }
+      var r = document.createRange(), sel = window.getSelection();
+      r.selectNodeContents(field); sel.removeAllRanges(); sel.addRange(r);
+    } catch (e) {}
+  }
+  function show(ok) {
+    if (btn.dataset.label == null) btn.dataset.label = btn.textContent;
+    clearTimeout(btn._copyT);
+    /* In a flex row (referral link, recovery key) the line goes under the row. */
+    var anchor = btn.parentNode && getComputedStyle(btn.parentNode).display.indexOf('flex') >= 0 ? btn.parentNode : btn;
+    var hint = anchor.nextElementSibling && anchor.nextElementSibling.classList.contains('copy-hint') ? anchor.nextElementSibling : null;
+    if (hint) hint.remove();
+    btn.classList.toggle('ok', ok);
+    btn.textContent = ok ? '✓ COPIED!' : btn.dataset.label;
+    if (ok) { if (onCopied) onCopied(); }
+    else {
+      selectField();
+      hint = document.createElement('div');
+      hint.className = 'copy-hint'; hint.setAttribute('role', 'status');
+      hint.textContent = 'Could not copy. The text is selected: copy it by hand.';
+      anchor.insertAdjacentElement('afterend', hint);
+    }
+    btn._copyT = setTimeout(function() {
+      btn.classList.remove('ok');
+      btn.textContent = btn.dataset.label; delete btn.dataset.label;
+      if (hint) hint.remove();
+    }, ok ? 2500 : 8000);
+  }
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    var p;
+    try { p = navigator.clipboard.writeText(text); } catch (e) { p = Promise.reject(e); }
+    p.then(function() { show(true); }, function() { show(legacy()); });
+  } else {
+    show(legacy());
+  }
+}
+
+/* Payment address / Binance ID copy: the text box sits right before the button. */
+function copyAddr(addr, btnId, onCopied) {
+  var btn = document.getElementById(btnId);
+  rotCopy(addr, btn, btn && btn.previousElementSibling, onCopied);
 }
 
 /* ── Recovery key helpers ────────────────────────────────────── */
@@ -758,13 +825,13 @@ function toggleRecoveryKey() {
 
 function copyRecoveryKey() {
   var inp = document.getElementById('recovery-key-display');
-  var val = inp ? inp.value : getMyId();
-  var done = function() {
-    var btn = inp.nextElementSibling;
-    if (btn) { btn.textContent = '✓ COPIED!'; btn.classList.add('ok'); setTimeout(function() { btn.textContent = 'COPY'; btn.classList.remove('ok'); }, 2500); }
-  };
-  if (navigator.clipboard) { navigator.clipboard.writeText(val).then(done).catch(done); }
-  else { var t = document.createElement('textarea'); t.value = val; document.body.appendChild(t); t.select(); document.execCommand('copy'); document.body.removeChild(t); done(); }
+  if (!inp) return;
+  /* A hidden (password) field cannot be copied by hand, so a failed copy
+     shows the key before selecting it: the reader asked to copy it. */
+  rotCopy(inp.value, inp.nextElementSibling, function() {
+    if (inp.type === 'password') toggleRecoveryKey();
+    inp.focus(); inp.select();
+  });
 }
 
 function restoreProFromKey() {

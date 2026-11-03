@@ -29,12 +29,23 @@
   function set(k, v) { try { localStorage.setItem(k, String(v)); } catch (e) {} }
   function esc(s) { return String(s).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); }
 
-  /* One visit per browser session. */
-  var visits = Number(get('rot_visits')) || 0;
+  /* One visit per browser session, counted in rot_visit_count since
+     2026-11-03. It used to share rot_visits with getVisitStats() in
+     pro-system.js, which keeps a JSON object of visit days there (outside
+     audit). The first read takes the old count from either shape. */
+  function oldVisits() {
+    var v = get('rot_visits');
+    if (v == null) return 0;
+    if (/^\s*\d+\s*$/.test(v)) return Number(v);
+    try { var o = JSON.parse(v); return o && typeof o.total === 'number' && o.total > 0 ? Math.floor(o.total) : 0; } catch (e) { return 0; }
+  }
+  var rawVisits = get('rot_visit_count');
+  var visits = rawVisits == null ? oldVisits() : Math.max(0, Math.floor(Number(rawVisits))) || 0;
+  if (rawVisits == null && visits) set('rot_visit_count', visits);
   try {
     if (!sessionStorage.getItem('rot_visit_seen')) {
       sessionStorage.setItem('rot_visit_seen', '1');
-      visits += 1; set('rot_visits', visits);
+      visits += 1; set('rot_visit_count', visits);
     }
   } catch (e) {}
 
