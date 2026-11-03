@@ -656,6 +656,8 @@ function _tdStoryHtml(c, extra) {
     + (seen ? '' : '<button type="button" class="td-story-go" onclick="tdStoryRun(this)">'
       /* "Run evaluation" with the Insight Engine's lightning (Daniel, 2026-10-29). */
       + '<span class="td-story-go-t">⚡ ' + (S.mk ? 'Процени го ' + _esc(c.sym) : 'Run evaluation on ' + _esc(c.sym)) + ' →'
+      /* Said before the click that it is Pro (review 2026-10-31). */
+      + (pro ? '' : ' <span style="color:var(--pro);font-weight:700;letter-spacing:.06em;">PRO</span>')
       + '</span>'
       + '<span class="td-story-go-s">' + (S.mk ? 'Rotator ги чита цената, местото, RSI и отклучувањата' : 'Rotator reads its price moves, rank, RSI and unlocks') + '</span></button>'
       + '<div class="td-think" role="status"><div class="td-think-t">' + (S.mk ? 'Го читам ' : 'Reading ') + _esc(c.sym) + '…</div><ul>'
@@ -669,7 +671,13 @@ function tdStoryRun(btn) {
   if (!el || !el.classList.contains('is-idle')) return;
   /* The summary is Pro (Daniel, 2026-10-28: "The button itself is already
      behind the Pro"); free users go to the Pro window. */
-  if (!(typeof _tdIsPro === 'function' && _tdIsPro())) { if (typeof closeTileDetail === 'function') closeTileDetail(); if (typeof openPro === 'function') openPro(); return; }
+  if (!(typeof _tdIsPro === 'function' && _tdIsPro())) {
+    /* Back to this coin when the Pro window closes (review 2026-10-31). */
+    if (typeof _tdCoin !== 'undefined' && _tdCoin) _tdProReturn = _tdCoin.id;
+    if (typeof closeTileDetail === 'function') closeTileDetail();
+    if (typeof openPro === 'function') openPro();
+    return;
+  }
   _tdStorySeen[el.getAttribute('data-sym')] = 1;
   if (typeof supaCountFeature === 'function') supaCountFeature('coin_summary');
   var reduce = false;

@@ -79,7 +79,9 @@ var RatioTracker = (function() {
      data) comes first; LABELS covers the moments before coins[] loads.
      Until 2026-10-11 LABELS came first and every coin missing from it
      showed its id cut to 6 letters (ZCASH, QUANT-, PANCAK, ~40 coins). */
-  function lbl(id){ return _symOf(id)||LABELS[id]||id.toUpperCase().slice(0,6); }
+  /* id can be null on a reload before both dropdowns are filled; that
+     threw "reading 'toUpperCase'" into the tool's status line (review 2026-10-31). */
+  function lbl(id){ return _symOf(id)||LABELS[id]||String(id||'').toUpperCase().slice(0,6); }
   function $(id){ return document.getElementById(id); }
   function set(id,v){ var e=$(id); if(e) e.textContent=v; }
 
@@ -489,7 +491,9 @@ var RatioTracker = (function() {
       S._regrouped = true;
       try { refresh(); } catch(e){}
     }
-    if(S.loading) return; S.loading=true;
+    if(S.loading) return;
+    if(!S.from||!S.to) return;  /* pair not chosen yet: nothing to load */
+    S.loading=true;
     var gen = ++_loadGen;         /* capture generation for staleness checks */
 
     if(forceRefresh){

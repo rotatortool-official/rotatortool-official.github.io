@@ -4156,6 +4156,10 @@ function openModal(id) {
 function closeModal(id) {
   if (id === 'settings-modal') { closeSettingsPanel(); return; }
   document.getElementById(id).classList.remove('show');
+  if (id === 'pro-modal' && _tdProReturn) {
+    var back = _tdProReturn; _tdProReturn = null;
+    openTileDetail(back);
+  }
 }
 
 /* ── Settings panel (positioned near gear button) ─────────────── */
@@ -4681,6 +4685,7 @@ function openTileDetail(coinId, evt) {
   if (!c) return;
   if (typeof supaCountFeature === 'function') supaCountFeature('coin_window');
   _tdCoin = c;
+  _tdUrlCoin(c.sym);
   _tdAbout(c);
   _tdChainFlow(c);
   _tdBinance(c);
@@ -5642,12 +5647,30 @@ function saveTileHolding() {
   }
 }
 
+/* The open coin stays in the address as ?coin=SYM, so a reload or a copied
+   link keeps it (review 2026-10-31: the deep link removed it). replaceState,
+   so Back still leaves the board instead of stepping through coins. */
+function _tdUrlCoin(sym) {
+  try {
+    var params = new URLSearchParams(window.location.search);
+    if (sym) params.set('coin', sym); else params.delete('coin');
+    var q = params.toString();
+    window.history.replaceState(history.state, '', window.location.pathname + (q ? '?' + q : '') + window.location.hash);
+  } catch (e) {}
+}
+/* Set when "Run evaluation" sends a free visitor to Pro: closing the Pro
+   window (or activating Pro) opens the same coin again. */
+var _tdProReturn = null;
+
 function closeTileDetail() {
   var p = document.getElementById('td-panel');
   var o = document.getElementById('td-overlay');
   if (p) p.style.display = 'none';
   if (o) o.classList.remove('show');
   _tdCoin = null;
+  /* Going to Pro from the window keeps the coin in the address, so a
+     reload after paying still lands on it. */
+  if (!_tdProReturn) _tdUrlCoin(null);
   /* Heavy charts do not stay alive behind a closed window (iPhone memory). */
   if (typeof tdChartFree === 'function') tdChartFree();
 }
@@ -5704,7 +5727,8 @@ function _handleCoinDeepLink() {
   try {
     /* Clean URL without reloading */
     var params = new URLSearchParams(window.location.search);
-    params.delete('coin'); params.delete('watch'); params.delete('vs');
+    if (_pendingDeepLinkWatch) params.delete('coin');
+    params.delete('watch'); params.delete('vs');
     var remaining = params.toString();
     var cleanUrl = window.location.pathname + (remaining ? '?' + remaining : '');
     window.history.replaceState({}, '', cleanUrl);
@@ -6228,6 +6252,8 @@ function _getViralCopyData() {
   var scoreEl = document.querySelector('#td-score-num .td-score-num-val');
   var score = scoreEl ? scoreEl.textContent.trim().split('/')[0].trim() : (_tdCoin ? _tdCoin.score : '?');
   var link  = (typeof getMyReferralLink === 'function') ? getMyReferralLink() : ROTATOR_SHARE.link;
+  /* The link opens this coin, not the home page (review 2026-10-31). */
+  if (sym) link += (link.indexOf('?') >= 0 ? '&' : (/\/$/.test(link) ? '?' : '/?')) + 'coin=' + encodeURIComponent(sym);
   return { sym: sym, score: score, chg: chg, link: link };
 }
 
