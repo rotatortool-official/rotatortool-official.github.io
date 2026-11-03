@@ -1055,7 +1055,7 @@ document.addEventListener('click', function (e) {
         <h2>Des alertes sur tes cryptos, sur Telegram.</h2>
         <div class="steps" data-scene="alerts">
           <p class="step" data-at="0"><strong>Un déblocage important est prévu</strong> <strong>dans 3 jours</strong> pour une cryptomonnaie que tu détiens ? Rotator te le signale en premier.</p>
-          <p class="step" data-at=".26"><strong>Binance annonce un retrait de cotation ?</strong> Tu es tout de suite au courant.</p>
+          <p class="step" data-at=".26"><strong>Binance annonce un retrait de cotation ?</strong> Tu seras au courant d&#x27;ici une heure.</p>
           <p class="step" data-at=".48"><strong>Ton cours est atteint ?</strong> L&#x27;alerte que tu as configurée te parvient.</p>
           <p class="step" data-at=".7">Et tous <strong>les lundis et jeudis, un petit point</strong> sur tes cryptos. Rien d&#x27;autre, pas de chichis.</p>
         </div>
@@ -1120,14 +1120,14 @@ document.addEventListener('click', function (e) {
         <ul>
           <li><strong>Briefing Telegram personnel</strong> sur tes cryptos, le lundi et le jeudi</li>
           <li><strong>Avertissement de déblocage</strong>, dans plus de 3 jours</li>
-          <li><strong>Des alertes sur les retraits de cotation et les changements de paires</strong>, en temps réel</li>
+          <li><strong>Alertes de retrait de cotation, de prix et de changement de paire</strong>, en moins d&#x27;une heure</li>
           <li>10 cryptos en portefeuille, toute paire d’échange</li>
           <li><strong>Graphiques TradingView intégrés à Rotator</strong>, en plein écran, avec des outils de dessin</li>
           <li><strong>Indicateurs d&#x27;analyse</strong> : le RSI 14 et le score Rotator sur le graphique, avec un point là où ils se croisent</li>
           <li><strong>Rotator Insight Engine</strong>: ⚡ Évalue n&#x27;importe quelle cryptomonnaie, en langage simple</li>
           <li>Notifications du navigateur</li>
         </ul>
-        <p class="plan-note">Les 10 premiers à payer garderont l&#x27;accès à la version Pro tant que Rotator couvrira ses propres frais. Après ça, la version Pro deviendra un abonnement. Tu peux aussi l&#x27;obtenir gratuitement : 1 semaine pour chaque ami que tu invites, 2 semaines si tu t&#x27;abonnes à Rotator Weekly.</p>
+        <p class="plan-note">Les 10 premiers à payer conservent l&#x27;accès à la version Pro sans limite de durée : ça ne s&#x27;arrête que si Rotator cesse de fonctionner, et ils n&#x27;auront plus jamais rien à payer quand les abonnements seront lancés. Tu peux aussi l&#x27;obtenir gratuitement : 1 semaine pour chaque ami que tu invites, 2 semaines si tu t&#x27;abonnes à Rotator Weekly.</p>
         <a class="btn btn-tg" href="../board.html#pro">Passe à la version Pro</a>
       </div>
     </div>
@@ -3239,8 +3239,8 @@ document.addEventListener('click', function (e) {
            board's watch link as before. */
         + '<div class="alx"><div class="alx-h">' + '⚡ Alertes « Pro » pour cette cryptomonnaie :' + ' <b>' + TOPIC.esc(sym) + '</b></div><ul class="alx-li">'
         + '<li>' + (unl ? '🔓 ' + 'Avertissement de déblocage, 3 jours avant :' + ' <b>' + TOPIC.day(u.next_unlock_at) + '</b>' : '🔓 ' + 'Avertissement concernant le déblocage : dès qu\'un déblocage est programmé.') + '</li>'
-        + '<li>⚠️ ' + 'Retrait de la liste Binance : tout de suite.' + '</li>'
-        + '<li>🎯 ' + 'Ton propre cours : dès qu\'il est atteint.' + '</li>'
+        + '<li>⚠️ ' + 'Retrait de la liste Binance : d\'ici une heure.' + '</li>'
+        + '<li>🎯 ' + 'Ton propre cours : dans l\'heure qui suit son atteinte.' + '</li>'
         + '<li>↔️ ' + '« Overtake » : quand elle dépasse une autre cryptomonnaie que tu détiens.' + '</li>'
         + '<li>🗓️ ' + 'Le point sur tes cryptos : tous les lundis et jeudis.' + '</li></ul>'
         + '<div class="alx-n">' + 'On ne vend pas de signaux. On t\'informe en temps réel, et c\'est toi qui décides.' + '</div>'

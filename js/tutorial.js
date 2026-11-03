@@ -609,7 +609,7 @@ var PRO_TUT_STEPS = [
     "open": "holdings",
     "title": "📨 Your alerts on Telegram",
     "p": [
-      "Click **Get these on Telegram**, then tap **Start** in Telegram. You get a briefing every Monday and Thursday, and delistings right away."
+      "Click **Get these on Telegram**, then tap **Start** in Telegram. You get a briefing every Monday and Thursday, and delistings within the hour."
     ],
     "note": "Disconnect any time from the same panel."
   },

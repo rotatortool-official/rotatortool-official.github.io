@@ -62,7 +62,7 @@ function tdSyncExpand() {
 
 function tdToggleExpand() {
   /* The coin window sits above the Pro window, so it closes first. */
-  if (!_tdxPro()) { if (typeof closeTileDetail === 'function') closeTileDetail(); if (typeof openPro === 'function') openPro(); return; }
+  if (!_tdxPro()) { if (typeof openPro === 'function') openPro(); return; }
   _tdxPref = !_tdxPref;
   try { localStorage.setItem('rot_td_expanded', _tdxPref ? '1' : '0'); } catch (e) {}
   tdSyncExpand();
@@ -436,7 +436,7 @@ function _tdxTv(slot, c) {
   if (tv.getAttribute('data-key') === key) return;
   tv.setAttribute('data-key', key);
   if (typeof supaCountFeature === 'function') supaCountFeature('tradingview_open');
-  _tvEmbed(tv, c, true, 'The TradingView chart did not load (an ad blocker may be blocking it). Allow tradingview.com in the blocker and open the coin again.');
+  _tvEmbed(tv, c, true, true);
 }
 
 /* TradingView or Rotator indicators in the Price box; the choice is kept

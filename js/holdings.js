@@ -1015,7 +1015,7 @@ function tdChartTab(tab) {
     } else if (tv.getAttribute('data-sym') !== c.sym && typeof _tvEmbed === 'function') {
       tv.setAttribute('data-sym', c.sym);
       if (typeof supaCountFeature === 'function') supaCountFeature('tradingview_open');
-      _tvEmbed(tv, c, false, mk ? 'Графиконот не се вчита (можеби го блокира блокатор на реклами).' : 'The chart did not load (an ad blocker may be blocking it).');
+      _tvEmbed(tv, c, false, true);
     }
   }
   if (tab === 'ri' && typeof riRender === 'function') {
@@ -1026,7 +1026,7 @@ function tdChartTab(tab) {
       l.innerHTML = '<div class="td-ri-lock-b"><b>📈 Rotator indicators</b>'
         + '<span>' + (mk ? 'Свеќи со golden/death cross и RSI ознаки, RSI 14, Rotator оценката по ден, плус EMA, Bollinger, SuperTrend, MACD и Squeeze.'
           : 'Candles with golden cross, death cross and RSI marks, RSI 14, the Rotator score by day, plus EMA, Bollinger, SuperTrend, MACD and Squeeze.') + '</span>'
-        + '<button type="button" class="td-pro-lock-btn" onclick="closeTileDetail();openPro()">' + (mk ? 'Погледни Pro' : 'See Pro') + '</button></div>';
+        + '<button type="button" class="td-pro-lock-btn" onclick="openPro()">' + (mk ? 'Погледни Pro' : 'See Pro') + '</button></div>';
       riw.appendChild(l);
     } else if (typeof supaCountFeature === 'function') supaCountFeature('rotator_indicators');
     if (ri.getAttribute('data-sym') !== c.sym || ri.getAttribute('data-pro') !== String(pro)) {

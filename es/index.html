@@ -1055,7 +1055,7 @@ document.addEventListener('click', function (e) {
         <h2>Alertas sobre tus monedas, en Telegram.</h2>
         <div class="steps" data-scene="alerts">
           <p class="step" data-at="0"><strong>¿Faltan tres días para un gran desbloqueo</strong> de una moneda que tienes? Rotator te lo cuenta antes que nadie.</p>
-          <p class="step" data-at=".26"><strong>¿Binance anuncia una retirada de cotización?</strong> Te enteras al instante.</p>
+          <p class="step" data-at=".26"><strong>¿Binance anuncia que va a retirar una criptomoneda de la lista?</strong> Te enterarás en menos de una hora.</p>
           <p class="step" data-at=".48"><strong>¿Se ha alcanzado tu precio?</strong> Te llega la alerta que has configurado.</p>
           <p class="step" data-at=".7">Y cada <strong>lunes y jueves, un breve resumen</strong> sobre tus monedas. Nada más, sin tonterías.</p>
         </div>
@@ -1120,14 +1120,14 @@ document.addEventListener('click', function (e) {
         <ul>
           <li><strong>Resumen personal en Telegram</strong> sobre tus monedas, los lunes y jueves</li>
           <li><strong>Aviso de desbloqueo</strong>, dentro de más de 3 días</li>
-          <li><strong>Alertas sobre retiradas de cotización y cambios de pares</strong>, al instante</li>
+          <li><strong>Alertas sobre retiradas de cotización, precios y pares de intercambio</strong>, en menos de una hora</li>
           <li>10 monedas en cartera, cualquier par de intercambio</li>
           <li><strong>Gráficos de TradingView dentro de Rotator</strong>, a pantalla completa, con herramientas de dibujo</li>
           <li><strong>Indicador de análisis</strong>: el RSI 14 y la puntuación de Rotator en el gráfico, con un punto donde se cruzan</li>
           <li><strong>Rotator Insight Engine</strong>: ⚡ Haz un análisis de cualquier moneda, en un lenguaje sencillo</li>
           <li>Notificaciones del navegador</li>
         </ul>
-        <p class="plan-note">Los primeros 10 que paguen podrán disfrutar de la versión Pro mientras Rotator cubra sus propios gastos. A partir de ahí, Pro pasará a ser una suscripción. También puedes conseguirla gratis: 1 semana por cada amigo que invites y 2 semanas por suscribirte a Rotator Weekly.</p>
+        <p class="plan-note">Los primeros 10 que paguen conservan Pro sin fecha de fin: solo se acaba si Rotator deja de funcionar, y no tendrán que volver a pagar nunca más cuando empiecen las suscripciones. También puedes conseguirlo gratis: 1 semana por cada amigo que invites, 2 semanas por suscribirte a Rotator Weekly.</p>
         <a class="btn btn-tg" href="../board.html#pro">Consigue la versión Pro</a>
       </div>
     </div>
@@ -3239,8 +3239,8 @@ document.addEventListener('click', function (e) {
            board's watch link as before. */
         + '<div class="alx"><div class="alx-h">' + '⚡ Alertas Pro para esta moneda:' + ' <b>' + TOPIC.esc(sym) + '</b></div><ul class="alx-li">'
         + '<li>' + (unl ? '🔓 ' + 'Aviso de desbloqueo, 3 días antes:' + ' <b>' + TOPIC.day(u.next_unlock_at) + '</b>' : '🔓 ' + 'Aviso de desbloqueo: en cuanto haya uno programado.') + '</li>'
-        + '<li>⚠️ ' + 'Retirada de Binance: ya mismo.' + '</li>'
-        + '<li>🎯 ' + 'Tu propio precio: en cuanto se alcance.' + '</li>'
+        + '<li>⚠️ ' + 'Retirada de Binance: en menos de una hora.' + '</li>'
+        + '<li>🎯 ' + 'Tu propio precio: en la hora siguiente a que se alcance.' + '</li>'
         + '<li>↔️ ' + '«Superar»: cuando supera a otra moneda que tienes.' + '</li>'
         + '<li>🗓️ ' + 'Resumen sobre tus monedas: todos los lunes y jueves.' + '</li></ul>'
         + '<div class="alx-n">' + 'No vendemos señales. Te avisamos a tiempo y tú decides.' + '</div>'

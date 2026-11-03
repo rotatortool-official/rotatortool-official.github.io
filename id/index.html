@@ -1055,7 +1055,7 @@ document.addEventListener('click', function (e) {
         <h2>Pemberitahuan mengenai koin Anda, di Telegram.</h2>
         <div class="steps" data-scene="alerts">
           <p class="step" data-at="0"><strong>Apakah ada pembukaan kunci besar dalam 3 hari lagi</strong> untuk koin yang Anda miliki? Rotator akan memberi tahu Anda lebih dulu.</p>
-          <p class="step" data-at=".26"><strong>Binance mengumumkan penghapusan daftar?</strong> Anda akan langsung mengetahuinya.</p>
+          <p class="step" data-at=".26"><strong>Binance mengumumkan penghapusan daftar?</strong> Anda akan mendapat kabar dalam waktu satu jam.</p>
           <p class="step" data-at=".48"><strong>Harga yang Anda tentukan sudah tercapai?</strong> Peringatan yang Anda atur akan muncul.</p>
           <p class="step" data-at=".7">Dan setiap <strong>Senin dan Kamis, ringkasan singkat</strong> mengenai koin-koin Anda. Tidak ada yang lain, tanpa informasi yang tidak perlu.</p>
         </div>
@@ -1120,14 +1120,14 @@ document.addEventListener('click', function (e) {
         <ul>
           <li><strong>Ringkasan pribadi melalui Telegram</strong> mengenai koin Anda, setiap Senin dan Kamis</li>
           <li><strong>Peringatan pembukaan</strong>, 3 hari ke depan</li>
-          <li><strong>Pemberitahuan penghapusan daftar dan pasangan swap</strong>, langsung diterima</li>
+          <li><strong>Pemberitahuan penghapusan daftar, harga</strong>, <strong>dan pasangan swap</strong>, dalam waktu satu jam</li>
           <li>10 aset yang dimiliki, pasangan swap apa pun</li>
           <li><strong>Grafik TradingView di dalam Rotator</strong>, tampilan layar penuh, dilengkapi dengan alat menggambar</li>
           <li><strong>Indikator wawasan</strong>: RSI 14 dan skor Rotator pada grafik, dengan titik di tempat keduanya bersilangan</li>
           <li><strong>Rotator Insight Engine</strong>: ⚡ Lakukan evaluasi terhadap koin apa pun, dengan bahasa yang sederhana</li>
           <li>Pemberitahuan browser</li>
         </ul>
-        <p class="plan-note">10 orang pertama yang membayar dapat menggunakan versi Pro selama Rotator masih mampu menutupi biayanya sendiri. Setelah itu, Pro akan menjadi layanan berlangganan. Anda juga bisa mendapatkannya secara gratis: 1 minggu untuk setiap teman yang Anda undang, dan 2 minggu jika berlangganan Rotator Weekly.</p>
+        <p class="plan-note">10 orang pertama yang membayar akan mendapatkan akses ke versi Pro tanpa batas waktu: akses ini hanya akan berakhir jika Rotator berhenti beroperasi, dan mereka tidak perlu membayar lagi saat langganan dimulai. Anda juga bisa mendapatkannya secara gratis: 1 minggu untuk setiap teman yang Anda undang, dan 2 minggu jika berlangganan Rotator Weekly.</p>
         <a class="btn btn-tg" href="../board.html#pro">Dapatkan Pro</a>
       </div>
     </div>
@@ -3239,8 +3239,8 @@ document.addEventListener('click', function (e) {
            board's watch link as before. */
         + '<div class="alx"><div class="alx-h">' + '⚡ Peringatan Pro untuk koin ini:' + ' <b>' + TOPIC.esc(sym) + '</b></div><ul class="alx-li">'
         + '<li>' + (unl ? '🔓 ' + 'Peringatan pemblokiran, 3 hari sebelumnya:' + ' <b>' + TOPIC.day(u.next_unlock_at) + '</b>' : '🔓 ' + 'Peringatan pembukaan: segera setelah ada yang dijadwalkan.') + '</li>'
-        + '<li>⚠️ ' + 'Penghapusan daftar Binance: segera.' + '</li>'
-        + '<li>🎯 ' + 'Harga yang Anda tentukan: begitu harga tersebut tercapai.' + '</li>'
+        + '<li>⚠️ ' + 'Penarikan daftar Binance: dalam waktu satu jam.' + '</li>'
+        + '<li>🎯 ' + 'Harga yang Anda tentukan: dalam waktu satu jam setelah harga tersebut tercapai.' + '</li>'
         + '<li>↔️ ' + 'Overtake: saat harganya melampaui koin lain yang Anda miliki.' + '</li>'
         + '<li>🗓️ ' + 'Ringkasan tentang koin Anda: setiap hari Senin dan Kamis.' + '</li></ul>'
         + '<div class="alx-n">' + 'Kami tidak menjual sinyal. Kami memberi tahu Anda tepat waktu, dan Anda yang memutuskan.' + '</div>'

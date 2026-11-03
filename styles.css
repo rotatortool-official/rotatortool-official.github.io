@@ -893,6 +893,12 @@ body::before{content:'';position:fixed;inset:0;background:repeating-linear-gradi
 .td-tv-chart:empty{height:0;}
 .td-tv-blocked{height:auto;padding:12px;font-size:13px;color:var(--muted);border:1px dashed var(--bdr);border-radius:8px;}
 .td-tv-chart:has(.td-tv-blocked){height:auto;}
+/* TradingView slower than 8 visible seconds (2026-11-03): a note over the
+   frame, which keeps loading underneath. */
+.td-tv-wait{position:absolute;inset:0;z-index:2;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;padding:16px;text-align:center;font-size:13px;line-height:1.5;color:var(--text);background:color-mix(in srgb,var(--bg2) 92%,transparent);border-radius:8px;}
+.td-tv-wait-acts{display:flex;gap:8px;flex-wrap:wrap;justify-content:center;}
+.td-tv-wait button{padding:7px 12px;border-radius:10px;border:1px solid var(--bdr2);background:var(--bg3);color:var(--text);font-size:12.5px;font-weight:600;cursor:pointer;}
+.td-tv-wait .td-tv-useri{border-color:var(--gold, #f3ba2f);}
 .td-tv a{font-size:13px;font-weight:600;color:var(--text);text-decoration:none;}
 .td-tv a:hover{text-decoration:underline;}
 .td-tv-note{font-size:11px;color:var(--muted);line-height:1.4;}
@@ -2452,6 +2458,7 @@ td.qa-cell{text-align:center;width:28px;padding:0 4px !important;}
 /* Status */
 .rt-status{font-size:12px;color:var(--muted);min-height:12px;margin:2px 0;}
 .rt-status.ok{color:var(--green);}.rt-status.err{color:var(--red);}.rt-status.warn{color:var(--amber);}
+.rt-retry{margin-left:8px;padding:2px 10px;border-radius:8px;border:1px solid var(--bdr2);background:var(--bg3);color:var(--text);font-size:12px;cursor:pointer;}
 
 /* Saved pairs */
 /* Saved pairs share the row's full width, the chart's width, and read
@@ -7606,8 +7613,8 @@ body.has-tabs #pro-modal .modal{background:var(--bg2);}
 .refx-section{border-radius:14px !important;padding:16px 18px !important;}
 .refx-sub{font-size:13px;}
 .refx-link,.refx-copy,.refx-ch{border-radius:10px !important;}
-.plb-split .plb-c > div:first-child{font-size:11px !important;font-weight:800;letter-spacing:.12em;color:var(--muted) !important;margin:0 0 8px !important;}
-.plb-split .plb-c > div:nth-child(2){border:1px solid var(--bdr2);border-radius:14px;padding:16px 18px;background:var(--bg3);font-size:13px;}
+.plb-pay > div:first-child{font-size:11px !important;font-weight:800;letter-spacing:.12em;color:var(--muted) !important;margin:0 0 8px !important;}
+.plb-pay > div:nth-child(2){border:1px solid var(--bdr2);border-radius:14px;padding:16px 18px;background:var(--bg3);font-size:13px;}
 .plb-split .plb-c button,.plb-split .plb-c input,.plb-split .plb-c select{border-radius:10px !important;}
 .plb-split .plb-b > div:not(.plb-ledger):not(.plb-price):not(.plb-ways):not(.refx-section):not(.pro-divider){font-size:13px;}
 /* Space only between sections that are showing, so every tab's first
@@ -7687,10 +7694,10 @@ body.has-tabs #pro-modal .modal-x{color:#1d1c16;background:#ffffeb;border:1.5px 
 #pro-modal .plb-sub{color:#5f5c4c;font-size:15px;}
 #pro-modal .plb-col{background:#fffdf2;border:1.5px solid rgba(29,28,22,.22);border-radius:24px;padding:20px 22px;box-shadow:none;}
 #pro-modal .plb-col.pro{background:#f7ebff;border-color:#1d1c16;}
-#pro-modal .plb-col-hd,#pro-modal .plb-ledger-hd,#pro-modal .refx-title,#pro-modal .plb-split .plb-c > div:first-child{color:#034f46 !important;}
+#pro-modal .plb-col-hd,#pro-modal .plb-ledger-hd,#pro-modal .refx-title,#pro-modal .plb-pay > div:first-child{color:#034f46 !important;}
 #pro-modal .plb-col li::before{color:#034f46;}
 #pro-modal .plb-col.pro li::before{content:"\2726";font-size:11px;top:6px;}
-#pro-modal .plb-ledger,#pro-modal .refx-section,#pro-modal .plb-split .plb-c > div:nth-child(2){background:#fffdf2 !important;border:1.5px solid rgba(29,28,22,.22) !important;border-radius:24px !important;box-shadow:none !important;}
+#pro-modal .plb-ledger,#pro-modal .refx-section,#pro-modal .plb-pay > div:nth-child(2){background:#fffdf2 !important;border:1.5px solid rgba(29,28,22,.22) !important;border-radius:24px !important;box-shadow:none !important;}
 #pro-modal .refx-bar{background:rgba(29,28,22,.08);}
 #pro-modal .refx-bar-fill{background:#034f46 !important;}
 #pro-modal .refx-count{background:#f0d7ff !important;color:#1d1c16 !important;border:1.5px solid #1d1c16;border-radius:999px;}
@@ -7719,10 +7726,10 @@ body.has-tabs #pro-modal .modal-x{color:#1d1c16;background:#ffffeb;border:1.5px 
 :root:not(.light) #pro-modal .plb-col{background:#1f1f23;border-color:rgba(255,255,255,.12);}
 :root:not(.light) #pro-modal .plb-col.pro{background:#251d2b;border-color:rgba(240,215,255,.45);}
 :root:not(.light) #pro-modal .plb-col-hd,:root:not(.light) #pro-modal .plb-ledger-hd,:root:not(.light) #pro-modal .refx-title,
-:root:not(.light) #pro-modal .plb-split .plb-c > div:first-child{color:#9fe3d0 !important;}
+:root:not(.light) #pro-modal .plb-pay > div:first-child{color:#9fe3d0 !important;}
 :root:not(.light) #pro-modal .plb-col li::before{color:#9fe3d0;}
 :root:not(.light) #pro-modal .plb-col.pro li::before{color:#e3c4ff;}
-:root:not(.light) #pro-modal .plb-ledger,:root:not(.light) #pro-modal .refx-section,:root:not(.light) #pro-modal .plb-split .plb-c > div:nth-child(2){background:#1f1f23 !important;border-color:rgba(255,255,255,.12) !important;}
+:root:not(.light) #pro-modal .plb-ledger,:root:not(.light) #pro-modal .refx-section,:root:not(.light) #pro-modal .plb-pay > div:nth-child(2){background:#1f1f23 !important;border-color:rgba(255,255,255,.12) !important;}
 :root:not(.light) #pro-modal .refx-bar{background:rgba(255,255,255,.08);}
 :root:not(.light) #pro-modal .refx-bar-fill{background:#9fe3d0 !important;}
 :root:not(.light) #pro-modal button:not(.modal-x),:root:not(.light) #pro-modal .code-btn,:root:not(.light) #pro-modal .refx-copy,:root:not(.light) #pro-modal .refx-ch,:root:not(.light) #pro-modal a.btn,
@@ -7751,6 +7758,48 @@ body.has-tabs .tb-dropdown-wrap:has(> #pro-topbar-btn){display:none;}
   font-size:13px !important;font-weight:600 !important;letter-spacing:0 !important;text-transform:lowercase;}
 #pro-modal .copy-btn::first-letter{text-transform:uppercase;}
 #pro-modal .pro-pay-addr{font-size:12.5px;word-break:break-all;}
+/* Pro window, offer first (2026-11-03): benefit, price and terms, the
+   button and the newsletter code before any list. */
+#pro-modal .plb-hero{font-size:17px;line-height:1.45;color:var(--text);margin-bottom:14px;}
+#pro-modal .plb-hero b{font-weight:700;}
+.plb-offer{border:1.5px solid var(--pro);border-radius:18px;padding:16px 18px;margin-bottom:16px;background:var(--bg3);}
+.plb-offer-price{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap;margin-bottom:6px;}
+.plb-offer-price b{font-size:30px;font-weight:800;line-height:1;}
+.plb-offer-price span{font-size:13px;font-weight:700;color:var(--muted);}
+.plb-terms{margin:0 0 10px;padding:0 0 0 18px;font-size:13px;line-height:1.5;color:var(--text);}
+.plb-terms li{margin:2px 0;}
+.plb-offer .pro-places{margin:0 0 10px;}
+#pro-modal .plb-go{display:block;width:100%;padding:11px 14px;font-size:14px;font-weight:700;border-radius:12px;cursor:pointer;}
+.plb-full-note{font-size:13px;line-height:1.5;color:var(--muted);margin:4px 0 0;}
+.plb-code{margin-top:14px;padding-top:12px;border-top:1px solid var(--bdr2);}
+.plb-code-hd{font-size:13px;font-weight:700;margin-bottom:8px;}
+.plb-code .code-input{flex:1 1 auto;min-width:0;width:auto;}
+.plb-code .code-btn{flex:0 0 auto;white-space:nowrap;}
+.plb-code-sub{font-size:12px;line-height:1.5;color:var(--muted);}
+.plb-more{margin-top:6px;font-size:13px;}
+.plb-more summary{cursor:pointer;color:var(--muted);font-weight:600;}
+.plb-sample{border:1.5px dashed var(--bdr2);border-radius:18px;padding:14px 16px;margin-bottom:14px;}
+.plb-sample-hd{font-size:11px;font-weight:800;letter-spacing:.12em;color:var(--amber);margin-bottom:8px;}
+.plb-sample-msg{background:var(--bg2);border-radius:12px;padding:10px 12px;font-size:12.5px;line-height:1.55;}
+.plb-sample-s{margin-top:6px;}
+.plb-sample-sub{padding-left:14px;color:var(--muted);}
+.plb-sample-foot{font-size:12px;line-height:1.5;color:var(--muted);margin-top:8px;}
+.plb-manual{margin-top:12px;padding-top:10px;border-top:1px dashed var(--bdr2);}
+.plb-manual-hd{font-size:12px;font-weight:700;color:var(--amber);margin-bottom:6px;}
+.plb-manual-note{font-size:12px;line-height:1.5;color:var(--muted);margin-top:-6px;}
+.plb-next{margin-top:14px;border:1.5px solid var(--pro);border-radius:14px;padding:12px 14px;background:var(--bg3);text-align:left;}
+.plb-next-hd{font-size:11px;font-weight:800;letter-spacing:.12em;color:var(--pro);margin-bottom:6px;}
+.plb-next-sub{font-size:12.5px;line-height:1.5;color:var(--text);margin-bottom:8px;}
+.plb-next .ca-tg{display:block;margin-top:8px;font-size:12.5px;line-height:1.5;}
+.plb-next .ca-tg-note{display:block;margin-top:6px;font-size:12px;color:var(--muted);}
+.plb-flash{animation:plbFlash 1.2s ease-out;}
+@keyframes plbFlash{0%{box-shadow:0 0 0 0 var(--pro);}100%{box-shadow:0 0 0 14px transparent;}}
+#pro-modal .plb-offer,#pro-modal .plb-sample-msg{background:#fffdf2;}
+#pro-modal .plb-offer{border-color:#1d1c16;}
+:root:not(.light) #pro-modal .plb-offer,:root:not(.light) #pro-modal .plb-sample-msg{background:#1f1f23;}
+:root:not(.light) #pro-modal .plb-offer{border-color:rgba(240,215,255,.45);}
+:root:not(.light) #pro-modal .plb-hero{color:#f5f1e3;}
+#pro-modal .plb-hero{color:#1d1c16;}
 /* Every tab looks the same until it is the one you are on (Daniel: the
    outlined My coins read as "selected" when it was not). */
 body.has-tabs .btab-mine{border:0;border-radius:10px;margin-left:0;}

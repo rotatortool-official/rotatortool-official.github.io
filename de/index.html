@@ -1055,7 +1055,7 @@ document.addEventListener('click', function (e) {
         <h2>Benachrichtigungen zu deinen Coins, über Telegram.</h2>
         <div class="steps" data-scene="alerts">
           <p class="step" data-at="0"><strong>Steht</strong> bei einer Coin, die du hältst, <strong>in 3 Tagen eine große Freigabe an</strong>? Rotator informiert dich als Erster.</p>
-          <p class="step" data-at=".26"><strong>Binance kündigt eine Streichung aus dem Handel an?</strong> Du erfährst es sofort.</p>
+          <p class="step" data-at=".26"><strong>Binance kündigt eine Dekotierung an?</strong> Du erfährst es innerhalb einer Stunde.</p>
           <p class="step" data-at=".48"><strong>Dein Kurs ist erreicht?</strong> Die von dir eingestellte Benachrichtigung kommt durch.</p>
           <p class="step" data-at=".7">Und jeden <strong>Montag und Donnerstag gibt’s einen kurzen Überblick</strong> über deine Coins. Sonst nichts, kein Schnickschnack.</p>
         </div>
@@ -1120,14 +1120,14 @@ document.addEventListener('click', function (e) {
         <ul>
           <li><strong>Persönliches Telegram-Briefing</strong> zu deinen Coins, montags und donnerstags</li>
           <li><strong>Unlock-Warnung</strong>, 3+ Tage im Voraus</li>
-          <li><strong>Benachrichtigungen zu Delistings und Swap-Paaren</strong> – sofort</li>
+          <li><strong>Benachrichtigungen zu Delistings, Kursen und Swap-Paaren</strong> – innerhalb einer Stunde</li>
           <li>10 Coins im Depot, jedes Swap-Paar</li>
           <li><strong>TradingView-Charts in Rotator</strong>, im Vollbildmodus, mit Zeichenwerkzeugen</li>
           <li><strong>Anzeige der Kennzahlen</strong>: RSI 14 und der Rotator-Wert im Chart, mit einem Punkt an der Schnittstelle</li>
           <li><strong>Rotator Insight Engine</strong>: ⚡ Lass jede beliebige Kryptowährung bewerten – in einfachen Worten</li>
           <li>Browser-Benachrichtigungen</li>
         </ul>
-        <p class="plan-note">Die ersten 10, die bezahlen, können Pro so lange nutzen, wie Rotator seine eigenen Kosten deckt. Danach wird Pro zu einem Abonnement. Du kannst es auch kostenlos bekommen: 1 Woche für jeden Freund, den du einlädst, 2 Wochen für das Abonnieren von Rotator Weekly.</p>
+        <p class="plan-note">Die ersten 10, die bezahlen, behalten die Pro-Version ohne Ablaufdatum: Sie endet erst, wenn Rotator nicht mehr läuft, und sie müssen nie wieder bezahlen, wenn die Abonnements starten. Du kannst es auch kostenlos bekommen: 1 Woche für jeden Freund, den du einlädst, 2 Wochen für das Abonnieren von „Rotator Weekly“.</p>
         <a class="btn btn-tg" href="../board.html#pro">Hol dir die Pro-Version</a>
       </div>
     </div>
@@ -3239,8 +3239,8 @@ document.addEventListener('click', function (e) {
            board's watch link as before. */
         + '<div class="alx"><div class="alx-h">' + '⚡ Pro-Benachrichtigungen für diese Coin:' + ' <b>' + TOPIC.esc(sym) + '</b></div><ul class="alx-li">'
         + '<li>' + (unl ? '🔓 ' + 'Warnung vor der Freischaltung, 3 Tage vorher:' + ' <b>' + TOPIC.day(u.next_unlock_at) + '</b>' : '🔓 ' + 'Warnung zum Unlock: sobald einer geplant ist.') + '</li>'
-        + '<li>⚠️ ' + 'Delisting bei Binance: sofort.' + '</li>'
-        + '<li>🎯 ' + 'Dein eigener Kurs: sobald er erreicht ist.' + '</li>'
+        + '<li>⚠️ ' + 'Delisting bei Binance: innerhalb einer Stunde.' + '</li>'
+        + '<li>🎯 ' + 'Dein eigener Preis: innerhalb einer Stunde, nachdem er erreicht wurde.' + '</li>'
         + '<li>↔️ ' + '„Overtake“: wenn es eine andere Coin überholt, die du hältst.' + '</li>'
         + '<li>🗓️ ' + 'Infos zu deinen Coins: jeden Montag und Donnerstag.' + '</li></ul>'
         + '<div class="alx-n">' + 'Wir verkaufen keine Signale. Wir informieren dich rechtzeitig, und du entscheidest.' + '</div>'

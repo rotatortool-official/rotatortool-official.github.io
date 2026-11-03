@@ -311,7 +311,13 @@
     var a = document.createElement('div'), b = document.createElement('div'), c = document.createElement('div');
     a.className = 'plb-a'; b.className = 'plb-b'; c.className = 'plb-c';
     var ref = plb.querySelector(':scope > .refx-section'), ri = kids.indexOf(ref);
+    var named = !!plb.querySelector(':scope > [data-col]');
     kids.forEach(function (k, i) {
+      /* Since 2026-11-03 each block names its column: the offer (a), what
+         Pro is (b), paying (c). Blocks without one go to b. */
+      var col = k.getAttribute('data-col');
+      if (col) { (col === 'a' ? a : col === 'c' ? c : b).appendChild(k); return; }
+      if (named) { b.appendChild(k); return; }
       if (k.classList.contains('plb-title') || k.classList.contains('plb-sub') || k.classList.contains('plb-cols')) a.appendChild(k);
       else if (ri >= 0 && (i === ri + 1 || i === ri + 2)) c.appendChild(k);
       else b.appendChild(k);

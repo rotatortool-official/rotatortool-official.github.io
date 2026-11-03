@@ -298,11 +298,36 @@ function _proPlacesFill() {
       : (mk ? 'Сите 10 места за раните поддржувачи се пополнети' : 'All 10 early-supporter places are taken');
     el.classList.toggle('full', n === 0);
     el.style.display = '';
+    /* No places left: paying is closed (server cap, 2026-11-03); the code
+       box and the friend weeks stay. A failed read leaves paying open and
+       the server decides. */
+    var go = document.getElementById('plb-go'), pay = document.getElementById('pro-pay'), note = document.getElementById('plb-full-note');
+    if (go) go.style.display = n > 0 ? '' : 'none';
+    if (pay) pay.style.display = n > 0 ? '' : 'none';
+    if (note) note.style.display = n > 0 ? 'none' : '';
   }).catch(function () {});
+}
+
+/* The offer's main button: to the payment box (the right column on a wide
+   screen, further down on a phone). */
+function proGoPay() {
+  var pay = document.getElementById('pro-pay');
+  if (typeof supaCountFeature === 'function') supaCountFeature('pro_pay_click');
+  if (!pay) return;
+  pay.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  pay.classList.remove('plb-flash'); void pay.offsetWidth; pay.classList.add('plb-flash');
 }
 
 function openPro() {
   if (window.Analytics) Analytics.track('Pro Modal Opened');
+  /* From inside a coin window: close it, and open the same coin again when
+     this window closes or Pro starts (review 2026-10-31, every Pro button
+     since 2026-11-03; before, only "Run evaluation" came back). */
+  if (!isPro && typeof _tdCoin !== 'undefined' && _tdCoin && typeof closeTileDetail === 'function') {
+    var tdp = document.getElementById('td-panel');
+    if (tdp && tdp.style.display !== 'none') { _tdProReturn = _tdCoin.id; closeTileDetail(); }
+  }
+  if (!isPro && typeof supaCountFeature === 'function') supaCountFeature('pro_preview');
   var body  = document.getElementById('pro-modal-body');
   var d     = checkMyReferrals();
   var link = getMyReferralLink();
@@ -318,6 +343,15 @@ function openPro() {
       + '<div class="already-pro-txt">Thank you!</div>'
       + '<div class="already-pro-sub" style="color:var(--green);font-weight:600;">' + (getProExpiry() ? 'Pro is active until ' + proUntilText(getProExpiry()) : 'Pro is active — full features unlocked') + '</div>'
       + '<div style="margin-top:10px;background:var(--gd);border:1px solid rgba(0,200,150,.2);border-radius:4px;padding:8px 14px;text-align:center;font-size:12px;color:var(--green);font-weight:600;">Full features — your support keeps Rotator independent</div>'
+      /* The obvious next step after Pro starts (2026-11-03): coins, then
+         Telegram. The line is turn-watch.js's own, so "connected" shows
+         only after the server confirms the link. */
+      + '<div class="plb-next">'
+        + '<div class="plb-next-hd">NEXT STEP: GET YOUR ALERTS</div>'
+        + '<div class="plb-next-sub">Choose the coins you hold or watch, then connect Telegram. Your briefing comes every Monday and Thursday; delistings and your price and pair alerts within the hour.</div>'
+        + '<button type="button" class="ca-act" onclick="closeModal(\'pro-modal\');if(typeof openCoinAlerts===\'function\')openCoinAlerts();">Choose my coins</button>'
+        + '<div id="pro-tg-step">' + (typeof _twTgFoot === 'function' ? _twTgFoot() : '') + '</div>'
+      + '</div>'
       + '<div style="margin-top:14px;background:var(--bg3);border:1px solid var(--bdr2);border-radius:4px;padding:12px 14px;">'
         + '<div style="font-size:12px;color:var(--muted);letter-spacing:.12em;margin-bottom:8px;">' + _('pro_coming') + '</div>'
         + '<div style="font-size:12px;color:var(--text);line-height:2;">◈ <strong style="color:var(--bnb)">' + _('pro_coming_1') + '</strong><br>◈ <strong style="color:var(--pro)">' + _('pro_coming_2') + '</strong><br>◈ ' + _('pro_coming_3') + '</div>'
@@ -355,15 +389,43 @@ function openPro() {
   } else {
     var _proRequested = false;
     try { _proRequested = localStorage.getItem('rot_pro_requested') === '1'; } catch (e) {}
-    /* Layout B, chosen by Daniel 2026-10-10 from three drafts ("best
-       clarity"): what stays free and what Pro sends you, side by side;
-       what it costs to run Rotator; the price and places left. Each thing
-       is said once. Before, the briefing, the unlock warning and the pair
-       alerts each appeared in a table AND a list, and "free" three times. */
+    /* Layout B, chosen by Daniel 2026-10-10 ("best clarity"), reordered
+       2026-11-03 (follow-up review, Daniel: "Cap at 10 places"): the
+       benefit, then the price, its terms and the button, then the code
+       box, all before the feature list. The terms follow the server:
+       grant_pro_via_tx gives the first 10 crypto payments Pro with no end
+       date and keeps an 11th for a reply by hand (backend
+       sql/early_supporter_cap_2026-11-03.sql). Never "forever" or
+       "lifetime" (first-10 rule, 2026-10-10). data-col places each block
+       in the desktop columns (js/board-tabs.js). */
     body.innerHTML = '<div class="plb">'
-      + '<div class="plb-title">⚡ Pro</div>'
-      + '<div class="plb-sub">Rotator presents data relevant to your holdings, on time, so you stay informed and decide for yourself. It does not sell buy or sell signals.</div>'
-      + '<div class="plb-cols">'
+      + '<div class="plb-title" data-col="a">⚡ Pro</div>'
+      + '<div class="plb-sub plb-hero" data-col="a"><b>Understand your coins in one place. Get important changes on Telegram.</b></div>'
+      + '<div class="plb-offer" id="plb-offer" data-col="a">'
+        /* "$20 once" came off on 2026-10-21 (Daniel: not true while later
+           buyers were to get a subscription). With the server cap it is
+           true for the 10, so the price never appears without them. */
+        + '<div class="plb-offer-price"><b>$20</b> <span>paid once · first 10 supporters</span></div>'
+        + '<ul class="plb-terms">'
+          + '<li>No renewal. Pro has no end date; it ends only if Rotator stops running.</li>'
+          + '<li>When subscriptions start, these 10 keep Pro without paying again.</li>'
+        + '</ul>'
+        + '<div class="pro-places" id="pro-places" style="display:none;"></div>'   /* filled by _proPlacesFill() */
+        + '<button type="button" class="plb-go" id="plb-go" onclick="proGoPay()">Pay $20 with crypto</button>'
+        + '<div class="plb-full-note" id="plb-full-note" style="display:none;">All 10 places are taken, so paying is closed until the Pro subscription starts. You can still get Pro weeks for free below.</div>'
+        /* The Rotator Weekly code (2026-10-27): 2 weeks, here at the top
+           so a subscriber finds it without scrolling. */
+        + '<div class="plb-code">'
+          + '<div class="plb-code-hd">Got the 2-week code from Rotator Weekly?</div>'
+          + '<div style="display:flex;gap:6px;">'
+            + '<input class="code-input" id="pro-code-input" placeholder="Enter your Pro code" style="font-size:12px;">'
+            + '<button class="code-btn" onclick="checkProCode()">REDEEM</button>'
+          + '</div>'
+          + '<div id="pro-code-err" style="font-size:12px;margin-top:6px;min-height:14px;color:var(--red);"></div>'
+          + '<div class="plb-code-sub">No code yet? <a href="https://rotatortool.substack.com/subscribe?utm_source=rotatortool&amp;utm_medium=pro-window" target="_blank" rel="noopener" onclick="if(typeof supaCountFeature===\'function\')supaCountFeature(\'pro_newsletter_click\')">Subscribe to Rotator Weekly</a>: the welcome email has it. Each friend you invite adds 1 more week.</div>'
+        + '</div>'
+      + '</div>'
+      + '<div class="plb-cols" data-col="b">'
         + '<div class="plb-col"><div class="plb-col-hd">FREE · on the site</div><ul>'
           + '<li>Every score, sign and tile</li>'
           + '<li>Unlocks, buybacks and burns</li>'
@@ -373,27 +435,41 @@ function openPro() {
         + '<div class="plb-col pro"><div class="plb-col-hd">PRO · sent to you</div><ul>'
           + '<li><b>Personal Telegram briefing</b> on your coins, Mon and Thu</li>'
           + '<li><b>Unlock warning</b>, 3+ days ahead</li>'
-          + '<li><b>Delisting and swap-pair alerts</b>, right away</li>'
+          + '<li><b>Delisting, price and swap-pair alerts</b>, within the hour</li>'
+          + '<li><b>Rotator indicators</b>: our golden cross, death cross and RSI comeback flags on the price chart, with RSI and the Rotator score</li>'
+          + '<li>Full coin breakdown on one screen (desktop), with price scenarios</li></ul>'
+          + '<details class="plb-more"><summary>Everything else in Pro</summary><ul>'
           + '<li>10 holdings, any swap pair</li>'
           + '<li><b>TradingView charts inside Rotator</b>: the big coin card and full screen, with drawing tools and indicators</li>'
-          + '<li><b>Rotator indicators</b>: our golden cross, death cross and RSI comeback flags on the price chart, with RSI and the Rotator score</li>'
-          + '<li>Full coin breakdown on one screen (desktop), with price scenarios</li>'
           + '<li>Coin market data, supply and unlocks, derivatives (funding, open interest, positioning) and history: RSI, events</li>'
-          + '<li>Browser notifications</li></ul></div>'
+          + '<li>Browser notifications</li></ul></details></div>'
+      + '</div>'
+      /* A made-up briefing in the real layout (same as the alerts popup,
+         js/engage.js); the label says so before anyone reads the numbers. */
+      + '<div class="plb-sample" data-col="b">'
+        + '<div class="plb-sample-hd">EXAMPLE · not live data, not your coins</div>'
+        + '<div class="plb-sample-msg">'
+          + '<div>📊 <b>Rotator · your briefing</b> · Thursday</div>'
+          + '<div class="plb-sample-s"><b>Your coins</b></div>'
+          + '<div>• <b>SOL</b> <i>(held)</i> · score 64</div>'
+          + '<div class="plb-sample-sub">↳ ▲ Golden cross: 60-day average crossed above the 125-day</div>'
+          + '<div>• <b>STRK</b> <i>(watched)</i> · score 58</div>'
+          + '<div class="plb-sample-sub">↳ Unlock in 4 days: 3.3% of supply</div>'
+          + '<div class="plb-sample-s"><b>Your swap pairs</b></div>'
+          + '<div>⇄ <b>ETH → SOL</b>: in the good swap zone</div>'
+        + '</div>'
+        + '<div class="plb-sample-foot">Sent every Monday and Thursday after you connect Telegram. Delistings and your price and pair alerts come within the hour.</div>'
       + '</div>'
       /* Why it costs money (Daniel: API calls have limits, one person cannot
          carry them). Kinds of cost, never amounts we have not published. */
-      + '<div class="plb-ledger"><div class="plb-ledger-hd">WHY PRO COSTS MONEY</div>'
+      + '<div class="plb-ledger" data-col="b"><div class="plb-ledger-hd">WHY PRO COSTS MONEY</div>'
         + '<div class="plb-row"><span>Servers and database</span><span>monthly</span></div>'
         + '<div class="plb-row"><span>Market-data APIs</span><span>call limits</span></div>'
         + '<div class="plb-row"><span>Domain</span><span>yearly</span></div>'
         + '<div class="plb-note">One person cannot carry these alone. Pro is how the people who get the most from Rotator keep it running for everyone.</div></div>'
-      + '<div class="plb-price"><span>The first 10 who pay keep Pro for as long as Rotator pays its own costs. After that, Pro becomes a subscription.</span>'
-        + '<div class="pro-places" id="pro-places" style="display:none;"></div></div>'   /* filled by _proPlacesFill() */
-      + '<div class="plb-ways">Ways to get Pro: each friend you invite adds 1 week (free), <a href="https://rotatortool.substack.com/subscribe?utm_source=rotatortool&amp;utm_medium=pro-window" target="_blank" rel="noopener" style="color:var(--gold, #f3ba2f);">subscribe to Rotator Weekly</a> for a 2-week code (free), or pay $20 below.</div>'
 
       /* ── Viral: each friend → +1 week of Pro (2026-10-27) ── */
-      + '<div class="refx-section">'
+      + '<div class="refx-section" data-col="b">'
         + '<div class="refx-hdr">'
           + '<span class="refx-title">🎁 EACH FRIEND = 1 WEEK OF PRO</span>'
           + '<span class="refx-count" id="refx-count">' + count + (count === 1 ? ' friend' : ' friends') + '</span>'
@@ -418,23 +494,27 @@ function openPro() {
          The TX check moved here from the Support window (promptove/107):
          Support is a thank-you that unlocks nothing; this $20 payment is
          the paid Pro unlock. Same field ids, so submitProRequest() is
-         unchanged. */
-      + '<div style="font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:var(--green);margin-bottom:8px;">PAY WITH CRYPTO — AUTO-VERIFIED, INSTANT PRO</div>'
+         unchanged. Binance Pay has its own line since 2026-11-03: it sat
+         under "auto-verified, instant" but is checked by hand. Hidden when
+         the 10 places are taken (_proPlacesFill). */
+      + '<div class="plb-pay" id="pro-pay" data-col="c">'
+      + '<div style="font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:var(--green);margin-bottom:8px;">PAY $20 WITH CRYPTO</div>'
       + '<div style="background:linear-gradient(135deg,rgba(0,200,150,.06),rgba(0,200,150,.02));border:1px solid rgba(0,200,150,.2);border-radius:6px;padding:14px;margin-bottom:14px;">'
-        + '<div style="font-size:12px;color:var(--text);line-height:1.7;margin-bottom:10px;">Send <strong>$20+ USDT</strong> (or equivalent BNB/ETH) to any wallet below. Submit your TX hash and <strong>Pro activates instantly</strong> — fully automated, no waiting.</div>'
+        + '<div style="font-size:12px;color:var(--text);line-height:1.7;margin-bottom:10px;">Send <strong>$20 or more</strong> in USDT, BNB or ETH to an address below, then paste the TX hash. The blockchain check is automatic: <strong>Pro starts within a minute</strong>.</div>'
         + '<div style="font-size:12px;color:var(--muted);margin-bottom:6px;">⬡ USDT · TRC20 (Tron)</div>'
         + '<div class="pro-pay-addr">TGt3FQmv8AFPqbj6PnQGUAmemV9gDNm4bt</div>'
         + '<button class="copy-btn" id="pro-copy-trc20" onclick="copyAddr(\'TGt3FQmv8AFPqbj6PnQGUAmemV9gDNm4bt\',\'pro-copy-trc20\')">COPY ADDRESS</button>'
         + '<div style="font-size:12px;color:var(--muted);margin:10px 0 6px;">⬡ USDT / BNB · BEP20 (BSC) &nbsp;|&nbsp; USDT / ETH · ERC20</div>'
         + '<div class="pro-pay-addr">0x507772f8714bca8e73a7984446edb59fea9bfba3</div>'
         + '<button class="copy-btn" id="pro-copy-evm" onclick="copyAddr(\'0x507772f8714bca8e73a7984446edb59fea9bfba3\',\'pro-copy-evm\')">COPY ADDRESS</button>'
-        + '<div style="font-size:12px;color:var(--muted);margin:10px 0 6px;">⬡ Binance Pay ID</div>'
-        + '<div class="pro-pay-addr">364154350</div>'
-        + '<button class="copy-btn" id="pro-copy-bnpay" onclick="copyAddr(\'364154350\',\'pro-copy-bnpay\')">COPY BINANCE ID</button>'
         + '<div class="modal-note" style="margin-top:10px;">⚠ Always double-check the network before sending.<br>Wrong network = permanent loss.</div>'
+        + '<div class="plb-manual"><div class="plb-manual-hd">⬡ Binance Pay · checked by hand</div>'
+          + '<div class="pro-pay-addr">364154350</div>'
+          + '<button class="copy-btn" id="pro-copy-bnpay" onclick="copyAddr(\'364154350\',\'pro-copy-bnpay\')">COPY BINANCE ID</button>'
+          + '<div class="plb-manual-note">Not automatic: Pro starts after we check the payment by hand, within 24 hours. Leave a contact below.</div></div>'
         /* Verify the payment */
-        + '<div style="font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:var(--green);margin:14px 0 8px;font-weight:700;">Already sent payment? Verify & activate Pro instantly</div>'
-        + '<div style="font-size:12px;color:var(--muted);line-height:1.6;margin-bottom:10px;">Submit your TX hash below — we verify it automatically on the blockchain. If the payment is confirmed and $20+, <strong style="color:var(--green);">Pro activates instantly</strong>.</div>'
+        + '<div style="font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:var(--green);margin:14px 0 8px;font-weight:700;">Already sent it? Check the payment</div>'
+        + '<div style="font-size:12px;color:var(--muted);line-height:1.6;margin-bottom:10px;">Paste the TX hash. A crypto payment of $20 or more is checked on the blockchain and <strong style="color:var(--green);">Pro starts right away</strong>. Binance Pay goes to the check by hand.</div>'
         + '<div id="pro-request-form"' + (_proRequested ? ' style="display:none;"' : '') + '>'
           + '<div style="display:flex;gap:6px;margin-bottom:6px;">'
             + '<select id="pr-network" class="code-input" style="font-size:12px;text-transform:none;letter-spacing:normal;flex:1;padding:6px 8px;">'
@@ -448,13 +528,14 @@ function openPro() {
           + '</div>'
           + '<input type="text" id="pr-txhash" class="code-input" placeholder="TX hash (from your wallet or block explorer)" style="font-size:12px;text-transform:none;letter-spacing:normal;width:100%;margin-bottom:6px;">'
           + '<input type="text" id="pr-contact" class="code-input" placeholder="Contact (optional — Telegram/Discord/Email)" style="font-size:12px;text-transform:none;letter-spacing:normal;width:100%;margin-bottom:8px;">'
-          + '<button class="code-btn" onclick="submitProRequest(this)" style="width:100%;padding:9px;font-size:12px;letter-spacing:.08em;background:linear-gradient(135deg,rgba(0,200,150,.2),rgba(0,200,150,.08));border-color:rgba(0,200,150,.4);color:var(--green);">VERIFY TX & ACTIVATE PRO</button>'
+          + '<button class="code-btn" onclick="submitProRequest(this)" style="width:100%;padding:9px;font-size:12px;letter-spacing:.08em;background:linear-gradient(135deg,rgba(0,200,150,.2),rgba(0,200,150,.08));border-color:rgba(0,200,150,.4);color:var(--green);">CHECK PAYMENT</button>'
           + '<div id="pr-status" style="font-size:12px;margin-top:6px;min-height:14px;text-align:center;"></div>'
         + '</div>'
         + '<div id="pro-request-pending" style="' + (_proRequested ? '' : 'display:none;') + 'text-align:center;">'
           + (_proRequested ? '<div style="font-size:12px;color:var(--muted);line-height:1.7;text-align:center;">Your payment check was sent from this browser. If Pro is not active yet, write to <a href="mailto:rotatortool@gmail.com" style="color:var(--bnb);text-decoration:none;">rotatortool@gmail.com</a>.</div>'
              + '<a href="#" onclick="document.getElementById(\'pro-request-pending\').style.display=\'none\';document.getElementById(\'pro-request-form\').style.display=\'\';return false;" style="display:inline-block;margin-top:6px;font-size:12px;color:var(--green);text-decoration:none;">Check another TX →</a>' : '')
         + '</div>'
+      + '</div>'
       + '</div>'
 
       /* ── SECONDARY: Community channels (Telegram = market pulse notifications, Discord placeholder) ── */
@@ -473,20 +554,9 @@ function openPro() {
         + '</div>'
       + '</div>'
 
-      /* ── Pro code ── */
-      + '<div class="pro-divider"></div>'
-      + '<div style="text-align:center;margin-top:6px;">'
-        + '<div style="font-size:12px;color:var(--muted);letter-spacing:.08em;margin-bottom:8px;">HAVE A PRO CODE?</div>'
-        + '<div style="display:flex;gap:6px;">'
-          + '<input class="code-input" id="pro-code-input" placeholder="Enter your Pro code" style="font-size:12px;">'
-          + '<button class="code-btn" onclick="checkProCode()">REDEEM</button>'
-        + '</div>'
-        + '<div id="pro-code-err" style="font-size:12px;margin-top:6px;min-height:14px;color:var(--red);"></div>'
-      + '</div>'
-
       /* ── Recovery key ── */
-      + '<div class="pro-divider"></div>'
-      + '<div style="text-align:center;margin-top:6px;">'
+      + '<div class="pro-divider" data-col="c"></div>'
+      + '<div data-col="c" style="text-align:center;margin-top:6px;">'
         + '<div style="font-size:12px;color:var(--muted);letter-spacing:.08em;margin-bottom:8px;">ALREADY HAVE PRO ON ANOTHER DEVICE?</div>'
         + '<div style="display:flex;gap:6px;">'
           + '<input class="code-input" id="restore-key-input" placeholder="Enter your recovery key" style="font-size:12px;">'
@@ -497,7 +567,12 @@ function openPro() {
   }
 
   openModal('pro-modal');
+  /* Always open at the offer, not where "Pay $20" last scrolled to. */
+  var proScroll = body.closest('.modal'); if (proScroll) proScroll.scrollTop = 0;
   _proPlacesFill();
+  /* Pro: ask the server for the Telegram link state, so the next step
+     shows "connected" only when it is. */
+  if (isPro && typeof _twTgSync === 'function') _twTgSync(true);
   setTimeout(function() {
     var c = document.getElementById('pro-sparkle-c');
     if (c) startSparkle(c);
@@ -540,6 +615,7 @@ function checkProCode() {
   supaRedeemProCode(code, uid).then(function(res) {
     restoreBtn();
 
+    if (typeof supaCountFeature === 'function') supaCountFeature(res.ok ? 'pro_code_ok' : 'pro_code_fail');
     if (!res.ok) {
       inp.style.borderColor = 'var(--red)';
       if (res.reason === 'used') {
@@ -778,6 +854,11 @@ function submitProRequest(btn) {
       status.style.color = 'var(--red)';
       if (res.reason === 'tx_used') {
         status.textContent = '❌ This TX hash has already been used to activate Pro.';
+      } else if (res.reason === 'places_full') {
+        if (typeof supaCountFeature === 'function') supaCountFeature('pro_places_full');
+        /* The 11th payment (server cap, 2026-11-03): kept, answered by hand. */
+        status.style.color = 'var(--amber)';
+        status.textContent = 'Your payment arrived, but all 10 early-supporter places were already taken. It is saved, and we will contact you about it. Write to rotatortool@gmail.com with your TX hash if you left no contact.';
       } else {
         status.textContent = '❌ ' + res.reason;
       }
@@ -788,12 +869,14 @@ function submitProRequest(btn) {
     var verifiedAmt = '$' + res.amount.toFixed(2) + ' ' + res.token;
     isPro = true; savePro(true);
     if (window.Analytics) Analytics.track('Pro Unlocked', { method: 'tx', network: res.network });
+    if (typeof supaCountFeature === 'function') supaCountFeature('pro_tx_ok');
     updateTierBadge();
     if (typeof initCategoryLocks === 'function') initCategoryLocks();
     updateProGates();
     renderAll();
 
-    _showProRequestPending('⚡ Payment verified! ' + verifiedAmt + ' via ' + res.network + '. <strong style="color:var(--green);">Pro is now active — thank you!</strong>');
+    _showProRequestPending('⚡ Payment verified! ' + verifiedAmt + ' via ' + res.network + '. <strong style="color:var(--green);">Pro is now active — thank you!</strong>'
+      + '<br><button type="button" class="plb-go" style="margin-top:10px;" onclick="openPro()">Next: connect Telegram →</button>');
     try { localStorage.setItem('rot_pro_requested', '1'); } catch(e) {}
 
     var t = document.createElement('div');
