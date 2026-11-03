@@ -22,7 +22,7 @@ Object.assign(MK_TEXT, {
   'Section navigation': 'Навигација по секции',
   'SORT': 'РЕД',
   'every coin we score, ranked; open one to see its score and relative strength': 'секоја монета што ја оценуваме, рангирана; отворете ја за да ги видите оценката и релативната сила',
-  'TODAY': 'ДЕНЕС', 'MOMENTUM': 'МОМЕНТУМ', 'RECORD': 'ЕВИДЕНЦИЈА', 'YOURS': 'ВАШЕ', 'COINS': 'МОНЕТИ', 'SWAP': 'ЗАМЕНА',
+  'TODAY': 'ДЕНЕС', 'MOMENTUM': 'МОМЕНТУМ', 'RECORD': 'ЕВИДЕНЦИЈА', 'YOURS': 'ВАШЕ', 'MY HOLDINGS': 'МОИ ПОЗИЦИИ', 'MONEY FLOWS': 'ТЕКОВИ НА ПАРИ', 'FLOWS': 'ТЕКОВИ', 'HOLDINGS': 'ПОЗИЦИИ', 'COINS': 'МОНЕТИ', 'SWAP': 'ЗАМЕНА',
   'on-chain now': 'на синџирот сега', 'what held up': 'што издржа', 'holdings and warnings': 'позиции и предупредувања',
   'start here: where the market\'s momentum is right now': 'почнете тука: каде е моментумот на пазарот во моментов',
   'what ran ahead, what lagged behind, and which coins are turning': 'што предничеше, што заостана и кои монети се свртуваат',
@@ -253,6 +253,10 @@ Object.assign(MK_TEXT, {
   'Add holdings to see signal.': 'Додадете позиции за да го видите сигналот.',
   'Add a coin you hold to see how your holdings score together.': 'Додадете монета што ја имате за да видите каков резултат имаат вашите позиции заедно.',
   'Add your first coin': 'Додадете ја вашата прва монета',
+  'The combined score of your coins shows here once you add one.': 'Заедничкиот резултат на вашите монети се појавува тука откако ќе додадете една.',
+  'Add your first coin →': 'Додадете ја вашата прва монета →',
+  'Exchange warnings, big unlocks and new turn signs for your coins show up here.': 'Предупредувањата од берзата, големите отклучувања и новите знаци за свртување за вашите монети се појавуваат тука.',
+  'Your coins show up here': 'Вашите монети се појавуваат тука',
   'See how the coins you hold or watch score against the market, with warnings for unlocks and exchange notices. No wallet, no API key, no account.':
     'Видете каков резултат имаат монетите што ги имате или ги следите во однос на пазарот, со предупредувања за отклучувања и известувања од берзата. Без паричник, без API клуч, без сметка.',
   'Add a coin': 'Додадете монета',
@@ -286,8 +290,8 @@ Object.assign(MK_TEXT, {
     'Глобален однос на лонг/шорт сметки. Над 1 = повеќе сметки во лонг. Преполнетост, не прогноза.',
   'Wilder RSI(14) on daily candles. Computed server-side.': 'Wilder RSI(14) на дневни свеќи. Пресметано на серверот.',
   'Wilder RSI(14) on weekly closes. Computed server-side.': 'Wilder RSI(14) на неделни затворања. Пресметано на серверот.',
-  'Momentum (up to 40) ranks 7D, 14D and 30D at 25%, 30% and 45%. Macro strength up to 30. Tokenomics up to 30, and below zero for heavy unlocks or high inflation. bStocks: momentum-only partial score, no tokenomics applies.':
-    'Моментум (до 40) ги рангира 7D, 14D и 30D со 25%, 30% и 45%. Макро сила до 30. Токеномика до 30, и под нула при големи отклучувања или висока инфлација. bStocks: делумен резултат само од моментум, без токеномика.',
+  'Momentum (up to 40) ranks 7D, 14D and 30D at 25%, 30% and 45%. Macro strength up to 30. Tokenomics up to 30, and below zero for a lot of supply still to come or a high unlock risk (an unlock in the next 30 days takes no points). bStocks: momentum-only partial score, no tokenomics applies.':
+    'Моментум (до 40) ги рангира 7D, 14D и 30D со 25%, 30% и 45%. Макро сила до 30. Токеномика до 30, и под нула при многу понуда што допрва доаѓа или висок ризик од отклучувања (отклучување во следните 30 дена не одзема поени). bStocks: делумен резултат само од моментум, без токеномика.',
   'Estimated DeFi lending/staking APR': 'Проценет годишен принос од DeFi позајмување/стејкинг',
 });
 
@@ -1168,8 +1172,8 @@ Object.assign(MK_TEXT, {
   '◈ How Rotator works': '◈ Како работи Rotator',
   'What the page measures, and what it does not.': 'Што мери страницата, а што не мери.',
   '1. The score': '1. Резултатот',
-  'Every 15 minutes Rotator scores about 250 coins and tokenized stocks, from −50 to 100. The score mixes how a coin moved over 7, 14 and 30 days, how it did against Bitcoin, gold and oil, and its supply: big unlocks and high inflation pull it down. A high score means the coin has been stronger than the rest. It describes what already happened. It is not a forecast.':
-    'На секои 15 минути Rotator дава резултат на околу 250 монети и токенизирани акции, од −50 до 100. Резултатот го спојува движењето на монетата за 7, 14 и 30 дена, како се покажала спрема Bitcoin, златото и нафтата, и нејзината понуда: големите отклучувања и високата инфлација го намалуваат. Висок резултат значи дека монетата била посилна од другите. Тој опишува што веќе се случило. Не е прогноза.',
+  'Every 15 minutes Rotator scores about 250 coins and tokenized stocks, from −50 to 100. The score mixes how a coin moved over 7, 14 and 30 days, how it did against Bitcoin, gold and oil, and its supply: a lot of supply still to come and a high unlock risk pull it down. An unlock due in the next 30 days does not change the score; it keeps the coin off the lists of new entries until it has passed. A high score means the coin has been stronger than the rest. It describes what already happened. It is not a forecast.':
+    'На секои 15 минути Rotator дава резултат на околу 250 монети и токенизирани акции, од −50 до 100. Резултатот го спојува движењето на монетата за 7, 14 и 30 дена, како се покажала спрема Bitcoin, златото и нафтата, и нејзината понуда: многу понуда што допрва доаѓа и висок ризик од отклучувања го намалуваат. Отклучување во следните 30 дена не го менува резултатот; ја држи монетата надвор од листите за нови влезови додека не помине. Висок резултат значи дека монетата била посилна од другите. Тој опишува што веќе се случило. Не е прогноза.',
   "2. The market's direction": '2. Насоката на пазарот',
   'One rule, used everywhere on the site and on Telegram: when Bitcoin is above its 200-day average, the market is rising; below it, the market is falling. With no reading, Rotator says nothing rather than guess.':
     'Едно правило, насекаде на страницата и на Telegram: кога Bitcoin е над својот просек 200 дена, пазарот е во пораст; кога е под него, пазарот е во опаѓање. Кога нема податок, Rotator не кажува ништо наместо да погодува.',
@@ -1255,6 +1259,7 @@ Object.assign(MK_TEXT, {
   ': the welcome email has it. Each friend you invite adds 1 more week.': ': го има во пораката за добредојде. Секој пријател што ќе го поканите додава уште 1 недела.',
   'Delisting, price and swap-pair alerts': 'Известувања за отстранување, цена и парови за замена',
   ', within the hour': ', во рок од еден час',
+  'A pair alert is sent when the ratio reaches your number, enters the top quarter of its 30-day range, or one coin moves ahead of the other over 7, 30 or 60 days': 'Известување за пар се праќа кога односот ќе стигне до вашиот број, ќе влезе во горната четвртина од својот 30-дневен опсег, или кога едната монета ќе ја престигне другата во последните 7, 30 или 60 дена',
   'Everything else in Pro': 'Сè друго во Pro',
   'EXAMPLE · not live data, not your coins': 'ПРИМЕР · не се податоци во живо, ниту вашите монети',
   '↳ ▲ Golden cross: 60-day average crossed above the 125-day': '↳ ▲ Златен крст: 60-дневниот просек мина над 125-дневниот',
@@ -1336,8 +1341,8 @@ Object.assign(MK_TEXT, {
   'How it did over 7 days against BTC, gold, silver, oil, the dollar and the rest of the altcoin market.':
     'Како поминала за 7 дена наспроти BTC, златото, среброто, нафтата, доларот и останатите алткоини.',
   'Tokenomics, up to 30.': 'Токеномика, до 30.',
-  'New supply, burns and unlocks. Heavy unlocks or high inflation take points away, which is why a score can fall below 0.':
-    'Нови монети во оптек, согорување и отклучувања. Големите отклучувања или високата инфлација одземаат поени, и затоа резултатот може да падне под 0.',
+  'Supply still to come, burns and unlock risk. A lot of supply still to come or a high unlock risk takes points away, which is why a score can fall below 0. An unlock in the next 30 days takes no points.':
+    'Понуда што допрва доаѓа, согорување и ризик од отклучувања. Многу понуда што допрва доаѓа или висок ризик од отклучувања одземаат поени, и затоа резултатот може да падне под 0. Отклучување во следните 30 дена не одзема поени.',
   'Everywhere on the page: 65 and up is green, 40 to 64 amber, below 40 red. Open any coin to see its three parts.':
     'Насекаде на страницата: 65 и нагоре е зелено, од 40 до 64 жолто, под 40 црвено. Отворете која било монета за да ги видите нејзините три дела.',
   'Then two small steps:': 'Потоа два мали чекори:',
@@ -2221,7 +2226,7 @@ Object.assign(MK_TEXT, {
   'Reached': 'Достигнато', 'Remove alert': 'Отстрани го известувањето',
   'Checked every hour at the latest price, so it can arrive up to an hour late.': 'Се проверува секој час според последната цена, па може да стигне до еден час подоцна.',
   'Checked every hour; on the bell and on Telegram.': 'Се проверува секој час; на ѕвончето и на Telegram.',
-  'Checked every hour; on the bell, and on Telegram once linked in YOURS.': 'Се проверува секој час; на ѕвончето, и на Telegram откако ќе го поврзете во ВАШЕ.',
+  'Checked every hour; on the bell, and on Telegram once linked in My holdings.': 'Се проверува секој час; на ѕвончето, и на Telegram откако ќе го поврзете во Мои позиции.',
   'The test price and buy are a sandbox: nothing is saved. Only a price alert you set is kept.': 'Пробната цена и купување се само за проба: ништо не се зачувува. Се чува само известувањето за цена што ќе го поставите.',
   'Get an alert when one of your coins gets ahead of another': 'Добијте известување кога една ваша монета ќе претекне друга',
   'Alert me when': 'Извести ме кога', 'gets ahead of': 'ќе ја претекне', 'over': 'за',

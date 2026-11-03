@@ -155,7 +155,7 @@ function newToggleAdvanced() {
       else if (avg.classList.contains('dn')) strip.style.color = 'var(--red)';
       else if (avg.classList.contains('fl')) strip.style.color = 'var(--amber)';
     } else {
-      strip.textContent = 'Add holdings →';
+      strip.textContent = 'Add your first coin →';
     }
   }
   // Poll lightly — signal updates after data load

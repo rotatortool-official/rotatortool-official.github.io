@@ -183,7 +183,7 @@ body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:0;opa
   .top .btn-sm{padding-left:11px;padding-right:11px;} .top > div{gap:6px !important;}
   .top .theme-btn{width:36px;overflow:hidden;justify-content:flex-start;} }
 /* Arabic: the words read right to left; the charts keep their direction. */
-html:is([lang="ar"],[lang="ur"]) :is(.hero-copy,.copy,.board-cap,.plans-in,.finale,.foot){direction:rtl;}
+html:is([lang="ar"],[lang="ur"]) :is(.hero-copy,.copy,.board-cap,.plans-in,.calc-in,.finale,.foot){direction:rtl;}
 .btn-tg{color:#fff;background:linear-gradient(180deg,#1a8acb,#126aa3);box-shadow:0 8px 28px rgba(42,171,238,.32);}
 
 /* Chapter rail on the left, like the board's sidebar. */
@@ -701,6 +701,10 @@ html:is([lang="ar"],[lang="ur"]) .td-hint{letter-spacing:0;font-family:var(--ui)
 .plan li strong{color:var(--text);font-weight:600;}
 .plan li::before{content:'';position:absolute;left:0;top:3px;width:16px;height:16px;border-radius:50%;background:rgba(243,186,47,.16);box-shadow:inset 0 0 0 1px var(--gold);}
 .plan li::after{content:'';position:absolute;left:5px;top:7px;width:5px;height:8px;border:solid var(--gold);border-width:0 2px 2px 0;transform:rotate(45deg);}
+/* Screen-reader text: the real value of a number that counts up on scroll. */
+.sr{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap;border:0;}
+.plan li.plan-sub{margin-top:-6px;font-size:.88em;}
+.plan li.plan-sub::before,.plan li.plan-sub::after{content:none;}
 .plan.pro li::before{background:rgba(42,171,238,.16);box-shadow:inset 0 0 0 1px var(--tg);}
 .plan.pro li::after{border-color:var(--tg);}
 .plan-note{font-size:13px;color:var(--muted);margin:-6px 0 18px;line-height:1.5;}
@@ -869,17 +873,15 @@ html:is([lang="ar"],[lang="ur"]) .td-hint{letter-spacing:0;font-family:var(--ui)
 @media (max-width:1000px){ .case-grid{grid-template-columns:1fr 1fr;} }
 @media (max-width:560px){ .case-grid{grid-template-columns:1fr;} .cases{padding:80px 16px 10px;} .sec-hd p{font-size:16px;} }
 
-/* ── Why Pro pays for itself ── */
+/* ── What Pro alerts are for ── */
 .calc{position:relative;z-index:1;padding:100px 24px 0;}
 .calc-card{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:28px;align-items:center;margin-top:30px;padding:30px;border-radius:24px;border:1px solid rgba(42,171,238,.35);
   background:radial-gradient(80% 90% at 100% 0%,rgba(42,171,238,.13),transparent 65%),var(--panel);box-shadow:var(--shadow);}
-.calc-card label{display:block;font:700 11px/1 var(--mono);letter-spacing:.14em;text-transform:uppercase;color:var(--dim);margin-bottom:10px;}
-.calc-in-box{display:flex;align-items:center;gap:6px;height:58px;padding:0 18px;border-radius:14px;border:1.5px solid var(--panel-b);background:var(--card);}
-.calc-in-box:focus-within{border-color:var(--gold);}
-.calc-in-box span{font:800 26px/1 var(--mono);color:var(--muted);}
-.calc-in-box input{flex:1;min-width:0;border:0;outline:0;background:transparent;color:var(--text);font:800 26px/1 var(--mono);}
-.calc-out{font:600 18px/1.45 var(--ui);color:var(--muted);}
-.calc-out b{display:block;font:800 clamp(30px,4vw,44px)/1.1 var(--mono);color:var(--tg-ink);letter-spacing:-.02em;margin-top:4px;}
+.calc-list{grid-column:1/-1;list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:18px 28px;}
+.calc-list li{display:flex;flex-direction:column;gap:4px;padding-inline-start:14px;border-inline-start:2px solid var(--gold);}
+.ca-k{font:800 12px/1.2 var(--mono);letter-spacing:.12em;text-transform:uppercase;color:var(--gold-ink);}
+.ca-v{font-size:15.5px;line-height:1.45;color:var(--text);}
+@media (max-width:760px){ .calc-list{grid-template-columns:minmax(0,1fr);} }
 .calc-note{grid-column:1/-1;margin:0;font-size:14px;color:var(--muted);line-height:1.5;}
 @media (max-width:760px){ .calc-card{grid-template-columns:minmax(0,1fr);padding:22px 18px;gap:18px;} .calc{padding:80px 16px 0;} }
 
@@ -929,13 +931,13 @@ document.addEventListener('click', function (e) {
 <nav class="rail" aria-label="Capítulos" id="rail">
   <a href="#hero" data-for="hero">EMPEZAR</a>
   <a href="#today" data-for="today">HOY</a>
-  <a href="#capital" data-for="capital">CAPITAL</a>
+  <a href="#capital" data-for="capital">FLUJOS DE DINERO</a>
   <a href="#momentum" data-for="momentum">MOMENTUM</a>
   <a href="#insight" data-for="insight">INSIGHT ENGINE</a>
   <a href="#alerts" data-for="alerts">ALERTAS</a>
   <a href="#calc" data-for="calc">PRO</a>
   <a href="#liq" data-for="liq">LIQUIDACIONES</a>
-  <a href="#yours" data-for="yours">TU</a>
+  <a href="#yours" data-for="yours">MIS CARTERAS</a>
   <a href="#coins" data-for="coins">MONEDAS</a>
   <a href="#score" data-for="score">PUNTUACIÓN</a>
   <a href="#tool" data-for="tool">HERRAMIENTA ROTATOR</a>
@@ -999,14 +1001,14 @@ document.addEventListener('click', function (e) {
     <div class="glow" style="--gx:30%;--gy:40%"></div>
     <div class="grid2">
       <div class="copy">
-        <div class="eyebrow"><data class="eb-n" value="02">02</data>Capital</div>
+        <div class="eyebrow"><data class="eb-n" value="02">02</data>Flujos de dinero</div>
         <h2>Sigue el dinero.</h2>
         <div class="steps" data-scene="capital">
           <p class="step" data-at="0"><strong>Entradas y salidas de dinero de los ETF de Bitcoin de EE. UU.</strong>, cada día de negociación. En verde las entradas, en rojo las salidas.</p>
           <p class="step" data-at=".4">Luego, <strong>dólares que se mueven entre blockchains.</strong> Las stablecoins que llegan a una cadena son dinero listo para comprar.</p>
           <p class="step" data-at=".8">Donde se ha movido el dinero, <strong>no adónde va a ir después.</strong> Información sobre las monedas, nunca una recomendación.</p>
         </div>
-        <div class="cta-row"><a class="btn btn-gold" href="../board.html#sec-capital">Abrir Capital ›</a></div>
+        <div class="cta-row"><a class="btn btn-gold" href="../board.html#sec-capital">Ver flujos de dinero ›</a></div>
       </div>
       <div class="vis"><div class="panel" id="cap-vis">
         <div class="tag" style="left:26px;top:20px">ETF de Bitcoin al contado en EE. UU. · flujo neto diario</div>
@@ -1093,20 +1095,23 @@ document.addEventListener('click', function (e) {
   </div>
 </section>
 
-<!-- 07 WHY PRO PAYS FOR ITSELF: arithmetic only, no promise, no price. -->
+<!-- 07 WHAT PRO ALERTS ARE FOR: what each alert reacts to and when it
+     arrives. No money figures: an alert is information, not a saving
+     (consistency pass 2026-11-03, replaced the "pays for itself" calculator). -->
 <section class="calc" id="calc">
   <div class="calc-in">
     <div class="sec-hd">
-      <div class="eyebrow"><data class="eb-n" value="06">06</data>Matemáticas Pro</div>
-      <h2>Por qué la versión «Pro» se amortiza sola.</h2>
+      <div class="eyebrow"><data class="eb-n" value="06">06</data>Alertas Pro</div>
+      <h2>Para qué sirven las alertas «Pro».</h2>
     </div>
     <div class="calc-card">
-      <div>
-        <label for="calcIn">Tu cartera</label>
-        <div class="calc-in-box"><span>$</span><input id="calcIn" type="text" inputmode="numeric" autocomplete="off" value="10,000"></div>
-      </div>
-      <div class="calc-out" aria-live="polite"><div>Evitar una caída del 5 % en</div><div><data id="calcX" value="10000">$10,000</data> =</div><b id="calcY">$500</b></div>
-      <p class="calc-note">Es simple aritmética, no una promesa: Rotator no puede decirte si se avecina una caída. La versión Pro te avisa a tiempo de los desbloqueos, las exclusiones de cotización y los precios que has fijado, para que puedas decidir con antelación.</p>
+      <ul class="calc-list">
+        <li><div class="ca-k">Desbloqueos</div><div class="ca-v">3 o más días antes de que llegue al mercado una nueva oferta de una moneda que tengas o estés siguiendo.</div></li>
+        <li><div class="ca-k">Retiradas de cotización</div><div class="ca-v">En menos de una hora después de que Binance anuncie que va a retirar de la lista o dejar de negociar una moneda que tengas o estés siguiendo.</div></li>
+        <li><div class="ca-k">Tus precios</div><div class="ca-v">En menos de una hora después de que una moneda alcance el precio que hayas establecido.</div></li>
+        <li><div class="ca-k">Tus pares</div><div class="ca-v">En la hora siguiente a que la relación de un par guardado alcance tu cifra, entre en el cuarto superior de su rango de los últimos 30 días o una de las monedas se sitúe por delante de la otra.</div></li>
+      </ul>
+      <p class="calc-note">Una alerta te avisa de que ha pasado algo con una moneda que sigues, para que puedas echarle un vistazo cuanto antes. No te dice qué hacer, y por sí sola no puede hacerte ganar ni ahorrar dinero.</p>
     </div>
   </div>
 </section>
@@ -1123,7 +1128,7 @@ document.addEventListener('click', function (e) {
         <div class="plan-hd"><div class="ph-k">Gratis</div><div class="ph-v">$0</div><div class="ph-d">En la web, no hace falta crear una cuenta</div></div>
         <ul>
           <li>Cada puntuación, señal y tarjeta</li>
-          <li>Hoy, Capital, Momentum y Liquidaciones</li>
+          <li>Hoy: flujos de dinero, impulso y liquidaciones</li>
           <li>Desbloqueos, recompras y quemas</li>
           <li>Avisos de exchange y desbloqueos sobre tus monedas</li>
           <li>2 monedas en cartera y la Rotator Tool</li>
@@ -1137,6 +1142,7 @@ document.addEventListener('click', function (e) {
           <li><strong>Resumen personal en Telegram</strong> sobre tus monedas, los lunes y jueves</li>
           <li><strong>Aviso de desbloqueo</strong>, dentro de más de 3 días</li>
           <li><strong>Alertas sobre retiradas de cotización, precios y pares de intercambio</strong>, en menos de una hora</li>
+          <li class="plan-sub">Se envía una alerta de par cuando la relación alcanza el valor que hayas establecido, entra en el cuarto superior de su rango de 30 días o una de las monedas se adelanta a la otra en un plazo de 7, 30 o 60 días.</li>
           <li>10 monedas en cartera, cualquier par de intercambio</li>
           <li><strong>Gráficos de TradingView dentro de Rotator</strong>, a pantalla completa, con herramientas de dibujo</li>
           <li><strong>Indicador de análisis</strong>: el RSI 14 y la puntuación de Rotator en el gráfico, con un punto donde se cruzan</li>
@@ -1178,7 +1184,7 @@ document.addEventListener('click', function (e) {
     <div class="glow" style="--gx:66%;--gy:45%"></div>
     <div class="grid2">
       <div class="copy">
-        <div class="eyebrow"><data class="eb-n" value="08">08</data>Un saludo</div>
+        <div class="eyebrow"><data class="eb-n" value="08">08</data>Mis activos</div>
         <h2>Tus monedas, vigiladas por ti.</h2>
         <div class="steps" data-scene="yours">
           <p class="step" data-at="0">Añade lo que tienes. <strong>Sin monedero, sin clave de intercambio, sin cuenta.</strong> Todo queda en tu navegador.</p>
@@ -1233,7 +1239,8 @@ document.addEventListener('click', function (e) {
         <div class="steps" data-scene="score">
           <p class="step" data-at="0">El logotipo es <strong>una moneda formada por cuatro capas.</strong> Mira cómo se desmonta.</p>
           <p class="step" data-at=".26"><strong>El «Momentum»</strong> clasifica la moneda en comparación con todas las demás monedas en periodos de 7, 14 y 30 días. Después, se compara <strong>con el bitcoin, el oro, la plata y el petróleo.</strong></p>
-          <p class="step" data-at=".5"><strong>La oferta</strong> es lo que podría lastrarlo: los grandes desbloqueos y la alta inflación hacen bajar la puntuación, incluso por debajo de cero. <strong>El volumen</strong> añade un pequeño incremento fijo.</p>
+          <p class="step" data-at=".5"><strong>La oferta</strong> es lo que podría lastrarlo: aún queda mucha oferta por llegar y un alto riesgo de desbloqueo hace que la puntuación baje, incluso por debajo de cero. <strong>El volumen</strong> añade un pequeño incremento fijo.</p>
+          <p class="step" data-at=".64">Un desbloqueo previsto para los próximos 30 días no cambia la puntuación. <strong>Mantiene la moneda fuera de las listas de nuevas incorporaciones hasta que haya pasado ese plazo.</strong></p>
           <p class="step" data-at=".78">Una puntuación alta significa que la moneda se ha comportado mejor que el resto. <strong>Describe lo que ya ha pasado. No es una previsión.</strong></p>
         </div>
         <div class="cta-row"><a class="btn btn-gold" href="../how-the-score-works.html">Cómo funciona la puntuación ›</a></div>
@@ -1253,18 +1260,18 @@ document.addEventListener('click', function (e) {
     <div class="grid2">
       <div class="copy">
         <div class="eyebrow"><data class="eb-n" value="11">11</data>Rotator Tool</div>
-        <h2>Encuentra el mejor momento para cambiar.</h2>
+        <h2>Descubre cuándo una moneda empieza a superar a otra.</h2>
         <div class="steps" data-scene="tool">
           <p class="step" data-at="0"><strong>La moneda B se está debilitando, mientras que la moneda A va al alza.</strong> Cada semana, con una unidad de B se compra menos de A.</p>
-          <p class="step" data-at=".36">La herramienta «Rotator Tool» te muestra esa proporción y cuándo cambia. <strong>Cuando la moneda más fuerte toma la delantera, es el mejor momento para cambiar la más débil por ella.</strong></p>
+          <p class="step" data-at=".36">La herramienta «Rotator Tool» muestra esa relación a lo largo del tiempo y dónde se sitúa dentro de su propio rango de 30 días. <strong>Te indica cuándo la moneda más fuerte tomó la delantera; pero no te puede decir si ese movimiento va a durar.</strong></p>
           <p class="step" data-at=".56">Tu dinero ahora se suma a la moneda que está al alza. <strong>El rojo es lo que te ha quedado por mantener B.</strong></p>
           <p class="step" data-at=".8">Si A vuelve a bajar, el swap sale perdiendo (la línea gris). <strong>La herramienta te muestra el historial; la decisión es tuya.</strong></p>
         </div>
-        <div class="cta-row"><a class="btn btn-gold" href="../board.html#sec-swap">Encuentra tu mejor intercambio ›</a></div>
+        <div class="cta-row"><a class="btn btn-gold" href="../board.html#sec-swap">Compara dos monedas ›</a></div>
       </div>
       <div class="vis"><div class="panel" id="tool-vis">
         <div class="tag" style="left:26px;top:20px">Ejemplo · precios no reales</div>
-        <a class="pro-bell" id="proBellSwap" href="../board.html#pro"><div class="pb-bell" aria-hidden="true">🔔</div><span class="pb-t">Recibe alertas sobre <strong>el mejor momento para intercambiar</strong> con Pro</span></a>
+        <a class="pro-bell" id="proBellSwap" href="../board.html#pro"><div class="pb-bell" aria-hidden="true">🔔</div><span class="pb-t">Recibe <strong>alertas sobre pares de intercambio</strong> con Pro</span></a>
       </div></div>
     </div>
   </div>
@@ -1700,7 +1707,6 @@ document.addEventListener('click', function (e) {
     record();
     insight();
     alerts();
-    calc();
     today();
     capital();
     liquidations();
@@ -2059,7 +2065,7 @@ document.addEventListener('click', function (e) {
     svg += '</svg>';
     var dw = document.createElement('div'); dw.className = 'donut-wrap';
     dw.style.transform = 'none';
-    dw.innerHTML = svg + '<div class="donut-c"><b id="yt">$0</b><span>total de ejemplo</span></div>';
+    dw.innerHTML = svg + '<div class="donut-c"><b id="yt" aria-hidden="true">$0</b><span class="sr">$' + Math.round(total).toLocaleString('en-US') + '</span><span>total de ejemplo</span></div>';
     vis.appendChild(dw);
     rows.forEach(function (r) {
       var d = document.createElement('div'); d.className = 'fly';
@@ -2136,7 +2142,7 @@ document.addEventListener('click', function (e) {
         var g = ease(seg(grow * 1.2 - i * 0.1, 0, 1));
         document.getElementById('sl' + i).setAttribute('stroke-dasharray', (r.len * g).toFixed(2) + ' ' + CIRC);
       });
-      $('yt').textContent = grow > 0.999 ? '$' + Math.round(total).toLocaleString('en-US') : TOPIC.usd(total * grow);
+      $('yt').textContent = grow > 0.999 || S.reduce ? '$' + Math.round(total).toLocaleString('en-US') : TOPIC.usd(total * grow);
       if (series && pts.length) {
         yc.style.opacity = String(Math.min(1, ch * 3));
         ycl.style.opacity = String(Math.min(1, ch * 3));
@@ -2572,8 +2578,9 @@ document.addEventListener('click', function (e) {
       var FROM = [6, 2, 4, 0, 5, 1, 3];
       var rows = pick.map(function (o, i) {
         var d = document.createElement('div'); d.className = 'sc-row';
-        d.innerHTML = '<span class="sc-rank"></span><img src="' + esc(o.c.image) + '" alt="" loading="lazy"><span class="sc-sym">' + esc(o.c.symbol.toUpperCase()) + '</span>'
-          + '<div class="sc-trk"><div class="sc-bar"></div></div><span class="sc-num">0</span>'
+        d.innerHTML = '<span class="sc-rank" aria-hidden="true"></span><img src="' + esc(o.c.image) + '" alt="" loading="lazy"><span class="sc-sym" aria-hidden="true">' + esc(o.c.symbol.toUpperCase()) + '</span>'
+          + '<div class="sc-trk"><div class="sc-bar"></div></div><span class="sc-num" aria-hidden="true">0</span>'
+          + '<span class="sr">' + esc(o.c.symbol.toUpperCase()) + ': puntuación ' + o.v + '</span>'
           + (i === 0 ? '<span class="sc-climb">▲ Del 7.º al 1.º</span>' : '');
         vis.appendChild(d);
         return { el: d, bar: d.querySelector('.sc-bar'), num: d.querySelector('.sc-num'), rank: d.querySelector('.sc-rank'), climb: d.querySelector('.sc-climb'), o: o, from: FROM[i], to: i };
@@ -2583,7 +2590,7 @@ document.addEventListener('click', function (e) {
       var sum = parts[0][1] + parts[1][1] + parts[2][1];
       var pc = document.createElement('div'); pc.className = 'sc-parts';
       pc.innerHTML = '<small>Cómo ' + esc(top.c.symbol.toUpperCase()) + ' obtiene su puntuación</small>'
-        + parts.map(function (q, i) { return '<div class="sc-part"><span>' + q[0] + '</span><div class="sc-trk"><div class="sc-bar" id="scp' + i + '"></div></div><b id="scv' + i + '">0 / ' + q[2] + '</b></div>'; }).join('')
+        + parts.map(function (q, i) { return '<div class="sc-part"><span>' + q[0] + '</span><div class="sc-trk"><div class="sc-bar" id="scp' + i + '"></div></div><b id="scv' + i + '" aria-hidden="true">0 / ' + q[2] + '</b><span class="sr">' + q[1] + ' / ' + q[2] + '</span></div>'; }).join('')
         + '<div class="sc-sum"><span>' + (top.v !== sum ? 'Puntuación, tras ajustar el tamaño' : 'Puntuación') + '</span><b id="scs">' + top.v + '</b></div>';
       vis.appendChild(pc);
       var W, H, phone, rh, y0;
@@ -2609,7 +2616,7 @@ document.addEventListener('click', function (e) {
           r.el.classList.toggle('hl', i === 0 && so > 0.05);
           r.rank.textContent = String(Math.round(slot) + 1);
           if (r.climb) r.climb.style.opacity = String(Math.min(seg(p, 0.32, 0.4), 1 - seg(p, 0.52, 0.58)));
-          var v = r.o.v * g;
+          var v = r.o.v * (S.reduce ? 1 : g);
           r.bar.style.width = (Math.max(0, (v + 50) / 150) * 100).toFixed(2) + '%';
           r.bar.style.background = col > 0.5 ? band(r.o.v) : 'var(--dim)';
           r.bar.style.opacity = String(0.6 + 0.4 * col);
@@ -2619,7 +2626,7 @@ document.addEventListener('click', function (e) {
         pc.style.opacity = String(pt);
         pc.style.transform = 'translate3d(0,' + ((1 - pt) * 18).toFixed(1) + 'px,0)';
         parts.forEach(function (q, i) {
-          var a = ease(seg(p, 0.6 + i * 0.06, 0.63 + i * 0.06)), g = ease(seg(p, 0.61 + i * 0.06, 0.67 + i * 0.06));
+          var a = ease(seg(p, 0.6 + i * 0.06, 0.63 + i * 0.06)), g = S.reduce ? 1 : ease(seg(p, 0.61 + i * 0.06, 0.67 + i * 0.06));
           pEls[i].style.opacity = String(a);
           $('scp' + i).style.width = (Math.max(0, q[1]) / q[2] * 100 * g).toFixed(2) + '%';
           $('scv' + i).textContent = Math.round(q[1] * g) + ' / ' + q[2];
@@ -2770,7 +2777,7 @@ document.addEventListener('click', function (e) {
     leg.innerHTML = '<span><i style="background:var(--blue)"></i>Moneda B, en baja</span><span><i style="background:var(--gold)"></i>Moneda A, al alza</span><span><i style="background:var(--red)"></i>Sin cambiar</span>';
     vis.appendChild(leg);
     var pill = document.createElement('div'); pill.className = 'sw-pill'; vis.appendChild(pill);
-    var best = document.createElement('div'); best.className = 'sw-best'; best.textContent = 'El mejor momento para cambiar'; vis.appendChild(best);
+    var best = document.createElement('div'); best.className = 'sw-best'; best.textContent = 'A toma la iniciativa'; vis.appendChild(best);
     var svgNS = 'http://www.w3.org/2000/svg', sv = document.createElementNS(svgNS, 'svg'); sv.setAttribute('class', 'swap-svg'); vis.appendChild(sv);
     var pbEl = $('proBellSwap');
     var W, H, phone, ch, base, posA, posB, LO = 84, HI = 166;
@@ -2870,7 +2877,7 @@ document.addEventListener('click', function (e) {
     var LO = 40, HI = 60;
     var bars = $('bars');
     bars.innerHTML = B.map(function (b, i) {
-      return '<div class="bar-row"><div class="bar-lbl">' + b.k + (b.n ? ' <span style="opacity:.7">· ' + b.n + '</span>' : '') + '<b id="bv' + i + '">0%</b></div>'
+      return '<div class="bar-row"><div class="bar-lbl">' + b.k + (b.n ? ' <span style="opacity:.7">· ' + b.n + '</span>' : '') + '<b id="bv' + i + '" aria-hidden="true">0%</b><span class="sr">' + b.v.toFixed(1) + '%</span></div>'
         + '<div class="bar"><i id="bi' + i + '" style="background:' + b.col + '"></i></div></div>';
     }).join('') + '<div class="fifty" id="fifty"><span>50 % · AZAR</span></div><div class="tag" style="position:static;margin-top:24px">Escala del 40 % al 60 %</div>';
     $('fifty').style.left = ((50 - LO) / (HI - LO) * 100) + '%';
@@ -2894,7 +2901,7 @@ document.addEventListener('click', function (e) {
     function render(p) {
       steps('record', p);
       B.forEach(function (b, i) {
-        var g = ease(seg(p, 0.06 + i * 0.07, 0.36 + i * 0.07));
+        var g = S.reduce ? 1 : ease(seg(p, 0.06 + i * 0.07, 0.36 + i * 0.07));
         var w = clamp((b.v - LO) / (HI - LO), 0, 1) * 100 * g;
         $('bi' + i).style.width = w.toFixed(2) + '%';
         $('bv' + i).textContent = (LO + (b.v - LO) * g).toFixed(1) + '%';
@@ -3138,18 +3145,6 @@ document.addEventListener('click', function (e) {
     S.add($('alerts'), { render: render });
   }
 
-  /* ── 06 WHY PRO PAYS FOR ITSELF ─────────────────────────────── */
-  /* Arithmetic only: 5% of what the visitor types. No price, no promise. */
-  function calc() {
-    var inp = $('calcIn'), fmt = function (v) { return '$' + Math.round(v).toLocaleString('en-US'); };
-    function upd() {
-      var v = Number(String(inp.value).replace(/[^0-9.]/g, '')) || 0;
-      $('calcX').textContent = fmt(v); $('calcY').textContent = fmt(v * 0.05);
-    }
-    inp.addEventListener('input', upd);
-    inp.addEventListener('blur', function () { var v = Number(String(inp.value).replace(/[^0-9.]/g, '')) || 0; inp.value = v ? Math.round(v).toLocaleString('en-US') : ''; upd(); });
-    upd();
-  }
 })();
 </script>
 <script>

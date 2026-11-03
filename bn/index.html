@@ -183,7 +183,7 @@ body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:0;opa
   .top .btn-sm{padding-left:11px;padding-right:11px;} .top > div{gap:6px !important;}
   .top .theme-btn{width:36px;overflow:hidden;justify-content:flex-start;} }
 /* Arabic: the words read right to left; the charts keep their direction. */
-html:is([lang="ar"],[lang="ur"]) :is(.hero-copy,.copy,.board-cap,.plans-in,.finale,.foot){direction:rtl;}
+html:is([lang="ar"],[lang="ur"]) :is(.hero-copy,.copy,.board-cap,.plans-in,.calc-in,.finale,.foot){direction:rtl;}
 .btn-tg{color:#fff;background:linear-gradient(180deg,#1a8acb,#126aa3);box-shadow:0 8px 28px rgba(42,171,238,.32);}
 
 /* Chapter rail on the left, like the board's sidebar. */
@@ -701,6 +701,10 @@ html:is([lang="ar"],[lang="ur"]) .td-hint{letter-spacing:0;font-family:var(--ui)
 .plan li strong{color:var(--text);font-weight:600;}
 .plan li::before{content:'';position:absolute;left:0;top:3px;width:16px;height:16px;border-radius:50%;background:rgba(243,186,47,.16);box-shadow:inset 0 0 0 1px var(--gold);}
 .plan li::after{content:'';position:absolute;left:5px;top:7px;width:5px;height:8px;border:solid var(--gold);border-width:0 2px 2px 0;transform:rotate(45deg);}
+/* Screen-reader text: the real value of a number that counts up on scroll. */
+.sr{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap;border:0;}
+.plan li.plan-sub{margin-top:-6px;font-size:.88em;}
+.plan li.plan-sub::before,.plan li.plan-sub::after{content:none;}
 .plan.pro li::before{background:rgba(42,171,238,.16);box-shadow:inset 0 0 0 1px var(--tg);}
 .plan.pro li::after{border-color:var(--tg);}
 .plan-note{font-size:13px;color:var(--muted);margin:-6px 0 18px;line-height:1.5;}
@@ -869,17 +873,15 @@ html:is([lang="ar"],[lang="ur"]) .td-hint{letter-spacing:0;font-family:var(--ui)
 @media (max-width:1000px){ .case-grid{grid-template-columns:1fr 1fr;} }
 @media (max-width:560px){ .case-grid{grid-template-columns:1fr;} .cases{padding:80px 16px 10px;} .sec-hd p{font-size:16px;} }
 
-/* ── Why Pro pays for itself ── */
+/* ── What Pro alerts are for ── */
 .calc{position:relative;z-index:1;padding:100px 24px 0;}
 .calc-card{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:28px;align-items:center;margin-top:30px;padding:30px;border-radius:24px;border:1px solid rgba(42,171,238,.35);
   background:radial-gradient(80% 90% at 100% 0%,rgba(42,171,238,.13),transparent 65%),var(--panel);box-shadow:var(--shadow);}
-.calc-card label{display:block;font:700 11px/1 var(--mono);letter-spacing:.14em;text-transform:uppercase;color:var(--dim);margin-bottom:10px;}
-.calc-in-box{display:flex;align-items:center;gap:6px;height:58px;padding:0 18px;border-radius:14px;border:1.5px solid var(--panel-b);background:var(--card);}
-.calc-in-box:focus-within{border-color:var(--gold);}
-.calc-in-box span{font:800 26px/1 var(--mono);color:var(--muted);}
-.calc-in-box input{flex:1;min-width:0;border:0;outline:0;background:transparent;color:var(--text);font:800 26px/1 var(--mono);}
-.calc-out{font:600 18px/1.45 var(--ui);color:var(--muted);}
-.calc-out b{display:block;font:800 clamp(30px,4vw,44px)/1.1 var(--mono);color:var(--tg-ink);letter-spacing:-.02em;margin-top:4px;}
+.calc-list{grid-column:1/-1;list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:18px 28px;}
+.calc-list li{display:flex;flex-direction:column;gap:4px;padding-inline-start:14px;border-inline-start:2px solid var(--gold);}
+.ca-k{font:800 12px/1.2 var(--mono);letter-spacing:.12em;text-transform:uppercase;color:var(--gold-ink);}
+.ca-v{font-size:15.5px;line-height:1.45;color:var(--text);}
+@media (max-width:760px){ .calc-list{grid-template-columns:minmax(0,1fr);} }
 .calc-note{grid-column:1/-1;margin:0;font-size:14px;color:var(--muted);line-height:1.5;}
 @media (max-width:760px){ .calc-card{grid-template-columns:minmax(0,1fr);padding:22px 18px;gap:18px;} .calc{padding:80px 16px 0;} }
 
@@ -929,13 +931,13 @@ document.addEventListener('click', function (e) {
 <nav class="rail" aria-label="অধ্যায়সমূহ" id="rail">
   <a href="#hero" data-for="hero">শুরু করুন</a>
   <a href="#today" data-for="today">আজ</a>
-  <a href="#capital" data-for="capital">বড় হাতের অক্ষর</a>
+  <a href="#capital" data-for="capital">টাকার প্রবাহ</a>
   <a href="#momentum" data-for="momentum">গতি</a>
   <a href="#insight" data-for="insight">INSIGHT ENGINE</a>
   <a href="#alerts" data-for="alerts">অ্যালার্টসমূহ</a>
   <a href="#calc" data-for="calc">PRO</a>
   <a href="#liq" data-for="liq">তরলীকরণ</a>
-  <a href="#yours" data-for="yours">আপনার</a>
+  <a href="#yours" data-for="yours">আমার হোল্ডিংস</a>
   <a href="#coins" data-for="coins">কয়েন</a>
   <a href="#score" data-for="score">স্কোর</a>
   <a href="#tool" data-for="tool">ROTATOR টুল</a>
@@ -999,14 +1001,14 @@ document.addEventListener('click', function (e) {
     <div class="glow" style="--gx:30%;--gy:40%"></div>
     <div class="grid2">
       <div class="copy">
-        <div class="eyebrow"><data class="eb-n" value="02">02</data>বড় হাতের অক্ষর</div>
+        <div class="eyebrow"><data class="eb-n" value="02">02</data>টাকার প্রবাহ</div>
         <h2>টাকার গতিপথ অনুসরণ করুন।</h2>
         <div class="steps" data-scene="capital">
           <p class="step" data-at="0">প্রতি ট্রেডিং দিনে <strong>মার্কিন বিটকয়েন ইটিএফ-এ টাকা ঢোকে এবং বেরিয়ে যায়</strong>। সবুজ ঢুকেছে, লাল বেরিয়ে গেছে।</p>
           <p class="step" data-at=".4">তারপর <strong>ব্লকচেইনের মধ্যে ডলারের লেনদেন।</strong> একটি চেইনে আসা স্টেবলকয়েন হল কেনার জন্য প্রস্তুত টাকা।</p>
           <p class="step" data-at=".8">টাকা যেখানে সরল, <strong>সেখানেই চলেছে, পরবর্তী গন্তব্য নয়।</strong> কয়েনগুলোর প্রেক্ষাপট, কোনো কল নয়।</p>
         </div>
-        <div class="cta-row"><a class="btn btn-gold" href="../board.html#sec-capital">ওপেন ক্যাপিটাল ›</a></div>
+        <div class="cta-row"><a class="btn btn-gold" href="../board.html#sec-capital">টাকা প্রবাহ খুলুন ›</a></div>
       </div>
       <div class="vis"><div class="panel" id="cap-vis">
         <div class="tag" style="left:26px;top:20px">যুক্তরাষ্ট্রের স্পট বিটকয়েন ইটিএফ · দৈনিক নিট প্রবাহ</div>
@@ -1093,20 +1095,23 @@ document.addEventListener('click', function (e) {
   </div>
 </section>
 
-<!-- 07 WHY PRO PAYS FOR ITSELF: arithmetic only, no promise, no price. -->
+<!-- 07 WHAT PRO ALERTS ARE FOR: what each alert reacts to and when it
+     arrives. No money figures: an alert is information, not a saving
+     (consistency pass 2026-11-03, replaced the "pays for itself" calculator). -->
 <section class="calc" id="calc">
   <div class="calc-in">
     <div class="sec-hd">
-      <div class="eyebrow"><data class="eb-n" value="06">06</data>Pro গণিত</div>
-      <h2>Pro নিজেই কেন নিজেকে পরিশোধ করে।</h2>
+      <div class="eyebrow"><data class="eb-n" value="06">06</data>Proঅ্যালার্টস</div>
+      <h2>Pro অ্যালার্টগুলো কী জন্য।</h2>
     </div>
     <div class="calc-card">
-      <div>
-        <label for="calcIn">আপনার পোর্টফোলিও</label>
-        <div class="calc-in-box"><span>$</span><input id="calcIn" type="text" inputmode="numeric" autocomplete="off" value="10,000"></div>
-      </div>
-      <div class="calc-out" aria-live="polite"><div>একটি ৫% পতন এড়ানো</div><div><data id="calcX" value="10000">$10,000</data> =</div><b id="calcY">$500</b></div>
-      <p class="calc-note">সরল অঙ্ক, কোনো প্রতিশ্রুতি নয়: Rotator আপনাকে বলতে পারে না যে মূল্য পতন আসছে। Pro আপনাকে সময়মতো আনলক, ডিলিস্টিং এবং আপনি নির্ধারিত মূল্য সম্পর্কে জানিয়ে দেয়, যাতে আপনি আগেভাগেই সিদ্ধান্ত নিতে পারেন।</p>
+      <ul class="calc-list">
+        <li><div class="ca-k">আনলক</div><div class="ca-v">আপনি যে কয়েনের নতুন সাপ্লাই রাখেন বা পর্যবেক্ষণ করেন, তা বাজারে আসার ৩ বা তার বেশি দিন আগে।</div></li>
+        <li><div class="ca-k">তালিকা থেকে বাদ দেওয়া</div><div class="ca-v">Binance যখন ঘোষণা করে যে তারা আপনার রাখা বা নজরদারি করা কোনো কয়েন ডিলিস্ট করবে বা ট্রেডিং বন্ধ করবে, তার এক ঘণ্টার মধ্যে।</div></li>
+        <li><div class="ca-k">আপনার দাম</div><div class="ca-v">আপনি নির্ধারিত মূল্যে কোনো কয়েন পৌঁছানোর এক ঘণ্টার মধ্যে।</div></li>
+        <li><div class="ca-k">আপনার পেয়ারসমূহ</div><div class="ca-v">সংরক্ষিত জোড়ার অনুপাত আপনার নির্ধারিত সংখ্যায় পৌঁছালে, ৩০ দিনের পরিসরের শীর্ষ এক-চতুর্থাংশে প্রবেশ করলে, অথবা একটি কয়েন অন্যটির তুলনায় এগিয়ে গেলে, এক ঘণ্টার মধ্যে।</div></li>
+      </ul>
+      <p class="calc-note">একটি সতর্কবার্তা আপনাকে জানায় যে আপনি যে কয়েনটি ফলো করছেন তাতে কিছু ঘটেছে, তাই আপনি আগে থেকেই তা দেখতে পারেন। এটি বলে না কী করতে হবে, এবং এটি নিজে থেকেই আপনার জন্য টাকা তৈরি বা সংরক্ষণ করতে পারে না।</p>
     </div>
   </div>
 </section>
@@ -1123,7 +1128,7 @@ document.addEventListener('click', function (e) {
         <div class="plan-hd"><div class="ph-k">বিনামূল্যে</div><div class="ph-v">$0</div><div class="ph-d">সাইটে, কোনো অ্যাকাউন্ট নেই</div></div>
         <ul>
           <li>প্রতিটি স্কোর, চিহ্ন এবং টাইল</li>
-          <li>আজ, মূলধন, গতি এবং লিকুইডেশন</li>
+          <li>আজ, অর্থ প্রবাহ, গতি এবং লিকুইডেশন</li>
           <li>আনলক, বাইব্যাক এবং বার্ন</li>
           <li>এক্সচেঞ্জ করুন এবং আপনার কয়েনগুলিতে আনলক সতর্কতা পান</li>
           <li>২টি হোল্ডিং এবং রোটেটর টুল</li>
@@ -1137,6 +1142,7 @@ document.addEventListener('click', function (e) {
           <li>আপনার কয়েন সম্পর্কে <strong>ব্যক্তিগত Telegram ব্রিফিং</strong>, সোমবার এবং বৃহস্পতিবার</li>
           <li><strong>আনলক সতর্কতা</strong>, ৩+ দিন বাকি</li>
           <li><strong> তালিকা থেকে বাদ দেওয়া, মূল্য এবং স্ব্যাপ-পেয়ার সতর্কতা</strong>, এক ঘণ্টার মধ্যে</li>
+          <li class="plan-sub">যখন অনুপাত আপনার নির্ধারিত সংখ্যায় পৌঁছায়, ৩০-দিনের পরিসরের শীর্ষ এক-চতুর্থাংশে প্রবেশ করে, অথবা কোনো একটি কয়েন অন্যটির তুলনায় ৭, ৩০ বা ৬০ দিনে এগিয়ে যায়, তখন একটি পেয়ার অ্যালার্ট পাঠানো হয়।</li>
           <li>১০টি হোল্ডিং, যেকোনো সোয়াপ পেয়ার</li>
           <li><strong>Rotator-এর ভিতরে TradingView চার্ট</strong>, পূর্ণ স্ক্রিন, অঙ্কন সরঞ্জামসহ</li>
           <li><strong> অন্তর্দৃষ্টি সূচক</strong>: চার্টে RSI 14 এবং Rotator স্কোর, যেখানে এগুলো ছেদ করে সেখানে একটি বিন্দু</li>
@@ -1178,7 +1184,7 @@ document.addEventListener('click', function (e) {
     <div class="glow" style="--gx:66%;--gy:45%"></div>
     <div class="grid2">
       <div class="copy">
-        <div class="eyebrow"><data class="eb-n" value="08">08</data>আপনার</div>
+        <div class="eyebrow"><data class="eb-n" value="08">08</data>আমার হোল্ডিংস</div>
         <h2>আপনার কয়েনগুলো, আপনার জন্য নজরদারিতে।</h2>
         <div class="steps" data-scene="yours">
           <p class="step" data-at="0">আপনার যা আছে তা যোগ করুন। <strong>কোনো ওয়ালেট নেই, কোনো এক্সচেঞ্জ কী নেই, কোনো অ্যাকাউন্ট নেই।</strong> এটি আপনার ব্রাউজারেই থাকে।</p>
@@ -1233,7 +1239,8 @@ document.addEventListener('click', function (e) {
         <div class="steps" data-scene="score">
           <p class="step" data-at="0">স্কোরটি <strong>চারটি স্তরযুক্ত একটি কয়েন।</strong> দেখুন এটি ভেঙে পড়ছে।</p>
           <p class="step" data-at=".26"><strong>মোমেন্টাম</strong> ৭, ১৪ ও ৩০ দিনের মধ্যে প্রতিটি কয়িনের তুলনায় কয়িনটিকে র‌্যাঙ্ক করে। তারপর এটি <strong>বিটকয়েন, স্বর্ণ, রৌপ্য ও তেলের বিপরীতে</strong> পরিমাপ করা হয়<strong>।</strong></p>
-          <p class="step" data-at=".5"><strong>সরবরাাহই</strong> এর ওপর চাপ ফেলতে পারে: বড় আনলক এবং উচ্চ মুদ্রাস্ফীতি স্কোরকে নিচে টেনে আনে, এমনকি শূন্যের নিচেও। <strong>আকার</strong> একটি ছোট, স্থায়ী ধাপ যোগ করে।</p>
+          <p class="step" data-at=".5"><strong>সরবরাাহই</strong> এর ওপর চাপ সৃষ্টি করতে পারে: এখনও প্রচুর সরবরাহের পরিমাণ বাকি এবং উচ্চ আনলক ঝুঁকি স্কোর কমিয়েছে, এমনকি শূন্যর নিচেও। <strong>পরিমাণ</strong> একটি ছোট, স্থির ধাপ যোগ করে।</p>
+          <p class="step" data-at=".64">পরবর্তী ৩০ দিনের মধ্যে আনলক হলে স্কোর পরিবর্তিত হয় না। <strong>এটি আনলক না হওয়া পর্যন্ত কয়েনটিকে নতুন এন্ট্রির তালিকা থেকে বাদ রাখে।</strong></p>
           <p class="step" data-at=".78">উচ্চ স্কোর মানে সেই কয়েনটি অন্যান্যদের তুলনায় শক্তিশালী ছিল। <strong>এটি ইতিমধ্যেই যা ঘটেছে তা বর্ণনা করে। এটি কোনো পূর্বাভাস নয়।</strong></p>
         </div>
         <div class="cta-row"><a class="btn btn-gold" href="../how-the-score-works.html">স্কোর কীভাবে কাজ করে ›</a></div>
@@ -1253,18 +1260,18 @@ document.addEventListener('click', function (e) {
     <div class="grid2">
       <div class="copy">
         <div class="eyebrow"><data class="eb-n" value="11">11</data>Rotator Tool</div>
-        <h2>স্ব্যাপ করার সেরা সময় খুঁজে বের করুন।</h2>
+        <h2>দেখুন কখন একটি কয়েন অন্যটিকে ছাড়িয়ে যেতে শুরু করে।</h2>
         <div class="steps" data-scene="tool">
           <p class="step" data-at="0"><strong>কয়েন B দুর্বল হচ্ছে, আর কয়েন A বাড়ছে।</strong> প্রতি সপ্তাহে এক B কম A কিনছে।</p>
-          <p class="step" data-at=".36">Rotator Tool সেই অনুপাত এবং কখন তা পরিবর্তিত হয় তা দেখায়। <strong>যখন শক্তিশালী কয়েন প্রাধান্য লাভ করে, তখন দুর্বল কয়েনটিকে এর সাথে বিনিময় করার সেরা সময়।</strong></p>
+          <p class="step" data-at=".36">Rotator Tool সময়ের সাথে সেই অনুপাত দেখায় এবং এটি তার নিজস্ব ৩০-দিনের পরিসরে কোথায় অবস্থান করছে তাও দেখায়। <strong>এটি দেখায় কখন শক্তিশালী কয়েন প্রাধান্য লাভ করেছে; তবে এটি বলতে পারে না যে সেই পরিবর্তন দীর্ঘস্থায়ী হবে।</strong></p>
           <p class="step" data-at=".56">এখন আপনার টাকা বৃদ্ধি পাচ্ছে এমন কয়েনে বিনিয়োগ করা আছে। <strong>লাল রং দেখায় B ধরে রাখার ফলে আপনার কাছে যা অবশিষ্ট আছে।</strong></p>
           <p class="step" data-at=".8">যদি A আবার নিচে নামে, তাহলে সোয়াপ হেরে যাবে (ধূসর রেখা)। <strong>টুলটি ইতিহাস দেখায়; সিদ্ধান্ত আপনার।</strong></p>
         </div>
-        <div class="cta-row"><a class="btn btn-gold" href="../board.html#sec-swap">আপনার সেরা সোয়াপ খুঁজুন ›</a></div>
+        <div class="cta-row"><a class="btn btn-gold" href="../board.html#sec-swap">দুটি কয়েন তুলনা করুন ›</a></div>
       </div>
       <div class="vis"><div class="panel" id="tool-vis">
         <div class="tag" style="left:26px;top:20px">উদাহরণ · বাস্তব মূল্য নয়</div>
-        <a class="pro-bell" id="proBellSwap" href="../board.html#pro"><div class="pb-bell" aria-hidden="true">🔔</div><span class="pb-t">Pro-এর সাথে <strong>স্ব্যাপ করার সেরা সময়ের</strong> অ্যালার্ট পান</span></a>
+        <a class="pro-bell" id="proBellSwap" href="../board.html#pro"><div class="pb-bell" aria-hidden="true">🔔</div><span class="pb-t">Pro-এর সাথে <strong>স্ব্যাপ-জোড়া অ্যালার্ট</strong> পান</span></a>
       </div></div>
     </div>
   </div>
@@ -1700,7 +1707,6 @@ document.addEventListener('click', function (e) {
     record();
     insight();
     alerts();
-    calc();
     today();
     capital();
     liquidations();
@@ -2059,7 +2065,7 @@ document.addEventListener('click', function (e) {
     svg += '</svg>';
     var dw = document.createElement('div'); dw.className = 'donut-wrap';
     dw.style.transform = 'none';
-    dw.innerHTML = svg + '<div class="donut-c"><b id="yt">$0</b><span>উদাহরণ মোট</span></div>';
+    dw.innerHTML = svg + '<div class="donut-c"><b id="yt" aria-hidden="true">$0</b><span class="sr">$' + Math.round(total).toLocaleString('en-US') + '</span><span>উদাহরণ মোট</span></div>';
     vis.appendChild(dw);
     rows.forEach(function (r) {
       var d = document.createElement('div'); d.className = 'fly';
@@ -2136,7 +2142,7 @@ document.addEventListener('click', function (e) {
         var g = ease(seg(grow * 1.2 - i * 0.1, 0, 1));
         document.getElementById('sl' + i).setAttribute('stroke-dasharray', (r.len * g).toFixed(2) + ' ' + CIRC);
       });
-      $('yt').textContent = grow > 0.999 ? '$' + Math.round(total).toLocaleString('en-US') : TOPIC.usd(total * grow);
+      $('yt').textContent = grow > 0.999 || S.reduce ? '$' + Math.round(total).toLocaleString('en-US') : TOPIC.usd(total * grow);
       if (series && pts.length) {
         yc.style.opacity = String(Math.min(1, ch * 3));
         ycl.style.opacity = String(Math.min(1, ch * 3));
@@ -2572,8 +2578,9 @@ document.addEventListener('click', function (e) {
       var FROM = [6, 2, 4, 0, 5, 1, 3];
       var rows = pick.map(function (o, i) {
         var d = document.createElement('div'); d.className = 'sc-row';
-        d.innerHTML = '<span class="sc-rank"></span><img src="' + esc(o.c.image) + '" alt="" loading="lazy"><span class="sc-sym">' + esc(o.c.symbol.toUpperCase()) + '</span>'
-          + '<div class="sc-trk"><div class="sc-bar"></div></div><span class="sc-num">0</span>'
+        d.innerHTML = '<span class="sc-rank" aria-hidden="true"></span><img src="' + esc(o.c.image) + '" alt="" loading="lazy"><span class="sc-sym" aria-hidden="true">' + esc(o.c.symbol.toUpperCase()) + '</span>'
+          + '<div class="sc-trk"><div class="sc-bar"></div></div><span class="sc-num" aria-hidden="true">0</span>'
+          + '<span class="sr">' + esc(o.c.symbol.toUpperCase()) + ': স্কোর ' + o.v + '</span>'
           + (i === 0 ? '<span class="sc-climb">▲ ৭ম → ১ম</span>' : '');
         vis.appendChild(d);
         return { el: d, bar: d.querySelector('.sc-bar'), num: d.querySelector('.sc-num'), rank: d.querySelector('.sc-rank'), climb: d.querySelector('.sc-climb'), o: o, from: FROM[i], to: i };
@@ -2583,7 +2590,7 @@ document.addEventListener('click', function (e) {
       var sum = parts[0][1] + parts[1][1] + parts[2][1];
       var pc = document.createElement('div'); pc.className = 'sc-parts';
       pc.innerHTML = '<small>কিভাবে ' + esc(top.c.symbol.toUpperCase()) + ' এর স্কোর পায়</small>'
-        + parts.map(function (q, i) { return '<div class="sc-part"><span>' + q[0] + '</span><div class="sc-trk"><div class="sc-bar" id="scp' + i + '"></div></div><b id="scv' + i + '">0 / ' + q[2] + '</b></div>'; }).join('')
+        + parts.map(function (q, i) { return '<div class="sc-part"><span>' + q[0] + '</span><div class="sc-trk"><div class="sc-bar" id="scp' + i + '"></div></div><b id="scv' + i + '" aria-hidden="true">0 / ' + q[2] + '</b><span class="sr">' + q[1] + ' / ' + q[2] + '</span></div>'; }).join('')
         + '<div class="sc-sum"><span>' + (top.v !== sum ? 'স্কেল, আকার সামঞ্জস্য করার পর' : 'স্কোর') + '</span><b id="scs">' + top.v + '</b></div>';
       vis.appendChild(pc);
       var W, H, phone, rh, y0;
@@ -2609,7 +2616,7 @@ document.addEventListener('click', function (e) {
           r.el.classList.toggle('hl', i === 0 && so > 0.05);
           r.rank.textContent = String(Math.round(slot) + 1);
           if (r.climb) r.climb.style.opacity = String(Math.min(seg(p, 0.32, 0.4), 1 - seg(p, 0.52, 0.58)));
-          var v = r.o.v * g;
+          var v = r.o.v * (S.reduce ? 1 : g);
           r.bar.style.width = (Math.max(0, (v + 50) / 150) * 100).toFixed(2) + '%';
           r.bar.style.background = col > 0.5 ? band(r.o.v) : 'var(--dim)';
           r.bar.style.opacity = String(0.6 + 0.4 * col);
@@ -2619,7 +2626,7 @@ document.addEventListener('click', function (e) {
         pc.style.opacity = String(pt);
         pc.style.transform = 'translate3d(0,' + ((1 - pt) * 18).toFixed(1) + 'px,0)';
         parts.forEach(function (q, i) {
-          var a = ease(seg(p, 0.6 + i * 0.06, 0.63 + i * 0.06)), g = ease(seg(p, 0.61 + i * 0.06, 0.67 + i * 0.06));
+          var a = ease(seg(p, 0.6 + i * 0.06, 0.63 + i * 0.06)), g = S.reduce ? 1 : ease(seg(p, 0.61 + i * 0.06, 0.67 + i * 0.06));
           pEls[i].style.opacity = String(a);
           $('scp' + i).style.width = (Math.max(0, q[1]) / q[2] * 100 * g).toFixed(2) + '%';
           $('scv' + i).textContent = Math.round(q[1] * g) + ' / ' + q[2];
@@ -2770,7 +2777,7 @@ document.addEventListener('click', function (e) {
     leg.innerHTML = '<span><i style="background:var(--blue)"></i>কয়েন বি, দুর্বল হচ্ছে</span><span><i style="background:var(--gold)"></i>কয়েন A, উত্থানের পথে</span><span><i style="background:var(--red)"></i>স্ব্যাপ করা হয়নি</span>';
     vis.appendChild(leg);
     var pill = document.createElement('div'); pill.className = 'sw-pill'; vis.appendChild(pill);
-    var best = document.createElement('div'); best.className = 'sw-best'; best.textContent = 'স্ব্যাপ করার সেরা সময়'; vis.appendChild(best);
+    var best = document.createElement('div'); best.className = 'sw-best'; best.textContent = 'এ অগ্রণী ভূমিকা পালন করে'; vis.appendChild(best);
     var svgNS = 'http://www.w3.org/2000/svg', sv = document.createElementNS(svgNS, 'svg'); sv.setAttribute('class', 'swap-svg'); vis.appendChild(sv);
     var pbEl = $('proBellSwap');
     var W, H, phone, ch, base, posA, posB, LO = 84, HI = 166;
@@ -2870,7 +2877,7 @@ document.addEventListener('click', function (e) {
     var LO = 40, HI = 60;
     var bars = $('bars');
     bars.innerHTML = B.map(function (b, i) {
-      return '<div class="bar-row"><div class="bar-lbl">' + b.k + (b.n ? ' <span style="opacity:.7">· ' + b.n + '</span>' : '') + '<b id="bv' + i + '">0%</b></div>'
+      return '<div class="bar-row"><div class="bar-lbl">' + b.k + (b.n ? ' <span style="opacity:.7">· ' + b.n + '</span>' : '') + '<b id="bv' + i + '" aria-hidden="true">0%</b><span class="sr">' + b.v.toFixed(1) + '%</span></div>'
         + '<div class="bar"><i id="bi' + i + '" style="background:' + b.col + '"></i></div></div>';
     }).join('') + '<div class="fifty" id="fifty"><span>৫০% · সুযোগ</span></div><div class="tag" style="position:static;margin-top:24px">৪০% থেকে ৬০% স্কেল করুন</div>';
     $('fifty').style.left = ((50 - LO) / (HI - LO) * 100) + '%';
@@ -2894,7 +2901,7 @@ document.addEventListener('click', function (e) {
     function render(p) {
       steps('record', p);
       B.forEach(function (b, i) {
-        var g = ease(seg(p, 0.06 + i * 0.07, 0.36 + i * 0.07));
+        var g = S.reduce ? 1 : ease(seg(p, 0.06 + i * 0.07, 0.36 + i * 0.07));
         var w = clamp((b.v - LO) / (HI - LO), 0, 1) * 100 * g;
         $('bi' + i).style.width = w.toFixed(2) + '%';
         $('bv' + i).textContent = (LO + (b.v - LO) * g).toFixed(1) + '%';
@@ -3138,18 +3145,6 @@ document.addEventListener('click', function (e) {
     S.add($('alerts'), { render: render });
   }
 
-  /* ── 06 WHY PRO PAYS FOR ITSELF ─────────────────────────────── */
-  /* Arithmetic only: 5% of what the visitor types. No price, no promise. */
-  function calc() {
-    var inp = $('calcIn'), fmt = function (v) { return '$' + Math.round(v).toLocaleString('en-US'); };
-    function upd() {
-      var v = Number(String(inp.value).replace(/[^0-9.]/g, '')) || 0;
-      $('calcX').textContent = fmt(v); $('calcY').textContent = fmt(v * 0.05);
-    }
-    inp.addEventListener('input', upd);
-    inp.addEventListener('blur', function () { var v = Number(String(inp.value).replace(/[^0-9.]/g, '')) || 0; inp.value = v ? Math.round(v).toLocaleString('en-US') : ''; upd(); });
-    upd();
-  }
 })();
 </script>
 <script>

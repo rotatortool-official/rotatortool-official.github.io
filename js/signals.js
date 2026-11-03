@@ -1398,7 +1398,7 @@ function renderTopBars() {
     return '<div class="sig-tile sig-tile-empty" onclick="openAddHoldingsModal()" title="Add a coin you hold or watch">'
       + '<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;gap:4px;opacity:.5;padding:6px;text-align:center;">'
       + '<span style="font-size:16px;color:var(--green);line-height:1;">+</span>'
-      + '<span style="font-size:12px;letter-spacing:.04em;color:var(--muted);font-family:var(--font-ui);line-height:1.4;">Add your coins to compare them here</span>'
+      + '<span style="font-size:12px;letter-spacing:.04em;color:var(--muted);font-family:var(--font-ui);line-height:1.4;">Your coins show up here</span>'
       + '</div></div>';
   }
 

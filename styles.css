@@ -5629,6 +5629,8 @@ details.td-reading-trust[open] > summary::before{content:'▾ ';}
 .plb-col li{padding:4px 0 4px 16px;position:relative;}
 .plb-col li::before{content:"\2713";position:absolute;left:0;color:var(--green);font-weight:700;}
 .plb-col.pro li::before{content:"\26A1";color:var(--pro);font-size:10px;top:5px;}
+.plb-col li.plb-sub{padding-top:0;font-size:.9em;color:var(--muted);}
+.plb-col li.plb-sub::before,.plb-col.pro li.plb-sub::before{content:none;}
 .plb-ledger{font-size:12px;border-top:1px solid var(--bdr2);border-bottom:1px solid var(--bdr2);padding:10px 2px;margin-bottom:12px;}
 .plb-ledger-hd{font-size:11px;letter-spacing:.14em;color:var(--amber);font-weight:700;margin-bottom:6px;}
 .plb-row{display:flex;justify-content:space-between;gap:10px;padding:3px 0;border-bottom:1px dotted var(--bdr2);color:var(--text);font-family:var(--font-mono);}

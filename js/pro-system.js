@@ -436,6 +436,7 @@ function openPro() {
           + '<li><b>Personal Telegram briefing</b> on your coins, Mon and Thu</li>'
           + '<li><b>Unlock warning</b>, 3+ days ahead</li>'
           + '<li><b>Delisting, price and swap-pair alerts</b>, within the hour</li>'
+          + '<li class="plb-sub">A pair alert is sent when the ratio reaches your number, enters the top quarter of its 30-day range, or one coin moves ahead of the other over 7, 30 or 60 days</li>'
           + '<li><b>Rotator indicators</b>: our golden cross, death cross and RSI comeback flags on the price chart, with RSI and the Rotator score</li>'
           + '<li>Full coin breakdown on one screen (desktop), with price scenarios</li></ul>'
           + '<details class="plb-more"><summary>Everything else in Pro</summary><ul>'

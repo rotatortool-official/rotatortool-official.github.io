@@ -183,7 +183,7 @@ body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:0;opa
   .top .btn-sm{padding-left:11px;padding-right:11px;} .top > div{gap:6px !important;}
   .top .theme-btn{width:36px;overflow:hidden;justify-content:flex-start;} }
 /* Arabic: the words read right to left; the charts keep their direction. */
-html:is([lang="ar"],[lang="ur"]) :is(.hero-copy,.copy,.board-cap,.plans-in,.finale,.foot){direction:rtl;}
+html:is([lang="ar"],[lang="ur"]) :is(.hero-copy,.copy,.board-cap,.plans-in,.calc-in,.finale,.foot){direction:rtl;}
 .btn-tg{color:#fff;background:linear-gradient(180deg,#1a8acb,#126aa3);box-shadow:0 8px 28px rgba(42,171,238,.32);}
 
 /* Chapter rail on the left, like the board's sidebar. */
@@ -701,6 +701,10 @@ html:is([lang="ar"],[lang="ur"]) .td-hint{letter-spacing:0;font-family:var(--ui)
 .plan li strong{color:var(--text);font-weight:600;}
 .plan li::before{content:'';position:absolute;left:0;top:3px;width:16px;height:16px;border-radius:50%;background:rgba(243,186,47,.16);box-shadow:inset 0 0 0 1px var(--gold);}
 .plan li::after{content:'';position:absolute;left:5px;top:7px;width:5px;height:8px;border:solid var(--gold);border-width:0 2px 2px 0;transform:rotate(45deg);}
+/* Screen-reader text: the real value of a number that counts up on scroll. */
+.sr{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap;border:0;}
+.plan li.plan-sub{margin-top:-6px;font-size:.88em;}
+.plan li.plan-sub::before,.plan li.plan-sub::after{content:none;}
 .plan.pro li::before{background:rgba(42,171,238,.16);box-shadow:inset 0 0 0 1px var(--tg);}
 .plan.pro li::after{border-color:var(--tg);}
 .plan-note{font-size:13px;color:var(--muted);margin:-6px 0 18px;line-height:1.5;}
@@ -869,17 +873,15 @@ html:is([lang="ar"],[lang="ur"]) .td-hint{letter-spacing:0;font-family:var(--ui)
 @media (max-width:1000px){ .case-grid{grid-template-columns:1fr 1fr;} }
 @media (max-width:560px){ .case-grid{grid-template-columns:1fr;} .cases{padding:80px 16px 10px;} .sec-hd p{font-size:16px;} }
 
-/* ── Why Pro pays for itself ── */
+/* ── What Pro alerts are for ── */
 .calc{position:relative;z-index:1;padding:100px 24px 0;}
 .calc-card{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:28px;align-items:center;margin-top:30px;padding:30px;border-radius:24px;border:1px solid rgba(42,171,238,.35);
   background:radial-gradient(80% 90% at 100% 0%,rgba(42,171,238,.13),transparent 65%),var(--panel);box-shadow:var(--shadow);}
-.calc-card label{display:block;font:700 11px/1 var(--mono);letter-spacing:.14em;text-transform:uppercase;color:var(--dim);margin-bottom:10px;}
-.calc-in-box{display:flex;align-items:center;gap:6px;height:58px;padding:0 18px;border-radius:14px;border:1.5px solid var(--panel-b);background:var(--card);}
-.calc-in-box:focus-within{border-color:var(--gold);}
-.calc-in-box span{font:800 26px/1 var(--mono);color:var(--muted);}
-.calc-in-box input{flex:1;min-width:0;border:0;outline:0;background:transparent;color:var(--text);font:800 26px/1 var(--mono);}
-.calc-out{font:600 18px/1.45 var(--ui);color:var(--muted);}
-.calc-out b{display:block;font:800 clamp(30px,4vw,44px)/1.1 var(--mono);color:var(--tg-ink);letter-spacing:-.02em;margin-top:4px;}
+.calc-list{grid-column:1/-1;list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:18px 28px;}
+.calc-list li{display:flex;flex-direction:column;gap:4px;padding-inline-start:14px;border-inline-start:2px solid var(--gold);}
+.ca-k{font:800 12px/1.2 var(--mono);letter-spacing:.12em;text-transform:uppercase;color:var(--gold-ink);}
+.ca-v{font-size:15.5px;line-height:1.45;color:var(--text);}
+@media (max-width:760px){ .calc-list{grid-template-columns:minmax(0,1fr);} }
 .calc-note{grid-column:1/-1;margin:0;font-size:14px;color:var(--muted);line-height:1.5;}
 @media (max-width:760px){ .calc-card{grid-template-columns:minmax(0,1fr);padding:22px 18px;gap:18px;} .calc{padding:80px 16px 0;} }
 
@@ -929,13 +931,13 @@ document.addEventListener('click', function (e) {
 <nav class="rail" aria-label="అధ్యాయాలు" id="rail">
   <a href="#hero" data-for="hero">ప్రారంభించండి</a>
   <a href="#today" data-for="today">ఈరోజు</a>
-  <a href="#capital" data-for="capital">పెద్ద అక్షరాలు</a>
+  <a href="#capital" data-for="capital">డబ్బు ప్రవాహాలు</a>
   <a href="#momentum" data-for="momentum">మోమెంటమ్</a>
   <a href="#insight" data-for="insight">INSIGHT ENGINE</a>
   <a href="#alerts" data-for="alerts">అలర్ట్స్</a>
   <a href="#calc" data-for="calc">ప్రో</a>
   <a href="#liq" data-for="liq">లిక్విడేషన్లు</a>
-  <a href="#yours" data-for="yours">మీది</a>
+  <a href="#yours" data-for="yours">నా హోల్డింగ్స్</a>
   <a href="#coins" data-for="coins">కాయిన్లు</a>
   <a href="#score" data-for="score">స్కోర్</a>
   <a href="#tool" data-for="tool">ROTATOR సాధనం</a>
@@ -999,14 +1001,14 @@ document.addEventListener('click', function (e) {
     <div class="glow" style="--gx:30%;--gy:40%"></div>
     <div class="grid2">
       <div class="copy">
-        <div class="eyebrow"><data class="eb-n" value="02">02</data>పెద్ద అక్షరాలు</div>
+        <div class="eyebrow"><data class="eb-n" value="02">02</data>డబ్బు ప్రవాహాలు</div>
         <h2>డబ్బును అనుసరించండి.</h2>
         <div class="steps" data-scene="capital">
           <p class="step" data-at="0">ప్రతి ట్రేడింగ్ రోజున <strong>US బిట్‌కాయిన్ ETFలలోకి మరియు వాటి నుండి డబ్బు</strong>. ఆకుపచ్చది లోపలికి వచ్చింది, ఎరుపుది బయటకు వెళ్ళింది.</p>
           <p class="step" data-at=".4">ఆ తర్వాత <strong>బ్లాక్‌చెయిన్‌ల మధ్య డాలర్లు కదులుతాయి.</strong> ఒక చైన్‌కు వచ్చే స్టేబుల్‌కాయిన్‌లు కొనడానికి సిద్ధంగా ఉన్న డబ్బు.</p>
           <p class="step" data-at=".8">డబ్బు ఎక్కడ కదిలిందో, <strong>కానీ అది తర్వాత ఎక్కడికి వెళ్తుందో కాదు.</strong> కాయిన్‌లకు సందర్భం, ఎప్పుడూ సిఫార్సు కాదు.</p>
         </div>
-        <div class="cta-row"><a class="btn btn-gold" href="../board.html#sec-capital">ఓపెన్ క్యాపిటల్ ›</a></div>
+        <div class="cta-row"><a class="btn btn-gold" href="../board.html#sec-capital">డబ్బు ప్రవాహాలను తెరవండి ›</a></div>
       </div>
       <div class="vis"><div class="panel" id="cap-vis">
         <div class="tag" style="left:26px;top:20px">US స్పాట్ బిట్‌కాయిన్ ETFలు · రోజువారీ నికర ప్రవాహం</div>
@@ -1093,20 +1095,23 @@ document.addEventListener('click', function (e) {
   </div>
 </section>
 
-<!-- 07 WHY PRO PAYS FOR ITSELF: arithmetic only, no promise, no price. -->
+<!-- 07 WHAT PRO ALERTS ARE FOR: what each alert reacts to and when it
+     arrives. No money figures: an alert is information, not a saving
+     (consistency pass 2026-11-03, replaced the "pays for itself" calculator). -->
 <section class="calc" id="calc">
   <div class="calc-in">
     <div class="sec-hd">
-      <div class="eyebrow"><data class="eb-n" value="06">06</data>Pro మ్యాథ్</div>
-      <h2>Pro ఎందుకు దాని ఖర్చును తానే భరిస్తుంది.</h2>
+      <div class="eyebrow"><data class="eb-n" value="06">06</data>Pro హెచ్చరికలు</div>
+      <h2>Pro అలర్ట్స్ దేనికి.</h2>
     </div>
     <div class="calc-card">
-      <div>
-        <label for="calcIn">మీ పోర్ట్‌ఫోలియో</label>
-        <div class="calc-in-box"><span>$</span><input id="calcIn" type="text" inputmode="numeric" autocomplete="off" value="10,000"></div>
-      </div>
-      <div class="calc-out" aria-live="polite"><div>పై ఒక 5% పతనాన్ని నివారించడం</div><div><data id="calcX" value="10000">$10,000</data> =</div><b id="calcY">$500</b></div>
-      <p class="calc-note">సులభమైన అంకగణితం, వాగ్దానం కాదు: Rotator డ్రాప్ రాబోతోందని మీకు చెప్పలేదు. Pro మీరు సెట్ చేసిన అన్‌లాక్‌లు, డీలిస్టింగ్‌లు మరియు ధరల గురించి సకాలంలో తెలియజేస్తుంది, తద్వారా మీరు ముందుగానే నిర్ణయం తీసుకోవచ్చు.</p>
+      <ul class="calc-list">
+        <li><div class="ca-k">అన్‌లాక్‌లు</div><div class="ca-v">మీరు కలిగి ఉన్న లేదా గమనిస్తున్న ఒక కాయిన్ యొక్క కొత్త సరఫరా మార్కెట్‌లోకి రావడానికి 3 లేదా అంతకంటే ఎక్కువ రోజుల ముందు.</div></li>
+        <li><div class="ca-k">జాబితా నుండి తొలగింపులు</div><div class="ca-v">మీరు కలిగి ఉన్న లేదా మీరు గమనిస్తున్న కాయిన్‌ను Binance డీలిస్ట్ చేస్తుందని లేదా ట్రేడింగ్ ఆపివేస్తుందని ప్రకటించిన గంటలోపు.</div></li>
+        <li><div class="ca-k">మీ ధరలు</div><div class="ca-v">మీరు నిర్దేశించిన ధరకు ఒక కాయిన్ చేరుకున్న గంటలోపు.</div></li>
+        <li><div class="ca-k">మీ పెయిర్లు</div><div class="ca-v">సేవ్ చేసిన జంట యొక్క నిష్పత్తి మీ సంఖ్యకు చేరుకున్న తర్వాత, దాని 30-రోజుల పరిధిలో అత్యధిక క్వార్టర్‌లోకి ప్రవేశించిన తర్వాత, లేదా ఒక కాయిన్ మరొకదాని కంటే ముందుకు వెళ్ళిన గంటలోపు.</div></li>
+      </ul>
+      <p class="calc-note">మీరు అనుసరిస్తున్న కాయిన్‌కు ఏదైనా జరిగిందని ఒక హెచ్చరిక మీకు తెలియజేస్తుంది, కాబట్టి మీరు దానిని ముందుగానే చూడవచ్చు. ఏమి చేయాలో అది చెప్పదు, మరియు అది ఒంటరిగా మీకు డబ్బును సంపాదించి పెట్టలేదు లేదా ఆదా చేయలేదు.</p>
     </div>
   </div>
 </section>
@@ -1123,7 +1128,7 @@ document.addEventListener('click', function (e) {
         <div class="plan-hd"><div class="ph-k">ఉచితం</div><div class="ph-v">$0</div><div class="ph-d">సైట్‌లో, ఖాతా అవసరం లేదు</div></div>
         <ul>
           <li>ప్రతి స్కోరు, గుర్తు మరియు టైల్</li>
-          <li>ఈరోజు, మూలధనం, ఊపు మరియు లీక్విడేషన్లు</li>
+          <li>ఈరోజు, మనీ ఫ్లోస్, మొమెంటం మరియు లిక్విడేషన్లు</li>
           <li>అన్‌లాక్‌లు, బైబ్యాక్‌లు మరియు బర్న్‌లు</li>
           <li>మీ కాయిన్‌లపై హెచ్చరికలను మార్చండి మరియు అన్‌లాక్ చేయండి</li>
           <li>2 హోల్డింగ్‌లు మరియు రోటేటర్ టూల్</li>
@@ -1137,6 +1142,7 @@ document.addEventListener('click', function (e) {
           <li>మీ కాయిన్‌లపై <strong>వ్యక్తిగత Telegram బ్రీఫింగ్</strong>, సోమవారం మరియు గురువారం</li>
           <li><strong>అన్‌లాక్ హెచ్చరిక</strong>, 3+ రోజుల ముందు</li>
           <li><strong>డెలిస్టింగ్, ధర మరియు స్వాప్-పేర్ హెచ్చరికలు</strong>, గంటలోపు</li>
+          <li class="plan-sub">అనుపాతం మీ నిర్దేశించిన సంఖ్యకు చేరుకున్నప్పుడు, దాని 30-రోజుల పరిధిలో పై క్వార్టర్‌లోకి ప్రవేశించినప్పుడు, లేదా ఒక కాయిన్ మరొకదాని కంటే 7, 30 లేదా 60 రోజులలో ముందుకు వెళ్ళినప్పుడు ఒక పెయిర్ అలర్ట్ పంపబడుతుంది.</li>
           <li>10 హోల్డింగ్‌లు, ఏ స్వాప్ జత</li>
           <li><strong>Rotator లో </strong>డ్రాయింగ్ టూల్స్‌తో, పూర్తి స్క్రీన్‌లో <strong>ట్రేడింగ్‌ వ్యూ చార్టులు</strong></li>
           <li><strong>ఇన్‌సైట్ ఇండికేటర్</strong>: చార్ట్‌పై RSI 14 మరియు Rotator స్కోర్, అవి క్రాస్ అయ్యే చోట ఒక చుక్కతో</li>
@@ -1178,7 +1184,7 @@ document.addEventListener('click', function (e) {
     <div class="glow" style="--gx:66%;--gy:45%"></div>
     <div class="grid2">
       <div class="copy">
-        <div class="eyebrow"><data class="eb-n" value="08">08</data>మీ</div>
+        <div class="eyebrow"><data class="eb-n" value="08">08</data>నా హోల్డింగ్స్</div>
         <h2>మీ కాయిన్‌లు, మీ కోసం పర్యవేక్షించబడుతున్నాయి.</h2>
         <div class="steps" data-scene="yours">
           <p class="step" data-at="0">మీ వద్ద ఉన్నవాటిని జోడించండి. <strong>వాలెట్, ఎక్స్ఛేంజ్ కీ, ఖాతా అవసరం లేదు.</strong> ఇది మీ బ్రౌజర్‌లోనే ఉంటుంది.</p>
@@ -1233,7 +1239,8 @@ document.addEventListener('click', function (e) {
         <div class="steps" data-scene="score">
           <p class="step" data-at="0">స్కోరు <strong>నాలుగు పొరలతో చేసిన ఒక కాయిన్.</strong> అది విడిపోవడాన్ని చూడండి.</p>
           <p class="step" data-at=".26"><strong>మోమెంటం</strong> 7, 14 మరియు 30 రోజులలో ప్రతి ఇతర కాయిన్‌తో పోల్చి ఈ కాయిన్‌ను ర్యాంక్ చేస్తుంది. ఆ తర్వాత దానిని <strong>బిట్‌కాయిన్, బంగారం, వెండి మరియు చమురుతో పోల్</strong>చి కొలుస్తారు<strong>.</strong></p>
-          <p class="step" data-at=".5"><strong>సరఫరా</strong> అనేది దానిపై భారం మోపగలదు: పెద్ద అన్‌లాక్‌లు మరియు అధిక ద్రవ్యోల్బణం స్కోర్‌ను సున్నా కంటే దిగువకు కూడా తగ్గిస్తాయి. <strong>పరిమాణం</strong> ఒక చిన్న, స్థిరమైన మెట్టును జోడిస్తుంది.</p>
+          <p class="step" data-at=".5">దానిపై ఒత్తిడి తీసుకురాగల విషయం <strong>సరఫరా</strong>: ఇంకా చాలా సరఫరా రావాల్సి ఉంది మరియు అధిక అన్‌లాక్ ప్రమాదం స్కోరును తగ్గిస్తుంది, సున్నా కంటే దిగువకు కూడా. <strong>పరిమాణం</strong> ఒక చిన్న, స్థిరమైన దశను జోడిస్తుంది.</p>
+          <p class="step" data-at=".64">తదుపరి 30 రోజుల్లో జరగబోయే అన్‌లాక్ స్కోరును మార్చదు. <strong>అది జరగనింత వరకు కాయిన్‌ను కొత్త ఎంట్రీల జాబితాల నుండి దూరంగా ఉంచుతుంది.</strong></p>
           <p class="step" data-at=".78">అధిక స్కోర్ అంటే ఆ కాయిన్ మిగిలిన వాటి కంటే బలంగా ఉందని అర్థం. <strong>ఇది ఇప్పటికే జరిగిన దానిని వివరిస్తుంది. ఇది అంచనా కాదు.</strong></p>
         </div>
         <div class="cta-row"><a class="btn btn-gold" href="../how-the-score-works.html">స్కోర్ ఎలా పనిచేస్తుంది ›</a></div>
@@ -1253,18 +1260,18 @@ document.addEventListener('click', function (e) {
     <div class="grid2">
       <div class="copy">
         <div class="eyebrow"><data class="eb-n" value="11">11</data>Rotator Tool</div>
-        <h2>స్వాప్ చేయడానికి ఉత్తమ సమయాన్ని కనుగొనండి.</h2>
+        <h2>ఒక కాయిన్ మరొకదాన్ని అధిగమించడం ఎప్పుడు మొదలవుతుందో చూడండి.</h2>
         <div class="steps" data-scene="tool">
           <p class="step" data-at="0"><strong>కాయిన్ B బలహీనపడుతుండగా, కాయిన్ A పెరుగుతోంది.</strong> ప్రతి వారం ఒక B తక్కువ A కొంటుంది.</p>
-          <p class="step" data-at=".36">Rotator Tool ఆ నిష్పత్తిని మరియు అది ఎప్పుడు మారుతుందో చూపుతుంది. <strong>బలమైన కాయిన్ ఆధిపత్యం చెలాయించినప్పుడు, బలహీనమైన దానిని దానితో మార్చడానికి అదే ఉత్తమ సమయం.</strong></p>
+          <p class="step" data-at=".36">Rotator Tool కాలక్రమేణా ఆ నిష్పత్తి ఎలా ఉందో మరియు దాని స్వంత 30-రోజుల పరిధిలో అది ఎక్కడ ఉందో చూపుతుంది. <strong>బలమైన కాయిన్ ఎప్పుడు ఆధిక్యం చెందిందో ఇది చూపుతుంది; అయితే ఆ కదలిక ఎంతకాలం ఉంటుందో ఇది చెప్పలేదు.</strong></p>
           <p class="step" data-at=".56">ఇప్పుడు మీ డబ్బు పెరుగుతున్న కాయిన్‌పై ఆధారపడి ఉంది. <strong>Bని పట్టుకోవడం వల్ల మీకు మిగిలింది ఎరుపు రంగులో చూపబడింది.</strong></p>
           <p class="step" data-at=".8">ఒకవేళ A తిరిగి కిందకు వెళితే, స్వాప్ నష్టపోతుంది (బూడిద రంగు గీత). <strong>ఈ సాధనం చరిత్రను చూపుతుంది; నిర్ణయం మీదే.</strong></p>
         </div>
-        <div class="cta-row"><a class="btn btn-gold" href="../board.html#sec-swap">మీ ఉత్తమ స్వాప్‌ను కనుగొనండి ›</a></div>
+        <div class="cta-row"><a class="btn btn-gold" href="../board.html#sec-swap">రెండు కాయిన్‌లను పోల్చండి ›</a></div>
       </div>
       <div class="vis"><div class="panel" id="tool-vis">
         <div class="tag" style="left:26px;top:20px">ఉదాహరణ · నిజమైన ధరలు కావు</div>
-        <a class="pro-bell" id="proBellSwap" href="../board.html#pro"><div class="pb-bell" aria-hidden="true">🔔</div><span class="pb-t">Proతో <strong>స్వాప్ చేయడానికి ఉత్తమ సమయం కోసం</strong> అలర్ట్‌లను పొందండి</span></a>
+        <a class="pro-bell" id="proBellSwap" href="../board.html#pro"><div class="pb-bell" aria-hidden="true">🔔</div><span class="pb-t">Proతో <strong>స్వాప్-జత హెచ్చరికలను</strong> పొందండి</span></a>
       </div></div>
     </div>
   </div>
@@ -1700,7 +1707,6 @@ document.addEventListener('click', function (e) {
     record();
     insight();
     alerts();
-    calc();
     today();
     capital();
     liquidations();
@@ -2059,7 +2065,7 @@ document.addEventListener('click', function (e) {
     svg += '</svg>';
     var dw = document.createElement('div'); dw.className = 'donut-wrap';
     dw.style.transform = 'none';
-    dw.innerHTML = svg + '<div class="donut-c"><b id="yt">$0</b><span>ఉదాహరణ మొత్తం</span></div>';
+    dw.innerHTML = svg + '<div class="donut-c"><b id="yt" aria-hidden="true">$0</b><span class="sr">$' + Math.round(total).toLocaleString('en-US') + '</span><span>ఉదాహరణ మొత్తం</span></div>';
     vis.appendChild(dw);
     rows.forEach(function (r) {
       var d = document.createElement('div'); d.className = 'fly';
@@ -2136,7 +2142,7 @@ document.addEventListener('click', function (e) {
         var g = ease(seg(grow * 1.2 - i * 0.1, 0, 1));
         document.getElementById('sl' + i).setAttribute('stroke-dasharray', (r.len * g).toFixed(2) + ' ' + CIRC);
       });
-      $('yt').textContent = grow > 0.999 ? '$' + Math.round(total).toLocaleString('en-US') : TOPIC.usd(total * grow);
+      $('yt').textContent = grow > 0.999 || S.reduce ? '$' + Math.round(total).toLocaleString('en-US') : TOPIC.usd(total * grow);
       if (series && pts.length) {
         yc.style.opacity = String(Math.min(1, ch * 3));
         ycl.style.opacity = String(Math.min(1, ch * 3));
@@ -2572,8 +2578,9 @@ document.addEventListener('click', function (e) {
       var FROM = [6, 2, 4, 0, 5, 1, 3];
       var rows = pick.map(function (o, i) {
         var d = document.createElement('div'); d.className = 'sc-row';
-        d.innerHTML = '<span class="sc-rank"></span><img src="' + esc(o.c.image) + '" alt="" loading="lazy"><span class="sc-sym">' + esc(o.c.symbol.toUpperCase()) + '</span>'
-          + '<div class="sc-trk"><div class="sc-bar"></div></div><span class="sc-num">0</span>'
+        d.innerHTML = '<span class="sc-rank" aria-hidden="true"></span><img src="' + esc(o.c.image) + '" alt="" loading="lazy"><span class="sc-sym" aria-hidden="true">' + esc(o.c.symbol.toUpperCase()) + '</span>'
+          + '<div class="sc-trk"><div class="sc-bar"></div></div><span class="sc-num" aria-hidden="true">0</span>'
+          + '<span class="sr">' + esc(o.c.symbol.toUpperCase()) + ': స్కోర్ ' + o.v + '</span>'
           + (i === 0 ? '<span class="sc-climb">▲ 7వ → 1వ</span>' : '');
         vis.appendChild(d);
         return { el: d, bar: d.querySelector('.sc-bar'), num: d.querySelector('.sc-num'), rank: d.querySelector('.sc-rank'), climb: d.querySelector('.sc-climb'), o: o, from: FROM[i], to: i };
@@ -2583,7 +2590,7 @@ document.addEventListener('click', function (e) {
       var sum = parts[0][1] + parts[1][1] + parts[2][1];
       var pc = document.createElement('div'); pc.className = 'sc-parts';
       pc.innerHTML = '<small>ఎలా ' + esc(top.c.symbol.toUpperCase()) + ' దాని స్కోరును పొందుతుంది</small>'
-        + parts.map(function (q, i) { return '<div class="sc-part"><span>' + q[0] + '</span><div class="sc-trk"><div class="sc-bar" id="scp' + i + '"></div></div><b id="scv' + i + '">0 / ' + q[2] + '</b></div>'; }).join('')
+        + parts.map(function (q, i) { return '<div class="sc-part"><span>' + q[0] + '</span><div class="sc-trk"><div class="sc-bar" id="scp' + i + '"></div></div><b id="scv' + i + '" aria-hidden="true">0 / ' + q[2] + '</b><span class="sr">' + q[1] + ' / ' + q[2] + '</span></div>'; }).join('')
         + '<div class="sc-sum"><span>' + (top.v !== sum ? 'సైజు సర్దుబాటు తర్వాత స్కోర్' : 'స్కోర్') + '</span><b id="scs">' + top.v + '</b></div>';
       vis.appendChild(pc);
       var W, H, phone, rh, y0;
@@ -2609,7 +2616,7 @@ document.addEventListener('click', function (e) {
           r.el.classList.toggle('hl', i === 0 && so > 0.05);
           r.rank.textContent = String(Math.round(slot) + 1);
           if (r.climb) r.climb.style.opacity = String(Math.min(seg(p, 0.32, 0.4), 1 - seg(p, 0.52, 0.58)));
-          var v = r.o.v * g;
+          var v = r.o.v * (S.reduce ? 1 : g);
           r.bar.style.width = (Math.max(0, (v + 50) / 150) * 100).toFixed(2) + '%';
           r.bar.style.background = col > 0.5 ? band(r.o.v) : 'var(--dim)';
           r.bar.style.opacity = String(0.6 + 0.4 * col);
@@ -2619,7 +2626,7 @@ document.addEventListener('click', function (e) {
         pc.style.opacity = String(pt);
         pc.style.transform = 'translate3d(0,' + ((1 - pt) * 18).toFixed(1) + 'px,0)';
         parts.forEach(function (q, i) {
-          var a = ease(seg(p, 0.6 + i * 0.06, 0.63 + i * 0.06)), g = ease(seg(p, 0.61 + i * 0.06, 0.67 + i * 0.06));
+          var a = ease(seg(p, 0.6 + i * 0.06, 0.63 + i * 0.06)), g = S.reduce ? 1 : ease(seg(p, 0.61 + i * 0.06, 0.67 + i * 0.06));
           pEls[i].style.opacity = String(a);
           $('scp' + i).style.width = (Math.max(0, q[1]) / q[2] * 100 * g).toFixed(2) + '%';
           $('scv' + i).textContent = Math.round(q[1] * g) + ' / ' + q[2];
@@ -2770,7 +2777,7 @@ document.addEventListener('click', function (e) {
     leg.innerHTML = '<span><i style="background:var(--blue)"></i>కాయిన్ B, బలహీనపడుతోంది</span><span><i style="background:var(--gold)"></i>కాయిన్ A, పెరుగుతోంది</span><span><i style="background:var(--red)"></i>స్వాప్ చేయలేదు</span>';
     vis.appendChild(leg);
     var pill = document.createElement('div'); pill.className = 'sw-pill'; vis.appendChild(pill);
-    var best = document.createElement('div'); best.className = 'sw-best'; best.textContent = 'మార్చడానికి ఉత్తమ సమయం'; vis.appendChild(best);
+    var best = document.createElement('div'); best.className = 'sw-best'; best.textContent = 'ఎ ముందుంటుంది'; vis.appendChild(best);
     var svgNS = 'http://www.w3.org/2000/svg', sv = document.createElementNS(svgNS, 'svg'); sv.setAttribute('class', 'swap-svg'); vis.appendChild(sv);
     var pbEl = $('proBellSwap');
     var W, H, phone, ch, base, posA, posB, LO = 84, HI = 166;
@@ -2870,7 +2877,7 @@ document.addEventListener('click', function (e) {
     var LO = 40, HI = 60;
     var bars = $('bars');
     bars.innerHTML = B.map(function (b, i) {
-      return '<div class="bar-row"><div class="bar-lbl">' + b.k + (b.n ? ' <span style="opacity:.7">· ' + b.n + '</span>' : '') + '<b id="bv' + i + '">0%</b></div>'
+      return '<div class="bar-row"><div class="bar-lbl">' + b.k + (b.n ? ' <span style="opacity:.7">· ' + b.n + '</span>' : '') + '<b id="bv' + i + '" aria-hidden="true">0%</b><span class="sr">' + b.v.toFixed(1) + '%</span></div>'
         + '<div class="bar"><i id="bi' + i + '" style="background:' + b.col + '"></i></div></div>';
     }).join('') + '<div class="fifty" id="fifty"><span>50% · అవకాశం</span></div><div class="tag" style="position:static;margin-top:24px">40% నుండి 60% వరకు స్కేల్ చేయండి</div>';
     $('fifty').style.left = ((50 - LO) / (HI - LO) * 100) + '%';
@@ -2894,7 +2901,7 @@ document.addEventListener('click', function (e) {
     function render(p) {
       steps('record', p);
       B.forEach(function (b, i) {
-        var g = ease(seg(p, 0.06 + i * 0.07, 0.36 + i * 0.07));
+        var g = S.reduce ? 1 : ease(seg(p, 0.06 + i * 0.07, 0.36 + i * 0.07));
         var w = clamp((b.v - LO) / (HI - LO), 0, 1) * 100 * g;
         $('bi' + i).style.width = w.toFixed(2) + '%';
         $('bv' + i).textContent = (LO + (b.v - LO) * g).toFixed(1) + '%';
@@ -3138,18 +3145,6 @@ document.addEventListener('click', function (e) {
     S.add($('alerts'), { render: render });
   }
 
-  /* ── 06 WHY PRO PAYS FOR ITSELF ─────────────────────────────── */
-  /* Arithmetic only: 5% of what the visitor types. No price, no promise. */
-  function calc() {
-    var inp = $('calcIn'), fmt = function (v) { return '$' + Math.round(v).toLocaleString('en-US'); };
-    function upd() {
-      var v = Number(String(inp.value).replace(/[^0-9.]/g, '')) || 0;
-      $('calcX').textContent = fmt(v); $('calcY').textContent = fmt(v * 0.05);
-    }
-    inp.addEventListener('input', upd);
-    inp.addEventListener('blur', function () { var v = Number(String(inp.value).replace(/[^0-9.]/g, '')) || 0; inp.value = v ? Math.round(v).toLocaleString('en-US') : ''; upd(); });
-    upd();
-  }
 })();
 </script>
 <script>
