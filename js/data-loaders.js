@@ -1809,39 +1809,6 @@ function _bfUsd(v) {
   if (v >= 1e4)  return '$' + Math.round(v / 1e3) + 'K';
   return '$' + Math.round(v).toLocaleString('en-US');
 }
-function _bfDelta(p, days) {
-  if (p == null || !isFinite(p)) return '';
-  var cls = p >= 0 ? 'up' : 'dn';
-  return '<span class="bf-d ' + cls + '">' + (p >= 0 ? '+' : '')
-       + p.toFixed(1) + '% ' + (days || 7) + 'd</span>';
-}
-/* The LEVEL for a macro cell, taken as the last point of its own daily
-   series — the same array the sparkline draws.
-
-   The first version printed the 7-day percentage as the headline value
-   AND as the delta beneath it, so every macro cell read "-0.8% / -0.8%
-   7d". The level is the missing half: gold at $4,394 having moved -0.8%
-   says something the percentage alone does not.
-
-   Decimals follow magnitude rather than a fixed rule, because these
-   four span 99 (dollar index) to 4,394 (gold) and one format cannot
-   serve both. Returns null when there is no series, and the caller then
-   falls back to the percentage rather than dropping the cell. */
-function _bfLevel(series, prefix) {
-  if (!Array.isArray(series) || !series.length) return null;
-  var v = series[series.length - 1];
-  if (typeof v !== 'number' || !isFinite(v)) return null;
-  var dp = v >= 1000 ? 0 : v >= 100 ? 1 : 2;
-  return (prefix || '') + v.toLocaleString('en-US',
-    { minimumFractionDigits: dp, maximumFractionDigits: dp });
-}
-
-/* Fallback when a macro series is unavailable: show the move itself
-   rather than nothing, so the cell still carries information. */
-function _bfPct(p) {
-  if (p == null || !isFinite(p)) return null;
-  return (p >= 0 ? '+' : '') + p.toFixed(1) + '%';
-}
 
 function _bfAge(ms) {
   if (ms == null) return '';

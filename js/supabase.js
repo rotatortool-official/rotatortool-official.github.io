@@ -325,21 +325,6 @@ function supaCountJoinedReferrals(uid) {
   }).catch(function () { return null; });
 }
 
-/**
- * Count verified referrals for a user from Supabase.
- * Only counts referrals where:
- *   - credited = true (referred user actually loaded data)
- *   - created_at is 1+ hour ago (time gate to prevent instant abuse)
- * @param {string} uid — the referrer's rot_uid
- * @returns {Promise<number>} count of verified unique referrals
- */
-function supaCountReferrals(uid) {
-  /* credited AND at least 1 hour old, counted by the server. */
-  return _supaRpc('referral_counts', { p_uid: uid }).then(function (c) {
-    return c && typeof c.verified === 'number' ? c.verified : 0;
-  }).catch(function () { return 0; });
-}
-
 /* ══════════════════════════════════════════════════════════════════
    SHARED API CACHE  —  Prevents CoinGecko rate-limit bans
 
