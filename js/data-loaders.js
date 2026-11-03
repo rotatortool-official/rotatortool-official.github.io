@@ -5682,6 +5682,9 @@ var _pendingDeepLinkCoin = null;
 /* ?coin=SOL&watch=1 (landing's 'Watch it for me', 2026-10-30): add the coin
    to holdings and show My holdings instead of the coin window. */
 var _pendingDeepLinkWatch = false;
+/* &vs=ETH (landing compare, 2026-11-03): the second coin goes into holdings
+   too, so the overtake alert on the holdings chart has both. */
+var _pendingDeepLinkVs = null;
 
 /* Call early to capture param before anything cleans the URL */
 (function() {
@@ -5690,6 +5693,7 @@ var _pendingDeepLinkWatch = false;
     var coinParam = params.get('coin');
     if (coinParam) _pendingDeepLinkCoin = coinParam;
     _pendingDeepLinkWatch = params.get('watch') === '1';
+    _pendingDeepLinkVs = params.get('vs');
   } catch(e) {}
 })();
 
@@ -5700,7 +5704,7 @@ function _handleCoinDeepLink() {
   try {
     /* Clean URL without reloading */
     var params = new URLSearchParams(window.location.search);
-    params.delete('coin'); params.delete('watch');
+    params.delete('coin'); params.delete('watch'); params.delete('vs');
     var remaining = params.toString();
     var cleanUrl = window.location.pathname + (remaining ? '?' + remaining : '');
     window.history.replaceState({}, '', cleanUrl);
@@ -5712,13 +5716,17 @@ function _handleCoinDeepLink() {
     if (c && _pendingDeepLinkWatch) {
       setTimeout(function() {
         if (typeof dismissTutorial === 'function') { try { dismissTutorial(); } catch(e) {} }
-        if (!holdings.some(function(h) { return holdingMatches(h, c); })) {
+        function addOne(x) {
+          if (!x || holdings.some(function(h) { return holdingMatches(h, x); })) return;
           var sel = document.getElementById('coin-sel');
-          if (sel && ![].some.call(sel.options, function(o) { return o.value === c.id; })) {
-            var o = document.createElement('option'); o.value = c.id; o.textContent = c.sym; sel.appendChild(o);
+          if (sel && ![].some.call(sel.options, function(o) { return o.value === x.id; })) {
+            var o = document.createElement('option'); o.value = x.id; o.textContent = x.sym; sel.appendChild(o);
           }
-          if (sel) { sel.value = c.id; addHolding(); }
+          if (sel) { sel.value = x.id; addHolding(); }
         }
+        addOne(c);
+        var vs = _pendingDeepLinkVs && String(_pendingDeepLinkVs).toUpperCase();
+        if (vs) addOne(coins.find(function(x) { return x.sym === vs || x.id === vs.toLowerCase(); }));
         if (window.BoardTabs) BoardTabs.go('mine');
       }, 800);
     } else if (c) {
