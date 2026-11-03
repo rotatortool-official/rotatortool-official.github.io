@@ -292,6 +292,17 @@ h2{font-size:clamp(32px,4.4vw,56px);}
 .ans-note{font-size:11.5px;color:var(--muted);margin-top:8px;}
 .hero-more{display:inline-block;margin-top:14px;font:700 14px/1 var(--ui);color:var(--muted);text-decoration:none;}
 .hero-more:hover{color:var(--text);}
+/* Coin brief step 1 (2026-11-03): the coin's Pro alerts, then the second-coin compare. */
+.alx{margin-top:14px;border:1px solid var(--gold-ink);border-radius:14px;padding:12px 14px;background:linear-gradient(180deg,rgba(243,186,47,.07),transparent);}
+.alx-h{font:700 14px/1.3 var(--ui);color:var(--text);}
+.alx-li{margin:8px 0 0;padding:0;list-style:none;font-size:14px;line-height:1.45;color:var(--muted);}
+.alx-li li{margin-top:4px;} .alx-li b{color:var(--text);}
+.alx-n{margin-top:8px;font-size:12.5px;font-style:italic;color:var(--muted);}
+.alx .ans-cta{margin-top:10px;}
+.cmp{margin-top:14px;border-top:1px solid var(--panel-b);padding-top:12px;}
+.cmp .ask-row input{font-size:15px;padding:10px 14px;}
+.cmp-t{width:100%;margin-top:10px;border-collapse:collapse;font:700 13px/1.6 var(--mono);}
+.cmp-t th{text-align:left;color:var(--text);} .cmp-t td{text-align:right;color:var(--muted);}
 .wall{transition:opacity .4s;} #hero.asked .wall{opacity:.12;} @media (max-width:860px){ body.asked .cue-bar{display:none;} }
 .wall{position:absolute;inset:0;z-index:1;pointer-events:none;}
 .coin{position:absolute;left:0;top:0;will-change:transform,opacity;}
@@ -3165,7 +3176,8 @@ document.addEventListener('click', function (e) {
         : pctl <= 1 ? '<strong>' + 'Die derzeit schwächste Kryptowährung.' + '</strong>'
         : 'Stärker als dieser Prozentsatz an Coins:' + ' <strong>' + pctl + '%</strong>'];
       var u = d.unl[c.id], at = u && u.next_unlock_at ? Date.parse(u.next_unlock_at) : NaN;
-      if (!isNaN(at) && at > Date.now() && at < Date.now() + 30 * 86400000 && Number(u.next_unlock_pct) >= 0.05)
+      var unl = !isNaN(at) && at > Date.now() && at < Date.now() + 30 * 86400000 && Number(u.next_unlock_pct) >= 0.05;
+      if (unl)
         lines.push('Nächste Freigabe, Datum und Anteil am Gesamtangebot:' + ' <strong>' + TOPIC.day(u.next_unlock_at) + ', ' + Number(u.next_unlock_pct).toFixed(2) + '%</strong>');
       else lines.push('In den nächsten 30 Tagen gibt es keine größere Freigabe.');
       var e = d.ev[sym];
@@ -3175,16 +3187,58 @@ document.addEventListener('click', function (e) {
         + '<div class="ans-sc"><span style="font:800 15px/1 var(--mono)">Rotator-Bewertung <span style="color:' + col + '">' + Math.round(s) + '</span>/100</span>'
         + '<div class="ans-bar"><i style="width:' + Math.max(3, Math.min(100, (s + 50) / 1.5)) + '%;background:' + col + '"></i></div></div>'
         + '<ul class="ans-li"><li>' + lines.join('</li><li>') + '</li></ul>'
-        /* Telegram straight from the check (2026-10-30): the bot answers with
-           this coin and the Pro offer (telegram-webhook watchReply). Without
-           the bot's name, the board's watch link as before. */
+        /* Step 1 of the coin brief (Daniel, 2026-11-03: "we don't sell signals,
+           we sell timely alerts"): the alerts Pro would send for THIS coin,
+           with its real unlock date when there is one, then the Telegram
+           button (telegram-webhook watchReply); without the bot's name, the
+           board's watch link as before. */
+        + '<div class="alx"><div class="alx-h">' + '⚡ Pro-Benachrichtigungen für diese Coin:' + ' <b>' + TOPIC.esc(sym) + '</b></div><ul class="alx-li">'
+        + '<li>' + (unl ? '🔓 ' + 'Warnung vor der Freischaltung, 3 Tage vorher:' + ' <b>' + TOPIC.day(u.next_unlock_at) + '</b>' : '🔓 ' + 'Warnung zum Unlock: sobald einer geplant ist.') + '</li>'
+        + '<li>⚠️ ' + 'Delisting bei Binance: sofort.' + '</li>'
+        + '<li>🎯 ' + 'Dein eigener Kurs: sobald er erreicht ist.' + '</li>'
+        + '<li>↔️ ' + '„Overtake“: wenn es eine andere Coin überholt, die du hältst.' + '</li>'
+        + '<li>🗓️ ' + 'Infos zu deinen Coins: jeden Montag und Donnerstag.' + '</li></ul>'
+        + '<div class="alx-n">' + 'Wir verkaufen keine Signale. Wir informieren dich rechtzeitig, und du entscheidest.' + '</div>'
         + '<div class="ans-cta">' + (bot
           ? '<a class="btn btn-gold" href="https://t.me/' + encodeURIComponent(bot) + '?start=w_' + encodeURIComponent(sym.slice(0, 15))
             + (document.documentElement.lang === 'mk' ? '_mk' : '') + '" target="_blank" rel="noopener" onclick="TOPIC.count(\'coin_tg_click\')">' + '🔔 Benachrichtigungen auf Telegram' + '</a>'
           : '<a class="btn btn-gold" href="/board.html?coin=' + encodeURIComponent(sym) + '&amp;watch=1" onclick="TOPIC.count(\'coin_watch_click\')">' + '🔔 Behalte diese Coin für mich im Auge' + '</a>')
-        + '<a class="btn btn-ghost" href="' + TOPIC.boardLink(sym, '/') + '">Vollständige Analyse</a></div>'
+        + '</div></div>'
+        /* The second coin (Daniel: "if user adds second coin ... one surpassing
+           the other"): 7 and 30 days side by side, then the overtake alert,
+           which lives on the board's holdings chart (Pro, saved as a pair). */
+        + '<div class="cmp"><div class="ask-l">' + 'Vergleiche mit einer anderen Coin, die du hältst' + '</div>'
+        + '<div class="ask-row"><input id="cmp-in" list="ask-list" maxlength="12" aria-label="Second coin" placeholder="' + 'Zweite Kryptowährung: ETH, BNB…' + '">'
+        + '<button class="btn btn-ghost" type="button" id="cmp-go">' + 'Vergleichen' + '</button></div><div id="cmp-out"></div></div>'
+        + '<div class="ans-cta"><a class="btn btn-ghost" href="' + TOPIC.boardLink(sym, '/') + '">Vollständige Analyse</a></div>'
         + '<div class="ans-note">Was gerade passiert – keine Prognose. Kostenlos, kein Konto erforderlich.</div>';
+      var ci = document.getElementById('cmp-in');
+      function cmp() { compare(d, c, ci.value); }
+      document.getElementById('cmp-go').addEventListener('click', cmp);
+      ci.addEventListener('keydown', function (ev) { if (ev.key === 'Enter') { ev.preventDefault(); cmp(); } });
     });
+  }
+  function compare(d, a, q) {
+    var out = document.getElementById('cmp-out'); if (!out) return;
+    q = String(q || '').trim().toUpperCase().replace(/[^A-Z0-9]/g, ''); if (!q) return;
+    var b = d.coins.bySym[q] || d.coins.byId[q.toLowerCase()];
+    if (!b || b.id === a.id) {
+      out.innerHTML = '<div class="ans-note">' + 'Rotator verfolgt diese Kryptowährung nicht:' + ' <b>' + TOPIC.esc(q) + '</b>.</div>';
+      return;
+    }
+    TOPIC.count('coin_compare');
+    var A = a.symbol.toUpperCase(), B = b.symbol.toUpperCase();
+    function row(c) {
+      var p7 = c.price_change_percentage_7d_in_currency, p30 = c.price_change_percentage_30d_in_currency;
+      return '<tr><th>' + TOPIC.esc(c.symbol.toUpperCase()) + '</th><td class="' + (p7 >= 0 ? 'up' : 'dn') + '">' + TOPIC.pct(p7) + '</td><td class="' + (p30 >= 0 ? 'up' : 'dn') + '">' + TOPIC.pct(p30) + '</td></tr>';
+    }
+    var a30 = Number(a.price_change_percentage_30d_in_currency), b30 = Number(b.price_change_percentage_30d_in_currency);
+    var lead = isNaN(a30) || isNaN(b30) ? '' : (a30 >= b30 ? A : B);
+    out.innerHTML = '<table class="cmp-t"><tr><th></th><td>7d</td><td>30d</td></tr>' + row(a) + row(b) + '</table>'
+      + (lead ? '<div class="ans-li">' + 'In den letzten 30 Tagen lief es besser:' + ' <strong>' + TOPIC.esc(lead) + '</strong></div>' : '')
+      + '<div class="ans-cta"><a class="btn btn-gold" href="/board.html?coin=' + encodeURIComponent(A) + '&amp;watch=1&amp;vs=' + encodeURIComponent(B)
+      + '" onclick="TOPIC.count(\'compare_alert_click\')">' + '🔔 Sag mir Bescheid, wenn einer den anderen überholt' + '</a></div>'
+      + '<div class="ans-note">' + '„Overtake“-Benachrichtigungen sind Teil der Pro-Version. Beide Coins werden in deinem Portfolio auf dem Dashboard angezeigt.' + '</div>';
   }
   form.addEventListener('submit', function (e) { e.preventDefault(); show(inp.value); });
   /* ?check=SOL (2026-10-31, Daniel: video descriptions): the visitor from a
