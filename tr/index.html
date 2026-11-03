@@ -169,10 +169,12 @@ body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:0;opa
 .lang-menu summary{list-style:none;cursor:pointer;font-family:var(--mono,monospace);font-size:12px;letter-spacing:.06em;gap:6px;padding:9px 12px;}
 .lang-menu summary::-webkit-details-marker{display:none;}
 .lang-menu summary svg{width:14px;height:14px;flex:none;}
-.lang-list{position:absolute;right:0;top:calc(100% + 8px);display:flex;flex-direction:column;min-width:180px;max-height:70vh;overflow:auto;padding:6px;border-radius:16px;
+.lang-list{position:absolute;right:0;top:calc(100% + 8px);display:flex;flex-direction:column;min-width:180px;max-height:70vh;overflow:auto;overscroll-behavior:contain;-webkit-overflow-scrolling:touch;padding:6px;border-radius:16px;
   border:1px solid var(--panel-b);background:var(--bg2);box-shadow:0 18px 40px rgba(0,0,0,.35);}
 :root.light .lang-list{box-shadow:0 18px 40px rgba(17,24,36,.16);}
-.lang-list a{display:flex;align-items:center;gap:10px;padding:9px 12px;border-radius:10px;color:var(--text);text-decoration:none;font:600 14px/1.2 var(--ui);}
+/* Phones: the page stays still while the language menu is open (Daniel, 2026-11-03). */
+@media (hover:none),(max-width:700px){ html.menu-lock,html.menu-lock body{overflow:hidden;} }
+.lang-list a{flex:none;display:flex;align-items:center;gap:10px;padding:9px 12px;border-radius:10px;color:var(--text);text-decoration:none;font:600 14px/1.2 var(--ui);}
 .lang-list .flag{width:21px;height:14px;flex:none;border-radius:2px;box-shadow:0 0 0 1px rgba(127,127,127,.25);}
 .lang-list a:hover{background:var(--panel);}
 .lang-list a.on{color:var(--gold-ink);}
@@ -891,6 +893,12 @@ html:is([lang="ar"],[lang="ur"]) .td-hint{letter-spacing:0;font-family:var(--ui)
   </div>
 </header>
 <script>
+/* An open language menu scrolls on its own, not with the page. */
+document.addEventListener('toggle', function (e) {
+  if (!e.target.matches || !e.target.matches('details.lang-menu')) return;
+  document.documentElement.classList.toggle('menu-lock', !!document.querySelector('details.lang-menu[open]'));
+  var l = e.target.querySelector('.lang-list'); if (l && e.target.open) l.scrollTop = 0;
+}, true);
 /* Close the language menu on a click anywhere else. */
 document.addEventListener('click', function (e) {
   document.querySelectorAll('details.lang-menu[open]').forEach(function (d) { if (!d.contains(e.target)) d.removeAttribute('open'); });

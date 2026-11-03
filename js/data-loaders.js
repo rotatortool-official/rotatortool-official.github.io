@@ -4014,6 +4014,9 @@ function mobNavMore() {
   if (isOpen) { closeMobMore(); return; }
   if (menu)     menu.classList.add('show');
   if (backdrop) backdrop.classList.add('show');
+  /* The page stays still while the menu is open, so a swipe scrolls the menu (Daniel, 2026-11-03). */
+  document.documentElement.classList.add('menu-lock');
+  if (menu) menu.scrollTop = 0;
   if (btn)      { btn.classList.add('menu-open'); btn.setAttribute('aria-expanded', 'true'); }
   /* Sync theme label */
   var isLight = document.documentElement.classList.contains('light');
@@ -4028,6 +4031,7 @@ function closeMobMore() {
   var btn      = document.getElementById('mn-more');
   if (menu)     menu.classList.remove('show');
   if (backdrop) backdrop.classList.remove('show');
+  document.documentElement.classList.remove('menu-lock');
   if (btn)      { btn.classList.remove('menu-open'); btn.setAttribute('aria-expanded', 'false'); }
 }
 

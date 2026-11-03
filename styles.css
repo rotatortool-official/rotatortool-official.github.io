@@ -2111,6 +2111,9 @@ td.qa-cell{text-align:center;width:28px;padding:0 4px !important;}
   animation:moreSlideUp .2s cubic-bezier(.22,.68,0,1.2) both;
 }
 .mob-more-menu.show{display:block;}
+/* Open menu scrolls on its own; the board behind it stays put (Daniel, 2026-11-03). */
+.mob-more-menu{overscroll-behavior:contain;-webkit-overflow-scrolling:touch;touch-action:pan-y;}
+html.menu-lock,html.menu-lock body{overflow:hidden;}
 @keyframes moreSlideUp{from{opacity:0;transform:translateY(12px);}to{opacity:1;transform:translateY(0);}}
 .mob-more-title{font-size:12px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);padding:6px 14px 8px;font-family:var(--font-ui);}
 .mob-more-item{
