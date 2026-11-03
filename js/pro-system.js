@@ -72,7 +72,10 @@ function getMyId()    { var id = localStorage.getItem('rot_uid'); if (!id) { id 
    The id is what restores Pro and links Telegram alerts, so a shared
    link must not publish it. The code is made here, registered once with
    the server (register_ref_code), and used only after the server has
-   confirmed it; until then the link falls back to the id, as before. */
+   confirmed it. Until then the link is the plain site with no ref at
+   all: the old fallback to the id put the Pro recovery key in every
+   link shared before registration landed (review, 2026-11-03). Each
+   call for the link retries a registration that failed. */
 function _genRefCode() {
   var abc = 'abcdefghijklmnopqrstuvwxyz0123456789', out = 'R', buf = new Uint8Array(10);
   try { crypto.getRandomValues(buf); } catch (e) { for (var j = 0; j < 10; j++) buf[j] = Math.floor(Math.random() * 256); }
@@ -82,20 +85,25 @@ function _genRefCode() {
 function getMyRefCode() {
   try { return localStorage.getItem('rot_ref_code_ok') || ''; } catch (e) { return ''; }
 }
+var _refCodeBusy = false;
 function ensureRefCode() {
-  if (getMyRefCode() || typeof _supaRpc !== 'function') return;
+  if (_refCodeBusy || getMyRefCode() || typeof _supaRpc !== 'function') return;
   var c;
   try { c = localStorage.getItem('rot_ref_code'); if (!c) { c = _genRefCode(); localStorage.setItem('rot_ref_code', c); } } catch (e) { return; }
+  _refCodeBusy = true;
   _supaRpc('register_ref_code', { p_uid: getMyId(), p_code: c }).then(function (code) {
+    _refCodeBusy = false;
     if (typeof code === 'string' && /^R[a-z0-9]{10}$/.test(code)) {
       try { localStorage.setItem('rot_ref_code_ok', code); } catch (e) {}
       var inp = document.getElementById('refx-link');
       if (inp) inp.value = getMyReferralLink();
     }
-  }).catch(function () {});
+  }).catch(function () { _refCodeBusy = false; });
 }
 function getMyReferralLink() {
-  return window.location.origin + '/?ref=' + (getMyRefCode() || getMyId());
+  var code = getMyRefCode();
+  if (!code) { ensureRefCode(); return window.location.origin + '/'; }
+  return window.location.origin + '/?ref=' + code;
 }
 setTimeout(ensureRefCode, 4000);
 
