@@ -134,6 +134,21 @@ var RatioTracker = (function() {
     var e=$('rt-status'); if(!e) return;
     e.textContent=msg; e.className='rt-status'+(cls?' '+cls:'');
   }
+  /* A failed load in words, with the time of the numbers still on screen
+     and a Retry (2026-11-03). Before, the raw JavaScript message showed,
+     e.g. "Error: Cannot read properties of null (reading 'toUpperCase')". */
+  var _okAt=null;
+  function statusFail(what, err){
+    if(err && window.console) console.warn('Rotator Tool:', err);
+    var e=$('rt-status'); if(!e) return;
+    e.className='rt-status err';
+    var mk=typeof currentLang!=='undefined'&&currentLang==='mk';
+    e.textContent=(what==='chart'?(mk?'Графиконот не се вчита. ':'The chart could not load. '):(mk?'Цените не се вчитаа. ':'Prices could not load. '))
+      +(_okAt?(mk?'Бројките се од '+_okAt+'. ':'The numbers shown are from '+_okAt+'. '):'');
+    var b=document.createElement('button'); b.type='button'; b.className='rt-retry'; b.textContent=mk?'Обиди се пак':'Retry';
+    b.onclick=function(){ RatioTracker.loadAll(true); };
+    e.appendChild(b);
+  }
 
   function fmtP(n){
     if(!n) return '—';
@@ -437,7 +452,7 @@ var RatioTracker = (function() {
         if (bs.length >= 5) {
           S.histCache[ckey] = { ts: Date.now(), series: bs }; S.series = bs;
           renderChart(bs); renderRange(bs);
-          status('Updated ' + new Date().toLocaleTimeString(), 'ok');
+          _okAt = new Date().toLocaleTimeString(); status('Updated ' + _okAt, 'ok');
           setTfDisabled(false);
           return;
         }
@@ -470,8 +485,9 @@ var RatioTracker = (function() {
       for(var i=0;i<len;i++) if(tp[i][1]>0) series.push({t:fp[i][0],r:fp[i][1]/tp[i][1]});
       S.histCache[ckey]={ts:Date.now(),series:series}; S.series=series;
       renderChart(series); renderRange(series);
-      status('Updated '+new Date().toLocaleTimeString(),'ok');
-    }catch(e){ status('Chart error: '+e.message,'err'); }
+      _okAt=new Date().toLocaleTimeString();
+      status('Updated '+_okAt,'ok');
+    }catch(e){ statusFail('chart', e); }
     setTfDisabled(false);
   }
 
@@ -510,7 +526,7 @@ var RatioTracker = (function() {
       await new Promise(function(r){setTimeout(r,300);});
       if(gen !== _loadGen){ S.loading=false; return; }   /* superseded */
       await loadHistory();
-    }catch(e){ if(gen === _loadGen) status('Error: '+e.message,'err'); }
+    }catch(e){ if(gen === _loadGen) statusFail('prices', e); }
     if(gen === _loadGen){ setSpin(false); }
     S.loading=false;
     updateIcons();

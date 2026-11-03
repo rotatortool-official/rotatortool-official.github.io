@@ -411,6 +411,9 @@ function _twNotify(list) {
 }
 
 function renderCoinAlerts() {
+  /* The same Telegram line in the Pro window's next step (pro-system.js). */
+  var proTg = document.getElementById('pro-tg-step');
+  if (proTg) proTg.innerHTML = _twTgFoot();
   var host = document.getElementById('coin-alerts');
   var badge = document.getElementById('tw-badge');
   var all = _twAlerts();
@@ -501,6 +504,7 @@ function _twTgSync(force) {
     if (linked === null) { if (_twTg.sig === sig) _twTg.sig = ''; return; }
     var was = _twTg.linked;
     _twTg.linked = linked === true;
+    if (!was && _twTg.linked && _twTg.note) { _twTg.note = ''; if (typeof supaCountFeature === 'function') supaCountFeature('tg_linked'); }
     if (_twTg.linked) {
       _twRpc('alert_set_pairs', { p_uid: getMyId(), p_pairs: pairs });
       _twRpc('alert_set_prices', { p_uid: getMyId(), p_alerts: prices });
@@ -664,6 +668,7 @@ function _twTgFoot() {
 
 function _twTgConnect() {
   if (!isPro) { openPro(); return; }
+  if (typeof supaCountFeature === 'function') supaCountFeature('tg_connect_start');
   /* Open the tab inside the click, so popup blockers allow it, then
      point it at the bot once the code is back. */
   var w = null; try { w = window.open('about:blank', '_blank'); } catch (e) {}
@@ -686,8 +691,16 @@ function _twTgConnect() {
     if (w) w.location.href = link; else window.location.href = link;
     _twTg.note = 'In Telegram, tap Start. This panel updates once the bot confirms.';
     renderCoinAlerts();
-    /* Check back a few times while the user is in Telegram. */
+    /* Check back a few times while the user is in Telegram. Two minutes
+       without the server's yes: say so and offer the button again
+       (2026-11-03; before, the waiting note stayed for good). */
     [15000, 40000, 90000].forEach(function (ms) { setTimeout(function () { if (!_twTg.linked) _twTgSync(true); }, ms); });
+    setTimeout(function () {
+      if (_twTg.linked) return;
+      _twTg.note = 'Not connected yet: the bot has not confirmed. If you tapped Start, wait a minute and come back to this page. Otherwise tap the button again for a new link.';
+      if (typeof supaCountFeature === 'function') supaCountFeature('tg_link_fail');
+      renderCoinAlerts();
+    }, 120000);
   });
 }
 

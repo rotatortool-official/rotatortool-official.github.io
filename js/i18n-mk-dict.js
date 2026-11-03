@@ -1241,6 +1241,50 @@ Object.assign(MK_TEXT, {
   'Golden cross and death cross: when the 60-day average crossed the 125-day, with the tested record': 'Златен крст и крст на смртта: кога 60-дневниот просек го вкрстил 125-дневниот, со тестираните резултати',
   'Live, for every coin you hold or watch. Free shows yesterday’s.': 'Во живо, за секоја монета што ја држите или следите. Бесплатно се гледа вчерашното.',
 });
+/* ── Pro window, offer first (2026-11-03) ───────────────────────── */
+Object.assign(MK_TEXT, {
+  'Understand your coins in one place. Get important changes on Telegram.': 'Разберете ги вашите монети на едно место. Добивајте ги важните промени на Telegram.',
+  'paid once · first 10 supporters': 'се плаќа еднаш · првите 10 поддржувачи',
+  'No renewal. Pro has no end date; it ends only if Rotator stops running.': 'Без обновување. Pro нема краен датум; завршува само ако Rotator престане да работи.',
+  'When subscriptions start, these 10 keep Pro without paying again.': 'Кога ќе почне претплатата, овие 10 го задржуваат Pro без да платат повторно.',
+  'Pay $20 with crypto': 'Платете $20 со крипто',
+  'All 10 places are taken, so paying is closed until the Pro subscription starts. You can still get Pro weeks for free below.': 'Сите 10 места се пополнети, па плаќањето е затворено додека не почне претплатата за Pro. Подолу сè уште можете бесплатно да добиете недели Pro.',
+  'Got the 2-week code from Rotator Weekly?': 'Го имате кодот за 2 недели од Rotator Weekly?',
+  'No code yet?': 'Немате код?',
+  'Subscribe to Rotator Weekly': 'Претплатете се на Rotator Weekly',
+  ': the welcome email has it. Each friend you invite adds 1 more week.': ': го има во пораката за добредојде. Секој пријател што ќе го поканите додава уште 1 недела.',
+  'Delisting, price and swap-pair alerts': 'Известувања за отстранување, цена и парови за замена',
+  ', within the hour': ', во рок од еден час',
+  'Everything else in Pro': 'Сè друго во Pro',
+  'EXAMPLE · not live data, not your coins': 'ПРИМЕР · не се податоци во живо, ниту вашите монети',
+  '↳ ▲ Golden cross: 60-day average crossed above the 125-day': '↳ ▲ Златен крст: 60-дневниот просек мина над 125-дневниот',
+  '↳ Unlock in 4 days: 3.3% of supply': '↳ Отклучување за 4 дена: 3.3% од понудата',
+  'Sent every Monday and Thursday after you connect Telegram. Delistings and your price and pair alerts come within the hour.': 'Се праќа секој понеделник и четврток откако ќе го поврзете Telegram. Отстранувањата и вашите известувања за цена и парови стигнуваат во рок од еден час.',
+  'PAY $20 WITH CRYPTO': 'ПЛАТЕТЕ $20 СО КРИПТО',
+  'Send': 'Испратете', '$20 or more': '$20 или повеќе',
+  'in USDT, BNB or ETH to an address below, then paste the TX hash. The blockchain check is automatic:': 'во USDT, BNB или ETH на една од адресите подолу, па залепете го TX хешот. Проверката на блокчејнот е автоматска:',
+  'Pro starts within a minute': 'Pro почнува за помалку од една минута',
+  '⬡ Binance Pay · checked by hand': '⬡ Binance Pay · рачна проверка',
+  'Not automatic: Pro starts after we check the payment by hand, within 24 hours. Leave a contact below.': 'Не е автоматско: Pro почнува откако рачно ќе го провериме плаќањето, во рок од 24 часа. Оставете контакт подолу.',
+  'Already sent it? Check the payment': 'Веќе испративте? Проверете го плаќањето',
+  'Paste the TX hash. A crypto payment of $20 or more is checked on the blockchain and': 'Залепете го TX хешот. Крипто плаќање од $20 или повеќе се проверува на блокчејнот и',
+  'Pro starts right away': 'Pro почнува веднаш',
+  '. Binance Pay goes to the check by hand.': '. Binance Pay оди на рачна проверка.',
+  'CHECK PAYMENT': 'ПРОВЕРИ ГО ПЛАЌАЊЕТО',
+  'Your payment arrived, but all 10 early-supporter places were already taken. It is saved, and we will contact you about it. Write to rotatortool@gmail.com with your TX hash if you left no contact.': 'Вашето плаќање стигна, но сите 10 места за раните поддржувачи веќе беа пополнети. Зачувано е и ќе ве контактираме. Ако не оставивте контакт, пишете на rotatortool@gmail.com со вашиот TX хеш.',
+  'NEXT STEP: GET YOUR ALERTS': 'СЛЕДЕН ЧЕКОР: ВАШИТЕ ИЗВЕСТУВАЊА',
+  'Choose the coins you hold or watch, then connect Telegram. Your briefing comes every Monday and Thursday; delistings and your price and pair alerts within the hour.': 'Изберете ги монетите што ги држите или следите, па поврзете го Telegram. Брифингот стигнува секој понеделник и четврток; отстранувањата и вашите известувања за цена и парови во рок од еден час.',
+  'Choose my coins': 'Избери ги моите монети',
+  'Next: connect Telegram →': 'Следно: поврзете го Telegram →',
+  'Not connected yet: the bot has not confirmed. If you tapped Start, wait a minute and come back to this page. Otherwise tap the button again for a new link.': 'Сè уште не е поврзано: ботот не потврди. Ако допревте Start, почекајте една минута и вратете се на оваа страница. Инаку, допрете го копчето повторно за нов линк.',
+  'A message within the hour if a coin you hold is being delisted': 'Порака во рок од еден час ако монета што ја држите се отстранува од листата',
+  'A message within the hour if a coin you hold is delisted': 'Порака во рок од еден час ако монета што ја држите е отстранета од листата',
+  'The chart could not load.': 'Графиконот не се вчита.',
+  'Prices could not load.': 'Цените не се вчитаа.',
+  'Retry': 'Обиди се пак',
+});
+/* "· score 64" in the example briefing. */
+MK_PATTERNS.push([/^· score (-?\d+)$/, function (m) { return '· оценка ' + m[1]; }]);
 /* "65 — Greed" in the Insight Engine's Fear & Greed tile. */
 MK_PATTERNS.push([/^(\d+) — (Extreme Fear|Fear|Neutral|Greed|Extreme Greed)$/, function (m) {
   return m[1] + ' — ' + { 'Extreme Fear': 'екстремен страв', 'Fear': 'страв', 'Neutral': 'неутрално', 'Greed': 'алчност', 'Extreme Greed': 'екстремна алчност' }[m[2]];

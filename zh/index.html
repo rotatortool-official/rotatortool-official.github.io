@@ -1055,7 +1055,7 @@ document.addEventListener('click', function (e) {
         <h2>通过Telegram接收您持有的币种的行情提醒。</h2>
         <div class="steps" data-scene="alerts">
           <p class="step" data-at="0">你持有的某枚币<strong>还有3天就要迎来大规模解锁</strong>？Rotator会第一时间通知你。</p>
-          <p class="step" data-at=".26"><strong>Binance宣布下架？</strong>您将第一时间得知。</p>
+          <p class="step" data-at=".26"><strong>Binance宣布下架？</strong>一小时内即可知晓。</p>
           <p class="step" data-at=".48"><strong>价格达到目标了吗？</strong>您设置的提醒已发送。</p>
           <p class="step" data-at=".7">每周<strong>一和周四，</strong>我们会为您提供关于您持有的币种的<strong>简短简报</strong>。仅此而已，没有冗余信息。</p>
         </div>
@@ -1120,14 +1120,14 @@ document.addEventListener('click', function (e) {
         <ul>
           <li><strong>个人 Telegram 简报</strong>，关于您的币种，每周一和周四</li>
           <li><strong>解锁提醒</strong>，还有3天以上</li>
-          <li><strong>下架和交易对更换提醒</strong>，即时推送</li>
+          <li>一小时内<strong>推送下架、价格及交易对变更提醒</strong></li>
           <li>10种持仓资产，任意兑换组合</li>
           <li><strong>Rotator 内置的 TradingView 图表</strong>，支持全屏显示，并配有绘图工具</li>
           <li><strong>洞察指标</strong>：图表上显示RSI 14和Rotator评分，两者交叉处标有圆点</li>
           <li><strong>Rotator Insight Engine</strong>：⚡ 用通俗易懂的语言对任何币种进行评估</li>
           <li>浏览器通知</li>
         </ul>
-        <p class="plan-note">前10位付费用户可免费使用Pro版本，直至Rotator的运营成本得到覆盖。此后，Pro将转为订阅制。您也可以免费获得使用权：每邀请一位好友可获1周免费使用期，订阅《Rotator Weekly》可获2周免费使用期。</p>
+        <p class="plan-note">前10位付费用户可保留Pro会员资格，且没有截止日期：该权益仅在Rotator停止运营时终止，且当订阅服务正式上线后，他们将无需再次付费。您还可以免费获得该权益：每邀请一位朋友可获1周免费使用期，订阅《Rotator Weekly》可获2周免费使用期。</p>
         <a class="btn btn-tg" href="../board.html#pro">升级至Pro版</a>
       </div>
     </div>
@@ -3239,8 +3239,8 @@ document.addEventListener('click', function (e) {
            board's watch link as before. */
         + '<div class="alx"><div class="alx-h">' + '⚡ 该币种的Pro级提醒：' + ' <b>' + TOPIC.esc(sym) + '</b></div><ul class="alx-li">'
         + '<li>' + (unl ? '🔓 ' + '解锁提醒，提前3天：' + ' <b>' + TOPIC.day(u.next_unlock_at) + '</b>' : '🔓 ' + '解锁提醒：一旦安排好，立即通知。') + '</li>'
-        + '<li>⚠️ ' + 'Binance下架：立即执行。' + '</li>'
-        + '<li>🎯 ' + '您的目标价格：一旦达到即刻成交。' + '</li>'
+        + '<li>⚠️ ' + 'Binance下架：一小时内完成。' + '</li>'
+        + '<li>🎯 ' + '自定义价格：在达到该价格后的1小时内生效。' + '</li>'
         + '<li>↔️ ' + '“超越”：指其价格超过你持有的另一枚币种。' + '</li>'
         + '<li>🗓️ ' + '每周一和周四为您提供持币简报。' + '</li></ul>'
         + '<div class="alx-n">' + '我们不提供交易信号。我们会及时告知您，由您自行决定。' + '</div>'

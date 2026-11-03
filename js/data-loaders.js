@@ -1571,6 +1571,15 @@ function _countSubstackArrival() {
 
 async function doLoad() {
   if (typeof supaCountFeature === 'function') supaCountFeature('page_view', true);   /* usage count, promptove/64 */
+  /* Pro coming back: once a day per browser (2026-11-03). Only the date
+     is kept in this browser; the server gets a day total. */
+  try {
+    var _today = new Date().toISOString().slice(0, 10);
+    if (isPro && localStorage.getItem('rot_pro_day') !== _today) {
+      localStorage.setItem('rot_pro_day', _today);
+      if (typeof supaCountFeature === 'function') supaCountFeature('pro_return_day');
+    }
+  } catch (e) {}
   _countSubstackArrival();
   processIncomingRef();
   var _d = checkMyReferrals();
@@ -3727,14 +3736,13 @@ function _tdTradingView(c) {
     if (!fold.open || !host || host.getAttribute('data-sym') === c.sym) return;
     host.setAttribute('data-sym', c.sym);
     if (typeof supaCountFeature === 'function') supaCountFeature('tradingview_open');
-    _tvEmbed(host, c, false, mk ? 'Графиконот не се вчита (можеби го блокира блокатор на реклами). Отворете го на TradingView подолу.'
-      : 'The chart did not load (an ad blocker may be blocking it). Open it on TradingView below.');
+    _tvEmbed(host, c, false, true);
   };
 }
 /* One TradingView Advanced Chart into `host` (the small fold, the full
    screen, the big coin card). tools = the Pro set: drawing toolbar, date
-   ranges, screenshot. `blockedMsg` replaces it when an ad blocker stops
-   the script (no iframe after 8 s). */
+   ranges, screenshot. `slowNote` (true) shows the slow-load note with
+   Retry and Rotator indicators after 8 visible seconds (2026-11-03). */
 /* Empty a TradingView host: the frame goes to about:blank and is removed.
    2026-10-29, Daniel: on his iPhone the site "refreshes by itself often".
    In Playwright WebKit (iPhone 13) each TradingView chart costs ~85 MB that
@@ -3749,7 +3757,7 @@ function _tvFree(host) {
 }
 var _tvLoads = 0;   /* TradingView charts loaded in this page visit */
 function _tvUrl(o) { return 'https://www.tradingview-widget.com/embed-widget/advanced-chart/?locale=en#' + encodeURIComponent(JSON.stringify(o)); }
-function _tvEmbed(host, c, tools, blockedMsg) {
+function _tvEmbed(host, c, tools, slowNote) {
   /* Free the old frame but keep the caller's data-sym / data-key. */
   var keepSym = host.getAttribute('data-sym'), keepKey = host.getAttribute('data-key');
   _tvFree(host);
@@ -3774,17 +3782,53 @@ function _tvEmbed(host, c, tools, blockedMsg) {
   _tvLoads++;
   f.setAttribute('frameborder', '0'); f.setAttribute('allowtransparency', 'true'); f.setAttribute('scrolling', 'no');
   f.style.cssText = 'width:100%;height:100%;display:block;border:0;';
-  var loaded = false;
-  f.onload = function () { loaded = true; };
+  var loaded = false, wait = null;
+  f.onload = function () { loaded = true; if (wait) { wait.remove(); wait = null; } };
   f.src = _tvUrl(o);
   host.appendChild(f);
-  /* An ad blocker that stops the frame: after 8 s without a load, the
-     message replaces it. */
-  setTimeout(function () {
-    if (loaded || !blockedMsg || !host.contains(f)) return;
-    _tvFree(host);
-    host.innerHTML = '<div class="td-tv-blocked">' + blockedMsg + '</div>';
-  }, 8000);
+  if (!slowNote) return;
+  /* Slow, not gone (2026-11-03): the in-app browser showed "an ad blocker
+     may be blocking it" with no blocker, because this timer removed a frame
+     that was still loading (a page in the background, a slow phone). Now
+     the frame stays, the clock runs only while the page is visible, and the
+     note names no cause we cannot see. It offers Retry and our own chart,
+     and goes away by itself if TradingView arrives. */
+  var mk = typeof currentLang !== 'undefined' && currentLang === 'mk';
+  var shown = 0;
+  var note = function (late) {
+    if (loaded || !host.contains(f)) return;
+    if (!wait) {
+      if (getComputedStyle(host).position === 'static') host.style.position = 'relative';
+      wait = document.createElement('div');
+      wait.className = 'td-tv-wait';
+      host.appendChild(wait);
+    }
+    var ri = _tvRiButton(host);
+    wait.innerHTML = '<div>' + (late
+        ? (mk ? 'TradingView не се вчита. Може да го спречи бавна врска, поставка за приватност или блокатор.' : 'TradingView did not load. A slow connection, a privacy setting or a blocker can stop it.')
+        : (mk ? 'TradingView се вчитува подолго од вообичаено…' : 'TradingView is taking longer than usual…')) + '</div>'
+      + '<div class="td-tv-wait-acts"><button type="button" class="td-tv-retry">' + (mk ? 'Обиди се пак' : 'Retry') + '</button>'
+      + (ri ? '<button type="button" class="td-tv-useri">📈 ' + (mk ? 'Користи Rotator indicators' : 'Use Rotator indicators') + '</button>' : '') + '</div>';
+    wait.querySelector('.td-tv-retry').onclick = function () { _tvEmbed(host, c, tools, slowNote); };
+    var u = wait.querySelector('.td-tv-useri'); if (u) u.onclick = function () { ri.click(); };
+  };
+  var tick = function () {
+    if (loaded || !host.contains(f)) return;
+    if (!document.hidden) shown += 1;
+    if (shown === 8) note(false);
+    if (shown === 25) { note(true); return; }
+    setTimeout(tick, 1000);
+  };
+  setTimeout(tick, 1000);
+}
+/* The Rotator indicators switch next to a TradingView host (small window
+   tab, full-screen overlay or big card), for the "use our chart" button. */
+function _tvRiButton(host) {
+  for (var el = host.parentElement; el && el !== document.body; el = el.parentElement) {
+    var b = el.querySelector('[data-tab="ri"]:not([hidden]), .tdx-sw-b[data-v="ri"]');
+    if (b) return b;
+  }
+  return null;
 }
 /* Pro: the coin's chart over the whole screen. On a wide screen it is the
    big card's own full screen (tdxFocus, js/coin-expand.js: the chart in the
@@ -3793,7 +3837,7 @@ function _tvEmbed(host, c, tools, blockedMsg) {
    top, the tradingview.com link inside the "⋯" menu. Esc or × closes it. */
 function tvFullscreen() {
   var c = typeof _tdCoin !== 'undefined' ? _tdCoin : null;
-  if (!c || !_tdIsPro()) { if (typeof openPro === 'function') { closeTileDetail(); openPro(); } return; }
+  if (!c || !_tdIsPro()) { if (typeof openPro === 'function') openPro(); return; }
   if (typeof tdCanExpand === 'function' && tdCanExpand() && typeof tdxFocus === 'function') {
     var p = document.getElementById('td-panel');
     if (p && !p.classList.contains('td-expanded')) tdToggleExpand();
@@ -3822,7 +3866,7 @@ function tvFullscreen() {
     tvHost.style.display = on ? 'none' : '';
     riHost.style.display = on ? '' : 'none';
     if (on && riHost.getAttribute('data-sym') !== c.sym) { if (typeof supaCountFeature === 'function') supaCountFeature('rotator_indicators'); riRender(riHost, c); }
-    if (!on && !tvHost.firstChild) _tvEmbed(tvHost, c, true, 'The chart did not load (an ad blocker may be blocking it). Allow tradingview.com in the blocker and open it again.');
+    if (!on && !tvHost.firstChild) _tvEmbed(tvHost, c, true, true);
   };
   ov.querySelectorAll('.tdx-sw-b').forEach(function (b) { b.addEventListener('click', function () { show(b.getAttribute('data-v')); }); });
   var pref = false; try { pref = localStorage.getItem('rot_ri_on') === '1'; } catch (e) {}
@@ -4667,7 +4711,7 @@ function _tdLoadVolumeDays(sym) {
 function _tdIsPro() { return typeof isPro !== 'undefined' && !!isPro; }
 function _tdProLock(sentence) {
   return '<div class="td-pro-lock"><span>🔒 ' + sentence + '</span>'
-    + '<button type="button" class="td-pro-lock-btn" onclick="closeTileDetail();openPro()">See Pro</button></div>';
+    + '<button type="button" class="td-pro-lock-btn" onclick="openPro()">See Pro</button></div>';
 }
 
 /* good / bad / neutral for one Insight Engine signal. One copy: the

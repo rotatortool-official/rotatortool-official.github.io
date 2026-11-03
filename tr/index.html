@@ -1055,7 +1055,7 @@ document.addEventListener('click', function (e) {
         <h2>Telegram üzerinden coin&#x27;lerinizle ilgili uyarılar.</h2>
         <div class="steps" data-scene="alerts">
           <p class="step" data-at="0">Elinizdeki bir kripto paranın <strong>büyük bir kilit açma işlemi 3 gün sonra mı gerçekleşecek</strong>? Rotator size bunu ilk haber verir.</p>
-          <p class="step" data-at=".26"><strong>Binance bir hisseyi listeden çıkaracağını mı duyuruyor?</strong> Hemen haberdar olursunuz.</p>
+          <p class="step" data-at=".26"><strong>Binance bir hisseyi listeden çıkaracağını mı duyurdu?</strong> Bir saat içinde haberi alacaksınız.</p>
           <p class="step" data-at=".48"><strong>Fiyat hedefinize ulaşıldı mı?</strong> Ayarladığınız uyarı size ulaşır.</p>
           <p class="step" data-at=".7">Her <strong>pazartesi ve perşembe</strong> günü<strong>,</strong> sahip olduğunuz kripto paralar hakkında <strong>kısa bir özet</strong>. Başka hiçbir şey yok, gereksiz bilgi yok.</p>
         </div>
@@ -1120,14 +1120,14 @@ document.addEventListener('click', function (e) {
         <ul>
           <li>Pazartesi ve Perşembe günleri, coin&#x27;lerinizle ilgili <strong>kişisel Telegram bilgilendirmeleri</strong></li>
           <li><strong>Kilit açılımı uyarısı</strong>, 3+ gün önceden</li>
-          <li><strong>Listeden çıkarma ve takas çifti uyarıları</strong>, anında</li>
+          <li>Bir saat içinde <strong>listeden çıkarma, fiyat ve takas çifti uyarıları</strong></li>
           <li>10 varlık, herhangi bir takas çifti</li>
           <li><strong>Rotator içindeki TradingView grafikleri</strong>, tam ekran ve çizim araçlarıyla birlikte</li>
           <li><strong>Analiz göstergesi</strong>: Grafikte RSI 14 ve Rotator puanı; kesiştiği noktada bir nokta bulunuyor</li>
           <li><strong>Rotator Insight Engine</strong>: ⚡ Herhangi bir kripto para birimini sade bir dille değerlendirin</li>
           <li>Tarayıcı bildirimleri</li>
         </ul>
-        <p class="plan-note">Ödeme yapan ilk 10 kişi, Rotator kendi masraflarını karşıladığı sürece Pro&#x27;u ücretsiz kullanmaya devam eder. Bundan sonra Pro abonelik tabanlı hale gelir. Ayrıca ücretsiz olarak da edinebilirsiniz: Davet ettiğiniz her arkadaş için 1 hafta, Rotator Weekly&#x27;ye abone olduğunuzda 2 hafta.</p>
+        <p class="plan-note">Ödeme yapan ilk 10 kişi, son kullanma tarihi olmaksızın Pro&#x27;a sahip olur: bu hak, yalnızca Rotator&#x27;ın çalışmayı durdurması durumunda sona erer ve abonelikler başladığında bir daha ödeme yapmaları gerekmez. Ayrıca ücretsiz olarak da edinebilirsiniz: davet ettiğiniz her arkadaş için 1 hafta, Rotator Weekly&#x27;ye abone olduğunuzda 2 hafta.</p>
         <a class="btn btn-tg" href="../board.html#pro">Pro&#x27;ya Geçin</a>
       </div>
     </div>
@@ -3239,8 +3239,8 @@ document.addEventListener('click', function (e) {
            board's watch link as before. */
         + '<div class="alx"><div class="alx-h">' + '⚡ Bu kripto para birimi için Pro uyarıları:' + ' <b>' + TOPIC.esc(sym) + '</b></div><ul class="alx-li">'
         + '<li>' + (unl ? '🔓 ' + 'Uyarı: 3 gün önce kilidi açılacaktır:' + ' <b>' + TOPIC.day(u.next_unlock_at) + '</b>' : '🔓 ' + 'Uyarı: Planlandığı anda kilidi açılacaktır.') + '</li>'
-        + '<li>⚠️ ' + 'Binance\'den listeden çıkarma: hemen.' + '</li>'
-        + '<li>🎯 ' + 'Kendi fiyatınız: o fiyata ulaşıldığı an.' + '</li>'
+        + '<li>⚠️ ' + 'Binance\'den listeden çıkarılma: bir saat içinde.' + '</li>'
+        + '<li>🎯 ' + 'Kendi fiyatınız: hedefe ulaşıldıktan sonraki bir saat içinde.' + '</li>'
         + '<li>↔️ ' + 'Overtake: Elinizde bulunan başka bir kripto parayı geçtiğinde.' + '</li>'
         + '<li>🗓️ ' + 'Kripto paralarınızla ilgili bilgilendirme: her Pazartesi ve Perşembe.' + '</li></ul>'
         + '<div class="alx-n">' + 'Sinyal satmıyoruz. Size zamanında bilgi veriyoruz, karar ise size kalmış.' + '</div>'

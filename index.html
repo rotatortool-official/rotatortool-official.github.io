@@ -1055,7 +1055,7 @@ document.addEventListener('click', function (e) {
         <h2>Alerts on your coins, in Telegram.</h2>
         <div class="steps" data-scene="alerts">
           <p class="step" data-at="0"><strong>A big unlock is 3 days away</strong> on a coin you hold? Rotator tells you first.</p>
-          <p class="step" data-at=".26"><strong>Binance announces a delisting?</strong> You hear right away.</p>
+          <p class="step" data-at=".26"><strong>Binance announces a delisting?</strong> You hear within the hour.</p>
           <p class="step" data-at=".48"><strong>Your price is reached?</strong> The alert you set comes through.</p>
           <p class="step" data-at=".7">And every <strong>Monday and Thursday, a short briefing</strong> on your coins. Nothing else, no noise.</p>
         </div>
@@ -1120,14 +1120,14 @@ document.addEventListener('click', function (e) {
         <ul>
           <li><strong>Personal Telegram briefing</strong> on your coins, Monday and Thursday</li>
           <li><strong>Unlock warning</strong>, 3+ days ahead</li>
-          <li><strong>Delisting and swap-pair alerts</strong>, right away</li>
+          <li><strong>Delisting, price and swap-pair alerts</strong>, within the hour</li>
           <li>10 holdings, any swap pair</li>
           <li><strong>TradingView charts inside Rotator</strong>, full screen, with drawing tools</li>
           <li><strong>Insight indicator</strong>: RSI 14 and the Rotator score on the chart, with a dot where they cross</li>
           <li><strong>Rotator Insight Engine</strong>: ⚡ Run evaluation on any coin, in plain words</li>
           <li>Browser notifications</li>
         </ul>
-        <p class="plan-note">The first 10 who pay keep Pro for as long as Rotator pays its own costs. After that, Pro becomes a subscription. You can also get it free: 1 week for each friend you invite, 2 weeks for subscribing to Rotator Weekly.</p>
+        <p class="plan-note">The first 10 who pay keep Pro with no end date: it ends only if Rotator stops running, and they never pay again when subscriptions start. You can also get it free: 1 week for each friend you invite, 2 weeks for subscribing to Rotator Weekly.</p>
         <a class="btn btn-tg" href="board.html#pro">Get Pro</a>
       </div>
     </div>
@@ -3239,8 +3239,8 @@ document.addEventListener('click', function (e) {
            board's watch link as before. */
         + '<div class="alx"><div class="alx-h">' + '⚡ Pro alerts for this coin:' + ' <b>' + TOPIC.esc(sym) + '</b></div><ul class="alx-li">'
         + '<li>' + (unl ? '🔓 ' + 'Unlock warning, 3 days before:' + ' <b>' + TOPIC.day(u.next_unlock_at) + '</b>' : '🔓 ' + 'Unlock warning: as soon as one is scheduled.') + '</li>'
-        + '<li>⚠️ ' + 'Binance delisting: right away.' + '</li>'
-        + '<li>🎯 ' + 'Your own price: the moment it is reached.' + '</li>'
+        + '<li>⚠️ ' + 'Binance delisting: within the hour.' + '</li>'
+        + '<li>🎯 ' + 'Your own price: within the hour after it is reached.' + '</li>'
         + '<li>↔️ ' + 'Overtake: when it passes another coin you hold.' + '</li>'
         + '<li>🗓️ ' + 'Briefing on your coins: every Monday and Thursday.' + '</li></ul>'
         + '<div class="alx-n">' + 'We do not sell signals. We tell you on time, and you decide.' + '</div>'
