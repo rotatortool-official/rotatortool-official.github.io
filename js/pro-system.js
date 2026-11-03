@@ -702,15 +702,26 @@ function incrementDonationCount() {
   try { var n = parseInt(localStorage.getItem('rot_donation_est') || '0') + 1; localStorage.setItem('rot_donation_est', String(n)); } catch(e) {}
 }
 
+/* Visit days in rot_visit_days since 2026-11-03: rot_visits is engage.js's
+   per-session count (a plain number), and the two formats overwrote each
+   other (outside audit). The first read takes an old object from rot_visits;
+   a broken value starts again from zero. */
+function _readVisitDays() {
+  function parse(s) {
+    try { var o = JSON.parse(s); return o && typeof o === 'object' && typeof o.lastDay === 'string' ? o : null; } catch (e) { return null; }
+  }
+  var own = localStorage.getItem('rot_visit_days');
+  return (own != null ? parse(own) : parse(localStorage.getItem('rot_visits'))) || { total: 0, lastDay: '', dailyStreak: 0 };
+}
 function getVisitStats() {
   try {
     var today = new Date().toISOString().slice(0, 10);
-    var data  = JSON.parse(localStorage.getItem('rot_visits') || '{"total":0,"lastDay":"","dailyStreak":0}');
+    var data  = _readVisitDays();
     if (data.lastDay !== today) {
-      data.total = (data.total || 0) + 1;
-      data.dailyStreak = (data.lastDay === getPrevDay(today)) ? (data.dailyStreak || 0) + 1 : 1;
+      data.total = (Number(data.total) || 0) + 1;
+      data.dailyStreak = (data.lastDay === getPrevDay(today)) ? (Number(data.dailyStreak) || 0) + 1 : 1;
       data.lastDay = today;
-      localStorage.setItem('rot_visits', JSON.stringify(data));
+      localStorage.setItem('rot_visit_days', JSON.stringify(data));
     }
     return data;
   } catch(e) { return {total:1, dailyStreak:1}; }
