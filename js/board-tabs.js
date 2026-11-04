@@ -60,13 +60,17 @@
       { k: 'liq', el: 'sec-liq', n: 'Liquidations', i: 'bolt', g: 'Market' },
       { k: 'percoin', el: 'sec-coins', tab: 'coins', n: 'Funding & positioning', i: 'pct', g: 'Per coin', pro: 1, l: 'Open any coin' }
     ] },
-    { id: 'mine', lead: 'What you hold and watch, with the warnings and tools that follow your coins.', name: 'My holdings', title: 'Portfolio tracker', icon: 'wallet', mob: 'HOLDINGS', mine: 1, secs: ['sec-yours', 'sec-swap'], items: [
-      { k: 'alerts', el: 'coin-alerts', n: 'Alerts for your coins', i: 'bell', g: 'Portfolio' },
-      { k: 'signal', el: 'sig-box-crypto', n: 'Portfolio Signal', i: 'sig', g: 'Portfolio' },
-      { k: 'holdings', el: 'my-holdings-panel', n: 'Holdings & watchlist', i: 'wallet', g: 'Portfolio' },
-      { k: 'chart', el: 'hold-chart', n: 'Your coins on one chart', i: 'chart', g: 'Portfolio' },
-      { k: 'whatif', el: 'paper-trades', n: 'What-if trades', i: 'what', g: 'Portfolio' },
-      { k: 'opps', el: 'rot-beside', n: 'Rotation opportunities', i: 'target', g: 'Tools' },
+    /* Daniel, 2026-11-04: the Portfolio buttons "almost do the same thing".
+       Three groups now (summary / your coins / notifications), and a piece
+       that needs a coin first says so (w) and points at "Add your first
+       coin" (empty) instead of the section top. */
+    { id: 'mine', lead: 'What you hold and watch, with the warnings and tools that follow your coins.', name: 'My holdings', title: 'Portfolio tracker', icon: 'wallet', mob: 'HOLDINGS', mine: 1, empty: '.tile-placeholder-lead', secs: ['sec-yours', 'sec-swap'], items: [
+      { k: 'signal', el: 'sig-box-crypto', n: 'Portfolio Signal', i: 'sig', g: 'Summary', w: 1 },
+      { k: 'chart', el: 'hold-chart', n: 'Your coins on one chart', i: 'chart', g: 'Summary', w: 1 },
+      { k: 'holdings', el: 'tiles-grid', n: 'Holdings & watchlist', i: 'wallet', g: 'Your coins' },
+      { k: 'whatif', el: 'paper-trades', n: 'What-if trades', i: 'what', g: 'Your coins' },
+      { k: 'alerts', el: 'coin-alerts', n: 'Alerts for your coins', i: 'bell', g: 'Notifications' },
+      { k: 'opps', el: 'rot-beside', n: 'Rotation opportunities', i: 'target', g: 'Tools', w: 1 },
       { k: 'tool', el: 'sec-swap', n: 'Rotator Tool', i: 'swap', g: 'Tools' }
     ] }
   ];
@@ -140,6 +144,35 @@
     head.innerHTML = '<h1>' + (t.title || t.name) + '</h1><p>' + t.lead + '</p>';
     pills.innerHTML = t.items.map(function (it) { return '<a href="' + itemHref(t, it) + '" data-k="' + it.k + '">' + it.n + '</a>'; }).join('');
     list.classList.remove('tr-in'); void list.offsetWidth; list.classList.add('tr-in');
+    waitMarks();
+  }
+
+  /* No coin yet: the pieces that only fill once you add one say so, in the
+     rail and the pills, so a new visitor sees why they look empty. */
+  function noCoins(t) { return !!(t && t.empty && document.querySelector(t.empty)); }
+  function waitMarks() {
+    var t = byId[cur]; if (!t) return;
+    var none = noCoins(t);
+    t.items.forEach(function (it) {
+      if (!it.w) return;
+      var a = list.querySelector('a[data-k="' + it.k + '"]'), p = pills.querySelector('a[data-k="' + it.k + '"]');
+      if (a) {
+        a.classList.toggle('tr-wait', none);
+        var s = a.querySelector('small.tr-w');
+        if (none && !s) { s = document.createElement('small'); s.className = 'tr-w'; s.textContent = 'After you add a coin'; a.querySelector('span').appendChild(s); }
+        if (!none && s) s.remove();
+      }
+      if (p) p.classList.toggle('tr-wait', none);
+    });
+  }
+  setInterval(waitMarks, 4000);
+
+  /* The piece you clicked lights up for a moment, so each button shows
+     its own part even when the page has nothing left to scroll. */
+  function spot(el) {
+    if (!el || !el.classList) return;
+    el.classList.remove('tab-spot'); void el.offsetWidth; el.classList.add('tab-spot');
+    clearTimeout(el._spotT); el._spotT = setTimeout(function () { el.classList.remove('tab-spot'); }, 1900);
   }
 
   /* ── Switching ── */
@@ -162,9 +195,11 @@
     setTimeout(function () { window.dispatchEvent(new Event('resize')); }, 30);
     return true;
   }
-  function target(it) {
+  function shows(el) { return el && el.offsetParent !== null && el.offsetHeight > 0; }
+  function target(it, t) {
     var el = $(it.el);
-    if (el && el.offsetParent === null) el = el.closest('.rsec');
+    if (it.w && noCoins(t)) { var e0 = document.querySelector(t.empty); if (shows(e0)) return e0; }
+    if (el && !shows(el)) el = el.closest('.rsec');
     return el;
   }
   var scrollFn = window.rotScrollToEl;
@@ -174,8 +209,11 @@
     var changed = setTab(t.id);
     if (push !== false) { try { history.pushState(null, '', '#' + t.id + (it ? '-' + it.k : '')); } catch (x) {} }
     mark(it ? it.k : t.items[0].k);
-    var el = it ? target(it) : null;
+    /* Keep the clicked button lit while the page glides to its piece. */
+    if (it && push !== false) holdK = Date.now() + 2500;
+    var el = it ? target(it, t) : null;
     if (!el) { if (changed) window.scrollTo(0, 0); return; }
+    if (push !== false && !el.classList.contains('rsec')) setTimeout(function () { spot(el); }, changed ? 120 : 60);
     /* Scroll so the piece sits under the top bar and the pill row. Content
        above keeps loading while it scrolls, so look again twice and
        correct, as mobGo() does. */
@@ -189,8 +227,8 @@
       setTimeout(function () { if (gen === goGen && Math.abs(el.getBoundingClientRect().top - over()) > 30) to(true); }, ms);
     });
   }
-  var goGen = 0;
-  ['wheel', 'touchstart', 'keydown'].forEach(function (ev) { window.addEventListener(ev, function () { goGen++; }, { passive: true }); });
+  var goGen = 0, holdK = 0;
+  ['wheel', 'touchstart', 'keydown'].forEach(function (ev) { window.addEventListener(ev, function () { goGen++; holdK = 0; }, { passive: true }); });
   window.BoardTabs = { go: go, tabOf: function (secId) { return secTab[secId]; } };
 
   bar.addEventListener('click', function (e) { var a = e.target.closest('[data-tab]'); if (!a) return; e.preventDefault(); go(a.getAttribute('data-tab')); });
@@ -229,11 +267,13 @@
     if (spyRaf) return;
     spyRaf = requestAnimationFrame(function () {
       spyRaf = 0;
-      var t = byId[cur]; if (!t) return;
+      var t = byId[cur]; if (!t || Date.now() < holdK) return;
       var line = 160, best = null;
       /* Only parts that are showing count: an empty one (no alerts yet)
          used to stand in for its whole section and win at the top. */
       var shown = t.items.filter(function (it) { var el = !it.tab && $(it.el); return el && el.offsetParent !== null && el.offsetHeight > 0; });
+      /* Rail order is not always page order (Holdings groups by meaning). */
+      shown.sort(function (a, b) { return $(a.el).getBoundingClientRect().top - $(b.el).getBoundingClientRect().top; });
       shown.forEach(function (it) { if ($(it.el).getBoundingClientRect().top <= line) best = it.k; });
       if (window.scrollY < 10 || !best) best = (shown[0] || t.items[0]).k;
       if (best !== lastK) { lastK = best; mark(best); }

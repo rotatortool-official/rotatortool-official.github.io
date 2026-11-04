@@ -7482,6 +7482,14 @@ body.has-tabs #top-sec{display:none;}
 .tr-it.on::before{content:'';position:absolute;left:0;top:7px;bottom:7px;width:3px;border-radius:3px;background:var(--bnb);}
 .tr-it.on svg{color:var(--bnb);}
 .tr-pro{margin-left:auto;font-style:normal;font-size:8.5px;font-weight:800;letter-spacing:.06em;padding:2px 4px;border-radius:4px;background:var(--bnb);color:#1a1203;}
+/* A piece that fills only after a coin is added (2026-11-04). */
+.tr-it.tr-wait{opacity:.62;}
+.tr-it.tr-wait small.tr-w{color:var(--bnb);opacity:1;}
+.tab-pills a.tr-wait{opacity:.6;border-style:dashed;}
+/* The piece a rail button or pill points at lights up for a moment. */
+.tab-spot{border-radius:10px;animation:tabSpot 1.9s ease-out;}
+@keyframes tabSpot{0%,35%{box-shadow:0 0 0 2px var(--bnb),0 0 22px rgba(240,185,11,.35);}100%{box-shadow:0 0 0 2px transparent,0 0 0 transparent;}}
+@media (prefers-reduced-motion:reduce){.tab-spot{animation:none;outline:2px solid var(--bnb);}}
 
 /* Phones and narrow windows (no rail): the pieces as a pill row. */
 .tab-pills{display:none;}
