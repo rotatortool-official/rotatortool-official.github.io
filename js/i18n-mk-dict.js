@@ -2282,7 +2282,7 @@ Object.assign(MK_TEXT, {
   'Liquidations': 'Ликвидации', 'Per coin': 'По монета', 'Funding & positioning': 'Фандинг и позиционирање', 'Open any coin': 'Отворете која било монета',
   'Futures traders: who got forced out of their positions, and when.': 'Трговци со фјучерси: кој беше принудно исфрлен од позициите, и кога.',
   'Portfolio': 'Портфолио', 'Holdings & watchlist': 'Позиции и листа за следење', 'Your coins on one chart': 'Вашите монети на еден графикон',
-  'What-if trades': 'Што ако тргувања', 'Tools': 'Алатки', 'Rotation opportunities': 'Можности за ротација', 'Portfolio tracker': 'Следење на портфолиото',
+  'What-if trades': 'Што ако тргувања', 'Tools': 'Алатки', 'Summary': 'Резиме', 'Notifications': 'Известувања', 'After you add a coin': 'Откако ќе додадете монета', 'Rotation opportunities': 'Можности за ротација', 'Portfolio tracker': 'Следење на портфолиото',
   'What you hold and watch, with the warnings and tools that follow your coins.': 'Она што го држите и следите, со предупредувањата и алатките што ги следат вашите монети.',
   'Chart on TradingView': 'Графикон на TradingView', 'Other': 'Друго',
   'mostly longs': 'претежно лонг', 'mostly shorts': 'претежно шорт', 'Longs': 'Лонг', 'Shorts': 'Шорт', 'Biggest order': 'Најголема нарачка', 'Share': 'Сподели',
