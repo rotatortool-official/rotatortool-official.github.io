@@ -475,12 +475,14 @@ function supaFetchKlinePages(group, sinceIso) {
         console.warn('[Supabase] kline paging hit the ' + KLINE_MAX_PAGES + '-page floor for '
           + (group ? group.length : 'all') + ' symbols (' + rows.length + ' rows). Candles are incomplete '
           + 'and graded accuracy will read low.');
+        rows.incomplete = true;
         return rows;
       }
       return page(offset + KLINE_PAGE_LIMIT, pageNo + 1);
     }).catch(function(e) {
       console.warn('[Supabase] daily klines page failed (' + (group ? group.length : 'all')
         + ' symbols, offset ' + offset + '):', (e && e.message) || e);
+      rows.incomplete = true;   /* read by the browser cache below: never store a partial read */
       return rows;   /* partial beats nothing; uncovered coins fall back per coin */
     });
   }
@@ -557,20 +559,31 @@ function supaLoadDailyKlines(syms, sinceIso) {
   var wantAll = syms == null;
   if (!wantAll && !unique.length) return Promise.resolve({});
 
-  var chunks;
-  if (wantAll) {
-    chunks = [null];
-  } else {
-    var size = supaKlineChunkSize(sinceIso);
-    chunks = [];
-    for (var i = 0; i < unique.length; i += size) chunks.push(unique.slice(i, i + size));
-  }
+  /* The whole-table read is the same for every visitor and only its
+     newest candles change, so a returning visitor keeps it in the
+     browser and asks only for the last few days (supaKlineCache below). */
+  if (wantAll) return supaLoadAllKlinesCached(sinceIso);
+
+  var size = supaKlineChunkSize(sinceIso);
+  var chunks = [];
+  for (var i = 0; i < unique.length; i += size) chunks.push(unique.slice(i, i + size));
 
   return supaKlinePool(chunks, function(group) {
     return supaFetchKlinePages(group, sinceIso);
   }).then(function(groups) {
-    var out = {};
-    groups.forEach(function(rows) {
+    var out = supaKlineRowsToMap(groups);
+    supaWarnIfKlinesStale(unique, out);
+    return out;
+  }).catch(function(e) {
+    console.warn('[Supabase] daily klines read failed:', e.message);
+    return {};
+  });
+}
+
+/** PostgREST rows (one array per chunk) → { SYM: [{openTime, high, low, close}] }. */
+function supaKlineRowsToMap(groups, out) {
+  out = out || {};
+  groups.forEach(function(rows) {
       (rows || []).forEach(function(r) {
         (out[r.base_asset] = out[r.base_asset] || []).push({
           openTime: Date.parse(r.open_time),
@@ -579,8 +592,90 @@ function supaLoadDailyKlines(syms, sinceIso) {
           close:    parseFloat(r.close)
         });
       });
+  });
+  return out;
+}
+
+/* ── Browser cache for the whole-table candle read (2026-11-04) ─────
+   Measured that day: every board load read ~8,000 rows of
+   binance_daily_klines in 9 pages, one after another (~110 KB gzip of
+   Supabase egress and ~1.5 s), although a closed daily candle never
+   changes. Now the first visit reads the window once and stores it in
+   localStorage; later visits read only candles from KLINE_CACHE_REFETCH_DAYS
+   before the newest stored one (today's candle is still moving and the
+   sync runs every 3 h), usually one page.
+   A full read happens again when the store is older than
+   KLINE_CACHE_MAX_AGE_DAYS, when a caller asks for older candles than it
+   holds, or when it cannot be read. Holdings and other localStorage keys
+   are never touched; if the browser refuses the space, nothing is stored
+   and the board works as before. */
+var KLINE_CACHE_KEY          = 'rot_kl_all_v1';
+var KLINE_CACHE_REFETCH_DAYS = 2;
+var KLINE_CACHE_MAX_AGE_DAYS = 7;
+
+function supaKlineCacheRead() {
+  try {
+    var o = JSON.parse(localStorage.getItem(KLINE_CACHE_KEY) || 'null');
+    if (!o || o.v !== 1 || !o.rows || !o.since || !o.newest || !o.at) return null;
+    if (Date.now() - o.at > KLINE_CACHE_MAX_AGE_DAYS * 864e5) return null;
+    return o;
+  } catch (e) { return null; }
+}
+
+function supaKlineCacheWrite(sinceMs, map, fullAt) {
+  /* Compact: SYM → [[openTime, high, low, close], …] */
+  var rows = {}, newest = 0;
+  Object.keys(map).forEach(function(sym) {
+    rows[sym] = map[sym].map(function(c) {
+      if (c.openTime > newest) newest = c.openTime;
+      return [c.openTime, c.high, c.low, c.close];
     });
-    supaWarnIfKlinesStale(wantAll ? Object.keys(out) : unique, out);
+  });
+  if (!newest) return;
+  try {
+    localStorage.setItem(KLINE_CACHE_KEY, JSON.stringify({ v: 1, at: fullAt, since: sinceMs, newest: newest, rows: rows }));
+  } catch (e) {
+    try { localStorage.removeItem(KLINE_CACHE_KEY); } catch (e2) {}
+  }
+}
+
+function supaLoadAllKlinesCached(sinceIso) {
+  var sinceMs = sinceIso ? Date.parse(sinceIso) : NaN;
+  var cache = isNaN(sinceMs) ? null : supaKlineCacheRead();
+  if (cache && cache.since > sinceMs) cache = null;          /* asks for older candles than we hold */
+
+  var fromMs = cache ? cache.newest - KLINE_CACHE_REFETCH_DAYS * 864e5 : sinceMs;
+  var fromIso = isNaN(fromMs) ? sinceIso : new Date(fromMs).toISOString();
+
+  return supaFetchKlinePages(null, fromIso).then(function(rows) {
+    /* Stored candles first, then fresh rows replace the same day. A read
+       that broke off (page left, phone lost signal) is still shown, but
+       never stored: on 2026-11-04 a broken-off first read was stored as if
+       whole, and the next visit graded 3 calls instead of 16. */
+    var byDay = {};
+    if (cache) {
+      Object.keys(cache.rows).forEach(function(sym) {
+        cache.rows[sym].forEach(function(a) {
+          if (a[0] < sinceMs) return;
+          (byDay[sym] = byDay[sym] || {})[a[0]] = { openTime: a[0], high: a[1], low: a[2], close: a[3] };
+        });
+      });
+    }
+    var fresh = supaKlineRowsToMap([rows]);
+    Object.keys(fresh).forEach(function(sym) {
+      fresh[sym].forEach(function(c) { (byDay[sym] = byDay[sym] || {})[c.openTime] = c; });
+    });
+    var out = {};
+    Object.keys(byDay).forEach(function(sym) {
+      out[sym] = Object.keys(byDay[sym]).map(function(t) { return byDay[sym][t]; })
+        .sort(function(x, y) { return x.openTime - y.openTime; });
+    });
+    if (rows.incomplete) {
+      console.warn('[Supabase] daily klines read broke off; shown, not stored');
+    } else if (!isNaN(sinceMs) && rows.length) {
+      supaKlineCacheWrite(sinceMs, out, cache ? cache.at : Date.now());
+    }
+    supaWarnIfKlinesStale(Object.keys(out), out);
     return out;
   }).catch(function(e) {
     console.warn('[Supabase] daily klines read failed:', e.message);
