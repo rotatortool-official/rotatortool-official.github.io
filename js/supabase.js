@@ -56,19 +56,32 @@ function supaRest(table, method, params) {
      the entire page load if one single request never came back.
      10s is generous for a normal Supabase REST call; this only bites
      when something is actually stuck. */
-  var controller = (typeof AbortController !== 'undefined') ? new AbortController() : null;
-  if (controller) opts.signal = controller.signal;
-  var timeoutId = controller ? setTimeout(function() { controller.abort(); }, 10000) : null;
+  /* One retry for a read that timed out (2026-11-04). Measured on a phone
+     profile that day: in 1 of 3 board loads the whole first wave of ~13
+     requests stalled for exactly 10 s, so the TODAY tiles "BTC trend" and
+     "Bitcoin vs gold" stayed on "No reading yet" while the same reads
+     answered in ~0.2 s a moment later. A GET is safe to send twice;
+     POST/PATCH are never retried. */
+  var attempts = (opts.method === 'GET') ? 2 : 1;
+  function attempt(n) {
+    var controller = (typeof AbortController !== 'undefined') ? new AbortController() : null;
+    if (controller) opts.signal = controller.signal;
+    var timeoutId = controller ? setTimeout(function() { controller.abort(); }, 10000) : null;
 
-  return fetch(url, opts).then(function(r) {
-    if (timeoutId) clearTimeout(timeoutId);
-    if (!r.ok) throw new Error('Supabase ' + r.status);
-    return r.json();
-  }).catch(function(e) {
-    if (timeoutId) clearTimeout(timeoutId);
-    if (e && e.name === 'AbortError') throw new Error('Supabase request timed out (' + table + ')');
-    throw e;
-  });
+    return fetch(url, opts).then(function(r) {
+      if (timeoutId) clearTimeout(timeoutId);
+      if (!r.ok) throw new Error('Supabase ' + r.status);
+      return r.json();
+    }).catch(function(e) {
+      if (timeoutId) clearTimeout(timeoutId);
+      if (e && e.name === 'AbortError') {
+        if (n + 1 < attempts) return attempt(n + 1);
+        throw new Error('Supabase request timed out (' + table + ')');
+      }
+      throw e;
+    });
+  }
+  return attempt(0);
 }
 
 /* ── Save Pro status to Supabase ─────────────────────────────── */
