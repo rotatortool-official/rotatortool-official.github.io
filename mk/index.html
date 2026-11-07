@@ -1675,10 +1675,12 @@ document.addEventListener('click', function (e) {
     tour.on = false; cancelAnimationFrame(tour.raf);
     if (tour.gliding) { tour.gliding = false; stopGlide(); }
     tourUi();
+    S.refresh();
   }
   function tourShowEnd() { endEl.hidden = false; endEl.querySelector('.te-opt').focus(); }
   function tourHideEnd() { endEl.hidden = true; }
   playEl.addEventListener('click', function () { if (tour.on) tourPause(); else tourPlay(); });
+  $('ask').addEventListener('pointerdown', function () { tourPause(); stopGlide(); });
   /* The visitor scrolls while a show is paused open: put it away. */
   window.addEventListener('scroll', function () {
     if (!tour.on && tour.showing && TOUR_SHOW[tour.showing]) { TOUR_SHOW[tour.showing](-1); tour.showing = null; }
@@ -1746,10 +1748,11 @@ document.addEventListener('click', function (e) {
       var phone = W < 860;
       var e = ease(seg(p, 0.26, 0.8));
       var copy = $('hero-copy');
-      copy.style.opacity = String(1 - seg(p, 0.04, 0.3));
-      copy.style.transform = 'translateY(' + (-40 * seg(p, 0.04, 0.32)) + 'px)';
+      var reading = $('hero').classList.contains('asked') && !tour.on;
+      copy.style.opacity = reading ? '1' : String(1 - seg(p, 0.04, 0.3));
+      copy.style.transform = reading ? 'none' : 'translateY(' + (-40 * seg(p, 0.04, 0.32)) + 'px)';
       var bc = $('board-cap');
-      bc.style.opacity = String(seg(p, 0.66, 0.84));
+      bc.style.opacity = reading ? '0' : String(seg(p, 0.66, 0.84));
       bc.style.transform = 'translate(-50%,' + ((1 - seg(p, 0.66, 0.84)) * 12).toFixed(1) + 'px) scale(' + (0.97 + 0.05 * seg(p, 0.66, 1)).toFixed(3) + ')';
       var t = p * 6;
       els.forEach(function (o, i) {
@@ -3201,6 +3204,7 @@ document.addEventListener('click', function (e) {
   function show(q) {
     q = String(q || '').trim().toUpperCase().replace(/[^A-Z0-9]/g, ''); if (!q) return;
     inp.value = q; ans.hidden = false; document.getElementById('hero').classList.add('asked'); document.body.classList.add('asked'); ans.innerHTML = '<div class="ans-note">Се вчитуваат најновите податоци…</div>';
+    ScrollScene.refresh();
     fitAns();
     load().then(function (d) {
       var c = d.coins.bySym[q] || d.coins.byId[q.toLowerCase()];
@@ -3284,7 +3288,14 @@ document.addEventListener('click', function (e) {
       var ux = document.getElementById('unx');
       ux.addEventListener('toggle', function () { if (ux.open) pastUnlocks(d); }, { once: true });
       var ci = document.getElementById('cmp-in');
-      function cmp() { compare(d, c, ci.value); }
+      function cmp() {
+        var result = compare(d, c, ci.value);
+        if (!result) return;
+        var out = result.getBoundingClientRect();
+        var top = form.getBoundingClientRect().top + form.clientTop;
+        // Scroll inside the coin brief without advancing the landing tour.
+        form.scrollTop += Math.max(0, Math.min(out.top - top, out.bottom - top - form.clientHeight + 16));
+      }
       document.getElementById('cmp-go').addEventListener('click', cmp);
       ci.addEventListener('keydown', function (ev) { if (ev.key === 'Enter') { ev.preventDefault(); cmp(); } });
     });
@@ -3329,7 +3340,7 @@ document.addEventListener('click', function (e) {
     var b = d.coins.bySym[q] || d.coins.byId[q.toLowerCase()];
     if (!b || b.id === a.id) {
       out.innerHTML = '<div class="ans-note">' + 'Rotator не ја следи оваа монета:' + ' <b>' + TOPIC.esc(q) + '</b>.</div>';
-      return;
+      return out;
     }
     TOPIC.count('coin_compare');
     var A = a.symbol.toUpperCase(), B = b.symbol.toUpperCase();
@@ -3344,6 +3355,7 @@ document.addEventListener('click', function (e) {
       + '<div class="ans-cta"><a class="btn btn-gold" href="/board.html?coin=' + encodeURIComponent(A) + '&amp;watch=1&amp;vs=' + encodeURIComponent(B)
       + '" onclick="TOPIC.count(\'compare_alert_click\')">' + '🔔 Кажете ми кога едната ќе ја претекне другата' + '</a></div>'
       + '<div class="ans-note">' + 'Известувањата за претекнување се дел од Pro. Двете монети одат во вашите позиции на таблата.' + '</div>';
+    return out;
   }
   form.addEventListener('submit', function (e) { e.preventDefault(); show(inp.value); });
   /* ?check=SOL (2026-10-31, Daniel: video descriptions): the visitor from a
