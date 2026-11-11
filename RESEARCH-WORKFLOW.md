@@ -62,3 +62,13 @@ Browser verification exercised the integrated Research tab, prepared-feed captur
 Article figures appear beside the evidence they explain. Sources use short clickable labels while preserving their destinations. News selection is relevance-filtered; unsupported causal claims are avoided. Supply schedules require explicit vesting classification and Bitcoin is never described as a vesting unlock. ETF direction presets require a matching completed report. Topic charts retain native units, source dates, and observation spacing. TVL value changes are not labeled net flows.
 
 The automated suite passes 20 research checks, including the rendered quick path, immutable snapshots, stale-draft guards, topic units, supply exclusions, social link consistency, and ZIP structure. The canonical engine passes all 17 acceptance checks. Local browser preview was unavailable during preparation; production file and UI verification follow deployment.
+
+## Shared rich chart adapter (11 November 2026)
+
+`js/research-charts.js` adapts captured evidence to the existing `flow-charts.js` social-card renderer. `_fcDraw(spec, watermark, {returnCanvas:true})` returns a canvas without opening sharing UI, uses the specification observation date, and retains exact bar proportions in this mode. Existing share callers retain their behavior. Inline article figures, HTML, PNG, and social graphics consume the same adapted image. The SVG download now embeds the rendered PNG rather than promising editable vector paths. Topic/sentiment charts retain their previous renderer.
+
+Capture also prepares existing BTC/ETH history loaders and copies `_etfHist` into `storyData.etfHistory`. ETF cards show up to 20 completed reporting sessions, excluding provisional/duplicate observations, with net, latest report, units, source and dates. Older editions fall back to their own captured bars; they never load present-day history into an old edition. The comparison card remains a seven-day price comparison, not a historical price line or a score plot.
+
+Publication exports include `chartSpecifications` and language metadata: English available, Macedonian planned, not translated. `RotatorPublication.package(run)` and the existing `RotatorResearch.exportPublication(id)` expose this structure inside the page; neither is an authenticated HTTP API. Paid agent API and Macedonian narrative generation are not implemented by this static release. Do not market them as available.
+
+25 research tests pass, including real shared renderer execution with a canvas stub, dated exports without share-modal side effects, captured ETF history, and consistent article/social image routing.

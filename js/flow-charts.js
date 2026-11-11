@@ -141,7 +141,8 @@ function fcShareCard(spec) {
   if (typeof supaCountFeature === 'function') supaCountFeature('share_chart', false);
 }
 
-function _fcDraw(spec, wm) {
+function _fcDraw(spec, wm, options) {
+  options = options || {}; wm = wm || {};
   var W = 1200, H = 675, L0 = 60, UP = '#16c784', DN = '#ea3943', AMB = '#f0a020';
   var can = document.createElement('canvas'); can.width = W; can.height = H;
   var ctx = can.getContext('2d');
@@ -154,7 +155,7 @@ function _fcDraw(spec, wm) {
   shareFit(ctx, kick, W - 2 * L0 - 72, '700 {SIZE}px Inter, sans-serif', 18, 12);
   ctx.fillText(kick, L0, 50);
   if (ctx.letterSpacing !== undefined) ctx.letterSpacing = '0px';
-  var nd = new Date();
+  var nd = new Date(spec.asOf || Date.now());
   ctx.fillStyle = '#f3ba2f'; ctx.beginPath(); ctx.arc(L0 + 4, 71, 4, 0, Math.PI * 2); ctx.fill();
   ctx.font = '600 15px Inter, sans-serif'; ctx.fillText('Updated ' + nd.getUTCDate() + ' ' + _FC_MON[nd.getUTCMonth()], L0 + 16, 76);
   /* legend: [[label, colour]], a dot per series on the "Updated" line. */
@@ -213,8 +214,14 @@ function _fcDraw(spec, wm) {
     var botPad = nmax > 0 ? 24 : 2, sc = (CH - 28 - botPad) / ((pmax + nmax) || 1);
     var zero = CY + 28 + pmax * sc;
     ctx.strokeStyle = '#4a5466'; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(CX, zero); ctx.lineTo(CX + CW, zero); ctx.stroke();
+    if(options.returnCanvas){
+      ctx.fillStyle='#9aa5b5';ctx.font='500 13px Inter, sans-serif';ctx.textAlign='left';
+      ctx.fillText('+' + pmax.toLocaleString('en-US',{maximumFractionDigits:1}) + 'm', CX, CY + 14);
+      ctx.fillText('0', CX, zero - 5);
+      if(nmax)ctx.fillText('−' + nmax.toLocaleString('en-US',{maximumFractionDigits:1}) + 'm',CX,CY+CH+2);
+    }
     b.forEach(function (p, i) {
-      var h = p.v ? Math.max(6, Math.abs(p.v) * sc) : 0, y = p.v >= 0 ? zero - h : zero;
+      var h = p.v ? (options.returnCanvas ? Math.abs(p.v) * sc : Math.max(6, Math.abs(p.v) * sc)) : 0, y = p.v >= 0 ? zero - h : zero;
       var col = spec.tone === 'amber' ? AMB : (p.v >= 0 ? UP : DN);
       var bx = CX + i * bw + bw * 0.16, bwi = bw * 0.68;
       ctx.globalAlpha = i === b.length - 1 || p.lab ? 1 : 0.82;
@@ -244,7 +251,7 @@ function _fcDraw(spec, wm) {
     ctx.font = '800 ' + fs + 'px Inter, sans-serif';
     var labW = Math.max.apply(null, rows.map(function (r) { return ctx.measureText(r.label).width; })) + 16;
     rows.forEach(function (r, i) {
-      var y = CY + i * rh + rh * 0.18, h = rh * 0.64, w = Math.max(3, Math.abs(r.v) / rhi * (CW - nameW - labW));
+      var y = CY + i * rh + rh * 0.18, h = rh * 0.64, w = options.returnCanvas ? Math.abs(r.v) / rhi * (CW - nameW - labW) : Math.max(3, Math.abs(r.v) / rhi * (CW - nameW - labW));
       ctx.textAlign = 'left'; ctx.fillStyle = '#e6ebf2'; ctx.font = '700 ' + fs + 'px Inter, sans-serif';
       ctx.fillText(r.name, CX, y + h / 2 + fs * 0.35);
       ctx.fillStyle = spec.tone === 'flow' ? (r.v >= 0 ? UP : DN) : col2;
@@ -290,7 +297,12 @@ function _fcDraw(spec, wm) {
     shareFit(ctx, spec.note, W - 2 * L0, '500 {SIZE}px Inter, sans-serif', 21, 15);
     ctx.fillText(spec.note, L0, 520);
   }
-  shareBrandBar(ctx, W, H);
+  shareBrandBar(ctx, W, H, options.returnCanvas ? 'Check the charts & indicators' : undefined);
+  if (options.returnCanvas) {
+    ctx.fillStyle = '#9aa5b5'; ctx.font = '500 14px Inter, sans-serif'; ctx.textAlign = 'left';
+    shareFit(ctx, spec.sourceNote || '', W - 2 * L0, '500 {SIZE}px Inter, sans-serif', 14, 11); ctx.fillText(spec.sourceNote || '', L0, 552);
+    return can;
+  }
   if (typeof _openShareCard === 'function') _openShareCard(can, spec.sym || 'CHART', spec.text);
 }
 
