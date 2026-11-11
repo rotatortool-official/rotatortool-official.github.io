@@ -2465,3 +2465,5 @@ MK_PATTERNS.push([/^(\d+) captured assets$/, function(m){return m[1]+' зачу�
 MK_PATTERNS.push([/^(\d+)\/5 stages · revision (\d+)$/, function(m){return m[1]+'/5 чекори · верзија '+m[2];}]);
 MK_PATTERNS.push([/^(\d+)\/5 stages$/, function(m){return m[1]+'/5 чекори';}]);
 MK_PATTERNS.push([/^(.+) context$/, function(m){return (MK_TEXT[m[1]] || m[1])+' · контекст';}]);
+
+Object.assign(MK_TEXT, {'Download graph · PNG':'Преземи графикон · PNG','ROTATOR / ARTICLE PREVIEW':'ROTATOR / ПРЕГЛЕД НА СТАТИЈА','Explore the Rotator indicator →':'Истражете го показателот на Rotator →'});
