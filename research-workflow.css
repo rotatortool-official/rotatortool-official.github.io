@@ -51,3 +51,20 @@ body.has-tabs .tr-it.on{background:#4a4029;color:#fff4d1;border-color:#d3ad54;bo
 @media(max-width:900px){.rr-topic-grid{grid-template-columns:1fr}#rot-research .rr-story-builder,#rot-research .rr-article{padding:18px}#rot-research .rr-history{border-right:0;border-bottom:1px solid #617b9d}}
 #rot-research .rr-article h1{font:600 36px/1.2 Georgia,serif;color:#172d46;margin:20px 0}
 #rot-research .rr-article h2{font:600 23px/1.35 Arial,sans-serif;color:#172d46;margin:28px 0 12px;letter-spacing:0}
+/* Final desk layout uses the existing board tab, with a focused editor and persistent run list. */
+body[data-tab="research"] #sec-research{scroll-margin-top:110px}
+#rot-research .rr-notice{border:1px solid #617b9d;background:#243650;color:#d5e3f4;border-radius:8px;padding:11px 14px;margin:14px 0;font-size:12px;line-height:1.65}
+#rot-research .rr-notebook,#rot-research .rr-draft-edit{padding:16px;border:1px solid var(--rr-line);border-radius:10px;margin:20px 0;background:var(--bg)}
+#rot-research summary{cursor:pointer;font-weight:600;color:var(--text);padding:4px 0}
+#rot-research .rr-topic details{border-top:1px solid var(--rr-line);padding-top:10px}
+#rot-research .rr-topic details summary{font-size:12px}
+#rot-research .rr-savebar{position:sticky;bottom:12px;z-index:4;padding:12px;background:#2a3c55;border:1px solid #7088a6;border-radius:9px;box-shadow:0 6px 20px #0003}
+#rot-research .rr-history{align-self:start;position:sticky;top:85px;min-height:420px}
+#rot-research .rr-layout{overflow:visible;align-items:start}
+#rot-research .rr-history{border-radius:12px 0 0 12px}
+#rot-research .rr-editor{border-radius:0 12px 12px 0}
+#rot-research button:disabled{opacity:.55;cursor:wait}
+#rot-research #rr-content,#rot-research #rr-focus,#rot-research #rr-followup,#rot-research #rr-compare{scroll-margin-top:110px}
+:root.light #rot-research .rr-notice,:root.light #rot-research .rr-savebar{background:#e4edf8;color:#1b304b;border-color:#9cb2ce}
+@media(max-width:900px){#rot-research .rr-history{position:static;min-height:0;border-radius:12px 12px 0 0}#rot-research .rr-editor{border-radius:0 0 12px 12px}#rot-research .rr-savebar{bottom:80px}#rot-research .rr-layout{overflow:hidden}}
+@media(min-width:701px) and (max-width:1100px){body.has-tabs .btab{padding:0 7px;font-size:12px;gap:3px}}

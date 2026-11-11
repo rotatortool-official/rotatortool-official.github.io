@@ -37,12 +37,19 @@
 
   /* Each piece: k = its address word, el = the board element it scrolls to. */
   var TABS = [
-    { id: 'today', lead: 'The day in one look: the market, sentiment, and the macro behind it.', name: 'Today', icon: 'sun', mob: 'TODAY', secs: ['sec-today', 'sec-research'], items: [
+    { id: 'today', lead: 'The day in one look: the market, sentiment, and the macro behind it.', name: 'Today', icon: 'sun', mob: 'TODAY', secs: ['sec-today'], items: [
       { k: 'look', el: 'day-brief', n: 'Today in one look', i: 'sun' },
       { k: 'now', el: 'mkt-now', n: 'Market now', i: 'bars' },
       { k: 'cards', el: 'briefing', n: 'Daily news', i: 'globe' },
-      { k: 'research', el: 'sec-research', n: 'Research workspace', i: 'book' }
+      { k: 'research', el: 'sec-research', tab: 'research', n: 'Research desk', i: 'book' }
     ], pages: [['https://rotatortool.substack.com/', 'Rotator Weekly (Substack)', 'cal']] },
+    { id: 'research', lead: 'Capture a market reading, build an educational story, and follow the research through.', name: 'Research', icon: 'book', mob: 'RESEARCH', secs: ['sec-research'], items: [
+      { k: 'desk', el: 'sec-research', n: 'Your research desk', i: 'book' },
+      { k: 'focus', el: 'rr-focus', n: 'Focus & evidence', i: 'target' },
+      { k: 'story', el: 'rr-content', n: 'Article & graphs', i: 'chart' },
+      { k: 'followup', el: 'rr-followup', n: 'Follow through', i: 'clock' },
+      { k: 'history', el: 'rr-compare', n: 'Compare runs', i: 'log' }
+    ] },
     { id: 'flows', lead: 'Where money moved: what came in, what left, and supply about to reach the market.', name: 'Money flows', icon: 'rot', mob: 'FLOWS', secs: ['sec-capital'], items: [
       { k: 'rotation', el: 'sec-capital', n: 'Capital rotation', i: 'rot', g: 'Coming in, going out' },
       { k: 'etf', el: 'etf-strip', n: 'ETF flows', i: 'etf', g: 'Coming in, going out' },
@@ -206,7 +213,7 @@
   var scrollFn = window.rotScrollToEl;
   function go(id, k, push) {
     var t = byId[id] || byId.today, it = k && t.items.filter(function (x) { return x.k === k; })[0];
-    if (it && it.tab) { go(it.tab, 'all', push); return; }
+    if (it && it.tab) { go(it.tab, it.tab==='research'?'desk':'all', push); return; }
     var changed = setTab(t.id);
     if (push !== false) { try { history.pushState(null, '', '#' + t.id + (it ? '-' + it.k : '')); } catch (x) {} }
     mark(it ? it.k : t.items[0].k);
@@ -287,7 +294,7 @@
     var more = $('mn-more');
     mob.innerHTML = '';
     TABS.forEach(function (t) {
-      if (t.id === 'deriv') return;
+      if (t.id === 'deriv' || t.id === 'research') return;
       var b = document.createElement('button'); b.type = 'button'; b.className = 'mob-nav-btn'; b.setAttribute('data-tab', t.id);
       b.innerHTML = ic(t.icon) + '<span>' + t.mob + '</span>';
       b.addEventListener('click', function () { if (typeof closeMobMore === 'function') closeMobMore(); go(t.id); });
@@ -430,7 +437,7 @@
   }
 
   /* ── Start: the address, else the last tab you used, else Today ── */
-  var LEGACY = { 'sec-today': ['today'], 'sec-capital': ['flows'], 'sec-rotation': ['coins', 'best'], 'sec-liq': ['deriv'], 'sec-yours': ['mine'],
+  var LEGACY = { 'sec-research': ['research', 'desk'], 'today-research': ['research', 'desk'], 'sec-today': ['today'], 'sec-capital': ['flows'], 'sec-rotation': ['coins', 'best'], 'sec-liq': ['deriv'], 'sec-yours': ['mine'],
     'sec-coins': ['coins', 'all'], 'sec-swap': ['mine', 'tool'], 'sec-record': ['coins', 'record'] };
   function fromHash(push) {
     var h = (location.hash || '').slice(1);
