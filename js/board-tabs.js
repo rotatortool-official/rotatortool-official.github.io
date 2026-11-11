@@ -37,10 +37,11 @@
 
   /* Each piece: k = its address word, el = the board element it scrolls to. */
   var TABS = [
-    { id: 'today', lead: 'The day in one look: the market, sentiment, and the macro behind it.', name: 'Today', icon: 'sun', mob: 'TODAY', secs: ['sec-today'], items: [
+    { id: 'today', lead: 'The day in one look: the market, sentiment, and the macro behind it.', name: 'Today', icon: 'sun', mob: 'TODAY', secs: ['sec-today', 'sec-research'], items: [
       { k: 'look', el: 'day-brief', n: 'Today in one look', i: 'sun' },
       { k: 'now', el: 'mkt-now', n: 'Market now', i: 'bars' },
-      { k: 'cards', el: 'briefing', n: 'Daily news', i: 'globe' }
+      { k: 'cards', el: 'briefing', n: 'Daily news', i: 'globe' },
+      { k: 'research', el: 'sec-research', n: 'Research workspace', i: 'book' }
     ], pages: [['https://rotatortool.substack.com/', 'Rotator Weekly (Substack)', 'cal']] },
     { id: 'flows', lead: 'Where money moved: what came in, what left, and supply about to reach the market.', name: 'Money flows', icon: 'rot', mob: 'FLOWS', secs: ['sec-capital'], items: [
       { k: 'rotation', el: 'sec-capital', n: 'Capital rotation', i: 'rot', g: 'Coming in, going out' },
