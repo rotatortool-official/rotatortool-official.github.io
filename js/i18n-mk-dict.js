@@ -2474,3 +2474,33 @@ Object.assign(MK_TEXT, {
 '3 · Share your edition':'3 · Споделете го изданието',
 'Choose a coin, then press any topic to generate its story and available charts. Create my edition uses your current selection. Detailed editing is optional.':'Изберете монета, па притиснете тема за да се создадат приказната и достапните графикони. „Создај мое издание“ го користи тековниот избор. Деталното уредување е незадолжително.'
 });
+
+Object.assign(MK_TEXT, {
+'What would you like to create?':'Што сакате да создадете?',
+'Choose your coin':'Изберете ја вашата монета',
+'Story angle':'Пристап на приказната',
+'Generate graph':'Создај графикон',
+'Story with a graph':'Приказна со графикон',
+'Generate short story':'Создај кратка приказна',
+'Generate Facebook-ready post':'Создај објава за Facebook',
+'Generate Instagram Reel':'Создај Instagram Reel',
+'A sourced chart with dates and an image download.':'Графикон со извори и датуми, достапен за преземање како слика.',
+'A complete article with evidence, charts and source links.':'Целосна статија со докази, графикони и врски до извори.',
+'A concise explanation of the selected market reading.':'Кратко објаснување на избраниот пазарен показател.',
+'A standalone post with a headline, context and a Rotator link.':'Самостојна објава со наслов, контекст и врска до Rotator.',
+'A silent vertical chart video. MP4 when supported; otherwise WebM for conversion.':'Вертикално видео со графикон, без звук. MP4 ако е поддржан; во спротивно WebM за конверзија.',
+'Choose a coin and an angle, then select a format. Data and source links are collected automatically.':'Изберете монета и пристап, па изберете формат. Податоците и врските до изворите се собираат автоматски.',
+'Saved research history':'Историја на зачувани истражувања',
+'Generated output':'Создадена содржина',
+'Your graph':'Вашиот графикон',
+'Your short story':'Вашата кратка приказна',
+'Your Facebook-ready post':'Вашата објава за Facebook',
+'Your vertical video':'Вашето вертикално видео',
+'Copy text':'Копирај текст',
+'Download text':'Преземи текст',
+'Download video':'Преземи видео',
+'Rendering your 12-second video. Keep this tab open…':'Се создава вашето видео од 12 секунди. Оставете го овој таб отворен…',
+'Silent video with captions. WebM files need conversion to MP4 before uploading to Instagram.':'Видео без звук со текст. WebM-датотеките треба да се претворат во MP4 пред поставување на Instagram.',
+'Your selected output is ready.':'Избраната содржина е подготвена.',
+'Article and charts generated. Review the preview, then download your edition.':'Статијата и графиконите се создадени. Проверете го прегледот, па преземете го изданието.'
+});

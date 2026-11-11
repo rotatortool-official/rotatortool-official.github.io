@@ -14,6 +14,7 @@ function setup(options={}) {
   const context = {window,document:{getElementById(id){return id==='rot-research'?root:el(id);}},localStorage:storage,crypto:{randomUUID(){return 'test-'+(++n);}},URL,Date,console,setTimeout,clearTimeout,CustomEvent:class{},confirm(){return true;}};
   vm.runInNewContext(fs.readFileSync('js/research-story.js','utf8'),context);
   vm.runInNewContext(fs.readFileSync('js/research-publication.js','utf8'),context);
+  vm.runInNewContext(fs.readFileSync('js/research-outputs.js','utf8'),context);
   vm.runInNewContext(fs.readFileSync('js/research-workflow.js','utf8'),context);
   return {api:window.RotatorResearch,window,el,storage,getMarkup(){return root.innerHTML;},click(action,extra={}){root.clickHandler({target:{closest(){return {dataset:Object.assign({action},extra)};}}});},block(){blocked=true;},setRaw(v){stored=v;}};
 }
@@ -53,9 +54,20 @@ test('UI save, stale preview guard and inline rebuild confirmation use the same 
   x.click('confirm-drafts');x.click('save');saved=x.api.get(r.id);assert.equal(saved.revision,2);assert.match(saved.substack,/A revised interpretation/);assert.doesNotThrow(()=>x.window.RotatorStory.assertFresh(saved));
 });
 
-test('one topic click creates an automatic draft and charts without a second create action',async()=>{
+test('article format creates a story with charts from the selected angle in one action',async()=>{
  const x=setup({window:{coins:[{id:'bitcoin',sym:'BTC',p7:-7,score:60},{id:'ethereum',sym:'ETH',p7:-14,score:47}]}});
- x.el('rr-quick-coin').value='bitcoin';x.click('topic',{topic:'sentiment'});await new Promise(setImmediate);assert.equal(x.api.list().length,1);
+ x.el('rr-quick-coin').value='bitcoin';x.el('rr-quick-topic').value='sentiment';x.click('output',{format:'article'});await new Promise(setImmediate);assert.equal(x.api.list().length,1);
  const r=x.api.list()[0];assert.equal(r.focusTopic,'sentiment');assert.ok(r.substack.includes('Sentiment and price'));assert.equal(x.window.RotatorStory.charts(r).length,2);assert.ok(x.window.RotatorPublication.readiness(r).articleReady);
  const markup=x.getMarkup();assert.match(markup,/Download Substack edition/);assert.match(markup,/<details class="rr-advanced">/);const ids=[...markup.matchAll(/\bid="([^"]+)"/g)].map(m=>m[1]);assert.equal(ids.length,new Set(ids).size);for(const name of ['rr-headline','rr-thesis','rr-substackUrl','rr-threadsText','rr-instagramCaption','rr-quick-coin'])assert.ok(ids.includes(name),name+' must be in the actual rendered UI');
+});
+
+test('short, Facebook and chart actions produce distinct outputs for the chosen coin',async()=>{
+ for(const format of ['short','facebook','graph']){
+  const x=setup({window:{coins:[{id:'bitcoin',sym:'BTC',p7:-7,score:60},{id:'ethereum',sym:'ETH',p7:-14,score:47}]}});
+  x.el('rr-quick-coin').value='ethereum';x.click('output',{format});await new Promise(setImmediate);
+  assert.equal(x.api.list().length,1);assert.ok(x.api.list()[0].story.affected.includes('ethereum'));
+  if(format==='graph')assert.match(x.el('rr-output').innerHTML,/<svg/);
+  else {const text=x.el('rr-output-text').value;assert.match(text,/ETH/);if(format==='facebook')assert.match(text,/#Rotator/);else assert.doesNotMatch(text,/#Rotator/);}
+  const markup=x.getMarkup();assert.equal([...markup.matchAll(/data-action="output"/g)].length,5);assert.match(markup,/Saved research history/);
+ }
 });

@@ -94,3 +94,17 @@ body[data-tab="research"] #sec-research{scroll-margin-top:110px}
 /* Secondary text stays readable while using the same neutral theme palette. */
 #rot-research{--muted:color-mix(in srgb,var(--text) 72%,var(--bg) 28%)}
 body.has-tabs .tr-it:not(.on){color:color-mix(in srgb,var(--text) 75%,var(--bg) 25%)}
+
+#rot-research .rr-output-choices{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin:12px 0 20px}
+#rot-research .rr-output-choices button{text-align:left;padding:18px;min-height:104px;border:1px solid var(--bdr2);display:flex;flex-direction:column;gap:10px}
+#rot-research .rr-output-choices strong{font-size:14px;color:var(--text)}
+#rot-research .rr-output-choices span{font-size:12px;line-height:1.6;color:var(--muted);font-weight:400}
+#rot-research #rr-output:empty{display:none}
+#rot-research #rr-output{margin-top:22px;padding-top:18px;border-top:1px solid var(--bdr2);scroll-margin-top:110px}
+#rot-research #rr-output svg{width:100%;max-width:920px;height:auto}
+#rot-research #rr-output a{color:var(--bnb)}
+#rot-research .rr-layout{display:block}
+#rot-research .rr-history{position:static;min-height:0;border:0;border-bottom:1px solid var(--bdr2);border-radius:12px 12px 0 0}
+#rot-research .rr-editor{border-radius:0 0 12px 12px}
+@media(max-width:900px){#rot-research .rr-output-choices{grid-template-columns:1fr 1fr}}
+@media(max-width:560px){#rot-research .rr-output-choices{grid-template-columns:1fr}}

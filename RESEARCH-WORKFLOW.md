@@ -76,3 +76,7 @@ Publication exports include `chartSpecifications` and language metadata: English
 ## Direct topic actions
 
 Topic buttons now prepare feeds and generate the selected story immediately; Create my edition remains as an explicit rerun action. Busy state blocks duplicate requests and disables topic/create buttons. Unsaved edits are preserved: save them before generating another edition. Successful capture scrolls to the article. Banking, energy and DeFi source-history figures now use the shared social-card adapter with original units and explicit observation spacing. The local narrative renderer remains educational composition of existing readings/headlines; it is not an activated paid AI news service.
+
+## Output format actions
+
+The quick-start now asks for coin and angle before five distinct actions: graph preview/PNG, full story with charts, short story text, Facebook-ready text, and Instagram-style vertical video. Saved research is a collapsed history area; its entries still reopen records. `js/research-outputs.js` owns short/social composition and a real 1080x1920 12-second canvas/MediaRecorder video. Video export prefers MP4 if supported, otherwise WebM with an explicit conversion notice. It has captions and no generated voice/music; nothing is uploaded to Instagram. Unsupported browsers show an error instead of offering a fake video. Narrative/artifact text remains English, independently of the Macedonian interface.
