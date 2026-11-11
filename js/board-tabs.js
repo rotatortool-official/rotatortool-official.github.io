@@ -45,8 +45,9 @@
     ], pages: [['https://rotatortool.substack.com/', 'Rotator Weekly (Substack)', 'cal']] },
     { id: 'research', lead: 'Capture a market reading, build an educational story, and follow the research through.', name: 'Research', icon: 'book', mob: 'RESEARCH', secs: ['sec-research'], items: [
       { k: 'desk', el: 'sec-research', n: 'Your research desk', i: 'book' },
-      { k: 'focus', el: 'rr-focus', n: 'Focus & evidence', i: 'target' },
+      { k: 'focus', el: 'rr-quick', n: 'Choose a focus', i: 'target' },
       { k: 'story', el: 'rr-content', n: 'Article & graphs', i: 'chart' },
+      { k: 'components', el: 'rr-publication', n: 'Social components', i: 'chart' },
       { k: 'followup', el: 'rr-followup', n: 'Follow through', i: 'clock' },
       { k: 'history', el: 'rr-compare', n: 'Compare runs', i: 'log' }
     ] },

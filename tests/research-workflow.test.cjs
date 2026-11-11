@@ -2,18 +2,20 @@ const {test} = require('node:test');
 const assert = require('node:assert/strict');
 const vm = require('node:vm');
 const fs = require('node:fs');
-function setup() {
+function setup(options={}) {
   let stored = '', blocked = false;
   const els = new Map();
   const el = id => { if (!els.has(id)) els.set(id, {value:'',textContent:'',checked:false,addEventListener(){}}); return els.get(id); };
   const root = {innerHTML:'',addEventListener(type,fn){if(type==='click')this.clickHandler=fn;},querySelectorAll(selector){return selector==='[name="rr-market"]:checked'?[{value:'Crypto'}]:[];}};
   const window = {addEventListener(){},dispatchEvent(){},ROTATOR_RUN:{engineVersion:'test',asOf:'2026-11-11T12:00:00Z',cycleLabel:'test regime'},fearGreed:{value:0}};
+  Object.assign(window,options.window || {});
   const storage = {getItem(){return stored||null;},setItem(k,v){if(blocked)throw Error('quota');stored=v;}};
   let n=0;
-  const context = {window,document:{getElementById(id){return id==='rot-research'?root:el(id);}},localStorage:storage,crypto:{randomUUID(){return 'test-'+(++n);}},URL,Date,console,CustomEvent:class{},confirm(){return true;}};
+  const context = {window,document:{getElementById(id){return id==='rot-research'?root:el(id);}},localStorage:storage,crypto:{randomUUID(){return 'test-'+(++n);}},URL,Date,console,setTimeout,clearTimeout,CustomEvent:class{},confirm(){return true;}};
   vm.runInNewContext(fs.readFileSync('js/research-story.js','utf8'),context);
+  vm.runInNewContext(fs.readFileSync('js/research-publication.js','utf8'),context);
   vm.runInNewContext(fs.readFileSync('js/research-workflow.js','utf8'),context);
-  return {api:window.RotatorResearch,window,el,storage,click(action){root.clickHandler({target:{closest(){return {dataset:{action}};}}});},block(){blocked=true;},setRaw(v){stored=v;}};
+  return {api:window.RotatorResearch,window,el,storage,getMarkup(){return root.innerHTML;},click(action,extra={}){root.clickHandler({target:{closest(){return {dataset:Object.assign({action},extra)};}}});},block(){blocked=true;},setRaw(v){stored=v;}};
 }
 test('manual run, defensive reads, revision conflicts, and rejected URLs',()=>{
   const {api}=setup(); const r=api.createManual(); assert.equal(r.revision,0);
@@ -43,10 +45,17 @@ test('completed package validates stages, required content, title and shared URL
 
 test('UI save, stale preview guard and inline rebuild confirmation use the same persisted draft',()=>{
   const x=setup(),r=x.api.captureCurrent();
-  ['market','rates','unlocks','etf','sentiment','news'].forEach(t=>{x.el('rr-topic-'+t).checked=true;});
-  x.el('rr-affected').selectedOptions=[];x.el('rr-graph-count').value='2';
+  ['market','rates','unlocks','etf','sentiment','news'].forEach(t=>{x.el('rr-topic-'+t).checked=r.story.included.includes(t);});
+  x.el('rr-affected').selectedOptions=[];x.el('rr-graph-count').value='2';x.el('rr-threads-graph').value=r.story.assignments.threads;x.el('rr-instagram-graph').value=r.story.assignments.instagram;
   x.click('save');let saved=x.api.get(r.id);assert.equal(saved.revision,1);assert.doesNotThrow(()=>x.window.RotatorStory.assertFresh(saved));
-  x.el('rr-note-rates').value='A revised interpretation';x.click('preview');assert.match(x.el('rr-status').textContent,/Story inputs changed/);
+  x.el('rr-note-market').value='A revised interpretation';x.click('preview');assert.match(x.el('rr-status').textContent,/Story inputs changed/);
   x.click('drafts');assert.match(x.el('rr-status').innerHTML,/Rebuild drafts/);
   x.click('confirm-drafts');x.click('save');saved=x.api.get(r.id);assert.equal(saved.revision,2);assert.match(saved.substack,/A revised interpretation/);assert.doesNotThrow(()=>x.window.RotatorStory.assertFresh(saved));
+});
+
+test('quick path creates a complete automatic draft in two selections, ready for its download action',async()=>{
+ const x=setup({window:{coins:[{id:'bitcoin',sym:'BTC',p7:-7,score:60},{id:'ethereum',sym:'ETH',p7:-14,score:47}]}});
+ x.click('topic',{topic:'sentiment'});x.el('rr-quick-coin').value='bitcoin';x.click('capture');await new Promise(setImmediate);
+ const r=x.api.list()[0];assert.equal(r.focusTopic,'sentiment');assert.ok(r.substack.includes('Sentiment and price'));assert.equal(x.window.RotatorStory.charts(r).length,2);assert.ok(x.window.RotatorPublication.readiness(r).articleReady);
+ const markup=x.getMarkup();assert.match(markup,/Download Substack edition/);assert.match(markup,/<details class="rr-advanced">/);const ids=[...markup.matchAll(/\bid="([^"]+)"/g)].map(m=>m[1]);assert.equal(ids.length,new Set(ids).size);for(const name of ['rr-headline','rr-thesis','rr-substackUrl','rr-threadsText','rr-instagramCaption','rr-quick-coin'])assert.ok(ids.includes(name),name+' must be in the actual rendered UI');
 });

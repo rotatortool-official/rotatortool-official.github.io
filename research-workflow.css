@@ -68,3 +68,30 @@ body[data-tab="research"] #sec-research{scroll-margin-top:110px}
 :root.light #rot-research .rr-notice,:root.light #rot-research .rr-savebar{background:#e4edf8;color:#1b304b;border-color:#9cb2ce}
 @media(max-width:900px){#rot-research .rr-history{position:static;min-height:0;border-radius:12px 12px 0 0}#rot-research .rr-editor{border-radius:0 0 12px 12px}#rot-research .rr-savebar{bottom:80px}#rot-research .rr-layout{overflow:hidden}}
 @media(min-width:701px) and (max-width:1100px){body.has-tabs .btab{padding:0 7px;font-size:12px;gap:3px}}
+/* One primary path: pick a focus, create, download. Source editing stays optional. */
+#rot-research .rr-quick{padding:22px;background:#243650;border:1px solid #6b83a1;border-radius:12px;margin:18px 0}
+.rr-steps{display:flex;justify-content:space-between;gap:14px;color:#e9ce89;font-size:12px;font-weight:700;margin-bottom:18px}
+.rr-preset-list{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:15px}
+#rot-research .rr-preset-list button{background:#1b2b42;border-color:#657d9c;color:#e6edf8}
+#rot-research .rr-preset-list button.active{background:#eac46a;color:#1a2637;border-color:#eac46a;font-weight:700}
+#rot-research .rr-quick .rr-field{min-width:240px;max-width:560px;flex:1}
+#rot-research .rr-advanced,#rot-research .rr-publication,#rot-research .rr-editorial{border:1px solid var(--rr-line);border-radius:10px;padding:16px;margin:18px 0;background:var(--bg)}
+#rot-research .rr-news-list{border:1px solid var(--rr-line);padding:16px;border-radius:8px;margin:20px 0}
+#rot-research .rr-news-list legend{padding:0 6px;font-size:12px}
+#rot-research .rr-news-list>div{padding:12px 0;border-bottom:1px solid var(--rr-line)}
+#rot-research .rr-news-list small{display:block;margin:7px 0 0 22px;font-size:11px;color:var(--muted)}
+#rot-research .rr-news-list a{color:#f2d790}
+#rot-research .rr-component-previews{display:grid;grid-template-columns:1fr 1fr;gap:18px;margin:24px 0}
+#rot-research .rr-component-card{padding:14px;background:#243650;border:1px solid #657d9c;border-radius:10px;min-width:0}
+#rot-research .rr-component-card h4{font-size:13px;line-height:1.6;margin:0 0 12px}
+#rot-research .rr-component-card svg{width:100%;height:auto;display:block;margin-bottom:12px}
+#rot-research .rr-figure-download{display:flex;flex-wrap:wrap;align-items:center;gap:10px;padding:12px 0;border-top:1px solid #bac8da;font:12px Arial}
+#rot-research .rr-article li{font:17px/1.75 Georgia,serif;color:#30465f;margin:12px 0}
+#rot-research .rr-article ol,#rot-research .rr-article ul{padding-left:24px}
+#rot-research .rr-article .edition-meta{font:13px/1.7 Arial;color:#52647a}
+#rot-research .rr-article a{overflow-wrap:normal}
+:root.light #rot-research .rr-quick,:root.light #rot-research .rr-component-card{background:#e2edf9;border-color:#9eb5d0}
+:root.light #rot-research .rr-preset-list button{background:#f7faff;color:#243d5c;border-color:#a8bdd5}
+:root.light #rot-research .rr-preset-list button.active{background:#f5d98e;color:#382b0b;border-color:#b88d32}
+:root.light #rot-research .rr-steps,:root.light #rot-research .rr-news-list a{color:#77540d}
+@media(max-width:900px){#rot-research .rr-component-previews{grid-template-columns:1fr}.rr-steps{flex-wrap:wrap;font-size:11px}#rot-research .rr-quick{padding:16px}#rot-research .rr-quick .rr-field{min-width:180px;width:100%}}

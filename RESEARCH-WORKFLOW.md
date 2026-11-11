@@ -4,15 +4,17 @@ Research is a native board tab at `board.html#research`. Desktop uses the existi
 
 ## User flow
 
-1. Capture & build today’s map waits for existing Rotator feeds (up to 12 seconds), captures an immutable observation, and builds an editable article and Telegram draft.
-2. Select affected assets and include or remove suggested evidence sections. Captured observations and missing research are visibly distinguished. Add interpretation and source links per section; the observation notebook holds the longer manual inputs.
-3. Review Today’s Rotator Map and its available graphs. Edited article text is retained when saving. If evidence inputs change, preview and sharing exports require a rebuild, so text and graphs cannot silently describe different inputs. Rebuilding uses an inline confirmation and preserves the text until confirmed.
-4. Download HTML or Markdown, copy the Telegram draft, and download graph PNG/SVG files. Exporting does not publish or send anything. The article, graph branding and Telegram draft point back to the chosen published Rotator page.
-5. Save the run, revisit unfinished work, compare observations, record the five workflow stages and return-visit findings, and export the completed JSON package. Backups also work for unfinished runs; imported duplicates never overwrite existing runs.
+1. Choose an asset or a preset: coin spotlight, ETF inflows, ETF outflows, sentiment, banking and rates, energy, or DeFi/TVL.
+2. Create my edition loads existing feeds, captures an immutable reading, and prepares the article automatically. Evidence and editorial controls are collapsed and optional.
+3. Read the preview and download the Substack edition ZIP. It includes the article, recorded-data charts, and dedicated Threads, Instagram, and Telegram components. No manual interpretation or review checkbox is required.
+
+Publish the article yourself, then optionally paste its HTTPS article permalink and refresh captions. Channel links use the same article with separate attribution parameters; this is link tagging, not an analytics collector. Nothing posts or schedules content. Saved runs, comparisons, backups, and the old five-stage tracker remain available.
+
+This is an incremental public release. The holdings-first entry point and server-enforced Pro news/graphic generation are future work. Current browser-generated articles and graphics are not a protected paid service. The existing paused AI assistant is unchanged.
 
 ## Data and ownership
 
-`js/research-story.js` owns editorial composition, source formatting and graphs. `js/research-workflow.js` owns records, UI, validation, sharing outputs and the same-page agent interface. `research-workflow.css` scopes research surfaces and improves board rail contrast. The existing board router owns navigation.
+`js/research-story.js` owns snapshot capture, source formatting and base graphs. `js/research-publication.js` owns preset composition, topic charts, social components, and local ZIP packaging. `js/research-workflow.js` owns records, UI, validation, sharing outputs and the same-page agent interface. `research-workflow.css` scopes research surfaces and improves board rail contrast. The existing board router owns navigation.
 
 Captured inputs are `ROTATOR_RUN`, public asset readings in `coins`, `fearGreed`, `_worldData`, `_etfFlows`, `_tokenUnlocks`, and the existing `_tileNews` / `_tileWeekly` feeds. Market-event news uses the board's expiry date; weekly context is retained only within its existing 10-day freshness window. Headlines retain original sources and dates. No new external news service, AI provider, scoring model or database table is introduced.
 
@@ -28,7 +30,7 @@ Legacy runs remain readable and editable. Rebuild their article to create the ne
 
 ## Developer and agent interface
 
-`window.RotatorResearch.version === 2`. Methods return defensive copies. Updating a record requires its current revision; conflicting writes throw.
+`window.RotatorResearch.version === 3`. Methods return defensive copies. Updating a record requires its current revision; conflicting writes throw.
 
 ```js
 const run = await RotatorResearch.captureReady(); // same source preparation as the UI
@@ -54,3 +56,9 @@ The website deploys through the canonical GitHub Pages repository's main branch.
 Checks: `node --check` on all changed JavaScript; `node --test tests/research-workflow.test.cjs tests/research-story.test.cjs` (12 tests); Rotator's canonical engine acceptance suite (17 checks); language scan (no Tier 1 or Tier 2 issues in new modules); secrets scan (only the two existing public anon-key files in js flagged).
 
 Browser verification exercised the integrated Research tab, prepared-feed capture, automatic article/two-graph creation and stale-input export blocking. A native browser confirmation interrupted further automation. The release replaces that confirmation with an inline action, covered by a test of save → change evidence → blocked preview → inline rebuild → save. Final publication is verified from GitHub Pages build state and live versioned assets.
+
+## Publication quality and validation
+
+Article figures appear beside the evidence they explain. Sources use short clickable labels while preserving their destinations. News selection is relevance-filtered; unsupported causal claims are avoided. Supply schedules require explicit vesting classification and Bitcoin is never described as a vesting unlock. ETF direction presets require a matching completed report. Topic charts retain native units, source dates, and observation spacing. TVL value changes are not labeled net flows.
+
+The automated suite passes 20 research checks, including the rendered quick path, immutable snapshots, stale-draft guards, topic units, supply exclusions, social link consistency, and ZIP structure. The canonical engine passes all 17 acceptance checks. Local browser preview was unavailable during preparation; production file and UI verification follow deployment.
