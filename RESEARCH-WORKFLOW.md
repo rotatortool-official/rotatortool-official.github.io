@@ -72,3 +72,7 @@ Capture also prepares existing BTC/ETH history loaders and copies `_etfHist` int
 Publication exports include `chartSpecifications` and language metadata: English available, Macedonian planned, not translated. `RotatorPublication.package(run)` and the existing `RotatorResearch.exportPublication(id)` expose this structure inside the page; neither is an authenticated HTTP API. Paid agent API and Macedonian narrative generation are not implemented by this static release. Do not market them as available.
 
 25 research tests pass, including real shared renderer execution with a canvas stub, dated exports without share-modal side effects, captured ETF history, and consistent article/social image routing.
+
+## Direct topic actions
+
+Topic buttons now prepare feeds and generate the selected story immediately; Create my edition remains as an explicit rerun action. Busy state blocks duplicate requests and disables topic/create buttons. Unsaved edits are preserved: save them before generating another edition. Successful capture scrolls to the article. Banking, energy and DeFi source-history figures now use the shared social-card adapter with original units and explicit observation spacing. The local narrative renderer remains educational composition of existing readings/headlines; it is not an activated paid AI news service.

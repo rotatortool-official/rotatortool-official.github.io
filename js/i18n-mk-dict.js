@@ -2467,3 +2467,10 @@ MK_PATTERNS.push([/^(\d+)\/5 stages$/, function(m){return m[1]+'/5 чекори'
 MK_PATTERNS.push([/^(.+) context$/, function(m){return (MK_TEXT[m[1]] || m[1])+' · контекст';}]);
 
 Object.assign(MK_TEXT, {'Download graph · PNG':'Преземи графикон · PNG','ROTATOR / ARTICLE PREVIEW':'ROTATOR / ПРЕГЛЕД НА СТАТИЈА','Explore the Rotator indicator →':'Истражете го показателот на Rotator →'});
+
+Object.assign(MK_TEXT, {
+'1 · Choose a coin or topic':'1 · Изберете монета или тема',
+'2 · Read your story':'2 · Прочитајте ја приказната',
+'3 · Share your edition':'3 · Споделете го изданието',
+'Choose a coin, then press any topic to generate its story and available charts. Create my edition uses your current selection. Detailed editing is optional.':'Изберете монета, па притиснете тема за да се создадат приказната и достапните графикони. „Создај мое издание“ го користи тековниот избор. Деталното уредување е незадолжително.'
+});

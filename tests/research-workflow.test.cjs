@@ -53,9 +53,9 @@ test('UI save, stale preview guard and inline rebuild confirmation use the same 
   x.click('confirm-drafts');x.click('save');saved=x.api.get(r.id);assert.equal(saved.revision,2);assert.match(saved.substack,/A revised interpretation/);assert.doesNotThrow(()=>x.window.RotatorStory.assertFresh(saved));
 });
 
-test('quick path creates a complete automatic draft in two selections, ready for its download action',async()=>{
+test('one topic click creates an automatic draft and charts without a second create action',async()=>{
  const x=setup({window:{coins:[{id:'bitcoin',sym:'BTC',p7:-7,score:60},{id:'ethereum',sym:'ETH',p7:-14,score:47}]}});
- x.click('topic',{topic:'sentiment'});x.el('rr-quick-coin').value='bitcoin';x.click('capture');await new Promise(setImmediate);
+ x.el('rr-quick-coin').value='bitcoin';x.click('topic',{topic:'sentiment'});await new Promise(setImmediate);assert.equal(x.api.list().length,1);
  const r=x.api.list()[0];assert.equal(r.focusTopic,'sentiment');assert.ok(r.substack.includes('Sentiment and price'));assert.equal(x.window.RotatorStory.charts(r).length,2);assert.ok(x.window.RotatorPublication.readiness(r).articleReady);
  const markup=x.getMarkup();assert.match(markup,/Download Substack edition/);assert.match(markup,/<details class="rr-advanced">/);const ids=[...markup.matchAll(/\bid="([^"]+)"/g)].map(m=>m[1]);assert.equal(ids.length,new Set(ids).size);for(const name of ['rr-headline','rr-thesis','rr-substackUrl','rr-threadsText','rr-instagramCaption','rr-quick-coin'])assert.ok(ids.includes(name),name+' must be in the actual rendered UI');
 });

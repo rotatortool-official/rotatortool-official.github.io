@@ -25,6 +25,10 @@
         out.etf={kind:'bars',tone:'flow',kicker:asset+' spot ETFs · completed reporting sessions',asOf:last.day+'T00:00:00Z',head:asset+' ETFs: '+(net>=0?'+':'')+fmt(net)+'m USD across '+days.length+' sessions',bars:days.map(function(b){return {v:b.v};}),from:days[0].day,to:last.day,axis:'Reporting sessions · USD millions',tag:(last.v>=0?'+':'')+fmt(last.v)+'m',stats:[['Latest',(last.v>=0?'+':'')+fmt(last.v)+'m USD'],['Sessions',String(days.length)],['Run',streak+' '+(last.v>0?'inflow':last.v<0?'outflow':'zero-flow')+' sessions']],note:'Net across the displayed window. Completed reports only; reporting sessions are not calendar days.',sourceNote:'Source: Farside Investors via Rotator · captured '+(d.capturedAt || r.date),locale:'en',measurement:'etf-net-flow-usd-millions',observations:days,researchUrl:r.researchUrl};
       }
     }
+    var metrics=P && P.topicMetrics(r) || [];
+    metrics.filter(function(m){return m.series.length>=2;}).forEach(function(m,index){var first=m.series[0],last=m.series[m.series.length-1],delta=last-first;
+      out[index===0?'context':'secondary']={kind:'line',tone:'flow',kicker:m.label+' · recorded source observations',asOf:m.date,head:m.label+': '+fmt(m.value)+' '+m.unit,line:m.series.slice(),tag:fmt(last)+' '+m.unit,from:'Earlier observations',to:String(m.date || '').slice(0,10),axis:m.unit+' · observation spacing',stats:[['Latest',fmt(last)+' '+m.unit],['Change',fmt(delta)+' '+m.unit],['Sample',String(m.series.length)]],note:'Change is last minus first displayed value. Observation spacing is not calendar-day spacing.',sourceNote:'Source: '+new URL(m.source).hostname+' via Rotator · observed '+String(m.date || r.date),locale:'en',measurement:'source-history-'+m.unit,researchUrl:r.researchUrl};
+    });
     return out;
   }
   function enhance(r,graphs){var map=specs(r);return graphs.map(function(g){var spec=map[g.id];if(!spec)return g;var out=Object.assign({},g,{chartSpec:spec,renderer:'rotator-flow-card-v1'});
