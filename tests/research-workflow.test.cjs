@@ -11,6 +11,7 @@ function setup() {
   const storage = {getItem(){return stored||null;},setItem(k,v){if(blocked)throw Error('quota');stored=v;}};
   let n=0;
   const context = {window,document:{getElementById(id){return id==='rot-research'?root:el(id);}},localStorage:storage,crypto:{randomUUID(){return 'test-'+(++n);}},URL,Date,console,CustomEvent:class{},confirm(){return true;}};
+  vm.runInNewContext(fs.readFileSync('js/research-story.js','utf8'),context);
   vm.runInNewContext(fs.readFileSync('js/research-workflow.js','utf8'),context);
   return {api:window.RotatorResearch,window,el,storage,block(){blocked=true;},setRaw(v){stored=v;}};
 }

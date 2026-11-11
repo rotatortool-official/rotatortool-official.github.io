@@ -41,3 +41,17 @@ Supported update fields: title, date, regime, fearGreed, strongest, weakest, cha
 Run `node --check js/research-workflow.js`, `node --check js/board-tabs.js`, and `node --test tests/research-workflow.test.cjs` from the site root. Browser QA used the complete existing board: run creation, capture, draft generation, save, validation, and a downloaded completed package. Existing PWA snapshot caching discovers the new script and stylesheet from board.html automatically.
 
 Changes are on `codex/research-workflow`. Review the additive patch before merging into the GitHub Pages main branch. No live site deployment, database migration, posting, or scoring-engine change was performed.
+
+## Article builder update · 11 November 2026
+
+The workspace now captures the currently loaded board's asset observations (stable asset IDs, market, trailing 7-day change and engine score), macro world data, ETF summaries, unlock schedules, and source/cache timestamps where available. It makes no new market-data requests and does not change the scoring engine. Capture is an immutable editorial snapshot, not proof that all sources share the same timestamp. Existing saved runs remain readable; capture a new run to include this context.
+
+Six suggested sections are enabled initially: market/exchange activity, Fed/macro, unlocks, ETF flows, sentiment, and news. Each can be removed and has editable context/source notes. Select affected assets by stable ID and choose one or two graphs. Missing feeds remain labeled Needs research; they do not generate invented values. News notes are editorial inputs, not a new automated news feed. Rates are reported as observed levels, never automatically described as a hike or cut today.
+
+Build article & Telegram draft generates an editable educational article from selected observations and notes. Preview uses a light reading surface with clear headings. Export shareable article produces standalone HTML with embedded branded graphs and a working return link. Graphs download separately as 2000 × 1240 PNG or SVG. Suggested graph order is captured 7-day changes, reported ETF flows, then sentiment. Incomplete ETF bars are excluded. The graph limit is a maximum: fewer graphs appear when data or enabled sections are missing.
+
+The completed JSON package and backups now also contain articleHtml and graph SVGs. New agent update field story accepts {included: [topic IDs], notes: {topicId: text}, affected: [captured asset IDs], graphCount: 1 or 2}. The story schema is validated with the existing revision checks. Browser storage limits still apply.
+
+Sidebar and research panels now use distinct blue surfaces, stronger borders, brighter text and a gold active item, with separate light-theme colors. The full Rotator board, capture, asset selection, article preview, HTML export, PNG graph export and backup were checked in the browser. Nine focused automated tests cover article inclusion, missing inputs, immutable capture, graph limits, incomplete reports, content escaping, storage failures, revisions and package validation.
+
+The sample Today’s Rotator Map uses a captured run from 11 November 2026, including UNI and ONDO. It is a research draft and has not been posted or published. Some feeds were unavailable at capture; the article identifies them rather than inferring an event.
