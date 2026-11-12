@@ -2504,3 +2504,5 @@ Object.assign(MK_TEXT, {
 'Your selected output is ready.':'Избраната содржина е подготвена.',
 'Article and charts generated. Review the preview, then download your edition.':'Статијата и графиконите се создадени. Проверете го прегледот, па преземете го изданието.'
 });
+
+Object.assign(MK_TEXT, {'Your graph and explanation':'Вашиот графикон со објаснување','Text summary and indicator explanation':'Текстуално резиме и објаснување на показателите','Chart explanation':'Објаснување на графиконот','Download chart + explanation':'Преземи графикон и објаснување','Chart and explanation downloaded together.':'Графиконот и објаснувањето се преземени заедно.'});

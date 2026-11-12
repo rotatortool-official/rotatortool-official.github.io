@@ -80,3 +80,7 @@ Topic buttons now prepare feeds and generate the selected story immediately; Cre
 ## Output format actions
 
 The quick-start now asks for coin and angle before five distinct actions: graph preview/PNG, full story with charts, short story text, Facebook-ready text, and Instagram-style vertical video. Saved research is a collapsed history area; its entries still reopen records. `js/research-outputs.js` owns short/social composition and a real 1080x1920 12-second canvas/MediaRecorder video. Video export prefers MP4 if supported, otherwise WebM with an explicit conversion notice. It has captions and no generated voice/music; nothing is uploaded to Instagram. Unsupported browsers show an error instead of offering a fake video. Narrative/artifact text remains English, independently of the Macedonian interface.
+
+## Chart explanations
+
+Generate graph now shows the chart plus an editable written explanation directly beneath it, including what is plotted, indicator scores when captured, units/windows, limitations, sources and the Rotator return link. Copy/download text separately, or Download chart + explanation to get PNG + explanation.txt + captured chart-data.json. ETF and sentiment angles prefer their matching chart instead of always selecting leadership. The text distinguishes indicator scores from percentage price returns. Changing the quick-start angle no longer marks an existing article as dirty. H.264 MP4 is explicitly preferred for video; a supported WebM fallback is labeled for conversion.

@@ -66,7 +66,7 @@ test('short, Facebook and chart actions produce distinct outputs for the chosen 
   const x=setup({window:{coins:[{id:'bitcoin',sym:'BTC',p7:-7,score:60},{id:'ethereum',sym:'ETH',p7:-14,score:47}]}});
   x.el('rr-quick-coin').value='ethereum';x.click('output',{format});await new Promise(setImmediate);
   assert.equal(x.api.list().length,1);assert.ok(x.api.list()[0].story.affected.includes('ethereum'));
-  if(format==='graph')assert.match(x.el('rr-output').innerHTML,/<svg/);
+  if(format==='graph'){assert.match(x.el('rr-output').innerHTML,/<svg/);assert.match(x.el('rr-output').innerHTML,/Download chart \+ explanation/);assert.match(x.el('rr-output-text').value,/Rotator indicator readings:.*ETH: 47\/100/);assert.match(x.el('rr-output-text').value,/does not establish causation/);}
   else {const text=x.el('rr-output-text').value;assert.match(text,/ETH/);if(format==='facebook')assert.match(text,/#Rotator/);else assert.doesNotMatch(text,/#Rotator/);}
   const markup=x.getMarkup();assert.equal([...markup.matchAll(/data-action="output"/g)].length,5);assert.match(markup,/Saved research history/);
  }
