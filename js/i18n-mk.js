@@ -213,7 +213,7 @@ var MK_BLOCKS = {};      /* CSS selector → Macedonian innerHTML, for legal pro
      runs setLang('mk') again so text the scripts translated with
      mkTranslate() before it arrived is redrawn. Other pages that load the
      files themselves (today-embed, track-record) find them already there. */
-  var MK_FILES = ['js/i18n-mk-dict.js?v=20261112explain', 'js/i18n-mk-legal.js'];
+  var MK_FILES = ['js/i18n-mk-dict.js?v=20261112explain2', 'js/i18n-mk-legal.js'];
   var dictState = 'none';
   function loadDict() {
     if (dictState !== 'none') return;

@@ -22,9 +22,9 @@
   var scores=assets.filter(function(a){return typeof a.score==='number';}).map(function(a){return a.symbol+': '+a.score+'/100';});if(scores.length)parts.push('Rotator indicator readings: '+scores.join(' · ')+'. These are captured engine scores, separate from percentage returns and from the chart’s axis.');
   if(spec.note)parts.push('How to read it: '+spec.note);
   parts.push('Limits: this chart describes a dated observation. It does not establish causation or predict the next move. Compare the next reading before updating the interpretation.');
-  parts.push('Observation: '+r.date+(spec.sourceNote?'\n'+spec.sourceNote:''));
+  parts.push('Edition capture: '+r.date+(spec.asOf?'\nChart observation: '+String(spec.asOf).slice(0,10):'')+(spec.sourceNote?'\n'+spec.sourceNote:''));
   parts.push('Check the live chart and indicators: '+(r.researchUrl || 'https://rotatortool.com/board.html#today'));
-  parts.push('Sources: '+P.sources(r).map(function(ref){return ref.label+' — '+ref.url;}).join('\n'));
+  var refs=P.sources(r).filter(function(ref){var h=new URL(ref.url).hostname;return h==='rotatortool.com' || g.id==='etf' && h.indexOf('farside.co.uk')>=0 || g.id==='sentiment' && h==='alternative.me';});if(['context','secondary'].includes(g.id)){var metric=P.topicMetrics(r)[g.id==='context'?0:1];if(metric)refs.push({label:metric.label,url:metric.source});}parts.push('Sources: '+refs.map(function(ref){return ref.label+' — '+ref.url;}).join('\n'));
   parts.push('Educational market research.');return parts.filter(Boolean).join('\n\n');
  }
  function lines(ctx,text,max){var out=[],line='';String(text).split(/\s+/).forEach(function(word){var next=(line+' '+word).trim();if(ctx.measureText(next).width>max && line){out.push(line);line=word;}else line=next;});if(line)out.push(line);return out;}
