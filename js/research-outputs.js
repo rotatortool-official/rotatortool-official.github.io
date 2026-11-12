@@ -17,7 +17,7 @@
  function lines(ctx,text,max){var out=[],line='';String(text).split(/\s+/).forEach(function(word){var next=(line+' '+word).trim();if(ctx.measureText(next).width>max && line){out.push(line);line=word;}else line=next;});if(line)out.push(line);return out;}
  async function reel(r){
   if(typeof MediaRecorder==='undefined' || typeof HTMLCanvasElement==='undefined' || !HTMLCanvasElement.prototype.captureStream)throw Error('Video recording is unavailable in this browser. Use a current Chrome or Edge browser.');
-  var mime=['video/mp4','video/webm;codecs=vp9','video/webm;codecs=vp8','video/webm'].find(function(m){return MediaRecorder.isTypeSupported(m);});if(!mime)throw Error('This browser cannot export the Reel video format.');
+  var mime=['video/mp4;codecs=avc1.42E01E','video/mp4;codecs=avc1','video/webm;codecs=vp9','video/webm;codecs=vp8','video/webm'].find(function(m){return MediaRecorder.isTypeSupported(m);});if(!mime)throw Error('This browser cannot export the Reel video format.');
   var graph=host.RotatorStory.charts(r)[0];if(!graph)throw Error('No captured chart is available for this Reel.');
   if(document.fonts && document.fonts.ready)await document.fonts.ready;
   var image=new Image(),src=URL.createObjectURL(new Blob([graph.svg],{type:'image/svg+xml'}));
