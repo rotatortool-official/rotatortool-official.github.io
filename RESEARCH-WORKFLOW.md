@@ -84,3 +84,11 @@ The quick-start now asks for coin and angle before five distinct actions: graph 
 ## Chart explanations
 
 Generate graph now shows the chart plus an editable written explanation directly beneath it, including what is plotted, indicator scores when captured, units/windows, limitations, sources and the Rotator return link. Copy/download text separately, or Download chart + explanation to get PNG + explanation.txt + captured chart-data.json. ETF and sentiment angles prefer their matching chart instead of always selecting leadership. The text distinguishes indicator scores from percentage price returns. Changing the quick-start angle no longer marks an existing article as dirty. H.264 MP4 is explicitly preferred for video; a supported WebM fallback is labeled for conversion.
+
+## Coin story (13 November 2026, Claude)
+
+The top of the Research tab is now `js/research-coin.js`: coin → story → share. The chosen coin is the subject (before, SOL + "short story" returned a BTC headline). Six story types, each offered only when the coin has the data: This week (reuses `coinStory()` from coin-reading.js, 90-day price line, table against Bitcoin and the median coin), Momentum (RSI history), The crowd (futures long/short history), Supply (circulating, unlocks), ETF money (BTC/ETH only), News (coin events + tile headlines, labelled as market background). Each returns headline, up to three points, a table, "what would change this", sources, and a `_fcDraw` spec; Share calls the existing `fcShareCard`.
+
+`RotatorCoinStory.build(type, data)` is pure and tested in `tests/research-coin.test.cjs` (8 tests; 35 research tests pass in total). `RotatorCoinStory.pick('SOL', 'crowd')` drives the screen.
+
+Pro: Bitcoin's story is free to read; other coins, Share and Copy need Pro (`isPro`, the same soft gate as the coin window summary). The desk described above is unchanged and sits under the "Publisher tools" fold (`#rcs-publisher`); it opens by itself when saved runs exist, and `board-tabs.js` opens any closed fold before scrolling to a piece inside it. Story text is English except This week, which follows the page language; labels are in `i18n-mk-dict.js`. Board phone CSS turns table rows into cards, so `.rcs-table` resets them. Not done: liquidations story, per-story share links on s.rotatortool.com, a usage counter (needs the count_feature allow-list).

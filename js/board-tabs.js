@@ -43,9 +43,9 @@
       { k: 'cards', el: 'briefing', n: 'Daily news', i: 'globe' },
       { k: 'research', el: 'sec-research', tab: 'research', n: 'Research desk', i: 'book' }
     ], pages: [['https://rotatortool.substack.com/', 'Rotator Weekly (Substack)', 'cal']] },
-    { id: 'research', lead: 'Capture a market reading, build an educational story, and follow the research through.', name: 'Research', icon: 'book', mob: 'RESEARCH', secs: ['sec-research'], items: [
-      { k: 'desk', el: 'sec-research', n: 'Your research desk', i: 'book' },
-      { k: 'focus', el: 'rr-quick', n: 'Choose a focus', i: 'target' },
+    { id: 'research', lead: 'Pick a coin and get its story in plain words, with a card you can share.', name: 'Research', icon: 'book', mob: 'RESEARCH', secs: ['sec-research'], items: [
+      { k: 'desk', el: 'sec-research', n: 'Coin story', i: 'book' },
+      { k: 'focus', el: 'rr-quick', n: 'Publisher tools', i: 'target' },
       { k: 'story', el: 'rr-content', n: 'Article & graphs', i: 'chart' },
       { k: 'components', el: 'rr-publication', n: 'Social components', i: 'chart' },
       { k: 'followup', el: 'rr-followup', n: 'Follow through', i: 'clock' },
@@ -207,6 +207,9 @@
   function shows(el) { return el && el.offsetParent !== null && el.offsetHeight > 0; }
   function target(it, t) {
     var el = $(it.el);
+    /* A piece inside a closed fold (Research: publisher tools) opens its fold first. */
+    var fold = el && el.closest && el.closest('details:not([open])');
+    if (fold) fold.open = true;
     if (it.w && noCoins(t)) { var e0 = document.querySelector(t.empty); if (shows(e0)) return e0; }
     if (el && !shows(el)) el = el.closest('.rsec');
     return el;

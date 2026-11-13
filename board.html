@@ -58,7 +58,7 @@
   "description":"Free crypto market pulse for Binance: 250 coins and tokenized stocks scored every 15 minutes, ETF flows, stablecoins, unlocks and delisting warnings."}
 ]}
 </script>
-  <link rel="stylesheet" href="research-workflow.css?v=20261112explain2">
+  <link rel="stylesheet" href="research-workflow.css?v=20261113coin">
 </head>
 <body>
 <noscript><div style="padding:40px;text-align:center;font-family:sans-serif;font-size:16px;color:#333;background:#f4f5f8;">Rotator requires JavaScript to run. Please enable JavaScript in your browser settings and reload the page.</div></noscript>
@@ -1214,7 +1214,7 @@
       <span class="rail-mark"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M7 16V4m0 0L4 7m3-3 3 3"/><path d="M17 8v12m0 0 3-3m-3 3-3-3"/></svg></span>
       <span class="rail-text"><span class="rail-label">ROTATOR TOOL</span><span class="rail-sub" id="rail-sub-swap">pair ratio</span></span>
     </button>
-    <button class="rail-item" id="rail-research" data-sec="sec-research" onclick="railGo('sec-research')" title="RESEARCH"><span class="rail-mark" aria-hidden="true">◎</span><span class="rail-text"><span class="rail-label">RESEARCH</span><span class="rail-sub">signal to story</span></span></button>
+    <button class="rail-item" id="rail-research" data-sec="sec-research" onclick="railGo('sec-research')" title="RESEARCH"><span class="rail-mark" aria-hidden="true">◎</span><span class="rail-text"><span class="rail-label">RESEARCH</span><span class="rail-sub">coin to story</span></span></button>
     <button class="rail-item rail-last" id="rail-record" data-sec="sec-record" onclick="railGo('sec-record')" title="RECORD">
       <span class="rail-mark"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M12 8v4l3 2"/><circle cx="12" cy="12" r="9"/></svg></span>
       <span class="rail-text"><span class="rail-label">RECORD</span><span class="rail-sub" id="rail-sub-record">what held up</span></span>
@@ -1723,7 +1723,7 @@
 
     <!-- PRO PROMO removed — right panel dedicated to Swap Tool + Ratio Chart -->
   </section>
-  <section class="rsec" id="sec-research"><div id="rot-research"></div></section>
+  <section class="rsec" id="sec-research"><div id="rot-coin-story"></div><details class="rcs-publisher" id="rcs-publisher"><summary><b>Publisher tools</b><span>Long articles, Substack edition, reels and saved runs</span></summary><div id="rot-research"></div></details></section>
   <section class="rsec" id="sec-record">
     <div class="rsec-hdr"><span class="rsec-label">RECORD</span><span class="rsec-meta">what Rotator said before, and what happened next</span></div>
     <!-- Work in progress (2026-10-11, Daniel): the section is CLOSED by
@@ -1927,7 +1927,7 @@
     <span class="mmi-ico" aria-hidden="true">⌂</span><span class="mmi-text"><span class="mmi-lbl">HOME</span><span class="mmi-sub">how Rotator works</span></span>
   </a>
   <div class="mob-more-divider"></div>
-  <button type="button" class="mob-more-item mob-more-sec" data-sec="sec-research" onclick="mobGo('sec-research')"><span class="mmi-ico" aria-hidden="true">◎</span><span class="mmi-text"><span class="mmi-lbl">RESEARCH</span><span class="mmi-sub">signal notebook and drafts</span></span></button>
+  <button type="button" class="mob-more-item mob-more-sec" data-sec="sec-research" onclick="mobGo('sec-research')"><span class="mmi-ico" aria-hidden="true">◎</span><span class="mmi-text"><span class="mmi-lbl">RESEARCH</span><span class="mmi-sub">a coin's story, ready to share</span></span></button>
   <button type="button" class="mob-more-item mob-more-sec" data-sec="sec-record" onclick="mobGo('sec-record')">
     <span class="mmi-ico" aria-hidden="true">◷</span><span class="mmi-text"><span class="mmi-lbl">RECORD</span><span class="mmi-sub">what held up</span></span>
   </button>
@@ -2032,7 +2032,7 @@
   <!-- The Macedonian dictionary only when MK is the saved choice (2026-10-11):
        ~270 KB that English visitors no longer download. A switch to MK on
        the page loads it from js/i18n-mk.js. -->
-  <script>try { if (localStorage.getItem('rot_lang') === 'mk') document.write('<script src="js/i18n-mk-dict.js?v=20261112explain2"><\/script><script src="js/i18n-mk-legal.js"><\/script>'); } catch (e) {}</script>
+  <script>try { if (localStorage.getItem('rot_lang') === 'mk') document.write('<script src="js/i18n-mk-dict.js?v=20261113coin"><\/script><script src="js/i18n-mk-legal.js"><\/script>'); } catch (e) {}</script>
   <script src="js/signals.js?v=20261103cp"></script>
   <script src="js/holdings.js?v=20261103cp"></script>
   <script src="js/share-brand.js"></script>
@@ -2061,7 +2061,7 @@
   <script src="js/turn-watch.js?v=20261103cp"></script>
   <script src="js/paper-trades.js"></script>
   <script src="js/engage.js?v=20261103vc"></script>
-  <script src="js/board-tabs.js?v=20261112explain2"></script>
+  <script src="js/board-tabs.js?v=20261113coin"></script>
   <script>
   /* Phones and tablets (2026-10-24, iPhone reloads): HOME replaces the
      board instead of stacking the landing on top of it, so Safari never
@@ -2113,5 +2113,6 @@
   <script src="js/research-publication.js?v=20261112explain2"></script>
   <script src="js/research-outputs.js?v=20261112explain2"></script>
   <script src="js/research-workflow.js?v=20261112explain2"></script>
+  <script src="js/research-coin.js?v=20261113coin"></script>
 </body>
 </html>
