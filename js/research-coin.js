@@ -300,7 +300,15 @@
     return s;
   }
 
-  var api = { version: 1, TYPES: TYPES, FREE_SYM: FREE_SYM, available: available, build: build, headlines: headlines };
+  /* The live counter's sentence. Nothing at all before the first story. */
+  function statsText(st, mk) {
+    var n = Number(st.stories) || 0, m = Number(st.coins) || 0, f = function (v) { return v.toLocaleString('en-US'); };
+    if (n < 1) return '';
+    return mk ? f(n) + (n === 1 ? ' приказна напишана' : ' приказни напишани') + ' · ' + f(m) + (m === 1 ? ' монета истражена' : ' монети истражени')
+              : f(n) + (n === 1 ? ' story written' : ' stories written') + ' · ' + f(m) + (m === 1 ? ' coin researched' : ' coins researched');
+  }
+
+  var api = { version: 1, TYPES: TYPES, FREE_SYM: FREE_SYM, available: available, build: build, headlines: headlines, statsText: statsText };
   host.RotatorCoinStory = api;
   if (typeof module !== 'undefined') module.exports = api;
   if (typeof document === 'undefined') return;
@@ -352,11 +360,13 @@
     root.innerHTML = '<section class="rcs" id="rcs">'
       + '<span class="rcs-eyebrow">COIN STORY</span><h2>Pick a coin. Get its story.</h2>'
       + '<p class="rcs-lead">Coin, story, share. Made from the readings already on Rotator, in plain words.</p>'
+      + '<p class="rcs-stats" id="rcs-stats" data-no-i18n translate="no" hidden></p>'
       + '<div class="rcs-step"><span class="rcs-n">1</span><div class="rcs-step-b"><label class="rcs-lbl" for="rcs-coin">Coin</label>'
       + '<div class="rcs-chips" id="rcs-quick">' + top.map(function (c) { return '<button type="button" class="rcs-chip" data-sym="' + esc(c.sym) + '" data-no-i18n>' + esc(c.sym) + '</button>'; }).join('') + '</div>'
       + '<select id="rcs-coin" data-no-i18n><option value="">All coins…</option>' + cs.map(function (c) { return '<option value="' + esc(c.sym) + '">' + esc(c.sym + ' · ' + (c.name || '')) + '</option>'; }).join('') + '</select></div></div>'
       + '<div class="rcs-step" id="rcs-step2" hidden><span class="rcs-n">2</span><div class="rcs-step-b"><span class="rcs-lbl">Story</span><div class="rcs-chips" id="rcs-types"></div></div></div>'
       + '<div id="rcs-out" aria-live="polite"></div></section>';
+    loadStats();
     root.querySelector('#rcs-coin').onchange = function (e) { if (e.target.value) pick(e.target.value); };
     root.querySelector('#rcs-quick').onclick = function (e) { var b = e.target.closest('[data-sym]'); if (b) pick(b.getAttribute('data-sym')); };
     root.querySelector('#rcs-types').onclick = function (e) { var b = e.target.closest('[data-type]'); if (b) show(b.getAttribute('data-type')); };
@@ -372,6 +382,30 @@
     };
   }
 
+  /* The live counter (Daniel, 2026-11-13: "xx number of stories created xx
+     number of token researched"). Real totals from the server
+     (backend sql/coin_story_stats_2026-11-13.sql): a coin and a count, no
+     visitor. Hidden until the numbers arrive; never a made-up figure. */
+  var stats = null;
+  function drawStats() {
+    var el = root && root.querySelector('#rcs-stats'); if (!el || !stats) return;
+    var t = statsText(stats, host.currentLang === 'mk');
+    el.hidden = !t; el.textContent = t;
+  }
+  function loadStats() {
+    if (typeof host._supaRpc !== 'function') return;
+    Promise.resolve(host._supaRpc('coin_story_stats')).then(function (v) {
+      if (typeof v === 'string') { try { v = JSON.parse(v); } catch (e) { v = null; } }
+      if (v && v.stories != null) { stats = { stories: Number(v.stories) || 0, coins: Number(v.coins) || 0 }; drawStats(); }
+    }).catch(function () {});
+  }
+  function countStory(sym) {
+    if (typeof host._supaRpc !== 'function') return;
+    /* The call returns nothing, which _supaRpc reads as an error: both ways the
+       count is in, so read the totals again either way. */
+    var again = function () { loadStats(); };
+    Promise.resolve(host._supaRpc('count_coin_story', { p_symbol: sym })).then(again, again);
+  }
   function pick(sym) {
     var c = coin(sym); if (!c) return;
     state.sym = sym; state.story = null;
@@ -404,7 +438,7 @@
       var s = build(type, d);
       if (!s) { out.innerHTML = '<p class="rcs-wait">No data for this story yet.</p>'; return; }
       state.story = s;
-      if (typeof host.supaCountFeature === 'function') host.supaCountFeature('coin_story');   /* day totals only: no coin, no story type */
+      countStory(c.sym);
       out.innerHTML = '<article class="rcs-story"><div class="rcs-card" id="rcs-card"></div>'
         + '<div class="rcs-body"><h3 data-no-i18n translate="no">' + esc(s.head) + '</h3>'
         + '<ul data-no-i18n translate="no">' + s.points.map(function (p) { return '<li>' + esc(p) + '</li>'; }).join('') + '</ul>'

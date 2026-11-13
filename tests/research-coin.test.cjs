@@ -31,3 +31,7 @@ test('ETF story only for a coin with flow bars, with the run and the sign kept',
   assert.equal(s.head,'Bitcoin ETFs: 5 trading days of outflows in a row');assert.equal(s.spec.tag,'−$300M');assert.match(s.points[2],/−\$1\.44B/);assert.equal(s.change,'One day of inflows ends the run.');});
 test('news keeps the publisher and link and says headlines are background',()=>{const s=R.build('news',data({events:[{event_type:'golden_cross',event_date:'2026-11-12'}]}));
   assert.match(s.points[0],/^12 Nov: Golden cross/);assert.deepEqual(s.table.rows[0][2],{t:'Yields jump',u:'https://example.com/a'});assert.equal(s.table.rows[0][1],'Reuters');assert.match(s.table.foot,/not given as the reason SOL moved/);});
+test('the live counter says real totals, singular and plural, and nothing before the first story',()=>{
+  assert.equal(R.statsText({stories:0,coins:0}),'');assert.equal(R.statsText({stories:1,coins:1}),'1 story written · 1 coin researched');
+  assert.equal(R.statsText({stories:1234,coins:57}),'1,234 stories written · 57 coins researched');
+  assert.equal(R.statsText({stories:12,coins:1},true),'12 приказни напишани · 1 монета истражена');});

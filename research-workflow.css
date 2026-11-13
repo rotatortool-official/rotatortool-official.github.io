@@ -166,3 +166,9 @@ body.has-tabs .tr-it:not(.on){color:color-mix(in srgb,var(--text) 75%,var(--bg) 
 #rot-coin-story .rcs-table tr{display:table-row;padding:0;margin:0;background:none;border:0;border-radius:0}
 #rot-coin-story .rcs-table th,#rot-coin-story .rcs-table td{display:table-cell;width:auto;position:static}
 @media(max-width:600px){#rot-coin-story .rcs-table th,#rot-coin-story .rcs-table td{padding:8px 6px;font-size:12.5px}}
+/* Live counter under the coin story lead (2026-11-13). */
+.rcs-stats{display:inline-block;margin:-6px 0 16px;padding:6px 12px;border-radius:999px;background:var(--bg2);border:1px solid var(--bdr2);font-size:12.5px;font-weight:600;color:var(--text);font-variant-numeric:tabular-nums}
+.rcs-stats[hidden]{display:none}
+.rcs-stats::before{content:"";display:inline-block;width:7px;height:7px;border-radius:50%;background:var(--green);margin-right:8px;vertical-align:middle}
+/* Between phone and wide desktop the two-column story squeezed its table. */
+@media(max-width:1180px){.rcs-story{grid-template-columns:1fr}.rcs-card{max-width:640px}}
