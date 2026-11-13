@@ -401,6 +401,12 @@ function openPro() {
     body.innerHTML = '<div class="plb">'
       + '<div class="plb-title" data-col="a">⚡ Pro</div>'
       + '<div class="plb-sub plb-hero" data-col="a"><b>Understand your coins in one place. Get important changes on Telegram.</b></div>'
+      /* What Pro adds, in three lines, before the price (Daniel, 2026-11-13:
+         "present clearly what the pro does"). The full list stays below. */
+      + '<ul class="plb-adds" data-col="a"><li class="plb-adds-hd">What Pro adds</li>'
+        + '<li>A Telegram message about your coins, every Monday and Thursday</li>'
+        + '<li>An alert within the hour: your price, your swap pair, a delisting</li>'
+        + '<li>The story of any coin in plain words, with a card to share</li></ul>'
       + '<div class="plb-offer" id="plb-offer" data-col="a">'
         /* "$20 once" came off on 2026-10-21 (Daniel: not true while later
            buyers were to get a subscription). With the server cap it is
@@ -438,6 +444,7 @@ function openPro() {
           + '<li><b>Delisting, price and swap-pair alerts</b>, within the hour</li>'
           + '<li class="plb-sub">A pair alert is sent when the ratio reaches your number, enters the top quarter of its 30-day range, or one coin moves ahead of the other over 7, 30 or 60 days</li>'
           + '<li><b>Rotator indicators</b>: our golden cross, death cross and RSI comeback flags on the price chart, with RSI and the Rotator score</li>'
+          + '<li>Coin story for every coin, with a share card</li>'
           + '<li>Full coin breakdown on one screen (desktop), with price scenarios</li></ul>'
           + '<details class="plb-more"><summary>Everything else in Pro</summary><ul>'
           + '<li>10 holdings, any swap pair</li>'

@@ -21,7 +21,7 @@ test('no story uses buy, sell or forecast words',()=>{const d=data({events:[{eve
 test('a story the coin has no data for is not offered and not built',()=>{const d=data({tech:null,unlock:null,c:{_positioning:null,circulating_supply:null,total_supply:null}});
   assert.deepEqual(R.available(d),['week','news']);assert.equal(R.build('crowd',d),null);assert.equal(R.build('flows',d),null);assert.equal(R.build('nope',d),null);});
 test('week table sets the coin beside Bitcoin and the median coin',()=>{const s=R.build('week',data());
-  assert.deepEqual(s.table.rows.map(r=>r[0]),['SOL','Bitcoin','Typical coin']);assert.equal(s.table.rows[0][1],'−13%');assert.equal(s.spec.kind,'bars');
+  assert.deepEqual(s.table.rows.map(r=>r[0]),['SOL','Bitcoin','Average coin']);assert.equal(s.table.rows[0][1],'−13%');assert.equal(s.spec.kind,'bars');
   const withHist=data({closes:Array.from({length:30},(_,i)=>({t:Date.parse('2026-10-14')+i*864e5,r:100-i}))});assert.equal(R.build('week',withHist).spec.kind,'line');});
 test('Bitcoin supply is never described as an unlock',()=>{const d=data({c:{id:'bitcoin',sym:'BTC',name:'Bitcoin',circulating_supply:19.9e6,max_supply:21e6,total_supply:19.9e6}});
   const s=R.build('supply',d),all=JSON.stringify(s);assert.ok(!/unlock/i.test(JSON.stringify([s.head,s.points,s.table])),all);assert.match(s.points.join(' '),/mining/);});

@@ -7944,3 +7944,25 @@ body.has-tabs .tile-detail .td-story-go:hover,body.has-tabs .tile-detail .td-sha
 body.has-tabs .tile-detail .td-story-go .td-story-go-t{color:#1d1c16 !important;}
 body.has-tabs .tile-detail .td-story-go .td-story-go-s{color:#4a4440 !important;}
 body.has-tabs .tile-detail .td-share-card-btn *,body.has-tabs .tile-detail .td-expand *{color:#1d1c16 !important;}
+
+/* ── The answer line (js/tab-answers.js, 2026-11-13) ──────────────────
+   Every tab starts with the question it answers and the answer in one
+   sentence. Shown on phones too, where .tab-head (the title) is hidden. */
+.tab-answer{width:100%;max-width:1180px;margin:10px auto 6px;padding:0 10px;box-sizing:border-box;}
+.tab-answer[hidden]{display:none;}
+.tab-answer .ta-in{display:grid;grid-template-columns:1fr auto;gap:2px 16px;align-items:center;padding:13px 16px;border-radius:12px;text-decoration:none;
+  background:var(--bg2);border:1px solid var(--bdr2);border-left:3px solid var(--bnb);color:var(--text);}
+.tab-answer .ta-in:hover{border-color:var(--bnb);}
+.tab-answer .ta-in:focus-visible{outline:2px solid var(--bnb);outline-offset:2px;}
+.tab-answer .ta-q{grid-column:1;font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--bnb);}
+.tab-answer .ta-a{grid-column:1;font-size:16px;line-height:1.45;font-weight:600;color:var(--text);}
+.tab-answer .ta-go{grid-column:2;grid-row:1 / span 2;font-size:12.5px;font-weight:700;color:var(--text);white-space:nowrap;padding:8px 12px;border:1px solid var(--bdr2);border-radius:8px;background:var(--bg3);}
+@media(min-width:901px){body.has-tabs .tab-answer{padding:0;margin:0 auto 18px;}}
+@media(max-width:600px){.tab-answer .ta-in{grid-template-columns:1fr;padding:12px 13px;}.tab-answer .ta-a{font-size:14.5px;}.tab-answer .ta-go{grid-column:1;grid-row:auto;justify-self:start;margin-top:8px;}}
+
+/* Pro window: what Pro adds, three lines before the price (2026-11-13). */
+#pro-modal .plb-adds{list-style:none;margin:0 0 14px;padding:12px 14px;border-radius:10px;background:var(--prod);border:1px solid var(--pro);font-size:13.5px;line-height:1.45;color:var(--text);}
+#pro-modal .plb-adds li{position:relative;padding-left:22px;margin:6px 0;}
+#pro-modal .plb-adds li::before{content:"✓";position:absolute;left:0;color:var(--pro);font-weight:800;}
+#pro-modal .plb-adds .plb-adds-hd{padding-left:0;margin:0 0 6px;font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--pro);}
+#pro-modal .plb-adds .plb-adds-hd::before{content:none;}

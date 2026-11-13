@@ -136,13 +136,13 @@
       var row = function (n, x) { return [n, num(x.p7) ? sg(x.p7) : '—', num(x.p30) ? sg(x.p30) : '—', x.score != null ? String(Math.round(x.score)) : '—', rsi(x.sym)]; };
       var rows = [row(c.sym, c)];
       if (btc && c.sym !== 'BTC') rows.push(row('Bitcoin', btc));
-      if (m7 != null) rows.push(['Typical coin', sg(m7), m30 != null ? sg(m30) : '—', '—', '—']);
+      if (m7 != null) rows.push(['Average coin', sg(m7), m30 != null ? sg(m30) : '—', '—', '—']);
       var vs = m7 == null ? '' : c.p7 > m7 ? 'ahead of' : c.p7 < m7 ? 'behind' : 'level with';
       return {
         head: head, points: points, spec: spec,
-        table: { cap: c.sym + (btc && c.sym !== 'BTC' ? ' next to Bitcoin and the typical coin' : ' next to the typical coin'), cols: ['', '7 days', '30 days', 'Score', 'Daily RSI'], rows: rows,
-          foot: 'Typical coin: the middle one of the ' + P.length + ' coins we score.' },
-        change: m7 == null ? '' : 'This week ' + c.sym + ' is ' + vs + ' the typical coin (' + sg(m7) + '). The picture changes when that gap closes or flips.',
+        table: { cap: c.sym + (btc && c.sym !== 'BTC' ? ' next to Bitcoin and the average coin' : ' next to the average coin'), cols: ['', '7 days', '30 days', 'Score', 'Daily RSI'], rows: rows,
+          foot: 'Average coin: the middle one of the ' + P.length + ' coins we score.' },
+        change: m7 == null ? '' : 'This week ' + c.sym + ' is ' + vs + ' the average coin (' + sg(m7) + '). The picture changes when that gap closes or flips.',
         sources: ['Binance prices, read by Rotator']
       };
     },
@@ -440,11 +440,12 @@
       if (tries++ < 120) setTimeout(wait, 500);
     };
     wait();
-    /* The publisher desk opens by itself for someone who already has saved runs. */
-    try {
-      var runs = JSON.parse(localStorage.getItem('rot_research_runs_v1') || '[]'), fold = document.getElementById('rcs-publisher');
-      if (fold && ((Array.isArray(runs) && runs.length) || (runs && Array.isArray(runs.runs) && runs.runs.length))) fold.open = true;
-    } catch (e) {}
+    /* The publisher desk stays folded; it remembers when the reader opens it. */
+    var fold = document.getElementById('rcs-publisher');
+    if (fold) {
+      try { fold.open = localStorage.getItem('rot_rcs_pub') === '1'; } catch (e) {}
+      fold.addEventListener('toggle', function () { try { localStorage.setItem('rot_rcs_pub', fold.open ? '1' : '0'); } catch (e) {} });
+    }
   }
   api.pick = function (sym, type) { if (root && coin(sym)) { if (type) state.type = type; pick(sym); } };
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', mount); else mount();
