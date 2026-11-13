@@ -367,7 +367,7 @@
       if (a === 'free') { pick(FREE_SYM); return; }
       if (!state.story) return;
       if (!pro()) { if (typeof host.openPro === 'function') host.openPro(); return; }
-      if (a === 'share' && typeof host.fcShareCard === 'function') host.fcShareCard(state.story.spec);
+      if (a === 'share' && typeof host.fcShareCard === 'function') { if (typeof host.supaCountFeature === 'function') host.supaCountFeature('coin_story_share'); host.fcShareCard(state.story.spec); }
       if (a === 'copy' && navigator.clipboard) navigator.clipboard.writeText(state.story.text).then(function () { b.textContent = 'Copied'; setTimeout(function () { b.textContent = 'Copy text'; }, 1600); });
     };
   }
@@ -391,6 +391,7 @@
     [].forEach.call(root.querySelectorAll('.rcs-type'), function (b) { b.classList.toggle('on', b.getAttribute('data-type') === type); });
     if (!pro() && c.sym !== FREE_SYM) {
       state.story = null;
+      if (typeof host.supaCountFeature === 'function') host.supaCountFeature('coin_story_locked');
       out.innerHTML = '<div class="rcs-lock"><b><span data-no-i18n>' + esc(c.sym) + '</span> <span>stories are part of Pro</span></b>'
         + '<p>Pro writes the story for every coin and lets you share the card. Bitcoin\'s story is free to read.</p>'
         + '<div class="rcs-actions"><button type="button" class="rcs-primary" data-act="pro">Get Pro</button><button type="button" data-act="free">Read Bitcoin\'s story</button></div></div>';
@@ -403,6 +404,7 @@
       var s = build(type, d);
       if (!s) { out.innerHTML = '<p class="rcs-wait">No data for this story yet.</p>'; return; }
       state.story = s;
+      if (typeof host.supaCountFeature === 'function') host.supaCountFeature('coin_story');   /* day totals only: no coin, no story type */
       out.innerHTML = '<article class="rcs-story"><div class="rcs-card" id="rcs-card"></div>'
         + '<div class="rcs-body"><h3 data-no-i18n translate="no">' + esc(s.head) + '</h3>'
         + '<ul data-no-i18n translate="no">' + s.points.map(function (p) { return '<li>' + esc(p) + '</li>'; }).join('') + '</ul>'

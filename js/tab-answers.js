@@ -153,6 +153,7 @@
     if (head && head.parentNode) head.parentNode.insertBefore(box, head.nextSibling); else page.insertBefore(box, page.firstChild);
     box.addEventListener('click', function (e) {
       var a = e.target.closest('[data-tab-go]'); if (!a || !host.BoardTabs || typeof host.BoardTabs.go !== 'function') return;
+      if (typeof host.supaCountFeature === 'function') host.supaCountFeature('tab_answer_click');   /* day totals only (backend sql/count_feature_story_and_answers_2026-11-13.sql) */
       e.preventDefault(); host.BoardTabs.go(a.getAttribute('data-tab-go'), a.getAttribute('data-k'));
     });
     new MutationObserver(draw).observe(document.body, { attributes: true, attributeFilter: ['data-tab'] });
