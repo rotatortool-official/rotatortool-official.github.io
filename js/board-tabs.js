@@ -321,18 +321,26 @@
      top and near the end of the page; never while MORE is open. The CSS
      (styles.css) moves it in portrait only. ── */
   if (mob) {
-    var lastY = window.scrollY, acc = 0, hid = false;
+    /* The page scrolls, and so do tall boxes inside it (the Coins list,
+       #crypto-panel), so every vertical scroll counts, each with its own
+       last position. Small boxes (menus) and sideways rows are ignored. */
+    var acc = 0, hid = false, lastEl = null, lastY = 0;
     var setHid = function (h) { if (h === hid) return; hid = h; mob.classList.toggle('mob-hid', h); };
-    window.addEventListener('scroll', function () {
-      var y = window.scrollY, d = y - lastY; lastY = y;
+    document.addEventListener('scroll', function (ev) {
+      var el = ev.target === document ? document.scrollingElement || document.documentElement : ev.target;
+      if (!el || el.clientHeight < window.innerHeight * 0.4) return;
+      var y = el.scrollTop;
+      if (el !== lastEl) { lastEl = el; lastY = y; acc = 0; return; }
+      var d = y - lastY; lastY = y;
       var mm2 = $('mob-more-menu');
       if (mm2 && mm2.classList.contains('show')) { acc = 0; setHid(false); return; }
-      if (y < 80 || y + window.innerHeight > document.documentElement.scrollHeight - 80) { acc = 0; setHid(false); return; }
+      var page = el === document.scrollingElement || el === document.documentElement;
+      if ((page && y < 80) || y + el.clientHeight > el.scrollHeight - 80) { acc = 0; setHid(false); return; }
       if (d === 0) return;
       if ((d > 0) !== (acc > 0)) acc = 0;
       acc += d;
       if (acc > 24) setHid(true); else if (acc < -12) setHid(false);
-    }, { passive: true });
+    }, { passive: true, capture: true });
   }
 
   /* ── Settings in the preview's look (Daniel, 2026-10-29): a glass panel
