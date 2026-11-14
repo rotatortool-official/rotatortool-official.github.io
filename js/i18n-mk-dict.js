@@ -2515,3 +2515,79 @@ Object.assign(MK_TEXT, {'Coin story':'Приказна за монета','COIN 
 /* Pro window: what Pro adds (2026-11-13). The answer line on each tab writes
    its own Macedonian (js/tab-answers.js), because its sentences hold numbers. */
 Object.assign(MK_TEXT, {'What Pro adds':'Што додава Pro','A Telegram message about your coins, every Monday and Thursday':'Порака на Telegram за вашите монети, секој понеделник и четврток','An alert within the hour: your price, your swap pair, a delisting':'Известување во рок од еден час: вашата цена, вашиот пар за замена, отстранување од берзата','The story of any coin in plain words, with a card to share':'Приказната за секоја монета со едноставни зборови, со картичка за споделување','Coin story for every coin, with a share card':'Приказна за секоја монета, со картичка за споделување'});
+
+/* ── Coin window gaps (2026-11-14) ──────────────────────────────────
+   Found by walking the coin window in Macedonian and reading
+   window.__mkMissing. First draft from DeepL, then reworded to the
+   glossary (монета, резултат, замав, фандинг, отворен интерес) and to
+   plain words. Coin descriptions and links come from CoinGecko and stay
+   in English on purpose. */
+Object.assign(MK_TEXT, {
+  '🔒 Momentum, macro strength and tokenomics, the three parts of the score, are in the Pro summary.': '🔒 Замавот, макро силата и токеномиката, трите дела на резултатот, се во Pro резимето.',
+  'Ran ahead this week.': 'Истрча напред оваа недела.',
+  'Lagged this week.': 'Заостана оваа недела.',
+  'Middle of the pack.': 'Во средината.',
+  'It has beaten most of the market, and some readings suggest the move is tiring.': 'Монетата го претекна поголемиот дел од пазарот, а некои показатели покажуваат дека движењето губи сила.',
+  'It has beaten most of the market, and nothing yet suggests the move is tiring.': 'Монетата го претекна поголемиот дел од пазарот и ништо сè уште не покажува дека движењето губи сила.',
+  'It has trailed most of the market and is still weakening, with nothing yet suggesting a turn.': 'Монетата заостанува зад поголемиот дел од пазарот и сè уште слабее, а ништо сè уште не покажува свртување.',
+  'It has trailed most of the market, with nothing yet suggesting a turn.': 'Монетата заостанува зад поголемиот дел од пазарот, а ништо сè уште не покажува свртување.',
+  'It has trailed most of the market. Some readings suggest a turn up, others that it is still weakening.': 'Монетата заостанува зад поголемиот дел од пазарот. Некои показатели укажуваат на свртување нагоре, други дека сè уште слабее.',
+  'It has trailed most of the market, and some readings suggest a turn up may be starting.': 'Монетата заостанува зад поголемиот дел од пазарот, а некои показатели укажуваат дека може да започне свртување нагоре.',
+  'A reading, not a forecast.': 'Читање, не прогноза.',
+  'on the score\'s momentum part': 'од делот замав на резултатот',
+  'of its maximum supply unlocked': 'од максималната понуда е отклучено',
+  'of its total supply unlocked': 'од вкупната понуда е отклучено',
+  'no published unlock schedule': 'нема објавен распоред за отклучување',
+  'next 30 days:': 'следни 30 дена:',
+  'no unlock': 'нема отклучување',
+  '⛶ Full screen': '⛶ Цел екран',
+  'Bigger chart, with Rotator\'s score, momentum, What if and alerts on both sides': 'Поголем графикон, со резултатот на Rotator, замав, „Што ако“ и известувања од двете страни',
+  'What if and price alerts': 'Што ако и ценовни известувања',
+  'None right now': 'Моментално нема',
+  'Ran ahead · cooling signs': 'Истрчала напред · знаци на смирување',
+  'Lagged · turn-up signs': 'Заостанала · знаци за свртување нагоре',
+  'Start here anyway': 'Сепак почни тука',
+  'Bitcoin ETF page': 'Страница за Bitcoin ETF',
+  'Golden & death cross': 'Златен крст и крст на смртта',
+  'Coin data not ready yet': 'Податоците за монетата сè уште не се подготвени',
+  'What if the price goes here': 'Што ако цената отиде тука',
+  'This is not a Rotator list file.': 'Ова не е датотека со листа на Rotator.',
+  'Everything in the file is already in your list.': 'Сè од датотеката веќе е во вашата листа.',
+  'Pro messages you about your own coins: a Monday and Thursday briefing, a warning before an unlock, and price alerts you set. 1 free week for each friend you invite.': 'Pro ви пишува за вашите монети: брифинг во понеделник и четврток, предупредување пред отклучување и ценовни известувања што ги поставувате. 1 бесплатна недела за секој пријател што го поканувате.',
+  'Referral link: if you buy a TradingView plan, you get money off and Rotator gets TradingView credit. It costs you nothing extra.': 'Реферален линк: ако купите план на TradingView, добивате попуст, а Rotator добива кредит од TradingView. Вам не ви чини ништо повеќе.',
+  'You have opened several TradingView charts. On a phone one more can make Safari reload this page.': 'Отворивте неколку графикони на TradingView. На телефон уште еден може да го натера Safari повторно да ја вчита страницава.',
+  'Candles with golden cross, death cross and RSI marks, RSI 14, the Rotator score by day, plus EMA, Bollinger, SuperTrend, MACD and Squeeze.': 'Свеќи со златен крст, крст на смртта и ознаки за RSI, RSI 14, резултатот на Rotator по ден, плус EMA, Bollinger, SuperTrend, MACD и Squeeze.',
+  'Coins you follow without holding. Scores are relative strength in this run, not advice.': 'Монети што ги следите без да ги држите. Резултатите се релативна сила во ова пресметување, не совет.'
+});
+(function () {
+  var P = function (re, fn) { MK_PATTERNS.push([re, fn]); };
+  var LAYER = { 'momentum': 'замав', 'macro strength': 'макро сила', 'tokenomics': 'токеномика' };
+  var ZONE = { 'gaining momentum': 'добива замав', 'normal range': 'нормален опсег', 'oversold zone': 'зона на препродаденост', 'overbought': 'прекупено' };
+  var dc = function (s) { return String(s).replace('.', ','); };
+  /* "of 100, strongest in momentum (" … "), weakest in tokenomics (" */
+  P(/^of 100, strongest in (momentum|macro strength|tokenomics) \($/, function (m) { return 'од 100, најсилна во ' + LAYER[m[1]] + ' ('; });
+  P(/^\), weakest in (momentum|macro strength|tokenomics) \($/, function (m) { return '), најслаба во ' + LAYER[m[1]] + ' ('; });
+  P(/^, (gaining momentum|normal range|oversold zone|overbought) ·$/, function (m) { return ', ' + ZONE[m[1]] + ' ·'; });
+  P(/^\(next on (\d{4}-\d\d-\d\d)\)$/, function (m) { return '(следно на ' + m[1] + ')'; });
+  P(/^([\d.]+)% unlocks$/, function (m) { return m[1] + '% се отклучува'; });
+  P(/^Also worth knowing · (\d+)$/, function (m) { return 'Вреди да се знае · ' + m[1]; });
+  /* The Futures sentence: any mix of the three parts, then "on Binance." */
+  var FUND = { 'longs are paying heavy funding': 'лонг позициите плаќаат висок фандинг', 'longs are paying funding': 'лонг позициите плаќаат фандинг', 'shorts are paying funding': 'шорт позициите плаќаат фандинг', 'funding is neutral': 'фандингот е неутрален' };
+  var OIT = { 'new money': 'нови пари', 'short covering': 'затворање шортови', 'new shorts': 'нови шортови', 'unwinding': 'затворање позиции' };
+  P(/^(?:(\d+)% of accounts are long \(([\d.]+) longs for every short\))?(?:, | and )?(longs are paying heavy funding|longs are paying funding|shorts are paying funding|funding is neutral)?(?:, | and )?(?:open interest (rose|fell) ([\d.]+)% in 24 hours(?: \((new money|short covering|new shorts|unwinding)\))?)? on Binance\.$/i, function (m) {
+    var bits = [];
+    if (m[1]) bits.push(m[1] + '% од сметките се во лонг (' + dc(m[2]) + ' лонг на еден шорт)');
+    if (m[3]) bits.push(FUND[m[3].toLowerCase()]);
+    if (m[4]) bits.push('отворениот интерес ' + (m[4] === 'rose' ? 'порасна' : 'опадна') + ' за ' + m[5] + '% за 24 часа' + (m[6] ? ' (' + OIT[m[6]] + ')' : ''));
+    if (!bits.length) return m[0];
+    var t = bits.length > 1 ? bits.slice(0, -1).join(', ') + ' и ' + bits[bits.length - 1] : bits[0];
+    return t.charAt(0).toUpperCase() + t.slice(1) + ' на Binance.';
+  });
+})();
+(function () {
+  var P = function (re, fn) { MK_PATTERNS.push([re, fn]); };
+  /* "30d ago Rotator flagged <b>SYM</b> at $1.20, now $1.50 (+25%)" */
+  P(/^(\d+)d ago Rotator flagged$/, function (m) { return 'пред ' + m[1] + ' ' + (Number(m[1]) === 1 ? 'ден' : 'дена') + ' Rotator означи'; });
+  P(/^at (\$[\d.,\s]+)$/, function (m) { return 'по цена ' + m[1]; });
+  P(/^, now (\$[\d.,\s]+) \($/, function (m) { return ', сега ' + m[1] + ' ('; });
+})();
