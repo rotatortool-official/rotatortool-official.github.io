@@ -62,7 +62,7 @@ function _fcCls(v) { return v == null ? '' : v >= 0 ? 'up' : 'dn'; }
 /* ── In-window charts (SVG, theme colours from CSS) ───────────────── */
 /* Bars from a zero line. b: [{v, t (tooltip), prov}]. tone: 'flow' (green
    up / red down) or 'amber' (every bar amber: supply arriving). */
-function fcBarsSvg(b, tone) {
+function fcBarsSvg(b, tone, ck) {   /* ck: { key, fmt } adds the scale + readout frame (js/chart-kit.js) */
   if (!b || b.length < 2) return '';
   var W = 300, H = 140, PAD = 6;
   var hi = Math.max.apply(null, b.map(function (p) { return Math.abs(p.v) || 0; })) || 1;
@@ -77,18 +77,27 @@ function fcBarsSvg(b, tone) {
     out += '<rect x="' + (i * bw + bw * 0.15).toFixed(1) + '" y="' + y.toFixed(1) + '" width="' + (bw * 0.7).toFixed(1)
       + '" height="' + h.toFixed(1) + '" class="' + cls + (p.prov ? ' etf-prov' : '') + '"><title>' + (p.t || '') + '</title></rect>';
   });
-  return out + '</svg>';
+  out += '</svg>';
+  if (!ck || typeof ckWrap !== 'function') return out;
+  var sc = [{ y: (mid - hi * scale) / H, t: ck.fmt(hi) }];
+  if (!allPos) sc.push({ y: (mid + hi * scale) / H, t: ck.fmt(-hi) });
+  return ckWrap(out, { key: ck.key, scale: sc });
 }
-function fcLineSvg(vals) {
+function fcLineSvg(vals, ck) {   /* ck: { key, x: [labels], fmt, name } */
   if (!vals || vals.length < 2) return '';
   var W = 300, H = 120, lo = Math.min.apply(null, vals), hi = Math.max.apply(null, vals), pad = (hi - lo) * 0.08 || Math.abs(hi) * 0.05 || 1;
   var X = function (i) { return (i / (vals.length - 1)) * W; };
   var Y = function (v) { return H - ((v - lo + pad) / (hi - lo + 2 * pad)) * H; };
   var up = vals[vals.length - 1] >= vals[0];
   var pts = vals.map(function (v, i) { return X(i).toFixed(1) + ',' + Y(v).toFixed(1); }).join(' ');
-  return '<svg class="btcg-chart fc-line" viewBox="0 0 ' + W + ' ' + H + '" preserveAspectRatio="none" role="img">'
+  var svg = '<svg class="btcg-chart fc-line" viewBox="0 0 ' + W + ' ' + H + '" preserveAspectRatio="none" role="img">'
     + '<polygon points="0,' + H + ' ' + pts + ' ' + W + ',' + H + '" class="btcg-fill ' + (up ? 'up' : 'dn') + '"/>'
     + '<polyline points="' + pts + '" class="btcg-line ' + (up ? 'up' : 'dn') + '" vector-effect="non-scaling-stroke"/></svg>';
+  if (!ck || typeof ckWrap !== 'function') return svg;
+  var last = vals[vals.length - 1];
+  return ckWrap(svg, { key: ck.key, x: ck.x, series: [{ n: ck.name || '', f: vals.map(ck.fmt) }],
+    scale: [{ y: Y(hi) / H, t: ck.fmt(hi) }, { y: Y(lo) / H, t: ck.fmt(lo) }],
+    last: { y: Y(last) / H, t: ck.fmt(last), cls: up ? 'up' : 'dn' } });
 }
 /* Ranked bars as HTML rows (they reflow on a phone, SVG text would not). */
 function fcHbarsHtml(rows, tone) {
@@ -390,7 +399,7 @@ function _etfDrawRange(a) {
   }
   st.innerHTML = fcBarsSvg(R.pts.map(function (p) {
     return { v: p.v, prov: p.complete === false, t: (R.weekly ? (_fcMk() ? 'Недела од ' : 'Week of ') : '') + _fcDay(p.day, R.weekly) + ': ' + _etfM(p.v) };
-  }), 'flow');
+  }), 'flow', { key: 'etf-' + a + '-' + _etfRange, fmt: function (v) { return _etfM(v); } });
   if (ax) ax.innerHTML = '<span>' + _fcDay(R.pts[0].day, true) + '</span><span>' + (R.weekly ? M.weekly : M.daily) + '</span><span>' + _fcDay(R.days[R.days.length - 1].day) + '</span>';
   var net = R.days.reduce(function (x, d) { return x + d.v; }, 0);
   var pos = R.pts.filter(function (p) { return p.v > 0; }).length;
@@ -471,8 +480,8 @@ function _supHistHtml(key, id) {
       : 'History is recorded every day since ' + from + '. The line appears after 14 days and grows to 6 months (around April 2027).') + '</p></div>';
   }
   var vals = h.map(function (r) { return Number(r[key]); });
-  return '<div class="etf-m-sec">' + hd + '<div class="fc-stage" id="' + id + '">' + fcLineSvg(vals) + '</div>'
-    + '<div class="etf-axis"><span>' + _fcDay(h[0].day) + '</span><span>' + _fcUsd(vals[vals.length - 1]) + '</span><span>' + _fcDay(h[h.length - 1].day) + '</span></div></div>';
+  return '<div class="etf-m-sec">' + hd + '<div class="fc-stage" id="' + id + '">' + fcLineSvg(vals, { key: id, x: h.map(function (r) { return _fcDay(r.day); }), fmt: function (v) { return _fcUsd(v); } }) + '</div>'
+    + '<div class="etf-axis"><span>' + _fcDay(h[0].day) + '</span><span>' + (typeof ckWrap === 'function' ? '' : _fcUsd(vals[vals.length - 1])) + '</span><span>' + _fcDay(h[h.length - 1].day) + '</span></div></div>';
 }
 
 /* ══════════════════════════════════════════════════════════════════
@@ -540,7 +549,7 @@ function openUnlocksModal() {
       + '</div>'
       + '<div class="fc-stage" id="ul-fc-stage">' + fcBarsSvg(bars.map(function (b) {
           return { v: b.v, t: _fcDay(b.day) + ': ' + _fcUsd(b.v) + (b.syms.length ? ' (' + b.syms.map(function (x) { return x.s; }).join(', ') + ')' : '') };
-        }), 'amber') + '</div>'
+        }), 'amber', { key: 'ul-days', fmt: function (v) { return _fcUsd(v); } }) + '</div>'
       + '<div class="etf-axis"><span>' + L.today + '</span><span>' + L.axis + '</span><span>' + L.in30 + '</span></div>'
       + '<p class="btcg-read">' + L.read + '</p>'
       + '<table class="btcg-table fc-table"><thead><tr><th>' + L.coin + '</th><th>' + L.date + '</th><th>' + L.sup + '</th><th>' + L.usd + '</th><th>' + L.left + '</th></tr></thead><tbody>' + table + '</tbody></table>'

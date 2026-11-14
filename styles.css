@@ -7975,3 +7975,52 @@ body.has-tabs .tile-detail .td-share-card-btn *,body.has-tabs .tile-detail .td-e
 #pro-modal .plb-adds li::before{content:"✓";position:absolute;left:0;color:var(--pro);font-weight:800;}
 #pro-modal .plb-adds .plb-adds-hd{padding-left:0;margin:0 0 6px;font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--pro);}
 #pro-modal .plb-adds .plb-adds-hd::before{content:none;}
+
+
+/* ════════════════════════════════════════════════════════════════════
+   CHART KIT (js/chart-kit.js, 2026-11-14) — learned from
+   charts.blockhorizon.io: every chart of ours gets a readout that follows
+   the mouse or finger, a scale (high / low lines + a last-value tag) and a
+   soft start. Both themes; colours come from the theme variables.
+   ════════════════════════════════════════════════════════════════════ */
+.ck{position:relative;}
+.ck-plot{position:relative;margin:10px 0 12px;touch-action:pan-y;cursor:crosshair;-webkit-user-select:none;user-select:none;-webkit-tap-highlight-color:transparent;}
+.ck-has-last .ck-plot{margin-right:60px;}
+.fc-stage:has(.ck-has-last) + .etf-axis,.btcg-stage:has(.ck-has-last) + .etf-axis,.ck-has-last + .cap-axis{padding-right:60px;}
+/* scale: a faint line at the high and at the low, the value written on it */
+.ck-grid{position:absolute;left:0;right:0;height:0;border-top:1px dashed var(--bdr2);pointer-events:none;}
+.ck-grid i{position:absolute;left:0;top:3px;font:600 10px/1 var(--font-mono);font-style:normal;color:var(--muted);letter-spacing:.01em;white-space:nowrap;}
+.ck-grid.ck-g-top i{top:auto;bottom:3px;}   /* the high is written above its line, the low below: never on the bars */
+/* last value: a coloured tag at the right edge, level with the line's end */
+.ck-last{position:absolute;left:100%;margin-left:6px;transform:translateY(-50%);padding:4px 6px;border-radius:5px;font:700 10.5px/1 var(--font-mono);color:#fff;background:var(--muted);white-space:nowrap;pointer-events:none;}
+.ck-last.up{background:var(--green);} .ck-last.dn{background:var(--red);}
+.ck-last.gold{background:var(--bnb,#d4a428);color:#14100a;} .ck-last.blue{background:#5b9dff;color:#06101f;}
+:root.light .ck-last.gold{color:#fff;}
+/* readout: the dashed line, a dot on each line, the card */
+.ck-x{position:absolute;top:0;bottom:0;width:0;border-left:1px dashed var(--text);opacity:.5;pointer-events:none;}
+.ck-dots{position:absolute;top:0;bottom:0;width:0;pointer-events:none;}
+.ck-dots i{position:absolute;left:-5px;width:10px;height:10px;margin-top:-5px;border-radius:50%;border:2px solid var(--bg2);box-sizing:border-box;}
+.ck-tip{position:absolute;top:2px;z-index:6;pointer-events:none;min-width:92px;max-width:240px;padding:7px 10px 8px;border-radius:9px;background:var(--tooltip-bg);border:1px solid var(--bdr2);box-shadow:0 8px 24px rgba(0,0,0,.28);font:500 12px/1.35 var(--font-ui);color:var(--text);}
+:root.light .ck-tip{box-shadow:0 6px 18px rgba(20,40,70,.16);}
+.ck-tip .ck-h{display:block;font-size:10.5px;font-weight:600;color:var(--muted);margin-bottom:3px;white-space:nowrap;}
+.ck-row{display:flex;align-items:center;gap:6px;}
+.ck-row i{flex:none;width:8px;height:8px;border-radius:50%;}
+.ck-row em{font-style:normal;color:var(--muted);white-space:nowrap;}
+.ck-row b{font-family:var(--font-mono);font-weight:700;margin-left:auto;padding-left:8px;}
+.ck-row em + b{text-align:right;}
+/* bars: the one under the pointer stays bright, the rest step back */
+.ck-plot rect{transition:opacity .1s linear;}
+.ck.ck-on .ck-plot rect{opacity:.38;}
+.ck.ck-on .ck-plot rect.ck-hot{opacity:1;}
+/* soft start: wipe in from the left, once per chart */
+@keyframes ckReveal{from{clip-path:inset(0 100% 0 0);}to{clip-path:inset(0 0 0 0);}}
+@keyframes ckFade{from{opacity:0;}to{opacity:1;}}
+.ck-new .ck-plot > svg{animation:ckReveal .75s cubic-bezier(.22,.7,.2,1) both;}
+.ck-new .ck-last,.ck-new .ck-grid{animation:ckFade .35s ease-out .55s both;}
+/* a tab change eases in (js/board-tabs.js setTab): opacity and a 6px rise, no blur */
+@keyframes tabIn{from{opacity:0;transform:translateY(6px);}to{opacity:1;transform:none;}}
+.rsec.tab-in{animation:tabIn .22s ease-out both;}
+@media (prefers-reduced-motion:reduce){
+  .ck-new .ck-plot > svg,.ck-new .ck-last,.ck-new .ck-grid,.rsec.tab-in{animation:none;}
+  .ck-plot rect{transition:none;}
+}

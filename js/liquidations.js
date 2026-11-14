@@ -272,7 +272,9 @@ function _liqBarsSvg(slots) {
     if (s.short) out += '<rect x="' + x + '" y="' + (mid - Math.max(1, s.short * sc)).toFixed(1) + '" width="' + w + '" height="' + Math.max(1, s.short * sc).toFixed(1) + '" class="etf-in"><title>' + t + _liqUsd(s.short) + ' shorts</title></rect>';
     if (s.long) out += '<rect x="' + x + '" y="' + mid + '" width="' + w + '" height="' + Math.max(1, s.long * sc).toFixed(1) + '" class="etf-out"><title>' + t + _liqUsd(s.long) + ' longs</title></rect>';
   });
-  return out + '</svg>';
+  out += '</svg>';
+  if (typeof ckWrap !== 'function') return out;
+  return ckWrap(out, { key: 'liq-' + (_liq && _liq.coin || ''), scale: [{ y: 4 / H, t: _liqUsd(hi) }, { y: (H - 4) / H, t: _liqUsd(hi) }] });
 }
 function _liqRenderCoin() {
   var body = document.getElementById('liq-modal-body'), L = _liqL(), sym = _liq.coin, name = _liqSym(sym);

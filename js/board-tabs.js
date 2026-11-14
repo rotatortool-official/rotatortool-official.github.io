@@ -189,9 +189,16 @@
   function setTab(id) {
     var t = byId[id] || byId.today;
     if (cur === t.id) return false;
+    var first = cur === null;
     cur = t.id;
     document.body.setAttribute('data-tab', t.id);
-    document.querySelectorAll('.rsec[data-tab]').forEach(function (s) { s.classList.toggle('tab-off', s.getAttribute('data-tab') !== t.id); });
+    document.querySelectorAll('.rsec[data-tab]').forEach(function (s) {
+      var on = s.getAttribute('data-tab') === t.id;
+      s.classList.toggle('tab-off', !on);
+      /* A tab change eases in (styles.css .tab-in) so the page does not jump; the first paint does not. */
+      s.classList.remove('tab-in');
+      if (on && !first) { void s.offsetWidth; s.classList.add('tab-in'); }
+    });
     document.querySelectorAll('.btab, #mob-nav [data-tab]').forEach(function (b) {
       var on = b.getAttribute('data-tab') === t.id;
       b.classList.toggle('on', on); b.classList.toggle('active', on);

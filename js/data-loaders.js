@@ -3206,7 +3206,10 @@ function _etfBars(bars, prov, big) {
       + '" height="' + h.toFixed(1) + '" class="' + (p.total >= 0 ? 'etf-in' : 'etf-out') + (p.prov ? ' etf-prov' : '')
       + '"><title>' + _etfDay(p.day) + ': ' + _etfM(p.total) + (p.prov ? ' (' + L.still + ')' : '') + '</title></rect>';
   });
-  return out + '</svg>';
+  out += '</svg>';
+  /* The window chart gets the scale + readout frame (js/chart-kit.js); the tile's small bars stay bare. */
+  if (!big || typeof ckWrap !== 'function') return out;
+  return ckWrap(out, { key: 'etf-20', scale: [{ y: PAD / H, t: _etfM(hi) }, { y: (H - PAD) / H, t: _etfM(-hi) }] });
 }
 
 function renderEtfFlows() {

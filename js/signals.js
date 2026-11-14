@@ -368,10 +368,19 @@ function _capChartSvg(h) {
   function X(i) { return (i / (h.length - 1)) * W; }
   function Y(v) { return 8 + (1 - (v - lo) / sp) * (H - 16); }
   function path(k) { return h.map(function (r, i) { return (i ? 'L' : 'M') + X(i).toFixed(1) + ' ' + Y(r[k]).toFixed(1); }).join(''); }
-  return '<svg class="cap-chart" viewBox="0 0 ' + W + ' ' + H + '" preserveAspectRatio="none" aria-hidden="true">'
+  var svg = '<svg class="cap-chart" viewBox="0 0 ' + W + ' ' + H + '" preserveAspectRatio="none" aria-hidden="true">'
     + '<line x1="0" x2="' + W + '" y1="' + Y(0).toFixed(1) + '" y2="' + Y(0).toFixed(1) + '" class="cap-chart-zero"/>'
     + '<path d="' + path('small') + '" class="cap-chart-small"/>'
     + '<path d="' + path('big') + '" class="cap-chart-big"/></svg>';
+  /* Scale, last-value tags and hover readout (js/chart-kit.js). Series in the order the lines are drawn. */
+  if (typeof ckWrap !== 'function') return svg;
+  var mk = typeof currentLang !== 'undefined' && currentLang === 'mk', end = h[h.length - 1];
+  function pf(v) { return (v >= 0 ? '+' : '−') + Math.abs(v).toFixed(1) + '%'; }
+  return ckWrap(svg, { key: 'cap-btc', x: h.map(function (r) { return _capDay(r.day, mk); }),
+    series: [{ n: mk ? 'Мали монети' : 'Small coins', f: h.map(function (r) { return pf(r.small); }) },
+             { n: mk ? 'Топ 5' : 'Top 5', f: h.map(function (r) { return pf(r.big); }) }],
+    scale: [{ y: Y(hi) / H, t: pf(hi) }, { y: Y(lo) / H, t: pf(lo) }],
+    last: [{ y: Y(end.small) / H, t: pf(end.small), cls: 'blue' }, { y: Y(end.big) / H, t: pf(end.big), cls: 'gold' }] });
 }
 /* Which of five plain readings fits: the week and the month together. */
 function _capStory(r7, r30) {

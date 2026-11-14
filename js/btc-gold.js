@@ -135,6 +135,14 @@ function _btcgRender() {
   var svg = '<svg class="btcg-chart" viewBox="0 0 ' + W + ' ' + H + '" preserveAspectRatio="none" role="img" aria-label="' + L.axis + '">'
     + '<polygon points="0,' + H + ' ' + pts + ' ' + W + ',' + H + '" class="btcg-fill ' + (up ? 'up' : 'dn') + '"/>'
     + '<polyline points="' + pts + '" class="btcg-line ' + (up ? 'up' : 'dn') + '" vector-effect="non-scaling-stroke"/></svg>';
+  /* Scale, last-value tag and hover readout (js/chart-kit.js). */
+  if (typeof ckWrap === 'function') {
+    var rf = function (v) { return (U.f === 1 ? v.toFixed(2) : U.n(v * U.f)) + ' ' + U.u; };
+    svg = ckWrap(svg, { key: 'btcg', x: p.map(function (x) { return _btcgDay(x.d); }).concat([L.now]),
+      series: [{ n: '1 BTC', f: line.map(rf) }],
+      scale: [{ y: Y(hi) / H, t: rf(hi) }, { y: Y(lo) / H, t: rf(lo) }],
+      last: { y: Y(now.r) / H, t: rf(now.r), cls: up ? 'up' : 'dn' } });
+  }
 
   /* Weekly table: the last trading day of each week, newest first. */
   var weeks = [], seen = {};
