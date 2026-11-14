@@ -44,7 +44,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Rotator">
 
-  <link rel="stylesheet" href="styles.css?v=20261114ck">
+  <link rel="stylesheet" href="styles.css?v=20261114rs">
   <script src="js/theme-mode.js"></script>
 
   <!-- Umami Cloud analytics (privacy-friendly, no cookies). Replace data-website-id after signup at cloud.umami.is. -->
@@ -1305,6 +1305,10 @@
     <!-- TURN SIGNS — every coin run through the coin window's own reader.
          Filled by renderTurnScan() in js/turn-watch.js (promptove/70). -->
     <div class="turn-scan" id="turn-scan"></div>
+    <!-- STRENGTH ANALYSER (2026-11-14) — a coin against the rest of the market,
+         7 / 30 / 90 days, and whether that is changing. Display only.
+         Filled by renderStrength() in js/strength.js. -->
+    <div class="turn-scan rs-box" id="rs-box"></div>
     <!-- WHAT'S HOT — collapsible on mobile -->
     <div class="collapse-hdr hot" id="ch-hot" onclick="toggleCollapse('hot')">
       <div class="collapse-hdr-left">
@@ -2034,7 +2038,7 @@
        the page loads it from js/i18n-mk.js. -->
   <script>try { if (localStorage.getItem('rot_lang') === 'mk') document.write('<script src="js/i18n-mk-dict.js?v=20261114story"><\/script><script src="js/i18n-mk-legal.js"><\/script>'); } catch (e) {}</script>
   <script src="js/chart-kit.js?v=20261114ck"></script>
-  <script src="js/signals.js?v=20261114ck"></script>
+  <script src="js/signals.js?v=20261114rs"></script>
   <script src="js/holdings.js?v=20261103cp"></script>
   <script src="js/share-brand.js"></script>
 <script src="js/ratio.js?v=20261103po"></script>
@@ -2060,9 +2064,10 @@
   <script src="js/coin-expand.js?v=20261103po"></script>
   <script src="js/rotator-indicators.js?v=20261029y"></script>
   <script src="js/turn-watch.js?v=20261103cp"></script>
+  <script src="js/strength.js?v=20261114rs"></script>
   <script src="js/paper-trades.js"></script>
   <script src="js/engage.js?v=20261103vc"></script>
-  <script src="js/board-tabs.js?v=20261114ck"></script>
+  <script src="js/board-tabs.js?v=20261114rs"></script>
   <script>
   /* Phones and tablets (2026-10-24, iPhone reloads): HOME replaces the
      board instead of stacking the landing on top of it, so Safari never

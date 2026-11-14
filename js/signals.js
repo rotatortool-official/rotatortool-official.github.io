@@ -2118,6 +2118,7 @@ function renderAll() {
   if (typeof renderWatchlist === 'function') renderWatchlist();
   /* promptove/70: the turn-sign list and the alerts read the same coins. */
   if (typeof renderTurnScan === 'function') renderTurnScan();
+  if (typeof renderStrength === 'function') renderStrength();   /* js/strength.js reads the same coins */
   if (typeof renderCoinAlerts === 'function') renderCoinAlerts();
   if (typeof renderPaperTrades === 'function') renderPaperTrades();
   /* Async: fetch Binance klines for holdings to enrich Insight Engine */

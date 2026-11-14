@@ -59,6 +59,7 @@
     ], pages: [['bitcoin-etf-flows.html', 'Bitcoin ETF page', 'etf'], ['token-unlocks.html', 'Unlocks calendar', 'cal']] },
     { id: 'coins', lead: 'Every tracked coin: who leads, who may be turning, and the full table.', name: 'Coins', icon: 'list', mob: 'COINS', secs: ['sec-rotation', 'sec-coins', 'sec-record'], items: [
       { k: 'turns', el: 'turn-scan', n: 'Turn signs', i: 'turn', g: 'Movers' },
+      { k: 'strength', el: 'rs-box', n: 'Strength analyser', i: 'chart', g: 'Movers' },
       { k: 'hot', el: 'ch-hot', n: "What's hot", i: 'fire', g: 'Movers' },
       { k: 'best', el: 'mom-cards', n: 'Momentum: best', i: 'up', g: 'Movers' },
       { k: 'worst', el: 'worst-cards', n: 'Momentum: worst', i: 'down', g: 'Movers' },
