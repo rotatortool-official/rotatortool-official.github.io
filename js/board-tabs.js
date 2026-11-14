@@ -314,6 +314,27 @@
     }
   }
 
+  /* ── Bottom bar hides while reading (Daniel, 2026-11-14: "since we added
+     the horizontal top bar, the buttons on the bottom are kinda obsolete").
+     They are still the only tab switch on a phone, so the bar only slides
+     away while you scroll down and returns on the first scroll up, near the
+     top and near the end of the page; never while MORE is open. The CSS
+     (styles.css) moves it in portrait only. ── */
+  if (mob) {
+    var lastY = window.scrollY, acc = 0, hid = false;
+    var setHid = function (h) { if (h === hid) return; hid = h; mob.classList.toggle('mob-hid', h); };
+    window.addEventListener('scroll', function () {
+      var y = window.scrollY, d = y - lastY; lastY = y;
+      var mm2 = $('mob-more-menu');
+      if (mm2 && mm2.classList.contains('show')) { acc = 0; setHid(false); return; }
+      if (y < 80 || y + window.innerHeight > document.documentElement.scrollHeight - 80) { acc = 0; setHid(false); return; }
+      if (d === 0) return;
+      if ((d > 0) !== (acc > 0)) acc = 0;
+      acc += d;
+      if (acc > 24) setHid(true); else if (acc < -12) setHid(false);
+    }, { passive: true });
+  }
+
   /* ── Settings in the preview's look (Daniel, 2026-10-29): a glass panel
      dropping under the gear, Theme / Units / Language as segmented pills.
      The old rows and their handlers stay; the Light toggle gives way to
