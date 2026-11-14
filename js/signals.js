@@ -245,7 +245,22 @@ function renderDayBrief() {
   /* 1. Bitcoin and the mood */
   var fg = window.fearGreed, fgTxt = '';
   if (fg && typeof fg.value === 'number') fgTxt = (mk ? ' · Страв и алчност ' : ' · Fear & Greed ') + fg.value + (fg.label ? ' (' + fg.label + ')' : '');
-  lines.push((mk ? 'Bitcoin ' : 'Bitcoin ') + tone(btc.p24) + (mk ? ' за 24 часа, на ' : ' in 24 hours, at ') + fmtP(btc.price) + fgTxt);
+  /* 2026-11-14 (Daniel: "3 rows from the top that do basically the same
+     thing"): the first line is now the Today answer, "Falling. 14 of 252
+     coins are up this week; the average coin is -15%" (js/tab-answers.js,
+     whose own card no longer shows on Today). Bitcoin's price and Fear &
+     Greed live in the Market now tiles right below. Until the coins are in,
+     the old Bitcoin line stands in. The share card still leads with BTC. */
+  var TA = null;
+  try { if (window.RotatorTabAnswers) TA = window.RotatorTabAnswers.answers({ coins: coins, mk: mk }).today; } catch (e) {}
+  var ta = TA && TA.a && /\d/.test(TA.a) ? TA.a : null;
+  if (ta) {
+    var sp = ta.indexOf(' '), w1 = ta.slice(0, sp), cls = /^(Rising|Во пораст)/.test(ta) ? 'db-up' : /^(Falling|Во опаѓање)/.test(ta) ? 'db-dn' : '';
+    if (/^Во (пораст|опаѓање)\./.test(ta)) { sp = ta.indexOf('.') + 1; w1 = ta.slice(0, sp); }
+    lines.push('<b' + (cls ? ' class="' + cls + '"' : '') + '>' + w1 + '</b>' + ta.slice(sp));
+  } else {
+    lines.push((mk ? 'Bitcoin ' : 'Bitcoin ') + tone(btc.p24) + (mk ? ' за 24 часа, на ' : ' in 24 hours, at ') + fmtP(btc.price) + fgTxt);
+  }
   plain.push('Bitcoin ' + pc(btc.p24) + ' in 24h at ' + fmtP(btc.price) + (fg && typeof fg.value === 'number' ? ' · Fear & Greed ' + fg.value : ''));
 
   /* 2. The biggest moves among our coins */

@@ -138,7 +138,9 @@
   function draw() {
     if (!box) return;
     var tab = document.body.getAttribute('data-tab'), A = answers(gather())[tab];
-    if (!A) { box.hidden = true; return; }
+    /* Today's answer is the first line of Today in one look, right below
+       (js/signals.js renderDayBrief, 2026-11-14), so no card of its own. */
+    if (!A || tab === 'today') { box.hidden = true; last = ''; return; }
     var key = tab + '|' + A.q + '|' + A.a + '|' + A.go;
     if (key === last) return;
     last = key; box.hidden = false;
