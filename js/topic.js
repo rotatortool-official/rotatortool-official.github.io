@@ -115,3 +115,13 @@ var TOPIC = (function () {
   return { count: count, get: get, cache: cache, coins: coins, esc: esc, usd: usd, usdM: usdM, price: price,
            pct: pct, day: day, isoDay: isoDay, boardLink: boardLink, set: set };
 })();
+
+/* Phones: the menu scrolls sideways, so bring this page's pill into view
+   (2026-11-14, the topic pages restyle). */
+(function () {
+  function show() {
+    var a = document.querySelector('.top nav [aria-current]'), n = a && a.parentNode;
+    if (n && n.scrollWidth > n.clientWidth) n.scrollLeft = Math.max(0, a.offsetLeft - n.offsetLeft - 12);
+  }
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', show); else show();
+})();

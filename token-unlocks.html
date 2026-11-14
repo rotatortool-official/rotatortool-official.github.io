@@ -15,7 +15,11 @@
 <meta property="og:image" content="https://rotatortool.com/og-card.png?v=20261011">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="icon" href="icon-192.png" type="image/png">
-<link rel="stylesheet" href="topic.css">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
+<script src="js/theme-mode.js"></script>
+<link rel="stylesheet" href="topic.css?v=20261114">
 <script defer src="https://cloud.umami.is/script.js" data-website-id="77a817bc-ca03-4680-83b2-c914f8efaa6e"></script>
 <script type="application/ld+json">
 {"@context":"https://schema.org","@graph":[
@@ -49,18 +53,22 @@
     <div class="stat"><div class="k">Biggest this month</div><div class="v" id="sbig">…</div><div class="s" id="sbign">&nbsp;</div></div>
   </div>
 
-  <h2>Next 7 days</h2>
-  <div class="tbl-wrap"><table>
-    <thead><tr><th>Date</th><th>Coin</th><th class="num">Of supply</th><th class="num">≈ Value</th></tr></thead>
-    <tbody id="w7"><tr><td colspan="4" class="empty">Loading the unlock schedule…</td></tr></tbody>
-  </table></div>
+  <section class="panel" aria-labelledby="h7">
+    <div class="panel-h"><h2 class="k" id="h7" style="margin:0">Next 7 days</h2><span class="m" id="w7m"></span></div>
+    <div class="tbl-wrap"><table>
+      <thead><tr><th>Date</th><th>Coin</th><th class="num">Of supply</th><th class="num">≈ Value</th></tr></thead>
+      <tbody id="w7"><tr><td colspan="4" class="empty">Loading the unlock schedule…</td></tr></tbody>
+    </table></div>
+  </section>
 
-  <h2>Biggest unlocks in the next 30 days</h2>
-  <div class="tbl-wrap"><table>
-    <thead><tr><th>Coin</th><th>Next date</th><th class="num">Of supply, 30 days</th><th class="num">≈ Value</th></tr></thead>
-    <tbody id="m30"><tr><td colspan="4" class="empty">Loading…</td></tr></tbody>
-  </table></div>
-  <p class="updated" id="upd">Only unlocks of at least 0.5% of a coin's supply are listed, the same line the board uses, so mining and small daily releases are left out. Schedules are refreshed several times a day. Dollar values use today's price, so they move with it.</p>
+  <section class="panel" aria-labelledby="h30">
+    <div class="panel-h"><h2 class="k" id="h30" style="margin:0">Biggest in the next 30 days</h2><span class="m" id="m30m"></span></div>
+    <div class="tbl-wrap"><table>
+      <thead><tr><th>Coin</th><th>Next date</th><th class="num">Of supply, 30 days</th><th class="num">≈ Value</th></tr></thead>
+      <tbody id="m30"><tr><td colspan="4" class="empty">Loading…</td></tr></tbody>
+    </table></div>
+    <p class="panel-f" id="upd">Only unlocks of at least 0.5% of a coin's supply are listed, the same line the board uses, so mining is left out. "Small daily steps" means the coin releases a little every day and adds up to 0.5% or more over the 30 days, with no single big date. Schedules are refreshed several times a day. Dollar values use today's price, so they move with it.</p>
+  </section>
 
   <h2>How to read this</h2>
   <p>A large unlock, measured as a share of the coins already out there, matters more than a large dollar figure on a big coin. Not every unlocked token gets sold. About a third of the coins on the board publish a schedule. A coin missing from this page may simply have no published schedule, which is not the same as having no unlock. This is a schedule, not a forecast.</p>
@@ -106,7 +114,20 @@
     }).filter(Boolean);
 
     function coinCell(r) {
-      return '<a href="' + T.boardLink(r.sym) + '">' + T.esc(r.sym) + '</a><span class="nm">' + T.esc(r.c.name) + '</span>';
+      var img = r.c.image ? '<img src="' + T.esc(r.c.image) + '" alt="" loading="lazy" width="22" height="22">' : '';
+      return '<a class="coin" href="' + T.boardLink(r.sym) + '">' + img + '<span>' + T.esc(r.sym) + '<span class="nm">' + T.esc(r.c.name) + '</span></span></a>';
+    }
+    /* "in 3 days" next to a date; today and tomorrow in amber. */
+    function when(at) {
+      var d = Math.round((at - now) / DAY);
+      if (d <= 0) return '<span class="when soon">today</span>';
+      if (d === 1) return '<span class="when soon">tomorrow</span>';
+      return '<span class="when">in ' + d + ' days</span>';
+    }
+    /* Share of supply with a small bar, scaled to the biggest row. */
+    function share(v, max) {
+      var w = v == null || !max ? 0 : Math.max(4, Math.min(100, v / max * 100));
+      return pc(v) + '<span class="meter" aria-hidden="true"><i style="width:' + w.toFixed(0) + '%"></i></span>';
     }
     function pc(v) { return v == null ? '—' : (v < 0.01 ? '<0.01' : v.toFixed(v < 1 ? 2 : 1)) + '%'; }
 
@@ -117,8 +138,10 @@
     var sum7 = w7.reduce(function (s, r) { return s + (r.usd || 0); }, 0);
     T.set('s7', T.usd(sum7));
     T.set('s7n', w7.length + ' coin' + (w7.length === 1 ? '' : 's'));
+    T.set('w7m', w7.length ? w7.length + ' coin' + (w7.length === 1 ? '' : 's') + ' · ' + T.usd(sum7) : '');
+    var max7 = Math.max.apply(null, w7.map(function (r) { return r.p || 0; }).concat([0]));
     T.set('w7', w7.length ? w7.map(function (r) {
-      return '<tr><td>' + T.day(r.at) + '</td><td>' + coinCell(r) + '</td><td class="num">' + pc(r.p) + '</td><td class="num">' + T.usd(r.usd) + '</td></tr>';
+      return '<tr><td>' + T.day(r.at) + when(r.at) + '</td><td>' + coinCell(r) + '</td><td class="num">' + share(r.p, max7) + '</td><td class="num">' + T.usd(r.usd) + '</td></tr>';
     }).join('') : '<tr><td colspan="4" class="empty">No unlocks due for these coins in the next 7 days.</td></tr>');
 
     var m30 = all.filter(function (r) { return r.p30 >= MIN; })
@@ -128,8 +151,19 @@
     T.set('s30n', m30.length + ' coin' + (m30.length === 1 ? '' : 's'));
     if (m30[0]) { T.set('sbig', T.esc(m30[0].sym)); T.set('sbign', T.usd(m30[0].usd30) + ', ' + pc(m30[0].p30) + ' of supply'); }
     else { T.set('sbig', '—'); }
-    T.set('m30', m30.length ? m30.slice(0, 25).map(function (r) {
-      return '<tr><td>' + coinCell(r) + '</td><td>' + (isNaN(r.at) ? '—' : T.day(r.at)) + '</td><td class="num">' + pc(r.p30) + '</td><td class="num">' + T.usd(r.usd30) + '</td></tr>';
+    T.set('m30m', m30.length ? m30.length + ' coin' + (m30.length === 1 ? '' : 's') + ' · ' + T.usd(sum30) : '');
+    var top = m30.slice(0, 25), max30 = Math.max.apply(null, top.map(function (r) { return r.p30 || 0; }).concat([0]));
+    /* A coin whose next single release is under the 0.5% line but whose
+       30 days add up past it releases in small daily steps: its "next
+       date" is just tomorrow's drip, so say that instead of a date that
+       makes the 7-day list look like it is missing coins. */
+    function nextCell(r) {
+      if (isNaN(r.at)) return '<span class="muted">—</span>';
+      if (r.p == null || r.p < MIN) return '<span class="muted">Small daily steps</span>';
+      return T.day(r.at) + when(r.at);
+    }
+    T.set('m30', top.length ? top.map(function (r) {
+      return '<tr><td>' + coinCell(r) + '</td><td>' + nextCell(r) + '</td><td class="num">' + share(r.p30, max30) + '</td><td class="num">' + T.usd(r.usd30) + '</td></tr>';
     }).join('') : '<tr><td colspan="4" class="empty">No unlocks due for these coins in the next 30 days.</td></tr>');
   });
 })();
