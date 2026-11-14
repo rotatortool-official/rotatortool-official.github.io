@@ -105,7 +105,7 @@ Object.assign(MK_TEXT, {
   'BTC trend — tap to refresh': 'Тренд на BTC — допрете за освежување',
   'BTC is below its 200-day moving average.': 'BTC е под својот 200-дневен подвижен просек.',
   'BTC is above its 200-day moving average.': 'BTC е над својот 200-дневен подвижен просек.',
-  'BEAR MARKET CAUTION:': 'ВНИМАНИЕ, МЕЧКИН ПАЗАР:',
+  'BEAR MARKET CAUTION:': 'ВНИМАНИЕ, ПАЗАР ВО ОПАЃАЊЕ:',
   'This website uses dynamic scaling. Use': 'Оваа страница користи динамично скалирање. Користете',
   'to adjust the layout to your liking.': 'за да го прилагодите изгледот по ваш вкус.',
   'Menu': 'Мени', 'Crypto Screener': 'Крипто скринер', 'Support the Project': 'Поддржи го проектот',
@@ -2590,4 +2590,131 @@ Object.assign(MK_TEXT, {
   P(/^(\d+)d ago Rotator flagged$/, function (m) { return 'пред ' + m[1] + ' ' + (Number(m[1]) === 1 ? 'ден' : 'дена') + ' Rotator означи'; });
   P(/^at (\$[\d.,\s]+)$/, function (m) { return 'по цена ' + m[1]; });
   P(/^, now (\$[\d.,\s]+) \($/, function (m) { return ', сега ' + m[1] + ' ('; });
+})();
+
+/* ── Coin story in Macedonian (2026-11-14) ──────────────────────────
+   js/research-coin.js builds each story in English from the board's data.
+   The sentences have a fixed shape with numbers and a ticker in them, so
+   each shape is a pattern here. The headlines from the news feeds stay
+   English (the publishers' own words). The share card picture and the
+   "Copy text" text stay English, like the other image cards.
+   First draft from DeepL, then reworded to the glossary (замав, фандинг,
+   отворен интерес, лонг/шорт, монета) and checked for plain words. */
+Object.assign(MK_TEXT, {
+  'Reading': 'Читање', 'Day': 'Ден', 'Source': 'Извор', 'Headline': 'Наслов', 'Net flow': 'Нето тек', 'Amount': 'Износ',
+  'Average coin': 'Просечна монета',
+  'Daily RSI': 'Дневен RSI', 'Weekly RSI': 'Неделен RSI', '60-day vs 125-day average': 'Просек 60 дена наспроти 125 дена',
+  'Long/short ratio': 'Однос лонг/шорт', 'Funding rate': 'Фандинг', 'Open positions': 'Отворени позиции', 'Open positions, 24 hours': 'Отворени позиции, 24 часа',
+  'Buyers per seller (market orders)': 'Купувачи на еден продавач (пазарни налози)',
+  'In circulation': 'Во оптек', 'Maximum supply': 'Максимална понуда', 'Total supply so far': 'Вкупна понуда досега',
+  'Unlocks, next 30 days': 'Отклучувања, следни 30 дена', 'Next unlock': 'Следно отклучување',
+  'Market headlines': 'Пазарни наслови',
+  'above': 'над', 'below': 'под',
+  'A ratio moving back toward 1 to 1 would mean the crowd is no longer leaning one way.': 'Однос што се враќа кон 1 спрема 1 би значел дека масата повеќе не се навалува кон една страна.',
+  'A ratio beyond 2 to 1 either way would mean the crowd has picked a side.': 'Однос над 2 спрема 1 во која било насока би значел дека масата избрала страна.',
+  'A daily RSI back above 30 ends the oversold reading.': 'Дневен RSI повторно над 30 го завршува читањето „препродадено“.',
+  'A daily RSI back under 70 ends the strong reading.': 'Дневен RSI повторно под 70 го завршува читањето „силно“.',
+  'A daily RSI under 30 or over 70 would be the next thing to note.': 'Дневен RSI под 30 или над 70 би бил следното нешто што вреди да се забележи.',
+  'A new unlock date, or a change in how fast coins are released, changes this.': 'Нов датум на отклучување или промена во тоа колку брзо се пуштаат монети го менува ова.',
+  'One day of inflows ends the run.': 'Еден ден со приливи ја прекинува низата.',
+  'One day of outflows ends the run.': 'Еден ден со одливи ја прекинува низата.',
+  'Three days in a row the same way would make it a run.': 'Три дена по ред во иста насока би направиле низа.',
+  'New bitcoin comes only from mining, at a pace fixed in its code.': 'Нови биткоини настануваат само со рударење, со темпо утврдено во кодот.',
+  'No unlock is on our calendar for the next 30 days.': 'Во нашиот календар нема отклучување во следните 30 дена.',
+  'It has no maximum supply: new coins can keep being created.': 'Нема максимална понуда: може да се создаваат нови монети.',
+  'It also removes coins from supply over time (burns).': 'Со текот на времето и отстранува монети од понудата (согорување).',
+  'Headlines are background for the whole market. They are not given as the reason BTC moved.': 'Насловите се позадина за целиот пазар. Не се дадени како причина зошто се движел BTC.',
+  'Average coin: the middle one of the 252 coins we score.': 'Просечна монета: онаа во средина од монетите што ги оценуваме.',
+  'Binance prices, read by Rotator': 'Цени од Binance, прочитани од Rotator',
+  'Binance daily prices; RSI and averages worked out by Rotator': 'Дневни цени од Binance; RSI и просеците ги пресметува Rotator',
+  'Binance Futures, read by Rotator. A crowded side is a fact about positions, not a call on the price.': 'Binance Futures, прочитано од Rotator. Преполната страна е факт за позициите, не повик за цената.',
+  'Supply from CoinGecko; unlock calendar read by Rotator. The calendar does not cover every coin.': 'Понуда од CoinGecko; календарот на отклучувања го чита Rotator. Календарот не ги покрива сите монети.',
+  'Farside Investors, read by Rotator. Funds report a day late.': 'Farside Investors, прочитано од Rotator. Фондовите известуваат со еден ден доцнење.',
+  'Events detected by Rotator from Binance data; headlines from the named publishers': 'Настани што Rotator ги открива од податоците на Binance; наслови од наведените издавачи',
+  'Golden cross: its 60-day average moved above the 125-day': 'Златен крст: просекот од 60 дена мина над просекот од 125 дена',
+  'Death cross: its 60-day average fell below the 125-day': 'Крст на смртта: просекот од 60 дена падна под просекот од 125 дена',
+  'Daily RSI moved above 70': 'Дневниот RSI мина над 70', 'Daily RSI fell below 30': 'Дневниот RSI падна под 30', 'Daily RSI climbed back above 30': 'Дневниот RSI се врати над 30',
+  'Futures traders crowded into longs': 'Преполни лонг позиции кај фјучерс трговците',
+  'Futures traders crowded into shorts': 'Преполни шорт позиции кај фјучерс трговците',
+  'It ran far ahead of the market in a short time': 'За кратко време истрча далеку пред пазарот'
+});
+(function () {
+  var P = function (re, fn) { MK_PATTERNS.push([re, fn]); };
+  var T = '([A-Za-z0-9][A-Za-z0-9-]{0,14})';          /* a ticker */
+  var MONS = { Jan: 'јан', Feb: 'фев', Mar: 'мар', Apr: 'апр', May: 'мај', Jun: 'јун', Jul: 'јул', Aug: 'авг', Sep: 'сеп', Oct: 'окт', Nov: 'ное', Dec: 'дек' };
+  var dm = function (s) { return String(s).replace(/^(\d{1,2}) ([A-Z][a-z]{2})$/, function (a, d, m) { return d + ' ' + (MONS[m] || m); }); };
+  var dc = function (s) { return String(s).replace('.', ','); };
+  var NAME = function (s) { return s === 'Ether' ? 'Ether' : s; };
+  var ZONE = { 'the zone traders call oversold': ', зона што трговците ја викаат препродадено', 'rare territory we call overbought': ', ретка зона што ја викаме прекупено', 'gaining momentum': ', монетата добива замав', 'in its normal range': ', во нормален опсег' };
+  var ZH = { 'oversold': 'препродадено', 'overbought': 'прекупено', 'gaining momentum': 'добива замав', 'normal range': 'нормален опсег' };
+  var EV = {
+    'Golden cross: its 60-day average moved above the 125-day': 'Златен крст: просекот од 60 дена мина над просекот од 125 дена',
+    'Death cross: its 60-day average fell below the 125-day': 'Крст на смртта: просекот од 60 дена падна под просекот од 125 дена',
+    'Daily RSI moved above 70': 'Дневниот RSI мина над 70', 'Daily RSI fell below 30': 'Дневниот RSI падна под 30', 'Daily RSI climbed back above 30': 'Дневниот RSI се врати над 30',
+    'Futures traders crowded into longs': 'Преполни лонг позиции кај фјучерс трговците', 'Futures traders crowded into shorts': 'Преполни шорт позиции кај фјучерс трговците',
+    'It ran far ahead of the market in a short time': 'За кратко време истрча далеку пред пазарот'
+  };
+  var plur = function (n, a, b) { return Number(n) === 1 ? a : b; };
+
+  /* week */
+  P(new RegExp('^' + T + ': flat this week$'), function (m) { return m[1] + ': без промена оваа недела'; });
+  P(new RegExp('^' + T + ': (up|down) ([\\d.]+)% this week$'), function (m) { return m[1] + ': ' + (m[2] === 'up' ? 'порасна' : 'падна') + ' ' + m[3] + '% оваа недела'; });
+  P(new RegExp('^' + T + ' (rose|fell) ([\\d.]+)% this week(?: \\(([+−-][\\d.]+)% over 30 days\\))?\\.$'), function (m) { return m[1] + (m[2] === 'rose' ? ' порасна ' : ' падна ') + m[3] + '% оваа недела' + (m[4] ? ' (' + m[4] + '% за 30 дена)' : '') + '.'; });
+  P(new RegExp('^' + T + ' next to Bitcoin and the average coin$'), function (m) { return m[1] + ' покрај Bitcoin и просечната монета'; });
+  P(new RegExp('^' + T + ' next to the average coin$'), function (m) { return m[1] + ' покрај просечната монета'; });
+  P(new RegExp('^Average coin: the middle one of the (\\d+) coins we score\\.$'), function (m) { return 'Просечна монета: онаа во средина од ' + m[1] + ' монети што ги оценуваме.'; });
+  P(new RegExp('^This week ' + T + ' is (ahead of|behind|level with) the average coin \\(([+−-][\\d.]+)%\\)\\. The picture changes when that gap closes or flips\\.$'), function (m) {
+    return 'Оваа недела ' + m[1] + ' е ' + (m[2] === 'ahead of' ? 'пред' : m[2] === 'behind' ? 'зад' : 'на исто ниво со') + ' просечната монета (' + m[3] + '%). Сликата се менува кога таа разлика ќе се затвори или ќе се сврти.';
+  });
+  /* momentum */
+  P(new RegExp('^' + T + ': daily RSI (\\d+), (oversold|overbought|gaining momentum|normal range)$'), function (m) { return m[1] + ': дневен RSI ' + m[2] + ', ' + ZH[m[3]]; });
+  P(new RegExp('^RSI measures how fast the price has moved, from 0 to 100\\. ' + T + '\'s daily RSI is (\\d+)(, the zone traders call oversold|, rare territory we call overbought|, gaining momentum|, in its normal range)\\.$'), function (m) {
+    return 'RSI мери колку брзо се движела цената, од 0 до 100. Дневниот RSI на ' + m[1] + ' е ' + m[2] + ZH_Z(m[3]) + '.';
+  });
+  function ZH_Z(s) { return ZONE[s.replace(/^, /, '')] || s; }
+  P(/^A week ago it was (\d+): momentum has (picked up|faded) since\.$/, function (m) { return 'Пред една недела беше ' + m[1] + ': замавот оттогаш ' + (m[2] === 'picked up' ? 'се зголеми' : 'ослабе') + '.'; });
+  P(/^On the weekly chart RSI is (\d+), (also oversold|also strong|a calmer reading than the daily)\.$/, function (m) { return 'На неделниот графикон RSI е ' + m[1] + ', ' + (m[2] === 'also oversold' ? 'исто така препродадено' : m[2] === 'also strong' ? 'исто така силно' : 'поспокојно читање од дневното') + '.'; });
+  P(/^Its 60-day average is (above|below) the 125-day\.(?: It crossed (today|\d+ days ago) \(a (golden|death) cross\)\.)?$/, function (m) {
+    return 'Просекот од 60 дена е ' + (m[1] === 'above' ? 'над' : 'под') + ' просекот од 125 дена.' + (m[2] ? ' Преминот беше ' + (m[2] === 'today' ? 'денес' : 'пред ' + m[2].replace(/\D/g, '') + ' дена') + ' (' + (m[3] === 'golden' ? 'златен крст' : 'крст на смртта') + ').' : '');
+  });
+  P(new RegExp('^' + T + ' momentum readings$'), function (m) { return m[1] + ': показатели за замав'; });
+  /* crowd */
+  P(new RegExp('^' + T + ': top traders are ([\\d.]+) to 1 (long|short)$'), function (m) { return m[1] + ': водечките трговци се ' + dc(m[2]) + ' спрема 1 ' + (m[3] === 'long' ? 'во лонг' : 'во шорт'); });
+  P(/^Among Binance's top futures traders, about ([\d.]+) are (betting on a rise|betting on a fall) for every 1 on the other side\.$/, function (m) { return 'Меѓу водечките фјучерс трговци на Binance, околу ' + dc(m[1]) + ' се обложуваат на ' + (m[2] === 'betting on a rise' ? 'раст' : 'пад') + ' на секој 1 од другата страна.'; });
+  P(/^Funding is close to zero \(([−-]?[\d.]+%)\): neither side pays much to hold its bet\.$/, function (m) { return 'Фандингот е блиску до нула (' + m[1] + '): ниту една страна не плаќа многу за да ја држи својата позиција.'; });
+  P(/^Funding is ([−-]?[\d.]+%): (longs pay shorts|shorts pay longs) to keep their bets open\.$/, function (m) { return 'Фандингот е ' + m[1] + ': ' + (m[2] === 'longs pay shorts' ? 'лонг позициите им плаќаат на шорт позициите' : 'шорт позициите им плаќаат на лонг позициите') + ' за да ги држат отворени.'; });
+  P(/^Open positions (grew|shrank) ([\d.]+)% in 24 hours: bets are being (added|closed)\.$/, function (m) { return 'Отворените позиции ' + (m[1] === 'grew' ? 'пораснаа' : 'се намалија') + ' за ' + m[2] + '% за 24 часа: ' + (m[3] === 'added' ? 'се додаваат нови позиции' : 'позициите се затвораат') + '.'; });
+  P(new RegExp('^' + T + ' on Binance Futures$'), function (m) { return m[1] + ' на Binance Futures'; });
+  /* supply */
+  P(new RegExp('^All of ' + T + '\'s supply is already in circulation\\.$'), function (m) { return 'Целата понуда на ' + m[1] + ' е веќе во оптек.'; });
+  P(new RegExp('^(\\d+)% of ' + T + '\'s (maximum|total) supply is in circulation; the rest is still to come\\.$'), function (m) { return m[1] + '% од ' + (m[3] === 'maximum' ? 'максималната' : 'вкупната') + ' понуда на ' + m[2] + ' е во оптек; остатокот допрва доаѓа.'; });
+  P(/^([\d.]+)% of the supply unlocks in the next 30 days(?:, next on (\d{1,2} [A-Z][a-z]{2}))?\. (New coins can add selling pressure\.|That is a small amount\.)$/, function (m) {
+    return m[1] + '% од понудата се отклучува во следните 30 дена' + (m[2] ? ', следно на ' + dm(m[2]) : '') + '. ' + (m[3].indexOf('New') === 0 ? 'Новите монети можат да додадат притисок за продажба.' : 'Тоа е мал износ.');
+  });
+  P(new RegExp('^We hold no unlock calendar for ' + T + '\\. That does not mean none is coming\\.$'), function (m) { return 'Немаме календар на отклучувања за ' + m[1] + '. Тоа не значи дека нема да има.'; });
+  P(new RegExp('^' + T + ': ([\\d.]+)% of supply unlocks in the next 30 days$'), function (m) { return m[1] + ': ' + m[2] + '% од понудата се отклучува во следните 30 дена'; });
+  P(new RegExp('^' + T + ': all of its supply is already out$'), function (m) { return m[1] + ': целата понуда е веќе во оптек'; });
+  P(new RegExp('^' + T + ': (\\d+)% of its supply is already out$'), function (m) { return m[1] + ': ' + m[2] + '% од понудата е веќе во оптек'; });
+  P(new RegExp('^' + T + ': the unlock calendar$'), function (m) { return m[1] + ': календар на отклучувања'; });
+  P(new RegExp('^' + T + ' supply$'), function (m) { return 'Понуда на ' + m[1]; });
+  P(/^([\d.]+)% of supply$/, function (m) { return m[1] + '% од понудата'; });
+  /* ETF flows */
+  P(/^US (Bitcoin|Ether|[A-Za-z0-9-]+) funds have seen (\d+) trading days of (inflows|outflows) in a row\.$/, function (m) { return 'Американските фондови за ' + m[1] + ' имаат ' + m[2] + ' трговски дена по ред со ' + (m[3] === 'inflows' ? 'приливи' : 'одливи') + '.'; });
+  P(/^US (Bitcoin|Ether|[A-Za-z0-9-]+) funds took in ([+−-]\$[\d.]+[MB]) net over the last (\d+) trading days\.$/, function (m) { return 'Американските фондови за ' + m[1] + ' примија нето ' + m[2] + ' во последните ' + m[3] + ' трговски дена.'; });
+  P(/^The latest day, (\d{1,2} [A-Z][a-z]{2}), was ([+−-]\$[\d.]+[MB])\.$/, function (m) { return 'Последниот ден, ' + dm(m[1]) + ', беше ' + m[2] + '.'; });
+  P(/^Over the last 5 trading days: ([+−-]\$[\d.]+[MB])\. Money leaving funds means they sold coins; money coming in means they bought\.$/, function (m) { return 'Во последните 5 трговски дена: ' + m[1] + '. Пари што излегуваат од фондовите значи дека продале монети; пари што влегуваат значи дека купиле.'; });
+  P(/^(Bitcoin|Ether|[A-Za-z0-9-]+) ETFs: (\d+) trading days of (inflows|outflows) in a row$/, function (m) { return 'ETF-ови за ' + m[1] + ': ' + m[2] + ' трговски дена по ред со ' + (m[3] === 'inflows' ? 'приливи' : 'одливи'); });
+  P(/^(Bitcoin|Ether|[A-Za-z0-9-]+) ETFs: ([+−-]\$[\d.]+[MB]) over (\d+) trading days$/, function (m) { return 'ETF-ови за ' + m[1] + ': ' + m[2] + ' за ' + m[3] + ' трговски дена'; });
+  P(/^(Bitcoin|Ether|[A-Za-z0-9-]+) ETF flows, last 5 trading days$/, function (m) { return 'Текови во ETF-ови за ' + m[1] + ', последни 5 трговски дена'; });
+  /* news */
+  var EVRE = Object.keys(EV).map(function (k) { return k.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); }).join('|');
+  P(new RegExp('^(\\d{1,2} [A-Z][a-z]{2}): (' + EVRE + ')\\.$'), function (m) { return dm(m[1]) + ': ' + EV[m[2]] + '.'; });
+  P(new RegExp('^No event of its own for ' + T + ' in the last days: no cross, no RSI extreme, no crowded futures\\.$'), function (m) { return 'Во последните денови нема настан за ' + m[1] + ': нема крст, нема екстремен RSI, нема преполни фјучерс позиции.'; });
+  P(/^In the wider market: "(.+)" \((?:(.+), )?(\d{1,2} [A-Z][a-z]{2})\)\.$/, function (m) { return 'На поширокиот пазар: „' + m[1] + '“ (' + (m[2] ? m[2] + ', ' : '') + dm(m[3]) + ').'; });
+  P(new RegExp('^' + T + ': (\\d+) events? of its own in the last days$'), function (m) { return m[1] + ': ' + m[2] + ' ' + plur(m[2], 'свој настан', 'свои настани') + ' во последните денови'; });
+  P(new RegExp('^' + T + ': quiet on its own, (up|down) ([\\d.]+)% with the market$'), function (m) { return m[1] + ': мирна сама по себе, ' + (m[2] === 'up' ? 'порасна' : 'падна') + ' ' + m[3] + '% заедно со пазарот'; });
+  P(new RegExp('^Headlines are background for the whole market\\. They are not given as the reason ' + T + ' moved\\.$'), function (m) { return 'Насловите се позадина за целиот пазар. Не се дадени како причина зошто се движела ' + m[1] + '.'; });
+  P(new RegExp('^A new event on ' + T + ' itself \\(a cross, an RSI extreme, crowded futures\\) would be the next line here\\.$'), function (m) { return 'Нов настан кај самата ' + m[1] + ' (крст, екстремен RSI, преполни фјучерс позиции) би бил следниот ред тука.'; });
+  /* a date on its own ("14 Nov") */
+  P(/^(\d{1,2}) (Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)$/, function (m) { return m[1] + ' ' + MONS[m[2]]; });
 })();

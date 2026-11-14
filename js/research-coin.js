@@ -346,12 +346,12 @@
   function tableHtml(t) {
     if (!t) return '';
     var cell = function (v, i) {
-      if (v && typeof v === 'object') return '<td><a href="' + esc(v.u) + '" target="_blank" rel="noopener nofollow">' + esc(v.t) + '</a></td>';
+      if (v && typeof v === 'object') return '<td data-no-i18n><a href="' + esc(v.u) + '" target="_blank" rel="noopener nofollow">' + esc(v.t) + '</a></td>';
       var k = /^[+]/.test(v) ? ' class="up"' : /^[−-]\d|^−\$/.test(v) ? ' class="dn"' : '';
       return i ? '<td' + k + '>' + esc(v) + '</td>' : '<th scope="row">' + esc(v) + '</th>';
     };
     return '<div class="rcs-table"><table><caption>' + esc(t.cap) + '</caption><thead><tr>' + t.cols.map(function (h) { return '<th scope="col">' + esc(h) + '</th>'; }).join('')
-      + '</tr></thead><tbody data-no-i18n translate="no">' + t.rows.map(function (r) { return '<tr>' + r.map(cell).join('') + '</tr>'; }).join('') + '</tbody></table>'
+      + '</tr></thead><tbody translate="no">' + t.rows.map(function (r) { return '<tr>' + r.map(cell).join('') + '</tr>'; }).join('') + '</tbody></table>'
       + (t.foot ? '<p class="rcs-foot">' + esc(t.foot) + '</p>' : '') + '</div>';
   }
 
@@ -440,13 +440,13 @@
       state.story = s;
       countStory(c.sym);
       out.innerHTML = '<article class="rcs-story"><div class="rcs-card" id="rcs-card"></div>'
-        + '<div class="rcs-body"><h3 data-no-i18n translate="no">' + esc(s.head) + '</h3>'
-        + '<ul data-no-i18n translate="no">' + s.points.map(function (p) { return '<li>' + esc(p) + '</li>'; }).join('') + '</ul>'
-        + (s.change ? '<p class="rcs-change"><b>What would change this</b> <span data-no-i18n translate="no">' + esc(s.change) + '</span></p>' : '')
+        + '<div class="rcs-body"><h3 translate="no">' + esc(s.head) + '</h3>'
+        + '<ul translate="no">' + s.points.map(function (p) { return '<li>' + esc(p) + '</li>'; }).join('') + '</ul>'
+        + (s.change ? '<p class="rcs-change"><b>What would change this</b> <span translate="no">' + esc(s.change) + '</span></p>' : '')
         + '<div class="rcs-actions"><button type="button" class="rcs-primary" data-act="share">Share' + (pro() ? '' : ' <span class="rcs-pro">PRO</span>') + '</button>'
         + '<button type="button" data-act="copy">Copy text</button></div>'
         + tableHtml(s.table)
-        + '<p class="rcs-src"><span>What happened, not a forecast.</span> <span data-no-i18n translate="no">' + esc(s.sources.join(' · ')) + ' · ' + esc(day(s.spec.asOf)) + '</span></p></div></article>';
+        + '<p class="rcs-src"><span>What happened, not a forecast.</span> <span translate="no">' + esc(s.sources.join(' · ')) + ' · ' + esc(day(s.spec.asOf)) + '</span></p></div></article>';
       drawCard(s, ticket);
       if (out.scrollIntoView && out.getBoundingClientRect().top > host.innerHeight * 0.7) out.scrollIntoView({ behavior: 'smooth', block: 'start' });
     });
