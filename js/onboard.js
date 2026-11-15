@@ -62,6 +62,8 @@
   }
   function esc(s) { return String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;'); }
   function pct(v, abs) { var a = Math.abs(v); return (abs ? '' : (v >= 0 ? '+' : '−')) + a.toFixed(a >= 10 ? 0 : 1) + '%'; }
+  /* A sign's name comes in English; the Macedonian page has its own dictionary. */
+  function tr(s) { return isMk() && typeof window.mkTranslate === 'function' ? window.mkTranslate(s) : s; }
   function get(k) { try { return localStorage.getItem(k); } catch (e) { return null; } }
   function set(k, v) { try { localStorage.setItem(k, v); } catch (e) {} }
   function all() { return (typeof coins !== 'undefined' && Array.isArray(coins)) ? coins : []; }
@@ -127,8 +129,8 @@
     try {
       if (typeof _tdSigns === 'function' && typeof _tdStatus === 'function' && typeof c.score === 'number') {
         var st = _tdStatus(c), S = _tdSigns(c);
-        if (st === 'lagging' && S.up.length) sign = T.tUp + '<b>' + esc(S.up[0].title) + '</b>';
-        else if (st === 'ahead' && S.down.length) sign = T.tDn + '<b>' + esc(S.down[0].title) + '</b>';
+        if (st === 'lagging' && S.up.length) sign = T.tUp + '<b>' + esc(tr(S.up[0].title)) + '</b>';
+        else if (st === 'ahead' && S.down.length) sign = T.tDn + '<b>' + esc(tr(S.down[0].title)) + '</b>';
       }
     } catch (e) {}
     out.push(sign);
