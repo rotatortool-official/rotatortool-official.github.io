@@ -297,6 +297,26 @@
     s.spec.stats = (s.spec.stats || []).filter(function (x) { return x[1] != null; });
     s.text = s.head + '\n\n' + s.points.join(' ') + '\n\nWhat happened, not a forecast. ' + c.sym + ' on Rotator → ' + link;
     s.spec.text = s.text;
+    /* The newsletter text (Daniel, 2026-11-15: "stories need to be well
+       thought and have order that has meaning and should end with call to
+       action to visit our website"). Always the same five parts in the same
+       order: the headline, what happened, the numbers, what would change
+       it, where it comes from, and last the link to the coin on Rotator
+       (utm_source=substack, never ?ref=). A part with nothing to say is
+       left out; the link is never left out. */
+    var cellT = function (v) { return v && typeof v === 'object' ? v.t : v; }, parts = [s.head];
+    parts.push('What happened\n' + s.points.map(function (p) { return '- ' + p; }).join('\n'));
+    if (s.table && s.table.rows && s.table.rows.length && s.table.cols.length <= 5) {
+      parts.push('The numbers: ' + s.table.cap + '\n' + s.table.rows.map(function (r) {
+        return '- ' + r.map(function (v, i) { var h = s.table.cols[i]; return (i && h ? h + ' ' : '') + cellT(v); }).join(', ').replace(', ', ': ');
+      }).join('\n'));
+    }
+    if (s.change) parts.push('What would change this\n' + s.change);
+    parts.push('Where this comes from\n' + s.sources.join(' · ') + '. What happened, not a forecast. Not financial advice.');
+    s.cta = 'See ' + c.sym + ' live on Rotator, free and without an account';
+    s.ctaLink = link + '&utm_source=substack&utm_medium=newsletter&utm_campaign=coin-story';
+    parts.push(s.cta + ':\n' + s.ctaLink);
+    s.article = parts.join('\n\n');
     return s;
   }
 
@@ -376,9 +396,14 @@
       if (a === 'pro') { if (typeof host.openPro === 'function') host.openPro(); return; }
       if (a === 'free') { pick(FREE_SYM); return; }
       if (!state.story) return;
+      if (a === 'open') { var oc = coin(state.sym); if (oc && typeof host.openTileDetail === 'function') host.openTileDetail(oc.id, e); return; }
       if (!pro()) { if (typeof host.openPro === 'function') host.openPro(); return; }
       if (a === 'share' && typeof host.fcShareCard === 'function') { if (typeof host.supaCountFeature === 'function') host.supaCountFeature('coin_story_share'); host.fcShareCard(state.story.spec); }
-      if (a === 'copy' && navigator.clipboard) navigator.clipboard.writeText(state.story.text).then(function () { b.textContent = 'Copied'; setTimeout(function () { b.textContent = 'Copy text'; }, 1600); });
+      if ((a === 'copy' || a === 'article') && navigator.clipboard) {
+        var lab = a === 'copy' ? 'Copy short text' : 'Copy for Substack';
+        if (a === 'article' && typeof host.supaCountFeature === 'function') host.supaCountFeature('coin_story_share');
+        navigator.clipboard.writeText(a === 'copy' ? state.story.text : state.story.article).then(function () { b.textContent = 'Copied'; setTimeout(function () { b.textContent = lab; }, 1600); });
+      }
     };
   }
 
@@ -439,14 +464,29 @@
       if (!s) { out.innerHTML = '<p class="rcs-wait">No data for this story yet.</p>'; return; }
       state.story = s;
       countStory(c.sym);
-      out.innerHTML = '<article class="rcs-story"><div class="rcs-card" id="rcs-card"></div>'
-        + '<div class="rcs-body"><h3 translate="no">' + esc(s.head) + '</h3>'
-        + '<ul translate="no">' + s.points.map(function (p) { return '<li>' + esc(p) + '</li>'; }).join('') + '</ul>'
-        + (s.change ? '<p class="rcs-change"><b>What would change this</b> <span translate="no">' + esc(s.change) + '</span></p>' : '')
-        + '<div class="rcs-actions"><button type="button" class="rcs-primary" data-act="share">Share' + (pro() ? '' : ' <span class="rcs-pro">PRO</span>') + '</button>'
-        + '<button type="button" data-act="copy">Copy text</button></div>'
-        + tableHtml(s.table)
-        + '<p class="rcs-src"><span>What happened, not a forecast.</span> <span translate="no">' + esc(s.sources.join(' · ')) + ' · ' + esc(day(s.spec.asOf)) + '</span></p></div></article>';
+      /* Step 3 is the story itself, set apart from the board as a printed
+         page (Daniel, 2026-11-15: "more distinguishable from the website and
+         have more premium look"): paper, a serif headline, a dateline, and
+         the parts in the same order as the newsletter text. The buttons sit
+         under the page, not inside it. */
+      var tname = (TYPES.filter(function (t) { return t.id === type; })[0] || {}).name || '', lock = pro() ? '' : ' <span class="rcs-pro">PRO</span>';
+      var when = new Date(s.spec.asOf), date = isNaN(when) ? '' : when.getUTCDate() + ' ' + MON[when.getUTCMonth()] + ' ' + when.getUTCFullYear();
+      out.innerHTML = '<div class="rcs-step rcs-step3"><span class="rcs-n">3</span><div class="rcs-step-b"><span class="rcs-lbl">Your story</span>'
+        + '<article class="rcs-story rcs-paper">'
+        + '<div class="rcs-dateline"><b>Rotator Research</b><span translate="no">' + esc(c.sym) + ' · ' + esc(tname) + ' · ' + esc(date) + '</span></div>'
+        + '<h3 translate="no">' + esc(s.head) + '</h3>'
+        + '<figure class="rcs-card" id="rcs-card"></figure>'
+        + '<div class="rcs-body"><h4>What happened</h4>'
+        + '<ol translate="no">' + s.points.map(function (p) { return '<li>' + esc(p) + '</li>'; }).join('') + '</ol>'
+        + (s.table ? '<h4>The numbers</h4>' + tableHtml(s.table) : '')
+        + (s.change ? '<div class="rcs-change"><h4>What would change this</h4><p translate="no">' + esc(s.change) + '</p></div>' : '')
+        + '<p class="rcs-src"><span>What happened, not a forecast.</span> <span translate="no">' + esc(s.sources.join(' · ')) + '</span></p>'
+        + '<button type="button" class="rcs-cta" data-act="open"><span>See <span data-no-i18n>' + esc(c.sym) + '</span> live on Rotator</span><i aria-hidden="true">→</i></button>'
+        + '</div></article>'
+        + '<div class="rcs-actions"><button type="button" class="rcs-primary" data-act="share">Share the card' + lock + '</button>'
+        + '<button type="button" data-act="article">Copy for Substack' + lock + '</button>'
+        + '<button type="button" data-act="copy">Copy short text' + lock + '</button></div>'
+        + '</div></div>';
       drawCard(s, ticket);
       if (out.scrollIntoView && out.getBoundingClientRect().top > host.innerHeight * 0.7) out.scrollIntoView({ behavior: 'smooth', block: 'start' });
     });

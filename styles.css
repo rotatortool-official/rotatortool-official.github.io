@@ -8087,3 +8087,6 @@ body.has-tabs .tile-detail .td-share-card-btn *,body.has-tabs .tile-detail .td-e
   .rs-big > b{font-size:34px;}
   .rs-t{font-size:12px;} .rs-bar{width:26px;margin-left:2px;} .rs-tr{gap:4px;}
 }
+
+/* A jump to another tab, listed last in the rail under "See also" (js/board-tabs.js, 2026-11-15). */
+.tr-it.tr-away{opacity:.8;} .tr-it.tr-away:hover{opacity:1;} .tr-it.tr-away small{display:block;font-size:10.5px;color:var(--muted);font-weight:500;}

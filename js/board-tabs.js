@@ -143,16 +143,24 @@
 
   function itemHref(t, it) { return '#' + t.id + '-' + it.k; }
   function renderTab(t) {
-    var g = null;
-    list.innerHTML = '<div class="tr-h">' + ic(t.icon) + t.name + '</div>' + t.items.map(function (it) {
+    /* Daniel, 2026-11-15: "element from today spill into research". A piece
+       that lives on another tab (it.tab) is no longer listed among this
+       tab's own pieces: the rail shows it last under "See also" with the
+       tab it opens, and the pill row leaves it out. Its old address
+       (#today-research) still works through go(). */
+    var g = null, own = t.items.filter(function (it) { return !it.tab; }), away = t.items.filter(function (it) { return it.tab; });
+    list.innerHTML = '<div class="tr-h">' + ic(t.icon) + t.name + '</div>' + own.map(function (it) {
       var head = it.g && it.g !== g ? '<div class="tr-sep">' + it.g + '</div>' : ''; g = it.g;
       return head + '<a class="tr-it" href="' + itemHref(t, it) + '" data-k="' + it.k + '">' + ic(it.i) + '<span>' + it.n + (it.l ? '<small>' + it.l + '</small>' : '') + '</span>'
         + (it.pro ? '<em class="tr-pro">PRO</em>' : '') + '</a>';
-    }).join('') + (t.pages ? '<div class="tr-sep">Full pages</div>' + t.pages.map(function (p) {
+    }).join('') + (away.length ? '<div class="tr-sep">See also</div>' + away.map(function (it) {
+      return '<a class="tr-it tr-away" href="' + itemHref(t, it) + '" data-k="' + it.k + '">' + ic(it.i) + '<span>' + it.n + '<small>opens ' + (byId[it.tab] ? byId[it.tab].name : it.tab) + ' →</small></span>'
+        + (it.pro ? '<em class="tr-pro">PRO</em>' : '') + '</a>';
+    }).join('') : '') + (t.pages ? '<div class="tr-sep">Full pages</div>' + t.pages.map(function (p) {
       return '<a class="tr-it" href="' + p[0] + '"' + (/^https?:/.test(p[0]) ? ' target="_blank" rel="noopener"' : '') + '>' + ic(p[2]) + '<span>' + p[1] + ' ↗</span></a>';
     }).join('') : '');
     head.innerHTML = '<h1>' + (t.title || t.name) + '</h1><p>' + t.lead + '</p>';
-    pills.innerHTML = t.items.map(function (it) { return '<a href="' + itemHref(t, it) + '" data-k="' + it.k + '">' + it.n + '</a>'; }).join('');
+    pills.innerHTML = own.map(function (it) { return '<a href="' + itemHref(t, it) + '" data-k="' + it.k + '">' + it.n + '</a>'; }).join('');
     list.classList.remove('tr-in'); void list.offsetWidth; list.classList.add('tr-in');
     waitMarks();
   }

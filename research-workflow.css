@@ -172,3 +172,55 @@ body.has-tabs .tr-it:not(.on){color:color-mix(in srgb,var(--text) 75%,var(--bg) 
 .rcs-stats::before{content:"";display:inline-block;width:7px;height:7px;border-radius:50%;background:var(--green);margin-right:8px;vertical-align:middle}
 /* Between phone and wide desktop the two-column story squeezed its table. */
 @media(max-width:1180px){.rcs-story{grid-template-columns:1fr}.rcs-card{max-width:640px}}
+
+
+/* STEP 3: THE STORY AS A PRINTED PAGE (2026-11-15). Set apart from the board
+   on purpose: warm paper, dark ink, a serif headline. Its colours are its
+   own (not the theme's), so it reads the same in dark and light. */
+.rcs-step3{display:flex}
+.rcs-step3 .rcs-step-b{min-width:0}
+.rcs-paper{--ink:#1c1a16;--ink2:#625d52;--rule:#ddd5c2;--gold:#9a6f12;--up:#0b7a55;--dn:#b93225;
+  display:block;max-width:760px;margin:2px 0 16px;padding:30px 34px 28px;background:#f8f4ea;color:var(--ink);
+  border:1px solid #e6dec9;border-radius:6px;box-shadow:0 1px 0 #fff inset,0 18px 44px rgba(0,0,0,.34),0 2px 6px rgba(0,0,0,.18);
+  font-family:Georgia,'Iowan Old Style','Times New Roman',serif}
+:root.light .rcs-paper{box-shadow:0 1px 0 #fff inset,0 14px 34px rgba(40,60,90,.16),0 2px 5px rgba(40,60,90,.10)}
+.rcs-paper .rcs-dateline{display:flex;flex-wrap:wrap;justify-content:space-between;gap:4px 14px;padding-bottom:10px;margin-bottom:18px;border-bottom:2px solid var(--ink);
+  font:700 11px/1.3 var(--font-ui,Inter,sans-serif);letter-spacing:.14em;text-transform:uppercase}
+.rcs-paper .rcs-dateline b{color:var(--gold)}
+.rcs-paper .rcs-dateline span{color:var(--ink2);font-weight:600;letter-spacing:.08em}
+.rcs-paper h3{font:700 32px/1.18 Georgia,'Iowan Old Style','Times New Roman',serif;letter-spacing:-.01em;color:var(--ink);margin:0 0 18px}
+.rcs-paper .rcs-card{margin:0 0 22px;aspect-ratio:16/9;background:#0a0f17;border:0;border-radius:4px;overflow:hidden;box-shadow:0 6px 18px rgba(0,0,0,.22)}
+.rcs-paper h4{font:700 11px/1.3 var(--font-ui,Inter,sans-serif);letter-spacing:.14em;text-transform:uppercase;color:var(--gold);margin:22px 0 8px}
+.rcs-paper .rcs-body h4:first-child{margin-top:0}
+.rcs-paper .rcs-body ol{margin:0;padding:0;list-style:none;counter-reset:p;font-size:17.5px;line-height:1.6;color:var(--ink)}
+.rcs-paper .rcs-body ol li{counter-increment:p;position:relative;margin:0;padding:9px 0 9px 34px;border-bottom:1px solid var(--rule)}
+.rcs-paper .rcs-body ol li:last-child{border-bottom:0}
+.rcs-paper .rcs-body ol li::before{content:counter(p);position:absolute;left:0;top:10px;font:700 15px/1.6 Georgia,serif;color:var(--gold)}
+.rcs-paper .rcs-change{margin:22px 0 0;padding:14px 18px;border:0;border-left:3px solid var(--gold);background:#efe8d6;border-radius:0 4px 4px 0;color:var(--ink)}
+.rcs-paper .rcs-change h4{margin:0 0 4px}
+.rcs-paper .rcs-change p{margin:0;font-size:16px;line-height:1.55;font-style:italic;color:var(--ink)}
+.rcs-paper .rcs-table{margin:0}
+.rcs-paper .rcs-table table{font:500 13.5px/1.4 var(--font-ui,Inter,sans-serif);color:var(--ink)}
+.rcs-paper .rcs-table caption{color:var(--ink2);letter-spacing:.06em;font-size:11px;padding-bottom:6px}
+.rcs-paper .rcs-table th,.rcs-paper .rcs-table td{border-bottom:1px solid var(--rule);color:var(--ink)}
+.rcs-paper .rcs-table thead th{color:var(--ink2);border-bottom:1px solid var(--ink)}
+.rcs-paper .rcs-table tbody th{color:var(--ink)}
+.rcs-paper .rcs-table a{color:var(--ink);text-decoration-color:var(--gold)}
+.rcs-paper .rcs-table .up{color:var(--up)}.rcs-paper .rcs-table .dn{color:var(--dn)}
+.rcs-paper .rcs-foot,.rcs-paper .rcs-src{font:500 12px/1.55 var(--font-ui,Inter,sans-serif);color:var(--ink2)}
+.rcs-paper .rcs-src{margin:22px 0 0;padding-top:12px;border-top:1px solid var(--rule)}
+.rcs .rcs-paper .rcs-cta{display:flex;align-items:center;justify-content:space-between;gap:12px;width:100%;margin:16px 0 0;padding:14px 18px;min-height:52px;
+  background:var(--ink);color:#f8f4ea;border:0;border-radius:4px;font:700 15px/1.3 var(--font-ui,Inter,sans-serif);text-align:left}
+.rcs .rcs-paper .rcs-cta:hover{background:#000}
+.rcs .rcs-paper .rcs-cta i{font-style:normal;font-size:18px;color:#e9b93f}
+.rcs-step3 .rcs-actions{margin:0}
+@media(max-width:900px){.rcs-step3{display:block;padding:10px}.rcs-step3>.rcs-n{margin-bottom:8px}}
+@media(max-width:600px){
+  .rcs-paper{padding:20px 16px 18px;border-radius:4px}
+  .rcs-paper h3{font-size:25px;margin-bottom:14px}
+  .rcs-paper .rcs-body ol{font-size:16px}.rcs-paper .rcs-body ol li{padding-left:28px}
+  .rcs-paper .rcs-card{margin-bottom:16px}
+  #rot-coin-story .rcs-paper .rcs-table th,#rot-coin-story .rcs-paper .rcs-table td{padding:8px 4px;font-size:12px}
+}
+/* the board paints table rows dark; on paper every cell is clear */
+#rot-coin-story .rcs-paper .rcs-table tr,#rot-coin-story .rcs-paper .rcs-table th,#rot-coin-story .rcs-paper .rcs-table td{background:transparent !important}

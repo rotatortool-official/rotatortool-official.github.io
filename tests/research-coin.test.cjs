@@ -35,3 +35,10 @@ test('the live counter says real totals, singular and plural, and nothing before
   assert.equal(R.statsText({stories:0,coins:0}),'');assert.equal(R.statsText({stories:1,coins:1}),'1 story written · 1 coin researched');
   assert.equal(R.statsText({stories:1234,coins:57}),'1,234 stories written · 57 coins researched');
   assert.equal(R.statsText({stories:12,coins:1},true),'12 приказни напишани · 1 монета истражена');});
+test('the newsletter text keeps one order and always ends with the link to the coin on Rotator',()=>{const d=data();
+  for(const t of R.available(d)){const s=R.build(t,d),a=s.article,at=(x)=>a.indexOf(x);
+    assert.ok(a.startsWith(s.head+'\n\nWhat happened\n- '),t);
+    assert.ok(at('What happened')<at('Where this comes from'),t);
+    if(s.change)assert.ok(at('What happened')<at('What would change this') && at('What would change this')<at('Where this comes from'),t);
+    assert.match(a,/Not financial advice\.\n\nSee SOL live on Rotator, free and without an account:\nhttps:\/\/rotatortool\.com\/\?coin=SOL&utm_source=substack&utm_medium=newsletter&utm_campaign=coin-story$/,t);
+    assert.ok(!/[?&]ref=/.test(a),t);}});
