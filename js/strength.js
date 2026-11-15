@@ -30,7 +30,7 @@
    ═══════════════════════════════════════════════════════════════════ */
 var RS_OFFS = [0, 7, 14, 30, 37, 90, 97];
 var RS_CACHE = 'rot_rs_v1', RS_CACHE_MS = 3 * 36e5;
-var _rs = { asked: false, raw: null, by: null, list: null, n: 0, sel: null, lines: {}, fail: false, seen: false };
+var _rs = { asked: false, raw: null, by: null, list: null, n: 0, sel: null, lines: {}, fail: false, seen: false, link: null };
 
 function _rsMk() { return typeof currentLang !== 'undefined' && currentLang === 'mk'; }
 function _rsL() {
@@ -38,8 +38,10 @@ function _rsL() {
     hd: 'АНАЛИЗАТОР НА СИЛА',
     sub: 'Дали една монета е посилна или послаба од остатокот од пазарот и дали тоа се менува? Опис на минатите цени, не прогноза.',
     pick: 'Избери монета', ph: 'на пр. SOL', yours: 'Твои монети',
+    nm: 'Ценовна сила',
+    what: 'Ценовната сила, од 0 до 100, ја споредува промената на цената на монетата за 7, 30 и 90 дена со сите монети на листата и не е Rotator резултатот.',
     of100: 'од 100', stronger: function (n) { return 'Посилна од ' + n + '% од монетите.'; },
-    up: 'Добива сила оваа недела.', dn: 'Губи сила оваа недела.', flat: 'Без поголема промена оваа недела.',
+    up: 'Ценовната сила расте оваа недела.', dn: 'Ценовната сила опаѓа оваа недела.', flat: 'Без поголема промена оваа недела.',
     wk: 'оваа недела', win: 'Период', move: 'Промена', vsBtc: 'спроти BTC', vsAvg: 'спроти просекот', rank: 'Ранг',
     d7: '7 дена', d30: '30 дена', d90: '90 дена',
     size: function (g, r, n) { return 'Меѓу ' + n + ' монети со слична големина (' + g + '): ранг ' + r + ' од 100 за 30 дена.'; },
@@ -47,24 +49,27 @@ function _rsL() {
     line: function (s) { return s + ' изразена во Bitcoin, последните 6 месеци'; },
     lineRead: 'Кога линијата расте, монетата е посилна од Bitcoin. Кога паѓа, Bitcoin е посилен.',
     open: function (s) { return 'Отвори ' + s + ' ›'; },
-    gain: 'Добиваат сила оваа недела', lose: 'Губат сила оваа недела',
+    gain: 'Ценовната сила расте оваа недела', lose: 'Ценовната сила опаѓа оваа недела',
     foot: function (n) { return 'Рангот ги споредува промените на цените на ' + n + ' монети на Binance, од дневните затворања. Опис, не сигнал.'; },
     wait: 'Се вчитуваат цените…', none: 'Цените не можат да се прочитаат сега. Обиди се подоцна.', nocoin: 'Нема доволно историја за оваа монета.',
     rotHd: 'Идеја за ротација за твоите монети', rotPro: 'Pro',
     rotLock: 'Pro ја споредува твојата најслаба монета со посилни монети со слична големина и ги покажува овде.',
     rotGet: 'Земи Pro', rotAdd: 'Додај ги монетите што ги држиш во „Мои монети“ за да ја видиш оваа споредба.',
-    rotOk: function (s, n) { return 'Ниту една од твоите монети не е слаба сега: најслаба е ' + s + ' со сила ' + n + '.'; },
-    rotWeak: function (s, n) { return 'Нашето читање: ' + s + ' е твојата најслаба монета (сила ' + n + ').'; },
-    rotCand: 'Овие монети со слична големина се посилни и ја држат или ја зголемуваат силата:',
-    rotNone: 'Во моментов нема посилна монета со слична големина што ја држи силата.',
+    rotOk: function (s, n) { return 'Ниту една од твоите монети не е слаба сега: најслаба е ' + s + ' со ценовна сила ' + n + '.'; },
+    rotWeak: function (s, n) { return 'Нашето читање: ' + s + ' е твојата најслаба монета (ценовна сила ' + n + ').'; },
+    rotCand: 'Овие монети со слична големина имаат поголема ценовна сила, која се држи или расте:',
+    rotNone: 'Во моментов нема монета со слична големина со поголема ценовна сила што се држи.',
     rotNfa: 'Читање на минатите цени, не финансиски совет. Посилна монета може да падне, а послаба да се врати.',
+    copy: 'Копирај врска', copied: 'Копирано',
     start: 'почеток', now: 'сега', btcSelf: 'Bitcoin е мерката: линијата се црта за другите монети.'
   } : {
     hd: 'STRENGTH ANALYSER',
     sub: 'Is a coin stronger or weaker than the rest of the market, and is that changing? A description of past prices, not a forecast.',
     pick: 'Pick a coin', ph: 'e.g. SOL', yours: 'Your coins',
+    nm: 'Price strength',
+    what: 'Price strength, 0 to 100, compares the price move of a coin over 7, 30 and 90 days with all listed coins and is not the Rotator score.',
     of100: 'of 100', stronger: function (n) { return 'Stronger than ' + n + '% of coins.'; },
-    up: 'Gaining strength this week.', dn: 'Losing strength this week.', flat: 'No big change this week.',
+    up: 'Price strength rising this week.', dn: 'Price strength falling this week.', flat: 'No big change this week.',
     wk: 'this week', win: 'Period', move: 'Move', vsBtc: 'vs BTC', vsAvg: 'vs avg coin', rank: 'Rank',
     d7: '7 days', d30: '30 days', d90: '90 days',
     size: function (g, r, n) { return 'Among ' + n + ' coins of similar size (' + g + '): rank ' + r + ' of 100 over 30 days.'; },
@@ -72,17 +77,18 @@ function _rsL() {
     line: function (s) { return s + ' priced in Bitcoin, last 6 months'; },
     lineRead: 'When the line rises, the coin is stronger than Bitcoin. When it falls, Bitcoin is stronger.',
     open: function (s) { return 'Open ' + s + ' ›'; },
-    gain: 'Gaining strength this week', lose: 'Losing strength this week',
+    gain: 'Price strength rising this week', lose: 'Price strength falling this week',
     foot: function (n) { return 'Ranks compare the price moves of ' + n + ' coins on Binance, from daily closes. A description, not a signal.'; },
     wait: 'Loading prices…', none: 'Prices cannot be read right now. Try again later.', nocoin: 'Not enough history for this coin yet.',
     rotHd: 'Rotation idea for your coins', rotPro: 'Pro',
     rotLock: 'Pro compares your weakest coin with stronger coins of similar size and shows them here.',
     rotGet: 'Get Pro', rotAdd: 'Add the coins you hold in My holdings to see this comparison.',
-    rotOk: function (s, n) { return 'None of your coins is weak right now: the weakest is ' + s + ' at strength ' + n + '.'; },
-    rotWeak: function (s, n) { return 'Our reading: ' + s + ' is your weakest coin (strength ' + n + ').'; },
-    rotCand: 'These coins of similar size are stronger and holding or gaining strength:',
-    rotNone: 'Right now no stronger coin of similar size is holding its strength.',
+    rotOk: function (s, n) { return 'None of your coins is weak right now: the weakest is ' + s + ' at price strength ' + n + '.'; },
+    rotWeak: function (s, n) { return 'Our reading: ' + s + ' is your weakest coin (price strength ' + n + ').'; },
+    rotCand: 'These coins of similar size have higher price strength, holding or rising:',
+    rotNone: 'Right now no coin of similar size has higher price strength that is holding.',
     rotNfa: 'A reading of past prices, not financial advice. A strong coin can fall and a weak one can recover.',
+    copy: 'Copy link', copied: 'Copied',
     start: 'start', now: 'now', btcSelf: 'Bitcoin is the yardstick: the line is drawn for the other coins.'
   };
 }
@@ -250,13 +256,16 @@ function _rsDrawCoin() {
   var mood = o.ch == null ? '' : o.ch >= 5 ? L.up : o.ch <= -5 ? L.dn : L.flat;
   host.innerHTML = '<div class="rs-head">'
     + '<div class="rs-name">' + _rsIco(o.c) + '<b>' + _rsEsc(o.sym) + '</b><span>' + _rsEsc(o.c.name || '') + '</span></div>'
+    + '<div class="rs-lab">' + L.nm + '</div>'
     + '<div class="rs-big"><b class="' + (o.s >= 65 ? 'up' : o.s < 35 ? 'dn' : '') + '">' + o.s + '</b><span>' + L.of100 + '</span>' + (o.ch == null ? '' : _rsChTag(o.ch) + '<em>' + L.wk + '</em>') + '</div>'
     + '<p class="rs-say">' + L.stronger(o.s) + ' ' + mood + '</p></div>'
     + '<div class="rs-t"><div class="rs-tr rs-th"><span>' + L.win + '</span><span>' + L.move + '</span><span>' + L.vsBtc + '</span><span>' + L.vsAvg + '</span><span>' + L.rank + '</span></div>'
     + row(L.d7, 'r7') + row(L.d30, 'r30') + row(L.d90, 'r90') + '</div>'
     + (o.grp ? '<p class="rs-note">' + L.size(L[o.grp], '<b>' + o.grpRank + '</b>', o.grpN) + '</p>' : '')
     + '<div id="rs-line"></div>'
-    + (typeof openTileDetail === 'function' ? '<button type="button" class="rs-open" onclick="openTileDetail(\'' + _rsEsc(o.c.id) + '\',event)">' + _rsEsc(L.open(o.sym)) + '</button>' : '');
+    + '<div class="rs-acts">'
+    + (typeof openTileDetail === 'function' ? '<button type="button" class="rs-open" onclick="openTileDetail(\'' + _rsEsc(o.c.id) + '\',event)">' + _rsEsc(L.open(o.sym)) + '</button>' : '')
+    + '<button type="button" class="rs-open rs-copy" onclick="rsCopyLink(this)">' + L.copy + '</button></div>';
   var inp = document.getElementById('rs-inp'); if (inp && document.activeElement !== inp) inp.value = o.sym;
   document.querySelectorAll('#rs-box .rs-chip').forEach(function (x) { x.classList.toggle('on', x.getAttribute('data-s') === o.sym); });
   _rsDrawLine(); _rsLoadLine(o.sym);
@@ -273,6 +282,37 @@ function _rsToTop() {
   var r = el.getBoundingClientRect();
   if (r.top < 60 || r.top > window.innerHeight * 0.6) { if (typeof rotScrollToEl === 'function') rotScrollToEl(document.getElementById('rs-box')); else el.scrollIntoView({ block: 'start', behavior: 'smooth' }); }
 }
+/* Copy a link that opens this box on the chosen coin (newsletter, posts). */
+function rsCopyLink(btn) {
+  var L = _rsL(), url = 'https://rotatortool.com/board.html?strength=' + encodeURIComponent(_rs.sel || '');
+  var done = function () { btn.textContent = L.copied; clearTimeout(btn._t); btn._t = setTimeout(function () { btn.textContent = _rsL().copy; }, 1500); };
+  var old = function () {
+    var t = document.createElement('textarea'); t.value = url; t.setAttribute('readonly', ''); t.style.position = 'fixed'; t.style.opacity = '0';
+    document.body.appendChild(t); t.select(); try { document.execCommand('copy'); } catch (e) {} document.body.removeChild(t); done();
+  };
+  try { if (navigator.clipboard && navigator.clipboard.writeText) { navigator.clipboard.writeText(url).then(done, old); return; } } catch (e) {}
+  old();
+}
+/* ── Deep link: board.html?strength=SOL (2026-11-15, newsletter links) ──
+   Opens the Coins tab at this box with that coin chosen. Prices and coins
+   arrive seconds later, so the choice waits in _rs.link until
+   renderStrength() can use it; an unknown symbol falls back to the normal
+   default. The box starts off-screen, so the link also marks it seen to
+   start the read. rot_rs_sel is not touched: only a coin the visitor picks
+   is saved. */
+(function () {
+  var want = null;
+  try { want = new URLSearchParams(location.search).get('strength'); } catch (e) {}
+  want = String(want || '').trim().toUpperCase().replace(/[^A-Z0-9]/g, '');
+  if (!want) return;
+  _rs.link = want; _rs.seen = true;
+  function open() {
+    if (window.BoardTabs && BoardTabs.go) BoardTabs.go('coins', 'strength', false);
+    renderStrength();
+  }
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', open); else open();
+})();
+
 /* ── Pro: a rotation idea from the visitor's own holdings ──
    Daniel, 2026-11-14: "should suggest rotation opportunity for pro users
    in the section, based on our reading, not financial advice". The
@@ -298,11 +338,12 @@ function _rsRotHtml() {
 }
 function renderStrength() {
   var host = document.getElementById('rs-box'), L = _rsL(); if (!host) return;
-  var head = '<div class="tw-hd"><span class="rs-hd">' + L.hd + '</span></div><p class="tw-sub">' + L.sub + '</p>';
+  var head = '<div class="tw-hd"><span class="rs-hd">' + L.hd + '</span></div><p class="tw-sub">' + L.sub + '</p><p class="rs-what">' + L.what + '</p>';
   if (!_rs.seen) { if (!host.firstChild) host.innerHTML = head + '<div class="rs-wait skel"></div>'; return; }   /* not on screen yet: read nothing */
   if (_rs.fail) { host.innerHTML = head + '<p class="rs-note">' + L.none + '</p>'; return; }
   if (!_rs.raw) { host.innerHTML = head + '<div class="rs-wait skel"></div>'; _rsLoad(); return; }
   if (!_rsCompute()) { host.innerHTML = head + '<div class="rs-wait skel"></div>'; return; }   /* coins still loading: signals.js calls again */
+  if (_rs.link) { if (_rs.by[_rs.link]) _rs.sel = _rs.link; _rs.link = null; }   /* ?strength=SOL wins for this visit; not saved */
   if (!_rs.sel || !_rs.by[_rs.sel]) _rs.sel = _rsDefault();
   var typing = document.activeElement && document.activeElement.id === 'rs-inp';
   if (typing && document.getElementById('rs-coin')) return;   /* a data refresh must not take the box from under the keyboard */

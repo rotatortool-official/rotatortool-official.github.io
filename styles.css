@@ -8063,6 +8063,9 @@ body.has-tabs .tile-detail .td-share-card-btn *,body.has-tabs .tile-detail .td-e
 #rs-line{margin-top:14px;} .rs-chart{height:150px;}
 .rs-open{all:unset;box-sizing:border-box;cursor:pointer;margin-top:12px;padding:8px 12px;border-radius:8px;border:1px solid var(--bdr2);font:600 12.5px/1 var(--font-ui);color:var(--text);}
 .rs-open:hover{border-color:var(--bnb);color:var(--bnb);}
+.rs-acts{display:flex;flex-wrap:wrap;gap:8px;} .rs-copy{color:var(--muted);}
+.rs-lab{margin-top:10px;font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);}
+.rs-what{font-size:12px;line-height:1.45;color:var(--muted);margin:2px 0 12px;}
 .rs-lists{display:grid;gap:16px;}
 .rs-lists .bf-k{margin-bottom:4px;} .rs-up{color:var(--green);} .rs-dn{color:var(--red);}
 .rs-row{all:unset;box-sizing:border-box;cursor:pointer;display:grid;grid-template-columns:minmax(0,1fr) auto 56px;align-items:center;gap:10px;width:100%;padding:7px 6px;border-bottom:1px solid var(--bdr);border-radius:4px;transition:background-color .15s ease-out;}
