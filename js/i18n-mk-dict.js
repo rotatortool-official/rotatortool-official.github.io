@@ -2729,3 +2729,8 @@ Object.assign(MK_TEXT, {
   "Terms": "Услови",
   "OK": "Во ред"
 });
+/* Coin window: at a glance strip, Binance button, RSI marks (2026-11-15; DeepL, then checked). */
+Object.assign(MK_TEXT, {
+  'referral link': 'линк за препорака',
+  'after a longer stay below': 'по подолг престој под 30'
+});

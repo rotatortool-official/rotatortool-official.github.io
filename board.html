@@ -44,7 +44,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Rotator">
 
-  <link rel="stylesheet" href="styles.css?v=20261115ob">
+  <link rel="stylesheet" href="styles.css?v=20261115cw">
   <script src="js/theme-mode.js"></script>
 
   <!-- Umami Cloud analytics (privacy-friendly, no cookies). Replace data-website-id after signup at cloud.umami.is. -->
@@ -417,6 +417,11 @@
   <!-- Accent bar that changes color by score -->
   <div id="td-accent-bar" style="height:2px;margin:-2px -2px 12px -2px;border-radius:0;transition:background .3s;"></div>
 
+  <!-- At a glance (2026-11-15): score, this week's status, daily RSI and a
+       fresh "RSI back above 30", in one line under the price. Filled by
+       _tdVerdict() in js/coin-reading.js; hidden in the full breakdown. -->
+  <div class="td-verdict" id="td-verdict"></div>
+
   <!-- Full breakdown (2026-10-21, js/coin-expand.js): desktop only. A bar
        under the price in the small card (free: opens the Pro window; Pro:
        opens the full-screen view); "Smaller" at the top right of that view. -->
@@ -485,6 +490,10 @@
     <div id="td-chainflow"></div>
   </div>
 
+  <!-- Trade on Binance, in view without scrolling to the bottom (2026-11-15);
+       labelled referral; filled by _tdBinance() in js/data-loaders.js. -->
+  <div class="td-bnb-top" id="td-bnb-top"></div>
+
   <!-- Your position (shown only for held coins). Not folded: a holder
        opening their own coin is usually here to update it. Since
        2026-10-21: the summary, a price chart with the average entry
@@ -527,7 +536,7 @@
        coin_indicator_daily. Two sources on purpose — see the comment in
        js/data-loaders.js. Hidden when the coin has no Binance pair. -->
   <div class="td-section td-fold-sec" id="td-rsi-sec" style="display:none;">
-    <details class="td-fold"><summary class="td-section-title">Momentum · RSI(14)</summary>
+    <details class="td-fold"><summary class="td-section-title">Momentum · RSI(14)<span class="td-fold-val" data-fold="rsi" translate="no"></span></summary>
       <div id="td-rsi"></div>
     </details>
   </div>
@@ -536,7 +545,7 @@
        detect_coin_events(). The recent ones also appear under Turn
        signals; this is the full list with its caveats. -->
   <div class="td-section td-fold-sec" id="td-events-sec" style="display:none;">
-    <details class="td-fold"><summary class="td-section-title">Technical events</summary>
+    <details class="td-fold"><summary class="td-section-title">Technical events<span class="td-fold-val" data-fold="events" translate="no"></span></summary>
       <div id="td-events"></div>
     </details>
   </div>
@@ -590,7 +599,7 @@
   <!-- Liquidity — 24h volume vs market cap: "can I exit without moving
        the price myself". A risk flag, not a momentum input. -->
   <div class="td-section td-fold-sec" id="td-liquidity-sec" style="display:none;">
-    <details class="td-fold"><summary class="td-section-title">Liquidity</summary>
+    <details class="td-fold"><summary class="td-section-title">Liquidity<span class="td-fold-val" data-fold="liq" translate="no"></span></summary>
       <div class="td-mkt-grid" id="td-liquidity"></div>
     </details>
   </div>
@@ -2040,10 +2049,10 @@
   <!-- The Macedonian dictionary only when MK is the saved choice (2026-10-11):
        ~270 KB that English visitors no longer download. A switch to MK on
        the page loads it from js/i18n-mk.js. -->
-  <script>try { if (localStorage.getItem('rot_lang') === 'mk') document.write('<script src="js/i18n-mk-dict.js?v=20261115ob"><\/script><script src="js/i18n-mk-legal.js"><\/script>'); } catch (e) {}</script>
+  <script>try { if (localStorage.getItem('rot_lang') === 'mk') document.write('<script src="js/i18n-mk-dict.js?v=20261115cw"><\/script><script src="js/i18n-mk-legal.js"><\/script>'); } catch (e) {}</script>
   <script src="js/chart-kit.js?v=20261114ck"></script>
   <script src="js/signals.js?v=20261115ob"></script>
-  <script src="js/holdings.js?v=20261103cp"></script>
+  <script src="js/holdings.js?v=20261115cw"></script>
   <script src="js/share-brand.js"></script>
 <script src="js/ratio.js?v=20261103po"></script>
   <script src="js/tutorial.js?v=20261115ob"></script>
@@ -2051,12 +2060,12 @@
   <script src="js/ui.js?v=20261115ob"></script>
   <script src="js/signal-history.js"></script>
   <script src="js/global-movers.js"></script>
-  <script src="js/data-loaders.js?v=20261115ob"></script>
+  <script src="js/data-loaders.js?v=20261115cw"></script>
   <script src="js/btc-gold.js?v=20261114ck"></script>
   <script src="js/flow-charts.js?v=20261114ck"></script>
   <script src="js/liquidations.js?v=20261114ck"></script>
   <script src="js/radio.js"></script>
-  <script src="js/coin-reading.js?v=20261115ob"></script>
+  <script src="js/coin-reading.js?v=20261115cw"></script>
   <script src="js/score-coin.js"></script>
   <script>
     /* Play the score coin each time "How is it calculated?" opens. */

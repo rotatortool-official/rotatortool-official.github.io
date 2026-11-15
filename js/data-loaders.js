@@ -3653,6 +3653,13 @@ function _tdBinance(c) {
   var mk = typeof currentLang !== 'undefined' && currentLang === 'mk', sym = _esc(c.sym);
   var trade = c.isStock ? '' : '<a class="td-bnb-trade" href="https://www.binance.com/en/trade/' + encodeURIComponent(c.sym) + '_USDT?type=spot&ref=' + BINANCE_REF
     + '" target="_blank" rel="noopener sponsored">' + (mk ? 'Тргувајте со ' + sym + ' на Binance' : 'Trade ' + sym + ' on Binance') + ' ↗</a>';
+  /* The trade link also stands under the score since 2026-11-15, as a
+     button: at the very bottom it sat three screens down. Still labelled
+     as a referral, with the full note on hover and at the bottom. */
+  var top = document.getElementById('td-bnb-top');
+  if (top) top.innerHTML = trade ? trade.replace('td-bnb-trade', 'td-bnb-trade td-bnb-btn')
+    + '<span class="td-bnb-ref" title="' + (mk ? 'Линк за препорака: Rotator може да добие дел од провизиите на Binance. Вас не ве чини ништо повеќе.' : 'Referral link: Rotator may earn a share of Binance\'s fees. It costs you nothing extra.') + '">'
+    + (mk ? 'линк за препорака' : 'referral link') + '</span>' : '';
   host.innerHTML = trade
     + '<a class="td-bnb-join" href="' + BINANCE_JOIN + '" target="_blank" rel="noopener sponsored" onclick="binanceRefClick()">'
     + (mk ? 'Нови сте на Binance? Регистрирајте се со нашиот линк за препорака' : 'New to Binance? Sign up with our referral link') + ' ↗</a>'

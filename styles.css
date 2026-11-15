@@ -8148,3 +8148,64 @@ body.has-tabs .tile-detail .td-share-card-btn *,body.has-tabs .tile-detail .td-e
 .ob-since-pro{display:flex;flex-wrap:wrap;align-items:center;gap:8px 12px;margin-top:10px;font-size:12.5px;color:var(--muted);}
 .ob-since-pro button{all:unset;box-sizing:border-box;cursor:pointer;padding:7px 14px;border-radius:999px;background:var(--pro);color:#fff;font:700 12px/1 var(--font-ui);}
 @media(max-width:600px){ .ob-card{padding:14px 14px 12px;} .ob-q{font-size:18px;} .ob-inp{font-size:16px;max-width:none;} .ob-go{flex:1 1 100%;text-align:center;} }
+
+/* ── Coin window: at a glance + three levels (2026-11-15) ─────────────
+   1. Rotator's own read (the Insight Engine box and the score) wears the
+      gold edge. 2. Plain facts sit in grey cards. 3. Detail folds are one
+      quiet line each, with the value they hold on the right.
+   The strip under the price says the score, the week and the RSI before
+   any scrolling. Small window only; the full breakdown keeps its layout. */
+.td-verdict{display:flex;flex-wrap:wrap;align-items:center;gap:6px;margin:0 0 12px;}
+.td-verdict:empty{display:none;}
+.td-vd{all:unset;box-sizing:border-box;display:inline-flex;align-items:baseline;gap:5px;padding:5px 9px;border:1px solid var(--bdr);border-radius:999px;background:var(--bg3);font:600 12px/1.2 var(--font-ui);color:var(--text);white-space:nowrap;}
+button.td-vd{cursor:pointer;}
+button.td-vd:focus-visible{outline:2px solid var(--bnb);outline-offset:2px;}
+.td-vd-k{color:var(--muted);font-weight:600;}
+.td-vd b{font-weight:700;}
+.td-vd-score{border-color:var(--vd);padding:4px 11px;}
+.td-vd-score b{font-size:17px;font-weight:800;line-height:1;color:var(--vd);}
+.td-vd-score i{font-style:normal;font-size:11px;color:var(--muted);}
+.td-vd-st{font-size:10.5px;font-weight:800;letter-spacing:.08em;color:var(--muted);}
+.td-vd-st.up,.td-vd-rsi.up b{color:var(--green);}
+.td-vd-st.dn,.td-vd-rsi.dn b{color:var(--red);}
+.td-vd-rsi.warn b{color:var(--amber,#f0b90b);}
+.td-vd-rc{border-color:var(--amber,#f0b90b);color:var(--amber,#f0b90b);font-weight:700;}
+.td-vd-dot{font-size:9px;}
+.td-expanded .td-verdict,.td-expanded .td-bnb-top,.td-expanded .tdp-rsi-key{display:none;}
+
+/* Level 1: the score wears the same gold edge as the Insight Engine box. */
+#td-panel:not(.td-expanded) #td-score-sec{padding:12px 14px;border:1px solid var(--bdr2);border-left:3px solid var(--amber,#f0b90b);border-radius:8px;background:var(--bg2);}
+
+/* Level 2: Overview as four small tiles instead of five full rows. */
+#td-panel:not(.td-expanded) .td-ov{display:grid;grid-template-columns:1fr 1fr;column-gap:14px;}
+#td-panel:not(.td-expanded) .td-ov .td-card-h{grid-column:1 / -1;}
+#td-panel:not(.td-expanded) .td-ov .td-kv-row{flex-direction:column;align-items:flex-start;gap:2px;padding:6px 0;width:auto;}
+#td-panel:not(.td-expanded) .td-ov .td-kv-row:nth-of-type(2){border-top:0;}
+#td-panel:not(.td-expanded) .td-ov .td-kv-k{font-size:11.5px;}
+#td-panel:not(.td-expanded) .td-ov .td-kv-v{font-size:14px;text-align:left;}
+
+/* Level 3: fold headers are quiet; the value on the right carries the colour. */
+#td-panel:not(.td-expanded) .td-fold > summary.td-section-title{color:var(--text);opacity:.78;}
+.td-fold > summary .td-fold-val{order:2;font:700 11.5px/1 var(--font-ui);letter-spacing:0;text-transform:none;color:var(--text);}
+.td-fold > summary .td-fold-val:empty{display:none;}
+.td-fold-val.up{color:var(--green);}
+.td-fold-val.dn{color:var(--red);}
+.td-fold-val.warn{color:var(--amber,#f0b90b);}
+
+/* Trade on Binance, under the score; the bottom block keeps the sign-up line and the note. */
+.td-bnb-top{display:flex;flex-wrap:wrap;align-items:center;gap:10px;margin:-12px 0 22px;}
+.td-bnb-top:empty{display:none;}
+.td-bnb-btn{display:inline-flex;align-items:center;padding:9px 14px;border:1px solid var(--bnb);border-radius:8px;font:700 13px/1 var(--font-ui);color:var(--bnb);text-decoration:none;}
+.td-bnb-btn:hover{background:rgba(243,186,47,.1);}
+.td-bnb-ref{font-size:11px;color:var(--muted);}
+#td-panel:not(.td-expanded) #td-bnb .td-bnb-trade{display:none;}
+
+/* "RSI back above 30" on the price chart: filled = quick (1-2 days below),
+   ring = longer, grey ring = 11+ days (the slow kind that trailed). */
+.tdp-rsi{position:absolute;box-sizing:border-box;width:9px;height:9px;margin:-4.5px 0 0 -4.5px;border-radius:50%;border:2px solid var(--amber,#f0b90b);background:var(--bg);pointer-events:none;}
+.tdp-rsi.quick{background:var(--amber,#f0b90b);}
+.tdp-rsi.slow{border-color:var(--muted);}
+.tdp-rsi-key{display:flex;flex-wrap:wrap;align-items:center;gap:5px;margin-top:4px;font-size:11px;color:var(--muted);}
+.tdp-rsi-key .tdp-rsi{position:static;margin:0;flex:0 0 auto;}
+.tdp-rsi-key span + .tdp-rsi{margin-left:8px;}
+.tdp-rsi-read{color:var(--amber,#f0b90b);font-weight:600;}

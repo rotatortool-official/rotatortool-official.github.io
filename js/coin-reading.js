@@ -349,6 +349,70 @@ function _tdBurns(c) {
   return !!(t && t.deflation === 'full');
 }
 
+/* ── At a glance (2026-11-15) ────────────────────────────────────────
+   One line under the price: the score, this week's status, the daily RSI
+   and, when coin_events has one, a fresh "RSI back above 30". Nothing new
+   is read or computed: every piece was already somewhere in the window,
+   three screens apart. Tapping a piece opens its section. */
+function _tdReclaimEv(c) {
+  var evs = (typeof _eventsBySym !== 'undefined' && c && _eventsBySym[c.sym]) || [];
+  return evs.filter(function (e) { return e.event_type === 'rsi_reclaim'; })[0] || null;
+}
+function _tdGoScore() {
+  var s = document.getElementById('td-score-sec');
+  try { if (s) s.scrollIntoView({ behavior: 'smooth', block: 'start' }); } catch (e) {}
+}
+function _tdVerdict(c) {
+  var el = document.getElementById('td-verdict');
+  if (!el) return;
+  if (!c || c.isStable || c.score == null || !isFinite(c.score)) { el.innerHTML = ''; return; }
+  var out = [];
+  var col = typeof scoreColor === 'function' ? scoreColor(c.score) : 'var(--text)';
+  out.push('<button type="button" class="td-vd td-vd-score" style="--vd:' + col + '" onclick="_tdGoScore()" title="How the coin has done against the rest, from −50 to 100. It describes the past, not the future.">'
+    + '<span class="td-vd-k">Score</span><b>' + c.score + '</b><i translate="no">/ ' + (c.isStock ? 70 : 100) + '</i></button>');
+  if (!c.isStock) {
+    var st = _tdStatus(c);
+    out.push('<span class="td-vd td-vd-st ' + ({ ahead: 'up', lagging: 'dn', middle: '' })[st] + '">'
+      + ({ ahead: 'RAN AHEAD THIS WEEK', lagging: 'LAGGED THIS WEEK', middle: 'MIDDLE OF THE PACK' })[st] + '</span>');
+  }
+  var tech = (typeof coinTechnicals !== 'undefined' && coinTechnicals[c.sym]) || null;
+  var rsi = tech && tech.rsiD != null ? tech.rsiD : null;
+  if (rsi != null) {
+    var rl = rsi <= 30 ? ' · oversold' : rsi >= 85 ? ' · overbought' : rsi >= 70 ? ' · momentum' : '';
+    out.push('<button type="button" class="td-vd td-vd-rsi ' + (rsi <= 30 ? 'dn' : rsi >= 85 ? 'warn' : rsi >= 70 ? 'up' : '') + '" onclick="_tdOpenFold(\'td-rsi-sec\')"'
+      + ' title="Daily RSI(14). 30 and below is called oversold, 70 to 85 gaining momentum, 85 and above overbought.">'
+      + '<span class="td-vd-k">Daily RSI</span><b translate="no">' + rsi.toFixed(0) + rl + '</b></button>');
+  }
+  /* Not when the RSI has slipped under 30 again: "back above 30" beside "oversold" reads as a mistake. */
+  var rc = !c.isStock && !(rsi != null && rsi < 30) && _tdReclaimEv(c);
+  if (rc) {
+    var d = rc.detail || {}, nb = d.days_below != null ? Number(d.days_below) : null;
+    var nbTxt = nb == null ? '' : ' after ' + nb + (d.days_below_is_floor ? '+' : '') + (nb === 1 ? ' day' : ' days') + ' below';
+    out.push('<button type="button" class="td-vd td-vd-rc" onclick="_tdOpenFold(\'td-events-sec\')" title="' + _esc(String(rc.event_date).slice(0, 10) + ': daily RSI closed back above 30' + nbTxt + '.') + '">'
+      + '<span class="td-vd-dot" aria-hidden="true">●</span>RSI back above 30</button>');
+  }
+  el.innerHTML = out.join('');
+}
+/* The value each closed fold holds, on its header line, so a reader can
+   tell which fold is worth opening. Only values the folds already show
+   to everyone: daily RSI and how many events this week. */
+function _tdFoldVals(c) {
+  var set = function (k, txt, cls) {
+    var el = document.querySelector('#td-panel .td-fold-val[data-fold="' + k + '"]');
+    if (el) { el.textContent = txt || ''; el.className = 'td-fold-val' + (cls ? ' ' + cls : ''); }
+  };
+  set('rsi'); set('events'); set('liq');
+  if (!c || c.isStable) return;
+  var tech = (typeof coinTechnicals !== 'undefined' && coinTechnicals[c.sym]) || null;
+  var rsi = tech && tech.rsiD != null ? tech.rsiD : null;
+  if (rsi != null) set('rsi', rsi.toFixed(0) + (rsi <= 30 ? ' · oversold' : rsi >= 85 ? ' · overbought' : rsi >= 70 ? ' · momentum' : ''), rsi <= 30 ? 'dn' : rsi >= 85 ? 'warn' : rsi >= 70 ? 'up' : '');
+  var n = ((typeof _eventsBySym !== 'undefined' && _eventsBySym[c.sym]) || []).length;
+  if (n) set('events', String(n), 'warn');
+  /* Liquidity keeps no value on its header: the fold's band is worked out
+     from Binance's own pair volume, so BTC reads "thin", and that word in
+     red on the header would mislead at a glance. */
+}
+
 function _tdKeyFacts(c, tech) {
   var chips = [], kvs = [];
   /* Each fact is written twice: a chip (.td-facts, hidden since
@@ -386,7 +450,9 @@ function _tdKeyFacts(c, tech) {
   return '<div class="td-facts">' + chips.join('') + '</div>'
     + _tdOverviewHtml(c)
     + _tdPerfHtml(c)
-    + (kvs.length ? '<div class="td-card td-kv"><div class="td-card-h">Key facts</div>' + kvs.join('') + '</div>' : '');
+    /* The Key facts card (Daily RSI only since 2026-10-28) left on
+       2026-11-15: the RSI stands under the price now (_tdVerdict). */
+    ;
 }
 
 /* ── Overview (light first, 2026-10-11) ─────────────────────────────
@@ -409,9 +475,7 @@ function _tdOverviewHtml(c) {
      it is labelled as such: BTC's whole-market volume is far larger. */
   if (vol && typeof fmtVol === 'function') row(c.volume24 ? '24h volume on Binance' : '24h volume', fmtVol(vol), '', 'td-market-sec');
   if (!c.isStock && c.rank) row('Market cap rank', '#' + c.rank, '', 'td-market-sec');
-  if (!c.isStable && c.score != null && isFinite(c.score) && typeof scoreColor === 'function')
-    row('Score', c.score + '<span class="td-kv-of"> / ' + (c.isStock ? 70 : 100) + '</span>', 'color:' + scoreColor(c.score), 'td-breakdown-sec',
-      'How the coin has done against the rest, from −50 to 100. It describes the past, not the future.');
+  /* The score row left on 2026-11-15: it stands under the price now (_tdVerdict). */
   if (!c.isStock && !c.isStable && c.ath_change_pct) row('From all-time high', _tdPct(Number(c.ath_change_pct)), '', 'td-market-sec');
   return rows.length ? '<div class="td-card td-kv td-ov"><div class="td-card-h">Overview</div>' + rows.join('') + '</div>' : '';
 }
@@ -583,6 +647,32 @@ function coinStory(c) {
   if (t.rsiD != null && t.rsiD >= 85) bits.push(mk ? 'дневниот RSI е ' + t.rsiD.toFixed(0) + ', ретко високо, зона што ја викаме прекупено' : 'its daily RSI is ' + t.rsiD.toFixed(0) + ', rare territory we call overbought');
   else if (t.rsiD != null && t.rsiD >= 70) bits.push(mk ? 'дневниот RSI е ' + t.rsiD.toFixed(0) + ', монетата добива замав' : 'its daily RSI is ' + t.rsiD.toFixed(0) + ', it is gaining momentum');
   else if (t.rsiD != null && t.rsiD <= 30) bits.push(mk ? 'дневниот RSI е ' + t.rsiD.toFixed(0) + ', зона што трејдерите ја викаат препродадено' : 'its daily RSI is ' + t.rsiD.toFixed(0) + ', the zone traders call oversold');
+  /* A fresh "RSI back above 30" (Daniel, 2026-11-15). The story says what
+     our own test measured, with the figures read from ROTATOR_EVIDENCE,
+     never typed: a quick bounce had a small edge, a slow one was a warning.
+     It does not say "reversal": no turn sign has passed its test. */
+  var rcE = _tdReclaimEv(c), rcEv = (typeof ROTATOR_EVIDENCE !== 'undefined' && ROTATOR_EVIDENCE.rsiReclaim) || null;
+  if (rcE) {
+    var rd = rcE.detail || {}, rn = rd.days_below != null ? Number(rd.days_below) : null;
+    var rdays = rn == null ? '' : rn + (rd.days_below_is_floor ? '+' : '') + (mk ? (rn === 1 ? ' ден' : ' дена') : (rn === 1 ? ' day' : ' days'));
+    if (t.rsiD != null && t.rsiD < 30) {
+      /* It came back and fell under again: say that instead of "oversold"
+         and "back above 30" in one sentence, and quote no record. */
+      bits.pop();
+      bits.push(mk
+        ? 'дневниот RSI се врати над 30' + (rdays ? ' по ' + rdays + ' под таа вредност' : '') + ', па повторно падна под 30 (сега ' + t.rsiD.toFixed(0) + ')'
+        : 'its daily RSI climbed back above 30' + (rdays ? ' after ' + rdays + ' below it' : '') + ', then slipped under 30 again (' + t.rsiD.toFixed(0) + ' now)');
+    } else
+    if (rd.fast && rcEv) bits.push(mk
+      ? 'дневниот RSI се врати над 30 по само ' + rdays + ' под таа вредност; во нашите податоци од минатото, ваквите брзи враќања го победија пазарот во ' + rcEv.quick.beatPct + '% од случаите во следните ' + rcEv.horizonDays + ' дена, мала предност, а не ветување'
+      : 'its daily RSI climbed back above 30 after only ' + rdays + ' below it; in our past data, quick bounces like this beat the market ' + rcEv.quick.beatPct + '% of the time over the next ' + rcEv.horizonDays + ' days, a small edge, not a promise');
+    else if (rcEv && rn != null && rn >= rcEv.slow.minDaysBelow) bits.push(mk
+      ? 'дневниот RSI се врати над 30 дури по ' + rdays + ' под таа вредност; во нашите податоци од минатото, вакви бавни враќања го победија пазарот само во ' + rcEv.slow.beatPct + '% од случаите'
+      : 'its daily RSI climbed back above 30 only after ' + rdays + ' below it; in our past data, bounces this slow beat the market just ' + rcEv.slow.beatPct + '% of the time');
+    else bits.push(mk
+      ? 'дневниот RSI се врати над 30' + (rdays ? ' по ' + rdays + ' под таа вредност' : '')
+      : 'its daily RSI climbed back above 30' + (rdays ? ' after ' + rdays + ' below it' : ''));
+  }
   if ((t.cross === 'golden' || t.cross === 'death') && t.crossDays != null && t.crossDays <= 14) {
     var cd = t.crossDays === 0 ? (mk ? 'денес' : 'today') : t.crossDays === 1 ? (mk ? 'вчера' : 'yesterday') : (mk ? 'пред ' + t.crossDays + ' дена' : t.crossDays + ' days ago');
     bits.push(t.cross === 'golden'
@@ -621,6 +711,7 @@ function coinStory(c) {
   var facts = [];
   if (typeof c.p24 === 'number' && Math.abs(c.p24) >= 7) facts.push(['Today', sg(c.p24), c.p24 >= 0 ? 'up' : 'dn']);
   if (t.rsiD != null && (t.rsiD >= 70 || t.rsiD <= 30)) facts.push(['RSI', t.rsiD.toFixed(0) + (t.rsiD >= 85 ? ' overbought' : t.rsiD >= 70 ? ' momentum' : ' oversold'), t.rsiD >= 70 && t.rsiD < 85 ? 'up' : 'amb']);
+  if (rcE && !(t.rsiD != null && t.rsiD < 30) && !facts.some(function (f) { return f[0] === 'RSI'; })) facts.push(['RSI', 'back above 30', 'up']);
   if ((t.cross === 'golden' || t.cross === 'death') && t.crossDays != null && t.crossDays <= 14)
     facts.push([t.cross === 'golden' ? 'Golden cross' : 'Death cross', t.crossDays === 0 ? 'today' : t.crossDays + 'd ago', t.cross === 'golden' ? 'up' : 'dn']);
   if (t.volRatio != null && t.volRatio >= 3) facts.push(['Volume', (t.volRatio >= 10 ? Math.round(t.volRatio) : t.volRatio.toFixed(1)) + '× usual', 'amb']);
@@ -864,6 +955,7 @@ function _tdInsIntoStory() {
 }
 function renderCoinReading(c) {
   _tdInsHomeAgain();
+  _tdVerdict(c); _tdFoldVals(c);
   var warnEl = document.getElementById('td-warn');
   var readEl = document.getElementById('td-reading');
   var turnsEl = document.getElementById('td-turns');

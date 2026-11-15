@@ -1045,6 +1045,29 @@ function setHoldingChartRange(days) {
   }
 }
 
+/* "RSI back above 30" on the price chart (Daniel, 2026-11-15). Worked out
+   in the browser from the daily closes the chart already holds, so it
+   costs no extra read: RSI(14), Wilder's smoothing, closed days only. A
+   mark is a day the RSI closed at 30 or more after closing under it; `nb`
+   is how many closes it spent under. The first 30 days of the series only
+   warm the average up and are never marked. The cut-offs for quick and
+   slow come from ROTATOR_EVIDENCE.rsiReclaim, the same test the coin
+   window quotes. coin_events (the server's own detection) can differ by a
+   day at the edges; the story and the alerts keep reading that. */
+function _hcReclaims(rows) {
+  var n = 14, out = {}, g = 0, l = 0, prev = null, below = 0;
+  for (var i = 1; i < rows.length; i++) {
+    var d = rows[i].v - rows[i - 1].v, up = d > 0 ? d : 0, dn = d < 0 ? -d : 0;
+    if (i <= n) { g += up; l += dn; if (i < n) continue; g /= n; l /= n; }
+    else { g = (g * (n - 1) + up) / n; l = (l * (n - 1) + dn) / n; }
+    var r = l === 0 ? 100 : 100 - 100 / (1 + g / l);
+    if (prev != null && prev < 30 && r >= 30 && i >= 30) out[rows[i].t] = below;
+    below = r < 30 ? below + 1 : 0;
+    prev = r;
+  }
+  return out;
+}
+
 function _drawHoldingChart(box, c, rows) {
   var from = Date.now() - _hcRange * 864e5;
   /* Today's candle is still open; the live price stands in for it. */
@@ -1058,6 +1081,11 @@ function _drawHoldingChart(box, c, rows) {
   var h = _tdpHolding(c);
   if (h && box.id === 'td-mini-chart' && !holdingChartAllowed(c)) h = null;
   var avg = h && Number(h.avg) > 0 ? Number(h.avg) : null;
+  /* RSI back above 30, closed days only (see _hcReclaims). */
+  var EVR = (typeof ROTATOR_EVIDENCE !== 'undefined' && ROTATOR_EVIDENCE.rsiReclaim) || null;
+  var rcl = EVR ? _hcReclaims(rows.filter(function(p) { return p.t < today; })) : {};
+  var rcKind = function(nb) { return nb <= EVR.quick.maxDaysBelow ? 'quick' : nb >= EVR.slow.minDaysBelow ? 'slow' : 'mid'; };
+  var rcTxt = function(nb) { return 'RSI back above 30 after ' + nb + (nb === 1 ? ' day' : ' days') + ' below'; };
   var vals = pts.map(function(p) { return p.v; });
   var vLo = Math.min.apply(null, vals), vHi = Math.max.apply(null, vals);
   /* Scenarios: the board chart, for Pro (see _hcScn below). */
@@ -1099,9 +1127,15 @@ function _drawHoldingChart(box, c, rows) {
       + (avg ? '<span class="tdp-avg-lbl' + (Y(avg) / H < 0.2 ? ' below' : '') + '" style="top:' + (Y(avg) / H * 100).toFixed(1) + '%"><span>Your average</span> ' + fmtP(avg) + '</span>' : '')
       + '<span class="tdp-hi">' + fmtP(vHi) + '</span>'
       + '<span class="tdp-lo">' + fmtP(vLo) + '</span>'
+      + pts.map(function(p, i) {
+          var nb = rcl[p.t];
+          return nb == null ? '' : '<i class="tdp-rsi ' + rcKind(nb) + '" style="left:' + (X(i) / W * 100).toFixed(2) + '%;top:' + (Y(p.v) / H * 100).toFixed(1) + '%"></i>';
+        }).join('')
       + '<i class="tdp-dot" hidden></i>'
     + '</div>'
     + '<div class="tdp-ch-foot"><span>' + _hcDay(pts[0].t) + '</span><span>Now</span></div>'
+    + (pts.some(function(p) { return rcl[p.t] != null; })
+      ? '<div class="tdp-rsi-key"><i class="tdp-rsi quick"></i><span>RSI back above 30</span>' + (pts.some(function(p) { return rcl[p.t] != null && rcKind(rcl[p.t]) !== 'quick'; }) ? '<i class="tdp-rsi mid"></i><span>after a longer stay below</span>' : '') + '</div>' : '')
     + (scn ? _hcScnPanel(c, h, scn) : '');
   if (scn) _hcScnWire(box, c, h, scn, rows, lo, hi, H, Y);
 
@@ -1121,6 +1155,7 @@ function _drawHoldingChart(box, c, rows) {
     var vs = avg ? (p.v / avg - 1) * 100 : null;
     read.innerHTML = '<b>' + fmtP(p.v) + '</b> <span>' + (i === pts.length - 1 ? 'now' : _hcDay(p.t)) + '</span>'
       + (vs != null ? ' <b class="' + (vs >= 0 ? 'up' : 'dn') + '">' + (vs >= 0 ? '+' : '') + vs.toFixed(1) + '%</b> <span>vs your average</span>' : '');
+    if (rcl[p.t] != null && i !== pts.length - 1) read.innerHTML += ' <span class="tdp-rsi-read">● ' + rcTxt(rcl[p.t]) + '</span>';
   };
   plot.addEventListener('pointermove', show);
   plot.addEventListener('pointerdown', show);
