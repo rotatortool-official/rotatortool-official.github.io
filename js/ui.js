@@ -253,8 +253,8 @@ function openAddHoldingsModal(mode) {
   document.querySelector('#add-holdings-modal .modal-title').textContent =
     watching ? 'Add to watchlist' : 'Add to holdings';
   document.querySelector('#add-holdings-modal .modal-sub').textContent = watching
-    ? 'Coins you follow without holding. Scores are relative strength in this run, not advice.'
-    : _ahmCoins().length + ' coins ranked in this run. Scores are relative strength, not advice.';
+    ? 'Coins you follow without holding. Scores rank the coins in this run, not advice.'
+    : _ahmCoins().length + ' coins ranked in this run. Scores rank the coins, not advice.';
   /* Quantity and average mean nothing for a coin you are only watching. */
   document.querySelector('.ahm-inputs').style.display = watching ? 'none' : '';
   ahmFilter();

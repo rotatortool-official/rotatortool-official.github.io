@@ -969,7 +969,7 @@ function renderCoinReading(c) {
     };
     var ZONE = { buy: 'bottom of the range', sell: 'top of the range', neutral: 'middle of the range' };
     var bits = [];
-    if (c._strength != null && isFinite(Number(c._strength))) bits.push('<span><b>Relative strength</b> ' + Math.round(Number(c._strength)) + ' / 100</span>');
+    if (c._strength != null && isFinite(Number(c._strength))) bits.push('<span title="The engine\'s own mix: momentum, the coin against Bitcoin, tokenomics and technicals. Not the Price strength in the Strength analyser."><b>Engine strength</b> ' + Math.round(Number(c._strength)) + ' / 100</span>');
     if (c._zone && ZONE[c._zone]) bits.push('<span><b>Zone</b> ' + ZONE[c._zone] + '</span>');
     if (c._candidateClass && CLS[c._candidateClass]) {
       /* STRONG only means the 30-day return is above the pullback line, which

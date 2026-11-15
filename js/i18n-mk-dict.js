@@ -2718,3 +2718,14 @@ Object.assign(MK_TEXT, {
   /* a date on its own ("14 Nov") */
   P(/^(\d{1,2}) (Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)$/, function (m) { return m[1] + ' ' + MONS[m[2]]; });
 })();
+
+/* 2026-11-15: onboarding notice line + one name for one thing */
+Object.assign(MK_TEXT, {
+  "Macro strength: the coin against BTC, Gold, Silver, Oil, DXY and the broader alt market (Total3) over 7D. Higher = outperforming the macro backdrop, not just the crypto market.": "Макро сила: монетата наспроти BTC, злато, сребро, нафта, DXY и пошироко алт-пазарот (Total3) за 7D. Повисоко = подобро од макро позадината, не само од крипто пазарот.",
+  "Engine strength": "Сила според бодувањето",
+  "every coin we score, ranked; open one to see its score and readings": "секоја монета што ја оценуваме, рангирана; отворете ја за да ги видите оценката и читањата",
+  "Coins you follow without holding. Scores rank the coins in this run, not advice.": "Монети што ги следите без да ги држите. Резултатите ги рангираат монетите во ова пресметување, не се совет.",
+  "Rotator is an information tool, not financial advice. By using it you accept our": "Rotator е информативна алатка, не финансиски совет. Со користење ги прифаќате нашите",
+  "Terms": "Услови",
+  "OK": "Во ред"
+});

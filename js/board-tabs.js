@@ -499,7 +499,13 @@
   window.addEventListener('popstate', function () { fromHash(false); });
   window.addEventListener('hashchange', function () { fromHash(false); });
   if (!fromHash(false)) {
-    var last = null; try { last = localStorage.getItem('rot_tab'); } catch (x) {}
-    setTab(byId[last] ? last : 'today'); mark(byId[cur].items[0].k);
+    /* Daniel, 2026-11-15 (onboarding): a visitor who already holds or
+       watches a coin opens on My holdings, where "Since your last visit"
+       is the first thing (js/onboard.js). Everyone else opens where they
+       left off, or on Today. A link with a #address is not touched. */
+    var last = null, has = false;
+    try { last = localStorage.getItem('rot_tab'); } catch (x) {}
+    try { has = JSON.parse(localStorage.getItem('rot_h5') || '[]').length > 0 || JSON.parse(localStorage.getItem('rot_watchlist') || '[]').length > 0; } catch (x) {}
+    setTab(has ? 'mine' : (byId[last] ? last : 'today')); mark(byId[cur].items[0].k);
   }
 })();

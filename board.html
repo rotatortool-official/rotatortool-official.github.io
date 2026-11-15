@@ -44,7 +44,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Rotator">
 
-  <link rel="stylesheet" href="styles.css?v=20261115st">
+  <link rel="stylesheet" href="styles.css?v=20261115ob">
   <script src="js/theme-mode.js"></script>
 
   <!-- Umami Cloud analytics (privacy-friendly, no cookies). Replace data-website-id after signup at cloud.umami.is. -->
@@ -107,7 +107,7 @@
       </div>
       <div class="faq-item">
         <div class="faq-q">What does the Score mean?</div>
-        <div class="faq-a">The Score runs from −50 to 100 and combines three layers: momentum across 7, 14 and 30 days, strength against BTC, gold and oil, and tokenomics. A high score means a coin has been stronger than the rest, and a low score means it has been weaker. It measures what has already happened. It is not a forecast.<br><a class="score-how" href="how-the-score-works.html">How the score works</a> ›</div>
+        <div class="faq-a">The Score runs from −50 to 100 and combines three layers: momentum across 7, 14 and 30 days, macro strength (against BTC, gold and oil), and tokenomics. A high score means a coin has been stronger than the rest, and a low score means it has been weaker. It measures what has already happened. It is not a forecast.<br><a class="score-how" href="how-the-score-works.html">How the score works</a> ›</div>
       </div>
       <div class="faq-item">
         <div class="faq-q">What is a &quot;rotation&quot;?</div>
@@ -306,11 +306,11 @@
 <div id="consent-banner" class="consent-banner" style="display:none;">
   <div class="consent-inner">
     <div class="consent-text">
-      <strong>Welcome to Rotator!</strong> By continuing to use this application, you acknowledge that this is an <strong style="color:var(--amber);">informational tool only</strong> and not financial advice. You accept our
-      <a onclick="openModal('tos-modal')" style="color:var(--bnb);cursor:pointer;text-decoration:underline;">Terms of Service</a> and
-      <a onclick="openModal('privacy-modal')" style="color:var(--green);cursor:pointer;text-decoration:underline;">Privacy Policy</a>.
+      Rotator is an information tool, not financial advice. By using it you accept our
+      <a onclick="openModal('tos-modal')" style="cursor:pointer;text-decoration:underline;">Terms</a> and
+      <a onclick="openModal('privacy-modal')" style="cursor:pointer;text-decoration:underline;">Privacy Policy</a>.
     </div>
-    <button class="consent-accept-btn" onclick="acceptConsent()">I Understand & Accept</button>
+    <button class="consent-accept-btn" onclick="acceptConsent()">OK</button>
   </div>
 </div>
 
@@ -1243,6 +1243,8 @@
   <div class="page" id="page">
   <section class="rsec" id="sec-today">
     <div class="rsec-hdr"><span class="rsec-label">TODAY</span><span class="rsec-meta" id="rsec-meta-today">start here: where the market's momentum is right now</span></div>
+    <!-- START CARD for a visitor with no coins: "Which coins do you hold?" (js/onboard.js, 2026-11-15) -->
+    <div id="ob-start" hidden></div>
     <!-- BRIEFING — on-chain readings, filled by renderBriefing() in
          js/data-loaders.js from market_cache.network_data. Empty until
          sync-market-data has run once; the block hides itself rather
@@ -1344,6 +1346,8 @@
   </section>
   <section class="rsec" id="sec-yours">
     <div class="rsec-hdr"><span class="rsec-label">MY HOLDINGS</span><span class="rsec-meta" id="rsec-meta-yours">track what you hold and watch; warnings and notifications follow your coins</span></div>
+  <!-- SINCE YOUR LAST VISIT: each coin against the last time you were here (js/onboard.js, 2026-11-15) -->
+  <div id="ob-since" hidden></div>
   <div class="sidebar">
     <!-- Left column on the light desktop layout (2026-10-21): the signal
          with the alerts under it. display:contents everywhere else, so the
@@ -1429,7 +1433,7 @@
   </div>
   </section>
   <section class="rsec" id="sec-coins">
-    <div class="rsec-hdr"><span class="rsec-label">COINS</span><span class="rsec-meta">every coin we score, ranked; open one to see its score and relative strength</span></div>
+    <div class="rsec-hdr"><span class="rsec-label">COINS</span><span class="rsec-meta">every coin we score, ranked; open one to see its score and readings</span></div>
     <div class="tbl-head tbl-head-merged">
       <h2 class="ptitle" id="tbl-title">PERFORMANCE LEADERBOARD</h2>
       <div class="cat-bar cat-bar-inline" id="cat-bar">
@@ -2036,23 +2040,23 @@
   <!-- The Macedonian dictionary only when MK is the saved choice (2026-10-11):
        ~270 KB that English visitors no longer download. A switch to MK on
        the page loads it from js/i18n-mk.js. -->
-  <script>try { if (localStorage.getItem('rot_lang') === 'mk') document.write('<script src="js/i18n-mk-dict.js?v=20261114story"><\/script><script src="js/i18n-mk-legal.js"><\/script>'); } catch (e) {}</script>
+  <script>try { if (localStorage.getItem('rot_lang') === 'mk') document.write('<script src="js/i18n-mk-dict.js?v=20261115ob"><\/script><script src="js/i18n-mk-legal.js"><\/script>'); } catch (e) {}</script>
   <script src="js/chart-kit.js?v=20261114ck"></script>
-  <script src="js/signals.js?v=20261114rs"></script>
+  <script src="js/signals.js?v=20261115ob"></script>
   <script src="js/holdings.js?v=20261103cp"></script>
   <script src="js/share-brand.js"></script>
 <script src="js/ratio.js?v=20261103po"></script>
-  <script src="js/tutorial.js?v=20261103dc"></script>
+  <script src="js/tutorial.js?v=20261115ob"></script>
   <script src="js/visuals.js"></script>
-  <script src="js/ui.js?v=20261103cp"></script>
+  <script src="js/ui.js?v=20261115ob"></script>
   <script src="js/signal-history.js"></script>
   <script src="js/global-movers.js"></script>
-  <script src="js/data-loaders.js?v=20261114ck"></script>
+  <script src="js/data-loaders.js?v=20261115ob"></script>
   <script src="js/btc-gold.js?v=20261114ck"></script>
   <script src="js/flow-charts.js?v=20261114ck"></script>
   <script src="js/liquidations.js?v=20261114ck"></script>
   <script src="js/radio.js"></script>
-  <script src="js/coin-reading.js?v=20261103cc"></script>
+  <script src="js/coin-reading.js?v=20261115ob"></script>
   <script src="js/score-coin.js"></script>
   <script>
     /* Play the score coin each time "How is it calculated?" opens. */
@@ -2065,9 +2069,10 @@
   <script src="js/rotator-indicators.js?v=20261029y"></script>
   <script src="js/turn-watch.js?v=20261103cp"></script>
   <script src="js/strength.js?v=20261114dl"></script>
+  <script src="js/onboard.js?v=20261115ob"></script>
   <script src="js/paper-trades.js"></script>
   <script src="js/engage.js?v=20261103vc"></script>
-  <script src="js/board-tabs.js?v=20261115st"></script>
+  <script src="js/board-tabs.js?v=20261115ob"></script>
   <script>
   /* Phones and tablets (2026-10-24, iPhone reloads): HOME replaces the
      board instead of stacking the landing on top of it, so Safari never

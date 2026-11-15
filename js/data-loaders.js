@@ -4835,7 +4835,7 @@ function openTileDetail(coinId, evt) {
     bdEl.innerHTML =
       '<div class="td-cell" title="Rank vs every other tracked coin on 7D/14D/30D momentum, weighted 25/30/45%. Higher = stronger relative recent momentum.">'
       +'<div class="td-cell-l">MOMENTUM</div><div class="td-cell-v '+l1c+'">'+bd.layer1+' / 40</div></div>'
-      +'<div class="td-cell" title="Relative strength vs BTC, Gold, Silver, Oil, DXY and the broader alt market (Total3) over 7D. Higher = outperforming the macro backdrop, not just the crypto market.">'
+      +'<div class="td-cell" title="Macro strength: the coin against BTC, Gold, Silver, Oil, DXY and the broader alt market (Total3) over 7D. Higher = outperforming the macro backdrop, not just the crypto market.">'
       +'<div class="td-cell-l">MACRO STRENGTH</div><div class="td-cell-v '+l2c+'">'+bd.layer2+' / 30</div></div>'
       + (bd.partial
         ? '<div class="td-cell" title="No tokenomics data applies to equities — see the bStock badge tooltip. This is a partial score (max 70), not directly comparable to a crypto composite.">'

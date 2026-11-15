@@ -529,7 +529,10 @@ function toggleTutSetting(on) {
 
 function initTutorial() {
   var val; try { val = localStorage.getItem(TUT_KEY); } catch(e) {}
-  var isOn = (val === null || val === 'on');
+  /* 2026-11-15 (onboarding): a first visit no longer starts the tour by
+     itself. The start card asks "Which coins do you hold?" and links to
+     the tour; it still starts for anyone who switched it on in Settings. */
+  var isOn = (val === 'on');
   document.getElementById('tut-toggle').checked = isOn;
   if (!isOn) return;
   /* Arrived on the ?donate link: show the Support window, not the tour. */

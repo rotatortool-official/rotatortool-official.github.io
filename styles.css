@@ -8090,3 +8090,61 @@ body.has-tabs .tile-detail .td-share-card-btn *,body.has-tabs .tile-detail .td-e
 
 /* A jump to another tab, listed last in the rail under "See also" (js/board-tabs.js, 2026-11-15). */
 .tr-it.tr-away{opacity:.8;} .tr-it.tr-away:hover{opacity:1;} .tr-it.tr-away small{display:block;font-size:10.5px;color:var(--muted);font-weight:500;}
+
+
+/* ════════════════════════════════════════════════════════════════════
+   ONBOARDING (2026-11-15) — the notice becomes one thin line; the start
+   card and "Since your last visit" come from js/onboard.js.
+   ════════════════════════════════════════════════════════════════════ */
+.consent-banner{background:var(--bg2);border-top:1px solid var(--bdr2);backdrop-filter:none;-webkit-backdrop-filter:none;}
+.consent-inner{max-width:1100px;padding:7px 14px;gap:12px;}
+.consent-text{font-size:11.5px;line-height:1.4;color:var(--muted);}
+.consent-text a{color:var(--text);}
+.consent-accept-btn{padding:6px 16px;font-size:12px;letter-spacing:.02em;border-radius:999px;}
+@media(max-width:600px){
+  .consent-inner{flex-direction:row;text-align:left;gap:10px;padding:7px 12px;}
+  .consent-accept-btn{width:auto;}
+}
+/* on a phone it sits above the bottom menu instead of on top of it */
+@media(max-width:700px) and (orientation:portrait){ .consent-banner{bottom:calc(60px + env(safe-area-inset-bottom,0px));z-index:299;} }
+
+.ob-card{margin:0 0 14px;padding:16px 18px 14px;border-radius:12px;background:var(--bg2);border:1px solid var(--bnb);box-shadow:inset 3px 0 0 var(--bnb);font-family:var(--font-ui);}
+.ob-q{font-size:20px;font-weight:800;line-height:1.25;color:var(--text);}
+.ob-sub{font-size:13px;line-height:1.45;color:var(--muted);margin:4px 0 12px;}
+.ob-chips{display:flex;flex-wrap:wrap;gap:8px;align-items:center;}
+.ob-chip{all:unset;box-sizing:border-box;cursor:pointer;display:inline-flex;align-items:center;gap:7px;min-height:42px;padding:8px 13px;border-radius:999px;border:1px solid var(--bdr2);background:var(--bg3);color:var(--text);font:700 13.5px/1 var(--font-mono);}
+.ob-chip img{border-radius:50%;}
+.ob-chip:hover{border-color:var(--bnb);}
+.ob-chip.on{border-color:var(--green);background:var(--gd);}
+.ob-chip i{font-style:normal;color:var(--green);font-weight:800;}
+.ob-chip:focus-visible,.ob-go:focus-visible,.ob-link:focus-visible{outline:2px solid var(--bnb);outline-offset:2px;}
+.ob-inp{flex:1 1 170px;min-width:150px;max-width:260px;min-height:42px;padding:8px 13px;border-radius:999px;border:1px dashed var(--bdr2);background:transparent;color:var(--text);font:600 13.5px/1 var(--font-ui);}
+.ob-inp:focus{outline:none;border-style:solid;border-color:var(--bnb);}
+.ob-now{margin:16px 0 8px;font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--bnb);}
+.ob-reads{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:10px;}
+.ob-read{all:unset;box-sizing:border-box;cursor:pointer;display:block;padding:11px 13px;border-radius:10px;border:1px solid var(--bdr2);background:var(--bg3);}
+.ob-read:hover{border-color:var(--bnb);}
+.ob-read-h{display:flex;align-items:center;gap:8px;margin-bottom:6px;font:800 14px/1 var(--font-mono);color:var(--text);}
+.ob-read-h img{border-radius:50%;} .ob-read-h i{margin-left:auto;font-style:normal;color:var(--muted);}
+.ob-line{display:block;font-size:13px;line-height:1.5;color:var(--text);}
+.ob-line b{font-weight:700;} .ob-wait{color:var(--muted);}
+.ob-note{font-size:12px;line-height:1.45;color:var(--muted);margin:10px 0 0;}
+.ob-acts{display:flex;flex-wrap:wrap;align-items:center;gap:8px 16px;margin-top:12px;}
+.ob-go{all:unset;box-sizing:border-box;cursor:pointer;min-height:42px;padding:10px 18px;border-radius:999px;background:var(--bnb);color:#14100a;font:700 13.5px/1.2 var(--font-ui);}
+:root.light .ob-go{color:#fff;}
+.ob-link{all:unset;box-sizing:border-box;cursor:pointer;padding:8px 2px;font:600 12.5px/1 var(--font-ui);color:var(--muted);text-decoration:underline;text-underline-offset:3px;}
+.ob-link:hover{color:var(--text);}
+
+.ob-since{margin:0 0 14px;padding:12px 14px;border-radius:12px;background:var(--bg2);border:1px solid var(--bdr2);font-family:var(--font-ui);}
+.ob-since-h{display:flex;align-items:baseline;gap:10px;margin-bottom:6px;}
+.ob-since-h b{font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--text);}
+.ob-since-h span{font-size:12px;color:var(--muted);}
+.ob-since-rows{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:0 18px;}
+.ob-srow{all:unset;box-sizing:border-box;cursor:pointer;display:flex;align-items:center;gap:12px;padding:8px 4px;border-bottom:1px solid var(--bdr);border-radius:4px;}
+.ob-srow:hover{background:var(--w005);}
+.ob-sn{display:flex;align-items:center;gap:8px;min-width:74px;font:700 13px/1 var(--font-mono);color:var(--text);} .ob-sn img{border-radius:50%;}
+.ob-sv{font:500 12.5px/1 var(--font-mono);color:var(--muted);white-space:nowrap;} .ob-sv em{font-style:normal;font-family:var(--font-ui);font-size:11.5px;}
+.ob-sv b{color:var(--text);} .ob-sv b.up{color:var(--green);} .ob-sv b.dn{color:var(--red);}
+.ob-since-pro{display:flex;flex-wrap:wrap;align-items:center;gap:8px 12px;margin-top:10px;font-size:12.5px;color:var(--muted);}
+.ob-since-pro button{all:unset;box-sizing:border-box;cursor:pointer;padding:7px 14px;border-radius:999px;background:var(--pro);color:#fff;font:700 12px/1 var(--font-ui);}
+@media(max-width:600px){ .ob-card{padding:14px 14px 12px;} .ob-q{font-size:18px;} .ob-inp{font-size:16px;max-width:none;} .ob-go{flex:1 1 100%;text-align:center;} }
