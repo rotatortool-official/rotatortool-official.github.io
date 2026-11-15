@@ -44,7 +44,7 @@
 <!-- HOME PAGE since 2026-10-20 (Daniel: "make the landing page the home
      page for everyone and move the board to its own address"). The board
      lives at board.html. Links that were meant for the board keep working:
-     ?coin= and any #anchor that is not one of this page's own sections go
+     ?coin=, ?strength= and any #anchor that is not one of this page's own sections go
      straight on to board.html, as does ?donate (opens Support); ?ref= and utm_* stay here (so a referred or
      social visitor sees the landing page) and ride along on every link
      into the board, where the referral and arrival counts happen. -->
@@ -53,7 +53,7 @@
   try {
     var q = new URLSearchParams(location.search), h = location.hash;
     var own = /^#(hero|today|capital|momentum|insight|alerts|calc|plans|liq|yours|coins|score|tool|record|cases|end)?$/.test(h);
-    if (q.has('coin') || q.has('donate') || (h && !own)) { location.replace('../board.html' + location.search + h); return; }
+    if (q.has('coin') || q.has('strength') || q.has('donate') || (h && !own)) { location.replace('../board.html' + location.search + h); return; }
     /* Language (Daniel, 2026-10-21: "loads default on portuguese if someone
        from brazil opens it"). On the English page at / only: a pick from the
        language menu or footer is remembered and wins; without one, the first
