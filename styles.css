@@ -8209,3 +8209,32 @@ button.td-vd:focus-visible{outline:2px solid var(--bnb);outline-offset:2px;}
 .tdp-rsi-key .tdp-rsi{position:static;margin:0;flex:0 0 auto;}
 .tdp-rsi-key span + .tdp-rsi{margin-left:8px;}
 .tdp-rsi-read{color:var(--amber,#f0b90b);font-weight:600;}
+
+/* ── Find anything (2026-11-16, js/board-tabs.js): board parts above the
+   coins in both searches; the phone MORE menu's follow row; the BTC
+   trend line a tap on "▼ BTC" opens on phones. ── */
+.fs-group{padding:4px 0 2px;border-bottom:1px solid var(--bdr);}
+.fs-h{padding:8px 12px 4px;font-size:10.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);font-weight:600;}
+.fs-it{display:flex;align-items:center;gap:10px;padding:9px 12px;color:var(--text);text-decoration:none;font-size:13px;min-height:40px;box-sizing:border-box;}
+.fs-it:hover,.fs-it:focus-visible{background:var(--bg3);outline:none;}
+.fs-it svg{width:17px;height:17px;flex-shrink:0;color:var(--bnb);}
+.fs-it .fs-n{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.fs-it .fs-sub{font-size:11px;color:var(--muted);flex-shrink:0;}
+.fs-it .tr-pro{font-style:normal;font-size:9.5px;font-weight:700;color:var(--bnb);border:1px solid var(--bnb);border-radius:4px;padding:0 4px;}
+.mm-follow{display:flex;align-items:center;flex-wrap:wrap;gap:6px;padding:8px 14px;}
+.mm-follow-h{font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);margin-right:4px;}
+.mm-f{display:inline-flex;align-items:center;justify-content:center;width:36px;height:36px;border-radius:50%;background:var(--bg3);border:1px solid var(--bdr);color:var(--text);text-decoration:none;font-size:15px;}
+.mm-f:active{transform:scale(.94);}
+.btc-why{display:none;position:fixed;left:8px;right:8px;z-index:102;padding:10px 12px;border-radius:10px;background:var(--bg2);border:1px solid var(--bdr2);box-shadow:0 10px 24px var(--b05);font-size:13px;line-height:1.45;color:var(--text);}
+.btc-why.show{display:block;}
+.btc-why a{color:var(--bnb);font-weight:600;white-space:nowrap;}
+:root.light .btc-why a,:root.light .fs-it svg{color:var(--gold-ink,var(--bnb));}
+@media(max-width:700px) and (orientation:portrait){
+  .bear-banner{display:none !important;}
+}
+@media(min-width:701px){ .btc-why{display:none !important;} }
+/* The phone search box had no style of its own: a white 18 px field whose
+   13 px text made iPhone zoom in on tap. 16 px stops the zoom. */
+.mob-search-inner{display:flex;align-items:center;gap:8px;margin:8px 10px 4px;padding:0 10px;border:1px solid var(--bdr2);border-radius:10px;background:var(--bg3);}
+.mob-search-input{flex:1;min-width:0;height:44px;border:0;outline:0;background:transparent;color:var(--text);font:16px var(--font-ui);}
+.mob-search-input::placeholder{color:var(--muted);}

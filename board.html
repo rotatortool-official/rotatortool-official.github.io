@@ -44,7 +44,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Rotator">
 
-  <link rel="stylesheet" href="styles.css?v=20261115cw">
+  <link rel="stylesheet" href="styles.css?v=20261116nav">
   <script src="js/theme-mode.js"></script>
 
   <!-- Umami Cloud analytics (privacy-friendly, no cookies). Replace data-website-id after signup at cloud.umami.is. -->
@@ -1952,31 +1952,18 @@
   <button type="button" class="mob-more-item" onclick="openPro();closeMobMore();">
     <span class="mmi-ico" aria-hidden="true">⚡</span><span>Unlock Pro</span>
   </button>
-  <!-- Connections: the top bar's "Follow Rotator" menu, for phones -->
-  <a class="mob-more-item" href="https://x.com/RotatorTool" target="_blank" rel="noopener" onclick="closeMobMore();">
-    <span class="mmi-ico" aria-hidden="true">𝕏</span><span>X <span class="tb-dd-handle">@RotatorTool</span></span>
-  </a>
-  <a class="mob-more-item" href="https://rotatortool.substack.com/" target="_blank" rel="noopener" onclick="closeMobMore();">
-    <span class="mmi-ico" aria-hidden="true">📰</span><span>Weekly on Substack</span>
-  </a>
-  <a class="mob-more-item" href="https://t.me/rotatortool" target="_blank" rel="noopener" onclick="closeMobMore(); return joinTelegram(event);">
-    <span class="mmi-ico" aria-hidden="true">✈</span><span>Telegram channel</span>
-  </a>
-  <a class="mob-more-item" href="https://www.instagram.com/rotatortool/" target="_blank" rel="noopener" onclick="closeMobMore();">
-    <span class="mmi-ico" aria-hidden="true">📷</span><span>Instagram <span class="tb-dd-handle">@rotatortool</span></span>
-  </a>
-  <a class="mob-more-item" href="https://www.facebook.com/profile.php?id=61595578521148" target="_blank" rel="noopener" onclick="closeMobMore();">
-    <span class="mmi-ico" aria-hidden="true">f</span><span>Facebook <span class="tb-dd-handle">Rotatortool.com</span></span>
-  </a>
-  <a class="mob-more-item" href="https://www.youtube.com/@RotatorTool" target="_blank" rel="noopener" onclick="closeMobMore();">
-    <span class="mmi-ico" aria-hidden="true">▶</span><span>YouTube <span class="tb-dd-handle">@RotatorTool</span></span>
-  </a>
-  <a class="mob-more-item" href="https://www.tiktok.com/@rotatortool.com" target="_blank" rel="noopener" onclick="closeMobMore();">
-    <span class="mmi-ico" aria-hidden="true">♪</span><span>TikTok <span class="tb-dd-handle">@rotatortool.com</span></span>
-  </a>
-  <a class="mob-more-item" href="https://www.threads.com/@rotatortool" target="_blank" rel="noopener" onclick="closeMobMore();">
-    <span class="mmi-ico" aria-hidden="true">@</span><span>Threads <span class="tb-dd-handle">@rotatortool</span></span>
-  </a>
+  <!-- Connections, one row of icons (2026-11-16): the eight links filled
+       most of the menu and pushed the board's own parts out of sight. -->
+  <div class="mm-follow" role="group" aria-label="Follow Rotator"><span class="mm-follow-h">Follow</span>
+    <a class="mm-f" href="https://x.com/RotatorTool" target="_blank" rel="noopener" title="X @RotatorTool" aria-label="X @RotatorTool" onclick="closeMobMore();">𝕏</a>
+    <a class="mm-f" href="https://rotatortool.substack.com/" target="_blank" rel="noopener" title="Weekly on Substack" aria-label="Weekly on Substack" onclick="closeMobMore();">📰</a>
+    <a class="mm-f" href="https://t.me/rotatortool" target="_blank" rel="noopener" title="Telegram channel" aria-label="Telegram channel" onclick="closeMobMore(); return joinTelegram(event);">✈</a>
+    <a class="mm-f" href="https://www.instagram.com/rotatortool/" target="_blank" rel="noopener" title="Instagram @rotatortool" aria-label="Instagram @rotatortool" onclick="closeMobMore();">📷</a>
+    <a class="mm-f" href="https://www.facebook.com/profile.php?id=61595578521148" target="_blank" rel="noopener" title="Facebook Rotatortool.com" aria-label="Facebook Rotatortool.com" onclick="closeMobMore();">f</a>
+    <a class="mm-f" href="https://www.youtube.com/@RotatorTool" target="_blank" rel="noopener" title="YouTube @RotatorTool" aria-label="YouTube @RotatorTool" onclick="closeMobMore();">▶</a>
+    <a class="mm-f" href="https://www.tiktok.com/@rotatortool.com" target="_blank" rel="noopener" title="TikTok @rotatortool.com" aria-label="TikTok @rotatortool.com" onclick="closeMobMore();">♪</a>
+    <a class="mm-f" href="https://www.threads.com/@rotatortool" target="_blank" rel="noopener" title="Threads @rotatortool" aria-label="Threads @rotatortool" onclick="closeMobMore();">@</a>
+  </div>
   <button type="button" class="mob-more-item" onclick="openSignalAssistant();closeMobMore();">
     <span class="mmi-ico" aria-hidden="true">🤖</span><span>AI Summary Assistant</span>
   </button>
@@ -2081,7 +2068,7 @@
   <script src="js/onboard.js?v=20261115oc"></script>
   <script src="js/paper-trades.js"></script>
   <script src="js/engage.js?v=20261103vc"></script>
-  <script src="js/board-tabs.js?v=20261115ob"></script>
+  <script src="js/board-tabs.js?v=20261116nav"></script>
   <script>
   /* Phones and tablets (2026-10-24, iPhone reloads): HOME replaces the
      board instead of stacking the landing on top of it, so Safari never

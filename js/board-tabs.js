@@ -38,13 +38,13 @@
   /* Each piece: k = its address word, el = the board element it scrolls to. */
   var TABS = [
     { id: 'today', lead: 'The day in one look: the market, sentiment, and the macro behind it.', name: 'Today', icon: 'sun', mob: 'TODAY', secs: ['sec-today'], items: [
-      { k: 'look', el: 'day-brief', n: 'Today in one look', i: 'sun' },
-      { k: 'now', el: 'mkt-now', n: 'Market now', i: 'bars' },
-      { k: 'cards', el: 'briefing', n: 'Daily news', i: 'globe' },
+      { k: 'look', el: 'day-brief', n: 'Today in one look', i: 'sun', q: 'summary overview brief market today' },
+      { k: 'now', el: 'mkt-now', n: 'Market now', i: 'bars', q: 'fear greed sentiment btc dominance macro market' },
+      { k: 'cards', el: 'briefing', n: 'Daily news', i: 'globe', q: 'news headlines briefing' },
       { k: 'research', el: 'sec-research', tab: 'research', n: 'Research desk', i: 'book' }
     ], pages: [['https://rotatortool.substack.com/', 'Rotator Weekly (Substack)', 'cal']] },
     { id: 'research', lead: 'Pick a coin and get its story in plain words, with a card you can share.', name: 'Research', icon: 'book', mob: 'RESEARCH', secs: ['sec-research'], items: [
-      { k: 'desk', el: 'sec-research', n: 'Coin story', i: 'book' },
+      { k: 'desk', el: 'sec-research', n: 'Coin story', i: 'book', q: 'research story article write coin' },
       { k: 'focus', el: 'rr-quick', n: 'Publisher tools', i: 'target' },
       { k: 'story', el: 'rr-content', n: 'Article & graphs', i: 'chart' },
       { k: 'components', el: 'rr-publication', n: 'Social components', i: 'chart' },
@@ -52,36 +52,36 @@
       { k: 'history', el: 'rr-compare', n: 'Compare runs', i: 'log' }
     ] },
     { id: 'flows', lead: 'Where money moved: what came in, what left, and supply about to reach the market.', name: 'Money flows', icon: 'rot', mob: 'FLOWS', secs: ['sec-capital'], items: [
-      { k: 'rotation', el: 'sec-capital', n: 'Capital rotation', i: 'rot', g: 'Coming in, going out' },
-      { k: 'etf', el: 'etf-strip', n: 'ETF flows', i: 'etf', g: 'Coming in, going out' },
-      { k: 'stables', el: 'cf-strip', n: 'Stablecoins by chain', i: 'chain', g: 'Coming in, going out' },
-      { k: 'unlocks', el: 'ul-strip', n: 'Token unlocks', i: 'lock', g: 'Supply pressure' }
+      { k: 'rotation', el: 'sec-capital', n: 'Capital rotation', i: 'rot', g: 'Coming in, going out', q: 'capital rotation sectors money moving' },
+      { k: 'etf', el: 'etf-strip', n: 'ETF flows', i: 'etf', g: 'Coming in, going out', q: 'etf bitcoin ethereum fund blackrock ibit inflow outflow' },
+      { k: 'stables', el: 'cf-strip', n: 'Stablecoins by chain', i: 'chain', g: 'Coming in, going out', q: 'stablecoin usdt usdc chain flows' },
+      { k: 'unlocks', el: 'ul-strip', n: 'Token unlocks', i: 'lock', g: 'Supply pressure', q: 'unlock unlocks vesting supply inflation' }
     ], pages: [['bitcoin-etf-flows.html', 'Bitcoin ETF page', 'etf'], ['token-unlocks.html', 'Unlocks calendar', 'cal']] },
     { id: 'coins', lead: 'Every tracked coin: who leads, who may be turning, and the full table.', name: 'Coins', icon: 'list', mob: 'COINS', secs: ['sec-rotation', 'sec-coins', 'sec-record'], items: [
-      { k: 'turns', el: 'turn-scan', n: 'Turn signs', i: 'turn', g: 'Movers' },
-      { k: 'strength', el: 'rs-box', n: 'Strength analyser', i: 'chart', g: 'Movers' },
-      { k: 'hot', el: 'ch-hot', n: "What's hot", i: 'fire', g: 'Movers' },
-      { k: 'best', el: 'mom-cards', n: 'Momentum: best', i: 'up', g: 'Movers' },
-      { k: 'worst', el: 'worst-cards', n: 'Momentum: worst', i: 'down', g: 'Movers' },
-      { k: 'all', el: 'sec-coins', n: 'All coins', i: 'list', g: 'Lists' },
-      { k: 'record', el: 'sec-record', n: 'Record', i: 'clock', g: 'Lists' }
-    ], pages: [['golden-cross.html', 'Golden & death cross', 'cross']] },
+      { k: 'turns', el: 'turn-scan', n: 'Turn signs', i: 'turn', g: 'Movers', q: 'turn reversal rsi reclaim oversold bottom' },
+      { k: 'strength', el: 'rs-box', n: 'Strength analyser', i: 'chart', g: 'Movers', q: 'strength relative compare vs' },
+      { k: 'hot', el: 'ch-hot', n: "What's hot", i: 'fire', g: 'Movers', q: 'hot trending pump gainers' },
+      { k: 'best', el: 'mom-cards', n: 'Momentum: best', i: 'up', g: 'Movers', q: 'momentum best top gainers leaders' },
+      { k: 'worst', el: 'worst-cards', n: 'Momentum: worst', i: 'down', g: 'Movers', q: 'momentum worst losers laggards' },
+      { k: 'all', el: 'sec-coins', n: 'All coins', i: 'list', g: 'Lists', q: 'all coins table leaderboard list score' },
+      { k: 'record', el: 'sec-record', n: 'Record', i: 'clock', g: 'Lists', q: 'record track history results' }
+    ], pages: [['coin/', 'A page for every coin', 'list'], ['golden-cross.html', 'Golden & death cross', 'cross']] },
     { id: 'deriv', lead: 'Futures traders: who got forced out of their positions, and when.', name: 'Derivatives', icon: 'bolt', mob: 'DERIV', secs: ['sec-liq'], items: [
-      { k: 'liq', el: 'sec-liq', n: 'Liquidations', i: 'bolt', g: 'Market' },
-      { k: 'percoin', el: 'sec-coins', tab: 'coins', n: 'Funding & positioning', i: 'pct', g: 'Per coin', pro: 1, l: 'Open any coin' }
+      { k: 'liq', el: 'sec-liq', n: 'Liquidations', i: 'bolt', g: 'Market', q: 'liquidations liquidated rekt longs shorts futures' },
+      { k: 'percoin', el: 'sec-coins', tab: 'coins', n: 'Funding & positioning', i: 'pct', g: 'Per coin', pro: 1, l: 'Open any coin', q: 'funding open interest long short ratio' }
     ] },
     /* Daniel, 2026-11-04: the Portfolio buttons "almost do the same thing".
        Three groups now (summary / your coins / notifications), and a piece
        that needs a coin first says so (w) and points at "Add your first
        coin" (empty) instead of the section top. */
     { id: 'mine', lead: 'What you hold and watch, with the warnings and tools that follow your coins.', name: 'My holdings', title: 'Portfolio tracker', icon: 'wallet', mob: 'HOLDINGS', mine: 1, empty: '.tile-placeholder-lead', secs: ['sec-yours', 'sec-swap'], items: [
-      { k: 'signal', el: 'sig-box-crypto', n: 'Portfolio Signal', i: 'sig', g: 'Summary', w: 1 },
-      { k: 'chart', el: 'hold-chart', n: 'Your coins on one chart', i: 'chart', g: 'Summary', w: 1 },
-      { k: 'holdings', el: 'tiles-grid', n: 'Holdings & watchlist', i: 'wallet', g: 'Your coins' },
-      { k: 'whatif', el: 'paper-trades', n: 'What-if trades', i: 'what', g: 'Your coins' },
-      { k: 'alerts', el: 'coin-alerts', n: 'Alerts for your coins', i: 'bell', g: 'Notifications' },
-      { k: 'opps', el: 'rot-beside', n: 'Rotation opportunities', i: 'target', g: 'Tools', w: 1 },
-      { k: 'tool', el: 'sec-swap', n: 'Rotator Tool', i: 'swap', g: 'Tools' }
+      { k: 'signal', el: 'sig-box-crypto', n: 'Portfolio Signal', i: 'sig', g: 'Summary', w: 1, q: 'portfolio signal' },
+      { k: 'chart', el: 'hold-chart', n: 'Your coins on one chart', i: 'chart', g: 'Summary', w: 1, q: 'portfolio chart' },
+      { k: 'holdings', el: 'tiles-grid', n: 'Holdings & watchlist', i: 'wallet', g: 'Your coins', q: 'portfolio holdings watchlist add coin my coins' },
+      { k: 'whatif', el: 'paper-trades', n: 'What-if trades', i: 'what', g: 'Your coins', q: 'what if paper trade simulate' },
+      { k: 'alerts', el: 'coin-alerts', n: 'Alerts for your coins', i: 'bell', g: 'Notifications', q: 'alerts telegram notify bell price' },
+      { k: 'opps', el: 'rot-beside', n: 'Rotation opportunities', i: 'target', g: 'Tools', w: 1, q: 'rotation opportunities swap ideas' },
+      { k: 'tool', el: 'sec-swap', n: 'Rotator Tool', i: 'swap', g: 'Tools', q: 'rotator tool swap ratio pair' }
     ] }
   ];
   var LEARN = [
@@ -483,6 +483,121 @@
     var L = document.createElement('div'), R = document.createElement('div'); L.className = 'sup-l'; R.className = 'sup-r';
     kids.forEach(function (k, i) { (i >= a && i <= b ? R : L).appendChild(k); });
     body.appendChild(L); body.appendChild(R); body.classList.add('sup-split'); m.classList.add('sup-wide');
+  }
+
+  /* ── Find anything (2026-11-16): the coin search also finds the board's
+     own parts. Typing "etf", "unlocks" or "liquidations" used to answer
+     "No results found", because the search only knew coin names. The list
+     is built from TABS / LEARN above, so a piece added there is findable
+     with no extra work; its q: words are the other names people type.
+     An empty box shows a few places to start, for a first visit. ── */
+  var FIND = [];
+  TABS.forEach(function (t) {
+    t.items.forEach(function (it) {
+      if (it.tab) return;
+      FIND.push({ n: it.n, sub: t.name, i: it.i, pro: it.pro, hay: (it.n + ' ' + (it.q || '') + ' ' + t.name).toLowerCase(), go: [t.id, it.k] });
+    });
+    (t.pages || []).forEach(function (p) { FIND.push({ n: p[1], sub: 'Full page', i: p[2], hay: p[1].toLowerCase(), href: p[0] }); });
+  });
+  LEARN.forEach(function (l) { FIND.push({ n: l[1], sub: 'Learn', i: l[2], hay: (l[1] + ' learn help').toLowerCase(), run: /\(/.test(l[3]) ? l[3] : null, href: /\(/.test(l[3]) ? null : l[3] }); });
+  var START = [['coins', 'turns'], ['coins', 'all'], ['flows', 'etf'], ['deriv', 'liq'], ['mine', 'holdings'], ['flows', 'unlocks']];
+  function findParts(q) {
+    q = (q || '').toLowerCase().trim();
+    if (!q) return START.map(function (s) { return FIND.filter(function (f) { return f.go && f.go[0] === s[0] && f.go[1] === s[1]; })[0]; }).filter(Boolean);
+    var words = q.split(/\s+/);
+    return FIND.map(function (f) {
+      var nm = f.n.toLowerCase(), sc = 0;
+      for (var i = 0; i < words.length; i++) {
+        var w = words[i]; if (f.hay.indexOf(w) < 0) return null;
+        sc += nm.indexOf(w) === 0 ? 3 : nm.indexOf(w) >= 0 ? 2 : 1;
+      }
+      return { f: f, sc: sc };
+    }).filter(function (x) { return x && (q.length >= 2 || x.sc >= 3); })
+      .sort(function (a, b) { return b.sc - a.sc || (b.f.go ? 1 : 0) - (a.f.go ? 1 : 0); }).slice(0, 4).map(function (x) { return x.f; });
+  }
+  function partsHTML(arr, q) {
+    if (!arr.length) return '';
+    return '<div class="fs-group" role="group" aria-label="On the board"><div class="fs-h">' + (q ? 'On the board' : 'Start here') + '</div>' + arr.map(function (f) {
+      var j = FIND.indexOf(f);
+      return '<a class="fs-it" href="' + (f.go ? '#' + f.go[0] + '-' + f.go[1] : f.href || '#') + '" data-fi="' + j + '"' + (f.href && /^https?:/.test(f.href) ? ' target="_blank" rel="noopener"' : '') + '>'
+        + ic(f.i) + '<span class="fs-n">' + f.n + '</span>' + (f.pro ? '<em class="tr-pro">PRO</em>' : '') + '<span class="fs-sub">' + f.sub + '</span></a>';
+    }).join('') + '</div>';
+  }
+  function addParts(q) {
+    var html = partsHTML(findParts(q), (q || '').trim());
+    ['topbar-search-results', 'mob-search-results'].forEach(function (id) {
+      var box = $(id); if (!box) return;
+      var old = box.querySelector('.fs-group'); if (old) old.remove();
+      if (!html) return;
+      /* Something on the board matched: "No results found" for coins would read as if nothing did. */
+      var none = box.querySelector('.topbar-search-empty'); if (none) none.remove();
+      box.insertAdjacentHTML('afterbegin', html);
+      if (box.children.length > 1 && !box.querySelector('.fs-coins-h')) {
+        var h = document.createElement('div'); h.className = 'fs-h fs-coins-h'; h.textContent = 'Coins';
+        box.insertBefore(h, box.children[1]);
+      }
+    });
+  }
+  ['topbar-search-results', 'mob-search-results'].forEach(function (id) {
+    var box = $(id); if (!box) return;
+    box.addEventListener('click', function (e) {
+      var a = e.target.closest('a[data-fi]'); if (!a) return;
+      var f = FIND[+a.getAttribute('data-fi')]; if (!f) return;
+      if (f.href && !f.go) { if (typeof toggleTopbarSearch === 'function') toggleTopbarSearch(false); if (typeof toggleMobSearch === 'function') toggleMobSearch(false); return; }
+      e.preventDefault();
+      if (typeof toggleTopbarSearch === 'function') toggleTopbarSearch(false);
+      if (typeof toggleMobSearch === 'function') toggleMobSearch(false);
+      if (f.run) { try { (new Function(f.run))(); } catch (x) {} return; }
+      go(f.go[0], f.go[1]);
+    });
+  });
+  var hts0 = window.handleTopbarSearch;
+  if (typeof hts0 === 'function') window.handleTopbarSearch = function (q) { var r = hts0.apply(this, arguments); addParts(q); return r; };
+  ['toggleTopbarSearch', 'toggleMobSearch'].forEach(function (n) {
+    var f = window[n]; if (typeof f !== 'function') return;
+    window[n] = function () { var r = f.apply(this, arguments); var box = $(n === 'toggleMobSearch' ? 'mob-search-results' : 'topbar-search-results'); if (box && box.offsetParent !== null) addParts(''); return r; };
+  });
+  /* The phone search button used to jump to COINS first; it now opens
+     over the page you are on, since the answer may be on another tab. */
+  window.mobSearchCoins = function () { if (typeof toggleMobSearch === 'function') toggleMobSearch(true); };
+  ['topbar-search-input', 'mob-search-input'].forEach(function (id) {
+    var inp = $(id); if (!inp) return;
+    inp.placeholder = 'Search coins or the board: ETF, unlocks…';
+    /* Enter takes the first answer. */
+    inp.addEventListener('keydown', function (e) {
+      if (e.key !== 'Enter') return;
+      var box = $(id === 'mob-search-input' ? 'mob-search-results' : 'topbar-search-results');
+      var first = box && box.querySelector('.topbar-search-result-item, a[data-fi]');
+      if (first && inp.value.trim()) { e.preventDefault(); first.click(); }
+    });
+  });
+  var msl = document.querySelector('.mob-search-lbl'); if (msl) msl.textContent = 'SEARCH';
+  var msb = document.querySelector('.mob-topbar-search'); if (msb) { msb.title = 'Search coins and the board'; msb.setAttribute('aria-label', 'Search coins and the board'); }
+  window.BoardTabs.find = findParts;
+
+  /* ── Phones: "▼ BTC" said nothing to a new visitor and a tap reloaded
+     the page; the warning beside it was cut to "⚠ B…". A tap now opens
+     the sentence under the top bar, and the cut-off banner is hidden on
+     phones (styles.css .btc-why). ── */
+  var bcell = $('mob-btc-cell');
+  if (bcell) {
+    bcell.removeAttribute('onclick'); bcell.onclick = null;
+    bcell.title = 'BTC trend: tap for what it means'; bcell.setAttribute('aria-label', 'BTC trend: tap for what it means');
+    var why = document.createElement('div'); why.className = 'btc-why'; why.id = 'btc-why'; why.setAttribute('role', 'status');
+    document.body.appendChild(why);
+    bcell.addEventListener('click', function (e) {
+      e.stopPropagation();
+      if (why.classList.contains('show')) { why.classList.remove('show'); return; }
+      var pill = document.getElementById('btc-pill') || document.querySelector('.btc-pill'), down = /bear/.test(pill ? pill.className : '') || /▼/.test(($('mob-btc-txt') || {}).textContent || '');
+      var up = /bull/.test(pill ? pill.className : '');
+      why.innerHTML = '<b>' + (down ? '▼ BTC is in a downtrend.' : up ? '▲ BTC is in an uptrend.' : 'BTC trend is loading.') + '</b> '
+        + (down || up ? 'Its price is ' + (down ? 'below' : 'above') + ' its 200-day average, the line many traders use to tell an uptrend from a downtrend.' : '')
+        + ' <a href="#today-now">Market now ›</a>';
+      why.style.top = ((document.querySelector('.topbar') || {}).offsetHeight || 52) + 'px';
+      why.classList.add('show');
+    });
+    why.addEventListener('click', function (e) { var a = e.target.closest('a'); why.classList.remove('show'); if (a) { e.preventDefault(); go('today', 'now'); } });
+    document.addEventListener('click', function (e) { if (!bcell.contains(e.target)) why.classList.remove('show'); });
   }
 
   /* ── Start: the address, else the last tab you used, else Today ── */
