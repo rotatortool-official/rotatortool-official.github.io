@@ -199,10 +199,26 @@
      can learn the basics, and take the advanced approach once they master
      the website"). Lite: the card, one part at a time. Advanced: the card
      on top and every part open below it, as the board was before. The
-     choice stays in this browser. DEFAULT_VIEW is for anyone who never
-     chose. */
+     choice stays in this browser.
+     The first time this runs in a browser that never chose, it decides
+     once and saves it (Daniel, 2026-11-16: "Advanced for returning"):
+     someone who knew the board before (an earlier visit counted by
+     engage.js, which loads first, or coins already followed) starts on
+     Advanced; a first visit starts on Lite and stays there until the
+     reader switches. Saved, so a new visitor does not flip to Advanced
+     on their second visit. */
   var DEFAULT_VIEW = 'lite';
-  function view() { try { var v = localStorage.getItem('rot_view'); return v === 'adv' || v === 'lite' ? v : DEFAULT_VIEW; } catch (e) { return DEFAULT_VIEW; } }
+  function firstView() {
+    try {
+      var n = Number(localStorage.getItem('rot_visit_count')) || 0;   /* this visit already counted */
+      var days = 0; try { days = (JSON.parse(localStorage.getItem('rot_visit_days') || '{}') || {}).total || 0; } catch (e) {}
+      var had = n >= 2 || days >= 2 || ['rot_h5', 'rot_watchlist'].some(function (k) { var v = localStorage.getItem(k); return v && v !== '[]'; });
+      var v = had ? 'adv' : 'lite';
+      localStorage.setItem('rot_view', v);
+      return v;
+    } catch (e) { return DEFAULT_VIEW; }
+  }
+  function view() { try { var v = localStorage.getItem('rot_view'); return v === 'adv' || v === 'lite' ? v : firstView(); } catch (e) { return DEFAULT_VIEW; } }
   function lite() { return on() && view() === 'lite'; }
   /* Which parts this browser has opened in Lite: once every part of a tab
      has been seen, the card offers Advanced. */
