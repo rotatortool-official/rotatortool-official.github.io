@@ -8304,3 +8304,43 @@ button.td-vd:focus-visible{outline:2px solid var(--bnb);outline-offset:2px;}
 .mw-next .mw-close{color:var(--muted);font-weight:600;}
 /* The page's question card says the same thing as the summary: one is enough. */
 body.mw-on[data-tab="mine"] #tab-answer{display:none;}
+
+/* ── CALM FIRST on Today and Money flows (js/calm-tabs.js, 2026-11-16):
+   one summary card, one part open at a time (Lite), or every part open
+   (Advanced). Same look as #my-week. ── */
+.calm{margin:0 0 14px;}
+.calm-in{background:var(--bg2);border:1px solid var(--bdr2);border-left:3px solid var(--bnb);border-radius:12px;padding:14px 16px 10px;font-family:var(--font-ui);}
+.calm-h{display:flex;align-items:center;flex-wrap:wrap;gap:6px 10px;margin-bottom:6px;}
+.calm-title{font-size:12px;font-weight:800;letter-spacing:.09em;text-transform:uppercase;color:var(--bnb);}
+.calm-day{font-size:11.5px;color:var(--muted);}
+.calm-share{display:inline-flex;align-items:center;gap:5px;background:none;border:1px solid var(--bdr2);border-radius:999px;color:var(--text);font:700 11px var(--font-ui);padding:4px 10px;min-height:30px;cursor:pointer;}
+.calm-mode{margin-left:auto;display:inline-flex;border:1px solid var(--bdr2);border-radius:999px;overflow:hidden;}
+.calm-mode button{background:none;border:0;color:var(--muted);font:700 11px var(--font-ui);padding:5px 11px;cursor:pointer;min-height:30px;}
+.calm-mode button.on{background:var(--bnb);color:#14110a;}
+.calm-sum{margin:2px 0 10px;font-size:14.5px;line-height:1.45;color:var(--text);font-weight:600;}
+.calm-sum b.up{color:var(--green);} .calm-sum b.dn{color:var(--red);}
+.calm-g{margin:0 0 8px;}
+.calm-gt{font-size:10.5px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin:10px 0 4px;}
+.calm-g.up .calm-gt{color:var(--green);} .calm-g.dn .calm-gt{color:var(--red);}
+.calm-r{display:flex;align-items:center;gap:10px;width:100%;min-height:46px;padding:8px 10px;margin:0 0 4px;border:1px solid var(--bdr);border-radius:10px;background:var(--bg3);color:var(--text);font:13.5px/1.4 var(--font-ui);text-align:left;cursor:pointer;}
+.calm-r.on{border-color:var(--bnb);}
+.calm-t{flex:1;min-width:0;}
+.calm-t b{margin-right:2px;}
+.calm-t .up{color:var(--green);font-weight:700;} .calm-t .dn{color:var(--red);font-weight:700;}
+.calm-go{color:var(--muted);font-size:16px;width:14px;text-align:center;flex-shrink:0;}
+.calm-tag{flex-shrink:0;font-size:11px;font-weight:700;color:var(--muted);white-space:nowrap;}
+.calm-more{display:block;width:100%;margin:6px 0 2px;min-height:42px;border-radius:10px;border:1px dashed var(--bdr2);background:none;color:var(--bnb);font:700 13px var(--font-ui);cursor:pointer;}
+.calm-note{margin:6px 0 2px;font-size:11.5px;color:var(--muted);line-height:1.5;}
+.calm-link{background:none;border:0;padding:0;color:var(--bnb);font:700 11.5px var(--font-ui);cursor:pointer;text-decoration:underline;}
+/* The bar above an open part (where you are, what it is for) and the bar under it (walk on). */
+.calm-crumb{margin:0 0 8px;padding:10px 12px;border:1px solid var(--bdr2);border-left:3px solid var(--bnb);border-radius:10px;background:var(--bg2);font-family:var(--font-ui);}
+.calm-crumb-h{display:flex;align-items:center;justify-content:space-between;gap:10px;font-size:12px;color:var(--muted);}
+.calm-crumb-h b{color:var(--text);}
+.calm-crumb-h button{background:none;border:0;color:var(--bnb);font:700 12px var(--font-ui);cursor:pointer;padding:6px 0;min-height:32px;}
+.calm-crumb p{margin:4px 0 0;font-size:13px;line-height:1.45;color:var(--text);}
+.calm-nav{display:flex;justify-content:space-between;gap:8px;margin:4px 0 16px;padding:4px 12px;border:1px solid var(--bdr);border-radius:10px;background:var(--bg2);}
+.calm-nav button{font:700 13px var(--font-ui);border:0;background:none;color:var(--bnb);cursor:pointer;padding:8px 2px;min-height:40px;text-align:left;}
+.calm-nav .calm-close{color:var(--muted);font-weight:600;}
+.calm-hide{display:none !important;}
+body.calm-on .calm-fold:not(.calm-open){display:none !important;}
+body.calm-card[data-tab="flows"] #tab-answer{display:none;}

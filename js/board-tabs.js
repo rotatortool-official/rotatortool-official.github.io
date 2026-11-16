@@ -223,6 +223,9 @@
   }
   function shows(el) { return el && el.offsetParent !== null && el.offsetHeight > 0; }
   function target(it, t) {
+    /* Calm first (js/calm-tabs.js): a folded piece opens before we scroll to it. */
+    var cv = window.CalmTabs && window.CalmTabs.reveal(t.id, it.k);
+    if (cv) return cv;
     var el = $(it.el);
     /* A piece inside a closed fold (Research: publisher tools) opens its fold first. */
     var fold = el && el.closest && el.closest('details:not([open])');
