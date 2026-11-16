@@ -260,8 +260,9 @@
   function on() { return g('currentLang') !== 'mk'; }
   /* Lite and Advanced, as Binance Lite and Pro (Daniel, 2026-11-16: "users
      can learn the basics, and take the advanced approach once they master
-     the website"). Lite: the card, one part at a time. Advanced: the card
-     on top and every part open below it, as the board was before. The
+     the website"). Lite: the card, one part at a time. Advanced: no card,
+     every part open as the board was before, one slim line with the
+     switch. The
      choice stays in this browser.
      The first time this runs in a browser that never chose, it decides
      once and saves it (Daniel, 2026-11-16: "Advanced for returning"):
@@ -328,15 +329,27 @@
     var st = S[tab], el = card(tab);
     if (!el) return;
     var L = lite();
-    if (!on()) {
-      if (!el.hidden) { el.hidden = true; el.innerHTML = ''; st.sig = ''; }
-      document.body.classList.remove('calm-card');
-    } else document.body.classList.add('calm-card');
+    if (!on()) { if (!el.hidden) { el.hidden = true; el.innerHTML = ''; st.sig = ''; } }
+    /* calm-card: the summary card is showing (Lite), so the parts it repeats hide. */
+    document.body.classList.toggle('calm-card', L);
     document.body.classList.toggle('calm-on', L);
-    hides(tab, function (p) { p.classList.toggle('calm-hide', on()); });
+    hides(tab, function (p) { p.classList.toggle('calm-hide', L); });
     if (!L && (st.open || document.querySelector('.calm-crumb[data-calm-tab="' + tab + '"]'))) setOpen(tab, null);
     steps(tab, function (p) { p.classList.toggle('calm-fold', L); });
     if (!on()) return;
+    /* Advanced (Daniel, 2026-11-16: "when pressed advanced the lite part
+       should disappear ... if he is seeking advanced he doesn't need to
+       see lite"): no summary, the board as it was, and one slim line
+       with the switch so Lite is one tap away. */
+    if (!L) {
+      if (st.sig === 'adv') return;
+      st.sig = 'adv';
+      el.innerHTML = '<div class="calm-slim"><span>Advanced view: every part is open.</span>'
+        + '<span class="calm-mode" role="group" aria-label="View"><button type="button" data-calm-tab="' + tab + '" data-calm-view="lite" aria-pressed="false">Lite</button>'
+        + '<button type="button" class="on" data-calm-tab="' + tab + '" data-calm-view="adv" aria-pressed="true">Advanced</button></span></div>';
+      el.hidden = false;
+      return;
+    }
     var B = build(tab, gather(tab)), done = CFG[tab].steps.every(function (s) { return seen().indexOf(tab + ':' + s.k) >= 0; });
     var sig = JSON.stringify(B) + '|' + st.open + '|' + view() + '|' + done;
     if (sig === st.sig) return;
@@ -365,8 +378,7 @@
       }).join('')
       + (st.open || !L ? '' : '<button type="button" class="calm-more" data-calm-tab="' + tab + '" data-calm-more>See full breakdown ↓</button>')
       + '<p class="calm-note">' + esc(B.note)
-      + (L ? (done ? ' You have opened every part here. <button type="button" class="calm-link" data-calm-tab="' + tab + '" data-calm-view="adv">Advanced</button> shows them all at once.' : '')
-        : ' Advanced view: every part is open below. <button type="button" class="calm-link" data-calm-tab="' + tab + '" data-calm-view="lite">Lite</button> shows one at a time.')
+      + (done ? ' You have opened every part here. <button type="button" class="calm-link" data-calm-tab="' + tab + '" data-calm-view="adv">Advanced</button> shows them all at once.' : '')
       + '</p></div>';
     el.hidden = false;
   }
@@ -453,9 +465,9 @@
   function reveal(tab, k) {
     var c = CFG[tab]; if (!c || !on() || !(k in c.keys)) return null;
     render(tab);
+    if (!lite()) return null;   /* Advanced: every piece is open, land on it as before */
     var step = c.keys[k];
     if (step == null) return S[tab].card;
-    if (!lite()) return null;   /* Advanced: the piece is open, land on it as before */
     return setOpen(tab, step) || $(c.steps.filter(function (s) { return s.k === step; })[0].el);
   }
   /* Older code that scrolls to a piece by itself (rotScrollToEl) opens it too. */

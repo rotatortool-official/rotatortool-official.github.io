@@ -8468,3 +8468,6 @@ body.set-open #settings-backdrop{background:rgba(4,8,14,.46);}
   #settings-panel.set-glass .set-grp .set-seg .lang-sel-modal{max-width:100%;width:100%;flex-wrap:wrap;}
   #settings-panel.set-glass .set-grp .set-seg .lang-btn-modal{flex:1 1 0;}
 }
+/* Advanced (2026-11-16): no summary card, only this slim line with the switch. */
+.calm-slim{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:2px 2px 0;font:13px/1.4 var(--font-ui);color:var(--muted);}
+@media (max-width:900px){ .calm-slim{padding:2px 14px 0;} }
