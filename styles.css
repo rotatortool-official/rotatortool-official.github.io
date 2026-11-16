@@ -8350,3 +8350,121 @@ body.calm-card[data-tab="coins"] #tab-answer{display:none;}
 body:not([data-tab="today"]) .calm-crumb[data-calm-tab="today"], body:not([data-tab="today"]) .calm-nav[data-calm-tab="today"],
 body:not([data-tab="flows"]) .calm-crumb[data-calm-tab="flows"], body:not([data-tab="flows"]) .calm-nav[data-calm-tab="flows"],
 body:not([data-tab="coins"]) .calm-crumb[data-calm-tab="coins"], body:not([data-tab="coins"]) .calm-nav[data-calm-tab="coins"]{display:none;}
+
+/* ══ FLOW LOOK (2026-11-16, Daniel, after Wispr Flow: "the ratio of the
+   fonts, the size of sections and their proportions ... where are we
+   now"). The rules, kept everywhere below:
+   - One page title per screen, sentence case, the biggest text on it.
+   - Gold is the accent, used once or twice a screen: the place you are
+     (a thin line under the tab) and the main button. Headings, card
+     titles and active rows are white or grey.
+   - Type steps: 28 page title / 17 section and card title / 14.5 body /
+     13 secondary / 11 small capitals for group names.
+   - Cards: one surface, 1 px line, 16 px corners; no coloured edges.
+     Lists are rows in ONE box with hairlines, not a box per row.
+   - Windows: title 20 px, text 14 px at 1.6, a quiet round close.
+   - Settings: its own window, a short menu left, rows right (js/flow-look.js). ══ */
+:root{--fs-title:28px;--fs-h:17px;--fs-body:14.5px;--fs-sm:13px;--fs-cap:11px;--r-card:16px;}
+
+/* Where you are: the tab name in white with the gold line under it. */
+body.has-tabs .btab{color:var(--muted);font-weight:700;}
+body.has-tabs .btab:hover{color:var(--text);}
+body.has-tabs .btab.on{color:var(--text);background:none;}
+
+/* The rail: bigger words, a quiet grey pill for the active row, no gold. */
+body.has-tabs .tr-h{color:var(--muted);font-size:var(--fs-cap);letter-spacing:.12em;}
+body.has-tabs .tr-sep{font-size:10.5px;letter-spacing:.12em;opacity:.9;}
+body.has-tabs .tr-it{font-size:14px;font-weight:500;padding:9px 10px;gap:12px;border-radius:10px;}
+body.has-tabs .tr-it svg{width:17px;height:17px;}
+body.has-tabs .tr-it small{font-size:11px;}
+body.has-tabs .tr-it.on{background:var(--bg3);color:var(--text);font-weight:600;}
+body.has-tabs .tr-it.on::before{display:none;}
+
+/* Page title: desktop a touch calmer; phones get one too (they had none,
+   only the section name in capitals). */
+@media (min-width:901px){
+  body.has-tabs .tab-head h1{font-size:var(--fs-title);font-weight:700;letter-spacing:-.012em;}
+  body.has-tabs .tab-head p{font-size:var(--fs-body);}
+}
+@media (max-width:900px){
+  body.has-tabs .tab-head{display:block;padding:16px 14px 6px;}
+  body.has-tabs .tab-head h1{margin:0;font-size:24px;font-weight:700;letter-spacing:-.01em;line-height:1.2;color:var(--text);}
+  body.has-tabs .tab-head p{margin:5px 0 0;font-size:13.5px;line-height:1.5;color:var(--muted);}
+  /* One-section tabs: the page title already names it (as on desktop). */
+  body.has-tabs[data-tab="today"] #sec-today > .rsec-hdr,
+  body.has-tabs[data-tab="flows"] #sec-capital > .rsec-hdr,
+  body.has-tabs[data-tab="deriv"] #sec-liq > .rsec-hdr{display:none;}
+}
+/* Section names: sentence case, white, no gold bar. CSS only: the
+   Macedonian dictionary finds them by their capital-letter text. */
+body.has-tabs .rsec-label{display:block;font-size:var(--fs-h);font-weight:700;letter-spacing:0;text-transform:lowercase;color:var(--text);}
+body.has-tabs .rsec-label::first-letter{text-transform:uppercase;}
+body.has-tabs .rsec-label::before{display:none;}
+body.has-tabs .rsec-meta{padding-left:0;font-size:var(--fs-sm);opacity:1;color:var(--muted);}
+
+/* Summary cards (Today, Money flows, Coins, Your coins this week): one
+   surface, no gold edge, a white sentence-case title, rows in one box
+   with hairlines between them. */
+body.has-tabs .calm-in,body.has-tabs .mw{border:1px solid var(--bdr2);border-radius:var(--r-card);padding:20px 22px 14px;}
+body.has-tabs .calm-title,body.has-tabs .mw-title{font-size:var(--fs-h);font-weight:700;letter-spacing:-.005em;text-transform:none;color:var(--text);}
+body.has-tabs .calm-sum,body.has-tabs .mw-sum{font-size:15px;font-weight:500;line-height:1.5;}
+body.has-tabs .calm-gt,body.has-tabs .mw-gt{font-size:var(--fs-cap);letter-spacing:.1em;margin:16px 2px 6px;}
+body.has-tabs .calm-r,body.has-tabs .mw-r{margin:0;border:1px solid var(--bdr2);border-top-width:0;border-radius:0;background:var(--bg3);font-size:var(--fs-body);min-height:50px;padding:10px 14px;}
+body.has-tabs .calm-gt + .calm-r,body.has-tabs .mw-gt + .mw-r{border-top-width:1px;border-radius:12px 12px 0 0;}
+body.has-tabs .calm-r:last-child,body.has-tabs .mw-r:last-child{border-bottom-left-radius:12px;border-bottom-right-radius:12px;}
+body.has-tabs .calm-r:hover,body.has-tabs .mw-r:hover{background:color-mix(in srgb,var(--bg3) 92%,var(--text) 8%);}
+body.has-tabs .calm-r.on,body.has-tabs .mw-r.on{border-color:var(--bdr2);box-shadow:inset 3px 0 0 var(--bnb);}
+body.has-tabs .calm-mode button.on{background:var(--text);color:var(--bg);}
+body.has-tabs .calm-crumb{border-left-width:1px;border-left-color:var(--bdr2);border-radius:12px;}
+body.has-tabs .calm-crumb p{font-size:var(--fs-body);}
+
+/* Windows: a 20 px title in the page font, readable text, a quiet close. */
+body.has-tabs .modal-title{font-family:var(--font-ui);font-size:20px;font-weight:700;letter-spacing:-.005em;}
+body.has-tabs .modal-sub{font-family:var(--font-ui);font-size:14px;line-height:1.6;}
+body.has-tabs .modal-x{width:36px;height:36px;top:14px;right:14px;background:transparent;border-color:transparent;font-size:20px;color:var(--muted);}
+body.has-tabs .modal-x:hover{background:var(--bg3);border-color:var(--bdr2);color:var(--text);}
+@media (hover:none){ body.has-tabs .modal-x{width:44px;height:44px;top:8px;right:8px;} }
+
+/* ── Settings as its own window (js/flow-look.js) ── */
+#settings-panel .set-shell{display:flex;flex-direction:column;gap:12px;font-family:var(--font-ui);}
+#settings-panel .set-nav{display:flex;gap:4px;overflow-x:auto;scrollbar-width:none;margin:0 40px 2px 0;}
+#settings-panel .set-nav-h,#settings-panel .set-nav-foot{display:none;}
+#settings-panel .set-nav-it{flex:none;background:none;border:0;border-radius:10px;padding:8px 12px;min-height:38px;color:var(--muted);font:600 14px var(--font-ui);cursor:pointer;text-align:left;}
+#settings-panel .set-nav-it:hover{color:var(--text);}
+#settings-panel .set-nav-it.on{background:var(--bg3);color:var(--text);}
+#settings-panel .set-title{margin:4px 0 2px;font:400 26px/1.15 Georgia,"Times New Roman",serif;color:var(--text);letter-spacing:-.01em;}
+#settings-panel .set-lead{margin:0 0 14px;font-size:var(--fs-sm);color:var(--muted);line-height:1.5;}
+#settings-panel .set-grp{border:1px solid var(--bdr2);border-radius:14px;background:var(--bg3);overflow:hidden;}
+#settings-panel .set-grp > .setting-row,#settings-panel.set-glass .set-grp > .setting-row:not(.set-seg),#settings-panel.set-glass .set-grp > .setting-row.set-seg{display:flex;align-items:center;justify-content:space-between;gap:16px;margin:0;padding:16px 18px;border:0;border-top:1px solid var(--bdr2);border-radius:0;}
+#settings-panel .set-grp > .setting-row:first-child,#settings-panel.set-glass .set-grp > .setting-row:first-child{border-top:0;}
+#settings-panel .set-grp .setting-label,#settings-panel.set-glass .set-grp .set-seg .setting-label{font:600 14.5px/1.3 var(--font-ui);color:var(--text);letter-spacing:0;text-transform:none;margin:0;}
+#settings-panel .set-grp .setting-sub,#settings-panel.set-glass .set-grp .set-seg .setting-sub{display:block;font-size:var(--fs-sm);line-height:1.45;color:var(--muted);margin-top:3px;}
+#settings-panel.set-glass .set-grp .set-seg .lang-sel-modal{width:auto;max-width:none;flex:none;flex-wrap:nowrap;justify-content:flex-end;}
+#settings-panel.set-glass .set-grp .set-seg .lang-btn-modal{flex:0 0 auto;min-width:0;padding:0 10px;white-space:nowrap;}
+#settings-panel.set-glass .set-grp .set-seg > div:first-child{min-width:0;flex:1 1 160px;}
+#settings-panel .set-grp .tut-btn{display:inline-block;flex:none;background:var(--bg2);color:var(--text);border:1px solid var(--bdr2);border-radius:10px;font:600 13px var(--font-ui);letter-spacing:0;text-transform:lowercase;padding:9px 18px;min-height:38px;box-shadow:none;}
+#settings-panel .set-grp .tut-btn::first-letter{text-transform:uppercase;}
+#settings-panel .set-grp .tut-btn:hover{background:var(--bg);}
+#settings-panel .set-grp > .radio-setting{display:block;}
+/* Desktop: a centred window, menu left, the chosen part right (Flow's Settings). */
+body.has-tabs #settings-panel.set-glass.set-win{position:fixed !important;left:50% !important;top:50% !important;transform:translate(-50%,-50%);width:min(820px,94vw) !important;height:min(580px,88vh);max-height:none !important;padding:0 !important;overflow:hidden !important;border-radius:18px !important;border:1px solid var(--bdr2) !important;background:var(--bg2) !important;box-shadow:0 24px 70px rgba(0,0,0,.45) !important;animation:none !important;}
+#settings-panel.set-win::before{display:none;}
+#settings-panel.set-win .set-shell{flex-direction:row;gap:0;height:100%;animation:ovIn .22s ease;}
+#settings-panel.set-win .set-nav{flex:0 0 210px;flex-direction:column;gap:2px;margin:0;padding:20px 12px;background:var(--bg);border-right:1px solid var(--bdr2);overflow:auto;}
+#settings-panel.set-win .set-nav-h{display:block;font-size:var(--fs-cap);font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);margin:2px 12px 10px;}
+#settings-panel.set-win .set-nav-foot{display:block;margin:auto 12px 0;font-size:12px;color:var(--muted);}
+#settings-panel.set-win .set-nav-it{width:100%;}
+#settings-panel.set-win .set-main{flex:1;min-width:0;overflow:auto;padding:30px 36px 32px;}
+#settings-panel.set-win .modal-x{top:14px !important;right:14px !important;}
+body.set-open #settings-backdrop{background:rgba(4,8,14,.46);}
+:root.light body.set-open #settings-backdrop{background:rgba(15,23,36,.26);}
+/* Phones: the sheet stays; no blur behind it (iPhone memory, 2026-11). */
+@media (max-width:700px){
+  #settings-backdrop{backdrop-filter:none !important;-webkit-backdrop-filter:none !important;}
+  #settings-panel .set-title{font-size:22px;}
+  body.has-tabs #settings-panel.set-glass{width:100% !important;max-width:100% !important;}
+  #settings-panel .set-grp > .setting-row,#settings-panel.set-glass .set-grp > .setting-row:not(.set-seg),#settings-panel.set-glass .set-grp > .setting-row.set-seg{padding:14px;}
+  #settings-panel.set-glass .set-grp > .setting-row.set-seg,#settings-panel .set-grp > .radio-setting{flex-wrap:wrap;}
+  #settings-panel.set-glass .set-grp .set-seg .lang-sel-modal{max-width:100%;width:100%;flex-wrap:wrap;}
+  #settings-panel.set-glass .set-grp .set-seg .lang-btn-modal{flex:1 1 0;}
+}
