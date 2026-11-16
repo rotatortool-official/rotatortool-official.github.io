@@ -1125,6 +1125,18 @@ var RatioTracker = (function() {
     }
     updateLabels(); updateIcons(); renderSavedPairs(); updateStarBtn();
     _watchCollapseOpen();
+    /* No pair chosen yet, but coins held (2026-11-16, Daniel: the tool
+       showed BNB -> SOL to someone holding DEXE): start from the first coin
+       held, against the first watched coin, else BTC (ETH for BTC). */
+    if(!saved){
+      try{
+        var h=JSON.parse(localStorage.getItem('rot_h5')||'[]')[0], w=JSON.parse(localStorage.getItem('rot_watchlist')||'[]');
+        if(h&&h.id){
+          var to=(w.filter(function(x){ return x&&x!==h.id; })[0])||(h.id==='bitcoin'?'ethereum':'bitcoin');
+          loadFavourite(h.id,to); return;
+        }
+      }catch(e){}
+    }
     loadAll(false);
   }
 

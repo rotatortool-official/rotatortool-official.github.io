@@ -75,6 +75,7 @@
        that needs a coin first says so (w) and points at "Add your first
        coin" (empty) instead of the section top. */
     { id: 'mine', lead: 'What you hold and watch, with the warnings and tools that follow your coins.', name: 'My holdings', title: 'Portfolio tracker', icon: 'wallet', mob: 'HOLDINGS', mine: 1, empty: '.tile-placeholder-lead', secs: ['sec-yours', 'sec-swap'], items: [
+      { k: 'week', el: 'my-week', n: 'Your coins this week', i: 'up', g: 'Summary', w: 1, q: 'performance vs market swap power ratio week compare share' },
       { k: 'signal', el: 'sig-box-crypto', n: 'Portfolio Signal', i: 'sig', g: 'Summary', w: 1, q: 'portfolio signal' },
       { k: 'chart', el: 'hold-chart', n: 'Your coins on one chart', i: 'chart', g: 'Summary', w: 1, q: 'portfolio chart' },
       { k: 'holdings', el: 'tiles-grid', n: 'Holdings & watchlist', i: 'wallet', g: 'Your coins', q: 'portfolio holdings watchlist add coin my coins' },

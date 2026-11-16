@@ -624,10 +624,13 @@ function _swapTutPlace(parts) {
   box.style.top  = Math.max(8, Math.min(top, vh - bh - 8)) / z + 'px';
 }
 
-// Auto-show swap tut on first visit to swap tool area
+// Auto-show swap tut on first visit to swap tool area.
+// OFF since 2026-11-16: it opened over the page when a holder scrolled past
+// the tool (the main tour stopped auto-starting on 2026-11-15 for the same
+// reason). The "? How it works" button beside the tool still starts it.
 document.addEventListener('DOMContentLoaded', function() {
   setTimeout(function() {
-    try { if (!localStorage.getItem('rot_swap_tut')) {
+    try { if (false && !localStorage.getItem('rot_swap_tut')) {
       var ratioSec = document.getElementById('ratio-section');
       if (ratioSec) {
         var obs = new IntersectionObserver(function(entries) {

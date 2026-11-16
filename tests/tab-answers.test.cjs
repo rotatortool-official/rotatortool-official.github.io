@@ -21,7 +21,12 @@ test('derivatives says how much was closed and on which side',()=>{
   assert.match(T.answers({coins,liq:{long:1e6,short:9e6,hours:1}}).deriv.a,/in 1 hour, 90% of them bets on a fall\.$/);});
 test('my holdings counts the reader\'s coins by id or symbol, or invites the first one',()=>{
   assert.equal(T.answers({coins,mine:[]}).mine.go,'Add a coin');
-  assert.equal(T.answers({coins,mine:['c0','C19','c12']}).mine.a,'You follow 3 coins: 2 up, 1 down this week.');});
+  assert.equal(T.answers({coins,mine:['c0','C19','c12']}).mine.a,'You follow 3 coins this week: 2 did better than the average coin, 1 worse. The average coin is +0.0%.');
+  assert.equal(T.answers({coins,mine:['c0']}).mine.k,'week');});
+test('my holdings: in a falling week, a coin that fell less did better than the market',()=>{
+  const down=coins.map(c=>({...c,p7:c.p7-10}));   // median -10
+  assert.equal(T.answers({coins:down,mine:['c12','c9']}).mine.a,'You follow 2 coins this week: 1 did better than the average coin, 1 worse. The average coin is −10%.');   // c12 fell 5%, c9 fell 11%
+  assert.match(T.answers({coins:[{id:'a',sym:'A',p7:5}],mine:['a']}).mine.a,/^You follow 1 coin: 1 up, 0 down this week\.$/);});
 test('Macedonian uses the plain words and no forecast words',()=>{const A=T.answers({coins:coins.map(c=>({...c,p7:c.p7-10})),mk:true,fearGreed:{value:20,label:'Extreme Fear'}});
   assert.match(A.today.a,/^Во опаѓање\. 5 од 20 монети се во пораст оваа недела; просечната монета е −10%\.$/);
   assert.ok(!/биковск|мечкин/.test(JSON.stringify(A)));});

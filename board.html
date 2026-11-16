@@ -44,7 +44,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Rotator">
 
-  <link rel="stylesheet" href="styles.css?v=20261116nav">
+  <link rel="stylesheet" href="styles.css?v=20261116mw">
   <script src="js/theme-mode.js"></script>
 
   <!-- Umami Cloud analytics (privacy-friendly, no cookies). Replace data-website-id after signup at cloud.umami.is. -->
@@ -684,7 +684,7 @@
 <div class="overlay viral-share-overlay" id="viral-share-modal" onclick="if(event.target===this)closeViralShare()">
   <div class="viral-share-modal">
     <button class="modal-x" onclick="closeViralShare()" aria-label="Close">×</button>
-    <div class="viral-share-title">Share This Signal</div>
+    <div class="viral-share-title">Share this card</div>
     <div class="viral-share-sub">Spread the word — your referral link is embedded automatically.</div>
     <!-- Image preview -->
     <div class="viral-share-preview" id="viral-share-preview"></div>
@@ -1357,6 +1357,8 @@
     <div class="rsec-hdr"><span class="rsec-label">MY HOLDINGS</span><span class="rsec-meta" id="rsec-meta-yours">track what you hold and watch; warnings and notifications follow your coins</span></div>
   <!-- SINCE YOUR LAST VISIT: each coin against the last time you were here (js/onboard.js, 2026-11-15) -->
   <div id="ob-since" hidden></div>
+  <!-- YOUR COINS THIS WEEK: each coin against the market and what it buys now vs a week ago, bars + share card (js/my-week.js, 2026-11-16) -->
+  <div id="my-week" hidden></div>
   <div class="sidebar">
     <!-- Left column on the light desktop layout (2026-10-21): the signal
          with the alerts under it. display:contents everywhere else, so the
@@ -2036,15 +2038,15 @@
   <!-- The Macedonian dictionary only when MK is the saved choice (2026-10-11):
        ~270 KB that English visitors no longer download. A switch to MK on
        the page loads it from js/i18n-mk.js. -->
-  <script>try { if (localStorage.getItem('rot_lang') === 'mk') document.write('<script src="js/i18n-mk-dict.js?v=20261115cw"><\/script><script src="js/i18n-mk-legal.js"><\/script>'); } catch (e) {}</script>
+  <script>try { if (localStorage.getItem('rot_lang') === 'mk') document.write('<script src="js/i18n-mk-dict.js?v=20261116mw"><\/script><script src="js/i18n-mk-legal.js"><\/script>'); } catch (e) {}</script>
   <script src="js/chart-kit.js?v=20261114ck"></script>
   <script src="js/signals.js?v=20261115ob"></script>
   <script src="js/holdings.js?v=20261115cw"></script>
   <script src="js/share-brand.js"></script>
-<script src="js/ratio.js?v=20261103po"></script>
+<script src="js/ratio.js?v=20261116mw"></script>
   <script src="js/tutorial.js?v=20261115ob"></script>
   <script src="js/visuals.js"></script>
-  <script src="js/ui.js?v=20261115ob"></script>
+  <script src="js/ui.js?v=20261116mw"></script>
   <script src="js/signal-history.js"></script>
   <script src="js/global-movers.js"></script>
   <script src="js/data-loaders.js?v=20261115cw"></script>
@@ -2066,9 +2068,10 @@
   <script src="js/turn-watch.js?v=20261103cp"></script>
   <script src="js/strength.js?v=20261114dl"></script>
   <script src="js/onboard.js?v=20261115oc"></script>
+  <script src="js/my-week.js?v=20261116mw"></script>
   <script src="js/paper-trades.js"></script>
   <script src="js/engage.js?v=20261103vc"></script>
-  <script src="js/board-tabs.js?v=20261116nav"></script>
+  <script src="js/board-tabs.js?v=20261116mw"></script>
   <script>
   /* Phones and tablets (2026-10-24, iPhone reloads): HOME replaces the
      board instead of stacking the landing on top of it, so Safari never
@@ -2121,6 +2124,6 @@
   <script src="js/research-outputs.js?v=20261112explain2"></script>
   <script src="js/research-workflow.js?v=20261112explain2"></script>
   <script src="js/research-coin.js?v=20261115st"></script>
-  <script src="js/tab-answers.js?v=20261114top"></script>
+  <script src="js/tab-answers.js?v=20261116mw"></script>
 </body>
 </html>

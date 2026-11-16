@@ -105,11 +105,20 @@
         a: mk ? 'Сè уште не следите ниту една монета. Додајте една и нејзините предупредувања ќе се појават тука.' : 'You follow no coins yet. Add one and its warnings show up here.',
         go: mk ? 'Додај монета' : 'Add a coin', k: 'holdings' };
     } else {
-      var u = my.filter(function (c) { return c.p7 > 0; }).length;
+      /* Against the market, not just up or down (Daniel, 2026-11-16: "how my
+         holdings perform to the rest of the market"): in a falling week a
+         coin that fell less still did its job. Falls back to up/down while
+         the market's middle is not known yet. */
+      var mm = pool.length >= 10 ? median(pool.map(function (c) { return c.p7; })) : null;
+      var u = my.filter(function (c) { return mm == null ? c.p7 > 0 : c.p7 - mm >= 1; }).length;
+      var dn = mm == null ? my.length - u : my.filter(function (c) { return c.p7 - mm <= -1; }).length, eq = my.length - u - dn;
       out.mine = { q: mk ? 'Како им оди на моите монети?' : 'How are my coins doing?',
-        a: mk ? 'Следите ' + my.length + (my.length === 1 ? ' монета: ' : ' монети: ') + u + ' во пораст, ' + (my.length - u) + ' во опаѓање оваа недела.'
-              : 'You follow ' + my.length + (my.length === 1 ? ' coin: ' : ' coins: ') + u + ' up, ' + (my.length - u) + ' down this week.',
-        go: mk ? 'Види ги моите монети' : 'See my coins', k: 'holdings' };
+        a: mm == null
+          ? (mk ? 'Следите ' + my.length + (my.length === 1 ? ' монета: ' : ' монети: ') + u + ' во пораст, ' + (my.length - u) + ' во опаѓање оваа недела.'
+                : 'You follow ' + my.length + (my.length === 1 ? ' coin: ' : ' coins: ') + u + ' up, ' + (my.length - u) + ' down this week.')
+          : (mk ? 'Следите ' + my.length + (my.length === 1 ? ' монета' : ' монети') + ' оваа недела: ' + u + ' подобро од просечната монета, ' + dn + ' полошо' + (eq ? ', ' + eq + ' исто' : '') + '. Просечната монета е ' + sg(mm) + '.'
+                : 'You follow ' + my.length + (my.length === 1 ? ' coin' : ' coins') + ' this week: ' + u + ' did better than the average coin, ' + dn + ' worse' + (eq ? ', ' + eq + ' about the same' : '') + '. The average coin is ' + sg(mm) + '.'),
+        go: mk ? 'Види ја неделата' : 'See my week', k: 'week' };
     }
 
     /* Research */

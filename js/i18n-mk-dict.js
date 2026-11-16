@@ -494,6 +494,7 @@ Object.assign(MK_TEXT, {
   'amount': 'количина', 'Amount': 'Количина', 'avg buy price': 'просечна набавна цена', 'Average buy price': 'Просечна набавна цена',
   'Close tutorial': 'Затвори ја турата',
   'Share This Signal': 'Сподели го овој сигнал',
+  'Share this card': 'Сподели ја картичката',
   'Spread the word — your referral link is embedded automatically.': 'Раширете го гласот — вашиот линк за препорака е вметнат автоматски.',
   'SHARE MESSAGE': 'ПОРАКА ЗА СПОДЕЛУВАЊЕ', 'Try another message': 'Пробајте друга порака', 'Different message': 'Друга порака',
   'Share on X': 'Сподели на X', 'Share on Telegram': 'Сподели на Telegram', 'Share on WhatsApp': 'Сподели на WhatsApp',

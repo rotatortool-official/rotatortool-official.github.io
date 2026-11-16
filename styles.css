@@ -8238,3 +8238,48 @@ button.td-vd:focus-visible{outline:2px solid var(--bnb);outline-offset:2px;}
 .mob-search-inner{display:flex;align-items:center;gap:8px;margin:8px 10px 4px;padding:0 10px;border:1px solid var(--bdr2);border-radius:10px;background:var(--bg3);}
 .mob-search-input{flex:1;min-width:0;height:44px;border:0;outline:0;background:transparent;color:var(--text);font:16px var(--font-ui);}
 .mob-search-input::placeholder{color:var(--muted);}
+
+/* ── YOUR COINS THIS WEEK (js/my-week.js, 2026-11-16): one card per coin
+   with a gold edge, so it reads as its own part above the alerts. ── */
+#my-week{margin:0 0 14px;}
+.mw{background:var(--bg2);border:1px solid var(--bdr2);border-left:3px solid var(--bnb);border-radius:12px;padding:14px 16px 10px;font-family:var(--font-ui);}
+.mw-h{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:6px;}
+.mw-title{font-size:12px;font-weight:800;letter-spacing:.09em;text-transform:uppercase;color:var(--bnb);}
+.mw-per{display:inline-flex;border:1px solid var(--bdr2);border-radius:999px;overflow:hidden;}
+.mw-per button{background:none;border:0;color:var(--muted);font:700 11px var(--font-ui);padding:5px 11px;cursor:pointer;min-height:30px;}
+.mw-per button.on{background:var(--bnb);color:#14110a;}
+.mw-coin{padding:12px 0 10px;border-top:1px solid var(--bdr);}
+.mw-coin:first-of-type{border-top:0;}
+.mw-name{display:flex;align-items:center;gap:8px;font-size:16px;color:var(--text);}
+.mw-name img{border-radius:50%;}
+.mw-chip{margin-left:auto;font-size:10.5px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;padding:3px 8px;border-radius:999px;background:var(--bg3);color:var(--muted);border:1px solid var(--bdr2);}
+.mw-chip.up{color:var(--green);border-color:rgba(16,185,129,.35);background:var(--gd);}
+.mw-chip.dn{color:var(--red);border-color:rgba(239,68,68,.35);background:var(--rd);}
+.mw-sent{margin:8px 0 10px;font-size:14px;line-height:1.5;color:var(--text);}
+.mw-swap{background:var(--bg3);border:1px solid var(--bdr);border-radius:10px;padding:10px 12px;margin-bottom:12px;}
+.mw-swap-big{font-size:26px;font-weight:800;line-height:1.1;}
+.mw-swap-big small{font-size:13px;font-weight:600;color:var(--muted);}
+.mw-swap p{margin:6px 0 0;font-size:13.5px;line-height:1.45;color:var(--text);}
+.mw-swap .mw-ctx{color:var(--muted);font-size:12.5px;}
+.up.mw-swap-big,.mw-val.up{color:var(--green);} .dn.mw-swap-big,.mw-val.dn{color:var(--red);}
+.mw-gh{font-size:10.5px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin:2px 0 6px;}
+.mw-bars{display:flex;flex-direction:column;gap:5px;}
+.mw-row{display:grid;grid-template-columns:minmax(64px,auto) 1fr 58px;align-items:center;gap:8px;font-size:12.5px;}
+.mw-sym{font-weight:700;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:110px;}
+.mw-avg .mw-sym{color:var(--muted);font-weight:600;}
+.mw-track{position:relative;height:14px;}
+.mw-mid{position:absolute;left:50%;top:0;bottom:0;width:1px;background:var(--bdr2);}
+.mw-bar{position:absolute;top:2px;height:10px;border-radius:4px;}
+.mw-bar.up{background:var(--green);} .mw-bar.dn{background:var(--red);}
+.mw-avg .mw-bar{opacity:.55;}
+.mw-val{text-align:right;font-weight:700;font-variant-numeric:tabular-nums;}
+.mw-act{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px;}
+.mw-act button{font:700 12.5px var(--font-ui);border-radius:999px;padding:8px 14px;min-height:38px;cursor:pointer;border:1px solid var(--bdr2);background:var(--bg3);color:var(--text);}
+.mw-act .mw-share{background:var(--bnb);border-color:var(--bnb);color:#14110a;}
+.mw-note{margin:6px 0 2px;font-size:11.5px;color:var(--muted);line-height:1.45;}
+/* Phones: a short window (add a coin, install, tip) sat at the top with
+   the rest of the screen empty. margin:auto in the flex overlay centres it
+   when it fits and keeps it at the top, scrollable, when it is taller. */
+@media(max-width:700px) and (orientation:portrait){
+  .overlay.show > .modal{margin:auto !important;}
+}
