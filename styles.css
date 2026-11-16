@@ -8283,3 +8283,24 @@ button.td-vd:focus-visible{outline:2px solid var(--bnb);outline-offset:2px;}
 @media(max-width:700px) and (orientation:portrait){
   .overlay.show > .modal{margin:auto !important;}
 }
+/* Calm first (2026-11-16): summary rows, one breakdown at a time. */
+.mw-sum{margin:2px 0 10px;font-size:14.5px;line-height:1.45;color:var(--text);font-weight:600;}
+.mw-g{margin:0 0 8px;}
+.mw-gt{font-size:10.5px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin:10px 0 4px;}
+.mw-g.up .mw-gt{color:var(--green);} .mw-g.dn .mw-gt{color:var(--red);}
+.mw-r{display:flex;align-items:center;gap:10px;width:100%;min-height:48px;padding:8px 10px;margin:0 0 4px;border:1px solid var(--bdr);border-radius:10px;background:var(--bg3);color:var(--text);font:14px var(--font-ui);text-align:left;cursor:pointer;}
+.mw-r img,.mw-r .mw-dot{width:22px;height:22px;border-radius:50%;flex-shrink:0;}
+.mw-r .mw-dot{background:var(--bdr2);}
+.mw-r b{min-width:52px;}
+.mw-r-p{font-weight:700;font-variant-numeric:tabular-nums;}
+.mw-r-p.up,.mw-r-d.up{color:var(--green);} .mw-r-p.dn,.mw-r-d.dn{color:var(--red);}
+.mw-r-d{margin-left:auto;font-size:12px;color:var(--muted);white-space:nowrap;}
+.mw-r-go{color:var(--muted);font-size:16px;width:12px;text-align:center;}
+.mw-r.on{border-color:var(--bnb);}
+.mw-r + .mw-coin{border-top:0;padding:4px 2px 12px;}
+.mw-more{display:block;width:100%;margin:6px 0 2px;min-height:42px;border-radius:10px;border:1px dashed var(--bdr2);background:none;color:var(--bnb);font:700 13px var(--font-ui);cursor:pointer;}
+.mw-next{display:flex;justify-content:space-between;gap:8px;margin-top:12px;}
+.mw-next button{font:700 12.5px var(--font-ui);border:0;background:none;color:var(--bnb);cursor:pointer;padding:8px 2px;min-height:38px;}
+.mw-next .mw-close{color:var(--muted);font-weight:600;}
+/* The page's question card says the same thing as the summary: one is enough. */
+body.mw-on[data-tab="mine"] #tab-answer{display:none;}

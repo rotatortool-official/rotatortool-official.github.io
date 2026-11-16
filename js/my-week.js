@@ -108,33 +108,69 @@
     }).join('') + '</div>';
   }
 
-  var built = [];
+  /* Calm first (Daniel, 2026-11-16: "make it appear one at a time and lead
+     to another naturally, so users are not greeted with 3000 lines of
+     text"): the card opens as a short summary, your coins sorted into did
+     better / with the market / did worse, one line each. A tap on a coin
+     (or See full breakdown) opens that one coin's swap line, bars and
+     share; Next coin walks to the next, and after the last one the page
+     moves on to the alerts for your coins. Only one breakdown is open. */
+  var built = [], open = -1;
+  function chip(b) { return Math.abs(b.d) < 1 ? 'with the market' : (b.d > 0 ? '+' : '−') + ab(b.d) + ' pts vs market'; }
+  function rowHTML(b, i) {
+    var cl = b.d >= 1 ? 'up' : b.d <= -1 ? 'dn' : '';
+    return '<button type="button" class="mw-r' + (i === open ? ' on' : '') + '" data-open="' + i + '" aria-expanded="' + (i === open) + '">'
+      + (b.c.image ? '<img src="' + esc(b.c.image) + '" alt="" width="22" height="22" loading="lazy">' : '<span class="mw-dot"></span>')
+      + '<b>' + esc(b.S) + '</b><span class="mw-r-p ' + (b.p >= 0 ? 'up' : 'dn') + '">' + sg(b.p) + '</span>'
+      + '<span class="mw-r-d ' + cl + '">' + chip(b) + '</span><span class="mw-r-go" aria-hidden="true">' + (i === open ? '▾' : '›') + '</span></button>';
+  }
+  function detailHTML(b, i) {
+    var sl = swapLine(b, b.h.qty), next = built[i + 1];
+    return '<div class="mw-coin" id="mw-open">'
+      + '<p class="mw-sent">' + esc(b.sentence) + '</p>'
+      + (sl ? '<div class="mw-swap"><div class="mw-swap-big ' + (sl.t.chg >= 0 ? 'up' : 'dn') + '">' + sg(sl.t.chg) + ' <small>' + (sl.t.chg >= 0 ? 'more ' : 'less ') + esc(sl.t.sym) + ' per ' + esc(b.S) + '</small></div>'
+        + '<p>' + esc(sl.text) + '</p><p class="mw-ctx">' + esc(sl.ctx) + '</p></div>' : '')
+      + '<div class="mw-gh">What one ' + esc(b.S) + ' buys now, against ' + AGO() + '</div>'
+      + bars(b.rows)
+      + '<div class="mw-act"><button type="button" class="mw-share" data-i="' + i + '">Share this</button>'
+      + (sl ? '<button type="button" class="mw-tool" data-i="' + i + '">Open ' + esc(b.S) + ' → ' + esc(sl.t.sym) + ' in the Rotator Tool</button>' : '') + '</div>'
+      + '<div class="mw-next">' + (next ? '<button type="button" data-open="' + (i + 1) + '">Next coin: ' + esc(next.S) + ' →</button>'
+        : '<button type="button" data-next="alerts">Next: alerts for your coins ↓</button>') + '<button type="button" class="mw-close" data-open="-1">Close</button></div>'
+      + '</div>';
+  }
   function render() {
     var my = mine();
     var pool = list().filter(function (c) { return c && !c.isStable && !c.isStock && ok(ch(c)); });
     var mkt = pool.length >= 10 ? median(pool.map(ch)) : null;
-    var s = per + '|' + my.map(function (h) { return h.c.id + ':' + h.qty + ':' + ch(h.c); }).join(',') + '|' + mkt;
+    var s = per + '|' + open + '|' + my.map(function (h) { return h.c.id + ':' + h.qty + ':' + ch(h.c); }).join(',') + '|' + mkt;
     if (s === sig) return; sig = s;
-    if (!my.length || mkt == null) { host.hidden = true; host.innerHTML = ''; return; }
-    built = my.slice(0, 4).map(function (h) { return build(h, mkt); });
+    if (!my.length || mkt == null) { host.hidden = true; host.innerHTML = ''; document.body.classList.remove('mw-on'); return; }
+    /* Best against the market first, so the rows read top to bottom as the story. */
+    built = my.slice(0, 10).map(function (h) { return build(h, mkt); }).sort(function (x, y) { return y.d - x.d; });
+    if (open >= built.length) open = -1;
+    var n = built.length, better = built.filter(function (b) { return b.d >= 1; }), worse = built.filter(function (b) { return b.d <= -1; }), same = n - better.length - worse.length;
+    var sum = 'The average coin ' + (mkt >= 0 ? 'rose ' : 'fell ') + ab(mkt) + '% ' + WEEK() + '. '
+      + (n === 1 ? 'Your coin ' + (better.length ? 'did better.' : worse.length ? 'did worse.' : 'kept pace.')
+      : better.length === n ? 'All ' + n + ' of your coins did better.'
+      : worse.length === n ? 'All ' + n + ' of your coins did worse.'
+      : same === n ? 'All ' + n + ' of your coins kept pace.'
+      : [better.length ? better.length + ' of your ' + n + ' coins did better' : '', worse.length ? worse.length + (better.length ? '' : ' of your ' + n + ' coins') + ' did worse' : '', same ? same + ' kept pace' : '']
+          .filter(Boolean).join(', ') + '.');
+    var groups = [['Did better than the market', 'up', function (b) { return b.d >= 1; }], ['Moved with the market', '', function (b) { return Math.abs(b.d) < 1; }], ['Did worse than the market', 'dn', function (b) { return b.d <= -1; }]];
     host.hidden = false;
+    document.body.classList.add('mw-on');
     host.innerHTML = '<div class="mw" data-no-i18n>'
-      + '<div class="mw-h"><span class="mw-title">Your coins ' + WEEK() + '</span>'
+      + '<div class="mw-h"><span class="mw-title">Your ' + (n > 1 ? n + ' coins ' : 'coin ') + WEEK() + '</span>'
       + '<span class="mw-per" role="group" aria-label="Period"><button type="button" data-per="7"' + (per === 7 ? ' class="on"' : '') + '>7D</button><button type="button" data-per="30"' + (per === 30 ? ' class="on"' : '') + '>30D</button></span></div>'
-      + built.map(function (b, i) {
-        var sl = swapLine(b, b.h.qty);
-        return '<div class="mw-coin">'
-          + '<div class="mw-name">' + (b.c.image ? '<img src="' + esc(b.c.image) + '" alt="" width="22" height="22" loading="lazy">' : '') + '<b>' + esc(b.S) + '</b>'
-          + '<span class="mw-chip ' + (b.d >= 1 ? 'up' : b.d <= -1 ? 'dn' : '') + '">' + (Math.abs(b.d) < 1 ? 'with the market' : (b.d > 0 ? 'beat the market' : 'behind the market')) + '</span></div>'
-          + '<p class="mw-sent">' + esc(b.sentence) + '</p>'
-          + (sl ? '<div class="mw-swap"><div class="mw-swap-big ' + (sl.t.chg >= 0 ? 'up' : 'dn') + '">' + sg(sl.t.chg) + ' <small>' + (sl.t.chg >= 0 ? 'more ' : 'less ') + esc(sl.t.sym) + ' per ' + esc(b.S) + '</small></div>'
-            + '<p>' + esc(sl.text) + '</p><p class="mw-ctx">' + esc(sl.ctx) + '</p></div>' : '')
-          + '<div class="mw-gh">What one ' + esc(b.S) + ' buys now, against ' + AGO() + '</div>'
-          + bars(b.rows)
-          + '<div class="mw-act"><button type="button" class="mw-share" data-i="' + i + '">Share this</button>'
-          + (sl ? '<button type="button" class="mw-tool" data-i="' + i + '">Open ' + esc(b.S) + ' → ' + esc(sl.t.sym) + ' in the Rotator Tool</button>' : '') + '</div>'
-          + '</div>';
+      + '<p class="mw-sum">' + esc(sum) + '</p>'
+      + groups.map(function (g) {
+        var items = built.map(function (b, i) { return [b, i]; }).filter(function (x) { return g[2](x[0]); });
+        if (!items.length) return '';
+        return '<div class="mw-g ' + g[1] + '"><div class="mw-gt">' + g[0] + '</div>' + items.map(function (x) {
+          return rowHTML(x[0], x[1]) + (x[1] === open ? detailHTML(x[0], x[1]) : '');
+        }).join('') + '</div>';
       }).join('')
+      + (open < 0 ? '<button type="button" class="mw-more" data-open="0">See full breakdown ↓</button>' : '')
       + '<p class="mw-note">From prices only: it shows what happened ' + WEEK() + ', not what comes next.' + (my[0] && !my[0].held ? ' These are coins you watch; add an amount in Holdings to see it in coins.' : '') + '</p>'
       + '</div>';
   }
@@ -142,6 +178,16 @@
   host.addEventListener('click', function (e) {
     var b = e.target.closest('button'); if (!b) return;
     if (b.hasAttribute('data-per')) { per = +b.getAttribute('data-per'); sig = ''; render(); return; }
+    if (b.hasAttribute('data-open')) {
+      var k = +b.getAttribute('data-open');
+      /* A second tap on an open coin's row closes it; Next and Close do what they say. */
+      open = (k === open && b.classList.contains('mw-r')) ? -1 : k;
+      sig = ''; render();
+      var r = open >= 0 && host.querySelector('.mw-r.on');
+      if (r) { var y = r.getBoundingClientRect().top + window.scrollY - ((document.querySelector('.topbar') || {}).offsetHeight || 52) - 56; window.scrollTo({ top: Math.max(0, y), behavior: 'smooth' }); }
+      return;
+    }
+    if (b.hasAttribute('data-next')) { open = -1; sig = ''; render(); if (window.BoardTabs) BoardTabs.go('mine', 'alerts'); return; }
     var x = built[+b.getAttribute('data-i')]; if (!x) return;
     if (b.classList.contains('mw-share')) { shareCard(x); return; }
     if (b.classList.contains('mw-tool') && x.best && typeof RatioTracker !== 'undefined') {
