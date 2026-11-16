@@ -7,7 +7,7 @@
    payments are verified on the server, so local changes unlock nothing. Security
    problems: report them (see /.well-known/security.txt), do not exploit them. */
 /* ══════════════════════════════════════════════════════════════════
-   calm-tabs.js — CALM FIRST on Today and Money flows (2026-11-16)
+   calm-tabs.js — CALM FIRST on Today, Money flows and Coins (2026-11-16)
 
    Daniel: "present a brief summary and users can go more in depth ...
    same approach we learned in the portfolio" (js/my-week.js).
@@ -28,6 +28,11 @@
                   rows: coming in | going out | Bitcoin vs the rest | unlocks
                   steps: ETF flows → Stablecoins by chain → Bitcoin vs the
                   rest → Token unlocks (with buybacks) → Coins
+     Coins        sentence = the Coins answer (best and weakest this week)
+                  rows: turn-up / cooling signs | highest scores, worst
+                  30 days | strength analyser | all coins, record
+                  steps: Turn signs → What's hot → Strength analyser →
+                  All coins (#sec-coins) → Record (#sec-record) → Derivatives
 
    Rules kept: nothing new is fetched (only what the page already loaded);
    wording says what happened, never what to buy or sell; a number that
@@ -165,7 +170,40 @@
     return { title: 'Where is the money going?', sum: sum, sumTone: '', groups: groups, note: 'Where money moved, not where it goes next.' };
   }
 
-  function build(tab, d) { return tab === 'today' ? today(d || {}) : tab === 'flows' ? flows(d || {}) : null; }
+  /* Coins (2026-11-16, Daniel: "Yes, Coins next"). d.turns: { up: [sym],
+     down: [sym] } from the turn scan; d.mom / d.worst: the coin ids the
+     What's hot tiles show, in their order, so a row never names a coin
+     its part does not. */
+  function names(a) { return a.length === 1 ? a[0] : a.slice(0, -1).join(', ') + ' and ' + a[a.length - 1]; }
+  function coinsTab(d) {
+    var cs = d.coins || [], byId = {}, groups = [];
+    cs.forEach(function (c) { if (c && c.id) byId[c.id] = c; });
+    var A = TA ? TA.answers({ coins: cs }).coins.a : 'The numbers are loading.';
+    var T = d.turns;
+    if (T && Array.isArray(T.up) && Array.isArray(T.down) && T.up.length + T.down.length > 0) {
+      var tr = [];
+      if (T.up.length) tr.push({ k: 'Turn-up signs', s: [[T.up.length + (T.up.length === 1 ? ' coin that lagged' : ' coins that lagged') + ', such as ' + names(T.up.slice(0, 3)), '']], step: 'turns' });
+      if (T.down.length) tr.push({ k: 'Cooling signs', s: [[T.down.length + (T.down.length === 1 ? ' coin that ran ahead' : ' that ran ahead') + ', such as ' + names(T.down.slice(0, 3)), '']], step: 'turns' });
+      groups.push({ t: 'Coins that may be turning', rows: tr });
+    }
+    var hot = [], mom = (d.mom || []).map(function (id) { return byId[id]; }).filter(function (c) { return c && num(c.score); }).slice(0, 3);
+    var wst = (d.worst || []).map(function (id) { return byId[id]; }).filter(function (c) { return c && num(c.p30); }).slice(0, 3);
+    if (mom.length) hot.push({ k: 'Highest scores', s: [[mom.map(function (c) { return c.sym + ' ' + Math.round(c.score); }).join(', '), '']], step: 'hot' });
+    if (wst.length) {
+      var s = []; wst.forEach(function (c, i) { s.push([(i ? ', ' : '') + c.sym + ' ', '']); s.push([sg(c.p30), tone(c.p30)]); });
+      hot.push({ k: 'Worst 30 days', s: s, step: 'hot' });
+    }
+    if (hot.length) groups.push({ t: 'Strongest and weakest', rows: hot });
+    groups.push({ t: 'One coin against the rest', rows: [{ k: 'Strength analyser', s: [['pick any coin: is it stronger or weaker than the market, and is that changing?', '']], step: 'strength' }] });
+    var scored = cs.filter(function (c) { return c && !c.isStock && !c.isStable && num(c.score); });
+    var top = scored.slice().sort(function (a, b) { return b.score - a.score; })[0];
+    groups.push({ t: 'Every coin', rows: [
+      { k: 'All coins', s: [[scored.length ? scored.length + ' coins ranked by the Rotator score' + (top ? ', highest ' + top.sym + ' ' + Math.round(top.score) : '') : 'every coin we score, ranked', '']], step: 'all' },
+      { k: 'Record', s: [['what Rotator said before and what happened next, a test that runs until March 2027', '']], step: 'record' }] });
+    return { title: 'Which coins are moving?', sum: A, sumTone: '', groups: groups, note: 'What prices did, not what they will do.' };
+  }
+
+  function build(tab, d) { return tab === 'today' ? today(d || {}) : tab === 'flows' ? flows(d || {}) : tab === 'coins' ? coinsTab(d || {}) : null; }
   var api = { version: 1, build: build };
   host.RotatorCalm = api;
   if (typeof module !== 'undefined') module.exports = api;
@@ -187,10 +225,35 @@
         { k: 'rotation', n: 'Bitcoin vs the rest', el: 'cap-btc', d: 'Did the other coins do better or worse than Bitcoin? The chart splits the 5 biggest from the small coins.' },
         { k: 'unlocks', n: 'Token unlocks', el: 'ul-strip', d: 'New coins about to reach holders, and projects buying back or burning their own coin. Tap a coin to open it.' }],
       after: { n: 'Coins', tab: 'coins', k: 'turns' },
-      keys: { rotation: 'rotation', etf: 'etf', stables: 'stables', unlocks: 'unlocks' } }
+      keys: { rotation: 'rotation', etf: 'etf', stables: 'stables', unlocks: 'unlocks' } },
+    /* also: more elements that belong to the step (What's hot is a header
+       plus a collapsible body); open(): run when the step opens. */
+    coins: { anchor: 'turn-scan', hide: [],
+      steps: [{ k: 'turns', n: 'Turn signs', el: 'turn-scan', d: 'Coins whose trend may be changing: ones that lagged and show signs of turning up, and ones that ran ahead and are cooling. Tap a coin to open it.' },
+        { k: 'hot', n: 'What\'s hot', el: 'ch-hot', also: ['cb-hot'], d: 'The coins with the highest Rotator score now, and the ones that fell most over 30 days.',
+          open: function () { var b = $('cb-hot'); if (b && b.classList.contains('collapsed') && typeof host.toggleCollapse === 'function') host.toggleCollapse('hot'); } },
+        { k: 'strength', n: 'Strength analyser', el: 'rs-box', d: 'Pick a coin to see whether it is stronger or weaker than the rest of the market over 7, 30 and 90 days.' },
+        { k: 'all', n: 'All coins', el: 'sec-coins', d: 'Every coin we score. Tap a column title to sort, tap a coin to open its score and readings.' },
+        { k: 'record', n: 'Record', el: 'sec-record', d: 'What Rotator said on each day and what happened next, graded against the average coin. A test until March 2027.' }],
+      after: { n: 'Derivatives', tab: 'deriv', k: 'liq' },
+      keys: { turns: 'turns', hot: 'hot', best: 'hot', worst: 'hot', strength: 'strength', all: 'all', record: 'record' } }
   };
-  var S = { today: { open: null, sig: '', card: null }, flows: { open: null, sig: '', card: null } };
-  var turnsAt = 0, turns = null;
+  var S = { today: { open: null, sig: '', card: null }, flows: { open: null, sig: '', card: null }, coins: { open: null, sig: '', card: null } };
+  var turnsAt = 0, turns = null, turnList = null;
+  /* Turn signs: the same scan Today in one look and the Coins tab run;
+     once a minute is plenty. 0 and 0 means the daily readings have not
+     landed yet: look again next tick. */
+  function scanTurns() {
+    if (typeof _twScan !== 'function' || Date.now() - turnsAt < 60000) return;
+    try {
+      var R = _twScan();
+      if (R && R.up && R.down && R.up.length + R.down.length > 0) {
+        turns = { up: R.up.length, down: R.down.length }; turnsAt = Date.now();
+        var sy = function (x) { return x && x.c && x.c.sym; };
+        turnList = { up: R.up.map(sy).filter(Boolean), down: R.down.map(sy).filter(Boolean) };
+      }
+    } catch (e) {}
+  }
 
   function esc(s) { return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
   function g(n) { try { return host[n]; } catch (e) { return undefined; } }
@@ -232,11 +295,13 @@
       return { coins: cs, etf: typeof _etfFlows !== 'undefined' ? _etfFlows : null, cf: typeof _cf !== 'undefined' ? _cf : null,
         cap: typeof _capLast !== 'undefined' ? _capLast : null, unlocks: typeof _tokenUnlocks !== 'undefined' ? _tokenUnlocks : null, now: Date.now() };
     }
-    /* Turn signs: the same scan Today in one look runs; once a minute is plenty. */
-    if (typeof _twScan === 'function' && Date.now() - turnsAt > 60000) {
-      /* 0 and 0 means the daily readings have not landed yet: look again next tick. */
-      try { var R = _twScan(); if (R && R.up && R.down && R.up.length + R.down.length > 0) { turns = { up: R.up.length, down: R.down.length }; turnsAt = Date.now(); } } catch (e) {}
+    if (tab === 'coins') {
+      scanTurns();
+      /* The coins the What's hot tiles show, read from the tiles themselves. */
+      var ids = function (id) { var el = $(id); return el ? [].map.call(el.querySelectorAll('.sig-tile[onclick]'), function (t) { var m = /openTileDetail\('([^']+)'/.exec(t.getAttribute('onclick') || ''); return m && m[1]; }).filter(Boolean) : []; };
+      return { coins: cs, turns: turnList, mom: ids('mom-cards'), worst: ids('worst-cards') };
     }
+    scanTurns();
     var liq = null;
     try { if (typeof _liq !== 'undefined' && _liq.rows && _liq.rows.length && typeof _liqTotals === 'function') { var t = _liqTotals(_liq.rows); liq = { long: t.long, short: t.short, hours: _liq.hours }; } } catch (e) {}
     var h = (typeof holdings !== 'undefined' && Array.isArray(holdings)) ? holdings : [], mine = h.map(function (x) { return x && x.id; }).filter(Boolean), watched = false;
@@ -256,7 +321,7 @@
     a.parentNode.insertBefore(el, a);
     st.card = el; return el;
   }
-  function steps(tab, fn) { CFG[tab].steps.forEach(function (s) { var el = $(s.el); if (el) fn(el, s); }); }
+  function steps(tab, fn) { CFG[tab].steps.forEach(function (s) { [s.el].concat(s.also || []).forEach(function (id) { var el = $(id); if (el) fn(el, s); }); }); }
   function hides(tab, fn) { CFG[tab].hide.forEach(function (id) { var el = $(id); if (el) fn(el); }); }
 
   function render(tab) {
@@ -311,6 +376,16 @@
     return (tb ? tb.offsetHeight : 0) + (p && p.offsetParent ? p.offsetHeight : 0) + 8;
   }
   function scrollTo(el) { if (el) window.scrollTo({ top: Math.max(0, el.getBoundingClientRect().top + window.scrollY - over()), behavior: 'smooth' }); }
+  /* A part that opens with its own animation (What's hot) moves the page
+     while it scrolls: look again twice and correct, unless the reader has
+     scrolled by themselves, as board-tabs does. */
+  var landGen = 0;
+  ['wheel', 'touchstart', 'keydown'].forEach(function (ev) { window.addEventListener(ev, function () { landGen++; }, { passive: true }); });
+  function land(el) {
+    var gen = ++landGen;
+    setTimeout(function () { scrollTo(el); }, 40);
+    [450, 1000].forEach(function (ms) { setTimeout(function () { if (gen === landGen && el && el.isConnected && Math.abs(el.getBoundingClientRect().top - over()) > 30) scrollTo(el); }, ms); });
+  }
 
   /* Open one piece (or none). A short bar above it says where you are; the
      bar under it walks on. Returns the bar above, the place to scroll to. */
@@ -321,9 +396,10 @@
     var top = null;
     c.steps.forEach(function (s, i) {
       var el = $(s.el); if (!el) return;
-      var isOn = s.k === st.open;
-      el.classList.toggle('calm-open', isOn);
+      var isOn = s.k === st.open, last = el;
+      [s.el].concat(s.also || []).forEach(function (id) { var x = $(id); if (x) { x.classList.toggle('calm-open', isOn); last = x; } });
       if (!isOn) return;
+      if (s.open) { try { s.open(); } catch (e) {} }
       var next = null;
       for (var j = i + 1; j < c.steps.length; j++) if (ready($(c.steps[j].el))) { next = c.steps[j]; break; }
       top = document.createElement('div'); top.className = 'calm-crumb'; top.setAttribute('data-calm-tab', tab); top.setAttribute('data-no-i18n', '');
@@ -335,7 +411,7 @@
       nav.innerHTML = (next ? '<button type="button" data-calm-tab="' + tab + '" data-calm-step="' + next.k + '">Next: ' + esc(next.n) + ' →</button>'
         : '<button type="button" data-calm-tab="' + tab + '" data-calm-after>Next: ' + esc(c.after.n) + ' ↓</button>')
         + '<button type="button" class="calm-close" data-calm-tab="' + tab + '" data-calm-close>Close</button>';
-      el.parentNode.insertBefore(nav, el.nextSibling);
+      last.parentNode.insertBefore(nav, last.nextSibling);
     });
     st.sig = ''; render(tab);
     /* Charts drawn while folded measured 0px: let them redraw. */
@@ -350,7 +426,7 @@
     if (b.hasAttribute('data-calm-view')) {
       var v = b.getAttribute('data-calm-view');
       try { localStorage.setItem('rot_view', v); } catch (x) {}
-      S.today.sig = S.flows.sig = ''; tick();
+      Object.keys(S).forEach(function (t) { S[t].sig = ''; }); tick();
       setTimeout(function () { scrollTo(st.card); window.dispatchEvent(new Event('resize')); }, 40);
       return;
     }
@@ -368,8 +444,7 @@
     if (!k) return;
     /* A second tap on an open row closes it, as on My holdings. */
     if (b.classList.contains('calm-r') && k === st.open) { setOpen(tab, null); return; }
-    var top = setOpen(tab, k);
-    setTimeout(function () { scrollTo(top); }, 40);
+    land(setOpen(tab, k));
   });
 
   /* #today-now, #flows-unlocks, the search box, the tab answer: board-tabs
@@ -388,13 +463,13 @@
   if (typeof scrollFn === 'function') host.rotScrollToEl = function (el) {
     if (el && el.closest && lite()) {
       var f = el.closest('.calm-fold:not(.calm-open)');
-      if (f) Object.keys(CFG).forEach(function (tab) { CFG[tab].steps.forEach(function (s) { if (s.el === f.id) el = setOpen(tab, s.k) || el; }); });
+      if (f) Object.keys(CFG).forEach(function (tab) { CFG[tab].steps.forEach(function (s) { if (s.el === f.id || (s.also || []).indexOf(f.id) >= 0) el = setOpen(tab, s.k) || el; }); });
     }
     return scrollFn.apply(this, [el].concat([].slice.call(arguments, 1)));
   };
 
-  function tick() { render('today'); render('flows'); }
-  host.CalmTabs = { reveal: reveal, render: function () { S.today.sig = S.flows.sig = ''; tick(); } };
+  function tick() { Object.keys(CFG).forEach(render); }
+  host.CalmTabs = { reveal: reveal, render: function () { Object.keys(S).forEach(function (t) { S[t].sig = ''; }); tick(); } };
   tick();
   setInterval(tick, 4000);
 })(typeof window !== 'undefined' ? window : globalThis);

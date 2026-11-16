@@ -48,3 +48,19 @@ test('money flows: no forecast words, and loading says so',()=>{
   const B=C.build('flows',{etf:{BTC:{last:{total:5},sum5:500,streak:{dir:1,len:4}}},cf:{chains:[1,2,3,4,5].map(i=>({chain:'K'+i,d7:i*1e6,p7:i}))}});
   assert.match(B.sum,/^More money came in than left\. /);
   assert.ok(!/\b(buy|sell|will|should)\b/i.test(B.sum+all(B)),B.sum);});
+test('coins: turning, strongest and weakest from the tiles, the analyser, every coin',()=>{
+  const cs=coins.map((c,i)=>({...c,score:30+i*2,p30:-40+i}));
+  const B=C.build('coins',{coins:cs,turns:{up:['PUMP','SEI','DASH','HYPE'],down:['TRX']},mom:['c19','c18','gone','c17'],worst:['c0','c1']});
+  assert.deepEqual(B.groups.map(g=>g.t),['Coins that may be turning','Strongest and weakest','One coin against the rest','Every coin']);
+  const s=all(B);
+  assert.match(s,/Turn-up signs 4 coins that lagged, such as PUMP, SEI and DASH/);
+  assert.match(s,/Cooling signs 1 coin that ran ahead, such as TRX/);
+  assert.match(s,/Highest scores C19 68, C18 66, C17 64/);   // an id the page no longer has is skipped
+  assert.match(s,/Worst 30 days C0 −40\.0%, C1 −39\.0%/);
+  assert.match(s,/All coins 21 coins ranked by the Rotator score, highest BTC 70/);
+  assert.ok(!/undefined|NaN|null/.test(s),s);
+  for(const g of B.groups)for(const r of g.rows)assert.ok(['turns','hot','strength','all','record'].includes(r.step),r.k);});
+test('coins: before the scan lands, no turning rows and no guessed names',()=>{
+  const B=C.build('coins',{coins:[]});
+  assert.equal(B.sum,'The numbers are loading.');
+  assert.deepEqual(B.groups.map(g=>g.t),['One coin against the rest','Every coin']);});

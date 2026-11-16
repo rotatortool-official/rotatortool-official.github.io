@@ -8344,3 +8344,9 @@ body.mw-on[data-tab="mine"] #tab-answer{display:none;}
 .calm-hide{display:none !important;}
 body.calm-on .calm-fold:not(.calm-open){display:none !important;}
 body.calm-card[data-tab="flows"] #tab-answer{display:none;}
+/* Coins (2026-11-16): two of its parts are whole sections, so their bars sit
+   between sections; they show only on their own tab. */
+body.calm-card[data-tab="coins"] #tab-answer{display:none;}
+body:not([data-tab="today"]) .calm-crumb[data-calm-tab="today"], body:not([data-tab="today"]) .calm-nav[data-calm-tab="today"],
+body:not([data-tab="flows"]) .calm-crumb[data-calm-tab="flows"], body:not([data-tab="flows"]) .calm-nav[data-calm-tab="flows"],
+body:not([data-tab="coins"]) .calm-crumb[data-calm-tab="coins"], body:not([data-tab="coins"]) .calm-nav[data-calm-tab="coins"]{display:none;}
