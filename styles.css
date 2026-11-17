@@ -8742,3 +8742,24 @@ body.has-tabs #td-panel:not(.td-expanded) #td-about-sec{margin-top:20px;}
   body.has-tabs .td-expanded .tdx-share{border-color:transparent;}
 }
 body.has-tabs #td-panel .td-cell-v.bnb{color:var(--text);}
+
+/* ── Coin window buttons and the Evaluation rows (2026-11-17, Daniel:
+   "Yes, finish it"). One colour per job: Run evaluation (the Pro view's
+   main action) keeps Pro's lilac; Trade on Binance keeps Binance gold
+   (the referral, Rotator's income); Smaller and Snapshot & share are
+   tools, so they take the quiet outline of every other tool button.
+   In the small window the lilac "See the full breakdown" stays: it is
+   that window's main action. ── */
+body.has-tabs .td-expanded #td-expand,body.has-tabs #td-panel .td-share-card-btn{
+  background:var(--bg3) !important;color:var(--text) !important;border:1px solid var(--bdr2) !important;box-shadow:none !important;
+  font-weight:600;letter-spacing:0 !important;text-transform:none !important;}
+body.has-tabs .td-expanded #td-expand:hover,body.has-tabs #td-panel .td-share-card-btn:hover{background:var(--bg2) !important;border-color:var(--text) !important;}
+body.has-tabs #td-panel .td-share-card-btn span{text-transform:lowercase;display:inline-block;}
+body.has-tabs #td-panel .td-share-card-btn span::first-letter{text-transform:uppercase;}
+/* Why this score: label and value always whole; the tag and the bar give
+   way when the column is narrow (it was 240 px of row in 199: a
+   sideways scrollbar at 1280x720). */
+body.has-tabs .tdx-why-r{grid-template-columns:max-content minmax(0,max-content) minmax(12px,1fr) max-content;gap:6px;}
+body.has-tabs .tdx-why-r > .tdx-why-tag{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+body.has-tabs .td-expanded .tdx-mom > .tdx-box-b{overflow-x:hidden;}
+body.has-tabs .td-expanded #td-expand *,body.has-tabs #td-panel .td-share-card-btn *{color:inherit !important;}
