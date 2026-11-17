@@ -8727,3 +8727,18 @@ body.has-tabs #td-panel .td-card{border-color:var(--bdr2);}
 /* Chart tabs: the open one white, as every switch on the board. */
 body.has-tabs #td-panel .td-ctab.on{background:var(--text) !important;color:var(--bg) !important;border-color:var(--text) !important;}
 body.has-tabs #td-panel:not(.td-expanded) #td-about-sec{margin-top:20px;}
+
+/* ── The coin window, both sizes (2026-11-17, Daniel: "fix that also ...
+   both expanded for Pro and non Pro narrower version").
+   One screen: in the full breakdown the coloured score line at the top
+   took 14 px of flow (2 px + a 12 px margin) and pushed the full-height
+   dashboard 12 px past the window (scroll 859 in 847 at 1536x864). It is
+   pinned to the top edge there and takes no room.
+   Same rules as everywhere: boxes in the card shape and line, values in
+   white (gold stays for where you are and the main action). ── */
+@media(min-width:1024px){
+  body.has-tabs .td-expanded #td-accent-bar{position:absolute;left:0;right:0;top:0;margin:0 !important;border-radius:12px 12px 0 0;}
+  body.has-tabs .td-expanded .tdx-box{border-color:var(--bdr2);border-radius:var(--r-card);}
+  body.has-tabs .td-expanded .tdx-share{border-color:transparent;}
+}
+body.has-tabs #td-panel .td-cell-v.bnb{color:var(--text);}
