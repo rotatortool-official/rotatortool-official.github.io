@@ -103,3 +103,58 @@
   };
   document.addEventListener('keydown', function (e) { if (e.key === 'Escape' && document.body.classList.contains('set-open')) window.closeSettingsPanel(); });
 })();
+
+/* ── The top-right buttons (Daniel, 2026-11-17: "Search, bell, settings").
+   Wispr Flow shows two small icons up there; Rotator showed nine. On
+   desktop three stay: Search, the bell (alerts for your coins) and
+   Settings. One "More" button (⋯) holds Rotator home, Support, the
+   Learn links and the Follow links: the same links, cloned, so they do
+   what they did. Install and Radio already have rows in Settings; the
+   Radio button still shows while a station is playing, so it can be
+   stopped in one tap. Phones keep their own top bar. ── */
+(function () {
+  'use strict';
+  if (!document.body.classList.contains('has-tabs')) return;
+  var right = document.querySelector('.topbar-r'), gear = right && right.querySelector('.settings-btn');
+  if (!right || !gear) return;
+  var wrapOf = function (sel) { var el = right.querySelector(sel); return el && el.closest('.tb-dropdown-wrap'); };
+  var learn = right.querySelector('.bt-learn'), follow = right.querySelector('.tb-connect');
+  var home = wrapOf('a[href="./"]'), support = wrapOf('[onclick*="donate-modal"]');
+  var install = wrapOf('[onclick*="installRotator"]'), radio = wrapOf('#radio-topbar-btn');
+  [learn, follow, home, support, install].forEach(function (w) { if (w) w.classList.add('tb-folded'); });
+  if (radio) radio.classList.add('tb-radio-wrap');
+
+  var ICON = '<svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor" aria-hidden="true"><circle cx="5" cy="12" r="1.9"/><circle cx="12" cy="12" r="1.9"/><circle cx="19" cy="12" r="1.9"/></svg>';
+  var wrap = document.createElement('div'); wrap.className = 'tb-dropdown-wrap tb-more';
+  wrap.innerHTML = '<button class="tb-icon-btn" type="button" title="More" aria-label="More" aria-haspopup="true" aria-expanded="false">' + ICON + '</button>'
+    + '<div class="tb-more-menu" role="menu" aria-label="More"></div>';
+  var menu = wrap.lastChild, btn = wrap.firstChild;
+  function group(title, items) {
+    if (!items.length) return;
+    var h = document.createElement('div'); h.className = 'tb-more-h'; h.textContent = title; menu.appendChild(h);
+    items.forEach(function (it) { it.classList.add('tb-more-it'); it.setAttribute('role', 'menuitem'); menu.appendChild(it); });
+  }
+  function item(href, label, svg, run) {
+    var a = document.createElement('a'); a.href = href || '#'; if (run) a.setAttribute('data-run', run);
+    a.innerHTML = (svg || '') + '<span>' + label + '</span>'; return a;
+  }
+  var homeA = home && home.querySelector('a'), supB = support && support.querySelector('button');
+  group('Rotator', [
+    homeA && item(homeA.getAttribute('href'), 'Rotator home', homeA.querySelector('svg') ? homeA.querySelector('svg').outerHTML : ''),
+    supB && item('#', 'Support Rotator', supB.querySelector('svg') ? supB.querySelector('svg').outerHTML : '', "openModal('donate-modal')")
+  ].filter(Boolean));
+  group('Learn', learn ? [].map.call(learn.querySelectorAll('.bt-slide-it'), function (a) { return a.cloneNode(true); }) : []);
+  group('Follow', follow ? [].map.call(follow.querySelectorAll('.tb-dropdown-item'), function (a) { return a.cloneNode(true); }) : []);
+  right.insertBefore(wrap, gear);
+
+  function setOpen(o) { wrap.classList.toggle('open', o); btn.setAttribute('aria-expanded', o ? 'true' : 'false'); }
+  btn.addEventListener('click', function (e) { e.stopPropagation(); setOpen(!wrap.classList.contains('open')); });
+  menu.addEventListener('click', function (e) {
+    var a = e.target.closest('a'); if (!a) return;
+    var run = a.getAttribute('data-run');
+    if (run) { e.preventDefault(); try { (new Function(run))(); } catch (x) {} }
+    setOpen(false);
+  });
+  document.addEventListener('click', function (e) { if (!wrap.contains(e.target)) setOpen(false); });
+  document.addEventListener('keydown', function (e) { if (e.key === 'Escape') setOpen(false); });
+})();

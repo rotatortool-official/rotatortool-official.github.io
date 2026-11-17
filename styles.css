@@ -8651,3 +8651,21 @@ body.has-tabs #rcs-publisher > #rot-research{padding:20px;}
   body.has-tabs #rcs-publisher > #rot-research{padding:14px;}
 }
 body.has-tabs #sec-research > #rot-coin-story{padding-top:0;}
+
+/* ── Top right (2026-11-17, Daniel: "Search, bell, settings"): three icons
+   and one More menu on desktop (js/flow-look.js). Phones keep their bar. ── */
+@media (min-width:701px){
+  body.has-tabs .topbar-r .tb-folded{display:none !important;}
+  body.has-tabs .topbar-r .tb-radio-wrap:not(:has(.on)){display:none !important;}
+}
+.tb-more{position:relative;}
+.tb-more-menu{position:absolute;right:0;top:calc(100% + 8px);z-index:400;width:260px;max-height:min(70vh,560px);overflow:auto;padding:8px;border-radius:14px;
+  background:var(--bg2);border:1px solid var(--bdr2);box-shadow:0 18px 50px rgba(0,0,0,.4);
+  opacity:0;visibility:hidden;transform:translateY(-4px);transition:opacity .15s,transform .15s,visibility 0s .15s;}
+.tb-more.open .tb-more-menu{opacity:1;visibility:visible;transform:none;transition:opacity .18s ease,transform .2s ease;}
+.tb-more-h{font:700 var(--fs-cap,11px)/1 var(--font-ui);letter-spacing:.12em;text-transform:uppercase;color:var(--muted);margin:12px 10px 6px;}
+.tb-more-h:first-child{margin-top:6px;}
+.tb-more-it{display:flex !important;align-items:center;gap:12px;padding:9px 10px !important;border-radius:10px;color:var(--text) !important;text-decoration:none;font:500 14px/1.3 var(--font-ui) !important;white-space:nowrap;}
+.tb-more-it svg{width:17px;height:17px;flex:none;color:var(--muted);}
+.tb-more-it:hover{background:var(--bg3);}
+.tb-more.open > .tb-icon-btn{color:var(--text);background:var(--bg3);}
