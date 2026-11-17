@@ -8795,3 +8795,8 @@ body.has-tabs #sec-record .rec-h{color:var(--muted) !important;letter-spacing:.1
 body.has-tabs #sec-record .rec-tl-step,body.has-tabs #sec-record .rec-strip{border-radius:12px;border-color:var(--bdr2);}
 body.has-tabs #sec-record .rec-wip-btn{border-radius:10px;padding:8px 16px;background:var(--bg3);}
 @media (max-width:900px){ body.has-tabs #ch-trackrecord .collapse-hdr-title{font-size:15px !important;} }
+/* Phones: the Record title stays on one line; if the row runs out of room the badge moves under it. */
+@media (max-width:900px){
+  body.has-tabs #ch-trackrecord .collapse-hdr-left{flex-wrap:wrap;row-gap:4px;min-width:0;}
+  body.has-tabs #ch-trackrecord .collapse-hdr-title{white-space:nowrap;flex:none;}
+}
