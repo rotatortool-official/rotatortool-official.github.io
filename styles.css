@@ -8669,3 +8669,34 @@ body.has-tabs #sec-research > #rot-coin-story{padding-top:0;}
 .tb-more-it svg{width:17px;height:17px;flex:none;color:var(--muted);}
 .tb-more-it:hover{background:var(--bg3);}
 .tb-more.open > .tb-icon-btn{color:var(--text);background:var(--bg3);}
+
+/* ── Phone top bar (2026-11-17, Daniel: the phone bar after Wispr Flow).
+   Was five equal boxed cells, each with its own tint and a capital
+   label. Now: the ROTATOR logo on the left (tap = Today, as before), and
+   on the right the BTC chip, the Pro pill (the one coloured thing: the
+   site is the Pro funnel), then Search and Settings as plain icons.
+   Same buttons, same jobs, same names for screen readers. ── */
+@media(max-width:700px) and (orientation:portrait){
+  body.has-tabs .topbar{padding:0 6px 0 12px;gap:2px;align-items:center;}
+  body.has-tabs .mob-topbar-btc,body.has-tabs .mob-topbar-pro,body.has-tabs .mob-topbar-center,
+  body.has-tabs .mob-topbar-search,body.has-tabs .mob-topbar-gear{
+    flex:none;flex-direction:row;height:40px;padding:0 4px;gap:5px;border:0 !important;background:none !important;border-radius:10px;}
+  /* The logo canvas is 240 px wide with the letters (~90 px) in its middle:
+     shown at full size and cropped, so the letters are as big as on desktop. */
+  body.has-tabs .mob-topbar-center{order:-1;margin:0 auto 0 8px;padding:0;justify-content:flex-start;width:111px;overflow:hidden;position:relative;}
+  body.has-tabs .mob-topbar-center canvas{width:240px !important;height:28px !important;max-width:none !important;margin-left:-63px;flex:none;}   /* ink spans canvas x 65-172 (measured) */
+  /* BTC: a small chip, its colour says the trend. */
+  body.has-tabs .mob-btc-cell{flex-direction:row;width:auto;height:28px;padding:0 8px;gap:5px;border-radius:999px;font-size:12px;letter-spacing:.02em;}
+  /* Pro: one pill, purple like everywhere Pro is named. */
+  body.has-tabs .mob-topbar-pro > *{position:relative;}
+  body.has-tabs .mob-topbar-pro{height:30px;padding:0 10px;border-radius:999px;background:rgba(167,139,250,.16) !important;margin:0 2px;}
+  body.has-tabs .mob-topbar-pro .mob-pro-icon{font-size:13px;}
+  body.has-tabs .mob-topbar-pro .mob-cell-lbl{font-size:12px;letter-spacing:.04em;}
+  /* Search and Settings: icons only, 40 px to tap; the words stay for translation, hidden. */
+  body.has-tabs .mob-topbar-search,body.has-tabs .mob-topbar-gear{width:40px;justify-content:center;padding:0;color:var(--text);}
+  body.has-tabs .mob-topbar-search .mob-cell-lbl,body.has-tabs .mob-topbar-gear .mob-cell-lbl{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap;}
+  body.has-tabs .mob-topbar-search svg{width:19px;height:19px;}
+  body.has-tabs .mob-gear-icon{font-size:20px;color:var(--text);}
+  body.has-tabs .mob-topbar-search:active,body.has-tabs .mob-topbar-gear:active{background:var(--bg3) !important;}
+  :root.light body.has-tabs .mob-topbar-gear,:root.light body.has-tabs .mob-topbar-search{background:none !important;}
+}
