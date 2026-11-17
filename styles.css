@@ -8700,3 +8700,30 @@ body.has-tabs #sec-research > #rot-coin-story{padding-top:0;}
   body.has-tabs .mob-topbar-search:active,body.has-tabs .mob-topbar-gear:active{background:var(--bg3) !important;}
   :root.light body.has-tabs .mob-topbar-gear,:root.light body.has-tabs .mob-topbar-search{background:none !important;}
 }
+
+/* ── The coin window (2026-11-17, Daniel: "now do coin window and its sub
+   parts with same design rules"). The small window: 480 px on desktop
+   (the "small window" width; was 330), the quiet line and 18 px corners
+   of every window, the coin as its title, grey small capitals for every
+   label (no gold or orange headings), boxes in the one card shape (no
+   orange left edges), the open chart tab white like every switch.
+   The Pro full breakdown (.td-expanded) must stay one screen (memory
+   full-breakdown-one-screen): there only colours and lines change, never
+   anything that adds height. ── */
+body.has-tabs #td-panel{border-color:var(--bdr2);box-shadow:0 24px 64px rgba(0,0,0,.55),0 0 0 1px rgba(255,255,255,.03);}
+@media (min-width:701px){
+  body.has-tabs #td-panel:not(.td-expanded){width:480px;border-radius:18px;padding:20px 24px 24px;}
+  body.has-tabs #td-panel:not(.td-expanded) .tdh-sym{font-size:20px;font-weight:700;letter-spacing:-.005em;}
+}
+/* Labels: grey small capitals, one size. */
+body.has-tabs #td-panel .td-type-badge{background:var(--bg3) !important;color:var(--muted) !important;border:1px solid var(--bdr2) !important;border-radius:999px;}
+body.has-tabs #td-panel .td-section-title,body.has-tabs #td-panel .td-story-t,body.has-tabs #td-panel .td-details-lbl,body.has-tabs #td-panel .td-share-label{color:var(--muted) !important;opacity:1;letter-spacing:.12em;}
+body.has-tabs #td-panel:not(.td-expanded) .td-section-title,body.has-tabs #td-panel:not(.td-expanded) .td-story-t,
+body.has-tabs #td-panel:not(.td-expanded) .td-details-lbl,body.has-tabs #td-panel:not(.td-expanded) .td-share-label{font-size:var(--fs-cap) !important;}
+/* Boxes: the card shape, no orange edge. */
+body.has-tabs #td-panel .td-story,body.has-tabs #td-panel #td-score-sec{border:1px solid var(--bdr2) !important;}
+body.has-tabs #td-panel:not(.td-expanded) .td-story,body.has-tabs #td-panel:not(.td-expanded) #td-score-sec,body.has-tabs #td-panel:not(.td-expanded) .td-card{border-radius:14px !important;}
+body.has-tabs #td-panel .td-card{border-color:var(--bdr2);}
+/* Chart tabs: the open one white, as every switch on the board. */
+body.has-tabs #td-panel .td-ctab.on{background:var(--text) !important;color:var(--bg) !important;border-color:var(--text) !important;}
+body.has-tabs #td-panel:not(.td-expanded) #td-about-sec{margin-top:20px;}
