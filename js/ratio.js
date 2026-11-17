@@ -693,10 +693,30 @@ var RatioTracker = (function() {
           pointBorderWidth:data.map(function(v,i){
             return (i===peakIdx||i===data.length-1)?2:0;
           }),
+          /* The readout (2026-11-17, Daniel: "interactive and more responsive
+             like the rest of the charts", js/chart-kit.js): a ring follows
+             the pointer along the line. */
+          pointHoverRadius:5,
+          pointHoverBorderWidth:2,
+          pointHoverBackgroundColor:P.line,
+          pointHoverBorderColor:P.lineRing,
+          pointHitRadius:12,
           fill:true
         }]
       },
       plugins:[{
+        /* The dashed line under the pointer, as on the page's other charts. */
+        id:'swapCross',
+        afterDatasetsDraw:function(chart){
+          var act=chart.tooltip && chart.tooltip.getActiveElements ? chart.tooltip.getActiveElements() : [];
+          if(!act.length) return;
+          var x=act[0].element.x, area=chart.chartArea, c2=chart.ctx;
+          c2.save();
+          c2.setLineDash([3,4]); c2.lineWidth=1; c2.strokeStyle=P.tick; c2.globalAlpha=.8;
+          c2.beginPath(); c2.moveTo(x,area.top); c2.lineTo(x,area.bottom); c2.stroke();
+          c2.restore();
+        }
+      },{
         /* Inline plugin: draw support/resistance dashed lines + labels */
         id:'swapLevels',
         afterDraw:function(chart){
@@ -782,9 +802,15 @@ var RatioTracker = (function() {
         responsive:true,
         maintainAspectRatio:false,
         animation:{duration:400},
+        /* Anywhere over the chart reads the nearest day, not only the dots;
+           a finger drag works the same (Chart.js listens to touchmove). */
+        interaction:{mode:'index',intersect:false,axis:'x'},
+        hover:{mode:'index',intersect:false},
         plugins:{
           legend:{display:false},
           tooltip:{
+            mode:'index',intersect:false,displayColors:false,caretSize:0,cornerRadius:10,
+            titleFont:{size:11,weight:'600',family:'Inter,sans-serif'},bodyFont:{size:13,weight:'700',family:'Inter,sans-serif'},
             backgroundColor:P.tipBg,
             borderColor:P.tipEdge,
             borderWidth:1,
@@ -794,7 +820,7 @@ var RatioTracker = (function() {
             callbacks:{
               label:function(c){
                 if(usePercent) return ' '+c.parsed.y.toFixed(3)+'%  ('+fmtRatio(rawData[c.dataIndex])+' ratio)';
-                return ' '+c.parsed.y.toFixed(3)+'×';
+                return ' '+fmtRatio(c.parsed.y)+'×';   /* full digits: toFixed(3) read 0.009× on every point of a small ratio */
               }
             }
           }

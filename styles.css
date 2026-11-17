@@ -8542,3 +8542,80 @@ body.has-tabs #briefing .bf-group,body.has-tabs .bar-col-title,body.has-tabs .re
 body.has-tabs .tab-answer .ta-in{border:1px solid var(--bdr2) !important;border-radius:var(--r-card) !important;box-shadow:none !important;}
 body.has-tabs .tab-answer .ta-q{font-size:var(--fs-cap) !important;letter-spacing:.12em;color:var(--muted) !important;}
 body.has-tabs .tab-answer .ta-a{font-size:15px;}
+
+/* ══ FLOW TILES (2026-11-17, Daniel: the title on top of the box, as on
+   "The market now", lines the boxes up and matches Wispr Flow).
+   Rule: a box that sits beside or among other boxes gets its title ABOVE
+   it, 17 px white, so every box in a row starts at the same height.
+   A single card on its own keeps its title inside.
+   Derivatives cannot get a Lite card (it is one map), only this look. ══ */
+
+/* Market now: a long value wraps instead of ending in "…". */
+body.has-tabs #mkt-now .mn-v{white-space:normal;overflow:visible;text-overflow:clip;}
+body.has-tabs #mkt-now .mn-v .mn-up,body.has-tabs #mkt-now .mn-v .mn-dn,body.has-tabs #mkt-now .mn-v .mn-none{display:inline-block;line-height:1.25;}
+
+/* Derivatives: "Liquidations" above the map card, the line beside it in grey. */
+body.has-tabs[data-tab="deriv"] #sec-liq > .rsec-hdr{
+  display:flex !important;position:static !important;width:auto !important;height:auto !important;margin:0 2px 10px !important;
+  padding:0 !important;overflow:visible !important;clip:auto !important;white-space:normal !important;border:0 !important;
+  flex-direction:column;align-items:flex-start;gap:3px;
+}
+body.has-tabs[data-tab="deriv"] #sec-liq > .rsec-hdr .rsec-meta{font-size:var(--fs-sm);}
+body.has-tabs #sec-liq > .liq-body{border-radius:var(--r-card);border-color:var(--bdr2);}
+
+/* My holdings: the two columns start on the card edges like every other tab. */
+body.has-tabs #sec-yours .sidebar{padding-left:0;padding-right:0;}
+/* Titles above: Portfolio signal and Alerts on the left, My coins on the right, on one line. */
+body.has-tabs #coin-alerts{border:1px solid var(--bdr2) !important;border-radius:var(--r-card) !important;background:var(--bg2);box-shadow:none;}
+body.has-tabs #sig-box-crypto{position:relative;overflow:visible;margin-top:36px;border:1px solid var(--bdr2) !important;border-radius:var(--r-card) !important;background:var(--bg2);box-shadow:none;}
+body.has-tabs #sig-box-crypto > .sig-title{position:absolute !important;top:-40px !important;left:2px;right:2px;margin:0;padding:0;background:none;border:0;line-height:24px;}
+body.has-tabs #sig-box-crypto > .sig-title,body.has-tabs #coin-alerts .ca-title{font:700 var(--fs-h)/1.4 var(--font-ui);letter-spacing:-.005em;text-transform:none;color:var(--text);}
+body.has-tabs #sig-box-crypto > .sig-title::before{display:none;}
+body.has-tabs #sec-yours .yours-left #sig-box-crypto{margin-top:36px !important;}
+body.has-tabs #sec-yours .yours-left #coin-alerts{margin-top:16px !important;}
+body.has-tabs #sec-yours .holdings-section-label{height:24px;min-height:0;margin:0 2px;padding:0;border:0;background:none;
+  font:700 var(--fs-h)/24px var(--font-ui);letter-spacing:-.005em;text-transform:none;color:var(--text);}
+body.has-tabs #sec-yours .holdings-section-label > span:first-child{display:inline-block;text-transform:lowercase;font:700 var(--fs-h)/24px var(--font-ui);letter-spacing:-.005em;color:var(--text);}
+body.has-tabs #sec-yours .holdings-section-label > span:first-child::first-letter{text-transform:uppercase;}
+body.has-tabs #sec-yours #hcount{color:var(--muted) !important;font-size:var(--fs-sm) !important;font-weight:600;letter-spacing:0 !important;}
+/* Boxes in My holdings: the same corners and line as everywhere. */
+body.has-tabs #hold-chart{border:1px solid var(--bdr2);border-radius:var(--r-card);background:var(--bg2);}
+body.has-tabs #hold-chart .hm-title{font:700 var(--fs-h)/1.3 var(--font-ui);color:var(--text);}
+body.has-tabs #tiles-grid > .tile{border-radius:14px;}
+
+/* ── Rotator Tool (2026-11-17, Daniel: "the swap pair, Rotator Tool,
+   should get the same design rules"). Boxes on the card edges, 16 px
+   corners, the same line; the two top boxes start together, so their
+   titles stay inside, left, on one line, 17 px white. The open period
+   button is white like the Lite switch, not gold. ── */
+body.has-tabs #sec-swap .ratio-section{padding-left:0;padding-right:0;}
+body.has-tabs #sec-swap .swap-card{border:1px solid var(--bdr2) !important;border-radius:var(--r-card) !important;background:var(--bg2);box-shadow:none;}
+body.has-tabs #sec-swap .new-swap-hero-label,body.has-tabs #sec-swap .new-ratio-unit-lbl,body.has-tabs #sec-swap .new-chart-title{
+  display:inline-block;font:700 var(--fs-h)/1.3 var(--font-ui) !important;letter-spacing:-.005em !important;text-transform:lowercase !important;color:var(--text) !important;text-align:left;}
+body.has-tabs #sec-swap .new-swap-hero-label::first-letter,body.has-tabs #sec-swap .new-ratio-unit-lbl::first-letter,body.has-tabs #sec-swap .new-chart-title::first-letter{text-transform:uppercase;}
+body.has-tabs #sec-swap .new-ratio-hook{text-align:left;}
+body.has-tabs #sec-swap .new-ratio-unit-lbl{display:block;margin-bottom:10px;}
+body.has-tabs #sec-swap .rt-tf-btn.active{background:var(--text) !important;color:var(--bg) !important;border-color:var(--text) !important;}
+body.has-tabs #sec-swap #rt-spark{cursor:crosshair;}
+/* Phones: these parts sit 10 px in from the screen edges, like the rest. */
+@media (max-width:900px){
+  body.has-tabs #sec-liq > .liq-body{margin-left:10px;margin-right:10px;}
+  body.has-tabs[data-tab="deriv"] #sec-liq > .rsec-hdr{margin:0 12px 10px !important;}
+  body.has-tabs #sec-yours .sidebar{padding-left:10px;padding-right:10px;}
+  body.has-tabs #sec-swap .tool-panel{padding-left:10px;padding-right:10px;}
+}
+@media (max-width:900px){
+  body.has-tabs #my-week,body.has-tabs .calm{margin-left:10px;margin-right:10px;}
+  /* Phone fold headers (Holdings & watchlist, Rotator Tool): white, normal case, like every title. */
+  body.has-tabs .collapse-hdr-title{font:700 15px/1.3 var(--font-ui) !important;letter-spacing:0 !important;text-transform:none !important;color:var(--text) !important;}
+}
+/* The three buttons (save, refresh, share) span the TO tile below them
+   (Daniel, 2026-11-17): the head uses the pair grid's own columns. */
+body.has-tabs #sec-swap .swap-hero-head{display:grid;grid-template-columns:1fr 34px 1fr;gap:5px;align-items:end;}
+body.has-tabs #sec-swap .swap-hero-head > .new-swap-hero-label{grid-column:1;}
+body.has-tabs #sec-swap .swap-hero-head > .rt-top-actions{grid-column:3;display:flex;gap:6px;width:100%;}
+body.has-tabs #sec-swap .swap-hero-head > .rt-top-actions > .rt-icon-btn{flex:1 1 0;width:auto;justify-content:center;}
+/* Paper trades: its name as a title like the others; the count stays grey. */
+body.has-tabs .paper-hd > span:first-child{display:inline-block;font:700 var(--fs-h)/1.3 var(--font-ui) !important;letter-spacing:-.005em !important;text-transform:lowercase !important;color:var(--text) !important;}
+body.has-tabs .paper-hd > span:first-child::first-letter{text-transform:uppercase;}
+@media (max-width:700px){ body.has-tabs #sec-swap .new-swap-hero-label{font-size:15px !important;} }
