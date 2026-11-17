@@ -642,3 +642,99 @@ function tdxRenderChart() {
     _drawHoldingChart(box, c, rows);
   });
 }
+
+/* ── Check another coin without leaving the full breakdown (Daniel,
+   2026-11-17: "offer users to check another coin without leaving that
+   screen"). In the header row, between the coin's name and its price,
+   where there was empty room (no height added: one-screen rule):
+     ‹ ETH   [ Check another coin… ]   SOL ›
+   ‹ › step through your coins (holdings + watchlist) when this coin is
+   one of them, else through every coin by Rotator score, the order of
+   the All coins table. The box finds a coin by symbol or name. ← and →
+   step too, when the cursor is not in a text box. Opening uses
+   openTileDetail(), which keeps the big view (tdSyncExpand). ── */
+(function () {
+  'use strict';
+  var head = document.querySelector('#td-panel .tdh');
+  if (!head) return;
+  var box = document.createElement('div'); box.id = 'tdx-switch'; box.className = 'tdx-switch';
+  box.innerHTML = '<button type="button" class="tdx-sw-step" data-step="-1" aria-label="Previous coin"></button>'
+    + '<div class="tdx-sw-find"><input type="search" class="tdx-sw-in" placeholder="Another coin…" aria-label="Check another coin" autocomplete="off" spellcheck="false">'
+    + '<div class="tdx-sw-list" role="listbox" hidden></div></div>'
+    + '<button type="button" class="tdx-sw-step" data-step="1" aria-label="Next coin"></button>';
+  /* Before the price block (the last child), so name · switcher · price share the row. */
+  head.insertBefore(box, head.lastElementChild);
+  var input = box.querySelector('.tdx-sw-in'), list = box.querySelector('.tdx-sw-list');
+  var prevB = box.querySelector('[data-step="-1"]'), nextB = box.querySelector('[data-step="1"]');
+  var hits = [], pick = 0;
+
+  function all() { return (typeof coins !== 'undefined' && Array.isArray(coins)) ? coins : []; }
+  function cur() { return typeof _tdCoin !== 'undefined' ? _tdCoin : null; }
+  function esc(s) { return String(s == null ? '' : s).replace(/[&<>"]/g, function (m) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[m]; }); }
+  /* The ring to step through. */
+  function ring() {
+    var c = cur(), byId = {}; all().forEach(function (x) { byId[x.id] = x; });
+    var mine = [];
+    ((typeof holdings !== 'undefined' && holdings) || []).forEach(function (h) { var x = h && byId[h.id]; if (x && mine.indexOf(x) < 0) mine.push(x); });
+    ((typeof watchlist !== 'undefined' && watchlist) || []).forEach(function (w) { var x = byId[w && typeof w === 'object' ? w.id : w]; if (x && mine.indexOf(x) < 0) mine.push(x); });
+    if (c && mine.length > 1 && mine.indexOf(c) >= 0) return mine;
+    return all().filter(function (x) { return x && !x.isStock && !x.isStable && typeof x.score === 'number'; })
+      .sort(function (a, b) { return b.score - a.score; });
+  }
+  function neighbour(d) {
+    var r = ring(), c = cur(); if (!r.length) return null;
+    var i = r.indexOf(c); if (i < 0) return r[0];
+    return r[(i + d + r.length) % r.length];
+  }
+  function open(c) { if (!c) return; closeList(); input.value = ''; input.blur(); openTileDetail(c.id); }
+  function label() {
+    var p = neighbour(-1), n = neighbour(1);
+    prevB.textContent = p ? '‹ ' + p.sym : '‹'; nextB.textContent = n ? n.sym + ' ›' : '›';
+    prevB.title = p ? 'Previous: ' + p.sym : ''; nextB.title = n ? 'Next: ' + n.sym : '';
+  }
+  function closeList() { list.hidden = true; list.innerHTML = ''; hits = []; }
+  function find(q) {
+    q = q.trim().toLowerCase(); if (!q) { closeList(); return; }
+    var s = [], m = [];
+    all().forEach(function (x) {
+      if (!x || !x.sym) return;
+      var sym = String(x.sym).toLowerCase(), nm = String(x.name || '').toLowerCase();
+      if (sym === q || sym.indexOf(q) === 0) s.push(x); else if (nm.indexOf(q) >= 0) m.push(x);
+    });
+    s.sort(function (a, b) { return (a.sym.length - b.sym.length) || ((b.score || 0) - (a.score || 0)); });
+    hits = s.concat(m).slice(0, 6); pick = 0;
+    if (!hits.length) { list.innerHTML = '<div class="tdx-sw-none">No coin with that name</div>'; list.hidden = false; return; }
+    list.innerHTML = hits.map(function (x, i) {
+      return '<button type="button" role="option" class="tdx-sw-it' + (i === pick ? ' on' : '') + '" data-i="' + i + '">'
+        + (x.image ? '<img src="' + esc(x.image) + '" alt="" width="18" height="18" loading="lazy">' : '<span class="tdx-sw-dot"></span>')
+        + '<b>' + esc(x.sym) + '</b><span>' + esc(x.name || '') + '</span></button>';
+    }).join('');
+    list.hidden = false;
+  }
+  function mark() { [].forEach.call(list.querySelectorAll('.tdx-sw-it'), function (b, i) { b.classList.toggle('on', i === pick); }); }
+
+  box.addEventListener('click', function (e) {
+    var st = e.target.closest('.tdx-sw-step'); if (st) { open(neighbour(+st.getAttribute('data-step'))); return; }
+    var it = e.target.closest('.tdx-sw-it'); if (it) open(hits[+it.getAttribute('data-i')]);
+  });
+  input.addEventListener('input', function () { find(input.value); });
+  input.addEventListener('keydown', function (e) {
+    if (e.key === 'ArrowDown' && hits.length) { e.preventDefault(); pick = (pick + 1) % hits.length; mark(); }
+    else if (e.key === 'ArrowUp' && hits.length) { e.preventDefault(); pick = (pick - 1 + hits.length) % hits.length; mark(); }
+    else if (e.key === 'Enter') { e.preventDefault(); if (hits[pick]) open(hits[pick]); }
+    else if (e.key === 'Escape') { e.stopPropagation(); if (input.value) { input.value = ''; closeList(); } else input.blur(); }
+  });
+  input.addEventListener('blur', function () { setTimeout(closeList, 150); });
+  /* ← and → step through coins in the big view, when no text box has the cursor. */
+  document.addEventListener('keydown', function (e) {
+    var p = document.getElementById('td-panel');
+    if (!p || !p.classList.contains('td-expanded') || p.style.display === 'none') return;
+    if (e.key !== 'ArrowLeft' && e.key !== 'ArrowRight') return;
+    var t = e.target; if (t && (t.tagName === 'INPUT' || t.tagName === 'TEXTAREA' || t.tagName === 'SELECT' || t.isContentEditable)) return;
+    e.preventDefault(); open(neighbour(e.key === 'ArrowLeft' ? -1 : 1));
+  });
+  /* Refresh the ‹ › names after every coin opens. */
+  var o0 = window.openTileDetail;
+  if (typeof o0 === 'function') window.openTileDetail = function () { var r = o0.apply(this, arguments); try { label(); } catch (x) {} return r; };
+  label();
+})();
