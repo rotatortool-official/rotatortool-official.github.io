@@ -8619,3 +8619,35 @@ body.has-tabs #sec-swap .swap-hero-head > .rt-top-actions > .rt-icon-btn{flex:1 
 body.has-tabs .paper-hd > span:first-child{display:inline-block;font:700 var(--fs-h)/1.3 var(--font-ui) !important;letter-spacing:-.005em !important;text-transform:lowercase !important;color:var(--text) !important;}
 body.has-tabs .paper-hd > span:first-child::first-letter{text-transform:uppercase;}
 @media (max-width:700px){ body.has-tabs #sec-swap .new-swap-hero-label{font-size:15px !important;} }
+
+/* ── Research (2026-11-17, Daniel: "now do research tab with same design
+   rules"). The page title "Research" stays the biggest text: the two
+   30/28 px headlines inside become 17 px part titles, their gold labels
+   turn grey, the question card goes (it repeated the page line word for
+   word), and every box takes the one card shape. The finished story
+   (the cream "newspaper" page) is the shareable article itself and keeps
+   its own look. ── */
+body.has-tabs[data-tab="research"] #tab-answer{display:none !important;}
+body.has-tabs #sec-research .rcs-eyebrow,body.has-tabs #sec-research .rr-eyebrow{
+  font-size:var(--fs-cap) !important;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--muted) !important;}
+body.has-tabs #sec-research .rcs > h2,body.has-tabs #sec-research .rr-heading h2{
+  margin:6px 0 4px !important;font:700 var(--fs-h)/1.3 var(--font-ui) !important;letter-spacing:-.005em !important;color:var(--text) !important;}
+body.has-tabs #sec-research .rcs-lead,body.has-tabs #sec-research .rr-heading p{font-size:var(--fs-body) !important;line-height:1.5;color:var(--muted);}
+body.has-tabs #sec-research .rr-heading{min-height:0;}
+/* The boxes: picker steps, the desk's panels, the notice: one card shape. */
+body.has-tabs #sec-research .rcs-step,body.has-tabs #sec-research .rcs-step2,
+body.has-tabs #sec-research .rr-quick,body.has-tabs #sec-research .rr-layout,body.has-tabs #sec-research .rr-compare,body.has-tabs #sec-research .rr-notice{
+  border:1px solid var(--bdr2) !important;border-radius:var(--r-card) !important;box-shadow:none;}
+body.has-tabs #sec-research .rr-quick h3,body.has-tabs #sec-research .rr-layout h3,body.has-tabs #sec-research .rr-compare h3{font:700 var(--fs-h)/1.3 var(--font-ui);color:var(--text);}
+/* Publisher tools: a card whose title opens it, like the other parts. */
+body.has-tabs #rcs-publisher{margin-top:24px;border:1px solid var(--bdr2) !important;border-radius:var(--r-card);background:var(--bg2);overflow:hidden;}
+body.has-tabs #rcs-publisher > summary{padding:16px 20px;cursor:pointer;}
+body.has-tabs #rcs-publisher > summary b{font:700 var(--fs-h)/1.3 var(--font-ui);color:var(--text);margin-right:10px;}
+body.has-tabs #rcs-publisher > summary span{font-size:var(--fs-sm);color:var(--muted);}
+body.has-tabs #rcs-publisher[open] > summary{border-bottom:1px solid var(--bdr2);}
+body.has-tabs #rcs-publisher > #rot-research{padding:20px;}
+@media (max-width:900px){
+  body.has-tabs #sec-research > #rot-coin-story,body.has-tabs #rcs-publisher{margin-left:10px;margin-right:10px;}
+  body.has-tabs #rcs-publisher > #rot-research{padding:14px;}
+}
+body.has-tabs #sec-research > #rot-coin-story{padding-top:0;}
