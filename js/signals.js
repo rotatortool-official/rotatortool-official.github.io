@@ -318,7 +318,7 @@ function shareDayBrief() {
   var head = 'Bitcoin ' + (b.p24 >= 0 ? '+' : '−') + Math.abs(b.p24).toFixed(1) + '% today. Who moved the most?';
   fcShareCard({
     kind: 'hbars', rows: rows, tone: 'amber',
-    kicker: 'Biggest 24-hour moves among the coins Rotator scores',
+    kicker: 'Biggest 24-hour moves among the coins we score',   /* Rotator is named once, in the gold bar */
     head: head,
     stats: _dbLast.plain.slice(2).map(function (p) { return ['Today', p, 'up']; }),
     note: 'What happened today, not a forecast · Binance',

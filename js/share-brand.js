@@ -37,7 +37,12 @@ var ROTATOR_SHARE = {
      read on the gold bar, one picked at random per card. */
   palettes: [['#0057b7', null], ['#b22234', '#3c3b6e'], ['#009c3b', '#002776'], ['#d20000', null]],
   gold: '#f3ba2f',
-  ink: '#14110a'
+  ink: '#14110a',
+  /* Flow look (2026-11-17, Daniel, after Wispr Flow: "no repeating text on
+     same card 2-3 times ... not bloated chart bars and very tiny text ...
+     neat and nice"): a neutral near-black, quiet grey labels and lines, gold
+     only in the bar. The daily cards (weekly-shots/shoot.js) use the same. */
+  flow: { bg: '#131315', grid: '#232327', line: '#3a3a40', grey: '#9a9aa2', soft: '#c8c8ce' }
 };
 
 /* Shrinks a font until the text fits maxW. `font` has {SIZE} in it. */
@@ -54,7 +59,8 @@ function shareFit(ctx, text, maxW, font, size, min) {
    more space for the text above"): 124 -> 100px (150 -> 122 on tall
    cards), its text a step smaller but the address still ~40px. */
 function shareBrandBar(ctx, W, H, hook) {
-  var barH = H >= 900 ? 122 : 100, top = H - barH, pad = W >= 1100 ? 60 : 50;
+  /* A few pixels thinner again (Daniel, 2026-11-17): 100 -> 88, 122 -> 108. */
+  var barH = H >= 900 ? 108 : 88, top = H - barH, pad = W >= 1100 ? 60 : 50;
   ctx.fillStyle = ROTATOR_SHARE.gold;
   ctx.fillRect(0, top, W, barH);
   ctx.fillStyle = ROTATOR_SHARE.ink;
@@ -82,6 +88,58 @@ function shareBrandBar(ctx, W, H, hook) {
   shareFit(ctx, hookText, W - pad * 2 - Math.max(ctaW, 360) - 40, '800 {SIZE}px Inter, sans-serif', H >= 900 ? 40 : 35, 24);
   ctx.fillText(hookText, pad, top + barH / 2 + 12);
   return top;
+}
+
+/* The top of a Flow card: what it is in small grey capitals (typed in
+   sentence case, raised here), the date in grey under it, an optional
+   legend [[label, colour]] beside the date, the small logo on the right. */
+function shareFlowHead(ctx, W, kicker, updated, wm, legend) {
+  var F = ROTATOR_SHARE.flow, L = W >= 1100 ? 60 : 50, k = String(kicker || '').toUpperCase();
+  ctx.textBaseline = 'alphabetic'; ctx.textAlign = 'left'; ctx.fillStyle = F.grey;
+  if (ctx.letterSpacing !== undefined) ctx.letterSpacing = '1.5px';
+  shareFit(ctx, k, W - 2 * L - 72, '600 {SIZE}px Inter, sans-serif', 17, 13);
+  ctx.fillText(k, L, 50);
+  if (ctx.letterSpacing !== undefined) ctx.letterSpacing = '0px';
+  ctx.font = '500 16px Inter, sans-serif';
+  if (updated) ctx.fillText(updated, L, 77);
+  if (legend && legend.length) {
+    var lx = L + (updated ? ctx.measureText(updated).width + 28 : 0);
+    ctx.font = '600 16px Inter, sans-serif';
+    legend.forEach(function (lg) {
+      ctx.fillStyle = lg[1]; ctx.beginPath(); ctx.arc(lx + 6, 71, 6, 0, Math.PI * 2); ctx.fill();
+      ctx.fillStyle = F.soft; ctx.fillText(lg[0], lx + 18, 77);
+      lx += 18 + ctx.measureText(lg[0]).width + 28;
+    });
+  }
+  if (wm && wm.icon) ctx.drawImage(wm.icon, W - L - 48, 26, 48, 48);
+}
+
+/* Numbers as tiles (Wispr Flow's Insights): the value big, its name small
+   under it, a hairline between tiles. stats [[name, value, tone]], tone
+   up | dn | amb | anything else = white; y is the value's baseline. The
+   values shrink together until the row fits maxW. */
+function shareTiles(ctx, x, y, stats, maxW, size, label) {
+  var F = ROTATOR_SHARE.flow, vs = size || 34, ls = label || 17, gap = 30;
+  var col = function (t) { return t === 'up' ? '#16c784' : t === 'dn' ? '#ea3943' : t === 'amb' ? '#f0a020' : '#ffffff'; };
+  var width = function (s) {
+    var w = 0;
+    stats.forEach(function (p, i) {
+      ctx.font = '700 ' + s + 'px Inter, sans-serif'; var a = ctx.measureText(p[1]).width;
+      ctx.font = '500 ' + ls + 'px Inter, sans-serif'; var b = ctx.measureText(p[0]).width;
+      w += Math.max(a, b) + (i ? gap * 2 + 1 : 0);
+    });
+    return w;
+  };
+  while (vs > 20 && width(vs) > maxW) vs -= 2;
+  var cx = x;
+  ctx.textAlign = 'left';
+  stats.forEach(function (p, i) {
+    if (i) { ctx.fillStyle = F.line; ctx.fillRect(cx + gap, y - vs * 0.78, 1, vs * 0.78 + ls + 12); cx += gap * 2 + 1; }
+    ctx.font = '700 ' + vs + 'px Inter, sans-serif'; ctx.fillStyle = col(p[2]); ctx.fillText(p[1], cx, y);
+    var a = ctx.measureText(p[1]).width;
+    ctx.font = '500 ' + ls + 'px Inter, sans-serif'; ctx.fillStyle = F.grey; ctx.fillText(p[0], cx, y + ls + 9);
+    cx += Math.max(a, ctx.measureText(p[0]).width);
+  });
 }
 
 /* A rounded pill with text, for signs on a card. tone: up | down | info */

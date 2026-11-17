@@ -5961,6 +5961,23 @@ function _shareChartCard(c, rows, wm) {
   var money = function (v) { return v >= 1000 ? '$' + Math.round(v).toLocaleString('en-US') : v >= 1 ? '$' + v.toFixed(2) : '$' + v.toPrecision(3); };
   var months = Math.max(1, Math.round(rows.length / 30));
   var pAll = (c.price / line[0] - 1) * 100;
+  /* Flow look (2026-11-17): the same card as every other chart share. */
+  if (typeof _fcDrawFlow === 'function' && typeof shareTiles === 'function') {
+    var sEl = document.querySelector('#td-score-num .td-score-num-val');
+    var sc = sEl ? sEl.textContent.trim().split('/')[0].trim() : (c.score != null ? String(c.score) : '');
+    var sn = parseInt(sc, 10), Rd = (typeof coinReading === 'function') ? coinReading(c) : null;
+    _fcDrawFlow({
+      kind: 'line', line: line, tag: money(c.price),
+      kicker: name.toUpperCase() === sym.toUpperCase() ? sym : name + ' (' + sym + ')',
+      from: day(rows[0].open_time), axis: 'daily close, USD', to: 'today',
+      head: sym + (pAll >= 0 ? ' up ' : ' down ') + Math.abs(pAll).toFixed(0) + '% in ' + months + ' months',
+      stats: [['7 days', pct(c.p7), c.p7 >= 0 ? 'up' : 'dn'], ['30 days', pct(c.p30), c.p30 >= 0 ? 'up' : 'dn']]
+        .concat(sc ? [['Score', sc + '/100', sn >= 60 ? 'up' : sn >= 35 ? 'amb' : 'dn']] : []),
+      note: Rd && Rd.head ? 'Reading: ' + Rd.head : '',
+      sym: sym
+    }, wm);
+    return;
+  }
 
   /* Top: what the chart is, when, and the small logo */
   ctx.textBaseline = 'alphabetic'; ctx.textAlign = 'left';

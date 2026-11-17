@@ -820,7 +820,7 @@ function shareCoinStory() {
   fcShareCard({
     kind: 'bars', bars: bars,
     tag: typeof fmtP === 'function' ? fmtP(c.price) : '',
-    kicker: (c.name || c.sym) + ' (' + c.sym + ') · 24 hours, 7 days and 30 days',
+    kicker: (c.name || c.sym) + ' (' + c.sym + ')',   /* the bars already say 24H / 7D / 30D */
     head: _tdStoryLast.S.head,
     stats: _tdStoryLast.S.facts,
     note: 'What happened, not a forecast · Binance prices',

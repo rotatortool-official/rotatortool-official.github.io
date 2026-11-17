@@ -146,7 +146,7 @@ function fcShareCard(spec) {
   var fonts = document.fonts && document.fonts.load
     ? Promise.all(['500 19px Inter', '600 22px Inter', '700 18px Inter', '800 38px Inter'].map(function (f) { return document.fonts.load(f); }))
     : Promise.resolve();
-  fonts.catch(function () {}).then(function () { _shareWatermark(function (wm) { _fcDraw(spec, wm); }); });
+  fonts.catch(function () {}).then(function () { _shareWatermark(function (wm) { (typeof shareTiles === 'function' ? _fcDrawFlow : _fcDraw)(spec, wm); }); });
   if (typeof supaCountFeature === 'function') supaCountFeature('share_chart', false);
 }
 
@@ -315,6 +315,150 @@ function _fcDraw(spec, wm, options) {
   if (typeof _openShareCard === 'function') _openShareCard(can, spec.sym || 'CHART', spec.text);
 }
 
+/* ── The share card in the Flow look (2026-11-17) ─────────────────────
+   Same spec as _fcDraw (which stays for the research figures that ask for
+   returnCanvas). Each thing is said once: a tag already in the headline is
+   not drawn (the line gets an end dot instead), a stat whose value is in the
+   headline or on the tag is dropped, "... on Rotator" parts of the note are
+   not drawn (Rotator is named in the gold bar). Numbers are tiles, bars are
+   slimmer, labels grey, the chart takes the room the words leave. */
+function _fcDrawFlow(spec, wm) {
+  wm = wm || {};
+  var F = ROTATOR_SHARE.flow, W = 1200, H = 675, L0 = 60, UP = '#16c784', DN = '#ea3943', AMB = '#f0a020';
+  var can = document.createElement('canvas'); can.width = W; can.height = H;
+  var ctx = can.getContext('2d');
+  ctx.fillStyle = F.bg; ctx.fillRect(0, 0, W, H);
+  var barTop = shareBrandBar(ctx, W, H);
+  var nd = new Date(spec.asOf || Date.now());
+  shareFlowHead(ctx, W, spec.kicker, 'Updated ' + nd.getUTCDate() + ' ' + _FC_MON[nd.getUTCMonth()], wm, spec.legend);
+
+  var head = String(spec.head || '');
+  var inHead = function (t) { return t != null && t !== '' && head.indexOf(String(t)) >= 0; };
+  var tag = spec.kind !== 'hbars' && spec.tag && !inHead(spec.tag) ? spec.tag : null;
+  var dot = spec.kind === 'line' && !tag;
+  var st = (spec.stats || []).filter(function (p) { return p[1] != null && p[1] !== '' && !inHead(p[1]) && p[1] !== spec.tag; });
+  var note = spec.note ? String(spec.note).split(' · ').filter(function (s) { return !/\bRotator\b/.test(s); }).join(' · ') : '';
+
+  /* The words from the bar up; the chart gets what is left. */
+  var y = barTop - 26, noteY = 0, tilesY = 0;
+  if (note) { noteY = y; y -= 40; }
+  if (st.length) { tilesY = y - 26; y = tilesY - 50; }
+  var headY = y;
+  var hasAxis = !!(spec.from || spec.axis || spec.to);
+  var axisY = headY - 58;
+  var CX = L0, CY = 100;
+  ctx.font = '800 22px Inter, sans-serif';
+  var TW = tag ? Math.max(120, ctx.measureText(tag).width + 28) : 0;
+  var CW = W - 2 * L0 - (tag ? TW + 10 : dot ? 14 : 0), CH = (hasAxis ? axisY - 24 : headY - 56) - CY;
+
+  ctx.strokeStyle = F.grid; ctx.lineWidth = 1;
+  if (spec.kind !== 'hbars') for (var g = 1; g < 4; g++) { ctx.beginPath(); ctx.moveTo(CX, CY + CH * g / 4); ctx.lineTo(CX + CW, CY + CH * g / 4); ctx.stroke(); }
+  if (wm.mark) { ctx.globalAlpha = 0.08; ctx.drawImage(wm.mark, CX + CW / 2 - 130, CY + CH / 2 - 130, 260, 260); ctx.globalAlpha = 1; }
+  var endX = CX + CW, endY = CY + CH / 2, endCol = UP;
+
+  if (spec.kind === 'line') {
+    var line = spec.line, both = line.concat(spec.line2 || []).concat(spec.zero ? [0] : []);
+    var lo = Math.min.apply(null, both), hi = Math.max.apply(null, both), pad = (hi - lo) * 0.08 || Math.abs(hi) * 0.05 || 1;
+    var Y = function (v) { return CY + CH - ((v - lo + pad) / (hi - lo + 2 * pad)) * CH; };
+    var X = function (i) { return CX + (i / (line.length - 1)) * CW; };
+    endCol = spec.line2 ? '#f3ba2f' : (line[line.length - 1] >= line[0] ? UP : DN);
+    if (spec.zero) {
+      ctx.save(); ctx.setLineDash([8, 8]); ctx.strokeStyle = F.line; ctx.lineWidth = 2;
+      ctx.beginPath(); ctx.moveTo(CX, Y(0)); ctx.lineTo(CX + CW, Y(0)); ctx.stroke(); ctx.restore();
+    }
+    if (spec.line2 && spec.line2.length > 1) {
+      var X2 = function (i) { return CX + (i / (spec.line2.length - 1)) * CW; };
+      ctx.beginPath(); spec.line2.forEach(function (v, i) { if (i) ctx.lineTo(X2(i), Y(v)); else ctx.moveTo(X2(i), Y(v)); });
+      ctx.strokeStyle = '#5b9dff'; ctx.lineWidth = 3; ctx.lineJoin = 'round'; ctx.stroke();
+    }
+    ctx.beginPath(); ctx.moveTo(X(0), CY + CH);
+    line.forEach(function (v, i) { ctx.lineTo(X(i), Y(v)); });
+    ctx.lineTo(X(line.length - 1), CY + CH); ctx.closePath();
+    ctx.globalAlpha = 0.10; ctx.fillStyle = endCol; ctx.fill(); ctx.globalAlpha = 1;
+    ctx.beginPath(); line.forEach(function (v, i) { if (i) ctx.lineTo(X(i), Y(v)); else ctx.moveTo(X(i), Y(v)); });
+    ctx.strokeStyle = endCol; ctx.lineWidth = 3; ctx.lineJoin = 'round'; ctx.stroke();
+    endY = Y(line[line.length - 1]);
+  } else if (spec.kind === 'bars') {
+    var b = spec.bars, bw = CW / b.length;
+    var pmax = Math.max.apply(null, b.map(function (p) { return p.v > 0 ? p.v : 0; }));
+    var nmax = Math.max.apply(null, b.map(function (p) { return p.v < 0 ? -p.v : 0; }));
+    var botPad = nmax > 0 ? 24 : 2, sc = (CH - 28 - botPad) / ((pmax + nmax) || 1);
+    var zero = CY + 28 + pmax * sc;
+    ctx.strokeStyle = F.line; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(CX, zero); ctx.lineTo(CX + CW, zero); ctx.stroke();
+    b.forEach(function (p, i) {
+      var h = p.v ? Math.max(6, Math.abs(p.v) * sc) : 0, yy = p.v >= 0 ? zero - h : zero;
+      var col = spec.tone === 'amber' ? AMB : (p.v >= 0 ? UP : DN);
+      var bx = CX + i * bw + bw * 0.24, bwi = bw * 0.52;   /* slimmer: half the slot (was 68%) */
+      ctx.globalAlpha = i === b.length - 1 || p.lab ? 1 : 0.82;
+      if (p.prov) {
+        ctx.strokeStyle = col; ctx.lineWidth = 2; ctx.setLineDash([4, 3]);
+        ctx.strokeRect(bx + 1, yy + 1, bwi - 2, Math.max(0, h - 2)); ctx.setLineDash([]);
+      } else {
+        ctx.fillStyle = col;
+        if (ctx.roundRect) { ctx.beginPath(); ctx.roundRect(bx, yy, bwi, h, 4); ctx.fill(); } else ctx.fillRect(bx, yy, bwi, h);
+      }
+      ctx.globalAlpha = 1;
+      if (p.lab) { ctx.font = '700 17px Inter, sans-serif'; ctx.textAlign = 'center'; ctx.fillStyle = '#e8e8ea'; ctx.fillText(p.lab, CX + i * bw + bw / 2, yy - 8); }
+    });
+    var done = b.filter(function (p) { return !p.prov; }), last = done[done.length - 1] || b[b.length - 1];
+    endCol = spec.tone === 'amber' ? AMB : (last.v >= 0 ? UP : DN);
+    endY = last.v >= 0 ? zero - Math.abs(last.v) * sc : zero + Math.abs(last.v) * sc;
+  } else if (spec.kind === 'hbars') {
+    /* Up green, down red whenever the rows go both ways (the day brief drew
+       a −22% in the same amber as a +117%). */
+    var rows = spec.rows, n = rows.length, rh = CH / n, rhi = Math.max.apply(null, rows.map(function (r) { return Math.abs(r.v); })) || 1;
+    var mixed = rows.some(function (r) { return r.v < 0; }) && rows.some(function (r) { return r.v > 0; });
+    var fs = Math.min(22, rh * 0.55), col2 = spec.tone === 'amber' ? AMB : UP;
+    ctx.font = '600 ' + fs + 'px Inter, sans-serif';
+    var nameW = Math.max(170, Math.max.apply(null, rows.map(function (r) { return ctx.measureText(r.name).width; })) + 20);
+    ctx.font = '800 ' + fs + 'px Inter, sans-serif';
+    var labW = Math.max.apply(null, rows.map(function (r) { return ctx.measureText(r.label).width; })) + 16;
+    rows.forEach(function (r, i) {
+      var yy = CY + i * rh + rh * 0.27, h = rh * 0.46, w = Math.max(3, Math.abs(r.v) / rhi * (CW - nameW - labW));
+      var c = spec.tone === 'flow' || mixed ? (r.v >= 0 ? UP : DN) : col2;
+      ctx.textAlign = 'left'; ctx.fillStyle = '#e8e8ea'; ctx.font = '600 ' + fs + 'px Inter, sans-serif';
+      ctx.fillText(r.name, CX, yy + h / 2 + fs * 0.35);
+      ctx.fillStyle = c;
+      if (ctx.roundRect) { ctx.beginPath(); ctx.roundRect(CX + nameW, yy, w, h, 4); ctx.fill(); } else ctx.fillRect(CX + nameW, yy, w, h);
+      ctx.font = '800 ' + fs + 'px Inter, sans-serif'; ctx.fillText(r.label, CX + nameW + w + 10, yy + h / 2 + fs * 0.35);
+    });
+  }
+  if (tag) {
+    var ty = Math.max(CY + 18, Math.min(CY + CH - 18, endY));
+    ctx.fillStyle = endCol;
+    if (ctx.roundRect) { ctx.beginPath(); ctx.roundRect(CX + CW + 10, ty - 18, TW, 36, 8); ctx.fill(); } else ctx.fillRect(CX + CW + 10, ty - 18, TW, 36);
+    ctx.fillStyle = F.bg; ctx.textAlign = 'center'; ctx.font = '800 22px Inter, sans-serif'; ctx.fillText(tag, CX + CW + 10 + TW / 2, ty + 8);
+  } else if (dot) {
+    ctx.fillStyle = endCol; ctx.strokeStyle = F.bg; ctx.lineWidth = 3;
+    ctx.beginPath(); ctx.arc(endX, endY, 7, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
+  }
+  if (hasAxis) {
+    ctx.fillStyle = F.grey; ctx.font = '500 16px Inter, sans-serif';
+    ctx.textAlign = 'left'; ctx.fillText(spec.from || '', CX, axisY);
+    ctx.textAlign = 'center'; ctx.fillText(spec.axis || '', W / 2, axisY);
+    ctx.textAlign = 'right'; ctx.fillText(spec.to || '', W - L0, axisY);
+  }
+  ctx.textAlign = 'left'; ctx.fillStyle = '#ffffff';
+  shareFit(ctx, head, W - 2 * L0, '700 {SIZE}px Inter, sans-serif', 42, 26); ctx.fillText(head, L0, headY);
+  /* A stat that is a sentence, not a number, reads badly in a big tile:
+     then all stats stay one line, name grey and value in colour. */
+  var longStat = st.some(function (p) { return String(p[1]).length > 24; });
+  if (st.length && !longStat) shareTiles(ctx, L0, tilesY, st, W - 2 * L0);
+  else if (st.length) {
+    var sf = 26, lineW = function (f) { var w = 0; st.forEach(function (p, i) { ctx.font = '500 ' + f + 'px Inter, sans-serif'; w += ctx.measureText((i ? '   ' : '') + p[0] + ' ').width; ctx.font = '700 ' + f + 'px Inter, sans-serif'; w += ctx.measureText(p[1]).width; }); return w; };
+    while (sf > 16 && lineW(sf) > W - 2 * L0) sf -= 1;
+    var sx = L0, sy = tilesY + 8;
+    st.forEach(function (p, i) {
+      ctx.font = '500 ' + sf + 'px Inter, sans-serif'; ctx.fillStyle = F.grey; ctx.textAlign = 'left';
+      var k = (i ? '   ' : '') + p[0] + ' '; ctx.fillText(k, sx, sy); sx += ctx.measureText(k).width;
+      ctx.font = '700 ' + sf + 'px Inter, sans-serif'; ctx.fillStyle = p[2] === 'up' ? UP : p[2] === 'dn' ? DN : p[2] === 'amb' ? AMB : '#ffffff';
+      ctx.fillText(p[1], sx, sy); sx += ctx.measureText(p[1]).width;
+    });
+  }
+  if (note) { ctx.fillStyle = F.grey; shareFit(ctx, note, W - 2 * L0, '500 {SIZE}px Inter, sans-serif', 19, 15); ctx.textAlign = 'left'; ctx.fillText(note, L0, noteY); }
+  if (typeof _openShareCard === 'function') _openShareCard(can, spec.sym || 'CHART', spec.text);
+}
+
 /* ══════════════════════════════════════════════════════════════════
    ETF FLOWS — ranges and the share card
 ══════════════════════════════════════════════════════════════════ */
@@ -441,7 +585,7 @@ function shareEtfChart() {
     var last = s && s.last;
     fcShareCard({
       kind: 'bars', bars: bars, tone: 'flow', tag: _etfM((doneBars[doneBars.length - 1] || bars[bars.length - 1]).v),
-      kicker: name + ' spot ETFs · ' + (useHist && R.weekly ? 'weekly net flows, last ' + span : 'daily net flows, last ' + span),
+      kicker: 'Spot ETFs · ' + (useHist && R.weekly ? 'weekly net flows, last ' + span : 'daily net flows, last ' + span),   /* the headline names Bitcoin or Ether */
       from: _fcDay(useHist ? R.pts[0].day : s.bars[0].day, true, true), axis: useHist && R.weekly ? 'net flow per week' : 'net flow per trading day', to: _fcDay(days[days.length - 1].day, false, true),
       head: head,
       stats: [['Latest day', last ? _etfM(last.total) : null, last && last.total >= 0 ? 'up' : 'dn'],
