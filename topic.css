@@ -8,7 +8,10 @@
    :root / :root.light), its Inter type, its rounded cards and gold section
    labels, and follow the visitor's board theme (js/theme-mode.js: Auto by
    time of day, Light, Dark). Nothing here is a new design: it copies the
-   board's tiles and the landing page's buttons. */
+   board's tiles and the landing page's buttons.
+   2026-11-17 (Flow rules, memory flow-design-rules): page title 28 / 24
+   phone, a panel's name is its 17 px white title, stat labels grey small
+   capitals, flat cards with one line, the open page a grey pill. */
 :root{
   --bg:#0b0e13; --bg2:#0f1318; --bg3:#141920; --bg4:#1a2030;
   --bdr:rgba(255,255,255,.055); --bdr2:rgba(255,255,255,.11);
@@ -48,14 +51,14 @@ a{color:var(--bnb);text-underline-offset:2px;}
 .top nav{display:flex;gap:4px;flex-wrap:wrap;justify-content:flex-end;}
 .top nav a{font:600 13px/1 var(--ui);color:var(--sub);text-decoration:none;padding:8px 12px;border-radius:999px;white-space:nowrap;transition:background .15s,color .15s;}
 .top nav a:hover{color:var(--text);background:var(--w005);}
-.top nav a[aria-current]{color:var(--bnb);background:rgba(212,164,40,.12);box-shadow:inset 0 0 0 1px rgba(212,164,40,.35);}
+.top nav a[aria-current]{color:var(--text);background:var(--bg3);box-shadow:inset 0 0 0 1px var(--bdr2);}   /* where you are: a grey pill, as the board's rail (Flow rules 2026-11-17) */
 
 /* ── Type ── */
 main{padding:36px 0 48px;}
-h1{font-size:clamp(28px,5vw,40px);line-height:1.15;letter-spacing:-.02em;font-weight:800;margin:0 0 12px;}
-h2{font-size:20px;line-height:1.3;letter-spacing:-.01em;font-weight:700;margin:40px 0 12px;}
+h1{font-size:28px;line-height:1.2;letter-spacing:-.012em;font-weight:700;margin:0 0 10px;}
+h2{font-size:20px;line-height:1.3;letter-spacing:-.01em;font-weight:700;margin:36px 0 10px;}
 h3{font-size:16px;line-height:1.35;font-weight:700;margin:24px 0 6px;}
-.lead{color:var(--sub);font-size:17px;line-height:1.65;margin:0 0 22px;max-width:720px;}
+.lead{color:var(--sub);font-size:15px;line-height:1.6;margin:0 0 22px;max-width:680px;}
 p{margin:0 0 12px;}
 main p,main li{color:var(--sub);}
 main strong{color:var(--text);}
@@ -65,15 +68,17 @@ main strong{color:var(--text);}
 
 /* ── Cards: the board's tiles ── */
 .stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:12px;margin:22px 0;}
-.stat,.tbl-wrap,.panel{border:1px solid var(--bdr2);border-radius:var(--radius);background:var(--tile-grad),var(--bg3);box-shadow:var(--card-shadow),var(--card-inset);}
+.stat,.tbl-wrap,.panel{border:1px solid var(--bdr2);border-radius:var(--radius);background:var(--bg3);box-shadow:none;}
 .stat{padding:14px 16px;}
-.stat .k,.panel-h .k{font:700 11.5px/1.3 var(--ui);letter-spacing:.12em;text-transform:uppercase;color:var(--amber);}
+/* Labels in a stat: grey small capitals. A panel's name: its title, 17 px, white, normal case. */
+.stat .k{font:700 11px/1.3 var(--ui);letter-spacing:.12em;text-transform:uppercase;color:var(--muted);}
+.panel-h .k{font:700 17px/1.3 var(--ui);letter-spacing:-.005em;text-transform:none;color:var(--text);}
 .stat .v{font:800 26px/1.25 var(--ui);letter-spacing:-.01em;margin-top:6px;font-variant-numeric:tabular-nums;color:var(--text);}
 .stat .v.up{color:var(--green)} .stat .v.down{color:var(--red)}
 .stat .s{font-size:13px;color:var(--muted);margin-top:2px;}
 
 .panel{margin:16px 0;overflow:hidden;}
-.panel-h{display:flex;align-items:baseline;justify-content:space-between;gap:12px;padding:14px 16px 10px;}
+.panel-h{display:flex;align-items:baseline;justify-content:space-between;gap:12px;padding:18px 18px 10px;}
 .panel-h .m{font-size:12.5px;color:var(--muted);font-variant-numeric:tabular-nums;white-space:nowrap;}
 .panel .tbl-wrap{border:0;border-radius:0;box-shadow:none;background:none;}
 .panel-f{padding:10px 16px 14px;font-size:13px;color:var(--muted);border-top:1px solid var(--bdr);}
@@ -101,7 +106,7 @@ td .nm{color:var(--muted);font-weight:400;margin-left:6px;}
 .meter i{display:block;height:100%;border-radius:2px;background:var(--red);opacity:.75;}
 
 /* ── Pro note: the board's Pro box ── */
-.note{border:1px solid rgba(167,139,250,.35);background:var(--prod);border-radius:var(--radius);padding:14px 16px;font-size:15px;margin:22px 0;color:var(--sub);}
+.note{border:1px solid rgba(167,139,250,.35);background:var(--prod);border-radius:var(--radius);padding:16px 18px;font-size:14.5px;margin:22px 0;color:var(--sub);}
 .note strong{color:var(--pro)}
 .note a{color:var(--pro);font-weight:600;}
 
@@ -133,6 +138,9 @@ footer p{margin:0 0 8px}
   .top nav::-webkit-scrollbar{display:none;}
   .top nav a{padding:7px 10px;font-size:12.5px;}
   main{padding-top:26px;}
+  h1{font-size:24px;}
+  .lead{font-size:14.5px;}
+  .panel-h .k{font-size:16px;}
   .wrap{padding:0 14px;}
   th,td{padding:9px 7px;white-space:normal;}
   th:first-child,td:first-child{padding-left:12px;}
