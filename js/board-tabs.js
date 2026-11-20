@@ -65,7 +65,8 @@
       { k: 'worst', el: 'worst-cards', n: 'Momentum: worst', i: 'down', g: 'Movers', q: 'momentum worst losers laggards' },
       { k: 'all', el: 'sec-coins', n: 'All coins', i: 'list', g: 'Lists', q: 'all coins table leaderboard list score' },
       { k: 'record', el: 'sec-record', n: 'Record', i: 'clock', g: 'Lists', q: 'record track history results' }
-    ], pages: [['coin/', 'A page for every coin', 'list'], ['golden-cross.html', 'Golden & death cross', 'cross']] },
+    ], pages: [['binance-delisting.html', 'Binance delistings', 'lock', 'delist delisting delisted monitoring tag leaving removed'], ['binance-new-listings.html', 'Binance new listings', 'up', 'listing listings listed new coins launch'],
+      ['binance-effect.html', 'The Binance effect', 'chart', 'binance effect listing delisting unlock numbers'], ['coin/', 'A page for every coin', 'list'], ['golden-cross.html', 'Golden & death cross', 'cross']] },
     { id: 'deriv', lead: 'Futures traders: who got forced out of their positions, and when.', name: 'Derivatives', icon: 'bolt', mob: 'DERIV', secs: ['sec-liq'], items: [
       { k: 'liq', el: 'sec-liq', n: 'Liquidations', i: 'bolt', g: 'Market', q: 'liquidations liquidated rekt longs shorts futures' },
       { k: 'percoin', el: 'sec-coins', tab: 'coins', n: 'Funding & positioning', i: 'pct', g: 'Per coin', pro: 1, l: 'Open any coin', q: 'funding open interest long short ratio' }
@@ -501,7 +502,7 @@
       if (it.tab) return;
       FIND.push({ n: it.n, sub: t.name, i: it.i, pro: it.pro, hay: (it.n + ' ' + (it.q || '') + ' ' + t.name).toLowerCase(), go: [t.id, it.k] });
     });
-    (t.pages || []).forEach(function (p) { FIND.push({ n: p[1], sub: 'Full page', i: p[2], hay: p[1].toLowerCase(), href: p[0] }); });
+    (t.pages || []).forEach(function (p) { FIND.push({ n: p[1], sub: 'Full page', i: p[2], hay: (p[1] + ' ' + (p[3] || '')).toLowerCase(), href: p[0] });   /* p[3]: extra search words (2026-11-20) */ });
   });
   LEARN.forEach(function (l) { FIND.push({ n: l[1], sub: 'Learn', i: l[2], hay: (l[1] + ' learn help').toLowerCase(), run: /\(/.test(l[3]) ? l[3] : null, href: /\(/.test(l[3]) ? null : l[3] }); });
   var START = [['coins', 'turns'], ['coins', 'all'], ['flows', 'etf'], ['deriv', 'liq'], ['mine', 'holdings'], ['flows', 'unlocks']];

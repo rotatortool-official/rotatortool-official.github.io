@@ -609,7 +609,7 @@ function renderTiles() {
           + '</div>'
           + _retiredNote(c)
           + (c._retired || typeof readingLineHtml !== 'function' ? '' : readingLineHtml(c))
-          + (function() { var r = _holderRisk(c); return r ? '<div class="tile-risk" title="' + r + '">⚠ ' + r + '</div>' : ''; })()
+          + (function() { var r = _holderRisk(c); return r ? '<div class="tile-risk" title="' + r + '">⚠ ' + r + (/Binance/.test(r) ? ' <a class="tile-risk-a" href="binance-delisting.html" onclick="event.stopPropagation()">' + 'What it means' + ' ›</a>' : '') + '</div>' : ''; })()
           + (c.insight ? '<div class="tile-insight"><div class="insight-pulse ' + c.insight.color + '" data-tip="' + c.insight.tooltip.replace(/"/g, '&quot;') + '" title="' + c.insight.tooltip.replace(/"/g, '&quot;') + '"><span class="insight-dot"></span><span class="insight-lbl">' + c.insight.label + '</span><span class="insight-score">' + c.insight.score + '</span></div></div>' : '')
           + '<div class="tile-foot">' + (pl ? '<span class="tile-pl ' + plC + '">' + pl + '</span>' : '<span></span>')
           + '<span class="tile-scr ' + scrC + '"' + (c._retired ? '' : ' style="color:' + scoreColor(c.score) + '"') + '>' + (c._retired ? '—' : c.score) + '</span></div>'

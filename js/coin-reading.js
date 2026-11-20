@@ -979,7 +979,8 @@ function renderCoinReading(c) {
        design (they are ranked in their own universe), so the reason would
        read as a fault when it is not one. */
     if (!c.isStock) (c._exclusions || []).forEach(function(x) { if (EXCL[x]) w.push(EXCL[x]); });
-    warnEl.innerHTML = w.map(function(t) { return '<div class="td-warn-row">⚠ ' + _esc(t) + '</div>'; }).join('');
+    /* A Binance warning opens the delisting page (2026-11-20: it was only in the footer). */
+    warnEl.innerHTML = w.map(function(t) { return '<div class="td-warn-row">⚠ ' + _esc(t) + (/Binance/.test(t) ? ' <a class="td-warn-a" href="binance-delisting.html">' + 'What it means' + ' ›</a>' : '') + '</div>'; }).join('');
   }
 
   if (c.isStock || c.isStable) {
