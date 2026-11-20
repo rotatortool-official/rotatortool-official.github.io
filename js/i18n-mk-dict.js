@@ -1171,7 +1171,7 @@ Object.assign(MK_TEXT, {
   'SEARCH': 'ПРЕБАРАЈ', 'SEARCH COINS': 'БАРАЈ МОНЕТИ', 'SETTINGS': 'ПОСТАВКИ', 'ROTATOR — reload': 'ROTATOR — освежи',
   'Dark Mode': 'Темен режим',
   'ABOUT US': 'ЗА НАС',
-  'CAPITAL ROTATION': 'ДВИЖЕЊЕ НА КАПИТАЛОТ', 'ROTATION STRATEGIES': 'СТРАТЕГИИ ЗА РОТАЦИЈА', 'BITCOIN ETF FLOWS': 'ПАРИ ВО BITCOIN ETF', 'TOKEN UNLOCKS': 'ОТКЛУЧУВАЊА', 'GOLDEN CROSSES': 'ЗЛАТНИ КРСТОВИ', 'TRACK RECORD': 'ЕВИДЕНЦИЈА',
+  'CAPITAL ROTATION': 'ДВИЖЕЊЕ НА КАПИТАЛОТ', 'ROTATION STRATEGIES': 'СТРАТЕГИИ ЗА РОТАЦИЈА', 'BITCOIN ETF FLOWS': 'ПАРИ ВО BITCOIN ETF', 'TOKEN UNLOCKS': 'ОТКЛУЧУВАЊА', 'BINANCE DELISTINGS': 'ОТСТРАНУВАЊА ОД BINANCE', 'GOLDEN CROSSES': 'ЗЛАТНИ КРСТОВИ', 'TRACK RECORD': 'ЕВИДЕНЦИЈА',
   'Every rotation rule we tested': 'Секое правило за ротација што го тестиравме', 'TERMS': 'УСЛОВИ', 'PRIVACY': 'ПРИВАТНОСТ', 'CONTACT': 'КОНТАКТ', 'SUPPORT US': 'ПОДДРЖЕТЕ НЕ',
   '◈ How Rotator works': '◈ Како работи Rotator',
   'What the page measures, and what it does not.': 'Што мери страницата, а што не мери.',
