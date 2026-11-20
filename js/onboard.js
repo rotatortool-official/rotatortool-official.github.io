@@ -44,7 +44,14 @@
       lim: function (n) { return 'Бесплатно се чуваат ' + n + ' монети како твои; другите се на листата за следење, со истите читања.'; },
       since: 'Од твојата последна посета', ago: function (t) { return 'пред ' + t; }, h: ' ч.', d: ' дена', d1: ' ден',
       price: 'цена', score: 'резултат', pro: 'Добивај ги ваквите промени на Telegram, без да ја отвораш страницата.', proBtn: 'Погледни Pro',
-      nochg: 'Без поголеми промени кај твоите монети.'
+      nochg: 'Без поголеми промени кај твоите монети.',
+      avg: function (v) { return 'Просечната монета: ' + v + '.'; }, checked: function (t) { return 'Цените проверени во ' + t + '.'; },
+      big: function (s, v) { return 'Најголема промена: ' + s + ' ' + v + ' од твојата последна посета.'; },
+      unl: function (s, d, p) { return s + ' отклучува ' + (p ? p + ' нови монети ' : 'нови монети ') + d + '.'; },
+      inDays: function (n) { return n === 0 ? 'денес' : n === 1 ? 'утре' : 'за ' + n + ' дена'; },
+      share: 'Сподели', copied: 'Копирано',
+      shareBig: function (s, v, t, a) { return s + ' ' + v + ' во последните ' + t + (a ? ', просечната монета ' + a : '') + '. Проверено на Rotator:'; },
+      shareQuiet: function (s, t, a) { return 'Мирно кај ' + s + ' во последните ' + t + (a ? ', просечната монета ' + a : '') + '. Проверено на Rotator:'; }
     } : {
       q: 'Which coins do you hold?', sub: 'Tap your coins. No account, no wallet; saved only in this browser.',
       ph: 'Another coin, e.g. LINK', skip: 'Skip', tour: 'Take the short tour',
@@ -57,7 +64,14 @@
       lim: function (n) { return 'Free keeps ' + n + ' coins as your holdings; the others are on your watchlist, with the same readings.'; },
       since: 'Since your last visit', ago: function (t) { return t + ' ago'; }, h: ' h', d: ' days', d1: ' day',
       price: 'price', score: 'score', pro: 'Hear about changes like these on Telegram, without opening the site.', proBtn: 'See Pro',
-      nochg: 'No big changes on your coins.'
+      nochg: 'No big changes on your coins.',
+      avg: function (v) { return 'The average coin: ' + v + '.'; }, checked: function (t) { return 'Prices checked at ' + t + '.'; },
+      big: function (s, v) { return 'Biggest change: ' + s + ' ' + v + ' since your last visit.'; },
+      unl: function (s, d, p) { return s + ' unlocks ' + (p ? p + ' more coins ' : 'more coins ') + d + '.'; },
+      inDays: function (n) { return n === 0 ? 'today' : n === 1 ? 'tomorrow' : 'in ' + n + ' days'; },
+      share: 'Share', copied: 'Copied',
+      shareBig: function (s, v, t, a) { return s + ' ' + v + ' in the last ' + t + (a ? ', the average coin ' + a : '') + '. Checked on Rotator:'; },
+      shareQuiet: function (s, t, a) { return 'A quiet stretch for ' + s + ' in the last ' + t + (a ? ', the average coin ' + a : '') + '. Checked on Rotator:'; }
     };
   }
   function esc(s) { return String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;'); }
@@ -168,9 +182,21 @@
   }
 
   /* ── Since your last visit ── */
+  /* 2026-11-20 (Codex review, Daniel: "make users come again or share the
+     findings"): the snapshot also keeps every tracked coin's price (a), so
+     the card can say how the average coin moved over the same time. It
+     opens with one plain sentence (the biggest change against the average
+     coin, or "no big changes" with the time the prices were checked),
+     adds unlock warnings due on your coins within 14 days, and a Share
+     button that turns the sentence into a message with a link to the coin.
+     Counted (names only, count_feature): since_return once a session when
+     the card shows, since_share on a share. */
+  var SHARE_BASE = 'https://rotatortool.com/board.html?coin=';
   function snapshot() {
-    var o = {}; mine().forEach(function (c) { if (c.price > 0) o[c.id] = { p: c.price, s: typeof c.score === 'number' ? Math.round(c.score) : null }; });
-    return { at: Date.now(), c: o };
+    var o = {}, a = {};
+    mine().forEach(function (c) { if (c.price > 0) o[c.id] = { p: c.price, s: typeof c.score === 'number' ? Math.round(c.score) : null }; });
+    pool().forEach(function (c) { if (c.price > 0) a[c.id] = Number(c.price.toPrecision(6)); });
+    return { at: Date.now(), c: o, a: a };
   }
   function seenInit() {
     var my = mine(); if (!my.length || !my.some(function (c) { return c.price > 0; })) return;
@@ -184,7 +210,41 @@
     if (st && st.cur && Date.now() - st.cur.at > GAP_MS) base = st.cur; else base = (st && st.base) || null;
     set(KEY_SEEN, JSON.stringify({ base: base, cur: snapshot() }));
   }
-  function ago(ms) { var T = L(), h = Math.round(ms / 36e5); if (h < 36) return T.ago(h + T.h); var d = Math.round(h / 24); return T.ago(d + (d === 1 ? T.d1 : T.d)); }
+  function span(ms) { var T = L(), h = Math.round(ms / 36e5); if (h < 36) return h + T.h; var d = Math.round(h / 24); return d + (d === 1 ? T.d1 : T.d); }
+  function ago(ms) { return L().ago(span(ms)); }
+  /* The average coin's move since the base snapshot (median, so one wild
+     coin cannot drag it); null for an older snapshot without prices. */
+  function typical() {
+    if (!base || !base.a) return null;
+    var ch = [];
+    pool().forEach(function (c) { var b = base.a[c.id]; if (b > 0 && c.price > 0) ch.push((c.price / b - 1) * 100); });
+    return ch.length >= 20 ? median(ch) : null;
+  }
+  function unlocksSoon() {
+    if (typeof _tokenUnlocks === 'undefined' || !_tokenUnlocks) return [];
+    var out = [];
+    mine().forEach(function (c) {
+      var u = _tokenUnlocks[c.id]; if (!u || !u.next_unlock_at) return;
+      var d = new Date(u.next_unlock_at); if (isNaN(d)) return;
+      var days = Math.floor((d - Date.now()) / 864e5);
+      if (days >= 0 && days <= 14) out.push({ c: c, days: days, pct: typeof u.next_unlock_pct === 'number' ? u.next_unlock_pct : null });
+    });
+    return out.sort(function (a, b) { return a.days - b.days; }).slice(0, 2);
+  }
+  /* 12% · 2.5% · 0.04%; below 0.01% the share is left out. */
+  function upct(p) { if (!(p >= 0.01)) return null; return p.toFixed(p >= 10 ? 0 : p >= 1 ? 1 : 2) + '%'; }
+  function hhmm(t) { var d = new Date(t || Date.now()); return ('0' + d.getHours()).slice(-2) + ':' + ('0' + d.getMinutes()).slice(-2); }
+  var shareMsg = '', shareSym = '';
+  window.obShareSince = function (btn) {
+    if (!shareMsg) return;
+    var url = SHARE_BASE + encodeURIComponent(shareSym) + '&utm_source=share&utm_medium=since';
+    if (typeof supaCountFeature === 'function') supaCountFeature('since_share');
+    function copied() { var T = L(); if (btn) { btn.textContent = T.copied; setTimeout(function () { btn.textContent = T.share; }, 2500); } }
+    if (navigator.share) { navigator.share({ title: 'Rotator', text: shareMsg, url: url }).catch(function () {}); return; }
+    var txt = shareMsg + ' ' + url;
+    if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(txt).then(copied, function () { window.prompt('', txt); });
+    else window.prompt('', txt);
+  };
   function drawSince() {
     var host = document.getElementById('ob-since'); if (!host) return;
     seenInit();
@@ -194,10 +254,29 @@
       rows.push({ c: c, dp: (c.price / b.p - 1) * 100, ds: (b.s != null && typeof c.score === 'number') ? Math.round(c.score) - b.s : null, from: b.s });
     });
     if (!rows.length) { if (host.firstChild) host.innerHTML = ''; host.hidden = true; return; }
+    if (typeof supaCountFeature === 'function') supaCountFeature('since_return', true);
+    var typ = typical();
+    /* The lead: the coin that moved most against the average coin. A change
+       counts as big at 3 points or more, either way. */
+    var lead = rows.slice().sort(function (a, b) { return Math.abs(b.dp - (typ || 0)) - Math.abs(a.dp - (typ || 0)); })[0];
+    var big = Math.abs(lead.dp) >= 3 || (typ != null && Math.abs(lead.dp - typ) >= 3);
     rows.sort(function (a, b) { return Math.abs(b.dp) - Math.abs(a.dp); });
+    var avgTxt = typ != null ? ' ' + T.avg(pct(typ)) : '';
+    var when = (typeof _lastUpdated !== 'undefined' && _lastUpdated) ? _lastUpdated : Date.now();
+    var leadHtml = big
+      ? T.big('<b>' + esc(lead.c.sym) + '</b>', '<b class="' + (lead.dp >= 0 ? 'up' : 'dn') + '">' + pct(lead.dp) + '</b>') + avgTxt
+      : T.nochg + avgTxt + ' ' + T.checked(hhmm(when));
+    var len = span(Date.now() - base.at), avgS = typ != null ? pct(typ) : null;
+    shareSym = lead.c.sym;
+    shareMsg = big ? T.shareBig(lead.c.sym, pct(lead.dp), len, avgS)
+                   : T.shareQuiet(rows.map(function (r) { return r.c.sym; }).slice(0, 3).join(', '), len, avgS);
+    var unl = unlocksSoon();
     var pro = typeof isPro !== 'undefined' && isPro;
     host.hidden = false;
-    host.innerHTML = '<div class="ob-since" data-no-i18n><div class="ob-since-h"><b>' + T.since + '</b><span>' + ago(Date.now() - base.at) + '</span></div>'
+    host.innerHTML = '<div class="ob-since" data-no-i18n><div class="ob-since-h"><b>' + T.since + '</b><span>' + ago(Date.now() - base.at) + '</span>'
+      + '<button type="button" class="ob-share" onclick="obShareSince(this)">' + T.share + '</button></div>'
+      + '<p class="ob-lead">' + leadHtml + '</p>'
+      + unl.map(function (u) { return '<p class="ob-unl">🔓 ' + T.unl('<b>' + esc(u.c.sym) + '</b>', T.inDays(u.days), upct(u.pct)) + '</p>'; }).join('')
       + '<div class="ob-since-rows">' + rows.slice(0, 6).map(function (r) {
           return '<button type="button" class="ob-srow" onclick="openTileDetail(\'' + esc(r.c.id) + '\',event)">' + '<span class="ob-sn">' + ico(r.c) + '<b>' + esc(r.c.sym) + '</b></span>'
             + '<span class="ob-sv"><em>' + T.price + '</em> <b class="' + (r.dp >= 0 ? 'up' : 'dn') + '">' + pct(r.dp) + '</b></span>'

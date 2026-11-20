@@ -5772,6 +5772,14 @@ function _handleCoinDeepLink() {
         if (typeof dismissTutorial === 'function') { try { dismissTutorial(); } catch(e) {} }
         function addOne(x) {
           if (!x || holdings.some(function(h) { return holdingMatches(h, x); })) return;
+          /* Holdings full: the coin goes on the watchlist, as the landing's
+             "Watch this coin, free" promises, instead of the Pro window
+             (2026-11-20). */
+          var lim = (typeof isPro !== 'undefined' && isPro) ? PRO_HOLDINGS_LIMIT : FREE_HOLDINGS_LIMIT;
+          if (holdings.length >= lim && typeof watchlist !== 'undefined' && Array.isArray(watchlist)) {
+            if (!(typeof isWatchedCoin === 'function' && isWatchedCoin(x))) { watchlist.push(x.id); if (typeof saveWatchlist === 'function') saveWatchlist(); if (typeof renderAll === 'function') renderAll(); }
+            return;
+          }
           var sel = document.getElementById('coin-sel');
           if (sel && ![].some.call(sel.options, function(o) { return o.value === x.id; })) {
             var o = document.createElement('option'); o.value = x.id; o.textContent = x.sym; sel.appendChild(o);
@@ -5779,6 +5787,7 @@ function _handleCoinDeepLink() {
           if (sel) { sel.value = x.id; addHolding(); }
         }
         addOne(c);
+        if (typeof supaCountFeature === 'function') supaCountFeature('watch_arrival');   /* a coin saved from a landing/shared watch link (2026-11-20) */
         var vs = _pendingDeepLinkVs && String(_pendingDeepLinkVs).toUpperCase();
         if (vs) addOne(coins.find(function(x) { return x.sym === vs || x.id === vs.toLowerCase(); }));
         if (window.BoardTabs) BoardTabs.go('mine');

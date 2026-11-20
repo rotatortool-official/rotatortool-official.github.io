@@ -1328,6 +1328,7 @@ document.addEventListener('click', function (e) {
     <a href="../bitcoin-etf-flows.html">বিটকয়েন ইটিএফ প্রবাহ</a>
     <a href="../token-unlocks.html">টোকেন আনলক</a>
     <a href="../golden-cross.html">গোল্ডেন ক্রস</a>
+    <a href="../coin/">প্রতিটি কয়েন র‌্যাঙ্ক করা হয়েছে</a>
     <a href="../board.html#privacy">গোপনীয়তা</a>
     <a href="../board.html#terms">শর্তাবলী</a>
     <a href="https://t.me/rotatortool" rel="noopener">Telegram</a>
@@ -3276,7 +3277,12 @@ document.addEventListener('click', function (e) {
           ? '<a class="btn btn-gold" href="https://t.me/' + encodeURIComponent(bot) + '?start=w_' + encodeURIComponent(sym.slice(0, 15))
             + (document.documentElement.lang === 'mk' ? '_mk' : '') + '" target="_blank" rel="noopener" onclick="TOPIC.count(\'coin_tg_click\')">' + '🔔 Telegram-এ অ্যালার্ট' + '</a>'
           : '<a class="btn btn-gold" href="/board.html?coin=' + encodeURIComponent(sym) + '&amp;watch=1" onclick="TOPIC.count(\'coin_watch_click\')">' + '🔔 এই কয়েনটি আমার জন্য ট্র্যাক করুন' + '</a>')
-        + '</div></div>'
+        /* Free Watch next to the Pro button (2026-11-20, Codex review): one tap
+           saves the coin in this browser, and the board's "Since your last
+           visit" card reports on it next time. */
+        + (bot ? '<a class="btn btn-ghost" href="/board.html?coin=' + encodeURIComponent(sym) + '&amp;watch=1" onclick="TOPIC.count(\'coin_watch_click\')">' + '☆ এই কয়েনটি দেখুন, বিনামূল্যে' + '</a>' : '')
+        + '</div>'
+        + '<div class="ans-note">' + 'এই ব্রাউজারে সংরক্ষিত, কোনো অ্যাকাউন্ট নেই। পরের ভিজিটে বোর্ড দেখাবে কী পরিবর্তন হয়েছে।' + '</div></div>'
         /* The second coin (Daniel: "if user adds second coin ... one surpassing
            the other"): 7 and 30 days side by side, then the overtake alert,
            which lives on the board's holdings chart (Pro, saved as a pair). */
