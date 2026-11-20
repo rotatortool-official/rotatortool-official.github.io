@@ -3175,7 +3175,11 @@ document.addEventListener('click', function (e) {
       TOPIC.get('coin_events', { event_date: 'gte.' + TOPIC.isoDay(-7), select: 'base_asset,event_type,event_date', order: 'event_date.desc', limit: '600' }),
       TOPIC.cache('telegram_bot_info'),
       TOPIC.cache('etf_flows_summary'),
-      TOPIC.cache('chain_flows_summary')
+      TOPIC.cache('chain_flows_summary'),
+      /* Binance status (2026-11-20): Monitoring Tag + announced delistings,
+         the same tables as /binance-delisting.html. A failed read only hides the line. */
+      TOPIC.get('binance_symbol_tags', { tags: 'cs.{Monitoring}', select: 'base_asset', limit: '500' }).catch(function () { return null; }),
+      TOPIC.get('binance_delisted_symbols', { status: 'eq.DELIST_ANNOUNCED', select: 'base_asset', limit: '500' }).catch(function () { return null; })
     ]).then(function (r) {
       bot = r[4] && r[4].data && r[4].data.username || '';
       /* Step 3 (2026-11-03): money that moved for this coin. ETF flows exist
@@ -3190,7 +3194,10 @@ document.addEventListener('click', function (e) {
       var dl = document.getElementById('ask-list');
       if (dl) dl.innerHTML = r[0].list.filter(function (c) { return sc[c.id] != null; }).slice(0, 200)
         .map(function (c) { return '<option value="' + TOPIC.esc(c.symbol.toUpperCase()) + '">' + TOPIC.esc(c.name) + '</option>'; }).join('');
-      return { coins: r[0], sc: sc, all: all, unl: unl, ev: ev, etf: etf, chains: chains };
+      var mon = {}, dls = {};
+      (r[7] || []).forEach(function (x) { mon[String(x.base_asset).toUpperCase()] = 1; });
+      (r[8] || []).forEach(function (x) { dls[String(x.base_asset).toUpperCase()] = 1; });
+      return { coins: r[0], sc: sc, all: all, unl: unl, ev: ev, etf: etf, chains: chains, mon: mon, dls: dls, binOk: !!(r[7] && r[8]) };
     });
     return data;
   }
@@ -3233,6 +3240,9 @@ document.addEventListener('click', function (e) {
         lines.push('తదుపరి అన్‌లాక్, తేదీ మరియు సరఫరా వాటా:' + ' <strong>' + TOPIC.day(u.next_unlock_at) + ', ' + Number(u.next_unlock_pct).toFixed(2) + '%</strong>'
           + (c.market_cap ? ' (≈ ' + TOPIC.usd(c.market_cap * Number(u.next_unlock_pct) / 100) + ')' : ''));
       else lines.push('రాబోయే 30 రోజులలో పెద్ద అన్‌లాక్ లేదు.');
+      if (d.binOk) lines.push(d.dls[sym] ? '⚠️ <strong>' + 'Binance ఈ కాయిన్‌ను డీలిస్ట్ చేయనున్నట్లు ప్రకటించింది.' + '</strong> <a href="/binance-delisting.html">' + 'తేదీని చూడండి' + '</a>'
+        : d.mon[sym] ? '⚠️ ' + 'Binance పర్యవేక్షణ ట్యాగ్: Binance ఈ కాయిన్‌ను మరింత ప్రమాదకరమైనదిగా పరిశీలిస్తోంది.' + ' <a href="/binance-delisting.html">' + 'దీని అర్థం' + '</a>'
+        : 'Binance: మానిటరింగ్ ట్యాగ్ జాబితాలో లేదు, డీలిస్టింగ్ గురించి ఎటువంటి ప్రకటన లేదు.');
       var e = d.ev[sym];
       if (e && SIGN[e.event_type]) lines.push('ఈ వారం:' + ' ' + SIGN[e.event_type] + ' (' + TOPIC.day(e.event_date) + ')');
       var money = 0, ef = d.etf[sym], ch = d.chains[sym];

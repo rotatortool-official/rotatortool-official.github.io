@@ -3175,7 +3175,11 @@ document.addEventListener('click', function (e) {
       TOPIC.get('coin_events', { event_date: 'gte.' + TOPIC.isoDay(-7), select: 'base_asset,event_type,event_date', order: 'event_date.desc', limit: '600' }),
       TOPIC.cache('telegram_bot_info'),
       TOPIC.cache('etf_flows_summary'),
-      TOPIC.cache('chain_flows_summary')
+      TOPIC.cache('chain_flows_summary'),
+      /* Binance status (2026-11-20): Monitoring Tag + announced delistings,
+         the same tables as /binance-delisting.html. A failed read only hides the line. */
+      TOPIC.get('binance_symbol_tags', { tags: 'cs.{Monitoring}', select: 'base_asset', limit: '500' }).catch(function () { return null; }),
+      TOPIC.get('binance_delisted_symbols', { status: 'eq.DELIST_ANNOUNCED', select: 'base_asset', limit: '500' }).catch(function () { return null; })
     ]).then(function (r) {
       bot = r[4] && r[4].data && r[4].data.username || '';
       /* Step 3 (2026-11-03): money that moved for this coin. ETF flows exist
@@ -3190,7 +3194,10 @@ document.addEventListener('click', function (e) {
       var dl = document.getElementById('ask-list');
       if (dl) dl.innerHTML = r[0].list.filter(function (c) { return sc[c.id] != null; }).slice(0, 200)
         .map(function (c) { return '<option value="' + TOPIC.esc(c.symbol.toUpperCase()) + '">' + TOPIC.esc(c.name) + '</option>'; }).join('');
-      return { coins: r[0], sc: sc, all: all, unl: unl, ev: ev, etf: etf, chains: chains };
+      var mon = {}, dls = {};
+      (r[7] || []).forEach(function (x) { mon[String(x.base_asset).toUpperCase()] = 1; });
+      (r[8] || []).forEach(function (x) { dls[String(x.base_asset).toUpperCase()] = 1; });
+      return { coins: r[0], sc: sc, all: all, unl: unl, ev: ev, etf: etf, chains: chains, mon: mon, dls: dls, binOk: !!(r[7] && r[8]) };
     });
     return data;
   }
@@ -3233,6 +3240,9 @@ document.addEventListener('click', function (e) {
         lines.push('Próximo desbloqueo, fecha y porcentaje del suministro:' + ' <strong>' + TOPIC.day(u.next_unlock_at) + ', ' + Number(u.next_unlock_pct).toFixed(2) + '%</strong>'
           + (c.market_cap ? ' (≈ ' + TOPIC.usd(c.market_cap * Number(u.next_unlock_pct) / 100) + ')' : ''));
       else lines.push('No habrá ningún desbloqueo importante en los próximos 30 días.');
+      if (d.binOk) lines.push(d.dls[sym] ? '⚠️ <strong>' + 'Binance ha anunciado que va a retirar esta moneda de su lista.' + '</strong> <a href="/binance-delisting.html">' + 'Fíjate en la fecha' + '</a>'
+        : d.mon[sym] ? '⚠️ ' + 'Etiqueta de seguimiento de Binance: Binance considera que esta moneda presenta un mayor riesgo.' + ' <a href="/binance-delisting.html">' + 'Qué significa' + '</a>'
+        : 'Binance: no aparece en la lista de «Monitoring Tag» y no se ha anunciado ninguna exclusión de la lista.');
       var e = d.ev[sym];
       if (e && SIGN[e.event_type]) lines.push('Esta semana:' + ' ' + SIGN[e.event_type] + ' (' + TOPIC.day(e.event_date) + ')');
       var money = 0, ef = d.etf[sym], ch = d.chains[sym];
