@@ -8920,3 +8920,61 @@ body.has-tabs #sec-record .rec-wip-btn{border-radius:10px;padding:8px 16px;backg
 /* contrast fixes found by the sweep (2026-11-24) */
 :root.light .footer-news b{color:var(--pl-dark);}
 :root.light .footer-disclaimer span[style*="8899aa"]{color:var(--pl-mute) !important;}
+
+/* ══ PHONE COLUMN 20 px (2026-11-24, Daniel: "place the modal more toward
+   the center ... 2x from each side ... to match the text inside"). On
+   phones the page title and every card share one edge, 20 px in from the
+   screen (was 14 px title / 10 px cards), so the page reads as one centred
+   column. The cards' own side padding drops 16 → 14 px so the text inside
+   loses only 4 px of width. ══ */
+@media (max-width:900px){
+  body.has-tabs{--edge:20px;}
+  body.has-tabs .tab-head{padding-left:var(--edge);padding-right:var(--edge);}
+  body.has-tabs #my-week,body.has-tabs .calm,
+  body.has-tabs #day-brief,body.has-tabs #mkt-now > .mn-grid,body.has-tabs #briefing,body.has-tabs #turn-scan,body.has-tabs #rs-box,
+  body.has-tabs #cb-hot > .neon-section,body.has-tabs #rec-wip,body.has-tabs #sec-liq > .liq-body{margin-left:var(--edge) !important;margin-right:var(--edge) !important;}
+  body.has-tabs #sec-yours .sidebar,body.has-tabs #sec-swap .tool-panel{padding-left:var(--edge);padding-right:var(--edge);}
+  body.has-tabs #mkt-now .mn-title{margin-left:var(--edge);margin-right:var(--edge);}
+  body.has-tabs[data-tab="deriv"] #sec-liq > .rsec-hdr{margin-left:var(--edge) !important;margin-right:var(--edge) !important;}
+  body.has-tabs .calm-in{padding-left:14px;padding-right:14px;}
+  body.has-tabs .tab-answer{padding-left:var(--edge);padding-right:var(--edge);}
+  body.has-tabs #ob-start,body.has-tabs #since-card{margin-left:var(--edge) !important;margin-right:var(--edge) !important;}
+}
+
+/* ══ DARK PALETTE (2026-11-24, from the "Rotator Tool" palette Daniel
+   brought, with his own rule on top: the accent is ONLY for buttons).
+   Base #0A0C10, nav #0E1117, cards #12151C; text #E8EEF6, muted #7A8BA3
+   (5.3:1 on cards, was 3.4:1); up #34D399, down #F87171; gold #F0B429 on
+   call-to-action buttons only. Active tabs, labels and lines that were
+   gold use the text colour, like the Green light theme uses its dark. ══ */
+:root:not(.light){
+  --dk-gold:#F0B429; --dk-gold2:#F6C24A; --dk-ink:#14110A; --dk-text:#E8EEF6;
+  --bg:#0A0C10; --bg2:#0E1117; --bg3:#12151C; --bg4:#171B24; --bgz:#0E1117;
+  --text:#E8EEF6; --fg:#E8EEF6; --muted:#7A8BA3;
+  --green:#34D399; --gd:rgba(52,211,153,.12);
+  --red:#F87171; --rd:rgba(248,113,113,.12);
+  --bnb:var(--dk-text); --bnbd:rgba(232,238,246,.06);
+  --pro:var(--dk-text); --prod:rgba(232,238,246,.08);
+  --tooltip-bg:rgba(14,17,23,.97);
+}
+/* the Pro box on the rail: a card, not purple */
+:root:not(.light) .rail-pro{background:var(--bg3) !important;color:var(--text) !important;border:1px solid var(--bdr2) !important;}
+/* purple pills in the Pro, Support and coin windows: quiet outlines */
+:root:not(.light) #pro-modal button:not(.modal-x),:root:not(.light) #pro-modal .code-btn,:root:not(.light) #pro-modal .refx-copy,:root:not(.light) #pro-modal .refx-ch,:root:not(.light) #pro-modal a.btn,
+:root:not(.light) #pro-modal .pro-places,:root:not(.light) #pro-modal .refx-count,
+:root:not(.light) body.has-tabs #donate-modal button:not(.modal-x),:root:not(.light) body.has-tabs #donate-modal .community-btn,
+:root:not(.light) body.has-tabs .td-expanded .tdx-sw-new,
+:root:not(.light) body.has-tabs .tile-detail .td-story-go,:root:not(.light) body.has-tabs .tile-detail .td-share-card-btn,:root:not(.light) body.has-tabs .tile-detail .td-expand{
+  background:var(--bg3) !important;color:var(--text) !important;border-color:rgba(232,238,246,.28) !important;
+}
+:root:not(.light) #pro-modal .plb-col.pro,:root:not(.light) #pro-modal .plb-offer,:root:not(.light) body.has-tabs #donate-modal .sp-col.sp-pro{border-color:var(--bdr2) !important;}
+:root:not(.light) #pro-modal .plb-col.pro,:root:not(.light) body.has-tabs #donate-modal .sp-col.sp-pro{background:var(--bg3) !important;}
+/* gold: buttons that take you somewhere, nothing else */
+:root:not(.light) :is(.rail-pro .rp-btn, .consent-accept-btn, .ob-go, .tut-btn.primary, .rr-primary, .rcs-primary, .ca-tg-btn),
+:root:not(.light) #pro-modal #plb-go{
+  background:var(--dk-gold) !important;color:var(--dk-ink) !important;border-color:var(--dk-gold) !important;box-shadow:0 6px 18px rgba(0,0,0,.35) !important;text-shadow:none !important;
+}
+:root:not(.light) :is(.rail-pro .rp-btn, .consent-accept-btn, .ob-go, .tut-btn.primary, .rr-primary, .rcs-primary, .ca-tg-btn):hover,
+:root:not(.light) #pro-modal #plb-go:hover{background:var(--dk-gold2) !important;}
+/* keyboard focus: a thin gold ring, no glow */
+:root:not(.light) :is(a, button):focus-visible{outline:2px solid var(--dk-gold);outline-offset:2px;}

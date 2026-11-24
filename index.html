@@ -931,6 +931,21 @@ html:is([lang="ar"],[lang="ur"]) .td-hint{letter-spacing:0;font-family:var(--ui)
 }
 :root.light :is(.btn-gold, .btn-tg, .ans-cta, .te-go, .ev-go):hover{background:var(--pl-acc2) !important;}
 </style>
+<style>
+/* DARK PALETTE (2026-11-24): same as the board (styles.css end): base #0A0C10,
+   cards #12151C, text #E8EEF6, muted #7A8BA3, up #34D399, down #F87171, gold
+   #F0B429 on call-to-action buttons only. */
+:root:not(.light){
+  --bg:#0A0C10; --bg2:#0E1117; --card:#12151C; --panel:rgba(232,238,246,.035); --panel-b:rgba(232,238,246,.09);
+  --text:#E8EEF6; --muted:#7A8BA3; --dim:#7A8BA3;
+  --gold:#F0B429; --gold2:#F6C24A; --gold-ink:#E8EEF6;
+  --green:#34D399; --red:#F87171;
+  --glow-a:transparent; --glow-b:transparent;
+}
+:root:not(.light) .grad{background-image:none !important; -webkit-text-fill-color:#E8EEF6; color:#E8EEF6;}
+:root:not(.light) :is(.btn-gold, .ans-cta, .te-go, .ev-go){background:#F0B429 !important; color:#14110A !important; border-color:#F0B429 !important; box-shadow:0 6px 18px rgba(0,0,0,.35) !important;}
+:root:not(.light) :is(.btn-gold, .ans-cta, .te-go, .ev-go):hover{background:#F6C24A !important;}
+</style>
 </head>
 <body>
 <header class="top">
