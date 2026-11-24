@@ -118,7 +118,6 @@
      not live says "example". Scroll engine: js/scroll-scene.js. Follows the
      board's theme: js/theme-mode.js (Auto by time of day, Light, Dark). -->
 <script src="js/theme-mode.js"></script>
-<script src="palette-lab.js"></script><!-- PALETTE LAB: remove before push -->
 <script defer src="https://cloud.umami.is/script.js" data-website-id="77a817bc-ca03-4680-83b2-c914f8efaa6e"></script>
 <style>
 :root{
@@ -905,7 +904,33 @@ html:is([lang="ar"],[lang="ur"]) .td-hint{letter-spacing:0;font-family:var(--ui)
   .co-arr,.pb-bell,.play-cue,.live::before,.cf-bar i,.lq.hl,.scroll-cue i::after,.scroll-cue svg{animation:none !important;}
 }
 </style>
-<link rel="stylesheet" href="palette-lab.css"><!-- PALETTE LAB: remove before push -->
+<style>
+/* PALETTE 60/30/10, light theme (2026-11-24, "Green"): Bone 60 / Bottle Green 30 /
+   Vermilion 10 on CTA buttons only. Board copy in styles.css (end). */
+:root.light{
+  --pl-bg:#EFE7DA; --pl-card:#F8F4EC; --pl-deep:#E4D9C6;
+  --pl-dark:#0F372B; --pl-dark2:#174A3A; --pl-ink:#12261F; --pl-mute:#4E5F56;
+  --pl-on-dark:#EFE7DA; --pl-on-dark-mute:rgba(239,231,218,.62);
+  --pl-acc:#E8392B; --pl-acc2:#F04A3C;
+  --bg:var(--pl-bg); --bg2:var(--pl-deep); --text:var(--pl-ink); --muted:var(--pl-mute); --dim:var(--pl-mute);
+  --gold:var(--pl-dark); --gold2:var(--pl-dark2); --gold-ink:var(--pl-dark);
+  --panel:var(--pl-card); --panel-b:rgba(28,28,28,.10); --card:var(--pl-card);
+  --glow-a:transparent; --glow-b:transparent;
+}
+:root.light .top{
+  background:var(--pl-dark) !important; color:var(--pl-on-dark);
+  --text:var(--pl-on-dark); --muted:var(--pl-on-dark-mute); --dim:var(--pl-on-dark-mute);
+  --panel:rgba(255,255,255,.08); --panel-b:rgba(255,255,255,.16); --gold-ink:var(--pl-on-dark);
+}
+:root.light .top .btn-ghost{background:rgba(255,255,255,.08) !important; color:var(--pl-on-dark) !important; border-color:rgba(255,255,255,.18) !important;}
+:root.light h1, :root.light h2{color:var(--pl-dark);}
+:root.light .grad{background-image:none !important; -webkit-text-fill-color:var(--pl-dark); color:var(--pl-dark);}
+:root.light :is(.btn-gold, .btn-tg, .ans-cta, .te-go, .ev-go){
+  background:var(--pl-acc) !important; color:#fff !important; border-color:var(--pl-acc) !important;
+  box-shadow:0 6px 18px rgba(0,0,0,.12) !important; text-shadow:none !important;
+}
+:root.light :is(.btn-gold, .btn-tg, .ans-cta, .te-go, .ev-go):hover{background:var(--pl-acc2) !important;}
+</style>
 </head>
 <body>
 <header class="top">

@@ -8805,3 +8805,75 @@ body.has-tabs #sec-record .rec-wip-btn{border-radius:10px;padding:8px 16px;backg
   body.has-tabs #ch-trackrecord .collapse-hdr-left{flex-wrap:wrap;row-gap:4px;min-width:0;}
   body.has-tabs #ch-trackrecord .collapse-hdr-title{white-space:nowrap;flex:none;}
 }
+
+/* ══ PALETTE 60/30/10, light theme (2026-11-24, Daniel picked "Green" from a
+   two-palette trial). 60% Bone #EFE7DA: page and cards. 30% Bottle Green
+   #0F372B: top bar, left rail, phone bars, titles; it replaces gold and the
+   Pro purple. 10% Vermilion #E8392B: ONLY buttons that take you somewhere
+   (CTA). Market up/down colours (--green/--red) are data and stay. The dark
+   theme is untouched. Same palette in index.html (landing). ══ */
+:root.light{
+  --pl-bg:#EFE7DA; --pl-card:#F8F4EC; --pl-deep:#E4D9C6;
+  --pl-dark:#0F372B; --pl-ink:#12261F; --pl-mute:#4E5F56;
+  --pl-on-dark:#EFE7DA; --pl-on-dark-mute:rgba(239,231,218,.62);
+  --pl-acc:#E8392B; --pl-acc2:#F04A3C;
+  --bg:var(--pl-bg); --bg2:var(--pl-deep); --bg3:var(--pl-card); --bg4:var(--pl-deep); --bgz:var(--pl-card);
+  --text:var(--pl-ink); --fg:var(--pl-ink); --muted:var(--pl-mute);
+  --bdr:rgba(28,28,28,.10); --bdr2:rgba(28,28,28,.16);
+  --bnb:var(--pl-dark); --bnbd:rgba(28,28,28,.06);
+  --pro:var(--pl-dark); --prod:rgba(28,28,28,.07);
+  --tooltip-bg:var(--pl-card);
+}
+/* 30%: the dark frame */
+:root.light body > header,
+:root.light .topbar,
+:root.light #rail,
+:root.light .mob-nav,
+:root.light .mob-topbar{
+  background:var(--pl-dark) !important; color:var(--pl-on-dark);
+  --text:var(--pl-on-dark); --fg:var(--pl-on-dark); --muted:var(--pl-on-dark-mute);
+  --bnb:var(--pl-on-dark); --pro:var(--pl-on-dark); --prod:rgba(255,255,255,.10);
+  --bdr:rgba(255,255,255,.10); --bdr2:rgba(255,255,255,.18);
+  --w005:rgba(255,255,255,.05); --w01:rgba(255,255,255,.09); --w015:rgba(255,255,255,.14);
+  --bg2:rgba(255,255,255,.06); --bg3:rgba(255,255,255,.10); --bg4:rgba(255,255,255,.08); --bgz:rgba(255,255,255,.10);
+}
+:root.light .topbar a,
+:root.light .topbar button,
+:root.light #rail a{color:var(--pl-on-dark-mute);}
+:root.light .topbar a.on,
+:root.light .topbar a.active,
+:root.light #rail a.on,
+:root.light #rail a.active{color:var(--pl-on-dark);}
+/* the Pro box on the dark rail: a bone card, no pink */
+:root.light .rail-pro{
+  background:var(--pl-card) !important; border-color:transparent !important; color:var(--pl-ink);
+  --text:var(--pl-ink); --muted:var(--pl-mute); --bnb:var(--pl-dark);
+}
+:root.light .rail-pro *{color:inherit;}
+:root.light h1,
+:root.light h2{color:var(--pl-dark);}
+/* 10%: the accent, CTA buttons only */
+:root.light :is(.rp-btn, .consent-accept-btn, .tut-btn.primary, .rr-primary, .rcs-primary, .ca-tg-btn){
+  background:var(--pl-acc) !important; color:#fff !important; border-color:var(--pl-acc) !important;
+  box-shadow:0 6px 18px rgba(0,0,0,.12) !important; text-shadow:none !important;
+}
+:root.light :is(.rp-btn, .consent-accept-btn, .tut-btn.primary, .rr-primary, .rcs-primary, .ca-tg-btn):hover{background:var(--pl-acc2) !important;}
+/* Pro window, Support window and coin window: the light-purple pills become
+   bone pills with a bottle-green line (secondary); the one main action in a
+   window is vermilion. */
+:root.light #pro-modal button:not(.modal-x),:root.light #pro-modal .code-btn,:root.light #pro-modal .refx-copy,:root.light #pro-modal .refx-ch,:root.light #pro-modal a.btn,
+:root.light #pro-modal .pro-places,:root.light #pro-modal .refx-count,
+:root.light body.has-tabs #donate-modal button:not(.modal-x),:root.light body.has-tabs #donate-modal .community-btn,
+:root.light body.has-tabs .td-expanded .tdx-sw-new,
+:root.light body.has-tabs .tile-detail .td-story-go,:root.light body.has-tabs .tile-detail .td-share-card-btn,:root.light body.has-tabs .tile-detail .td-expand{
+  background:var(--pl-card) !important; color:var(--pl-dark) !important; border-color:var(--pl-dark) !important;
+}
+:root.light #pro-modal #plb-go{background:var(--pl-acc) !important; color:#fff !important; border-color:var(--pl-acc) !important;}
+:root.light #pro-modal #plb-go:hover{background:var(--pl-acc2) !important;}
+/* coin window: the yellow notebook page becomes a bone page (holes stay) */
+:root.light .tile-detail{
+  background:linear-gradient(180deg, #F8F4EC 0%, #F1EADD 100%) !important;
+  border-color:rgba(15,55,43,.18) !important;
+}
+:root.light .td-ctab-ri{color:var(--pl-dark);border-color:rgba(15,55,43,.45);}
+:root.light .td-ctab-ri.on{background:var(--pl-dark);color:var(--pl-on-dark);border-color:var(--pl-dark);}
