@@ -1660,7 +1660,10 @@ async function doLoad() {
        only the short minimum. _pendingDeepLinkCoin is read at script load,
        before anything cleans the address. */
     var _coinVisit = !!_pendingDeepLinkCoin;
-    await sleep(Math.max(320, (_coinVisit ? 320 : 2500) - performance.now()));
+    /* 2026-11-24: no floor any more. The cover starts hidden and the
+       board shows skeleton rows while the data loads, so waiting here
+       would only delay the auto-refresh. _coinVisit kept for readers. */
+    void _coinVisit;
     document.getElementById('loader').classList.add('gone');
     startAutoRefresh();
     /* Activate referral: proves this user actually loaded data (anti-abuse) */
@@ -1668,6 +1671,8 @@ async function doLoad() {
   } catch(e) {
     var lmsg = document.getElementById('lmsg');
     if (lmsg) lmsg.textContent = 'ERROR: ' + e.message;
+    var ldr = document.getElementById('loader');   /* the cover starts hidden; show it for the error */
+    if (ldr) ldr.classList.remove('gone');
     var lbf = document.getElementById('load-ecg-fill');
     if (lbf) lbf.style.stroke = 'var(--red)';
     console.error('[doLoad]', e);

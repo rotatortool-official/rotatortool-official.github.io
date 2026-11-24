@@ -8833,6 +8833,7 @@ body.has-tabs #sec-record .rec-wip-btn{border-radius:10px;padding:8px 16px;backg
   background:var(--pl-dark) !important; color:var(--pl-on-dark);
   --text:var(--pl-on-dark); --fg:var(--pl-on-dark); --muted:var(--pl-on-dark-mute);
   --bnb:var(--pl-on-dark); --pro:var(--pl-on-dark); --prod:rgba(255,255,255,.10);
+  --red:#FF8F86; --green:#5FE0A8;   /* up/down stay readable on the dark bar */
   --bdr:rgba(255,255,255,.10); --bdr2:rgba(255,255,255,.18);
   --w005:rgba(255,255,255,.05); --w01:rgba(255,255,255,.09); --w015:rgba(255,255,255,.14);
   --bg2:rgba(255,255,255,.06); --bg3:rgba(255,255,255,.10); --bg4:rgba(255,255,255,.08); --bgz:rgba(255,255,255,.10);
@@ -8877,3 +8878,45 @@ body.has-tabs #sec-record .rec-wip-btn{border-radius:10px;padding:8px 16px;backg
 }
 :root.light .td-ctab-ri{color:var(--pl-dark);border-color:rgba(15,55,43,.45);}
 :root.light .td-ctab-ri.on{background:var(--pl-dark);color:var(--pl-on-dark);border-color:var(--pl-dark);}
+
+/* ══ LOADING AS ANTICIPATION (2026-11-24, Daniel: "skeleton tiles that glow
+   pulsating in left to right like normal reading, before content is
+   loading - so instead of waiting we build anticipation"). The full-screen
+   cover starts hidden (board.html); the summary cards draw skeleton lines
+   (js/calm-tabs.js) whose shine sweeps left to right, each line 110 ms
+   after the one above, then rests: the eye reads down the card. When the
+   data lands the card fades in over 260 ms and its numbers count up once
+   in 700 ms (js/count-up.js). ══ */
+:root{--sk-base:rgba(255,255,255,.06);--sk-hi:rgba(255,255,255,.16);}
+:root.light{--sk-base:rgba(15,55,43,.08);--sk-hi:rgba(255,255,255,.85);}
+.loader.gone{visibility:hidden;}
+.calm-skel{margin:4px 0 2px;}
+.sk-bar{display:block;height:12px;width:var(--w,60%);max-width:100%;border-radius:6px;
+  background:linear-gradient(90deg,var(--sk-base) 0%,var(--sk-base) 38%,var(--sk-hi) 50%,var(--sk-base) 62%,var(--sk-base) 100%);
+  background-size:300% 100%;background-position:100% 0;
+  animation:sk-read 1.9s cubic-bezier(.45,0,.25,1) infinite;animation-delay:calc(var(--i,0) * 110ms);}
+@keyframes sk-read{0%{background-position:100% 0;}55%,100%{background-position:0 0;}}
+.sk-sum .sk-bar{height:15px;margin:2px 0 9px;}
+.sk-sum{margin-bottom:12px;}
+.sk-g{margin:0 0 6px;}
+.sk-bar.sk-t{height:9px;margin:12px 0 8px;border-radius:4px;}
+.sk-row{display:flex;align-items:center;min-height:46px;padding:0 12px;margin:0 0 4px;border:1px solid var(--bdr);border-radius:10px;background:var(--bg3);}
+.sk-row .sk-bar{height:11px;margin:0;}
+.calm-arrive{animation:calm-arrive 260ms cubic-bezier(.16,1,.3,1) both;}
+@keyframes calm-arrive{from{opacity:.35;}to{opacity:1;}}
+.counting{font-variant-numeric:tabular-nums;}
+@media (prefers-reduced-motion: reduce){
+  .sk-bar{animation:none;background:var(--sk-base);}
+  .calm-arrive{animation:none;}
+}
+/* Light text on every fill that was gold and is now bottle green (Daniel,
+   2026-11-24: "letters hard to read in selected tile make them white").
+   .tr-pro sits on the dark rail, where --bnb is bone, so it keeps dark text. */
+:root.light :is(.tab-pills a.on, .calm-mode button.on, .mw-per button.on, .mw-act .mw-share,
+  .lens-btn.on, .btcg-share, .modal-share, .ahm-confirm-btn){color:var(--pl-on-dark) !important;}
+/* "Show my coins" in the first card is a main action: vermilion */
+:root.light .ob-go{background:var(--pl-acc);color:#fff;}
+:root.light .ob-go:hover{background:var(--pl-acc2);}
+/* contrast fixes found by the sweep (2026-11-24) */
+:root.light .footer-news b{color:var(--pl-dark);}
+:root.light .footer-disclaimer span[style*="8899aa"]{color:var(--pl-mute) !important;}

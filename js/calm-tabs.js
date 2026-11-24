@@ -356,6 +356,22 @@
     st.sig = sig;
     var c = CFG[tab], i = 0, day = '';
     if (tab === 'today') day = new Date().toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long' });
+    /* Loading (2026-11-24, Daniel: "skeleton tiles that glow pulsating in
+       left to right like normal reading, before content is loading"): the
+       sentence and the rows that are not there yet are skeleton lines whose
+       shine sweeps left to right, one line after another in reading order.
+       When the numbers land they count up once (js/count-up.js). */
+    var loading = B.sum === 'The numbers are loading.';
+    var skel = '';
+    if (loading) {
+      var si = 0, bar = function (w, cls) { return '<span class="sk-bar' + (cls ? ' ' + cls : '') + '" style="--w:' + w + '%;--i:' + (si++) + '"></span>'; };
+      skel = '<div class="calm-skel" aria-hidden="true"><div class="sk-sum">' + bar(92) + bar(58) + '</div>'
+        + [2, 3].map(function (n) {
+          var h = '<div class="sk-g">' + bar(26, 'sk-t');
+          for (var k = 0; k < n; k++) h += '<div class="sk-row">' + bar([70, 52, 78][k]) + '</div>';
+          return h + '</div>';
+        }).join('') + '</div><p class="sr-only" role="status">Loading the numbers…</p>';
+    }
     var sum = esc(B.sum);
     if (B.sumTone) { var sp = B.sum.indexOf(' '); sum = '<b class="' + B.sumTone + '">' + esc(B.sum.slice(0, sp)) + '</b>' + esc(B.sum.slice(sp)); }
     el.innerHTML = '<div class="calm-in">'
@@ -365,7 +381,7 @@
       + '<span class="calm-mode" role="group" aria-label="View"><button type="button" data-calm-tab="' + tab + '" data-calm-view="lite"' + (L ? ' class="on" aria-pressed="true"' : ' aria-pressed="false"') + '>Lite</button>'
       + '<button type="button" data-calm-tab="' + tab + '" data-calm-view="adv"' + (L ? ' aria-pressed="false"' : ' class="on" aria-pressed="true"') + '>Advanced</button></span>'
       + '</div>'
-      + '<p class="calm-sum">' + sum + '</p>'
+      + (loading ? skel : '<p class="calm-sum">' + sum + '</p>')
       + B.groups.map(function (gr) {
         return '<div class="calm-g' + (gr.tone ? ' ' + gr.tone : '') + '"><div class="calm-gt">' + esc(gr.t) + '</div>' + gr.rows.map(function (r) {
           var isOn = r.step && r.step === st.open;
@@ -381,6 +397,15 @@
       + (done ? ' You have opened every part here. <button type="button" class="calm-link" data-calm-tab="' + tab + '" data-calm-view="adv">Advanced</button> shows them all at once.' : '')
       + '</p></div>';
     el.hidden = false;
+    /* First real numbers on this tab: a short fade from the skeleton, then
+       the numbers count up once, when the card is on screen. */
+    if (!loading && !st.counted && host.CountUp) {
+      st.counted = true;
+      var inner = el.querySelector('.calm-in');
+      if (st.wasLoading && inner) inner.classList.add('calm-arrive');
+      [].forEach.call(el.querySelectorAll('.calm-sum, .calm-t'), function (n) { host.CountUp.whenSeen(n, { ms: 700 }); });
+    }
+    st.wasLoading = loading;
   }
 
   function over() {
